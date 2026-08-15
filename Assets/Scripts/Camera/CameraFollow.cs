@@ -1,16 +1,18 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class CameraFollow : MonoBehaviour
 {
     [Header("Target")]
+    [Tooltip("Mục tiêu mà Camera sẽ bám theo (thường là Transform của Player).")]
     [SerializeField] private Transform target;
 
     [Header("Camera Follow")]
-    [Tooltip("0 = bám ngay lập tức. Giá trị khoảng 8-15 thường rất mượt.")]
+    [Tooltip("Tốc độ bám theo mục tiêu. 0 = bám ngay lập tức. Giá trị khoảng 8-15 thường rất mượt.")]
     [SerializeField, Range(0f, 30f)]
     private float followSpeed = 12f;
 
     [Header("Offset")]
+    [Tooltip("Độ lệch vị trí giữa Camera và mục tiêu.")]
     [SerializeField] private Vector2 offset = Vector2.zero;
 
     [Header("Anti Jitter")]

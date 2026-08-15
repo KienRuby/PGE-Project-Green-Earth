@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
@@ -8,9 +8,11 @@ using UnityEngine.InputSystem;
 public class PlayerMovement : MonoBehaviour
 {
     [Header("Movement")]
+    [Tooltip("Tốc độ di chuyển của Player.")]
     [SerializeField] private float moveSpeed = 5f;
 
     [Header("Mobile")]
+    [Tooltip("Tham chiếu tới VirtualJoystick trên UI điều khiển cho điện thoại/cảm ứng.")]
     [SerializeField] private VirtualJoystick joystick;
 
     private Rigidbody2D rb;

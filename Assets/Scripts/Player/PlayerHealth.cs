@@ -1,13 +1,14 @@
-﻿using System;
+using System;
 using UnityEngine;
 
 public class PlayerHealth : MonoBehaviour, IDamageable
 {
     [Header("Health")]
+    [Tooltip("Lượng máu tối đa của Player.")]
     [SerializeField] private int maxHealth = 100;
 
     [Header("Damage Protection")]
-    [Tooltip("Thời gian bất tử sau khi nhận damage.")]
+    [Tooltip("Thời gian bất tử sau khi nhận sát thương (giúp tránh bị mất máu dồn dập).")]
     [SerializeField] private float invincibleTime = 0.3f;
 
     public int CurrentHealth { get; private set; }

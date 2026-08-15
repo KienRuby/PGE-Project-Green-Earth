@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d23999da3a84d5097f753d081c7011b, type: 3}
+  m_Name: GatlingGun
+  m_EditorClassIdentifier: 
+  weaponId: gatling
+  weaponName: Heavy Gatling Minigun
+  weaponIcon: {fileID: 0}
+  gunSprite: {fileID: 21300000, guid: af34d433627f427e93070e1befc7dc85, type: 3}
+  gunScale: {x: 0.4, y: 0.4, z: 1}
+  firePointOffset: {x: 1.8, y: 0.1}
+  fireRate: 8
+  attackRange: 14
+  damage: 15
+  bulletSpeed: 16
+  bulletsPerShot: 1
+  spreadAngle: 10
+  projectilePrefab: {fileID: 9176291970807468248, guid: 7a360c9f713fe5b4ebd236256f3bb53b, type: 3}

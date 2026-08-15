@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.EventSystems;
 
 public class VirtualJoystick : MonoBehaviour,
@@ -7,13 +7,18 @@ public class VirtualJoystick : MonoBehaviour,
     IPointerUpHandler
 {
     [Header("Joystick")]
+    [Tooltip("RectTransform của vòng tròn nền Joystick.")]
     [SerializeField] private RectTransform background;
+
+    [Tooltip("RectTransform của núm gạt điều khiển bên trong Joystick.")]
     [SerializeField] private RectTransform handle;
 
+    [Tooltip("Phạm vi di chuyển tối đa của núm gạt so với bán kính của nền.")]
     [Range(0.1f, 1f)]
     [SerializeField] private float handleRange = 0.65f;
 
     [Header("Dynamic Joystick")]
+    [Tooltip("Tự động ép vị trí hiển thị Joystick nằm trọn bên trong vùng cảm ứng, không bị khuất mép màn hình.")]
     [SerializeField] private bool keepInsideScreen = true;
 
     private RectTransform touchArea;
