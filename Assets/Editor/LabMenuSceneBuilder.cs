@@ -273,14 +273,18 @@ public static class LabMenuSceneBuilder
         topTint.color = new Color32(7, 45, 65, 76);
         topTint.raycastTarget = false;
 
-        TMP_Text chipBalanceText = CreateTopBar(topBar);
+        CreateTopBar(
+            topBar,
+            out TMP_Text energyBalanceText,
+            out TMP_Text chipBalanceText,
+            out TMP_Text redChipBalanceText);
 
         RectTransform content = CreateRect("Content", canvasRect);
         Stretch(content, Vector2.zero, Vector2.one, new Vector2(0f, 220f), new Vector2(0f, -175f));
 
         GameObject[] panels = new GameObject[5];
         panels[0] = CreatePlaceholderPanel(content, "ShopPanel", "SHOP", "Equipment store is being prepared");
-        panels[1] = CreateLabPanel(content, chipBalanceText);
+        panels[1] = CreateLabPanel(content, energyBalanceText, chipBalanceText, redChipBalanceText);
         panels[2] = CreatePlaceholderPanel(content, "ChapterPanel", "CHAPTER", "Mission map is being prepared");
         panels[3] = CreatePlaceholderPanel(content, "ChipsetPanel", "CHIPSET", "Chip configuration is being prepared");
         panels[4] = CreatePlaceholderPanel(content, "BuddyPanel", "BUDDY", "Drone hangar is being prepared");
@@ -294,14 +298,17 @@ public static class LabMenuSceneBuilder
         return canvas;
     }
 
-    private static TMP_Text CreateTopBar(RectTransform parent)
+    private static void CreateTopBar(
+        RectTransform parent,
+        out TMP_Text energyBalanceText,
+        out TMP_Text chipBalanceText,
+        out TMP_Text redChipBalanceText)
     {
-        CreateResourceDisplay(parent, "Energy", 0.025f, 0.265f, "energy", "30/50", "offline", Cream);
-        TMP_Text chips = CreateResourceDisplay(parent, "ChipCurrency", 0.285f, 0.525f, "chip-currency", "700", string.Empty, Cream);
-        CreateResourceDisplay(parent, "RedCurrency", 0.545f, 0.765f, "red-currency", "10", string.Empty, Cream);
+        energyBalanceText = CreateResourceDisplay(parent, "Energy", 0.025f, 0.265f, "energy", "30/100", "offline", Cream);
+        chipBalanceText = CreateResourceDisplay(parent, "ChipCurrency", 0.285f, 0.525f, "chip-currency", "700", string.Empty, Cream);
+        redChipBalanceText = CreateResourceDisplay(parent, "RedCurrency", 0.545f, 0.765f, "red-currency", "10", string.Empty, Cream);
         CreateTopIconButton(parent, "MailButton", 0.79f, 0.885f, "mail");
         CreateTopIconButton(parent, "SettingButton", 0.895f, 0.99f, "settings");
-        return chips;
     }
 
     private static TMP_Text CreateResourceDisplay(
@@ -347,7 +354,11 @@ public static class LabMenuSceneBuilder
         button.targetGraphic = icon;
     }
 
-    private static GameObject CreateLabPanel(RectTransform parent, TMP_Text chipBalanceText)
+    private static GameObject CreateLabPanel(
+        RectTransform parent,
+        TMP_Text energyBalanceText,
+        TMP_Text chipBalanceText,
+        TMP_Text redChipBalanceText)
     {
         RectTransform panel = CreateRect("LabPanel", parent);
         Stretch(panel, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
@@ -401,6 +412,13 @@ public static class LabMenuSceneBuilder
             7f, 7f, 6f, 6f,
             5f, 5f, 4f, 4f
         };
+        Color[] rarityBackgroundColors =
+        {
+            new Color32(48, 94, 111, 255),
+            new Color32(38, 82, 145, 255),
+            new Color32(94, 55, 142, 255),
+            new Color32(170, 128, 35, 255)
+        };
         SlotView[] slotViews = new SlotView[16];
 
         for (int i = 0; i < slotViews.Length; i++)
@@ -412,6 +430,7 @@ public static class LabMenuSceneBuilder
                 itemNames[i],
                 itemIconNames[i],
                 out slotViews[i]);
+            slotViews[i].slotBackground.color = rarityBackgroundColors[i / 4];
         }
 
         GameObject upgradeRoot = CreateFrame("UpgradeButton", statsPanel, new Color32(86, 183, 107, 255), Cream, out Image upgradeBackground);
@@ -447,7 +466,9 @@ public static class LabMenuSceneBuilder
         LabUpgradeController controller = panel.gameObject.AddComponent<LabUpgradeController>();
         SerializedObject serializedController = new SerializedObject(controller);
         serializedController.FindProperty("upgradeButton").objectReferenceValue = upgradeButton;
+        serializedController.FindProperty("energyBalanceText").objectReferenceValue = energyBalanceText;
         serializedController.FindProperty("chipBalanceText").objectReferenceValue = chipBalanceText;
+        serializedController.FindProperty("redChipBalanceText").objectReferenceValue = redChipBalanceText;
         serializedController.FindProperty("priceText").objectReferenceValue = priceText;
         serializedController.FindProperty("resultText").objectReferenceValue = resultText;
         serializedController.FindProperty("upgradeBackground").objectReferenceValue = upgradeBackground;
@@ -459,6 +480,7 @@ public static class LabMenuSceneBuilder
             SerializedProperty item = items.GetArrayElementAtIndex(i);
             item.FindPropertyRelative("itemName").stringValue = itemNames[i];
             item.FindPropertyRelative("itemIcon").objectReferenceValue = slotViews[i].iconImage.sprite;
+            item.FindPropertyRelative("rarity").enumValueIndex = i / 4;
             item.FindPropertyRelative("dropWeight").floatValue = itemWeights[i];
             item.FindPropertyRelative("startsUnlocked").boolValue = false;
             item.FindPropertyRelative("startingLevel").intValue = 1;
