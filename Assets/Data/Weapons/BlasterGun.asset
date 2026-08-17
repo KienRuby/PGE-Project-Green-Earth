@@ -17,7 +17,7 @@ MonoBehaviour:
   weaponIcon: {fileID: 0}
   gunSprite: {fileID: 21300000, guid: 42c0f0a0bcd643f68e272d376b47343d, type: 3}
   gunScale: {x: 0.65, y: 0.65, z: 1}
-  firePointOffset: {x: 2.25, y: 0.38}
+  firePointOffset: {x: 2.25, y: 0.59}
   fireRate: 2.5
   attackRange: 12
   damage: 25
