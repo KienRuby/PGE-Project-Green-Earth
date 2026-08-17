@@ -14,6 +14,16 @@ using UnityEngine.UI;
 [InitializeOnLoad]
 public static class LabMenuSceneBuilder
 {
+    private sealed class SlotView
+    {
+        public GameObject lockedGroup;
+        public GameObject unlockedGroup;
+        public Image iconImage;
+        public TMP_Text levelText;
+        public TMP_Text nameText;
+        public Image slotBackground;
+    }
+
     private const string ScenePath = "Assets/Scenes/MainMenu.unity";
     private const string BackupScenePath = "Assets/Scenes/MainMenu.before-lab-ui.unity";
     private const string BackgroundPath = "Assets/UI/Lab/Generated/lab-background.png";
@@ -51,6 +61,13 @@ public static class LabMenuSceneBuilder
             return;
         }
 
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+        {
+            EditorApplication.isPlaying = false;
+            EditorApplication.delayCall += TryBuildRequestedScene;
+            return;
+        }
+
         BuildLabMenuScene();
         AssetDatabase.DeleteAsset(BuildRequestPath);
         AssetDatabase.Refresh();
@@ -72,7 +89,7 @@ public static class LabMenuSceneBuilder
         string previousPath = previousScene.path;
         bool replaceActiveMainMenu = string.Equals(previousPath, ScenePath, StringComparison.OrdinalIgnoreCase);
 
-        if (replaceActiveMainMenu)
+        if (replaceActiveMainMenu && !File.Exists(BackupScenePath))
         {
             EditorSceneManager.SaveScene(previousScene, BackupScenePath, true);
         }
@@ -325,6 +342,7 @@ public static class LabMenuSceneBuilder
         Stretch(root, new Vector2(minX, 1f), new Vector2(maxX, 1f), new Vector2(2f, -145f), new Vector2(-2f, -20f));
         Image icon = CreateIcon("Icon", root, iconName, 100f);
         Anchor(icon.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(98f, 98f));
+        icon.raycastTarget = true;
         Button button = root.gameObject.AddComponent<Button>();
         button.targetGraphic = icon;
     }
@@ -362,19 +380,45 @@ public static class LabMenuSceneBuilder
         gridLayout.padding = new RectOffset(24, 24, 12, 14);
         gridLayout.childAlignment = TextAnchor.UpperCenter;
 
-        TMP_Text levelText = null;
-        for (int i = 1; i <= 16; i++)
+        string[] itemNames =
         {
-            CreateUpgradeSlot(grid, i, i == 1, out TMP_Text slotLevelText);
-            if (i == 1)
-            {
-                levelText = slotLevelText;
-            }
+            "DEF", "ATK", "HP", "SPD",
+            "CRIT", "RANGE", "FIRE", "REGEN",
+            "DODGE", "ARMOR", "POWER", "TECH",
+            "LUCK", "GROWTH", "SHIELD", "DRONE"
+        };
+        string[] itemIconNames =
+        {
+            "armor", "shield", "plus", "energy",
+            "red-currency", "chapter", "lab", "leaf",
+            "buddy", "armor", "chip-currency", "chipset",
+            "mail", "shop", "shield", "buddy"
+        };
+        float[] itemWeights =
+        {
+            14f, 12f, 12f, 10f,
+            8f, 10f, 8f, 8f,
+            7f, 7f, 6f, 6f,
+            5f, 5f, 4f, 4f
+        };
+        SlotView[] slotViews = new SlotView[16];
+
+        for (int i = 0; i < slotViews.Length; i++)
+        {
+            CreateUpgradeSlot(
+                grid,
+                i + 1,
+                false,
+                itemNames[i],
+                itemIconNames[i],
+                out slotViews[i]);
         }
 
         GameObject upgradeRoot = CreateFrame("UpgradeButton", statsPanel, new Color32(86, 183, 107, 255), Cream, out Image upgradeBackground);
         RectTransform upgradeRect = upgradeRoot.GetComponent<RectTransform>();
         Anchor(upgradeRect, new Vector2(0.5f, 0f), new Vector2(0f, 40f), new Vector2(470f, 165f), new Vector2(0.5f, 0f));
+        // The Button needs a raycastable target graphic to receive pointer clicks.
+        upgradeBackground.raycastTarget = true;
         Button upgradeButton = upgradeRoot.AddComponent<Button>();
         upgradeButton.targetGraphic = upgradeBackground;
 
@@ -387,6 +431,15 @@ public static class LabMenuSceneBuilder
         Image priceIcon = CreateIcon("CurrencyIcon", upgradeRect, "chip-currency", 60f);
         Anchor(priceIcon.rectTransform, new Vector2(0.72f, 0.27f), Vector2.zero, new Vector2(58f, 58f));
 
+        TMP_Text resultText = CreateText(
+            "RollResultText",
+            statsPanel,
+            "ROLL FOR A RANDOM UPGRADE",
+            25f,
+            new Color32(151, 240, 226, 255),
+            TextAlignmentOptions.Center);
+        Anchor(resultText.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 235f), new Vector2(720f, 45f));
+
         RectTransform buildBodyPanel = CreateRect("BuildBodyPanel", panel);
         Stretch(buildBodyPanel, Vector2.zero, Vector2.one, Vector2.zero, new Vector2(0f, -150f));
         buildBodyPanel.gameObject.SetActive(false);
@@ -395,9 +448,28 @@ public static class LabMenuSceneBuilder
         SerializedObject serializedController = new SerializedObject(controller);
         serializedController.FindProperty("upgradeButton").objectReferenceValue = upgradeButton;
         serializedController.FindProperty("chipBalanceText").objectReferenceValue = chipBalanceText;
-        serializedController.FindProperty("levelText").objectReferenceValue = levelText;
         serializedController.FindProperty("priceText").objectReferenceValue = priceText;
+        serializedController.FindProperty("resultText").objectReferenceValue = resultText;
         serializedController.FindProperty("upgradeBackground").objectReferenceValue = upgradeBackground;
+
+        SerializedProperty items = serializedController.FindProperty("items");
+        items.arraySize = slotViews.Length;
+        for (int i = 0; i < slotViews.Length; i++)
+        {
+            SerializedProperty item = items.GetArrayElementAtIndex(i);
+            item.FindPropertyRelative("itemName").stringValue = itemNames[i];
+            item.FindPropertyRelative("itemIcon").objectReferenceValue = slotViews[i].iconImage.sprite;
+            item.FindPropertyRelative("dropWeight").floatValue = itemWeights[i];
+            item.FindPropertyRelative("startsUnlocked").boolValue = false;
+            item.FindPropertyRelative("startingLevel").intValue = 1;
+            item.FindPropertyRelative("lockedGroup").objectReferenceValue = slotViews[i].lockedGroup;
+            item.FindPropertyRelative("unlockedGroup").objectReferenceValue = slotViews[i].unlockedGroup;
+            item.FindPropertyRelative("iconImage").objectReferenceValue = slotViews[i].iconImage;
+            item.FindPropertyRelative("levelText").objectReferenceValue = slotViews[i].levelText;
+            item.FindPropertyRelative("nameText").objectReferenceValue = slotViews[i].nameText;
+            item.FindPropertyRelative("slotBackground").objectReferenceValue = slotViews[i].slotBackground;
+        }
+
         serializedController.ApplyModifiedPropertiesWithoutUndo();
 
         return panel.gameObject;
@@ -424,6 +496,7 @@ public static class LabMenuSceneBuilder
         TMP_Text text = CreateText("Label", rect, label, 46f, selected ? Cream : new Color32(38, 94, 92, 255), TextAlignmentOptions.Center);
         Stretch(text.rectTransform, Vector2.zero, Vector2.one, new Vector2(10f, 5f), new Vector2(-10f, -5f));
 
+        background.raycastTarget = !locked;
         Button button = root.AddComponent<Button>();
         button.targetGraphic = background;
         button.interactable = !locked;
@@ -439,14 +512,16 @@ public static class LabMenuSceneBuilder
         RectTransform parent,
         int index,
         bool unlocked,
-        out TMP_Text levelText)
+        string itemName,
+        string itemIconName,
+        out SlotView view)
     {
         GameObject slot = CreateFrame(
             $"Slot{index:00}",
             parent,
             unlocked ? PanelSelected : Panel,
             unlocked ? Cream : TealBorder,
-            out _);
+            out Image slotBackground);
         RectTransform slotRect = slot.GetComponent<RectTransform>();
 
         RectTransform lockedGroup = CreateRect("LockedGroup", slotRect);
@@ -458,15 +533,25 @@ public static class LabMenuSceneBuilder
 
         RectTransform unlockedGroup = CreateRect("UnlockedGroup", slotRect);
         Stretch(unlockedGroup, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-        levelText = CreateText("LevelText", unlockedGroup, "LV.01", 29f, Yellow, TextAlignmentOptions.Center);
+        TMP_Text levelText = CreateText("LevelText", unlockedGroup, "LV.01", 29f, Yellow, TextAlignmentOptions.Center);
         Anchor(levelText.rectTransform, new Vector2(0.5f, 0.81f), Vector2.zero, new Vector2(180f, 44f));
-        Image armor = CreateIcon("StatIcon", unlockedGroup, "armor", 104f);
-        Anchor(armor.rectTransform, new Vector2(0.5f, 0.53f), Vector2.zero, new Vector2(104f, 104f));
-        TMP_Text statName = CreateText("StatName", unlockedGroup, "DEF", 36f, Cream, TextAlignmentOptions.Center);
+        Image itemIcon = CreateIcon("ItemIcon", unlockedGroup, itemIconName, 104f);
+        Anchor(itemIcon.rectTransform, new Vector2(0.5f, 0.53f), Vector2.zero, new Vector2(104f, 104f));
+        TMP_Text statName = CreateText("ItemName", unlockedGroup, itemName, 34f, Cream, TextAlignmentOptions.Center);
         Anchor(statName.rectTransform, new Vector2(0.5f, 0.18f), Vector2.zero, new Vector2(180f, 50f));
 
         lockedGroup.gameObject.SetActive(!unlocked);
         unlockedGroup.gameObject.SetActive(unlocked);
+
+        view = new SlotView
+        {
+            lockedGroup = lockedGroup.gameObject,
+            unlockedGroup = unlockedGroup.gameObject,
+            iconImage = itemIcon,
+            levelText = levelText,
+            nameText = statName,
+            slotBackground = slotBackground
+        };
     }
 
     private static GameObject CreatePlaceholderPanel(RectTransform parent, string name, string title, string subtitle)
@@ -512,6 +597,7 @@ public static class LabMenuSceneBuilder
             RectTransform rect = root.GetComponent<RectTransform>();
             Stretch(rect, new Vector2(i * 0.2f, 0f), new Vector2((i + 1) * 0.2f, 1f), new Vector2(4f, 6f), new Vector2(-4f, -6f));
 
+            backgrounds[i].raycastTarget = true;
             buttons[i] = root.AddComponent<Button>();
             buttons[i].targetGraphic = backgrounds[i];
             iconImages[i] = CreateIcon("Icon", rect, icons[i], 100f);

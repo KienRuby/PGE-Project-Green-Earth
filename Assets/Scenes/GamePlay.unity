@@ -301,7 +301,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 100
-  invincibleTime: 1e-11
+  invincibleTime: 0.1
 --- !u!114 &78188133
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -813,16 +813,16 @@ MonoBehaviour:
   - enemyPrefab: {fileID: 249402678474551263, guid: e9b7463808b4ee340950a632a574d9fa, type: 3}
     spawnWeight: 100
     unlockTime: 1
-  minSpawnRadius: 10
-  maxSpawnRadius: 14
+  minSpawnRadius: 5
+  maxSpawnRadius: 7
   baseSpawnInterval: 1.5
   enemiesPerSpawn: 2
   maxEnemiesAlive: 60
   difficultyScaleInterval: 30
   spawnRateIncrease: 0.1
   minSpawnInterval: 0.3
-  maxDespawnDistance: 25
-  despawnCheckInterval: 2
+  maxDespawnDistance: 15
+  despawnCheckInterval: 1
 --- !u!4 &983277090
 Transform:
   m_ObjectHideFlags: 0
