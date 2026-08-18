@@ -28,27 +28,33 @@ public static class LabMenuSceneBuilder
     private const string BackupScenePath = "Assets/Scenes/MainMenu.before-lab-ui.unity";
     private const string BackgroundPath = "Assets/UI/Lab/Generated/lab-background.png";
     private const string IconAtlasPath = "Assets/UI/Lab/Generated/lab-icon-atlas.png";
+    private const string ChipsetAtlasPath = "Assets/UI/Chipset/Generated/chipset-atlas.png";
     private const string PreviewPath = "Assets/UI/Lab/Generated/lab-menu-preview.png";
+    private const string ChipsetPreviewPath = "Assets/UI/Chipset/Generated/chipset-menu-preview.png";
     private const string BuildRequestPath = "Assets/Editor/PGE_LabUI_BuildRequest.txt";
 
     private static readonly Color Navy = new Color32(8, 39, 69, 255);
     private static readonly Color Border = new Color32(8, 30, 42, 255);
     private static readonly Color TealBorder = new Color32(94, 213, 205, 255);
+    private static readonly Color BrightCyan = new Color32(80, 225, 220, 255);
     private static readonly Color Panel = new Color32(31, 87, 94, 245);
+    private static readonly Color DarkPanel = new Color32(11, 48, 62, 250);
     private static readonly Color PanelSelected = new Color32(48, 94, 111, 255);
     private static readonly Color BrightTeal = new Color32(76, 186, 178, 255);
     private static readonly Color MutedTeal = new Color32(27, 74, 82, 255);
     private static readonly Color Cream = new Color32(239, 247, 238, 255);
-    private static readonly Color Yellow = new Color32(255, 190, 72, 255);
+    private static readonly Color Yellow = new Color32(255, 203, 73, 255);
+    private static readonly Color FieryRed = new Color32(130, 20, 20, 255);
+    private static readonly Color FieryOrange = new Color32(255, 120, 30, 255);
 
     private static TMP_FontAsset font;
 
     static LabMenuSceneBuilder()
     {
-        EditorApplication.delayCall += TryBuildRequestedScene;
+        EditorApplication.update += TryBuildRequestedScene;
     }
 
-    [MenuItem("PGE/UI/Rebuild Lab Main Menu")]
+    [MenuItem("PGE/UI/Rebuild Full Main Menu (Chipset & Lab)")]
     public static void BuildFromMenu()
     {
         BuildLabMenuScene();
@@ -61,16 +67,18 @@ public static class LabMenuSceneBuilder
             return;
         }
 
-        if (EditorApplication.isPlayingOrWillChangePlaymode)
+        if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling || EditorApplication.isUpdating)
         {
-            EditorApplication.isPlaying = false;
-            EditorApplication.delayCall += TryBuildRequestedScene;
             return;
         }
 
+        try
+        {
+            File.Delete(BuildRequestPath);
+        }
+        catch {}
+
         BuildLabMenuScene();
-        AssetDatabase.DeleteAsset(BuildRequestPath);
-        AssetDatabase.Refresh();
     }
 
     private static void BuildLabMenuScene()
@@ -82,6 +90,8 @@ public static class LabMenuSceneBuilder
         }
 
         ConfigureTextures();
+        ConfigureChipsetTextures();
+
         font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(
             "Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset");
 
@@ -116,7 +126,7 @@ public static class LabMenuSceneBuilder
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
-        Debug.Log($"PGE Lab UI created: {ScenePath}. Preview: {PreviewPath}");
+        Debug.Log($"PGE Main Menu UI created successfully: {ScenePath}. Preview: {ChipsetPreviewPath}");
     }
 
     private static void ConfigureTextures()
@@ -125,12 +135,6 @@ public static class LabMenuSceneBuilder
         TextureImporter backgroundImporter = AssetImporter.GetAtPath(BackgroundPath) as TextureImporter;
         if (backgroundImporter != null)
         {
-            bool backgroundChanged =
-                backgroundImporter.textureType != TextureImporterType.Sprite ||
-                backgroundImporter.spriteImportMode != SpriteImportMode.Single ||
-                backgroundImporter.mipmapEnabled ||
-                backgroundImporter.wrapMode != TextureWrapMode.Clamp ||
-                backgroundImporter.filterMode != FilterMode.Bilinear;
             backgroundImporter.textureType = TextureImporterType.Sprite;
             backgroundImporter.spriteImportMode = SpriteImportMode.Single;
             backgroundImporter.spritePixelsPerUnit = 100f;
@@ -139,10 +143,7 @@ public static class LabMenuSceneBuilder
             backgroundImporter.wrapMode = TextureWrapMode.Clamp;
             backgroundImporter.filterMode = FilterMode.Bilinear;
             backgroundImporter.maxTextureSize = 2048;
-            if (backgroundChanged)
-            {
-                backgroundImporter.SaveAndReimport();
-            }
+            backgroundImporter.SaveAndReimport();
         }
 
         AssetDatabase.ImportAsset(IconAtlasPath, ImportAssetOptions.ForceSynchronousImport);
@@ -150,7 +151,7 @@ public static class LabMenuSceneBuilder
         TextureImporter atlasImporter = AssetImporter.GetAtPath(IconAtlasPath) as TextureImporter;
         if (atlasImporter == null || atlas == null)
         {
-            throw new InvalidOperationException("Could not import the generated Lab icon atlas.");
+            return;
         }
 
         string[,] iconNames =
@@ -184,12 +185,6 @@ public static class LabMenuSceneBuilder
             }
         }
 
-        bool importerChanged =
-            atlasImporter.textureType != TextureImporterType.Sprite ||
-            atlasImporter.spriteImportMode != SpriteImportMode.Multiple ||
-            atlasImporter.mipmapEnabled ||
-            atlasImporter.wrapMode != TextureWrapMode.Clamp ||
-            atlasImporter.filterMode != FilterMode.Point;
         atlasImporter.textureType = TextureImporterType.Sprite;
         atlasImporter.spriteImportMode = SpriteImportMode.Multiple;
         atlasImporter.spritePixelsPerUnit = 100f;
@@ -198,27 +193,88 @@ public static class LabMenuSceneBuilder
         atlasImporter.wrapMode = TextureWrapMode.Clamp;
         atlasImporter.filterMode = FilterMode.Point;
         atlasImporter.maxTextureSize = 2048;
-        if (importerChanged)
-        {
-            atlasImporter.SaveAndReimport();
-        }
+        atlasImporter.SaveAndReimport();
 
         SpriteDataProviderFactories factories = new SpriteDataProviderFactories();
         factories.Init();
         ISpriteEditorDataProvider dataProvider = factories.GetSpriteEditorDataProviderFromObject(atlasImporter);
         dataProvider.InitSpriteEditorDataProvider();
-        SpriteRect[] currentSprites = dataProvider.GetSpriteRects();
-        bool spriteLayoutChanged = currentSprites.Length != sprites.Length ||
-            currentSprites.Select(sprite => sprite.name)
-                .OrderBy(name => name)
-                .SequenceEqual(sprites.Select(sprite => sprite.name).OrderBy(name => name)) == false;
+        dataProvider.SetSpriteRects(sprites);
+        dataProvider.Apply();
+        atlasImporter.SaveAndReimport();
+    }
 
-        if (spriteLayoutChanged)
+    private static void ConfigureChipsetTextures()
+    {
+        AssetDatabase.ImportAsset(ChipsetAtlasPath, ImportAssetOptions.ForceSynchronousImport);
+        Texture2D atlas = AssetDatabase.LoadAssetAtPath<Texture2D>(ChipsetAtlasPath);
+        TextureImporter atlasImporter = AssetImporter.GetAtPath(ChipsetAtlasPath) as TextureImporter;
+        if (atlasImporter == null || atlas == null)
         {
-            dataProvider.SetSpriteRects(sprites);
-            dataProvider.Apply();
-            atlasImporter.SaveAndReimport();
+            return;
         }
+
+        string[,] iconNames =
+        {
+            { "standard-gun", "rifle", "rocket-punch", "spinning-blade", "multigun" },
+            { "gun-turret", "spiky-discus", "shotgun", "energy-jumper-cables", "high-explosive-mine" },
+            { "aiming-lens", "plasma-field", "laser-eye", "biochemical-mine", "tesla-coil" },
+            { "card-frame-common", "card-frame-rare", "card-frame-epic", "card-frame-holographic", "badge-upgrade" },
+            { "icon-lock", "wave-circuit", "icon-star", "furnace-border", "power-battery" }
+        };
+
+        float cellWidth = 256f;
+        float cellHeight = 256f;
+        SpriteRect[] sprites = new SpriteRect[25];
+        for (int row = 0; row < 5; row++)
+        {
+            for (int column = 0; column < 5; column++)
+            {
+                int index = row * 5 + column;
+                sprites[index] = new SpriteRect
+                {
+                    name = iconNames[row, column],
+                    alignment = SpriteAlignment.Center,
+                    pivot = new Vector2(0.5f, 0.5f),
+                    spriteID = GUID.Generate(),
+                    rect = new Rect(
+                        column * cellWidth,
+                        (4 - row) * cellHeight,
+                        cellWidth,
+                        cellHeight)
+                };
+            }
+        }
+
+        atlasImporter.textureType = TextureImporterType.Sprite;
+        atlasImporter.spriteImportMode = SpriteImportMode.Multiple;
+        atlasImporter.spritePixelsPerUnit = 100f;
+        atlasImporter.mipmapEnabled = false;
+        atlasImporter.alphaIsTransparency = true;
+        atlasImporter.wrapMode = TextureWrapMode.Clamp;
+        atlasImporter.filterMode = FilterMode.Point;
+        atlasImporter.maxTextureSize = 2048;
+        atlasImporter.SaveAndReimport();
+
+        SpriteDataProviderFactories factories = new SpriteDataProviderFactories();
+        factories.Init();
+        ISpriteEditorDataProvider dataProvider = factories.GetSpriteEditorDataProviderFromObject(atlasImporter);
+        dataProvider.InitSpriteEditorDataProvider();
+        dataProvider.SetSpriteRects(sprites);
+        dataProvider.Apply();
+        atlasImporter.SaveAndReimport();
+
+        AssetDatabase.ImportAsset(ChipsetAtlasPath, ImportAssetOptions.ForceSynchronousImport);
+        AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+        CacheChipsetSprites();
+    }
+
+    private static Sprite[] cachedChipsetSprites;
+
+    private static void CacheChipsetSprites()
+    {
+        cachedChipsetSprites = AssetDatabase.LoadAllAssetsAtPath(ChipsetAtlasPath).OfType<Sprite>().ToArray();
+        Debug.Log($"[Chipset] Cached {cachedChipsetSprites.Length} sprites: {string.Join(", ", cachedChipsetSprites.Select(s => s.name))}");
     }
 
     private static Camera CreateCamera()
@@ -286,15 +342,16 @@ public static class LabMenuSceneBuilder
         panels[0] = CreatePlaceholderPanel(content, "ShopPanel", "SHOP", "Equipment store is being prepared");
         panels[1] = CreateLabPanel(content, energyBalanceText, chipBalanceText, redChipBalanceText);
         panels[2] = CreatePlaceholderPanel(content, "ChapterPanel", "CHAPTER", "Mission map is being prepared");
-        panels[3] = CreatePlaceholderPanel(content, "ChipsetPanel", "CHIPSET", "Chip configuration is being prepared");
+        panels[3] = CreateChipsetPanel(content, canvasRect, energyBalanceText, chipBalanceText, redChipBalanceText);
         panels[4] = CreatePlaceholderPanel(content, "BuddyPanel", "BUDDY", "Drone hangar is being prepared");
 
+        // Default to Chipset Tab (index 3)
         for (int i = 0; i < panels.Length; i++)
         {
-            panels[i].SetActive(i == 1);
+            panels[i].SetActive(i == 3);
         }
 
-        CreateBottomNavigation(canvasObject, canvasRect, panels);
+        CreateBottomNavigation(canvasObject, canvasRect, panels, 3);
         return canvas;
     }
 
@@ -304,11 +361,11 @@ public static class LabMenuSceneBuilder
         out TMP_Text chipBalanceText,
         out TMP_Text redChipBalanceText)
     {
-        energyBalanceText = CreateResourceDisplay(parent, "Energy", 0.025f, 0.265f, "energy", "30/100", "offline", Cream);
-        chipBalanceText = CreateResourceDisplay(parent, "ChipCurrency", 0.285f, 0.525f, "chip-currency", "700", string.Empty, Cream);
-        redChipBalanceText = CreateResourceDisplay(parent, "RedCurrency", 0.545f, 0.765f, "red-currency", "10", string.Empty, Cream);
-        CreateTopIconButton(parent, "MailButton", 0.79f, 0.885f, "mail");
-        CreateTopIconButton(parent, "SettingButton", 0.895f, 0.99f, "settings");
+        energyBalanceText = CreateResourceDisplay(parent, "Energy", 0.025f, 0.265f, "energy", "370/50", "+", Cream);
+        chipBalanceText = CreateResourceDisplay(parent, "ChipCurrency", 0.285f, 0.525f, "chip-currency", "956,467", "+", Cream);
+        redChipBalanceText = CreateResourceDisplay(parent, "RedCurrency", 0.545f, 0.765f, "red-currency", "98,762,732", "+", Cream);
+        CreateTopIconButton(parent, "MailButton", 0.79f, 0.885f, "mail", true);
+        CreateTopIconButton(parent, "SettingButton", 0.895f, 0.99f, "settings", false);
     }
 
     private static TMP_Text CreateResourceDisplay(
@@ -318,40 +375,649 @@ public static class LabMenuSceneBuilder
         float maxX,
         string iconName,
         string value,
-        string subtitle,
+        string badge,
         Color valueColor)
     {
         RectTransform root = CreateRect(name, parent);
         Stretch(root, new Vector2(minX, 1f), new Vector2(maxX, 1f), new Vector2(5f, -150f), new Vector2(-5f, -20f));
 
-        Image plate = CreateImage("Plate", root, new Color32(11, 55, 72, 195), false);
+        Image plate = CreateImage("Plate", root, new Color32(11, 55, 72, 215), false);
         Stretch(plate.rectTransform, new Vector2(0.2f, 0.22f), new Vector2(1f, 0.8f), Vector2.zero, Vector2.zero);
         AddOutline(plate, Border, 3f);
 
         Image icon = CreateIcon("Icon", root, iconName, 90f);
         Anchor(icon.rectTransform, new Vector2(0.19f, 0.55f), new Vector2(-4f, 0f), new Vector2(92f, 92f));
 
-        TMP_Text valueText = CreateText("Value", root, value, 38f, valueColor, TextAlignmentOptions.Center);
-        Stretch(valueText.rectTransform, new Vector2(0.32f, 0.34f), new Vector2(0.98f, 0.84f), Vector2.zero, Vector2.zero);
-
-        if (!string.IsNullOrEmpty(subtitle))
+        if (!string.IsNullOrEmpty(badge))
         {
-            TMP_Text subtitleText = CreateText("Status", root, subtitle, 22f, Cream, TextAlignmentOptions.Center);
-            Stretch(subtitleText.rectTransform, new Vector2(0.28f, 0f), new Vector2(1f, 0.34f), Vector2.zero, Vector2.zero);
+            Image badgeImg = CreateIcon("Badge", icon.rectTransform, "plus", 34f);
+            Anchor(badgeImg.rectTransform, new Vector2(0.85f, 0.85f), Vector2.zero, new Vector2(34f, 34f));
         }
+
+        TMP_Text valueText = CreateText("Value", root, value, 34f, valueColor, TextAlignmentOptions.Center);
+        Stretch(valueText.rectTransform, new Vector2(0.28f, 0.24f), new Vector2(0.98f, 0.78f), Vector2.zero, Vector2.zero);
 
         return valueText;
     }
 
-    private static void CreateTopIconButton(RectTransform parent, string name, float minX, float maxX, string iconName)
+    private static void CreateTopIconButton(RectTransform parent, string name, float minX, float maxX, string iconName, bool hasBadge)
     {
         RectTransform root = CreateRect(name, parent);
         Stretch(root, new Vector2(minX, 1f), new Vector2(maxX, 1f), new Vector2(2f, -145f), new Vector2(-2f, -20f));
-        Image icon = CreateIcon("Icon", root, iconName, 100f);
-        Anchor(icon.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(98f, 98f));
+        Image icon = CreateIcon("Icon", root, iconName, 96f);
+        Anchor(icon.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(96f, 96f));
         icon.raycastTarget = true;
         Button button = root.gameObject.AddComponent<Button>();
         button.targetGraphic = icon;
+
+        if (hasBadge)
+        {
+            Image dot = CreateImage("NotifDot", icon.rectTransform, new Color32(235, 60, 40, 255), false);
+            Anchor(dot.rectTransform, new Vector2(0.82f, 0.85f), Vector2.zero, new Vector2(24f, 24f));
+            AddOutline(dot, Color.white, 2f);
+        }
+    }
+
+    private static GameObject CreateChipsetPanel(
+        RectTransform parent,
+        RectTransform canvasRect,
+        TMP_Text energyText,
+        TMP_Text chipCurrencyText,
+        TMP_Text redCurrencyText)
+    {
+        RectTransform panel = CreateRect("ChipsetPanel", parent);
+        Stretch(panel, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+
+        // 1. Top Tabs (Chipset vs High-Tech Chipset)
+        RectTransform topTabs = CreateRect("TopTabs", panel);
+        topTabs.anchorMin = new Vector2(0f, 1f);
+        topTabs.anchorMax = new Vector2(1f, 1f);
+        topTabs.pivot = new Vector2(0.5f, 1f);
+        topTabs.anchoredPosition = new Vector2(0f, -10f);
+        topTabs.sizeDelta = new Vector2(0f, 105f);
+
+        // Left tab: Chipset (Active)
+        GameObject tabChipsetObj = CreateFrame("TabChipset", topTabs, BrightTeal, BrightCyan, out Image tabChipsetBg);
+        RectTransform tabChipsetRect = tabChipsetObj.GetComponent<RectTransform>();
+        Stretch(tabChipsetRect, new Vector2(0.03f, 0f), new Vector2(0.485f, 1f), Vector2.zero, Vector2.zero);
+        TMP_Text tabChipsetText = CreateText("Label", tabChipsetRect, "Chipset", 44f, Color.white, TextAlignmentOptions.Center);
+        Anchor(tabChipsetText.rectTransform, new Vector2(0.5f, 0.62f), Vector2.zero, new Vector2(300f, 50f));
+        Image waveImg = CreateChipsetIcon("Wave", tabChipsetRect, "wave-circuit", 140f);
+        Anchor(waveImg.rectTransform, new Vector2(0.5f, 0.22f), Vector2.zero, new Vector2(140f, 30f));
+        Button tabChipsetBtn = tabChipsetObj.AddComponent<Button>();
+        tabChipsetBtn.targetGraphic = tabChipsetBg;
+
+        // Right tab: High-Tech Chipset (Locked)
+        GameObject tabHighTechObj = CreateFrame("TabHighTech", topTabs, new Color32(16, 52, 54, 235), new Color32(12, 38, 42, 255), out Image tabHighTechBg);
+        RectTransform tabHighTechRect = tabHighTechObj.GetComponent<RectTransform>();
+        Stretch(tabHighTechRect, new Vector2(0.515f, 0f), new Vector2(0.97f, 1f), Vector2.zero, Vector2.zero);
+        TMP_Text tabHighTechText = CreateText("Label", tabHighTechRect, "High-Tech Chipset", 36f, new Color32(40, 95, 95, 255), TextAlignmentOptions.Center);
+        Anchor(tabHighTechText.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(400f, 50f));
+        Image lockImg = CreateChipsetIcon("Lock", tabHighTechRect, "icon-lock", 60f);
+        Anchor(lockImg.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(60f, 60f));
+        Button tabHighTechBtn = tabHighTechObj.AddComponent<Button>();
+        tabHighTechBtn.targetGraphic = tabHighTechBg;
+
+        // 2. Equipped Chipset Board
+        GameObject boardObj = CreateFrame("EquippedBoard", panel, DarkPanel, TealBorder, out Image boardBg);
+        RectTransform boardRect = boardObj.GetComponent<RectTransform>();
+        boardRect.anchorMin = new Vector2(0.5f, 1f);
+        boardRect.anchorMax = new Vector2(0.5f, 1f);
+        boardRect.pivot = new Vector2(0.5f, 1f);
+        boardRect.anchoredPosition = new Vector2(0f, -125f);
+        boardRect.sizeDelta = new Vector2(1020f, 650f);
+
+        // Header inside Board: Presets 1, 2, 3 + Blast Furnace
+        RectTransform boardHeader = CreateRect("BoardHeader", boardRect);
+        boardHeader.anchorMin = new Vector2(0f, 1f);
+        boardHeader.anchorMax = new Vector2(1f, 1f);
+        boardHeader.pivot = new Vector2(0.5f, 1f);
+        boardHeader.anchoredPosition = new Vector2(0f, -12f);
+        boardHeader.sizeDelta = new Vector2(0f, 65f);
+
+        // Preset buttons
+        Button p1Btn = CreatePresetButton(boardHeader, "Preset1", 0.35f, "1", false, out Image p1Bg, out TMP_Text p1Text);
+        Button p2Btn = CreatePresetButton(boardHeader, "Preset2", 0.45f, "2", false, out Image p2Bg, out TMP_Text p2Text);
+        Button p3Btn = CreatePresetButton(boardHeader, "Preset3", 0.55f, "3", true, out Image p3Bg, out TMP_Text p3Text);
+
+        // Blast Furnace Button
+        GameObject furnaceBtnObj = CreateFrame("BlastFurnaceBtn", boardHeader, FieryRed, FieryOrange, out Image furnaceBg);
+        RectTransform furnaceRect = furnaceBtnObj.GetComponent<RectTransform>();
+        Anchor(furnaceRect, new Vector2(0.85f, 0.5f), Vector2.zero, new Vector2(230f, 64f));
+        TMP_Text furnaceLabel = CreateText("Label", furnaceRect, "Blast\nFurnace", 23f, Yellow, TextAlignmentOptions.Center);
+        Stretch(furnaceLabel.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        furnaceBg.raycastTarget = true;
+        Button furnaceBtn = furnaceBtnObj.AddComponent<Button>();
+        furnaceBtn.targetGraphic = furnaceBg;
+
+        // Equipped Grid (2 rows x 5 columns)
+        RectTransform equippedGrid = CreateRect("EquippedGrid", boardRect);
+        equippedGrid.anchorMin = new Vector2(0f, 0f);
+        equippedGrid.anchorMax = new Vector2(1f, 1f);
+        equippedGrid.offsetMin = new Vector2(18f, 15f);
+        equippedGrid.offsetMax = new Vector2(-18f, -75f);
+
+        GridLayoutGroup equippedLayout = equippedGrid.gameObject.AddComponent<GridLayoutGroup>();
+        equippedLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+        equippedLayout.constraintCount = 5;
+        equippedLayout.cellSize = new Vector2(180f, 255f);
+        equippedLayout.spacing = new Vector2(16f, 16f);
+        equippedLayout.childAlignment = TextAnchor.UpperCenter;
+
+        ChipsetCardUI[] equippedCardSlots = new ChipsetCardUI[10];
+        for (int i = 0; i < 10; i++)
+        {
+            equippedCardSlots[i] = CreateChipCardUI(equippedGrid, $"EquippedSlot_{i:00}", new Vector2(180f, 255f));
+        }
+
+        // Lower Section Background Tint
+        Image invBgTint = CreateImage("InventoryBgTint", panel, new Color32(18, 62, 74, 210), false);
+        Stretch(invBgTint.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, new Vector2(0f, -770f));
+
+        // 3. Sort Filter Bar
+        RectTransform sortBar = CreateRect("SortFilterBar", panel);
+        sortBar.anchorMin = new Vector2(0.5f, 1f);
+        sortBar.anchorMax = new Vector2(0.5f, 1f);
+        sortBar.pivot = new Vector2(0.5f, 1f);
+        sortBar.anchoredPosition = new Vector2(0f, -790f);
+        sortBar.sizeDelta = new Vector2(1020f, 70f);
+
+        GameObject byTierObj = CreateFrame("ByTierBtn", sortBar, new Color32(18, 58, 68, 255), BrightCyan, out Image byTierBg);
+        RectTransform byTierRect = byTierObj.GetComponent<RectTransform>();
+        Anchor(byTierRect, new Vector2(0.36f, 0.5f), Vector2.zero, new Vector2(230f, 62f));
+        TMP_Text byTierText = CreateText("Label", byTierRect, "By Tier", 34f, Color.white, TextAlignmentOptions.Center);
+        Stretch(byTierText.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        byTierBg.raycastTarget = true;
+        Button byTierBtn = byTierObj.AddComponent<Button>();
+        byTierBtn.targetGraphic = byTierBg;
+
+        GameObject byQtyObj = CreateFrame("ByQtyBtn", sortBar, Yellow, Border, out Image byQtyBg);
+        RectTransform byQtyRect = byQtyObj.GetComponent<RectTransform>();
+        Anchor(byQtyRect, new Vector2(0.64f, 0.5f), Vector2.zero, new Vector2(250f, 62f));
+        TMP_Text byQtyText = CreateText("Label", byQtyRect, "By Quantity", 34f, new Color32(10, 20, 30, 255), TextAlignmentOptions.Center);
+        Stretch(byQtyText.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        byQtyBg.raycastTarget = true;
+        Button byQtyBtn = byQtyObj.AddComponent<Button>();
+        byQtyBtn.targetGraphic = byQtyBg;
+
+        // 4. Inventory Scroll View
+        RectTransform scrollRoot = CreateRect("InventoryScrollView", panel);
+        Stretch(scrollRoot, Vector2.zero, Vector2.one, new Vector2(20f, 15f), new Vector2(-20f, -870f));
+
+        ScrollRect scrollRect = scrollRoot.gameObject.AddComponent<ScrollRect>();
+        scrollRect.horizontal = false;
+        scrollRect.vertical = true;
+        scrollRect.scrollSensitivity = 25f;
+
+        RectTransform viewport = CreateRect("Viewport", scrollRoot);
+        Stretch(viewport, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        viewport.gameObject.AddComponent<RectMask2D>();
+        scrollRect.viewport = viewport;
+
+        RectTransform invContent = CreateRect("Content", viewport);
+        invContent.anchorMin = new Vector2(0f, 1f);
+        invContent.anchorMax = new Vector2(1f, 1f);
+        invContent.pivot = new Vector2(0.5f, 1f);
+        invContent.anchoredPosition = Vector2.zero;
+        invContent.sizeDelta = new Vector2(0f, 900f);
+        scrollRect.content = invContent;
+
+        GridLayoutGroup invLayout = invContent.gameObject.AddComponent<GridLayoutGroup>();
+        invLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+        invLayout.constraintCount = 4;
+        invLayout.cellSize = new Vector2(225f, 290f);
+        invLayout.spacing = new Vector2(20f, 22f);
+        invLayout.padding = new RectOffset(15, 15, 10, 30);
+        invLayout.childAlignment = TextAnchor.UpperCenter;
+
+        ContentSizeFitter fitter = invContent.gameObject.AddComponent<ContentSizeFitter>();
+        fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+        // Pre-configure the 10 equipped cards to match Preset 3 screenshot
+        string[] eqIcons = {
+            "standard-gun", "rifle", "rocket-punch", "spinning-blade", "multigun",
+            "gun-turret", "spiky-discus", "shotgun", "energy-jumper-cables", "high-explosive-mine"
+        };
+        string[] eqFrames = {
+            "card-frame-common", "card-frame-holographic", "card-frame-common", "card-frame-epic", "card-frame-common",
+            "card-frame-common", "card-frame-common", "card-frame-rare", "card-frame-common", "card-frame-common"
+        };
+        string[] eqLevels = {
+            "LV.01", "LV.24", "LV.01", "LV.14", "LV.06",
+            "LV.01", "LV.01", "LV.09", "LV.01", "LV.01"
+        };
+        string[] eqProgress = {
+            "22/3", "20", "50/3", "31/9", "37/3",
+            "49/3", "30/3", "49/7", "38/3", "24/3"
+        };
+        bool[] eqStars = { false, false, false, false, false, false, false, false, true, false };
+        bool[] eqArrows = { true, false, true, true, true, true, true, true, true, true };
+
+        for (int i = 0; i < 10; i++)
+        {
+            ConfigureCardStaticView(equippedCardSlots[i], eqIcons[i], eqFrames[i], eqLevels[i], eqProgress[i], eqStars[i], eqArrows[i]);
+        }
+
+        // Pre-populate Inventory cards to match screenshot
+        string[] invIcons = {
+            "aiming-lens", "laser-eye", "plasma-field", "biochemical-mine",
+            "tesla-coil", "standard-gun", "spiky-discus", "multigun",
+            "power-battery", "rocket-punch", "gun-turret", "plasma-field"
+        };
+        string[] invFrames = {
+            "card-frame-common", "card-frame-common", "card-frame-common", "card-frame-common",
+            "card-frame-common", "card-frame-rare", "card-frame-common", "card-frame-common",
+            "card-frame-common", "card-frame-common", "card-frame-common", "card-frame-common"
+        };
+        string[] invLevels = {
+            "LV.01", "LV.01", "LV.01", "LV.01",
+            "LV.01", "LV.09", "LV.01", "LV.01",
+            "LV.01", "LV.01", "LV.01", "LV.01"
+        };
+        string[] invProgress = {
+            "63/3", "58/3", "52/3", "48/3",
+            "33/3", "31/7", "31/3", "30/3",
+            "30/3", "26/3", "23/3", "22/3"
+        };
+        bool[] invStars = {
+            true, false, false, false,
+            false, false, false, false,
+            false, false, false, false
+        };
+
+        for (int i = 0; i < invIcons.Length; i++)
+        {
+            ChipsetCardUI invCard = CreateChipCardUI(invContent, $"InvCard_{i:00}", new Vector2(225f, 290f));
+            ConfigureCardStaticView(invCard, invIcons[i], invFrames[i], invLevels[i], invProgress[i], invStars[i], true);
+        }
+
+        // Card Prefab template for dynamic instantiation at runtime
+        GameObject cardPrefab = CreateChipCardUI(invContent, "CardTemplate", new Vector2(225f, 290f)).gameObject;
+        cardPrefab.SetActive(false);
+
+        // 5. Detail Modal
+        GameObject detailModal = CreateDetailModal(canvasRect, out Image dIcon, out TMP_Text dName, out TMP_Text dLevel,
+            out TMP_Text dTier, out TMP_Text dBaseStats, out TMP_Text dMagic, out TMP_Text dRare, out TMP_Text dUnique,
+            out TMP_Text dEpic, out Button dUpgradeBtn, out TMP_Text dUpgradeBtnText, out Button dEquipBtn,
+            out TMP_Text dEquipBtnText, out Button dCloseBtn);
+        detailModal.SetActive(false);
+
+        // 6. Blast Furnace Modal
+        GameObject furnaceModal = CreateFurnaceModal(canvasRect, out TMP_Text fDesc, out Button fDismantleBtn, out Button fCloseBtn);
+        furnaceModal.SetActive(false);
+
+        // 7. Toast Message
+        GameObject toastRoot = CreateToastRoot(canvasRect, out TMP_Text toastText);
+        toastRoot.SetActive(false);
+
+        // Controller Setup
+        ChipsetController controller = panel.gameObject.AddComponent<ChipsetController>();
+        SerializedObject sController = new SerializedObject(controller);
+
+        sController.FindProperty("energyText").objectReferenceValue = energyText;
+        sController.FindProperty("chipCurrencyText").objectReferenceValue = chipCurrencyText;
+        sController.FindProperty("redCurrencyText").objectReferenceValue = redCurrencyText;
+
+        sController.FindProperty("chipsetModeBtn").objectReferenceValue = tabChipsetBtn;
+        sController.FindProperty("highTechModeBtn").objectReferenceValue = tabHighTechBtn;
+        sController.FindProperty("chipsetModeBg").objectReferenceValue = tabChipsetBg;
+        sController.FindProperty("highTechModeBg").objectReferenceValue = tabHighTechBg;
+
+        sController.FindProperty("preset1Btn").objectReferenceValue = p1Btn;
+        sController.FindProperty("preset2Btn").objectReferenceValue = p2Btn;
+        sController.FindProperty("preset3Btn").objectReferenceValue = p3Btn;
+        sController.FindProperty("preset1Bg").objectReferenceValue = p1Bg;
+        sController.FindProperty("preset2Bg").objectReferenceValue = p2Bg;
+        sController.FindProperty("preset3Bg").objectReferenceValue = p3Bg;
+        sController.FindProperty("preset1Text").objectReferenceValue = p1Text;
+        sController.FindProperty("preset2Text").objectReferenceValue = p2Text;
+        sController.FindProperty("preset3Text").objectReferenceValue = p3Text;
+        sController.FindProperty("blastFurnaceBtn").objectReferenceValue = furnaceBtn;
+
+        SerializedProperty sEquipped = sController.FindProperty("equippedSlots");
+        sEquipped.arraySize = 10;
+        for (int i = 0; i < 10; i++)
+        {
+            sEquipped.GetArrayElementAtIndex(i).objectReferenceValue = equippedCardSlots[i];
+        }
+
+        sController.FindProperty("byTierBtn").objectReferenceValue = byTierBtn;
+        sController.FindProperty("byQuantityBtn").objectReferenceValue = byQtyBtn;
+        sController.FindProperty("byTierBg").objectReferenceValue = byTierBg;
+        sController.FindProperty("byQuantityBg").objectReferenceValue = byQtyBg;
+        sController.FindProperty("byTierText").objectReferenceValue = byTierText;
+        sController.FindProperty("byQuantityText").objectReferenceValue = byQtyText;
+
+        sController.FindProperty("inventoryContent").objectReferenceValue = invContent;
+        sController.FindProperty("cardPrefab").objectReferenceValue = cardPrefab;
+
+        sController.FindProperty("detailModal").objectReferenceValue = detailModal;
+        sController.FindProperty("detailIcon").objectReferenceValue = dIcon;
+        sController.FindProperty("detailNameText").objectReferenceValue = dName;
+        sController.FindProperty("detailLevelText").objectReferenceValue = dLevel;
+        sController.FindProperty("detailTierText").objectReferenceValue = dTier;
+        sController.FindProperty("detailBaseStatsText").objectReferenceValue = dBaseStats;
+        sController.FindProperty("detailMagicText").objectReferenceValue = dMagic;
+        sController.FindProperty("detailRareText").objectReferenceValue = dRare;
+        sController.FindProperty("detailUniqueText").objectReferenceValue = dUnique;
+        sController.FindProperty("detailEpicText").objectReferenceValue = dEpic;
+        sController.FindProperty("detailUpgradeBtn").objectReferenceValue = dUpgradeBtn;
+        sController.FindProperty("detailUpgradeBtnText").objectReferenceValue = dUpgradeBtnText;
+        sController.FindProperty("detailEquipBtn").objectReferenceValue = dEquipBtn;
+        sController.FindProperty("detailEquipBtnText").objectReferenceValue = dEquipBtnText;
+        sController.FindProperty("detailCloseBtn").objectReferenceValue = dCloseBtn;
+
+        sController.FindProperty("furnaceModal").objectReferenceValue = furnaceModal;
+        sController.FindProperty("furnaceDescText").objectReferenceValue = fDesc;
+        sController.FindProperty("furnaceDismantleBtn").objectReferenceValue = fDismantleBtn;
+        sController.FindProperty("furnaceCloseBtn").objectReferenceValue = fCloseBtn;
+
+        sController.FindProperty("toastRoot").objectReferenceValue = toastRoot;
+        sController.FindProperty("toastText").objectReferenceValue = toastText;
+
+        // Load Sprites into database
+        Sprite[] allChipsetSprites = AssetDatabase.LoadAllAssetRepresentationsAtPath(ChipsetAtlasPath).OfType<Sprite>().ToArray();
+        string[] iconKeys = {
+            "standard-gun", "rifle", "rocket-punch", "spinning-blade", "multigun",
+            "gun-turret", "spiky-discus", "shotgun", "energy-jumper-cables", "high-explosive-mine",
+            "aiming-lens", "plasma-field", "laser-eye", "biochemical-mine", "tesla-coil"
+        };
+        Sprite[] chipIcons = iconKeys.Select(k => allChipsetSprites.FirstOrDefault(s => s.name == k)).Where(s => s != null).ToArray();
+        Sprite[] frameSprites = new[] {
+            allChipsetSprites.FirstOrDefault(s => s.name == "card-frame-common"),
+            allChipsetSprites.FirstOrDefault(s => s.name == "card-frame-rare"),
+            allChipsetSprites.FirstOrDefault(s => s.name == "card-frame-epic"),
+            allChipsetSprites.FirstOrDefault(s => s.name == "card-frame-holographic")
+        };
+
+        SerializedProperty sIcons = sController.FindProperty("chipIcons");
+        sIcons.arraySize = chipIcons.Length;
+        for (int i = 0; i < chipIcons.Length; i++) sIcons.GetArrayElementAtIndex(i).objectReferenceValue = chipIcons[i];
+
+        SerializedProperty sFrames = sController.FindProperty("frameSprites");
+        sFrames.arraySize = frameSprites.Length;
+        for (int i = 0; i < frameSprites.Length; i++) sFrames.GetArrayElementAtIndex(i).objectReferenceValue = frameSprites[i];
+
+        sController.FindProperty("starSprite").objectReferenceValue = allChipsetSprites.FirstOrDefault(s => s.name == "icon-star");
+        sController.FindProperty("upgradeArrowSprite").objectReferenceValue = allChipsetSprites.FirstOrDefault(s => s.name == "badge-upgrade");
+
+        sController.ApplyModifiedPropertiesWithoutUndo();
+
+        return panel.gameObject;
+    }
+
+    private static Button CreatePresetButton(
+        RectTransform parent,
+        string name,
+        float xAnchor,
+        string text,
+        bool active,
+        out Image bg,
+        out TMP_Text label)
+    {
+        GameObject root = CreateFrame(name, parent, active ? Yellow : new Color32(18, 58, 68, 255), BrightCyan, out bg);
+        RectTransform rect = root.GetComponent<RectTransform>();
+        Anchor(rect, new Vector2(xAnchor, 0.5f), Vector2.zero, new Vector2(74f, 62f));
+        label = CreateText("Label", rect, text, 36f, active ? new Color32(10, 20, 30, 255) : Color.white, TextAlignmentOptions.Center);
+        Stretch(label.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        bg.raycastTarget = true;
+        Button btn = root.AddComponent<Button>();
+        btn.targetGraphic = bg;
+        return btn;
+    }
+
+    private static ChipsetCardUI CreateChipCardUI(RectTransform parent, string name, Vector2 size)
+    {
+        RectTransform cardRoot = CreateRect(name, parent);
+        cardRoot.sizeDelta = size;
+
+        // Card Frame Image (pins top/bottom)
+        Image cardFrame = cardRoot.gameObject.AddComponent<Image>();
+        cardFrame.sprite = LoadChipsetSprite("card-frame-common");
+        cardFrame.type = Image.Type.Simple;
+        cardFrame.preserveAspect = false;
+        cardFrame.raycastTarget = true;
+
+        Button cardBtn = cardRoot.gameObject.AddComponent<Button>();
+        cardBtn.targetGraphic = cardFrame;
+
+        // Top Level Text
+        TMP_Text levelText = CreateText("LevelText", cardRoot, "LV.01", 24f, Yellow, TextAlignmentOptions.Center);
+        Anchor(levelText.rectTransform, new Vector2(0.5f, 0.79f), Vector2.zero, new Vector2(size.x * 0.9f, 30f));
+
+        // Star Icon (Top Right)
+        Image starImg = CreateChipsetIcon("Star", cardRoot, "icon-star", 28f);
+        Anchor(starImg.rectTransform, new Vector2(0.84f, 0.80f), Vector2.zero, new Vector2(28f, 28f));
+        starImg.gameObject.SetActive(false);
+
+        // Center Icon
+        Image centerIcon = CreateChipsetIcon("Icon", cardRoot, "standard-gun", 105f);
+        Anchor(centerIcon.rectTransform, new Vector2(0.5f, 0.50f), Vector2.zero, new Vector2(105f, 105f));
+
+        // Bottom Progress Bar
+        RectTransform bottomBar = CreateRect("BottomBar", cardRoot);
+        Stretch(bottomBar, new Vector2(0.08f, 0.09f), new Vector2(0.92f, 0.25f), Vector2.zero, Vector2.zero);
+        Image bottomBarBg = bottomBar.gameObject.AddComponent<Image>();
+        bottomBarBg.color = new Color32(20, 120, 50, 230);
+        bottomBarBg.raycastTarget = false;
+
+        TMP_Text progressText = CreateText("ProgressText", bottomBar, "22/3", 24f, Color.white, TextAlignmentOptions.Center);
+        Stretch(progressText.rectTransform, Vector2.zero, Vector2.one, new Vector2(6f, 0f), new Vector2(-36f, 0f));
+
+        // Upgrade Green Arrow Button
+        GameObject upgradeArrowObj = new GameObject("UpgradeArrowGroup", typeof(RectTransform));
+        RectTransform arrowRect = upgradeArrowObj.GetComponent<RectTransform>();
+        arrowRect.SetParent(cardRoot, false);
+        Anchor(arrowRect, new Vector2(0.85f, 0.17f), Vector2.zero, new Vector2(44f, 44f));
+
+        Image arrowIcon = upgradeArrowObj.AddComponent<Image>();
+        arrowIcon.sprite = LoadChipsetSprite("badge-upgrade");
+        arrowIcon.preserveAspect = true;
+        arrowIcon.raycastTarget = true;
+
+        Button upgradeBtn = upgradeArrowObj.AddComponent<Button>();
+        upgradeBtn.targetGraphic = arrowIcon;
+
+        // Wire Component
+        ChipsetCardUI cardComp = cardRoot.gameObject.AddComponent<ChipsetCardUI>();
+        SerializedObject sCard = new SerializedObject(cardComp);
+        sCard.FindProperty("cardFrameImage").objectReferenceValue = cardFrame;
+        sCard.FindProperty("iconImage").objectReferenceValue = centerIcon;
+        sCard.FindProperty("levelText").objectReferenceValue = levelText;
+        sCard.FindProperty("progressText").objectReferenceValue = progressText;
+        sCard.FindProperty("cardButton").objectReferenceValue = cardBtn;
+        sCard.FindProperty("upgradeButton").objectReferenceValue = upgradeBtn;
+        sCard.FindProperty("upgradeArrowGroup").objectReferenceValue = upgradeArrowObj;
+        sCard.FindProperty("starObject").objectReferenceValue = starImg.gameObject;
+        sCard.FindProperty("bottomProgressBar").objectReferenceValue = bottomBarBg;
+        sCard.ApplyModifiedPropertiesWithoutUndo();
+
+        cardComp.InitializeReferences(cardFrame, centerIcon, levelText, progressText, cardBtn, upgradeBtn, upgradeArrowObj, starImg.gameObject, bottomBarBg);
+
+        return cardComp;
+    }
+
+    private static void ConfigureCardStaticView(
+        ChipsetCardUI card,
+        string iconName,
+        string frameName,
+        string level,
+        string progress,
+        bool hasStar,
+        bool canUpgrade)
+    {
+        if (card == null) return;
+        Sprite frameSprite = LoadChipsetSprite(frameName);
+        Sprite iconSprite = LoadChipsetSprite(iconName);
+        card.SetDirectVisual(frameSprite, iconSprite, level, progress, hasStar, canUpgrade);
+        EditorUtility.SetDirty(card.gameObject);
+    }
+
+    private static GameObject CreateDetailModal(
+        RectTransform canvasRect,
+        out Image detailIcon,
+        out TMP_Text nameText,
+        out TMP_Text levelText,
+        out TMP_Text tierText,
+        out TMP_Text baseStatsText,
+        out TMP_Text magicText,
+        out TMP_Text rareText,
+        out TMP_Text uniqueText,
+        out TMP_Text epicText,
+        out Button upgradeBtn,
+        out TMP_Text upgradeBtnText,
+        out Button equipBtn,
+        out TMP_Text equipBtnText,
+        out Button closeBtn)
+    {
+        RectTransform modalRoot = CreateRect("ChipsetDetailModal", canvasRect);
+        Stretch(modalRoot, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        Image dim = modalRoot.gameObject.AddComponent<Image>();
+        dim.color = new Color32(5, 20, 30, 225);
+        dim.raycastTarget = true;
+
+        GameObject cardBox = CreateFrame("ModalBox", modalRoot, DarkPanel, BrightCyan, out _);
+        RectTransform boxRect = cardBox.GetComponent<RectTransform>();
+        Anchor(boxRect, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(960f, 1260f));
+
+        // Title Header
+        TMP_Text title = CreateText("Title", boxRect, "CHIPSET INSPECTOR", 42f, BrightCyan, TextAlignmentOptions.Center);
+        Anchor(title.rectTransform, new Vector2(0.5f, 0.94f), Vector2.zero, new Vector2(600f, 50f));
+
+        // Close Button
+        GameObject closeObj = CreateFrame("CloseBtn", boxRect, FieryRed, FieryOrange, out Image closeBg);
+        RectTransform closeRect = closeObj.GetComponent<RectTransform>();
+        Anchor(closeRect, new Vector2(0.93f, 0.94f), Vector2.zero, new Vector2(60f, 60f));
+        TMP_Text closeTxt = CreateText("X", closeRect, "X", 36f, Color.white, TextAlignmentOptions.Center);
+        Stretch(closeTxt.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        closeBg.raycastTarget = true;
+        closeBtn = closeObj.AddComponent<Button>();
+        closeBtn.targetGraphic = closeBg;
+
+        // Big Icon Frame
+        GameObject iconFrameObj = CreateFrame("IconFrame", boxRect, new Color32(8, 30, 48, 255), BrightCyan, out _);
+        RectTransform iconFrameRect = iconFrameObj.GetComponent<RectTransform>();
+        Anchor(iconFrameRect, new Vector2(0.24f, 0.77f), Vector2.zero, new Vector2(220f, 220f));
+        detailIcon = CreateChipsetIcon("Icon", iconFrameRect, "standard-gun", 160f);
+        Anchor(detailIcon.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(160f, 160f));
+
+        // Name & Tier Info
+        nameText = CreateText("Name", boxRect, "Standard Gun", 46f, Color.white, TextAlignmentOptions.Left);
+        Anchor(nameText.rectTransform, new Vector2(0.68f, 0.83f), Vector2.zero, new Vector2(460f, 55f));
+
+        levelText = CreateText("Level", boxRect, "LEVEL 01", 34f, Yellow, TextAlignmentOptions.Left);
+        Anchor(levelText.rectTransform, new Vector2(0.68f, 0.76f), Vector2.zero, new Vector2(460f, 45f));
+
+        tierText = CreateText("Tier", boxRect, "COMMON", 30f, BrightCyan, TextAlignmentOptions.Left);
+        Anchor(tierText.rectTransform, new Vector2(0.68f, 0.70f), Vector2.zero, new Vector2(460f, 40f));
+
+        // Base Stats Box
+        GameObject statsBox = CreateFrame("StatsBox", boxRect, new Color32(14, 42, 54, 255), TealBorder, out _);
+        RectTransform statsBoxRect = statsBox.GetComponent<RectTransform>();
+        Anchor(statsBoxRect, new Vector2(0.5f, 0.56f), Vector2.zero, new Vector2(880f, 140f));
+
+        TMP_Text statsHeader = CreateText("StatsHeader", statsBoxRect, "BASE SPECIFICATIONS", 28f, BrightCyan, TextAlignmentOptions.Left);
+        Anchor(statsHeader.rectTransform, new Vector2(0.5f, 0.75f), Vector2.zero, new Vector2(820f, 35f));
+
+        baseStatsText = CreateText("BaseStats", statsBoxRect, "• ATK 42 | Tốc độ đánh: Fast", 30f, Color.white, TextAlignmentOptions.Left);
+        Anchor(baseStatsText.rectTransform, new Vector2(0.5f, 0.35f), Vector2.zero, new Vector2(820f, 60f));
+
+        // Perks Tier Box
+        GameObject perksBox = CreateFrame("PerksBox", boxRect, new Color32(14, 42, 54, 255), TealBorder, out _);
+        RectTransform perksBoxRect = perksBox.GetComponent<RectTransform>();
+        Anchor(perksBoxRect, new Vector2(0.5f, 0.28f), Vector2.zero, new Vector2(880f, 380f));
+
+        TMP_Text perksHeader = CreateText("PerksHeader", perksBoxRect, "TIER ENHANCEMENTS", 28f, BrightCyan, TextAlignmentOptions.Left);
+        Anchor(perksHeader.rectTransform, new Vector2(0.5f, 0.88f), Vector2.zero, new Vector2(820f, 35f));
+
+        magicText = CreateText("Magic", perksBoxRect, "• Magic: ATK +15%", 28f, new Color32(140, 220, 255, 255), TextAlignmentOptions.Left);
+        Anchor(magicText.rectTransform, new Vector2(0.5f, 0.68f), Vector2.zero, new Vector2(820f, 40f));
+
+        rareText = CreateText("Rare", perksBoxRect, "• Rare: ATK Speed +15%", 28f, new Color32(100, 160, 255, 255), TextAlignmentOptions.Left);
+        Anchor(rareText.rectTransform, new Vector2(0.5f, 0.48f), Vector2.zero, new Vector2(820f, 40f));
+
+        uniqueText = CreateText("Unique", perksBoxRect, "• Unique: +5% Life Steal", 28f, new Color32(255, 200, 80, 255), TextAlignmentOptions.Left);
+        Anchor(uniqueText.rectTransform, new Vector2(0.5f, 0.28f), Vector2.zero, new Vector2(820f, 40f));
+
+        epicText = CreateText("Epic", perksBoxRect, "• Epic: Adds Penetration Skill", 28f, new Color32(230, 100, 255, 255), TextAlignmentOptions.Left);
+        Anchor(epicText.rectTransform, new Vector2(0.5f, 0.08f), Vector2.zero, new Vector2(820f, 40f));
+
+        // Action Buttons: Equip & Upgrade
+        GameObject equipObj = CreateFrame("EquipBtn", boxRect, BrightTeal, BrightCyan, out Image equipBg);
+        RectTransform equipRect = equipObj.GetComponent<RectTransform>();
+        Anchor(equipRect, new Vector2(0.3f, 0.07f), Vector2.zero, new Vector2(340f, 95f));
+        equipBtnText = CreateText("Label", equipRect, "EQUIP", 38f, Color.white, TextAlignmentOptions.Center);
+        Stretch(equipBtnText.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        equipBg.raycastTarget = true;
+        equipBtn = equipObj.AddComponent<Button>();
+        equipBtn.targetGraphic = equipBg;
+
+        GameObject upgradeObj = CreateFrame("UpgradeBtn", boxRect, Yellow, Border, out Image upgradeBg);
+        RectTransform upgradeRect = upgradeObj.GetComponent<RectTransform>();
+        Anchor(upgradeRect, new Vector2(0.72f, 0.07f), Vector2.zero, new Vector2(400f, 95f));
+        upgradeBtnText = CreateText("Label", upgradeRect, "UPGRADE", 36f, new Color32(10, 20, 30, 255), TextAlignmentOptions.Center);
+        Stretch(upgradeBtnText.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        upgradeBg.raycastTarget = true;
+        upgradeBtn = upgradeObj.AddComponent<Button>();
+        upgradeBtn.targetGraphic = upgradeBg;
+
+        return modalRoot.gameObject;
+    }
+
+    private static GameObject CreateFurnaceModal(
+        RectTransform canvasRect,
+        out TMP_Text descText,
+        out Button dismantleBtn,
+        out Button closeBtn)
+    {
+        RectTransform modalRoot = CreateRect("BlastFurnaceModal", canvasRect);
+        Stretch(modalRoot, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        Image dim = modalRoot.gameObject.AddComponent<Image>();
+        dim.color = new Color32(20, 5, 5, 230);
+        dim.raycastTarget = true;
+
+        GameObject box = CreateFrame("FurnaceBox", modalRoot, new Color32(40, 10, 10, 255), FieryOrange, out _);
+        RectTransform boxRect = box.GetComponent<RectTransform>();
+        Anchor(boxRect, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(920f, 760f));
+
+        TMP_Text title = CreateText("Title", boxRect, "BLAST FURNACE - RECYCLE", 44f, Yellow, TextAlignmentOptions.Center);
+        Anchor(title.rectTransform, new Vector2(0.5f, 0.88f), Vector2.zero, new Vector2(800f, 55f));
+
+        GameObject closeObj = CreateFrame("CloseBtn", boxRect, FieryRed, FieryOrange, out Image closeBg);
+        RectTransform closeRect = closeObj.GetComponent<RectTransform>();
+        Anchor(closeRect, new Vector2(0.93f, 0.90f), Vector2.zero, new Vector2(60f, 60f));
+        TMP_Text closeTxt = CreateText("X", closeRect, "X", 36f, Color.white, TextAlignmentOptions.Center);
+        Stretch(closeTxt.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        closeBg.raycastTarget = true;
+        closeBtn = closeObj.AddComponent<Button>();
+        closeBtn.targetGraphic = closeBg;
+
+        descText = CreateText("Desc", boxRect, "Dismantle spare chip fragments into Chipset Currency!", 32f, Color.white, TextAlignmentOptions.Center);
+        Anchor(descText.rectTransform, new Vector2(0.5f, 0.52f), Vector2.zero, new Vector2(820f, 300f));
+
+        GameObject disObj = CreateFrame("DismantleBtn", boxRect, FieryRed, Yellow, out Image disBg);
+        RectTransform disRect = disObj.GetComponent<RectTransform>();
+        Anchor(disRect, new Vector2(0.5f, 0.16f), Vector2.zero, new Vector2(500f, 100f));
+        TMP_Text disTxt = CreateText("Label", disRect, "DISMANTLE ALL SPARES", 34f, Yellow, TextAlignmentOptions.Center);
+        Stretch(disTxt.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        disBg.raycastTarget = true;
+        dismantleBtn = disObj.AddComponent<Button>();
+        dismantleBtn.targetGraphic = disBg;
+
+        return modalRoot.gameObject;
+    }
+
+    private static GameObject CreateToastRoot(RectTransform canvasRect, out TMP_Text toastText)
+    {
+        RectTransform toast = CreateRect("ToastMessage", canvasRect);
+        Anchor(toast, new Vector2(0.5f, 0.18f), Vector2.zero, new Vector2(800f, 75f));
+        Image bg = toast.gameObject.AddComponent<Image>();
+        bg.color = new Color32(8, 30, 48, 245);
+        AddOutline(bg, BrightCyan, 3f);
+
+        toastText = CreateText("ToastText", toast, "Notification", 32f, Yellow, TextAlignmentOptions.Center);
+        Stretch(toastText.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        return toast.gameObject;
     }
 
     private static GameObject CreateLabPanel(
@@ -436,7 +1102,6 @@ public static class LabMenuSceneBuilder
         GameObject upgradeRoot = CreateFrame("UpgradeButton", statsPanel, new Color32(86, 183, 107, 255), Cream, out Image upgradeBackground);
         RectTransform upgradeRect = upgradeRoot.GetComponent<RectTransform>();
         Anchor(upgradeRect, new Vector2(0.5f, 0f), new Vector2(0f, 40f), new Vector2(470f, 165f), new Vector2(0.5f, 0f));
-        // The Button needs a raycastable target graphic to receive pointer clicks.
         upgradeBackground.raycastTarget = true;
         Button upgradeButton = upgradeRoot.AddComponent<Button>();
         upgradeButton.targetGraphic = upgradeBackground;
@@ -592,7 +1257,7 @@ public static class LabMenuSceneBuilder
         return panel.gameObject;
     }
 
-    private static void CreateBottomNavigation(GameObject canvasObject, RectTransform canvas, GameObject[] panels)
+    private static void CreateBottomNavigation(GameObject canvasObject, RectTransform canvas, GameObject[] panels, int defaultTab = 3)
     {
         RectTransform nav = CreateRect("BottomNavigation", canvas);
         Stretch(nav, Vector2.zero, new Vector2(1f, 0f), Vector2.zero, new Vector2(0f, 220f));
@@ -609,7 +1274,7 @@ public static class LabMenuSceneBuilder
 
         for (int i = 0; i < 5; i++)
         {
-            bool selected = i == 1;
+            bool selected = i == defaultTab;
             GameObject root = CreateFrame(
                 names[i],
                 nav,
@@ -645,7 +1310,7 @@ public static class LabMenuSceneBuilder
             item.FindPropertyRelative("label").objectReferenceValue = labelTexts[i];
         }
 
-        serializedController.FindProperty("defaultSelectedIndex").intValue = 1;
+        serializedController.FindProperty("defaultSelectedIndex").intValue = defaultTab;
         serializedController.ApplyModifiedPropertiesWithoutUndo();
     }
 
@@ -702,6 +1367,15 @@ public static class LabMenuSceneBuilder
         return image;
     }
 
+    private static Image CreateChipsetIcon(string name, Transform parent, string spriteName, float size)
+    {
+        Image image = CreateImage(name, parent, Color.white, false);
+        image.sprite = LoadChipsetSprite(spriteName);
+        image.preserveAspect = true;
+        image.rectTransform.sizeDelta = new Vector2(size, size);
+        return image;
+    }
+
     private static TMP_Text CreateText(
         string name,
         Transform parent,
@@ -718,7 +1392,7 @@ public static class LabMenuSceneBuilder
         text.fontStyle = FontStyles.Bold;
         text.color = color;
         text.alignment = alignment;
-        text.enableWordWrapping = false;
+        text.enableWordWrapping = true;
         text.overflowMode = TextOverflowModes.Ellipsis;
         text.raycastTarget = false;
         text.outlineColor = Navy;
@@ -731,6 +1405,15 @@ public static class LabMenuSceneBuilder
         return AssetDatabase.LoadAllAssetRepresentationsAtPath(IconAtlasPath)
             .OfType<Sprite>()
             .FirstOrDefault(sprite => sprite.name == spriteName);
+    }
+
+    private static Sprite LoadChipsetSprite(string spriteName)
+    {
+        if (cachedChipsetSprites == null || cachedChipsetSprites.Length == 0)
+        {
+            CacheChipsetSprites();
+        }
+        return cachedChipsetSprites?.FirstOrDefault(sprite => string.Equals(sprite.name, spriteName, StringComparison.OrdinalIgnoreCase));
     }
 
     private static void AddOutline(Graphic graphic, Color color, float size)
@@ -808,7 +1491,8 @@ public static class LabMenuSceneBuilder
             preview.ReadPixels(new Rect(0f, 0f, width, height), 0, 0);
             preview.Apply();
 
-            Directory.CreateDirectory(Path.GetDirectoryName(PreviewPath) ?? "Assets/UI/Lab/Generated");
+            Directory.CreateDirectory(Path.GetDirectoryName(ChipsetPreviewPath) ?? "Assets/UI/Chipset/Generated");
+            File.WriteAllBytes(ChipsetPreviewPath, preview.EncodeToPNG());
             File.WriteAllBytes(PreviewPath, preview.EncodeToPNG());
         }
         finally
@@ -822,6 +1506,7 @@ public static class LabMenuSceneBuilder
             UnityEngine.Object.DestroyImmediate(preview);
         }
 
+        AssetDatabase.ImportAsset(ChipsetPreviewPath, ImportAssetOptions.ForceSynchronousImport);
         AssetDatabase.ImportAsset(PreviewPath, ImportAssetOptions.ForceSynchronousImport);
     }
 }
