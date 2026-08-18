@@ -17,9 +17,6 @@ public class WeaponData : ScriptableObject
     [Tooltip("Sprite hình ảnh của khẩu súng hiển thị trên tay người chơi.")]
     public Sprite gunSprite;
 
-    [Tooltip("Tỷ lệ kích thước của khẩu súng (giúp cân chỉnh súng to/nhỏ tùy ý).")]
-    public Vector3 gunScale = new Vector3(0.45f, 0.45f, 1f);
-
     [Tooltip("Tọa độ của nòng súng (FirePoint) tính từ tâm khẩu súng để đạn xuất hiện chính xác.")]
     public Vector2 firePointOffset = new Vector2(1.5f, 0.1f);
 

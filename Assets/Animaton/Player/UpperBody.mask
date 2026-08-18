@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!319 &31900000
+AvatarMask:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: UpperBody
+  m_Mask: 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  m_Elements:
+  - m_Path: 
+    m_Weight: 0
+  - m_Path: Chan 1
+    m_Weight: 1
+  - m_Path: chan 2
+    m_Weight: 1
+  - m_Path: "th\xE2n"
+    m_Weight: 1
+  - m_Path: "th\xE2n/GunPivot"
+    m_Weight: 1
+  - m_Path: "th\xE2n/GunPivot/GunSprite"
+    m_Weight: 1
+  - m_Path: "th\xE2n/GunPivot/Tay"
+    m_Weight: 1

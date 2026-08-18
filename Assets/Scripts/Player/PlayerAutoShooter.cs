@@ -41,14 +41,20 @@ public class PlayerAutoShooter : MonoBehaviour
     [SerializeField] private float targetRefreshRate = 0.1f;
 
     [Header("Gun & Barrel (Nòng súng)")]
-    [Tooltip("Transform trục xoay súng quanh Player (GunPivot).")]
+    [Tooltip("Transform trục xoay 360 độ của tay và súng (GunPivot). Tay cầm súng và GunSprite phải là con của object này.")]
     [SerializeField] private Transform gunTransform;
+
+    [Tooltip("Transform phần thân của Player. GunPivot phải là object con để đổi bên cùng thân.")]
+    [SerializeField] private Transform bodyTransform;
 
     [Tooltip("Transform nòng súng (AttackPoint / FirePoint) - vị trí chính xác viên đạn xuất hiện khi bắn.")]
     [SerializeField] private Transform attackPoint;
 
     [Tooltip("SpriteRenderer của khẩu súng (GunSprite).")]
     [SerializeField] private SpriteRenderer gunSpriteRenderer;
+
+    [Tooltip("SpriteRenderer của thân và chân. Thân đổi hướng bằng Transform; chân được flip riêng vì không phải object con của thân.")]
+    [SerializeField] private SpriteRenderer[] bodyRenderers;
 
     [Tooltip("Khoảng cách nòng súng tính từ tâm Player nếu nòng súng gắn trực tiếp trên Player.")]
     [SerializeField] private float attackPointDistance = 0.6f;
@@ -81,12 +87,15 @@ public class PlayerAutoShooter : MonoBehaviour
     private float targetSearchTimer;
     private WeaponData currentEquippedWeapon;
     private GatlingSpinner gatlingSpinner;
+    private Vector3 gunTransformBaseScale = Vector3.one;
+    private Vector3 bodyTransformBaseScale = Vector3.one;
 
     // Buffer cố định để quét quái không sinh rác GC
     private readonly Collider2D[] enemyColliderBuffer = new Collider2D[64];
     private ContactFilter2D contactFilter;
 
     public WeaponData CurrentEquippedWeapon => currentEquippedWeapon;
+    public bool IsAttacking { get; private set; }
 
     private void Awake()
     {
@@ -113,6 +122,22 @@ public class PlayerAutoShooter : MonoBehaviour
         {
             attackPoint = gunTransform;
         }
+
+        if (gunTransform != null)
+        {
+            gunTransformBaseScale = gunTransform.localScale;
+        }
+
+        if (bodyTransform == null && gunTransform != null)
+        {
+            bodyTransform = gunTransform.parent;
+        }
+
+        if (bodyTransform != null)
+        {
+            bodyTransformBaseScale = bodyTransform.localScale;
+        }
+
     }
 
     private void Start()
@@ -153,21 +178,13 @@ public class PlayerAutoShooter : MonoBehaviour
 
         currentEquippedWeapon = weapon;
 
-        // 1. Cập nhật Sprite hình ảnh súng & Kích thước chuẩn trên GunSprite (tránh bị nhân 2 lần scale)
+        // 1. Chỉ cập nhật Sprite. Kích thước súng được giữ theo Transform đã đặt trong Scene.
         if (gunSpriteRenderer != null)
         {
             if (weapon.gunSprite != null)
             {
                 gunSpriteRenderer.sprite = weapon.gunSprite;
             }
-            if (weapon.gunScale != Vector3.zero)
-            {
-                gunSpriteRenderer.transform.localScale = weapon.gunScale;
-            }
-        }
-        else if (gunTransform != null && weapon.gunScale != Vector3.zero)
-        {
-            gunTransform.localScale = weapon.gunScale;
         }
 
         // 2. Cập nhật vị trí nòng súng (FirePoint)
@@ -344,6 +361,7 @@ public class PlayerAutoShooter : MonoBehaviour
 
         Transform nearestEnemy = null;
         float nearestDistanceSqr = Mathf.Infinity;
+        float attackRangeSqr = currentAttackRange * currentAttackRange;
         Vector2 playerPosition = transform.position;
 
         for (int i = 0; i < hitCount; i++)
@@ -357,6 +375,9 @@ public class PlayerAutoShooter : MonoBehaviour
 
             Vector2 difference = (Vector2)health.transform.position - playerPosition;
             float distanceSqr = difference.sqrMagnitude;
+
+            if (distanceSqr > attackRangeSqr)
+                continue;
 
             if (distanceSqr < nearestDistanceSqr)
             {
@@ -397,12 +418,21 @@ public class PlayerAutoShooter : MonoBehaviour
         // 1. Xoay khẩu súng (GunPivot / GunTransform)
         if (gunTransform != null)
         {
-            gunTransform.rotation = Quaternion.Euler(0f, 0f, angle);
-
-            // Khi ngắm sang bên trái (|angle| > 90°), lật trục Y của GunPivot (+1 hoặc -1)
-            // Giúp CẢ Khẩu súng VÀ Nòng súng (FirePoint) cùng lật đồng bộ 100%!
             bool isAimingLeft = Mathf.Abs(angle) > 90f;
-            gunTransform.localScale = new Vector3(1f, isAimingLeft ? -1f : 1f, 1f);
+            SetBodyFacing(isAimingLeft);
+
+            if (bodyTransform != null && gunTransform.IsChildOf(bodyTransform))
+            {
+                float localAimAngle = CalculateLocalAimAngle(angle, isAimingLeft);
+                gunTransform.localRotation = Quaternion.Euler(0f, 0f, localAimAngle);
+                gunTransform.localScale = gunTransformBaseScale;
+            }
+            else
+            {
+                // Fallback cho scene cũ chưa gắn GunPivot dưới thân.
+                gunTransform.rotation = Quaternion.Euler(0f, 0f, angle);
+                gunTransform.localScale = CalculateAimScale(angle, gunTransformBaseScale);
+            }
 
             // Tắt flipY của SpriteRenderer để tránh xung đột lật 2 lần
             if (gunSpriteRenderer != null)
@@ -422,13 +452,61 @@ public class PlayerAutoShooter : MonoBehaviour
         }
     }
 
+    private static Vector3 CalculateAimScale(float angle, Vector3 baseScale)
+    {
+        Vector3 aimScale = baseScale;
+        aimScale.y = Mathf.Abs(baseScale.y) * (Mathf.Abs(angle) > 90f ? -1f : 1f);
+        return aimScale;
+    }
+
+    private static float CalculateLocalAimAngle(float worldAngle, bool isAimingLeft)
+    {
+        return isAimingLeft ? 180f - worldAngle : worldAngle;
+    }
+
+    private static Vector3 CalculateBodyScale(bool isAimingLeft, Vector3 baseScale)
+    {
+        Vector3 bodyScale = baseScale;
+        bodyScale.x = Mathf.Abs(baseScale.x) * (isAimingLeft ? -1f : 1f);
+        return bodyScale;
+    }
+
+    private void SetBodyFacing(bool isAimingLeft)
+    {
+        if (bodyTransform != null)
+        {
+            bodyTransform.localScale = CalculateBodyScale(
+                isAimingLeft,
+                bodyTransformBaseScale
+            );
+        }
+
+        if (bodyRenderers == null)
+            return;
+
+        foreach (SpriteRenderer bodyRenderer in bodyRenderers)
+        {
+            if (bodyRenderer != null)
+            {
+                bool belongsToBodyTransform =
+                    bodyTransform != null && bodyRenderer.transform == bodyTransform;
+
+                bodyRenderer.flipX = !belongsToBodyTransform && isAimingLeft;
+            }
+        }
+    }
+
     // =====================================================
     // BẮN ĐẠN TỪ NÒNG SÚNG (ĐẠN BAY THẲNG, ÁP DỤNG 4 CHỈ SỐ)
     // =====================================================
 
     private void AutoShoot()
     {
-        if (currentTarget == null)
+        // Giữ trạng thái Attack trong suốt thời gian súng tự động bắn mục tiêu.
+        // Khoảng nghỉ giữa hai viên đạn vẫn thuộc cùng một chu kỳ Attack.
+        IsAttacking = currentTarget != null && projectilePrefab != null;
+
+        if (!IsAttacking)
             return;
 
         if (Time.time < nextFireTime)
@@ -437,6 +515,11 @@ public class PlayerAutoShooter : MonoBehaviour
         Shoot();
 
         nextFireTime = Time.time + (1f / fireRate);
+    }
+
+    private void OnDisable()
+    {
+        IsAttacking = false;
     }
 
     private void Shoot()
