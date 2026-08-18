@@ -14,6 +14,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable
     public int CurrentHealth { get; private set; }
 
     public int MaxHealth => maxHealth;
+    public int BaseMaxHealth { get; private set; }
 
     public bool IsDead { get; private set; }
 
@@ -25,6 +26,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable
 
     private void Awake()
     {
+        BaseMaxHealth = maxHealth;
         CurrentHealth = maxHealth;
     }
 

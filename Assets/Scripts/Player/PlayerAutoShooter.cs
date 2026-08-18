@@ -166,7 +166,7 @@ public class PlayerAutoShooter : MonoBehaviour
     /// </summary>
     public void LoadSelectedWeapon()
     {
-        string selectedId = PlayerPrefs.GetString("SelectedWeaponId", "");
+        string selectedId = PlayerDataService.SelectedWeaponId;
         WeaponData toEquip = null;
 
         if (!string.IsNullOrEmpty(selectedId) && availableWeapons != null)

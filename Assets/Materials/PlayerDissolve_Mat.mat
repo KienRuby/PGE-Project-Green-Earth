@@ -2,7 +2,6 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!21 &2100000
 Material:
-  serializedVersion: 8
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -39,12 +38,29 @@ Material:
     m_Floats:
     - PixelSnap: 0
     - _DissolveAmount: 0
-    - _EdgeWidth: 0.06
+    - _DissolveDirectionMode: 2
+    - _ParticleShapeMode: 0
+    - _ParticleGridSize: 60
+    - _DisperseSpeed: 1.8
+    - _RadialBurstSpread: 1.4
+    - _UpwardDrift: 0.5
+    - _SwirlStrength: 1.0
+    - _DisperseChaos: 1.3
+    - _ParticleShrink: 0.82
+    - _Gravity: 0.02
+    - _EdgeWidth: 0.12
+    - _EdgeIntensity: 3.0
+    - _SupernovaFlash: 2.5
+    - _StarSparkleSpeed: 45
+    - _PrismaticShimmer: 0.1
+    - _HaloGlowIntensity: 0.9
+    - _NoiseScale: 3.0
     - _EnableExternalAlpha: 0
-    - _NoiseScale: 1
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _EdgeColor: {r: 2.5, g: 0.8, b: 0.1, a: 1}
+    - _EdgeColor: {r: 6.0, g: 3.5, b: 0.2, a: 1}
+    - _InnerEdgeColor: {r: 10.0, g: 9.0, b: 2.5, a: 1}
+    - _SpriteUVRect: {r: 0, g: 0, b: 1, a: 1}
     - _Flip: {r: 1, g: 1, b: 1, a: 1}
     - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []

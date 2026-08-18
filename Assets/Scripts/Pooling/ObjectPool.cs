@@ -15,6 +15,7 @@ public class ObjectPool
     [SerializeField] private bool canGrow = true;
 
     private Queue<GameObject> poolQueue;
+    private HashSet<GameObject> inPoolSet;
     private Transform poolContainer;
 
     public GameObject Prefab => prefab;
@@ -33,6 +34,10 @@ public class ObjectPool
         if (poolQueue == null)
         {
             poolQueue = new Queue<GameObject>();
+        }
+        if (inPoolSet == null)
+        {
+            inPoolSet = new HashSet<GameObject>();
         }
     }
 
@@ -72,6 +77,7 @@ public class ObjectPool
         member.Pool = this;
 
         poolQueue.Enqueue(obj);
+        inPoolSet.Add(obj);
         return obj;
     }
 
@@ -86,6 +92,10 @@ public class ObjectPool
         while (poolQueue.Count > 0 && obj == null)
         {
             obj = poolQueue.Dequeue();
+            if (obj != null)
+            {
+                inPoolSet.Remove(obj);
+            }
         }
 
         if (obj == null)
@@ -96,6 +106,7 @@ public class ObjectPool
                 if (poolQueue.Count > 0)
                 {
                     poolQueue.Dequeue(); // Lấy đối tượng vừa tạo ra khỏi hàng đợi
+                    inPoolSet.Remove(obj);
                 }
             }
             else
@@ -127,7 +138,8 @@ public class ObjectPool
 
         EnsureQueueInitialized();
 
-        if (poolQueue.Contains(obj))
+        // O(1) duplicate check thay vì duyệt tuyến tính O(N) trên Queue
+        if (!inPoolSet.Add(obj))
         {
             return;
         }

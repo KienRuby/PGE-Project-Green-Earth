@@ -26,6 +26,19 @@ public class CameraFollow : MonoBehaviour
         cameraZ = transform.position.z;
     }
 
+    private void Start()
+    {
+        if (target == null)
+        {
+            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+            if (playerObj != null)
+            {
+                target = playerObj.transform;
+                SnapToTarget();
+            }
+        }
+    }
+
     private void LateUpdate()
     {
         if (target == null)

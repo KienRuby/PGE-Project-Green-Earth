@@ -1,8 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
-#if TMPro_PRESENT || ENABLE_TEXTMESHPRO
 using TMPro;
-#endif
 
 public class PlayerHealthUI : MonoBehaviour
 {
@@ -20,10 +18,8 @@ public class PlayerHealthUI : MonoBehaviour
     [Tooltip("UI Text cổ điển hiển thị số máu (ví dụ: 100/100).")]
     [SerializeField] private Text legacyHealthText;
 
-#if TMPro_PRESENT || ENABLE_TEXTMESHPRO
     [Tooltip("TextMeshPro hiển thị số máu (ví dụ: 100/100).")]
     [SerializeField] private TextMeshProUGUI tmpHealthText;
-#endif
 
     [Header("Smoothing")]
     [Tooltip("Bật hiệu ứng chuyển động mượt mà khi thanh máu tăng/giảm.")]
@@ -147,11 +143,9 @@ public class PlayerHealthUI : MonoBehaviour
             legacyHealthText.text = text;
         }
 
-#if TMPro_PRESENT || ENABLE_TEXTMESHPRO
         if (tmpHealthText != null)
         {
             tmpHealthText.text = text;
         }
-#endif
     }
 }

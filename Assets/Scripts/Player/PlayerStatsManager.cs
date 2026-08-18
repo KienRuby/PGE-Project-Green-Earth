@@ -86,7 +86,7 @@ public class PlayerStatsManager : MonoBehaviour
 
         if (playerHealth != null && BonusMaxHealth > 0)
         {
-            playerHealth.SetMaxHealth(playerHealth.MaxHealth + BonusMaxHealth, true);
+            playerHealth.SetMaxHealth(playerHealth.BaseMaxHealth + BonusMaxHealth, true);
         }
 
         if (playerHealth != null && DamageReduction > 0)
@@ -121,7 +121,6 @@ public class PlayerStatsManager : MonoBehaviour
 
     public static int GetStatLevel(string statName)
     {
-        string key = $"{LabUpgradeController.ItemLevelKeyPrefix}{statName.Trim().ToUpperInvariant()}";
-        return Mathf.Max(0, PlayerPrefs.GetInt(key, 0));
+        return PlayerDataService.GetItemLevel(statName);
     }
 }

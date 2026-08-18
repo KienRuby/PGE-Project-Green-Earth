@@ -40,6 +40,7 @@ public class Projectile : MonoBehaviour, IPoolable
         if (rb != null)
         {
             rb.gravityScale = 0f;
+            rb.useFullKinematicContacts = true;
         }
     }
 

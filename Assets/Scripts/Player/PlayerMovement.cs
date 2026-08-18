@@ -15,6 +15,11 @@ public class PlayerMovement : MonoBehaviour
     [Tooltip("Tham chiếu tới VirtualJoystick trên UI điều khiển cho điện thoại/cảm ứng.")]
     [SerializeField] private VirtualJoystick joystick;
 
+    [Header("Debug Info (Inspector)")]
+    [SerializeField] private Vector2 debugInput;
+    [SerializeField] private float debugEffectiveSpeed;
+    [SerializeField] private Vector2 debugCurrentPosition;
+
     private Rigidbody2D rb;
     private PlayerHealth playerHealth;
     private float moveSpeedBonus;
@@ -30,8 +35,11 @@ public class PlayerMovement : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         playerHealth = GetComponent<PlayerHealth>();
 
-        rb.gravityScale = 0f;
-        rb.freezeRotation = true;
+        if (rb != null)
+        {
+            rb.gravityScale = 0f;
+            rb.freezeRotation = true;
+        }
     }
 
     public void SetMoveSpeedBonus(float bonus)
@@ -44,6 +52,7 @@ public class PlayerMovement : MonoBehaviour
         if (playerHealth != null && playerHealth.IsDead)
         {
             moveInput = Vector2.zero;
+            debugInput = Vector2.zero;
             return;
         }
 
@@ -54,81 +63,96 @@ public class PlayerMovement : MonoBehaviour
             ? joystick.Direction
             : Vector2.zero;
 
-        // Ưu tiên joystick nếu người chơi đang chạm joystick
-        if (joystickInput.sqrMagnitude > 0.01f)
+        // Kết hợp cả Joystick lẫn Bàn phím
+        if (joystickInput.sqrMagnitude > 0.001f)
         {
             moveInput = joystickInput;
         }
-        else
+        else if (keyboardInput.sqrMagnitude > 0.001f)
         {
             moveInput = keyboardInput;
         }
+        else
+        {
+            moveInput = Vector2.zero;
+        }
 
-        // Không cho đi chéo nhanh hơn
         moveInput = Vector2.ClampMagnitude(moveInput, 1f);
+
+        // Cập nhật thông số Debug để theo dõi trực tiếp trên Inspector
+        debugInput = moveInput;
+        debugEffectiveSpeed = moveSpeed + moveSpeedBonus;
+        debugCurrentPosition = transform.position;
     }
 
     private void FixedUpdate()
     {
         if (playerHealth != null && playerHealth.IsDead)
         {
+            if (rb != null) rb.velocity = Vector2.zero;
             return;
         }
 
-        Vector2 targetPosition =
-            rb.position +
-            moveInput * (moveSpeed + moveSpeedBonus) * Time.fixedDeltaTime;
+        float currentSpeed = moveSpeed + moveSpeedBonus;
+        Vector2 movement = moveInput * currentSpeed;
 
-        rb.MovePosition(targetPosition);
+        if (rb != null)
+        {
+            rb.velocity = movement;
+        }
+        else
+        {
+            transform.position += (Vector3)(movement * Time.fixedDeltaTime);
+        }
     }
 
     private void ReadKeyboard()
     {
         keyboardInput = Vector2.zero;
 
-#if ENABLE_INPUT_SYSTEM
-
-        if (Keyboard.current == null)
-            return;
-
-        if (Keyboard.current.wKey.isPressed ||
-            Keyboard.current.upArrowKey.isPressed)
+        // 1. Đọc trực tiếp phím bấm vật lý (W, A, S, D, Mũi tên)
+        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
         {
             keyboardInput.y += 1f;
         }
 
-        if (Keyboard.current.sKey.isPressed ||
-            Keyboard.current.downArrowKey.isPressed)
+        if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
         {
             keyboardInput.y -= 1f;
         }
 
-        if (Keyboard.current.aKey.isPressed ||
-            Keyboard.current.leftArrowKey.isPressed)
+        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
         {
             keyboardInput.x -= 1f;
         }
 
-        if (Keyboard.current.dKey.isPressed ||
-            Keyboard.current.rightArrowKey.isPressed)
+        if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
         {
             keyboardInput.x += 1f;
         }
 
-#else
+        // 2. Fallback sang Axis
+        if (keyboardInput == Vector2.zero)
+        {
+            float h = Input.GetAxisRaw("Horizontal");
+            float v = Input.GetAxisRaw("Vertical");
+            if (Mathf.Abs(h) > 0.01f || Mathf.Abs(v) > 0.01f)
+            {
+                keyboardInput.x = h;
+                keyboardInput.y = v;
+            }
+        }
 
-        keyboardInput.x =
-            Input.GetAxisRaw("Horizontal");
-
-        keyboardInput.y =
-            Input.GetAxisRaw("Vertical");
-
+#if ENABLE_INPUT_SYSTEM
+        if (Keyboard.current != null)
+        {
+            if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed) keyboardInput.y += 1f;
+            if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed) keyboardInput.y -= 1f;
+            if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed) keyboardInput.x -= 1f;
+            if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed) keyboardInput.x += 1f;
+        }
 #endif
 
-        keyboardInput =
-            Vector2.ClampMagnitude(
-                keyboardInput,
-                1f
-            );
+        keyboardInput = Vector2.ClampMagnitude(keyboardInput, 1f);
     }
 }

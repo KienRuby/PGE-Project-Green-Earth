@@ -210,26 +210,41 @@ public class LabUpgradeController : MonoBehaviour
         }
     }
 
-    public const string ChipsetBalanceKey = "PGE.Shop.Balance.Chipsets";
-    public const string RedGemBalanceKey = "PGE.Shop.Balance.RedGems";
-    public const string EnergyBalanceKey = "PGE.Lab.Balance.Energy";
-    public const string NextEnergyUtcKey = "PGE.Lab.NextEnergyUtc";
-    public const string CompletedRollsKey = "PGE.Lab.CompletedRolls";
-    public const string ItemLevelKeyPrefix = "PGE.Lab.ItemLevel.";
+    public const string ChipsetBalanceKey = PlayerDataService.ChipsetsKey;
+    public const string RedGemBalanceKey = PlayerDataService.RedGemsKey;
+    public const string EnergyBalanceKey = PlayerDataService.EnergyKey;
+    public const string NextEnergyUtcKey = PlayerDataService.NextEnergyUtcKey;
+    public const string CompletedRollsKey = PlayerDataService.CompletedRollsKey;
+    public const string ItemLevelKeyPrefix = PlayerDataService.ItemLevelKeyPrefix;
 
     public static string GetItemLevelKey(string itemName, int index)
     {
         return !string.IsNullOrEmpty(itemName)
-            ? $"{ItemLevelKeyPrefix}{itemName.Trim().ToUpperInvariant()}"
+            ? PlayerDataService.FormatItemLevelKey(itemName)
             : $"{ItemLevelKeyPrefix}Slot_{index}";
     }
 
     private void Start()
     {
-        currentEnergy = Mathf.Clamp(PlayerPrefs.GetInt(EnergyBalanceKey, startingEnergy), 0, MaxEnergy);
-        currentChips = Mathf.Max(0, PlayerPrefs.GetInt(ChipsetBalanceKey, startingChips));
-        startingRedChips = Mathf.Max(0, PlayerPrefs.GetInt(RedGemBalanceKey, startingRedChips));
-        completedRolls = Mathf.Max(0, PlayerPrefs.GetInt(CompletedRollsKey, 0));
+        if (!PlayerPrefs.HasKey(PlayerDataService.ChipsetsKey))
+        {
+            PlayerDataService.Chipsets = startingChips;
+        }
+
+        if (!PlayerPrefs.HasKey(PlayerDataService.RedGemsKey))
+        {
+            PlayerDataService.RedGems = startingRedChips;
+        }
+
+        if (!PlayerPrefs.HasKey(PlayerDataService.EnergyKey))
+        {
+            PlayerDataService.Energy = startingEnergy;
+        }
+
+        currentEnergy = Mathf.Clamp(PlayerDataService.Energy, 0, MaxEnergy);
+        currentChips = PlayerDataService.Chipsets;
+        startingRedChips = PlayerDataService.RedGems;
+        completedRolls = PlayerDataService.CompletedRolls;
         currentPrice = basePrice + completedRolls * priceStep;
 
         string savedUtcStr = PlayerPrefs.GetString(NextEnergyUtcKey, string.Empty);

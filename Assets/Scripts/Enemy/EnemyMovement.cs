@@ -22,6 +22,7 @@ public class EnemyMovement : MonoBehaviour, IPoolable
 
     private Rigidbody2D rb;
     private Transform player;
+    private float nextPlayerSearchTime;
 
     // Buffer cố định để quét quái xung quanh không tạo rác GC
     private readonly Collider2D[] nearbyCollidersBuffer = new Collider2D[16];
@@ -67,6 +68,7 @@ public class EnemyMovement : MonoBehaviour, IPoolable
 
     private void FindPlayer()
     {
+        nextPlayerSearchTime = Time.time + 1.0f;
         GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
         if (playerObject != null)
         {
@@ -76,10 +78,17 @@ public class EnemyMovement : MonoBehaviour, IPoolable
 
     private void FixedUpdate()
     {
-        if (player == null)
+        if (player == null || !player.gameObject.activeInHierarchy)
         {
-            FindPlayer();
-            if (player == null) return;
+            if (Time.time >= nextPlayerSearchTime)
+            {
+                FindPlayer();
+            }
+            if (player == null || !player.gameObject.activeInHierarchy)
+            {
+                if (rb != null) rb.velocity = Vector2.zero;
+                return;
+            }
         }
 
         Vector2 playerDirection = CalculatePlayerDirection();

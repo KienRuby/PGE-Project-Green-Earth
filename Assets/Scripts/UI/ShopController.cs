@@ -58,9 +58,24 @@ public sealed class ShopController : MonoBehaviour
 
     private void Start()
     {
-        currentEnergy = Mathf.Clamp(startingEnergy, 0, maximumEnergy);
-        currentChipsets = Mathf.Max(0, PlayerPrefs.GetInt(ChipsetBalanceKey, startingChipsets));
-        currentRedGems = Mathf.Max(0, PlayerPrefs.GetInt(RedGemBalanceKey, startingRedGems));
+        if (!PlayerPrefs.HasKey(PlayerDataService.ChipsetsKey))
+        {
+            PlayerDataService.Chipsets = startingChipsets;
+        }
+
+        if (!PlayerPrefs.HasKey(PlayerDataService.RedGemsKey))
+        {
+            PlayerDataService.RedGems = startingRedGems;
+        }
+
+        if (!PlayerPrefs.HasKey(PlayerDataService.EnergyKey))
+        {
+            PlayerDataService.Energy = startingEnergy;
+        }
+
+        currentEnergy = Mathf.Clamp(PlayerDataService.Energy, 0, maximumEnergy);
+        currentChipsets = PlayerDataService.Chipsets;
+        currentRedGems = PlayerDataService.RedGems;
         chipsetBoxes = Mathf.Max(0, PlayerPrefs.GetInt(ChipsetBoxCountKey, 0));
         droneBoxes = Mathf.Max(0, PlayerPrefs.GetInt(DroneBoxCountKey, 0));
 
@@ -79,9 +94,9 @@ public sealed class ShopController : MonoBehaviour
 
     private void OnEnable()
     {
-        currentChipsets = Mathf.Max(0, PlayerPrefs.GetInt(ChipsetBalanceKey, startingChipsets));
-        currentRedGems = Mathf.Max(0, PlayerPrefs.GetInt(RedGemBalanceKey, startingRedGems));
-        currentEnergy = Mathf.Clamp(PlayerPrefs.GetInt("PGE.Lab.Balance.Energy", startingEnergy), 0, maximumEnergy);
+        currentChipsets = PlayerDataService.Chipsets;
+        currentRedGems = PlayerDataService.RedGems;
+        currentEnergy = Mathf.Clamp(PlayerDataService.Energy, 0, maximumEnergy);
         RefreshView();
     }
 
@@ -214,8 +229,8 @@ public sealed class ShopController : MonoBehaviour
 
     private void SaveState()
     {
-        PlayerPrefs.SetInt(ChipsetBalanceKey, currentChipsets);
-        PlayerPrefs.SetInt(RedGemBalanceKey, currentRedGems);
+        PlayerDataService.Chipsets = currentChipsets;
+        PlayerDataService.RedGems = currentRedGems;
         PlayerPrefs.SetInt(ChipsetBoxCountKey, chipsetBoxes);
         PlayerPrefs.SetInt(DroneBoxCountKey, droneBoxes);
         PlayerPrefs.Save();

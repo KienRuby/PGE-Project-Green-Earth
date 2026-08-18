@@ -1,4 +1,6 @@
+using System.IO;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 
 public class PGEGameLogicTests
@@ -93,5 +95,56 @@ public class PGEGameLogicTests
         Assert.That(movement.enabled, Is.False);
 
         Object.DestroyImmediate(playerGo);
+    }
+
+    [Test]
+    public void DieAnimation_HasNoRootPositionCurves_ToPreventAnimatorTransformLock()
+    {
+        AnimationClip clip = AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/Animaton/Player/Die.anim");
+        Assert.That(clip, Is.Not.Null);
+
+        EditorCurveBinding[] bindings = AnimationUtility.GetCurveBindings(clip);
+        foreach (var binding in bindings)
+        {
+            if (string.IsNullOrEmpty(binding.path) && binding.propertyName.StartsWith("m_LocalPosition"))
+            {
+                Assert.Fail($"Die.anim contains root position curve: {binding.propertyName}, which locks Player movement in Animator!");
+            }
+        }
+    }
+
+    [Test]
+    public void TargetFrameRate_IsConfiguredForSmoothGameplay()
+    {
+        Assert.That(Application.targetFrameRate, Is.GreaterThanOrEqualTo(60));
+    }
+
+    [Test]
+    public void AAAGoldenStarParticleDissolveShader_LoadsAndContainsRequiredProperties()
+    {
+        Shader shader = Shader.Find("Custom/2D/SpriteDissolve");
+        Assert.That(shader, Is.Not.Null, "Custom/2D/SpriteDissolve shader must exist in the project.");
+
+        Material mat = new Material(shader);
+        Assert.That(mat.HasProperty("_DissolveAmount"), Is.True);
+        Assert.That(mat.HasProperty("_DissolveDirectionMode"), Is.True);
+        Assert.That(mat.HasProperty("_ParticleShapeMode"), Is.True);
+        Assert.That(mat.HasProperty("_ParticleGridSize"), Is.True);
+        Assert.That(mat.HasProperty("_DisperseSpeed"), Is.True);
+        Assert.That(mat.HasProperty("_RadialBurstSpread"), Is.True);
+        Assert.That(mat.HasProperty("_UpwardDrift"), Is.True);
+        Assert.That(mat.HasProperty("_SwirlStrength"), Is.True);
+        Assert.That(mat.HasProperty("_DisperseChaos"), Is.True);
+        Assert.That(mat.HasProperty("_ParticleShrink"), Is.True);
+        Assert.That(mat.HasProperty("_Gravity"), Is.True);
+        Assert.That(mat.HasProperty("_EdgeColor"), Is.True);
+        Assert.That(mat.HasProperty("_InnerEdgeColor"), Is.True);
+        Assert.That(mat.HasProperty("_EdgeIntensity"), Is.True);
+        Assert.That(mat.HasProperty("_SupernovaFlash"), Is.True);
+        Assert.That(mat.HasProperty("_StarSparkleSpeed"), Is.True);
+        Assert.That(mat.HasProperty("_PrismaticShimmer"), Is.True);
+        Assert.That(mat.HasProperty("_HaloGlowIntensity"), Is.True);
+        Assert.That(mat.HasProperty("_SpriteUVRect"), Is.True);
+        Object.DestroyImmediate(mat);
     }
 }

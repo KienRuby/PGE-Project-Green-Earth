@@ -62,7 +62,7 @@ public class GatlingSpinner : MonoBehaviour
         if (currentSpinFPS > 0.5f && spinFrames != null && spinFrames.Length > 0)
         {
             frameTimer += Time.deltaTime * currentSpinFPS;
-            if (frameTimer >= 1f)
+            while (frameTimer >= 1f)
             {
                 frameTimer -= 1f;
                 currentFrameIndex = (currentFrameIndex + 1) % spinFrames.Length;
