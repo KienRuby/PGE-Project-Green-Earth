@@ -163,17 +163,23 @@ public class EnemySpawner : MonoBehaviour
         EnemyHealth health = enemyObj.GetComponent<EnemyHealth>();
         if (health != null)
         {
+            health.OnDeath -= HandleEnemyDeath;
+            health.OnDeath += HandleEnemyDeath;
+
             if (!activeEnemies.Contains(health))
             {
                 activeEnemies.Add(health);
-                health.OnEnemyDeath += () => HandleEnemyDeath(health);
             }
         }
     }
 
     private void HandleEnemyDeath(EnemyHealth enemy)
     {
-        activeEnemies.Remove(enemy);
+        if (enemy != null)
+        {
+            enemy.OnDeath -= HandleEnemyDeath;
+            activeEnemies.Remove(enemy);
+        }
     }
 
     private GameObject SelectRandomEnemyPrefab()
@@ -237,6 +243,7 @@ public class EnemySpawner : MonoBehaviour
             Vector2 diff = (Vector2)enemy.transform.position - playerPos;
             if (diff.sqrMagnitude > maxDistSqr)
             {
+                enemy.OnDeath -= HandleEnemyDeath;
                 activeEnemies.RemoveAt(i);
                 enemy.Despawn();
             }

@@ -138,6 +138,8 @@ GameObject:
   - component: {fileID: 78188134}
   - component: {fileID: 78188135}
   - component: {fileID: 78188136}
+  - component: {fileID: 78188137}
+  - component: {fileID: 78188138}
   m_Layer: 6
   m_Name: Player
   m_TagString: Player
@@ -233,7 +235,7 @@ MonoBehaviour:
   defaultWeapon: {fileID: 11400000, guid: 6f0e495329d74ebb8571c73f2757f0b4, type: 2}
   availableWeapons:
   - {fileID: 11400000, guid: 6f0e495329d74ebb8571c73f2757f0b4, type: 2}
-  - {fileID: 11400000, guid: 6f0e495329d74ebb8571c73f2757f0b4, type: 2}
+  - {fileID: 11400000, guid: 5aca7d42f84b492a8fb90c5338ca12fe, type: 2}
   detectionShape: 0
   targetCamera: {fileID: 0}
   viewportScale: 1.1
@@ -339,6 +341,85 @@ MonoBehaviour:
   playerMovement: {fileID: 78188131}
   autoShooter: {fileID: 78188133}
   movementThreshold: 0.01
+--- !u!114 &78188137
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 78188126}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d8b5c924765345a3962b8a21199341ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hpBonusPerLevel: 10
+  damageBonusPerLevel: 3
+  speedBonusPerLevel: 0.25
+  fireRateBonusPerLevel: 0.3
+  rangeBonusPerLevel: 0.5
+  regenPerSecondPerLevel: 0.5
+  damageReductionPerLevel: 1
+  bulletSpeedBonusPerLevel: 0.5
+  critChancePerLevel: 0.02
+--- !u!114 &78188138
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 78188126}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  animator: {fileID: 0}
+  deathTriggerName: Die
+  deathStateName: Die
+  fallbackAnimationDuration: 0.8
+  dissolveMaterialPreset: {fileID: 2100000, guid: 8b3d7a1e2f9c4058b6e7f1a2d3c4b5a6, type: 2}
+  dissolveDuration: 1.2
+  delayBeforeDissolve: 0.05
+  dissolveCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  disableColliders: 1
+  disablePhysics: 1
+  additionalBehavioursToDisable: []
+  destroyOnComplete: 1
+  disableOnComplete: 0
+  completionDelay: 0.05
+  onDeathStarted:
+    m_PersistentCalls:
+      m_Calls: []
+  onDissolveStarted:
+    m_PersistentCalls:
+      m_Calls: []
+  onDeathComplete:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &190367608
 GameObject:
   m_ObjectHideFlags: 0

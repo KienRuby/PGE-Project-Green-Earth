@@ -127,6 +127,11 @@ public class ObjectPool
 
         EnsureQueueInitialized();
 
+        if (poolQueue.Contains(obj))
+        {
+            return;
+        }
+
         IPoolable[] poolables = obj.GetComponentsInChildren<IPoolable>(true);
         for (int i = 0; i < poolables.Length; i++)
         {

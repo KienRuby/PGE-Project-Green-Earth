@@ -210,20 +210,46 @@ public class LabUpgradeController : MonoBehaviour
         }
     }
 
+    public const string ChipsetBalanceKey = "PGE.Shop.Balance.Chipsets";
+    public const string RedGemBalanceKey = "PGE.Shop.Balance.RedGems";
+    public const string EnergyBalanceKey = "PGE.Lab.Balance.Energy";
+    public const string NextEnergyUtcKey = "PGE.Lab.NextEnergyUtc";
+    public const string CompletedRollsKey = "PGE.Lab.CompletedRolls";
+    public const string ItemLevelKeyPrefix = "PGE.Lab.ItemLevel.";
+
+    public static string GetItemLevelKey(string itemName, int index)
+    {
+        return !string.IsNullOrEmpty(itemName)
+            ? $"{ItemLevelKeyPrefix}{itemName.Trim().ToUpperInvariant()}"
+            : $"{ItemLevelKeyPrefix}Slot_{index}";
+    }
+
     private void Start()
     {
-        currentEnergy = Mathf.Clamp(startingEnergy, 0, MaxEnergy);
-        currentChips = Mathf.Max(0, startingChips);
-        startingRedChips = Mathf.Max(0, startingRedChips);
-        currentPrice = basePrice;
-        nextEnergyRecoveryUtc = DateTime.UtcNow.AddMinutes(1d);
+        currentEnergy = Mathf.Clamp(PlayerPrefs.GetInt(EnergyBalanceKey, startingEnergy), 0, MaxEnergy);
+        currentChips = Mathf.Max(0, PlayerPrefs.GetInt(ChipsetBalanceKey, startingChips));
+        startingRedChips = Mathf.Max(0, PlayerPrefs.GetInt(RedGemBalanceKey, startingRedChips));
+        completedRolls = Mathf.Max(0, PlayerPrefs.GetInt(CompletedRollsKey, 0));
+        currentPrice = basePrice + completedRolls * priceStep;
+
+        string savedUtcStr = PlayerPrefs.GetString(NextEnergyUtcKey, string.Empty);
+        if (DateTime.TryParse(savedUtcStr, null, DateTimeStyles.RoundtripKind, out DateTime parsedUtc))
+        {
+            nextEnergyRecoveryUtc = parsedUtc;
+        }
+        else
+        {
+            nextEnergyRecoveryUtc = DateTime.UtcNow.AddMinutes(1d);
+        }
+
         hasInitialized = true;
         AssignRaritiesByRow();
 
         for (int i = 0; i < items.Length; i++)
         {
             ItemEntry item = items[i];
-            item.level = item.startsUnlocked ? Mathf.Max(1, item.startingLevel) : 0;
+            int defaultLevel = item.startsUnlocked ? Mathf.Max(1, item.startingLevel) : 0;
+            item.level = PlayerPrefs.GetInt(GetItemLevelKey(item.itemName, i), defaultLevel);
             RefreshItemView(item);
         }
 
@@ -237,6 +263,7 @@ public class LabUpgradeController : MonoBehaviour
             resultText.text = "ROLL FOR A RANDOM UPGRADE";
         }
 
+        RecoverEnergyFromClock();
         RefreshMainView();
         StartEnergyRecovery();
     }
@@ -248,7 +275,12 @@ public class LabUpgradeController : MonoBehaviour
             return;
         }
 
+        currentChips = Mathf.Max(0, PlayerPrefs.GetInt(ChipsetBalanceKey, currentChips));
+        startingRedChips = Mathf.Max(0, PlayerPrefs.GetInt(RedGemBalanceKey, startingRedChips));
+        currentEnergy = Mathf.Clamp(PlayerPrefs.GetInt(EnergyBalanceKey, currentEnergy), 0, MaxEnergy);
+
         RecoverEnergyFromClock();
+        RefreshMainView();
         StartEnergyRecovery();
     }
 
@@ -410,7 +442,20 @@ public class LabUpgradeController : MonoBehaviour
 
         completedRolls++;
         currentPrice = basePrice + completedRolls * priceStep;
+
+        SaveState(item, pendingItemIndex);
         FinishRoll();
+    }
+
+    private void SaveState(ItemEntry item, int itemIndex)
+    {
+        PlayerPrefs.SetInt(ChipsetBalanceKey, currentChips);
+        PlayerPrefs.SetInt(CompletedRollsKey, completedRolls);
+        if (item != null)
+        {
+            PlayerPrefs.SetInt(GetItemLevelKey(item.itemName, itemIndex), item.level);
+        }
+        PlayerPrefs.Save();
     }
 
     private void FinishRoll()
@@ -525,6 +570,9 @@ public class LabUpgradeController : MonoBehaviour
         if (currentEnergy >= MaxEnergy)
         {
             nextEnergyRecoveryUtc = now.AddMinutes(1d);
+            PlayerPrefs.SetInt(EnergyBalanceKey, currentEnergy);
+            PlayerPrefs.SetString(NextEnergyUtcKey, nextEnergyRecoveryUtc.ToString("o"));
+            PlayerPrefs.Save();
             return;
         }
 
@@ -537,6 +585,10 @@ public class LabUpgradeController : MonoBehaviour
         int recoveredPoints = Math.Min(MaxEnergy - currentEnergy, elapsedRecoveryPoints);
         currentEnergy += recoveredPoints;
         nextEnergyRecoveryUtc = nextEnergyRecoveryUtc.AddMinutes(recoveredPoints);
+
+        PlayerPrefs.SetInt(EnergyBalanceKey, currentEnergy);
+        PlayerPrefs.SetString(NextEnergyUtcKey, nextEnergyRecoveryUtc.ToString("o"));
+        PlayerPrefs.Save();
 
         if (energyBalanceText != null)
         {

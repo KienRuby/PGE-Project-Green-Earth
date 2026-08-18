@@ -16,22 +16,37 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private VirtualJoystick joystick;
 
     private Rigidbody2D rb;
+    private PlayerHealth playerHealth;
+    private float moveSpeedBonus;
 
     private Vector2 moveInput;
     private Vector2 keyboardInput;
 
     public Vector2 MoveDirection => moveInput;
+    public float MoveSpeed => moveSpeed + moveSpeedBonus;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        playerHealth = GetComponent<PlayerHealth>();
 
         rb.gravityScale = 0f;
         rb.freezeRotation = true;
     }
 
+    public void SetMoveSpeedBonus(float bonus)
+    {
+        moveSpeedBonus = Mathf.Max(0f, bonus);
+    }
+
     private void Update()
     {
+        if (playerHealth != null && playerHealth.IsDead)
+        {
+            moveInput = Vector2.zero;
+            return;
+        }
+
         ReadKeyboard();
 
         Vector2 joystickInput =
@@ -55,9 +70,14 @@ public class PlayerMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (playerHealth != null && playerHealth.IsDead)
+        {
+            return;
+        }
+
         Vector2 targetPosition =
             rb.position +
-            moveInput * moveSpeed * Time.fixedDeltaTime;
+            moveInput * (moveSpeed + moveSpeedBonus) * Time.fixedDeltaTime;
 
         rb.MovePosition(targetPosition);
     }

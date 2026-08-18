@@ -37,6 +37,10 @@ public class Projectile : MonoBehaviour, IPoolable
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        if (rb != null)
+        {
+            rb.gravityScale = 0f;
+        }
     }
 
     private void OnEnable()
@@ -94,7 +98,15 @@ public class Projectile : MonoBehaviour, IPoolable
 
         if (rb != null)
         {
-            rb.velocity = moveDirection * moveSpeed;
+            if (rb.bodyType == RigidbodyType2D.Kinematic)
+            {
+                Vector2 nextPos = rb.position + moveDirection * (moveSpeed * Time.fixedDeltaTime);
+                rb.MovePosition(nextPos);
+            }
+            else
+            {
+                rb.velocity = moveDirection * moveSpeed;
+            }
         }
     }
 

@@ -21,6 +21,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable
     public event Action OnPlayerDeath;
 
     private float invincibleTimer;
+    private int damageReduction;
 
     private void Awake()
     {
@@ -30,6 +31,25 @@ public class PlayerHealth : MonoBehaviour, IDamageable
     private void Start()
     {
         OnHealthChanged?.Invoke(CurrentHealth, maxHealth);
+    }
+
+    public void SetMaxHealth(int newMaxHealth, bool resetCurrentHealth = false)
+    {
+        maxHealth = Mathf.Max(1, newMaxHealth);
+        if (resetCurrentHealth)
+        {
+            CurrentHealth = maxHealth;
+        }
+        else
+        {
+            CurrentHealth = Mathf.Clamp(CurrentHealth, 0, maxHealth);
+        }
+        OnHealthChanged?.Invoke(CurrentHealth, maxHealth);
+    }
+
+    public void SetDamageReduction(int reduction)
+    {
+        damageReduction = Mathf.Max(0, reduction);
     }
 
     private void Update()
@@ -51,12 +71,14 @@ public class PlayerHealth : MonoBehaviour, IDamageable
         if (damage <= 0)
             return;
 
-        CurrentHealth -= damage;
+        int effectiveDamage = Mathf.Max(1, damage - damageReduction);
+
+        CurrentHealth -= effectiveDamage;
         CurrentHealth = Mathf.Clamp(CurrentHealth, 0, maxHealth);
 
         invincibleTimer = invincibleTime;
 
-        Debug.Log($"Player nhận {damage} damage. HP: {CurrentHealth}/{maxHealth}");
+        Debug.Log($"Player nhận {effectiveDamage} damage (gốc {damage}, giáp giảm {damageReduction}). HP: {CurrentHealth}/{maxHealth}");
 
         OnHealthChanged?.Invoke(CurrentHealth, maxHealth);
 

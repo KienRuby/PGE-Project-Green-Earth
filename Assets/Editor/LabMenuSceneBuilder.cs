@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using TMPro;
@@ -22,6 +23,12 @@ public static class LabMenuSceneBuilder
         public TMP_Text levelText;
         public TMP_Text nameText;
         public Image slotBackground;
+    }
+
+    private sealed class ShopOfferView
+    {
+        public Button button;
+        public TMP_Text priceText;
     }
 
     private const string ScenePath = "Assets/Scenes/MainMenu.unity";
@@ -102,10 +109,12 @@ public static class LabMenuSceneBuilder
         Camera camera = CreateCamera();
         CreateEventSystem();
         Canvas canvas = CreateInterface();
+        ValidateShopHierarchy();
 
         EditorSceneManager.SaveScene(scene, ScenePath);
         UpdateBuildSettings();
         CapturePreview(canvas, camera);
+        ClearGeneratedFallbackGlyph();
         EditorSceneManager.SaveScene(scene, ScenePath);
 
         if (!replaceActiveMainMenu && previousScene.IsValid() && previousScene.isLoaded)
@@ -117,6 +126,53 @@ public static class LabMenuSceneBuilder
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
         Debug.Log($"PGE Lab UI created: {ScenePath}. Preview: {PreviewPath}");
+    }
+
+    private static void ClearGeneratedFallbackGlyph()
+    {
+        const uint VietnameseDongUnicode = 273;
+        TMP_FontAsset fallbackFont = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(
+            "Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF - Fallback.asset");
+
+        if (fallbackFont == null ||
+            fallbackFont.characterTable.Count != 1 ||
+            fallbackFont.characterTable[0].unicode != VietnameseDongUnicode)
+        {
+            return;
+        }
+
+        fallbackFont.ClearFontAssetData(true);
+        EditorUtility.SetDirty(fallbackFont);
+        AssetDatabase.SaveAssetIfDirty(fallbackFont);
+    }
+
+    private static void ValidateShopHierarchy()
+    {
+        GameObject panel = GameObject.Find("Canvas/Content/ShopPanel (Scrollable)");
+        if (panel == null || panel.GetComponent<ScrollRect>() == null || panel.GetComponent<ShopController>() == null)
+        {
+            throw new InvalidOperationException("The functional ShopPanel was not created correctly.");
+        }
+
+        string[] requiredChildren =
+        {
+            "Viewport/ShopContent/DailyShopSection/Title",
+            "Viewport/ShopContent/DailyShopSection/FreeGemItem",
+            "Viewport/ShopContent/DailyShopSection/DroneBoxItem_1",
+            "Viewport/ShopContent/DailyShopSection/DroneBoxItem_2",
+            "Viewport/ShopContent/BoxSection/Title",
+            "Viewport/ShopContent/BoxSection/ChipsetBoxGrid",
+            "Viewport/ShopContent/BoxSection/DroneBoxGrid",
+            "Viewport/ShopContent/GemSection/Title"
+        };
+
+        for (int i = 0; i < requiredChildren.Length; i++)
+        {
+            if (panel.transform.Find(requiredChildren[i]) == null)
+            {
+                throw new InvalidOperationException($"Missing Shop hierarchy object: {requiredChildren[i]}");
+            }
+        }
     }
 
     private static void ConfigureTextures()
@@ -283,7 +339,7 @@ public static class LabMenuSceneBuilder
         Stretch(content, Vector2.zero, Vector2.one, new Vector2(0f, 220f), new Vector2(0f, -175f));
 
         GameObject[] panels = new GameObject[5];
-        panels[0] = CreatePlaceholderPanel(content, "ShopPanel", "SHOP", "Equipment store is being prepared");
+        panels[0] = CreateShopPanel(content, energyBalanceText, chipBalanceText, redChipBalanceText);
         panels[1] = CreateLabPanel(content, energyBalanceText, chipBalanceText, redChipBalanceText);
         panels[2] = CreatePlaceholderPanel(content, "ChapterPanel", "CHAPTER", "Mission map is being prepared");
         panels[3] = CreatePlaceholderPanel(content, "ChipsetPanel", "CHIPSET", "Chip configuration is being prepared");
@@ -291,7 +347,7 @@ public static class LabMenuSceneBuilder
 
         for (int i = 0; i < panels.Length; i++)
         {
-            panels[i].SetActive(i == 1);
+            panels[i].SetActive(i == 0);
         }
 
         CreateBottomNavigation(canvasObject, canvasRect, panels);
@@ -304,9 +360,9 @@ public static class LabMenuSceneBuilder
         out TMP_Text chipBalanceText,
         out TMP_Text redChipBalanceText)
     {
-        energyBalanceText = CreateResourceDisplay(parent, "Energy", 0.025f, 0.265f, "energy", "30/100", "offline", Cream);
-        chipBalanceText = CreateResourceDisplay(parent, "ChipCurrency", 0.285f, 0.525f, "chip-currency", "700", string.Empty, Cream);
-        redChipBalanceText = CreateResourceDisplay(parent, "RedCurrency", 0.545f, 0.765f, "red-currency", "10", string.Empty, Cream);
+        energyBalanceText = CreateResourceDisplay(parent, "Energy", 0.025f, 0.265f, "energy", "24/50", "05:46", Cream);
+        chipBalanceText = CreateResourceDisplay(parent, "ChipCurrency", 0.285f, 0.525f, "chip-currency", "134,936", string.Empty, Cream);
+        redChipBalanceText = CreateResourceDisplay(parent, "RedCurrency", 0.545f, 0.765f, "red-currency", "15,516", string.Empty, Cream);
         CreateTopIconButton(parent, "MailButton", 0.79f, 0.885f, "mail");
         CreateTopIconButton(parent, "SettingButton", 0.895f, 0.99f, "settings");
     }
@@ -352,6 +408,246 @@ public static class LabMenuSceneBuilder
         icon.raycastTarget = true;
         Button button = root.gameObject.AddComponent<Button>();
         button.targetGraphic = icon;
+    }
+
+    private static GameObject CreateShopPanel(
+        RectTransform parent,
+        TMP_Text energyBalanceText,
+        TMP_Text chipBalanceText,
+        TMP_Text redChipBalanceText)
+    {
+        RectTransform panel = CreateRect("ShopPanel (Scrollable)", parent);
+        Stretch(panel, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+
+        ScrollRect scrollRect = panel.gameObject.AddComponent<ScrollRect>();
+        scrollRect.horizontal = false;
+        scrollRect.vertical = true;
+        scrollRect.movementType = ScrollRect.MovementType.Clamped;
+        scrollRect.inertia = true;
+        scrollRect.decelerationRate = 0.12f;
+        scrollRect.scrollSensitivity = 55f;
+
+        Image viewportImage = CreateImage("Viewport", panel, new Color32(255, 255, 255, 1), false);
+        Stretch(viewportImage.rectTransform, Vector2.zero, Vector2.one, new Vector2(0f, 58f), Vector2.zero);
+        Mask viewportMask = viewportImage.gameObject.AddComponent<Mask>();
+        viewportMask.showMaskGraphic = false;
+        scrollRect.viewport = viewportImage.rectTransform;
+
+        RectTransform shopContent = CreateRect("ShopContent", viewportImage.rectTransform);
+        shopContent.anchorMin = new Vector2(0f, 1f);
+        shopContent.anchorMax = new Vector2(1f, 1f);
+        shopContent.pivot = new Vector2(0.5f, 1f);
+        shopContent.anchoredPosition = Vector2.zero;
+        shopContent.sizeDelta = new Vector2(0f, 1900f);
+        scrollRect.content = shopContent;
+
+        List<ShopOfferView> offerViews = new List<ShopOfferView>(7);
+
+        RectTransform dailySection = CreateShopSection("DailyShopSection", shopContent, 0f, 470f);
+        CreateShopSectionHeader(dailySection, "Daily Shop");
+        offerViews.Add(CreateShopOfferCard(
+            dailySection, "FreeGemItem", 0.025f, 0.34f, "Gem", "x80", "FREE", "red-currency",
+            new Color32(88, 174, 108, 255), false));
+        offerViews.Add(CreateShopOfferCard(
+            dailySection, "DroneBoxItem_1", 0.35f, 0.665f, "Drone Box", "x1", "x180", "drone-box",
+            new Color32(26, 57, 77, 255), true));
+        offerViews.Add(CreateShopOfferCard(
+            dailySection, "DroneBoxItem_2", 0.675f, 0.99f, "Drone Box", "x1", "x180", "drone-box",
+            new Color32(26, 57, 77, 255), true));
+
+        RectTransform boxSection = CreateShopSection("BoxSection", shopContent, 480f, 845f);
+        CreateShopSectionHeader(boxSection, "Box");
+
+        RectTransform chipsetGrid = CreateRect("ChipsetBoxGrid", boxSection);
+        Stretch(chipsetGrid, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -455f), new Vector2(0f, -105f));
+        offerViews.Add(CreateShopOfferCard(
+            chipsetGrid, "Open1Item", 0.03f, 0.495f, "Open Chipset Box", "1 time", "x300", "chipset-box",
+            new Color32(25, 58, 76, 255), false, 0f));
+        offerViews.Add(CreateShopOfferCard(
+            chipsetGrid, "Open10Item", 0.505f, 0.97f, "Open Chipset Box", "10 times", "x2,700", "chipset-box",
+            new Color32(25, 58, 76, 255), false, 0f));
+
+        RectTransform droneGrid = CreateRect("DroneBoxGrid", boxSection);
+        Stretch(droneGrid, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -810f), new Vector2(0f, -460f));
+        offerViews.Add(CreateShopOfferCard(
+            droneGrid, "Open1Item", 0.03f, 0.495f, "Open Drone Box", "1 time", "x600", "drone-box",
+            new Color32(25, 58, 76, 255), false, 0f));
+        offerViews.Add(CreateShopOfferCard(
+            droneGrid, "Open5Item", 0.505f, 0.97f, "Open Drone Box", "5 times", "x2,700", "drone-box",
+            new Color32(25, 58, 76, 255), false, 0f));
+
+        RectTransform gemSection = CreateShopSection("GemSection", shopContent, 1335f, 540f);
+        CreateShopSectionHeader(gemSection, "Gem");
+        CreateGemPreviewCard(gemSection, "GemPack_80", 0.03f, 0.335f, "x80", "20,000 VND");
+        CreateGemPreviewCard(gemSection, "GemPack_500", 0.3475f, 0.6525f, "x500", "97,000 VND");
+        CreateGemPreviewCard(gemSection, "GemPack_1200", 0.665f, 0.97f, "x1,200", "198,000 VND");
+
+        TMP_Text feedbackText = CreateText(
+            "ShopFeedback",
+            panel,
+            "DAILY SHOP READY",
+            24f,
+            new Color32(151, 240, 226, 255),
+            TextAlignmentOptions.Center);
+        Stretch(feedbackText.rectTransform, Vector2.zero, new Vector2(1f, 0f), new Vector2(25f, 6f), new Vector2(-25f, 54f));
+
+        ShopController controller = panel.gameObject.AddComponent<ShopController>();
+        SerializedObject serializedController = new SerializedObject(controller);
+        serializedController.FindProperty("energyText").objectReferenceValue = energyBalanceText;
+        serializedController.FindProperty("chipsetText").objectReferenceValue = chipBalanceText;
+        serializedController.FindProperty("redGemText").objectReferenceValue = redChipBalanceText;
+        serializedController.FindProperty("feedbackText").objectReferenceValue = feedbackText;
+
+        SerializedProperty offers = serializedController.FindProperty("offers");
+        offers.arraySize = offerViews.Count;
+        ConfigureShopOffer(offers.GetArrayElementAtIndex(0), offerViews[0], "free-gem", "FREE GEM", 0, ShopController.CurrencyType.Free, ShopController.RewardType.RedGem, 80, true);
+        ConfigureShopOffer(offers.GetArrayElementAtIndex(1), offerViews[1], "daily-drone-1", "DRONE BOX", 180, ShopController.CurrencyType.RedGem, ShopController.RewardType.DroneBox, 1, true);
+        ConfigureShopOffer(offers.GetArrayElementAtIndex(2), offerViews[2], "daily-drone-2", "DRONE BOX", 180, ShopController.CurrencyType.RedGem, ShopController.RewardType.DroneBox, 1, true);
+        ConfigureShopOffer(offers.GetArrayElementAtIndex(3), offerViews[3], "chipset-box-1", "CHIPSET BOX", 300, ShopController.CurrencyType.RedGem, ShopController.RewardType.ChipsetBox, 1, false);
+        ConfigureShopOffer(offers.GetArrayElementAtIndex(4), offerViews[4], "chipset-box-10", "CHIPSET BOX", 2700, ShopController.CurrencyType.RedGem, ShopController.RewardType.ChipsetBox, 10, false);
+        ConfigureShopOffer(offers.GetArrayElementAtIndex(5), offerViews[5], "drone-box-1", "DRONE BOX", 600, ShopController.CurrencyType.RedGem, ShopController.RewardType.DroneBox, 1, false);
+        ConfigureShopOffer(offers.GetArrayElementAtIndex(6), offerViews[6], "drone-box-5", "DRONE BOX", 2700, ShopController.CurrencyType.RedGem, ShopController.RewardType.DroneBox, 5, false);
+        serializedController.ApplyModifiedPropertiesWithoutUndo();
+
+        return panel.gameObject;
+    }
+
+    private static RectTransform CreateShopSection(string name, RectTransform parent, float top, float height)
+    {
+        RectTransform section = CreateRect(name, parent);
+        section.anchorMin = new Vector2(0f, 1f);
+        section.anchorMax = new Vector2(1f, 1f);
+        section.pivot = new Vector2(0.5f, 1f);
+        section.anchoredPosition = new Vector2(0f, -top);
+        section.sizeDelta = new Vector2(0f, height);
+        return section;
+    }
+
+    private static void CreateShopSectionHeader(RectTransform parent, string title)
+    {
+        GameObject header = CreateFrame("Title", parent, new Color32(203, 68, 74, 255), new Color32(255, 142, 137, 255), out _);
+        RectTransform headerRect = header.GetComponent<RectTransform>();
+        Stretch(headerRect, new Vector2(0f, 1f), Vector2.one, new Vector2(28f, -95f), new Vector2(-28f, -10f));
+        TMP_Text titleText = CreateText("Label", headerRect, title, 44f, Color.white, TextAlignmentOptions.Center);
+        Stretch(titleText.rectTransform, Vector2.zero, Vector2.one, new Vector2(10f, 4f), new Vector2(-10f, -4f));
+    }
+
+    private static ShopOfferView CreateShopOfferCard(
+        RectTransform parent,
+        string name,
+        float minX,
+        float maxX,
+        string title,
+        string quantity,
+        string price,
+        string iconName,
+        Color fillColor,
+        bool showDiscount,
+        float topInset = 105f)
+    {
+        GameObject card = CreateFrame(name, parent, fillColor, new Color32(143, 239, 224, 255), out Image cardBackground);
+        RectTransform cardRect = card.GetComponent<RectTransform>();
+        Stretch(cardRect, new Vector2(minX, 0f), new Vector2(maxX, 1f), new Vector2(5f, 8f), new Vector2(-5f, -topInset));
+        cardBackground.raycastTarget = true;
+        Button button = card.AddComponent<Button>();
+        button.targetGraphic = cardBackground;
+
+        TMP_Text titleText = CreateText("Title", cardRect, title, 29f, Color.white, TextAlignmentOptions.Center);
+        Stretch(titleText.rectTransform, new Vector2(0.03f, 0.77f), new Vector2(0.97f, 0.98f), Vector2.zero, Vector2.zero);
+
+        TMP_Text quantityText = CreateText("Quantity", cardRect, quantity, 34f, Color.white, TextAlignmentOptions.Center);
+        Stretch(quantityText.rectTransform, new Vector2(0.15f, 0.52f), new Vector2(0.85f, 0.69f), Vector2.zero, Vector2.zero);
+
+        CreateShopItemIcon(cardRect, iconName);
+
+        GameObject pricePlate = CreateFrame("Price", cardRect, new Color32(52, 132, 166, 255), new Color32(124, 211, 232, 255), out _);
+        RectTransform priceRect = pricePlate.GetComponent<RectTransform>();
+        Stretch(priceRect, new Vector2(0.15f, 0.03f), new Vector2(0.85f, 0.24f), Vector2.zero, Vector2.zero);
+        Image priceIcon = CreateIcon("CurrencyIcon", priceRect, "red-currency", 45f);
+        Anchor(priceIcon.rectTransform, new Vector2(0.24f, 0.5f), Vector2.zero, new Vector2(43f, 43f));
+        TMP_Text priceText = CreateText("Value", priceRect, price, 27f, Color.white, TextAlignmentOptions.Center);
+        Stretch(priceText.rectTransform, new Vector2(0.3f, 0f), new Vector2(0.98f, 1f), Vector2.zero, Vector2.zero);
+
+        if (showDiscount)
+        {
+            GameObject badge = CreateFrame("DiscountBadge", cardRect, new Color32(86, 183, 174, 255), Cream, out _);
+            RectTransform badgeRect = badge.GetComponent<RectTransform>();
+            Anchor(badgeRect, new Vector2(0.88f, 0.92f), Vector2.zero, new Vector2(105f, 70f));
+            TMP_Text badgeText = CreateText("Label", badgeRect, "70%\nDiscount", 18f, Color.white, TextAlignmentOptions.Center);
+            Stretch(badgeText.rectTransform, Vector2.zero, Vector2.one, new Vector2(3f, 3f), new Vector2(-3f, -3f));
+        }
+
+        return new ShopOfferView { button = button, priceText = priceText };
+    }
+
+    private static void CreateShopItemIcon(RectTransform parent, string iconName)
+    {
+        if (iconName == "red-currency")
+        {
+            Image gemIcon = CreateIcon("ItemIcon", parent, iconName, 82f);
+            Anchor(gemIcon.rectTransform, new Vector2(0.5f, 0.42f), Vector2.zero, new Vector2(82f, 82f));
+            return;
+        }
+
+        RectTransform chest = CreateRect("ItemIcon", parent);
+        Anchor(chest, new Vector2(0.5f, 0.36f), Vector2.zero, new Vector2(112f, 90f));
+        Color bodyColor = iconName == "chipset-box"
+            ? new Color32(65, 195, 181, 255)
+            : new Color32(47, 116, 210, 255);
+        Image body = CreateImage("Body", chest, bodyColor, false);
+        Stretch(body.rectTransform, new Vector2(0.08f, 0f), new Vector2(0.92f, 0.62f), Vector2.zero, Vector2.zero);
+        AddOutline(body, Border, 3f);
+        Image lid = CreateImage(
+            "Lid",
+            chest,
+            new Color(bodyColor.r + 0.18f, bodyColor.g + 0.18f, bodyColor.b + 0.18f, 1f),
+            false);
+        Stretch(lid.rectTransform, new Vector2(0f, 0.55f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
+        AddOutline(lid, Border, 3f);
+        Image lockPlate = CreateImage("Lock", chest, Cream, false);
+        Anchor(lockPlate.rectTransform, new Vector2(0.5f, 0.31f), Vector2.zero, new Vector2(20f, 24f));
+        AddOutline(lockPlate, Border, 2f);
+    }
+
+    private static void CreateGemPreviewCard(
+        RectTransform parent,
+        string name,
+        float minX,
+        float maxX,
+        string quantity,
+        string price)
+    {
+        GameObject card = CreateFrame(name, parent, new Color32(83, 179, 171, 255), Cream, out _);
+        RectTransform cardRect = card.GetComponent<RectTransform>();
+        Stretch(cardRect, new Vector2(minX, 0f), new Vector2(maxX, 1f), new Vector2(5f, 20f), new Vector2(-5f, -110f));
+        TMP_Text quantityText = CreateText("Quantity", cardRect, quantity, 38f, Color.white, TextAlignmentOptions.Center);
+        Stretch(quantityText.rectTransform, new Vector2(0.05f, 0.72f), new Vector2(0.95f, 0.95f), Vector2.zero, Vector2.zero);
+        Image gemIcon = CreateIcon("GemIcon", cardRect, "red-currency", 100f);
+        Anchor(gemIcon.rectTransform, new Vector2(0.5f, 0.45f), Vector2.zero, new Vector2(100f, 100f));
+        TMP_Text priceText = CreateText("Price", cardRect, price, 30f, Color.white, TextAlignmentOptions.Center);
+        Stretch(priceText.rectTransform, new Vector2(0.03f, 0.05f), new Vector2(0.97f, 0.22f), Vector2.zero, Vector2.zero);
+    }
+
+    private static void ConfigureShopOffer(
+        SerializedProperty property,
+        ShopOfferView view,
+        string id,
+        string displayName,
+        int price,
+        ShopController.CurrencyType currency,
+        ShopController.RewardType reward,
+        int rewardAmount,
+        bool oncePerDay)
+    {
+        property.FindPropertyRelative("id").stringValue = id;
+        property.FindPropertyRelative("displayName").stringValue = displayName;
+        property.FindPropertyRelative("button").objectReferenceValue = view.button;
+        property.FindPropertyRelative("priceText").objectReferenceValue = view.priceText;
+        property.FindPropertyRelative("currency").enumValueIndex = (int)currency;
+        property.FindPropertyRelative("price").intValue = price;
+        property.FindPropertyRelative("reward").enumValueIndex = (int)reward;
+        property.FindPropertyRelative("rewardAmount").intValue = rewardAmount;
+        property.FindPropertyRelative("oncePerDay").boolValue = oncePerDay;
     }
 
     private static GameObject CreateLabPanel(
@@ -609,7 +905,7 @@ public static class LabMenuSceneBuilder
 
         for (int i = 0; i < 5; i++)
         {
-            bool selected = i == 1;
+            bool selected = i == 0;
             GameObject root = CreateFrame(
                 names[i],
                 nav,
@@ -645,7 +941,7 @@ public static class LabMenuSceneBuilder
             item.FindPropertyRelative("label").objectReferenceValue = labelTexts[i];
         }
 
-        serializedController.FindProperty("defaultSelectedIndex").intValue = 1;
+        serializedController.FindProperty("defaultSelectedIndex").intValue = 0;
         serializedController.ApplyModifiedPropertiesWithoutUndo();
     }
 

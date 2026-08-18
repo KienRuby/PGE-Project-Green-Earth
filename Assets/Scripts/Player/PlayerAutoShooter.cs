@@ -83,12 +83,19 @@ public class PlayerAutoShooter : MonoBehaviour
 
     private Transform currentTarget;
     private PlayerMovement playerMovement;
+    private PlayerHealth playerHealth;
     private float nextFireTime;
     private float targetSearchTimer;
     private WeaponData currentEquippedWeapon;
     private GatlingSpinner gatlingSpinner;
     private Vector3 gunTransformBaseScale = Vector3.one;
     private Vector3 bodyTransformBaseScale = Vector3.one;
+
+    private int bonusDamage;
+    private float bonusFireRate;
+    private float bonusAttackRange;
+    private float bonusBulletSpeed;
+    private float critChance;
 
     // Buffer cố định để quét quái không sinh rác GC
     private readonly Collider2D[] enemyColliderBuffer = new Collider2D[64];
@@ -100,6 +107,7 @@ public class PlayerAutoShooter : MonoBehaviour
     private void Awake()
     {
         playerMovement = GetComponent<PlayerMovement>();
+        playerHealth = GetComponent<PlayerHealth>();
 
         if (targetCamera == null)
         {
@@ -137,12 +145,20 @@ public class PlayerAutoShooter : MonoBehaviour
         {
             bodyTransformBaseScale = bodyTransform.localScale;
         }
-
     }
 
     private void Start()
     {
         LoadSelectedWeapon();
+    }
+
+    public void ApplyStatBonuses(int damageBonus, float fireRateBonus, float rangeBonus, float bulletSpeedBonus, float crit)
+    {
+        bonusDamage = damageBonus;
+        bonusFireRate = fireRateBonus;
+        bonusAttackRange = rangeBonus;
+        bonusBulletSpeed = bulletSpeedBonus;
+        critChance = crit;
     }
 
     /// <summary>
@@ -228,6 +244,17 @@ public class PlayerAutoShooter : MonoBehaviour
 
     private void Update()
     {
+        if (playerHealth != null && playerHealth.IsDead)
+        {
+            currentTarget = null;
+            IsAttacking = false;
+            if (gatlingSpinner != null)
+            {
+                gatlingSpinner.SetFiring(false);
+            }
+            return;
+        }
+
         UpdateTarget();
 
         UpdateGunAndAttackPointRotation();
@@ -317,7 +344,7 @@ public class PlayerAutoShooter : MonoBehaviour
         {
             hitCount = Physics2D.OverlapCircle(
                 center,
-                detectionRadius,
+                detectionRadius + bonusAttackRange,
                 contactFilter,
                 enemyColliderBuffer
             );
@@ -328,7 +355,7 @@ public class PlayerAutoShooter : MonoBehaviour
                 ContactFilter2D fallbackFilter = new ContactFilter2D { useTriggers = true };
                 hitCount = Physics2D.OverlapCircle(
                     center,
-                    detectionRadius,
+                    detectionRadius + bonusAttackRange,
                     fallbackFilter,
                     enemyColliderBuffer
                 );
@@ -361,7 +388,8 @@ public class PlayerAutoShooter : MonoBehaviour
 
         Transform nearestEnemy = null;
         float nearestDistanceSqr = Mathf.Infinity;
-        float attackRangeSqr = currentAttackRange * currentAttackRange;
+        float effectiveRange = currentAttackRange + bonusAttackRange;
+        float attackRangeSqr = effectiveRange * effectiveRange;
         Vector2 playerPosition = transform.position;
 
         for (int i = 0; i < hitCount; i++)
@@ -514,7 +542,8 @@ public class PlayerAutoShooter : MonoBehaviour
 
         Shoot();
 
-        nextFireTime = Time.time + (1f / fireRate);
+        float effectiveFireRate = Mathf.Max(0.1f, fireRate + bonusFireRate);
+        nextFireTime = Time.time + (1f / effectiveFireRate);
     }
 
     private void OnDisable()
@@ -575,8 +604,16 @@ public class PlayerAutoShooter : MonoBehaviour
             Projectile projectileScript = projectileObj.GetComponent<Projectile>();
             if (projectileScript != null)
             {
-                // Cài đặt 4 chỉ số động từ khẩu súng đang trang bị
-                projectileScript.Setup(currentDamage, currentBulletSpeed, currentAttackRange);
+                int finalDamage = currentDamage + bonusDamage;
+                if (critChance > 0f && Random.value < critChance)
+                {
+                    finalDamage = Mathf.RoundToInt(finalDamage * 1.5f);
+                }
+                float finalBulletSpeed = currentBulletSpeed + bonusBulletSpeed;
+                float finalAttackRange = currentAttackRange + bonusAttackRange;
+
+                // Cài đặt 4 chỉ số động từ khẩu súng đang trang bị kèm bonus nâng cấp Lab
+                projectileScript.Setup(finalDamage, finalBulletSpeed, finalAttackRange);
                 projectileScript.SetDirection(direction);
                 projectileScript.SetTarget(currentTarget);
             }
@@ -594,7 +631,7 @@ public class PlayerAutoShooter : MonoBehaviour
 
         if (detectionShape == DetectionShape.Circle)
         {
-            Gizmos.DrawWireSphere(center, detectionRadius);
+            Gizmos.DrawWireSphere(center, detectionRadius + bonusAttackRange);
         }
         else
         {

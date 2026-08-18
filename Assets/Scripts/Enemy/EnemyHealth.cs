@@ -18,6 +18,7 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
 
     public event Action<int, int> OnHealthChanged;
     public event Action OnEnemyDeath;
+    public event Action<EnemyHealth> OnDeath;
 
     private Collider2D[] colliders;
 
@@ -75,6 +76,7 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
         }
 
         OnEnemyDeath?.Invoke();
+        OnDeath?.Invoke(this);
 
         if (destroyDelay > 0f)
         {
@@ -125,5 +127,6 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     public void OnReturnToPool()
     {
         IsDead = true;
+        OnDeath = null;
     }
 }
