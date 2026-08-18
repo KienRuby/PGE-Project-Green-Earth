@@ -438,9 +438,9 @@ MonoBehaviour:
   animator: {fileID: 0}
   deathTriggerName: Die
   deathStateName: Die
-  useCustomAnimationDuration: 1
-  customAnimationDuration: 0.25
-  fallbackAnimationDuration: 0.25
+  useCustomAnimationDuration: 0
+  customAnimationDuration: 1
+  fallbackAnimationDuration: 0.8
   dissolveMaterialPreset: {fileID: 2100000, guid: 8b3d7a1e2f9c4058b6e7f1a2d3c4b5a6, type: 2}
   disableColliders: 1
   disablePhysics: 1

@@ -6,8 +6,8 @@ using UnityEngine.Events;
 /// <summary>
 /// AAA Game-Ready Death Dissolve VFX and Shader Sequence Controller:
 /// 1. Tắt di chuyển, điều khiển và va chạm.
-/// 2. Kích hoạt animation chết (Die).
-/// 3. Bừng sáng Supernova Shockwave rực lửa HDR.
+/// 2. Chờ Animator chạy trọn vẹn clip Die đến ĐÚNG FRAME CUỐI CÙNG (nhân vật nằm xuống đất).
+/// 3. Khóa tư thế tại frame cuối và bừng sáng Supernova Shockwave rực lửa HDR.
 /// 4. Phát nổ tỏa tròn 360 độ thành hàng nghìn ngôi sao 4 cánh màu vàng kim rực rỡ lấp lánh (Golden Stardust Flares) lung linh trong đúng 1 GIÂY.
 /// 5. Tự động ánh xạ UV chính xác từng phần cơ thể (chân, tay, thân, súng) trên Sprite Atlas / Spritesheet và mở rộng Mesh Quad để hạt bay văng tự do không bị viền hộp cắt xén.
 /// 6. Tiêu tan êm dịu vào sương mù ánh sáng (Alpha dissipation into glowing stardust mist).
@@ -124,7 +124,7 @@ public class PlayerDeathController : MonoBehaviour
     [Tooltip("Độ rực của vầng hào quang bao quanh từng ngôi sao (Star Aura Halo Glow).")]
     [SerializeField, Range(0f, 2f)] private float haloGlowIntensity = 0.9f;
 
-    [Header("4. Timing & Animation Settings (1.0s Duration)")]
+    [Header("4. Timing & Animation Settings (Wait For Last Frame Of Die)")]
     [Tooltip("Thời lượng nổ tung và phân tán lung linh toàn bộ hạt (Mặc định CHÍNH XÁC 1.0 GIÂY).")]
     [SerializeField, Min(0.1f)] private float dissolveDuration = 1.0f;
 
@@ -135,7 +135,7 @@ public class PlayerDeathController : MonoBehaviour
         new Keyframe(1f, 1f, 0.4f, 0.4f)
     );
 
-    [Tooltip("Thời gian chờ/nghỉ trước khi nổ tung (giây).")]
+    [Tooltip("Thời gian chờ/nghỉ sau khi animation Die kết thúc ở frame cuối cùng rồi MỚI BẮT ĐẦU phát nổ.")]
     [SerializeField, Min(0f)] private float delayBeforeDissolve = 0.05f;
 
     [Tooltip("Bật hiệu ứng viền phát sáng bừng lên (Ignite) trước khi nổ tung.")]
@@ -146,9 +146,9 @@ public class PlayerDeathController : MonoBehaviour
     [SerializeField] private Animator animator;
     [SerializeField] private string deathTriggerName = "Die";
     [SerializeField] private string deathStateName = "Die";
-    [SerializeField] private bool useCustomAnimationDuration = true;
-    [SerializeField, Min(0.05f)] private float customAnimationDuration = 0.25f;
-    [SerializeField, Min(0.05f)] private float fallbackAnimationDuration = 0.25f;
+    [SerializeField] private bool useCustomAnimationDuration = false;
+    [SerializeField, Min(0.05f)] private float customAnimationDuration = 1.0f;
+    [SerializeField, Min(0.05f)] private float fallbackAnimationDuration = 0.8f;
 
     [Header("5. Material & Cleanup")]
     [SerializeField] private Material dissolveMaterialPreset;
@@ -454,13 +454,13 @@ public class PlayerDeathController : MonoBehaviour
     private IEnumerator DeathSequenceCoroutine()
     {
         // =========================================================================
-        // BƯỚC 1: ANIMATION DIE (CHẠY NHANH 0.25S ĐỂ TỬ TRẬN TỨC THỜI MƯỢT MÀ)
+        // BƯỚC 1: ANIMATION DIE - CHỜ CHẠY ĐẾN ĐÚNG FRAME CUỐI CÙNG
         // =========================================================================
-        float animationDuration = fallbackAnimationDuration;
+        float clipDuration = fallbackAnimationDuration;
 
         if (useCustomAnimationDuration)
         {
-            animationDuration = customAnimationDuration;
+            clipDuration = customAnimationDuration;
         }
         else if (animator != null && animator.runtimeAnimatorController != null)
         {
@@ -469,7 +469,7 @@ public class PlayerDeathController : MonoBehaviour
             {
                 if (clip != null && string.Equals(clip.name, deathStateName, StringComparison.OrdinalIgnoreCase))
                 {
-                    animationDuration = clip.length;
+                    clipDuration = clip.length;
                     break;
                 }
             }
@@ -477,6 +477,8 @@ public class PlayerDeathController : MonoBehaviour
 
         if (animator != null && animator.gameObject.activeInHierarchy)
         {
+            animator.speed = 1.0f;
+
             if (HasParameter(animator, deathTriggerName, AnimatorControllerParameterType.Trigger))
             {
                 animator.SetTrigger(deathTriggerName);
@@ -490,20 +492,32 @@ public class PlayerDeathController : MonoBehaviour
                 animator.Play(deathStateName, 0, 0f);
             }
 
+            // Chờ 1 frame để Animator hoàn tất chuyển trạng thái sang State Die
+            yield return null;
+
+            // Chờ animation Die chạy trọn vẹn 100% đến frame cuối cùng
             float animTimer = 0f;
-            while (animTimer < animationDuration)
+            while (animTimer < clipDuration)
             {
                 animTimer += Time.deltaTime;
+                AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
+                if (stateInfo.IsName(deathStateName) && stateInfo.normalizedTime >= 1.0f)
+                {
+                    break;
+                }
                 yield return null;
             }
+
+            // Đóng băng Animator ở frame cuối cùng (tư thế nằm xuống)
+            animator.speed = 0f;
         }
         else
         {
-            yield return new WaitForSeconds(animationDuration);
+            yield return new WaitForSeconds(clipDuration);
         }
 
         // =========================================================================
-        // BƯỚC 2: PAUSE TRƯỚC KHI BÙNG NỔ
+        // BƯỚC 2: PAUSE TRƯỚC KHI BÙNG NỔ (SAU KHI ĐÃ NẰM XUỐNG ĐẤT)
         // =========================================================================
         if (delayBeforeDissolve > 0f)
         {
