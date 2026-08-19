@@ -17,6 +17,9 @@ public class BottomNavigationController : MonoBehaviour
         [Tooltip("Ảnh nền của nút, dùng để đổi màu giữa trạng thái thường và đang chọn.")]
         public Image background;
 
+        [Tooltip("Ảnh khung viền ngoài của nút (Frame/Border), tự tìm trên button nếu để trống.")]
+        public Image border;
+
         [Tooltip("Biểu tượng của mục điều hướng, dùng để đổi màu theo trạng thái chọn.")]
         public Image icon;
 
@@ -36,6 +39,12 @@ public class BottomNavigationController : MonoBehaviour
     [Tooltip("Màu nền của nút khi mục đang được chọn.")]
     [SerializeField] private Color selectedColor = new Color32(71, 178, 174, 255);
 
+    [Tooltip("Màu khung viền ngoài khi mục chưa được chọn.")]
+    [SerializeField] private Color normalBorderColor = new Color32(39, 105, 110, 255);
+
+    [Tooltip("Màu khung viền ngoài khi mục đang được chọn.")]
+    [SerializeField] private Color selectedBorderColor = new Color32(239, 247, 238, 255);
+
     [Tooltip("Màu biểu tượng và nhãn chữ khi mục chưa được chọn.")]
     [SerializeField] private Color normalContentColor = new Color32(54, 117, 124, 255);
 
@@ -44,11 +53,17 @@ public class BottomNavigationController : MonoBehaviour
 
     private void Start()
     {
+        if (items == null || items.Length == 0)
+        {
+            return;
+        }
+
         for (int i = 0; i < items.Length; i++)
         {
             int index = i;
-            if (items[i].button != null)
+            if (items[i] != null && items[i].button != null)
             {
+                items[i].button.onClick.RemoveAllListeners();
                 items[i].button.onClick.AddListener(() => Select(index));
             }
         }
@@ -56,9 +71,22 @@ public class BottomNavigationController : MonoBehaviour
         Select(defaultSelectedIndex);
     }
 
+    private void OnDestroy()
+    {
+        if (items == null) return;
+
+        for (int i = 0; i < items.Length; i++)
+        {
+            if (items[i] != null && items[i].button != null)
+            {
+                items[i].button.onClick.RemoveAllListeners();
+            }
+        }
+    }
+
     public void Select(int selectedIndex)
     {
-        if (selectedIndex < 0 || selectedIndex >= items.Length)
+        if (items == null || selectedIndex < 0 || selectedIndex >= items.Length)
         {
             return;
         }
@@ -66,6 +94,8 @@ public class BottomNavigationController : MonoBehaviour
         for (int i = 0; i < items.Length; i++)
         {
             NavigationItem item = items[i];
+            if (item == null) continue;
+
             bool selected = i == selectedIndex;
 
             if (item.panel != null)
@@ -76,6 +106,12 @@ public class BottomNavigationController : MonoBehaviour
             if (item.background != null)
             {
                 item.background.color = selected ? selectedColor : normalColor;
+            }
+
+            Image borderImage = item.border != null ? item.border : (item.button != null ? item.button.GetComponent<Image>() : null);
+            if (borderImage != null && borderImage != item.background)
+            {
+                borderImage.color = selected ? selectedBorderColor : normalBorderColor;
             }
 
             Color contentColor = selected ? selectedContentColor : normalContentColor;

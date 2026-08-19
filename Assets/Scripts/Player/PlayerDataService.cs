@@ -2,8 +2,8 @@ using System;
 using UnityEngine;
 
 /// <summary>
-/// Dịch vụ tập trung quản lý toàn bộ dữ liệu người chơi, số dư tiền tệ, năng lượng
-/// và cấp độ nâng cấp trong Lab thông qua PlayerPrefs.
+/// Dịch vụ tập trung quản lý toàn bộ dữ liệu người chơi, số dư tiền tệ (Data Chips & Red Gems),
+/// năng lượng (Energy) và cấp độ nâng cấp trong Lab thông qua PlayerPrefs.
 /// Giúp code toàn bộ dự án không bị phụ thuộc vào chuỗi hardcoded string key rải rác.
 /// </summary>
 public static class PlayerDataService
@@ -11,7 +11,8 @@ public static class PlayerDataService
     // =========================================================================
     // CONSTANTS: PLAYERPREFS KEYS
     // =========================================================================
-    public const string ChipsetsKey = "PGE.Shop.Balance.Chipsets";
+    public const string DataChipsKey = "PGE.Shop.Balance.Chipsets";
+    public const string ChipsetsKey = DataChipsKey;
     public const string RedGemsKey = "PGE.Shop.Balance.RedGems";
     public const string EnergyKey = "PGE.Lab.Balance.Energy";
     public const string NextEnergyUtcKey = "PGE.Lab.NextEnergyUtc";
@@ -23,16 +24,22 @@ public static class PlayerDataService
     // INITIALIZATION: TARGET FRAMERATE
     // =========================================================================
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-    private static void InitializeApplicationSettings()
+    public static void InitializeApplicationSettings()
     {
         Application.targetFrameRate = 60;
         QualitySettings.vSyncCount = 0;
     }
 
     // =========================================================================
-    // EVENTS: THÔNG BÁO THAY ĐỔI DỮ LIỆU
+    // EVENTS: THÔNG BÁO THAY ĐỔI DỮ LIỆU TIỀN TỆ
     // =========================================================================
-    public static event Action<int> OnChipsetsChanged;
+    public static event Action<int> OnDataChipsChanged;
+    public static event Action<int> OnChipsetsChanged
+    {
+        add => OnDataChipsChanged += value;
+        remove => OnDataChipsChanged -= value;
+    }
+
     public static event Action<int> OnRedGemsChanged;
     public static event Action<int> OnEnergyChanged;
     public static event Action<string> OnSelectedWeaponChanged;
@@ -42,22 +49,31 @@ public static class PlayerDataService
     // =========================================================================
 
     /// <summary>
-    /// Số lượng Chip xanh (Chipsets) dùng để quay nâng cấp Lab.
+    /// Số lượng Data Chip (Chip xanh) dùng để quay nâng cấp các chỉ số trong phòng Lab.
     /// </summary>
-    public static int Chipsets
+    public static int DataChips
     {
-        get => PlayerPrefs.GetInt(ChipsetsKey, 0);
+        get => PlayerPrefs.GetInt(DataChipsKey, 0);
         set
         {
             int clamped = Mathf.Max(0, value);
-            PlayerPrefs.SetInt(ChipsetsKey, clamped);
+            PlayerPrefs.SetInt(DataChipsKey, clamped);
             PlayerPrefs.Save();
-            OnChipsetsChanged?.Invoke(clamped);
+            OnDataChipsChanged?.Invoke(clamped);
         }
     }
 
     /// <summary>
-    /// Số lượng Gem đỏ (Red Gems) dùng để mua sắm cao cấp.
+    /// Alias của DataChips (tương thích ngược với tên gọi cũ Chipsets).
+    /// </summary>
+    public static int Chipsets
+    {
+        get => DataChips;
+        set => DataChips = value;
+    }
+
+    /// <summary>
+    /// Số lượng Gem đỏ (Red Gems) dùng để mua sắm cao cấp, mở rương và đổi sang Data Chip.
     /// </summary>
     public static int RedGems
     {
@@ -72,7 +88,7 @@ public static class PlayerDataService
     }
 
     /// <summary>
-    /// Năng lượng hiện có (Energy) của người chơi.
+    /// Năng lượng hiện có (Energy) của người chơi dùng để vào trận chơi.
     /// </summary>
     public static int Energy
     {
@@ -100,7 +116,7 @@ public static class PlayerDataService
     }
 
     /// <summary>
-    /// Số lần đã quay nâng cấp trong Lab (dùng để scale giá tiền).
+    /// Số lần đã quay nâng cấp trong Lab (dùng để scale giá Data Chip nâng cấp).
     /// </summary>
     public static int CompletedRolls
     {
@@ -112,19 +128,97 @@ public static class PlayerDataService
         }
     }
 
+    public const string SelectedChapterIndexKey = "PGE.Chapter.SelectedIndex";
+    public const string UnlockedChapterIndexKey = "PGE.Chapter.UnlockedIndex";
+
     /// <summary>
-    /// ID của khẩu súng đang được trang bị (ví dụ: "blaster", "gatling").
+    /// Index Chapter đang được người chơi lựa chọn (0 = Chapter 1, 3 = Chapter 4,...).
+    /// </summary>
+    public static int SelectedChapterIndex
+    {
+        get => PlayerPrefs.GetInt(SelectedChapterIndexKey, 0); // Mặc định hiển thị Chapter 1
+        set
+        {
+            PlayerPrefs.SetInt(SelectedChapterIndexKey, Mathf.Max(0, value));
+            PlayerPrefs.Save();
+        }
+    }
+
+    /// <summary>
+    /// Index Chapter cao nhất đã được mở khóa.
+    /// </summary>
+    public static int UnlockedChapterIndex
+    {
+        get => PlayerPrefs.GetInt(UnlockedChapterIndexKey, 0); // Mặc định Chapter 1
+        set
+        {
+            PlayerPrefs.SetInt(UnlockedChapterIndexKey, Mathf.Max(0, value));
+            PlayerPrefs.Save();
+        }
+    }
+
+    /// <summary>
+    /// ID của vũ khí đang được trang bị/lựa chọn (mặc định: "blaster").
     /// </summary>
     public static string SelectedWeaponId
     {
-        get => PlayerPrefs.GetString(SelectedWeaponIdKey, "blaster");
+        get
+        {
+            string saved = PlayerPrefs.GetString(SelectedWeaponIdKey, "blaster");
+            return string.IsNullOrWhiteSpace(saved) ? "blaster" : saved;
+        }
         set
         {
-            string id = value ?? "blaster";
-            PlayerPrefs.SetString(SelectedWeaponIdKey, id);
+            string normalized = string.IsNullOrWhiteSpace(value) ? "blaster" : value.Trim();
+            PlayerPrefs.SetString(SelectedWeaponIdKey, normalized);
             PlayerPrefs.Save();
-            OnSelectedWeaponChanged?.Invoke(id);
+            OnSelectedWeaponChanged?.Invoke(normalized);
         }
+    }
+
+
+    // =========================================================================
+    // TIỆN ÍCH QUẢN LÝ TIỀN TỆ (HELPER METHODS)
+    // =========================================================================
+
+    public static bool HasEnoughDataChips(int amount) => DataChips >= amount;
+    public static bool HasEnoughRedGems(int amount) => RedGems >= amount;
+    public static bool HasEnoughEnergy(int amount) => Energy >= amount;
+
+    public static bool TrySpendDataChips(int amount)
+    {
+        if (amount < 0 || DataChips < amount) return false;
+        DataChips -= amount;
+        return true;
+    }
+
+    public static bool TrySpendRedGems(int amount)
+    {
+        if (amount < 0 || RedGems < amount) return false;
+        RedGems -= amount;
+        return true;
+    }
+
+    public static bool TrySpendEnergy(int amount)
+    {
+        if (amount < 0 || Energy < amount) return false;
+        Energy -= amount;
+        return true;
+    }
+
+    public static void AddDataChips(int amount)
+    {
+        if (amount > 0) DataChips += amount;
+    }
+
+    public static void AddRedGems(int amount)
+    {
+        if (amount > 0) RedGems += amount;
+    }
+
+    public static void AddEnergy(int amount)
+    {
+        if (amount > 0) Energy += amount;
     }
 
     // =========================================================================

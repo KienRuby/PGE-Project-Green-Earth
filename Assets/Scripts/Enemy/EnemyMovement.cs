@@ -118,8 +118,10 @@ public class EnemyMovement : MonoBehaviour, IPoolable
 
         if (distanceToPlayer <= 0.001f)
         {
-            // Trùng vị trí 100% -> đẩy ra ngẫu nhiên
-            return new Vector2(Random.Range(-1f, 1f), Random.Range(-1f, 1f)).normalized;
+            // Trùng vị trí 100% với player -> đẩy ra theo hướng ổn định dựa trên InstanceID
+            int id = GetInstanceID();
+            float angle = (id & 0xFFFF) * (Mathf.PI * 2f / 65536f);
+            return new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
         }
 
         // Nếu quái đã áp sát quá gần Player (< stoppingDistance), đẩy nhẹ ra để không đè vào lòng Player
@@ -175,8 +177,16 @@ public class EnemyMovement : MonoBehaviour, IPoolable
 
             if (distance < 0.001f)
             {
-                // Nếu 2 quái trùng khít tọa độ, tạo lực đẩy lệch hướng ngẫu nhiên để tách ra ngay
-                diff = new Vector2(Random.Range(-1f, 1f), Random.Range(-1f, 1f)).normalized * 0.1f;
+                // Nếu 2 quái trùng khít tọa độ, tạo lực đẩy đối xứng ổn định giữa 2 quái
+                int myId = GetInstanceID();
+                int otherId = otherCollider.gameObject.GetInstanceID();
+                float sign = myId > otherId ? 1f : -1f;
+                int combinedId = myId ^ otherId;
+                float angle = (combinedId & 0xFFFF) * (Mathf.PI * 2f / 65536f);
+                Vector2 baseDir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+                if (baseDir.sqrMagnitude < 0.001f)
+                    baseDir = Vector2.right;
+                diff = baseDir.normalized * (sign * 0.1f);
                 distance = diff.magnitude;
             }
 

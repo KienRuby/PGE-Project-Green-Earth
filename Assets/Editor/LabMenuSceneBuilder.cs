@@ -385,7 +385,7 @@ public static class LabMenuSceneBuilder
         topTint.color = new Color32(7, 45, 65, 76);
         topTint.raycastTarget = false;
 
-        CreateTopBar(
+        TopBarCurrencyController topBarCtrl = CreateTopBar(
             topBar,
             out TMP_Text energyBalanceText,
             out TMP_Text chipBalanceText,
@@ -397,8 +397,13 @@ public static class LabMenuSceneBuilder
         GameObject[] panels = new GameObject[5];
         panels[0] = CreateShopPanel(content, energyBalanceText, chipBalanceText, redChipBalanceText);
         panels[1] = CreateLabPanel(content, energyBalanceText, chipBalanceText, redChipBalanceText);
+<<<<<<< HEAD
         panels[2] = CreatePlaceholderPanel(content, "ChapterPanel", "CHAPTER", "Mission map is being prepared");
         panels[3] = CreateChipsetPanel(content, canvasRect, energyBalanceText, chipBalanceText, redChipBalanceText);
+=======
+        panels[2] = ChapterMenuSceneBuilder.BuildChapterPanel(content, font);
+        panels[3] = CreatePlaceholderPanel(content, "ChipsetPanel", "CHIPSET", "Chip configuration is being prepared");
+>>>>>>> ca51a15 ( chapter 50%)
         panels[4] = CreatePlaceholderPanel(content, "BuddyPanel", "BUDDY", "Drone hangar is being prepared");
 
         // Default to Chipset Tab (index 3)
@@ -407,21 +412,54 @@ public static class LabMenuSceneBuilder
             panels[i].SetActive(i == 3);
         }
 
+<<<<<<< HEAD
         CreateBottomNavigation(canvasObject, canvasRect, panels, 3);
+=======
+        BottomNavigationController bottomNav = CreateBottomNavigation(canvasObject, canvasRect, panels);
+        if (topBarCtrl != null && bottomNav != null)
+        {
+            SerializedObject topBarSO = new SerializedObject(topBarCtrl);
+            topBarSO.FindProperty("bottomNavController").objectReferenceValue = bottomNav;
+            topBarSO.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+>>>>>>> ca51a15 ( chapter 50%)
         return canvas;
     }
 
-    private static void CreateTopBar(
+    private static TopBarCurrencyController CreateTopBar(
         RectTransform parent,
         out TMP_Text energyBalanceText,
         out TMP_Text chipBalanceText,
         out TMP_Text redChipBalanceText)
     {
+<<<<<<< HEAD
         energyBalanceText = CreateResourceDisplay(parent, "Energy", 0.025f, 0.265f, "energy", "370/50", "+", Cream);
         chipBalanceText = CreateResourceDisplay(parent, "ChipCurrency", 0.285f, 0.525f, "chip-currency", "956,467", "+", Cream);
         redChipBalanceText = CreateResourceDisplay(parent, "RedCurrency", 0.545f, 0.765f, "red-currency", "98,762,732", "+", Cream);
         CreateTopIconButton(parent, "MailButton", 0.79f, 0.885f, "mail", true);
         CreateTopIconButton(parent, "SettingButton", 0.895f, 0.99f, "settings", false);
+=======
+        energyBalanceText = CreateResourceDisplay(parent, "Energy", 0.025f, 0.265f, "energy", "24/50", "05:46", Cream);
+        chipBalanceText = CreateResourceDisplay(parent, "ChipCurrency", 0.285f, 0.525f, "chip-currency", "134,936", string.Empty, Cream);
+        redChipBalanceText = CreateResourceDisplay(parent, "RedCurrency", 0.545f, 0.765f, "red-currency", "15,516", string.Empty, Cream);
+        CreateTopIconButton(parent, "MailButton", 0.79f, 0.885f, "mail");
+        CreateTopIconButton(parent, "SettingButton", 0.895f, 0.99f, "settings");
+
+        TopBarCurrencyController topBarCtrl = parent.gameObject.AddComponent<TopBarCurrencyController>();
+        SerializedObject topBarSO = new SerializedObject(topBarCtrl);
+        topBarSO.FindProperty("energyText").objectReferenceValue = energyBalanceText;
+        topBarSO.FindProperty("dataChipText").objectReferenceValue = chipBalanceText;
+        topBarSO.FindProperty("redGemText").objectReferenceValue = redChipBalanceText;
+
+        Button mailBtn = parent.Find("MailButton")?.GetComponent<Button>();
+        Button settingBtn = parent.Find("SettingButton")?.GetComponent<Button>();
+        topBarSO.FindProperty("questBookButton").objectReferenceValue = mailBtn;
+        topBarSO.FindProperty("settingsButton").objectReferenceValue = settingBtn;
+        topBarSO.ApplyModifiedPropertiesWithoutUndo();
+
+        return topBarCtrl;
+>>>>>>> ca51a15 ( chapter 50%)
     }
 
     private static TMP_Text CreateResourceDisplay(
@@ -1159,12 +1197,12 @@ public static class LabMenuSceneBuilder
 
         ShopController controller = panel.gameObject.AddComponent<ShopController>();
         SerializedObject serializedController = new SerializedObject(controller);
-        serializedController.FindProperty("energyText").objectReferenceValue = energyBalanceText;
-        serializedController.FindProperty("chipsetText").objectReferenceValue = chipBalanceText;
-        serializedController.FindProperty("redGemText").objectReferenceValue = redChipBalanceText;
-        serializedController.FindProperty("feedbackText").objectReferenceValue = feedbackText;
+        GetRequiredProperty(serializedController, "energyText").objectReferenceValue = energyBalanceText;
+        GetRequiredProperty(serializedController, "dataChipText").objectReferenceValue = chipBalanceText;
+        GetRequiredProperty(serializedController, "redGemText").objectReferenceValue = redChipBalanceText;
+        GetRequiredProperty(serializedController, "feedbackText").objectReferenceValue = feedbackText;
 
-        SerializedProperty offers = serializedController.FindProperty("offers");
+        SerializedProperty offers = GetRequiredProperty(serializedController, "offers");
         offers.arraySize = offerViews.Count;
         ConfigureShopOffer(offers.GetArrayElementAtIndex(0), offerViews[0], "free-gem", "FREE GEM", 0, ShopController.CurrencyType.Free, ShopController.RewardType.RedGem, 80, true);
         ConfigureShopOffer(offers.GetArrayElementAtIndex(1), offerViews[1], "daily-drone-1", "DRONE BOX", 180, ShopController.CurrencyType.RedGem, ShopController.RewardType.DroneBox, 1, true);
@@ -1305,15 +1343,15 @@ public static class LabMenuSceneBuilder
         int rewardAmount,
         bool oncePerDay)
     {
-        property.FindPropertyRelative("id").stringValue = id;
-        property.FindPropertyRelative("displayName").stringValue = displayName;
-        property.FindPropertyRelative("button").objectReferenceValue = view.button;
-        property.FindPropertyRelative("priceText").objectReferenceValue = view.priceText;
-        property.FindPropertyRelative("currency").enumValueIndex = (int)currency;
-        property.FindPropertyRelative("price").intValue = price;
-        property.FindPropertyRelative("reward").enumValueIndex = (int)reward;
-        property.FindPropertyRelative("rewardAmount").intValue = rewardAmount;
-        property.FindPropertyRelative("oncePerDay").boolValue = oncePerDay;
+        GetRequiredRelativeProperty(property, "id").stringValue = id;
+        GetRequiredRelativeProperty(property, "displayName").stringValue = displayName;
+        GetRequiredRelativeProperty(property, "button").objectReferenceValue = view.button;
+        GetRequiredRelativeProperty(property, "priceText").objectReferenceValue = view.priceText;
+        GetRequiredRelativeProperty(property, "currency").enumValueIndex = (int)currency;
+        GetRequiredRelativeProperty(property, "price").intValue = price;
+        GetRequiredRelativeProperty(property, "reward").enumValueIndex = (int)reward;
+        GetRequiredRelativeProperty(property, "rewardAmount").intValue = rewardAmount;
+        GetRequiredRelativeProperty(property, "oncePerDay").boolValue = oncePerDay;
     }
 
     private static GameObject CreateLabPanel(
@@ -1426,15 +1464,15 @@ public static class LabMenuSceneBuilder
 
         LabUpgradeController controller = panel.gameObject.AddComponent<LabUpgradeController>();
         SerializedObject serializedController = new SerializedObject(controller);
-        serializedController.FindProperty("upgradeButton").objectReferenceValue = upgradeButton;
-        serializedController.FindProperty("energyBalanceText").objectReferenceValue = energyBalanceText;
-        serializedController.FindProperty("chipBalanceText").objectReferenceValue = chipBalanceText;
-        serializedController.FindProperty("redChipBalanceText").objectReferenceValue = redChipBalanceText;
-        serializedController.FindProperty("priceText").objectReferenceValue = priceText;
-        serializedController.FindProperty("resultText").objectReferenceValue = resultText;
-        serializedController.FindProperty("upgradeBackground").objectReferenceValue = upgradeBackground;
+        GetRequiredProperty(serializedController, "upgradeButton").objectReferenceValue = upgradeButton;
+        GetRequiredProperty(serializedController, "energyBalanceText").objectReferenceValue = energyBalanceText;
+        GetRequiredProperty(serializedController, "chipBalanceText").objectReferenceValue = chipBalanceText;
+        GetRequiredProperty(serializedController, "redChipBalanceText").objectReferenceValue = redChipBalanceText;
+        GetRequiredProperty(serializedController, "priceText").objectReferenceValue = priceText;
+        GetRequiredProperty(serializedController, "resultText").objectReferenceValue = resultText;
+        GetRequiredProperty(serializedController, "upgradeBackground").objectReferenceValue = upgradeBackground;
 
-        SerializedProperty items = serializedController.FindProperty("items");
+        SerializedProperty items = GetRequiredProperty(serializedController, "items");
         items.arraySize = slotViews.Length;
         for (int i = 0; i < slotViews.Length; i++)
         {
@@ -1553,7 +1591,11 @@ public static class LabMenuSceneBuilder
         return panel.gameObject;
     }
 
+<<<<<<< HEAD
     private static void CreateBottomNavigation(GameObject canvasObject, RectTransform canvas, GameObject[] panels, int defaultTab = 3)
+=======
+    private static BottomNavigationController CreateBottomNavigation(GameObject canvasObject, RectTransform canvas, GameObject[] panels)
+>>>>>>> ca51a15 ( chapter 50%)
     {
         RectTransform nav = CreateRect("BottomNavigation", canvas);
         Stretch(nav, Vector2.zero, new Vector2(1f, 0f), Vector2.zero, new Vector2(0f, 220f));
@@ -1565,6 +1607,7 @@ public static class LabMenuSceneBuilder
         string[] icons = { "shop", "lab", "chapter", "chipset", "buddy" };
         Button[] buttons = new Button[5];
         Image[] backgrounds = new Image[5];
+        Image[] borderImages = new Image[5];
         Image[] iconImages = new Image[5];
         TMP_Text[] labelTexts = new TMP_Text[5];
 
@@ -1577,6 +1620,7 @@ public static class LabMenuSceneBuilder
                 selected ? BrightTeal : MutedTeal,
                 selected ? Cream : new Color32(39, 105, 110, 255),
                 out backgrounds[i]);
+            borderImages[i] = root.GetComponent<Image>();
             RectTransform rect = root.GetComponent<RectTransform>();
             Stretch(rect, new Vector2(i * 0.2f, 0f), new Vector2((i + 1) * 0.2f, 1f), new Vector2(4f, 6f), new Vector2(-4f, -6f));
 
@@ -1593,21 +1637,27 @@ public static class LabMenuSceneBuilder
 
         BottomNavigationController controller = canvasObject.AddComponent<BottomNavigationController>();
         SerializedObject serializedController = new SerializedObject(controller);
-        SerializedProperty items = serializedController.FindProperty("items");
+        SerializedProperty items = GetRequiredProperty(serializedController, "items");
         items.arraySize = 5;
 
         for (int i = 0; i < 5; i++)
         {
             SerializedProperty item = items.GetArrayElementAtIndex(i);
-            item.FindPropertyRelative("button").objectReferenceValue = buttons[i];
-            item.FindPropertyRelative("panel").objectReferenceValue = panels[i];
-            item.FindPropertyRelative("background").objectReferenceValue = backgrounds[i];
-            item.FindPropertyRelative("icon").objectReferenceValue = iconImages[i];
-            item.FindPropertyRelative("label").objectReferenceValue = labelTexts[i];
+            GetRequiredRelativeProperty(item, "button").objectReferenceValue = buttons[i];
+            GetRequiredRelativeProperty(item, "panel").objectReferenceValue = panels[i];
+            GetRequiredRelativeProperty(item, "background").objectReferenceValue = backgrounds[i];
+            GetRequiredRelativeProperty(item, "border").objectReferenceValue = borderImages[i];
+            GetRequiredRelativeProperty(item, "icon").objectReferenceValue = iconImages[i];
+            GetRequiredRelativeProperty(item, "label").objectReferenceValue = labelTexts[i];
         }
 
+<<<<<<< HEAD
         serializedController.FindProperty("defaultSelectedIndex").intValue = defaultTab;
+=======
+        GetRequiredProperty(serializedController, "defaultSelectedIndex").intValue = 0;
+>>>>>>> ca51a15 ( chapter 50%)
         serializedController.ApplyModifiedPropertiesWithoutUndo();
+        return controller;
     }
 
     private static GameObject CreateFrame(
@@ -1804,6 +1854,26 @@ public static class LabMenuSceneBuilder
 
         AssetDatabase.ImportAsset(ChipsetPreviewPath, ImportAssetOptions.ForceSynchronousImport);
         AssetDatabase.ImportAsset(PreviewPath, ImportAssetOptions.ForceSynchronousImport);
+    }
+
+    private static SerializedProperty GetRequiredProperty(SerializedObject so, string propertyName)
+    {
+        SerializedProperty prop = so.FindProperty(propertyName);
+        if (prop == null)
+        {
+            throw new InvalidOperationException($"[LabMenuSceneBuilder] Required SerializedProperty '{propertyName}' not found on target '{so.targetObject.GetType().Name}'.");
+        }
+        return prop;
+    }
+
+    private static SerializedProperty GetRequiredRelativeProperty(SerializedProperty parentProp, string relativePath)
+    {
+        SerializedProperty prop = parentProp.FindPropertyRelative(relativePath);
+        if (prop == null)
+        {
+            throw new InvalidOperationException($"[LabMenuSceneBuilder] Required RelativeProperty '{relativePath}' not found on parent '{parentProp.name}'.");
+        }
+        return prop;
     }
 }
 #endif

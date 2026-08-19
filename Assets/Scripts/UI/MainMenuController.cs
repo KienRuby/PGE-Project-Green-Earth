@@ -17,15 +17,6 @@ public class MainMenuController : MonoBehaviour
 
     private void Start()
     {
-        if (playButton == null)
-        {
-            GameObject chapterBtnObj = GameObject.Find("ChapterButton");
-            if (chapterBtnObj != null)
-            {
-                playButton = chapterBtnObj.GetComponent<Button>();
-            }
-        }
-
         if (playButton != null)
         {
             playButton.onClick.AddListener(StartGame);

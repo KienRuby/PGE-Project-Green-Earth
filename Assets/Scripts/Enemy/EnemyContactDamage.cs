@@ -6,6 +6,13 @@ public class EnemyContactDamage : MonoBehaviour
     [Tooltip("Lượng sát thương gây ra khi quái vật va chạm vào Player.")]
     [SerializeField] private int damage = 10;
 
+    public int Damage => damage;
+
+    public void SetDamage(int newDamage)
+    {
+        damage = Mathf.Max(1, newDamage);
+    }
+
     [Header("Attack Cooldown")]
     [Tooltip("Khoảng thời gian tối thiểu giữa các lần gây sát thương va chạm (giây).")]
     [SerializeField] private float damageInterval = 1f;

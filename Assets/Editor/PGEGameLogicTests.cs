@@ -2,6 +2,8 @@ using System.IO;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class PGEGameLogicTests
 {
@@ -43,6 +45,32 @@ public class PGEGameLogicTests
         health.TakeDamage(12);
         // Effective damage should be 12 - 5 = 7
         Assert.That(health.CurrentHealth, Is.EqualTo(initialHp - 7));
+
+        Object.DestroyImmediate(go);
+    }
+
+    [Test]
+    public void PlayerHealth_LethalDamage_TriggersDeathAndDoesNotHealToFull()
+    {
+        GameObject go = new GameObject("PlayerLethalHealthTest");
+        PlayerHealth health = go.AddComponent<PlayerHealth>();
+
+        bool deathTriggered = false;
+        health.OnPlayerDeath += () => deathTriggered = true;
+
+        // Deal fatal damage
+        health.TakeDamage(150);
+
+        Assert.That(health.CurrentHealth, Is.EqualTo(0), "Máu sau khi nhận sát thương chí tử phải bằng 0.");
+        Assert.That(health.IsDead, Is.True, "Player phải ở trạng thái IsDead = true.");
+        Assert.That(deathTriggered, Is.True, "Sự kiện OnPlayerDeath phải được phát khi máu về 0.");
+
+        // Subsequent damage or heals must not revive the player
+        health.TakeDamage(50);
+        Assert.That(health.CurrentHealth, Is.EqualTo(0));
+
+        health.Heal(50);
+        Assert.That(health.CurrentHealth, Is.EqualTo(0));
 
         Object.DestroyImmediate(go);
     }
@@ -116,6 +144,7 @@ public class PGEGameLogicTests
     [Test]
     public void TargetFrameRate_IsConfiguredForSmoothGameplay()
     {
+        PlayerDataService.InitializeApplicationSettings();
         Assert.That(Application.targetFrameRate, Is.GreaterThanOrEqualTo(60));
     }
 
@@ -146,5 +175,227 @@ public class PGEGameLogicTests
         Assert.That(mat.HasProperty("_HaloGlowIntensity"), Is.True);
         Assert.That(mat.HasProperty("_SpriteUVRect"), Is.True);
         Object.DestroyImmediate(mat);
+    }
+
+    [Test]
+    public void PlayerDataService_CurrencyManagement_WorksCorrectly()
+    {
+        PlayerDataService.DataChips = 5000;
+        PlayerDataService.RedGems = 1000;
+
+        Assert.That(PlayerDataService.HasEnoughDataChips(3000), Is.True);
+        Assert.That(PlayerDataService.TrySpendDataChips(2000), Is.True);
+        Assert.That(PlayerDataService.DataChips, Is.EqualTo(3000));
+
+        PlayerDataService.AddDataChips(1500);
+        Assert.That(PlayerDataService.DataChips, Is.EqualTo(4500));
+
+        Assert.That(PlayerDataService.HasEnoughRedGems(1500), Is.False);
+        Assert.That(PlayerDataService.TrySpendRedGems(500), Is.True);
+        Assert.That(PlayerDataService.RedGems, Is.EqualTo(500));
+    }
+
+    [Test]
+    public void ChipManager_TestMode_ProvidesUnlimitedChips()
+    {
+        ChipManager.IsTestMode = false;
+        ChipManager.DataChips = 100;
+        Assert.That(ChipManager.HasEnoughDataChips(200), Is.False);
+
+        // Turn on Test Mode
+        ChipManager.IsTestMode = true;
+        Assert.That(ChipManager.IsTestMode, Is.True);
+        Assert.That(ChipManager.HasEnoughDataChips(999999), Is.True);
+        Assert.That(ChipManager.TrySpendDataChips(500000), Is.True);
+
+        // Turn off Test Mode
+        ChipManager.IsTestMode = false;
+        Assert.That(ChipManager.DataChips, Is.EqualTo(100));
+    }
+
+    [Test]
+    public void PlayerDataService_SelectedWeaponId_FallbackAndSet_WorksCorrectly()
+    {
+        string original = PlayerPrefs.GetString(PlayerDataService.SelectedWeaponIdKey, "blaster");
+        string changedWeapon = null;
+        System.Action<string> handler = id => changedWeapon = id;
+        PlayerDataService.OnSelectedWeaponChanged += handler;
+
+        try
+        {
+            // Null or whitespace fallback to "blaster"
+            PlayerDataService.SelectedWeaponId = null;
+            Assert.That(PlayerDataService.SelectedWeaponId, Is.EqualTo("blaster"));
+            Assert.That(changedWeapon, Is.EqualTo("blaster"));
+
+            PlayerDataService.SelectedWeaponId = "   ";
+            Assert.That(PlayerDataService.SelectedWeaponId, Is.EqualTo("blaster"));
+
+            // Custom weapon ID
+            PlayerDataService.SelectedWeaponId = "laser_blaster";
+            Assert.That(PlayerDataService.SelectedWeaponId, Is.EqualTo("laser_blaster"));
+            Assert.That(changedWeapon, Is.EqualTo("laser_blaster"));
+        }
+        finally
+        {
+            PlayerDataService.OnSelectedWeaponChanged -= handler;
+            PlayerDataService.SelectedWeaponId = original;
+        }
+    }
+
+    [Test]
+    public void CameraFollow_ZeroOrNegativeSpeed_SnapsImmediatelyToDesiredPosition()
+    {
+        GameObject cameraGo = new GameObject("CameraTest");
+        GameObject targetGo = new GameObject("TargetTest");
+        targetGo.transform.position = new Vector3(100f, 200f, 0f);
+        cameraGo.transform.position = new Vector3(0f, 0f, -10f);
+
+        CameraFollow follow = cameraGo.AddComponent<CameraFollow>();
+        follow.SetTarget(targetGo.transform);
+        follow.FollowSpeed = 0f;
+        follow.Offset = new Vector2(5f, -5f);
+
+        // Update follow with followSpeed = 0
+        follow.UpdateFollow(0.016f);
+
+        Assert.That(cameraGo.transform.position.x, Is.EqualTo(105f));
+        Assert.That(cameraGo.transform.position.y, Is.EqualTo(195f));
+        Assert.That(cameraGo.transform.position.z, Is.EqualTo(-10f));
+
+        Object.DestroyImmediate(cameraGo);
+        Object.DestroyImmediate(targetGo);
+    }
+
+    [Test]
+    public void ShopController_VNDOffer_FailsClosedAndGrantsNoRewards()
+    {
+        GameObject shopGo = new GameObject("ShopTest");
+        ShopController shop = shopGo.AddComponent<ShopController>();
+
+        int initialGems = ChipManager.RedGems;
+        ShopController.Offer vndOffer = new ShopController.Offer
+        {
+            id = "vnd-pack-1",
+            displayName = "1000 RED GEMS (VND)",
+            currency = ShopController.CurrencyType.VND,
+            price = 50000,
+            reward = ShopController.RewardType.RedGem,
+            rewardAmount = 1000
+        };
+
+        shop.SetOffersForTesting(new[] { vndOffer });
+        bool result = shop.TryPurchase(0);
+
+        Assert.That(result, Is.False, "Purchases with CurrencyType.VND must fail-closed.");
+        Assert.That(ChipManager.RedGems, Is.EqualTo(initialGems), "No rewards must be granted for VND offers without payment integration.");
+
+        Object.DestroyImmediate(shopGo);
+    }
+
+    [Test]
+    public void MainMenu_Architecture_SingleChapterPanelUnderCanvasContent()
+    {
+        string scenePath = "Assets/Scenes/MainMenu.unity";
+        Assert.That(File.Exists(scenePath), Is.True, "MainMenu.unity must exist.");
+
+        Scene scene = UnityEditor.SceneManagement.EditorSceneManager.OpenScene(scenePath, UnityEditor.SceneManagement.OpenSceneMode.Single);
+        Assert.That(scene.IsValid(), Is.True);
+
+        Canvas canvas = Object.FindObjectOfType<Canvas>();
+        Assert.That(canvas, Is.Not.Null, "Canvas must exist in MainMenu.unity.");
+
+        Transform contentTr = canvas.transform.Find("Content");
+        Assert.That(contentTr, Is.Not.Null, "Canvas/Content must exist in MainMenu.unity.");
+
+        Transform contentChapterPanel = contentTr.Find("ChapterPanel");
+        Assert.That(contentChapterPanel, Is.Not.Null, "Canvas/Content/ChapterPanel must exist.");
+
+        Transform rootChapterPanel = canvas.transform.Find("ChapterPanel");
+        Assert.That(rootChapterPanel, Is.Null, "Duplicate Canvas/ChapterPanel must NOT exist.");
+
+        // Count all ChapterPanel objects in scene
+        int count = 0;
+        foreach (var rootGo in scene.GetRootGameObjects())
+        {
+            foreach (var transform in rootGo.GetComponentsInChildren<Transform>(true))
+            {
+                if (transform.name == "ChapterPanel")
+                {
+                    count++;
+                }
+            }
+        }
+        Assert.That(count, Is.EqualTo(1), "There must be exactly ONE ChapterPanel in MainMenu.unity.");
+    }
+
+    [Test]
+    public void MainMenu_BottomNavigation_ChapterItem_PointsToContentChapterPanel()
+    {
+        string scenePath = "Assets/Scenes/MainMenu.unity";
+        Scene scene = UnityEditor.SceneManagement.EditorSceneManager.OpenScene(scenePath, UnityEditor.SceneManagement.OpenSceneMode.Single);
+        Assert.That(scene.IsValid(), Is.True);
+
+        Canvas canvas = Object.FindObjectOfType<Canvas>();
+        Transform contentChapterPanel = canvas.transform.Find("Content/ChapterPanel");
+        Assert.That(contentChapterPanel, Is.Not.Null);
+
+        BottomNavigationController bottomNav = Object.FindObjectOfType<BottomNavigationController>();
+        Assert.That(bottomNav, Is.Not.Null, "BottomNavigationController must exist.");
+
+        SerializedObject navSO = new SerializedObject(bottomNav);
+        SerializedProperty itemsProp = navSO.FindProperty("items");
+        Assert.That(itemsProp.arraySize, Is.GreaterThanOrEqualTo(3));
+
+        SerializedProperty chapterItem = itemsProp.GetArrayElementAtIndex(2);
+        GameObject boundPanel = chapterItem.FindPropertyRelative("panel").objectReferenceValue as GameObject;
+        Assert.That(boundPanel, Is.EqualTo(contentChapterPanel.gameObject), "BottomNavigation items[2].panel must point to Canvas/Content/ChapterPanel.");
+    }
+
+    [Test]
+    public void MainMenu_ChapterPanel_ImagesHaveNonNullSprites()
+    {
+        string scenePath = "Assets/Scenes/MainMenu.unity";
+        Scene scene = UnityEditor.SceneManagement.EditorSceneManager.OpenScene(scenePath, UnityEditor.SceneManagement.OpenSceneMode.Single);
+        Assert.That(scene.IsValid(), Is.True);
+
+        Canvas canvas = Object.FindObjectOfType<Canvas>();
+        Transform chapterPanel = canvas.transform.Find("Content/ChapterPanel");
+        Assert.That(chapterPanel, Is.Not.Null);
+
+        // Verify key sprites in ChapterPanel
+        Transform stageBg = chapterPanel.Find("StagePreviewWindow/Viewport/StageBackground");
+        Assert.That(stageBg, Is.Not.Null);
+        Image stageBgImg = stageBg.GetComponent<Image>();
+        Assert.That(stageBgImg, Is.Not.Null);
+        Assert.That(stageBgImg.sprite, Is.Not.Null, "StageBackground must have a valid sprite assigned.");
+
+        Transform boss = chapterPanel.Find("StagePreviewWindow/Viewport/BossSilhouette");
+        Assert.That(boss, Is.Not.Null);
+        Image bossImg = boss.GetComponent<Image>();
+        Assert.That(bossImg, Is.Not.Null);
+        Assert.That(bossImg.sprite, Is.Not.Null, "BossSilhouette must have a valid sprite assigned.");
+
+        Transform rewardIcon = chapterPanel.Find("SubWidgetsContainer/QuestWidget/RewardBox/RewardIcon");
+        Assert.That(rewardIcon, Is.Not.Null);
+        Image rewardImg = rewardIcon.GetComponent<Image>();
+        Assert.That(rewardImg, Is.Not.Null);
+        Assert.That(rewardImg.sprite, Is.Not.Null, "RewardIcon must have a valid sprite assigned.");
+    }
+
+    [Test]
+    public void ChapterDatabase_AllChapters_HaveValidPreviewAndBossSprites()
+    {
+        ChapterDatabase db = AssetDatabase.LoadAssetAtPath<ChapterDatabase>("Assets/Data/Chapters/ChapterDatabase.asset");
+        Assert.That(db, Is.Not.Null);
+        Assert.That(db.Count, Is.GreaterThanOrEqualTo(4));
+
+        for (int i = 0; i < db.Count; i++)
+        {
+            ChapterData chapter = db.GetChapter(i);
+            Assert.That(chapter, Is.Not.Null, $"Chapter at index {i} must exist.");
+            Assert.That(chapter.previewBackground, Is.Not.Null, $"Chapter {chapter.chapterNumber} must have previewBackground assigned.");
+            Assert.That(chapter.bossSilhouette, Is.Not.Null, $"Chapter {chapter.chapterNumber} must have bossSilhouette assigned.");
+        }
     }
 }

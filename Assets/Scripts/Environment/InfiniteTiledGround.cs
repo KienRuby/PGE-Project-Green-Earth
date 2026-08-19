@@ -92,15 +92,47 @@ public class InfiniteTiledGround : MonoBehaviour
     }
 
 #if UNITY_EDITOR
+    private UnityEditor.EditorApplication.CallbackFunction editorUpdateCallback;
+
     private void OnValidate()
     {
-        UnityEditor.EditorApplication.delayCall += () =>
+        // Coalesce delayCall: hủy callback cũ nếu đang chờ, đăng ký lại callback mới
+        if (editorUpdateCallback != null)
         {
-            if (this != null && gameObject != null)
-            {
-                UpdateGroundSizeAndPosition();
-            }
-        };
+            UnityEditor.EditorApplication.delayCall -= editorUpdateCallback;
+            editorUpdateCallback = null;
+        }
+
+        editorUpdateCallback = OnEditorDelayCall;
+        UnityEditor.EditorApplication.delayCall += editorUpdateCallback;
+    }
+
+    private void OnEditorDelayCall()
+    {
+        editorUpdateCallback = null;
+        if (this != null && gameObject != null)
+        {
+            UpdateGroundSizeAndPosition();
+        }
+    }
+
+    private void OnDisable()
+    {
+        CleanupEditorDelayCall();
+    }
+
+    private void OnDestroy()
+    {
+        CleanupEditorDelayCall();
+    }
+
+    private void CleanupEditorDelayCall()
+    {
+        if (editorUpdateCallback != null)
+        {
+            UnityEditor.EditorApplication.delayCall -= editorUpdateCallback;
+            editorUpdateCallback = null;
+        }
     }
 #endif
 }

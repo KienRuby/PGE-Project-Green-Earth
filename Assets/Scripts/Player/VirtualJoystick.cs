@@ -144,9 +144,16 @@ public class VirtualJoystick : MonoBehaviour,
             background.gameObject.SetActive(false);
     }
 
+    private void OnApplicationFocus(bool hasFocus)
+    {
+        if (!hasFocus)
+        {
+            HideJoystick();
+        }
+    }
+
     private void OnDisable()
     {
-        input = Vector2.zero;
-        isPressed = false;
+        HideJoystick();
     }
 }

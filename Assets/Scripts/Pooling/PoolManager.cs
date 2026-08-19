@@ -27,6 +27,14 @@ public class PoolManager : MonoBehaviour
         InitializePreconfiguredPools();
     }
 
+    private void OnDestroy()
+    {
+        if (Instance == this)
+        {
+            Instance = null;
+        }
+    }
+
     private void InitializePreconfiguredPools()
     {
         if (pools == null) return;

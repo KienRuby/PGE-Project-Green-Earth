@@ -3,22 +3,31 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Quản lý giao diện Cửa Hàng (Shop):
+/// Sử dụng ChipManager để quản lý toàn bộ các giao dịch tiền tệ và đồng bộ dữ liệu.
+/// 1. Mua gói nạp Gem đỏ (VND / Miễn phí).
+/// 2. Đổi Gem đỏ lấy Data Chip xanh (2.000 / 4.250 / 12.200 Data Chips).
+/// 3. Mở hòm trang bị (Chipset Box / Drone Box).
+/// 4. Tương thích hoàn hảo với Chế độ Test Vô Hạn Chip của ChipManager.
+/// </summary>
 public sealed class ShopController : MonoBehaviour
 {
-    private const string ChipsetBalanceKey = "PGE.Shop.Balance.Chipsets";
-    private const string RedGemBalanceKey = "PGE.Shop.Balance.RedGems";
     private const string ChipsetBoxCountKey = "PGE.Shop.Inventory.ChipsetBoxes";
     private const string DroneBoxCountKey = "PGE.Shop.Inventory.DroneBoxes";
 
     public enum CurrencyType
     {
         Free,
-        RedGem
+        RedGem,
+        VND
     }
 
     public enum RewardType
     {
         RedGem,
+        DataChip,
+        Energy,
         ChipsetBox,
         DroneBox
     }
@@ -37,54 +46,41 @@ public sealed class ShopController : MonoBehaviour
         public bool oncePerDay;
     }
 
-    [Header("Balances")]
+    [Header("Balances & Header UI")]
     [SerializeField] private TMP_Text energyText;
-    [SerializeField] private TMP_Text chipsetText;
+    [SerializeField] private TMP_Text dataChipText;
     [SerializeField] private TMP_Text redGemText;
     [SerializeField] private TMP_Text feedbackText;
-    [SerializeField] private int startingEnergy = 24;
-    [SerializeField] private int maximumEnergy = 50;
-    [SerializeField] private int startingChipsets = 134936;
-    [SerializeField] private int startingRedGems = 15516;
 
     [Header("Offers")]
     [SerializeField] private Offer[] offers;
 
     private int currentEnergy;
-    private int currentChipsets;
+    private int currentDataChips;
     private int currentRedGems;
     private int chipsetBoxes;
     private int droneBoxes;
 
-    private void Start()
+    private void Awake()
     {
-        if (!PlayerPrefs.HasKey(PlayerDataService.ChipsetsKey))
-        {
-            PlayerDataService.Chipsets = startingChipsets;
-        }
-
-        if (!PlayerPrefs.HasKey(PlayerDataService.RedGemsKey))
-        {
-            PlayerDataService.RedGems = startingRedGems;
-        }
-
-        if (!PlayerPrefs.HasKey(PlayerDataService.EnergyKey))
-        {
-            PlayerDataService.Energy = startingEnergy;
-        }
-
-        currentEnergy = Mathf.Clamp(PlayerDataService.Energy, 0, maximumEnergy);
-        currentChipsets = PlayerDataService.Chipsets;
-        currentRedGems = PlayerDataService.RedGems;
+        currentEnergy = Mathf.Clamp(ChipManager.Energy, 0, ChipManager.MaxEnergy);
+        currentDataChips = ChipManager.DataChips;
+        currentRedGems = ChipManager.RedGems;
         chipsetBoxes = Mathf.Max(0, PlayerPrefs.GetInt(ChipsetBoxCountKey, 0));
         droneBoxes = Mathf.Max(0, PlayerPrefs.GetInt(DroneBoxCountKey, 0));
+    }
 
-        for (int i = 0; i < offers.Length; i++)
+    private void Start()
+    {
+        if (offers != null)
         {
-            int offerIndex = i;
-            if (offers[i].button != null)
+            for (int i = 0; i < offers.Length; i++)
             {
-                offers[i].button.onClick.AddListener(() => TryPurchase(offerIndex));
+                int offerIndex = i;
+                if (offers[i].button != null)
+                {
+                    offers[i].button.onClick.AddListener(() => TryPurchase(offerIndex));
+                }
             }
         }
 
@@ -94,10 +90,23 @@ public sealed class ShopController : MonoBehaviour
 
     private void OnEnable()
     {
-        currentChipsets = PlayerDataService.Chipsets;
-        currentRedGems = PlayerDataService.RedGems;
-        currentEnergy = Mathf.Clamp(PlayerDataService.Energy, 0, maximumEnergy);
+        ChipManager.OnDataChipsChanged += HandleDataChipsChanged;
+        ChipManager.OnRedGemsChanged += HandleRedGemsChanged;
+        ChipManager.OnEnergyChanged += HandleEnergyChanged;
+        ChipManager.OnTestModeChanged += HandleTestModeChanged;
+
+        currentDataChips = ChipManager.DataChips;
+        currentRedGems = ChipManager.RedGems;
+        currentEnergy = Mathf.Clamp(ChipManager.Energy, 0, ChipManager.MaxEnergy);
         RefreshView();
+    }
+
+    private void OnDisable()
+    {
+        ChipManager.OnDataChipsChanged -= HandleDataChipsChanged;
+        ChipManager.OnRedGemsChanged -= HandleRedGemsChanged;
+        ChipManager.OnEnergyChanged -= HandleEnergyChanged;
+        ChipManager.OnTestModeChanged -= HandleTestModeChanged;
     }
 
     private void OnDestroy()
@@ -116,31 +125,71 @@ public sealed class ShopController : MonoBehaviour
         }
     }
 
-    private void TryPurchase(int offerIndex)
+    private void HandleDataChipsChanged(int newAmount)
     {
-        if (offerIndex < 0 || offerIndex >= offers.Length)
+        currentDataChips = newAmount;
+        RefreshView();
+    }
+
+    private void HandleRedGemsChanged(int newAmount)
+    {
+        currentRedGems = newAmount;
+        RefreshView();
+    }
+
+    private void HandleEnergyChanged(int newAmount)
+    {
+        currentEnergy = Mathf.Clamp(newAmount, 0, ChipManager.MaxEnergy);
+        RefreshView();
+    }
+
+    private void HandleTestModeChanged(bool isTest)
+    {
+        currentDataChips = ChipManager.DataChips;
+        currentRedGems = ChipManager.RedGems;
+        currentEnergy = Mathf.Clamp(ChipManager.Energy, 0, ChipManager.MaxEnergy);
+        RefreshView();
+    }
+
+    public bool TryPurchase(int offerIndex)
+    {
+        if (offerIndex < 0 || offers == null || offerIndex >= offers.Length)
         {
-            return;
+            return false;
         }
 
         Offer offer = offers[offerIndex];
         if (offer.oncePerDay && WasClaimedToday(offer.id))
         {
             ShowMessage($"{offer.displayName} ALREADY CLAIMED TODAY");
-            return;
+            return false;
         }
 
-        if (offer.currency == CurrencyType.RedGem && currentRedGems < offer.price)
+        // VND purchases: Fail-closed không trao reward cho đến khi có payment/IAP flow thật
+        if (offer.currency == CurrencyType.VND)
+        {
+            ShowMessage("IAP PAYMENT COMING SOON");
+            return false;
+        }
+
+        // Kiểm tra số dư Gem đỏ
+        if (offer.currency == CurrencyType.RedGem && !ChipManager.HasEnoughRedGems(offer.price))
         {
             ShowMessage("NOT ENOUGH RED GEMS");
-            return;
+            return false;
         }
 
-        if (offer.currency == CurrencyType.RedGem)
+        // Khấu trừ Gem đỏ
+        if (offer.currency == CurrencyType.RedGem && offer.price > 0)
         {
-            currentRedGems -= offer.price;
+            if (!ChipManager.TrySpendRedGems(offer.price))
+            {
+                ShowMessage("NOT ENOUGH RED GEMS");
+                return false;
+            }
         }
 
+        // Trao phần thưởng (Data Chip / Gem / Energy / Box)
         GrantReward(offer.reward, offer.rewardAmount);
 
         if (offer.oncePerDay)
@@ -151,6 +200,12 @@ public sealed class ShopController : MonoBehaviour
         SaveState();
         RefreshView();
         ShowMessage(BuildSuccessMessage(offer));
+        return true;
+    }
+
+    public void SetOffersForTesting(Offer[] testOffers)
+    {
+        offers = testOffers;
     }
 
     private void GrantReward(RewardType reward, int amount)
@@ -158,7 +213,13 @@ public sealed class ShopController : MonoBehaviour
         switch (reward)
         {
             case RewardType.RedGem:
-                currentRedGems += amount;
+                ChipManager.AddRedGems(amount);
+                break;
+            case RewardType.DataChip:
+                ChipManager.AddDataChips(amount);
+                break;
+            case RewardType.Energy:
+                ChipManager.AddEnergy(amount);
                 break;
             case RewardType.ChipsetBox:
                 chipsetBoxes += amount;
@@ -175,6 +236,10 @@ public sealed class ShopController : MonoBehaviour
         {
             case RewardType.RedGem:
                 return $"RECEIVED {offer.rewardAmount:N0} RED GEMS";
+            case RewardType.DataChip:
+                return $"RECEIVED {offer.rewardAmount:N0} DATA CHIPS";
+            case RewardType.Energy:
+                return $"RESTORED {offer.rewardAmount:N0} ENERGY";
             case RewardType.ChipsetBox:
                 return $"OPENED {offer.rewardAmount:N0} CHIPSET BOXES  •  TOTAL {chipsetBoxes:N0}";
             default:
@@ -186,12 +251,12 @@ public sealed class ShopController : MonoBehaviour
     {
         if (energyText != null)
         {
-            energyText.text = $"{currentEnergy}/{maximumEnergy}";
+            energyText.text = $"{currentEnergy}/{ChipManager.MaxEnergy}";
         }
 
-        if (chipsetText != null)
+        if (dataChipText != null)
         {
-            chipsetText.text = currentChipsets.ToString("N0");
+            dataChipText.text = currentDataChips.ToString("N0");
         }
 
         if (redGemText != null)
@@ -199,22 +264,25 @@ public sealed class ShopController : MonoBehaviour
             redGemText.text = currentRedGems.ToString("N0");
         }
 
-        for (int i = 0; i < offers.Length; i++)
+        if (offers != null)
         {
-            Offer offer = offers[i];
-            bool claimed = offer.oncePerDay && WasClaimedToday(offer.id);
-            if (offer.button != null)
+            for (int i = 0; i < offers.Length; i++)
             {
-                offer.button.interactable = !claimed;
-            }
+                Offer offer = offers[i];
+                bool claimed = offer.oncePerDay && WasClaimedToday(offer.id);
+                if (offer.button != null)
+                {
+                    offer.button.interactable = !claimed;
+                }
 
-            if (offer.priceText != null)
-            {
-                offer.priceText.text = claimed
-                    ? "CLAIMED"
-                    : offer.currency == CurrencyType.Free
-                        ? "FREE"
-                        : $"x{offer.price:N0}";
+                if (offer.priceText != null)
+                {
+                    offer.priceText.text = claimed
+                        ? "CLAIMED"
+                        : offer.currency == CurrencyType.Free
+                            ? "FREE"
+                            : $"x{offer.price:N0}";
+                }
             }
         }
     }
@@ -229,8 +297,6 @@ public sealed class ShopController : MonoBehaviour
 
     private void SaveState()
     {
-        PlayerDataService.Chipsets = currentChipsets;
-        PlayerDataService.RedGems = currentRedGems;
         PlayerPrefs.SetInt(ChipsetBoxCountKey, chipsetBoxes);
         PlayerPrefs.SetInt(DroneBoxCountKey, droneBoxes);
         PlayerPrefs.Save();

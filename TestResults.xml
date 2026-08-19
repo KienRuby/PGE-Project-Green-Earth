@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="38" result="Passed" total="38" passed="38" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-08-19 04:23:22Z" end-time="2026-08-19 04:23:24Z" duration="1.9684243">
+  <test-suite type="TestSuite" id="1050" name="PGE Green Earth" fullname="PGE Green Earth" runstate="Runnable" testcasecount="38" result="Passed" start-time="2026-08-19 04:23:22Z" end-time="2026-08-19 04:23:24Z" duration="1.968424" total="38" passed="38" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <test-suite type="Assembly" id="1095" name="Assembly-CSharp-Editor.dll" fullname="C:/Game 4/PGE - Project Green Earth/Library/ScriptAssemblies/Assembly-CSharp-Editor.dll" runstate="Runnable" testcasecount="38" result="Passed" start-time="2026-08-19 04:23:22Z" end-time="2026-08-19 04:23:24Z" duration="1.941796" total="38" passed="38" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="19464" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+      </properties>
+      <test-suite type="TestFixture" id="1051" name="ChapterSystemTests" fullname="ChapterSystemTests" classname="ChapterSystemTests" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-08-19 04:23:22Z" end-time="2026-08-19 04:23:22Z" duration="0.236267" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1053" name="ChapterDatabase_IndexClamping_WorksSafely" fullname="ChapterSystemTests.ChapterDatabase_IndexClamping_WorksSafely" methodname="ChapterDatabase_IndexClamping_WorksSafely" classname="ChapterSystemTests" runstate="Runnable" seed="2042869891" result="Passed" start-time="2026-08-19 04:23:22Z" end-time="2026-08-19 04:23:22Z" duration="0.033851" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1052" name="ChapterDatabase_LoadsAndContainsAllSampleChapters" fullname="ChapterSystemTests.ChapterDatabase_LoadsAndContainsAllSampleChapters" methodname="ChapterDatabase_LoadsAndContainsAllSampleChapters" classname="ChapterSystemTests" runstate="Runnable" seed="1797317743" result="Passed" start-time="2026-08-19 04:23:22Z" end-time="2026-08-19 04:23:22Z" duration="0.010017" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1056" name="ChapterScreen_EnergyTransaction_SpendsEnergyWhenStarting" fullname="ChapterSystemTests.ChapterScreen_EnergyTransaction_SpendsEnergyWhenStarting" methodname="ChapterScreen_EnergyTransaction_SpendsEnergyWhenStarting" classname="ChapterSystemTests" runstate="Runnable" seed="308150092" result="Passed" start-time="2026-08-19 04:23:22Z" end-time="2026-08-19 04:23:22Z" duration="0.005457" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1060" name="ChapterScreenController_PrevNextButtons_CycleThroughChaptersAndSyncUI" fullname="ChapterSystemTests.ChapterScreenController_PrevNextButtons_CycleThroughChaptersAndSyncUI" methodname="ChapterScreenController_PrevNextButtons_CycleThroughChaptersAndSyncUI" classname="ChapterSystemTests" runstate="Runnable" seed="1630341240" result="Passed" start-time="2026-08-19 04:23:22Z" end-time="2026-08-19 04:23:22Z" duration="0.002951" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1058" name="ChapterScreenController_TryStartChapter_DeductsEnergyStrictlyOnce" fullname="ChapterSystemTests.ChapterScreenController_TryStartChapter_DeductsEnergyStrictlyOnce" methodname="ChapterScreenController_TryStartChapter_DeductsEnergyStrictlyOnce" classname="ChapterSystemTests" runstate="Runnable" seed="1942039734" result="Passed" start-time="2026-08-19 04:23:22Z" end-time="2026-08-19 04:23:22Z" duration="0.004853" asserts="0">
+          <properties />
+          <output><![CDATA[[ChapterScreen] Bắt đầu Chapter: 4 (Dense Jungle 1), Nạp scene: GamePlay
+[ChapterScreen] Không đủ năng lượng (5/10).
+]]></output>
+        </test-case>
+        <test-case id="1054" name="PlayerDataService_ChapterIndices_SaveAndLoadCorrectly" fullname="ChapterSystemTests.PlayerDataService_ChapterIndices_SaveAndLoadCorrectly" methodname="PlayerDataService_ChapterIndices_SaveAndLoadCorrectly" classname="ChapterSystemTests" runstate="Runnable" seed="714915580" result="Passed" start-time="2026-08-19 04:23:22Z" end-time="2026-08-19 04:23:22Z" duration="0.000839" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1055" name="QuestData_LoadsCorrectly" fullname="ChapterSystemTests.QuestData_LoadsCorrectly" methodname="QuestData_LoadsCorrectly" classname="ChapterSystemTests" runstate="Runnable" seed="1609649088" result="Passed" start-time="2026-08-19 04:23:22Z" end-time="2026-08-19 04:23:22Z" duration="0.002893" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1057" name="TopBar_CurrencyEvents_SynchronizeAccurately" fullname="ChapterSystemTests.TopBar_CurrencyEvents_SynchronizeAccurately" methodname="TopBar_CurrencyEvents_SynchronizeAccurately" classname="ChapterSystemTests" runstate="Runnable" seed="62427455" result="Passed" start-time="2026-08-19 04:23:22Z" end-time="2026-08-19 04:23:22Z" duration="0.002800" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1059" name="TopBarCurrencyController_UpdatesTextsOnChipManagerEvents" fullname="ChapterSystemTests.TopBarCurrencyController_UpdatesTextsOnChipManagerEvents" methodname="TopBarCurrencyController_UpdatesTextsOnChipManagerEvents" classname="ChapterSystemTests" runstate="Runnable" seed="739343744" result="Passed" start-time="2026-08-19 04:23:22Z" end-time="2026-08-19 04:23:22Z" duration="0.145984" asserts="0">
+          <properties />
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1061" name="PGEGameLogicTests" fullname="PGEGameLogicTests" classname="PGEGameLogicTests" runstate="Runnable" testcasecount="18" result="Passed" start-time="2026-08-19 04:23:22Z" end-time="2026-08-19 04:23:24Z" duration="1.591105" total="18" passed="18" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-case id="1070" name="AAAGoldenStarParticleDissolveShader_LoadsAndContainsRequiredProperties" fullname="PGEGameLogicTests.AAAGoldenStarParticleDissolveShader_LoadsAndContainsRequiredProperties" methodname="AAAGoldenStarParticleDissolveShader_LoadsAndContainsRequiredProperties" classname="PGEGameLogicTests" runstate="Runnable" seed="657073480" result="Passed" start-time="2026-08-19 04:23:22Z" end-time="2026-08-19 04:23:22Z" duration="0.005444" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1074" name="CameraFollow_ZeroOrNegativeSpeed_SnapsImmediatelyToDesiredPosition" fullname="PGEGameLogicTests.CameraFollow_ZeroOrNegativeSpeed_SnapsImmediatelyToDesiredPosition" methodname="CameraFollow_ZeroOrNegativeSpeed_SnapsImmediatelyToDesiredPosition" classname="PGEGameLogicTests" runstate="Runnable" seed="445620490" result="Passed" start-time="2026-08-19 04:23:22Z" end-time="2026-08-19 04:23:22Z" duration="0.003808" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1079" name="ChapterDatabase_AllChapters_HaveValidPreviewAndBossSprites" fullname="PGEGameLogicTests.ChapterDatabase_AllChapters_HaveValidPreviewAndBossSprites" methodname="ChapterDatabase_AllChapters_HaveValidPreviewAndBossSprites" classname="PGEGameLogicTests" runstate="Runnable" seed="1211666218" result="Passed" start-time="2026-08-19 04:23:22Z" end-time="2026-08-19 04:23:22Z" duration="0.001463" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1072" name="ChipManager_TestMode_ProvidesUnlimitedChips" fullname="PGEGameLogicTests.ChipManager_TestMode_ProvidesUnlimitedChips" methodname="ChipManager_TestMode_ProvidesUnlimitedChips" classname="PGEGameLogicTests" runstate="Runnable" seed="1128803623" result="Passed" start-time="2026-08-19 04:23:22Z" end-time="2026-08-19 04:23:22Z" duration="0.000895" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1068" name="DieAnimation_HasNoRootPositionCurves_ToPreventAnimatorTransformLock" fullname="PGEGameLogicTests.DieAnimation_HasNoRootPositionCurves_ToPreventAnimatorTransformLock" methodname="DieAnimation_HasNoRootPositionCurves_ToPreventAnimatorTransformLock" classname="PGEGameLogicTests" runstate="Runnable" seed="1113613434" result="Passed" start-time="2026-08-19 04:23:22Z" end-time="2026-08-19 04:23:22Z" duration="0.007769" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1062" name="LabUpgrade_KeyGeneration_IsConsistent" fullname="PGEGameLogicTests.LabUpgrade_KeyGeneration_IsConsistent" methodname="LabUpgrade_KeyGeneration_IsConsistent" classname="PGEGameLogicTests" runstate="Runnable" seed="896661358" result="Passed" start-time="2026-08-19 04:23:22Z" end-time="2026-08-19 04:23:22Z" duration="0.000890" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1076" name="MainMenu_Architecture_SingleChapterPanelUnderCanvasContent" fullname="PGEGameLogicTests.MainMenu_Architecture_SingleChapterPanelUnderCanvasContent" methodname="MainMenu_Architecture_SingleChapterPanelUnderCanvasContent" classname="PGEGameLogicTests" runstate="Runnable" seed="1611871390" result="Passed" start-time="2026-08-19 04:23:22Z" end-time="2026-08-19 04:23:23Z" duration="0.777519" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1077" name="MainMenu_BottomNavigation_ChapterItem_PointsToContentChapterPanel" fullname="PGEGameLogicTests.MainMenu_BottomNavigation_ChapterItem_PointsToContentChapterPanel" methodname="MainMenu_BottomNavigation_ChapterItem_PointsToContentChapterPanel" classname="PGEGameLogicTests" runstate="Runnable" seed="1513160472" result="Passed" start-time="2026-08-19 04:23:23Z" end-time="2026-08-19 04:23:23Z" duration="0.346644" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1078" name="MainMenu_ChapterPanel_ImagesHaveNonNullSprites" fullname="PGEGameLogicTests.MainMenu_ChapterPanel_ImagesHaveNonNullSprites" methodname="MainMenu_ChapterPanel_ImagesHaveNonNullSprites" classname="PGEGameLogicTests" runstate="Runnable" seed="1650352326" result="Passed" start-time="2026-08-19 04:23:23Z" end-time="2026-08-19 04:23:24Z" duration="0.398772" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1066" name="ObjectPool_DoubleReturn_DoesNotDuplicateInQueue" fullname="PGEGameLogicTests.ObjectPool_DoubleReturn_DoesNotDuplicateInQueue" methodname="ObjectPool_DoubleReturn_DoesNotDuplicateInQueue" classname="PGEGameLogicTests" runstate="Runnable" seed="1006091346" result="Passed" start-time="2026-08-19 04:23:24Z" end-time="2026-08-19 04:23:24Z" duration="0.009136" asserts="0">
+          <properties />
+          <output><![CDATA[[ObjectPool] Pool PoolTestPrefab đã đầy và canGrow = false!
+]]></output>
+        </test-case>
+        <test-case id="1071" name="PlayerDataService_CurrencyManagement_WorksCorrectly" fullname="PGEGameLogicTests.PlayerDataService_CurrencyManagement_WorksCorrectly" methodname="PlayerDataService_CurrencyManagement_WorksCorrectly" classname="PGEGameLogicTests" runstate="Runnable" seed="907727256" result="Passed" start-time="2026-08-19 04:23:24Z" end-time="2026-08-19 04:23:24Z" duration="0.001441" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1073" name="PlayerDataService_SelectedWeaponId_FallbackAndSet_WorksCorrectly" fullname="PGEGameLogicTests.PlayerDataService_SelectedWeaponId_FallbackAndSet_WorksCorrectly" methodname="PlayerDataService_SelectedWeaponId_FallbackAndSet_WorksCorrectly" classname="PGEGameLogicTests" runstate="Runnable" seed="1515285986" result="Passed" start-time="2026-08-19 04:23:24Z" end-time="2026-08-19 04:23:24Z" duration="0.002214" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1067" name="PlayerDeathController_TriggersDeath_DisablesMovementAndInvokesEvents" fullname="PGEGameLogicTests.PlayerDeathController_TriggersDeath_DisablesMovementAndInvokesEvents" methodname="PlayerDeathController_TriggersDeath_DisablesMovementAndInvokesEvents" classname="PGEGameLogicTests" runstate="Runnable" seed="1347824165" result="Passed" start-time="2026-08-19 04:23:24Z" end-time="2026-08-19 04:23:24Z" duration="0.010322" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1064" name="PlayerHealth_DamageReduction_ReducesDamageCorrectly" fullname="PGEGameLogicTests.PlayerHealth_DamageReduction_ReducesDamageCorrectly" methodname="PlayerHealth_DamageReduction_ReducesDamageCorrectly" classname="PGEGameLogicTests" runstate="Runnable" seed="1434132806" result="Passed" start-time="2026-08-19 04:23:24Z" end-time="2026-08-19 04:23:24Z" duration="0.001801" asserts="0">
+          <properties />
+          <output><![CDATA[Player nhận 7 damage (gốc 12, giáp giảm 5). HP: 93/100
+]]></output>
+        </test-case>
+        <test-case id="1065" name="PlayerHealth_LethalDamage_TriggersDeathAndDoesNotHealToFull" fullname="PGEGameLogicTests.PlayerHealth_LethalDamage_TriggersDeathAndDoesNotHealToFull" methodname="PlayerHealth_LethalDamage_TriggersDeathAndDoesNotHealToFull" classname="PGEGameLogicTests" runstate="Runnable" seed="1153290815" result="Passed" start-time="2026-08-19 04:23:24Z" end-time="2026-08-19 04:23:24Z" duration="0.002990" asserts="0">
+          <properties />
+          <output><![CDATA[Player nhận 150 damage (gốc 150, giáp giảm 0). HP: 0/100
+Player đã chết!
+]]></output>
+        </test-case>
+        <test-case id="1063" name="PlayerStatsManager_GetStatLevel_ReadsCorrectly" fullname="PGEGameLogicTests.PlayerStatsManager_GetStatLevel_ReadsCorrectly" methodname="PlayerStatsManager_GetStatLevel_ReadsCorrectly" classname="PGEGameLogicTests" runstate="Runnable" seed="1430602457" result="Passed" start-time="2026-08-19 04:23:24Z" end-time="2026-08-19 04:23:24Z" duration="0.000683" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1075" name="ShopController_VNDOffer_FailsClosedAndGrantsNoRewards" fullname="PGEGameLogicTests.ShopController_VNDOffer_FailsClosedAndGrantsNoRewards" methodname="ShopController_VNDOffer_FailsClosedAndGrantsNoRewards" classname="PGEGameLogicTests" runstate="Runnable" seed="1730241837" result="Passed" start-time="2026-08-19 04:23:24Z" end-time="2026-08-19 04:23:24Z" duration="0.001471" asserts="0">
+          <properties />
+        </test-case>
+        <test-case id="1069" name="TargetFrameRate_IsConfiguredForSmoothGameplay" fullname="PGEGameLogicTests.TargetFrameRate_IsConfiguredForSmoothGameplay" methodname="TargetFrameRate_IsConfiguredForSmoothGameplay" classname="PGEGameLogicTests" runstate="Runnable" seed="150700502" result="Passed" start-time="2026-08-19 04:23:24Z" end-time="2026-08-19 04:23:24Z" duration="0.002043" asserts="0">
+          <properties />
+        </test-case>
+      </test-suite>
+      <test-suite type="TestFixture" id="1080" name="PlayerAutoShooterAimTests" fullname="PlayerAutoShooterAimTests" classname="PlayerAutoShooterAimTests" runstate="Runnable" testcasecount="11" result="Passed" start-time="2026-08-19 04:23:24Z" end-time="2026-08-19 04:23:24Z" duration="0.110461" total="11" passed="11" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="ParameterizedMethod" id="1085" name="CalculateAimScale_FlipsOnlyYAxis" fullname="PlayerAutoShooterAimTests.CalculateAimScale_FlipsOnlyYAxis" classname="PlayerAutoShooterAimTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-08-19 04:23:24Z" end-time="2026-08-19 04:23:24Z" duration="0.006097" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-case id="1081" name="CalculateAimScale_FlipsOnlyYAxis(0.0f,1.0f)" fullname="PlayerAutoShooterAimTests.CalculateAimScale_FlipsOnlyYAxis(0.0f,1.0f)" methodname="CalculateAimScale_FlipsOnlyYAxis" classname="PlayerAutoShooterAimTests" runstate="Runnable" seed="794538590" result="Passed" start-time="2026-08-19 04:23:24Z" end-time="2026-08-19 04:23:24Z" duration="0.001608" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1082" name="CalculateAimScale_FlipsOnlyYAxis(90.0f,1.0f)" fullname="PlayerAutoShooterAimTests.CalculateAimScale_FlipsOnlyYAxis(90.0f,1.0f)" methodname="CalculateAimScale_FlipsOnlyYAxis" classname="PlayerAutoShooterAimTests" runstate="Runnable" seed="158072755" result="Passed" start-time="2026-08-19 04:23:24Z" end-time="2026-08-19 04:23:24Z" duration="0.000290" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1083" name="CalculateAimScale_FlipsOnlyYAxis(180.0f,-1.0f)" fullname="PlayerAutoShooterAimTests.CalculateAimScale_FlipsOnlyYAxis(180.0f,-1.0f)" methodname="CalculateAimScale_FlipsOnlyYAxis" classname="PlayerAutoShooterAimTests" runstate="Runnable" seed="1530607245" result="Passed" start-time="2026-08-19 04:23:24Z" end-time="2026-08-19 04:23:24Z" duration="0.000247" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1084" name="CalculateAimScale_FlipsOnlyYAxis(-90.0f,1.0f)" fullname="PlayerAutoShooterAimTests.CalculateAimScale_FlipsOnlyYAxis(-90.0f,1.0f)" methodname="CalculateAimScale_FlipsOnlyYAxis" classname="PlayerAutoShooterAimTests" runstate="Runnable" seed="1194337345" result="Passed" start-time="2026-08-19 04:23:24Z" end-time="2026-08-19 04:23:24Z" duration="0.000213" asserts="0">
+            <properties />
+          </test-case>
+        </test-suite>
+        <test-suite type="ParameterizedMethod" id="1088" name="CalculateBodyScale_MirrorsOnlyXAxis" fullname="PlayerAutoShooterAimTests.CalculateBodyScale_MirrorsOnlyXAxis" classname="PlayerAutoShooterAimTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-08-19 04:23:24Z" end-time="2026-08-19 04:23:24Z" duration="0.002173" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-case id="1086" name="CalculateBodyScale_MirrorsOnlyXAxis(False,2.0f)" fullname="PlayerAutoShooterAimTests.CalculateBodyScale_MirrorsOnlyXAxis(False,2.0f)" methodname="CalculateBodyScale_MirrorsOnlyXAxis" classname="PlayerAutoShooterAimTests" runstate="Runnable" seed="146251314" result="Passed" start-time="2026-08-19 04:23:24Z" end-time="2026-08-19 04:23:24Z" duration="0.001022" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1087" name="CalculateBodyScale_MirrorsOnlyXAxis(True,-2.0f)" fullname="PlayerAutoShooterAimTests.CalculateBodyScale_MirrorsOnlyXAxis(True,-2.0f)" methodname="CalculateBodyScale_MirrorsOnlyXAxis" classname="PlayerAutoShooterAimTests" runstate="Runnable" seed="1252114163" result="Passed" start-time="2026-08-19 04:23:24Z" end-time="2026-08-19 04:23:24Z" duration="0.000246" asserts="0">
+            <properties />
+          </test-case>
+        </test-suite>
+        <test-suite type="ParameterizedMethod" id="1094" name="CalculateLocalAimAngle_CompensatesBodyMirror" fullname="PlayerAutoShooterAimTests.CalculateLocalAimAngle_CompensatesBodyMirror" classname="PlayerAutoShooterAimTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-08-19 04:23:24Z" end-time="2026-08-19 04:23:24Z" duration="0.004433" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-case id="1089" name="CalculateLocalAimAngle_CompensatesBodyMirror(0.0f,False,0.0f)" fullname="PlayerAutoShooterAimTests.CalculateLocalAimAngle_CompensatesBodyMirror(0.0f,False,0.0f)" methodname="CalculateLocalAimAngle_CompensatesBodyMirror" classname="PlayerAutoShooterAimTests" runstate="Runnable" seed="1038369943" result="Passed" start-time="2026-08-19 04:23:24Z" end-time="2026-08-19 04:23:24Z" duration="0.001103" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1090" name="CalculateLocalAimAngle_CompensatesBodyMirror(90.0f,False,90.0f)" fullname="PlayerAutoShooterAimTests.CalculateLocalAimAngle_CompensatesBodyMirror(90.0f,False,90.0f)" methodname="CalculateLocalAimAngle_CompensatesBodyMirror" classname="PlayerAutoShooterAimTests" runstate="Runnable" seed="289112107" result="Passed" start-time="2026-08-19 04:23:24Z" end-time="2026-08-19 04:23:24Z" duration="0.000237" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1091" name="CalculateLocalAimAngle_CompensatesBodyMirror(180.0f,True,0.0f)" fullname="PlayerAutoShooterAimTests.CalculateLocalAimAngle_CompensatesBodyMirror(180.0f,True,0.0f)" methodname="CalculateLocalAimAngle_CompensatesBodyMirror" classname="PlayerAutoShooterAimTests" runstate="Runnable" seed="1584082738" result="Passed" start-time="2026-08-19 04:23:24Z" end-time="2026-08-19 04:23:24Z" duration="0.000193" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1092" name="CalculateLocalAimAngle_CompensatesBodyMirror(135.0f,True,45.0f)" fullname="PlayerAutoShooterAimTests.CalculateLocalAimAngle_CompensatesBodyMirror(135.0f,True,45.0f)" methodname="CalculateLocalAimAngle_CompensatesBodyMirror" classname="PlayerAutoShooterAimTests" runstate="Runnable" seed="1719081636" result="Passed" start-time="2026-08-19 04:23:24Z" end-time="2026-08-19 04:23:24Z" duration="0.000182" asserts="0">
+            <properties />
+          </test-case>
+          <test-case id="1093" name="CalculateLocalAimAngle_CompensatesBodyMirror(-135.0f,True,-45.0f)" fullname="PlayerAutoShooterAimTests.CalculateLocalAimAngle_CompensatesBodyMirror(-135.0f,True,-45.0f)" methodname="CalculateLocalAimAngle_CompensatesBodyMirror" classname="PlayerAutoShooterAimTests" runstate="Runnable" seed="1644129901" result="Passed" start-time="2026-08-19 04:23:24Z" end-time="2026-08-19 04:23:24Z" duration="0.000171" asserts="0">
+            <properties />
+          </test-case>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

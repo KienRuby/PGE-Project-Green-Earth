@@ -130,15 +130,17 @@ public class Projectile : MonoBehaviour, IPoolable
 
     private void OnTriggerEnter2D(Collider2D other)
     {
+        if (other == null) return;
+
+        // Tránh bắn trúng Player
+        if (other.CompareTag("Player") || other.GetComponentInParent<PlayerHealth>() != null)
+        {
+            return;
+        }
+
         IDamageable damageable = other.GetComponentInParent<IDamageable>();
         if (damageable != null)
         {
-            // Tránh bắn trúng Player
-            if (other.CompareTag("Player") || other.GetComponentInParent<PlayerHealth>() != null)
-            {
-                return;
-            }
-
             EnemyHealth enemyHealth = other.GetComponentInParent<EnemyHealth>();
             if (enemyHealth != null && enemyHealth.IsDead)
             {
@@ -146,6 +148,13 @@ public class Projectile : MonoBehaviour, IPoolable
             }
 
             damageable.TakeDamage(damage);
+            Despawn();
+            return;
+        }
+
+        // Tự hủy nếu đạn đâm vào tường hoặc vật cản vật lý (không phải trigger)
+        if (!other.isTrigger)
+        {
             Despawn();
         }
     }

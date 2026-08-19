@@ -130,20 +130,6 @@ public class LabUpgradeController : MonoBehaviour
     [Tooltip("Ảnh nền của nút UPGRADE, dùng để đổi màu khi đủ hoặc thiếu chip.")]
     [SerializeField] private Image upgradeBackground;
 
-    [Header("Test Resources")]
-    [Min(0)]
-    [Tooltip("Năng lượng hiện tại khi bắt đầu để thử nghiệm; giá trị runtime được giới hạn tối đa là 100.")]
-    [SerializeField] private int startingEnergy = 30;
-
-    [InspectorName("Starting Green Chips")]
-    [Min(0)]
-    [Tooltip("Số chip xanh khi bắt đầu để thử nghiệm và thanh toán các lượt UPGRADE.")]
-    [SerializeField] private int startingChips = 700;
-
-    [Min(0)]
-    [Tooltip("Số chip đỏ khi bắt đầu để thử nghiệm; hiện tại chỉ dùng để hiển thị.")]
-    [SerializeField] private int startingRedChips = 10;
-
     [Header("Upgrade Cost")]
     [Tooltip("Giá chip xanh của lượt UPGRADE đầu tiên.")]
     [SerializeField] private int basePrice = 300;
@@ -168,6 +154,7 @@ public class LabUpgradeController : MonoBehaviour
     private const int MaxEnergy = 100;
 
     private int currentChips;
+    private int currentRedChips;
     private int currentEnergy;
     private int currentPrice;
     private int completedRolls;
@@ -226,24 +213,9 @@ public class LabUpgradeController : MonoBehaviour
 
     private void Start()
     {
-        if (!PlayerPrefs.HasKey(PlayerDataService.ChipsetsKey))
-        {
-            PlayerDataService.Chipsets = startingChips;
-        }
-
-        if (!PlayerPrefs.HasKey(PlayerDataService.RedGemsKey))
-        {
-            PlayerDataService.RedGems = startingRedChips;
-        }
-
-        if (!PlayerPrefs.HasKey(PlayerDataService.EnergyKey))
-        {
-            PlayerDataService.Energy = startingEnergy;
-        }
-
-        currentEnergy = Mathf.Clamp(PlayerDataService.Energy, 0, MaxEnergy);
-        currentChips = PlayerDataService.Chipsets;
-        startingRedChips = PlayerDataService.RedGems;
+        currentEnergy = Mathf.Clamp(ChipManager.Energy, 0, MaxEnergy);
+        currentChips = ChipManager.DataChips;
+        currentRedChips = ChipManager.RedGems;
         completedRolls = PlayerDataService.CompletedRolls;
         currentPrice = basePrice + completedRolls * priceStep;
 
@@ -285,14 +257,19 @@ public class LabUpgradeController : MonoBehaviour
 
     private void OnEnable()
     {
+        ChipManager.OnDataChipsChanged += HandleDataChipsChanged;
+        ChipManager.OnRedGemsChanged += HandleRedGemsChanged;
+        ChipManager.OnEnergyChanged += HandleEnergyChanged;
+        ChipManager.OnTestModeChanged += HandleTestModeChanged;
+
         if (!hasInitialized)
         {
             return;
         }
 
-        currentChips = Mathf.Max(0, PlayerPrefs.GetInt(ChipsetBalanceKey, currentChips));
-        startingRedChips = Mathf.Max(0, PlayerPrefs.GetInt(RedGemBalanceKey, startingRedChips));
-        currentEnergy = Mathf.Clamp(PlayerPrefs.GetInt(EnergyBalanceKey, currentEnergy), 0, MaxEnergy);
+        currentChips = ChipManager.DataChips;
+        currentRedChips = ChipManager.RedGems;
+        currentEnergy = Mathf.Clamp(ChipManager.Energy, 0, MaxEnergy);
 
         RecoverEnergyFromClock();
         RefreshMainView();
@@ -301,6 +278,11 @@ public class LabUpgradeController : MonoBehaviour
 
     private void OnDisable()
     {
+        ChipManager.OnDataChipsChanged -= HandleDataChipsChanged;
+        ChipManager.OnRedGemsChanged -= HandleRedGemsChanged;
+        ChipManager.OnEnergyChanged -= HandleEnergyChanged;
+        ChipManager.OnTestModeChanged -= HandleTestModeChanged;
+
         StopEnergyRecovery();
 
         if (!isRolling || pendingItemIndex < 0)
@@ -322,7 +304,7 @@ public class LabUpgradeController : MonoBehaviour
 
     private void StartRoll()
     {
-        if (isRolling || currentChips < currentPrice)
+        if (isRolling || !ChipManager.HasEnoughDataChips(currentPrice))
         {
             return;
         }
@@ -333,7 +315,8 @@ public class LabUpgradeController : MonoBehaviour
             return;
         }
 
-        currentChips -= currentPrice;
+        ChipManager.TrySpendDataChips(currentPrice);
+        currentChips = ChipManager.DataChips;
         isRolling = true;
         RefreshMainView();
         StartCoroutine(RollRoutine());
@@ -464,7 +447,6 @@ public class LabUpgradeController : MonoBehaviour
 
     private void SaveState(ItemEntry item, int itemIndex)
     {
-        PlayerPrefs.SetInt(ChipsetBalanceKey, currentChips);
         PlayerPrefs.SetInt(CompletedRollsKey, completedRolls);
         if (item != null)
         {
@@ -530,7 +512,7 @@ public class LabUpgradeController : MonoBehaviour
 
         if (redChipBalanceText != null)
         {
-            redChipBalanceText.text = FormatChipAmount(startingRedChips);
+            redChipBalanceText.text = FormatChipAmount(currentRedChips);
         }
 
         if (priceText != null)
@@ -538,7 +520,7 @@ public class LabUpgradeController : MonoBehaviour
             priceText.text = currentPrice.ToString();
         }
 
-        bool canRoll = !isRolling && currentChips >= currentPrice && GetTotalRarityWeight() > 0f;
+        bool canRoll = !isRolling && ChipManager.HasEnoughDataChips(currentPrice) && GetTotalRarityWeight() > 0f;
         if (upgradeButton != null)
         {
             upgradeButton.interactable = canRoll;
@@ -582,10 +564,9 @@ public class LabUpgradeController : MonoBehaviour
     private void RecoverEnergyFromClock()
     {
         DateTime now = DateTime.UtcNow;
-        if (currentEnergy >= MaxEnergy)
+        if (ChipManager.Energy >= MaxEnergy)
         {
             nextEnergyRecoveryUtc = now.AddMinutes(1d);
-            PlayerPrefs.SetInt(EnergyBalanceKey, currentEnergy);
             PlayerPrefs.SetString(NextEnergyUtcKey, nextEnergyRecoveryUtc.ToString("o"));
             PlayerPrefs.Save();
             return;
@@ -597,11 +578,14 @@ public class LabUpgradeController : MonoBehaviour
         }
 
         int elapsedRecoveryPoints = 1 + (int)Math.Floor((now - nextEnergyRecoveryUtc).TotalMinutes);
-        int recoveredPoints = Math.Min(MaxEnergy - currentEnergy, elapsedRecoveryPoints);
-        currentEnergy += recoveredPoints;
+        int recoveredPoints = Math.Min(MaxEnergy - ChipManager.Energy, elapsedRecoveryPoints);
+        if (recoveredPoints > 0)
+        {
+            ChipManager.AddEnergy(recoveredPoints);
+            currentEnergy = Mathf.Clamp(ChipManager.Energy, 0, MaxEnergy);
+        }
         nextEnergyRecoveryUtc = nextEnergyRecoveryUtc.AddMinutes(recoveredPoints);
 
-        PlayerPrefs.SetInt(EnergyBalanceKey, currentEnergy);
         PlayerPrefs.SetString(NextEnergyUtcKey, nextEnergyRecoveryUtc.ToString("o"));
         PlayerPrefs.Save();
 
@@ -705,5 +689,31 @@ public class LabUpgradeController : MonoBehaviour
         }
 
         RefreshItemView(items[itemIndex]);
+    }
+
+    private void HandleDataChipsChanged(int newAmount)
+    {
+        currentChips = newAmount;
+        RefreshMainView();
+    }
+
+    private void HandleRedGemsChanged(int newAmount)
+    {
+        currentRedChips = newAmount;
+        RefreshMainView();
+    }
+
+    private void HandleEnergyChanged(int newAmount)
+    {
+        currentEnergy = Mathf.Clamp(newAmount, 0, MaxEnergy);
+        RefreshMainView();
+    }
+
+    private void HandleTestModeChanged(bool isTest)
+    {
+        currentChips = ChipManager.DataChips;
+        currentRedChips = ChipManager.RedGems;
+        currentEnergy = Mathf.Clamp(ChipManager.Energy, 0, MaxEnergy);
+        RefreshMainView();
     }
 }

@@ -20,10 +20,17 @@ public class CameraFollow : MonoBehaviour
     [SerializeField] private float snapThreshold = 0.001f;
 
     private float cameraZ;
+    private bool isCameraZInitialized;
 
     private void Awake()
     {
+        InitializeCameraZ();
+    }
+
+    private void InitializeCameraZ()
+    {
         cameraZ = transform.position.z;
+        isCameraZInitialized = true;
     }
 
     private void Start()
@@ -39,10 +46,27 @@ public class CameraFollow : MonoBehaviour
         }
     }
 
-    private void LateUpdate()
+    public float FollowSpeed
+    {
+        get => followSpeed;
+        set => followSpeed = value;
+    }
+
+    public Vector2 Offset
+    {
+        get => offset;
+        set => offset = value;
+    }
+
+    public void UpdateFollow(float deltaTime)
     {
         if (target == null)
             return;
+
+        if (!isCameraZInitialized)
+        {
+            InitializeCameraZ();
+        }
 
         Vector3 desiredPosition = new Vector3(
             target.position.x + offset.x,
@@ -50,18 +74,16 @@ public class CameraFollow : MonoBehaviour
             cameraZ
         );
 
-        // Nếu gần như trùng target -> snap thẳng
-        // tránh camera dao động cực nhỏ.
-        if ((transform.position - desiredPosition).sqrMagnitude
-            <= snapThreshold * snapThreshold)
+        // followSpeed <= 0 = bám ngay lập tức
+        // Nếu gần như trùng target -> snap thẳng để loại bỏ rung vi mô
+        if (followSpeed <= 0f || (transform.position - desiredPosition).sqrMagnitude <= snapThreshold * snapThreshold)
         {
             transform.position = desiredPosition;
             return;
         }
 
-        // Exponential smoothing.
-        // Frame-rate independent và ổn định hơn Lerp thông thường.
-        float t = 1f - Mathf.Exp(-followSpeed * Time.deltaTime);
+        // Exponential smoothing: Frame-rate independent và ổn định hơn Lerp thông thường
+        float t = 1f - Mathf.Exp(-followSpeed * deltaTime);
 
         Vector3 newPosition = Vector3.Lerp(
             transform.position,
@@ -71,8 +93,12 @@ public class CameraFollow : MonoBehaviour
 
         // Luôn cố định Z
         newPosition.z = cameraZ;
-
         transform.position = newPosition;
+    }
+
+    private void LateUpdate()
+    {
+        UpdateFollow(Time.deltaTime);
     }
 
     public void SetTarget(Transform newTarget)
@@ -84,6 +110,11 @@ public class CameraFollow : MonoBehaviour
     {
         if (target == null)
             return;
+
+        if (!isCameraZInitialized)
+        {
+            InitializeCameraZ();
+        }
 
         transform.position = new Vector3(
             target.position.x + offset.x,

@@ -11,10 +11,34 @@ public class PlayerHealth : MonoBehaviour, IDamageable
     [Tooltip("Thời gian bất tử sau khi nhận sát thương (giúp tránh bị mất máu dồn dập).")]
     [SerializeField] private float invincibleTime = 0.3f;
 
-    public int CurrentHealth { get; private set; }
+    [SerializeField] private int currentHealth = 100;
+    private bool isInitialized = false;
+
+    public int CurrentHealth
+    {
+        get
+        {
+            if (!isInitialized)
+            {
+                currentHealth = maxHealth;
+                isInitialized = true;
+            }
+            return currentHealth;
+        }
+        private set
+        {
+            currentHealth = value;
+            isInitialized = true;
+        }
+    }
 
     public int MaxHealth => maxHealth;
-    public int BaseMaxHealth { get; private set; }
+    public int BaseMaxHealth
+    {
+        get => baseMaxHealth > 0 ? baseMaxHealth : maxHealth;
+        private set => baseMaxHealth = value;
+    }
+    private int baseMaxHealth;
 
     public bool IsDead { get; private set; }
 
@@ -26,8 +50,9 @@ public class PlayerHealth : MonoBehaviour, IDamageable
 
     private void Awake()
     {
-        BaseMaxHealth = maxHealth;
-        CurrentHealth = maxHealth;
+        baseMaxHealth = maxHealth;
+        currentHealth = maxHealth;
+        isInitialized = true;
     }
 
     private void Start()
@@ -75,8 +100,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable
 
         int effectiveDamage = Mathf.Max(1, damage - damageReduction);
 
-        CurrentHealth -= effectiveDamage;
-        CurrentHealth = Mathf.Clamp(CurrentHealth, 0, maxHealth);
+        CurrentHealth = Mathf.Clamp(CurrentHealth - effectiveDamage, 0, maxHealth);
 
         invincibleTimer = invincibleTime;
 
@@ -98,8 +122,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable
         if (amount <= 0)
             return;
 
-        CurrentHealth += amount;
-        CurrentHealth = Mathf.Clamp(CurrentHealth, 0, maxHealth);
+        CurrentHealth = Mathf.Clamp(CurrentHealth + amount, 0, maxHealth);
 
         OnHealthChanged?.Invoke(CurrentHealth, maxHealth);
     }
@@ -124,11 +147,5 @@ public class PlayerHealth : MonoBehaviour, IDamageable
         Debug.Log("Player đã chết!");
 
         OnPlayerDeath?.Invoke();
-
-        // Sau này có thể:
-        // - chạy animation Death
-        // - hiện Game Over
-        // - disable PlayerMovement
-        // - respawn
     }
 }
