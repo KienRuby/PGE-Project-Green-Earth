@@ -397,25 +397,17 @@ public static class LabMenuSceneBuilder
         GameObject[] panels = new GameObject[5];
         panels[0] = CreateShopPanel(content, energyBalanceText, chipBalanceText, redChipBalanceText);
         panels[1] = CreateLabPanel(content, energyBalanceText, chipBalanceText, redChipBalanceText);
-<<<<<<< HEAD
-        panels[2] = CreatePlaceholderPanel(content, "ChapterPanel", "CHAPTER", "Mission map is being prepared");
-        panels[3] = CreateChipsetPanel(content, canvasRect, energyBalanceText, chipBalanceText, redChipBalanceText);
-=======
         panels[2] = ChapterMenuSceneBuilder.BuildChapterPanel(content, font);
-        panels[3] = CreatePlaceholderPanel(content, "ChipsetPanel", "CHIPSET", "Chip configuration is being prepared");
->>>>>>> ca51a15 ( chapter 50%)
+        panels[3] = CreateChipsetPanel(content, canvasRect, energyBalanceText, chipBalanceText, redChipBalanceText);
         panels[4] = CreatePlaceholderPanel(content, "BuddyPanel", "BUDDY", "Drone hangar is being prepared");
 
-        // Default to Chipset Tab (index 3)
+        // Default to Chapter Tab (index 2) or Shop Tab (index 0)
         for (int i = 0; i < panels.Length; i++)
         {
-            panels[i].SetActive(i == 3);
+            panels[i].SetActive(i == 0);
         }
 
-<<<<<<< HEAD
-        CreateBottomNavigation(canvasObject, canvasRect, panels, 3);
-=======
-        BottomNavigationController bottomNav = CreateBottomNavigation(canvasObject, canvasRect, panels);
+        BottomNavigationController bottomNav = CreateBottomNavigation(canvasObject, canvasRect, panels, 0);
         if (topBarCtrl != null && bottomNav != null)
         {
             SerializedObject topBarSO = new SerializedObject(topBarCtrl);
@@ -423,7 +415,6 @@ public static class LabMenuSceneBuilder
             topBarSO.ApplyModifiedPropertiesWithoutUndo();
         }
 
->>>>>>> ca51a15 ( chapter 50%)
         return canvas;
     }
 
@@ -433,18 +424,11 @@ public static class LabMenuSceneBuilder
         out TMP_Text chipBalanceText,
         out TMP_Text redChipBalanceText)
     {
-<<<<<<< HEAD
-        energyBalanceText = CreateResourceDisplay(parent, "Energy", 0.025f, 0.265f, "energy", "370/50", "+", Cream);
-        chipBalanceText = CreateResourceDisplay(parent, "ChipCurrency", 0.285f, 0.525f, "chip-currency", "956,467", "+", Cream);
-        redChipBalanceText = CreateResourceDisplay(parent, "RedCurrency", 0.545f, 0.765f, "red-currency", "98,762,732", "+", Cream);
-        CreateTopIconButton(parent, "MailButton", 0.79f, 0.885f, "mail", true);
-        CreateTopIconButton(parent, "SettingButton", 0.895f, 0.99f, "settings", false);
-=======
         energyBalanceText = CreateResourceDisplay(parent, "Energy", 0.025f, 0.265f, "energy", "24/50", "05:46", Cream);
         chipBalanceText = CreateResourceDisplay(parent, "ChipCurrency", 0.285f, 0.525f, "chip-currency", "134,936", string.Empty, Cream);
         redChipBalanceText = CreateResourceDisplay(parent, "RedCurrency", 0.545f, 0.765f, "red-currency", "15,516", string.Empty, Cream);
-        CreateTopIconButton(parent, "MailButton", 0.79f, 0.885f, "mail");
-        CreateTopIconButton(parent, "SettingButton", 0.895f, 0.99f, "settings");
+        CreateTopIconButton(parent, "MailButton", 0.79f, 0.885f, "mail", true);
+        CreateTopIconButton(parent, "SettingButton", 0.895f, 0.99f, "settings", false);
 
         TopBarCurrencyController topBarCtrl = parent.gameObject.AddComponent<TopBarCurrencyController>();
         SerializedObject topBarSO = new SerializedObject(topBarCtrl);
@@ -459,7 +443,6 @@ public static class LabMenuSceneBuilder
         topBarSO.ApplyModifiedPropertiesWithoutUndo();
 
         return topBarCtrl;
->>>>>>> ca51a15 ( chapter 50%)
     }
 
     private static TMP_Text CreateResourceDisplay(
@@ -1591,11 +1574,7 @@ public static class LabMenuSceneBuilder
         return panel.gameObject;
     }
 
-<<<<<<< HEAD
-    private static void CreateBottomNavigation(GameObject canvasObject, RectTransform canvas, GameObject[] panels, int defaultTab = 3)
-=======
-    private static BottomNavigationController CreateBottomNavigation(GameObject canvasObject, RectTransform canvas, GameObject[] panels)
->>>>>>> ca51a15 ( chapter 50%)
+    private static BottomNavigationController CreateBottomNavigation(GameObject canvasObject, RectTransform canvas, GameObject[] panels, int defaultTab = 0)
     {
         RectTransform nav = CreateRect("BottomNavigation", canvas);
         Stretch(nav, Vector2.zero, new Vector2(1f, 0f), Vector2.zero, new Vector2(0f, 220f));
@@ -1651,11 +1630,7 @@ public static class LabMenuSceneBuilder
             GetRequiredRelativeProperty(item, "label").objectReferenceValue = labelTexts[i];
         }
 
-<<<<<<< HEAD
-        serializedController.FindProperty("defaultSelectedIndex").intValue = defaultTab;
-=======
-        GetRequiredProperty(serializedController, "defaultSelectedIndex").intValue = 0;
->>>>>>> ca51a15 ( chapter 50%)
+        GetRequiredProperty(serializedController, "defaultSelectedIndex").intValue = defaultTab;
         serializedController.ApplyModifiedPropertiesWithoutUndo();
         return controller;
     }
