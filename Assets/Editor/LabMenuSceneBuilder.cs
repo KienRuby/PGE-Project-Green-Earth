@@ -401,13 +401,13 @@ public static class LabMenuSceneBuilder
         panels[3] = CreateChipsetPanel(content, canvasRect, energyBalanceText, chipBalanceText, redChipBalanceText);
         panels[4] = CreatePlaceholderPanel(content, "BuddyPanel", "BUDDY", "Drone hangar is being prepared");
 
-        // Default to Chapter Tab (index 2) or Shop Tab (index 0)
+        // Default to Chapter Tab (index 2)
         for (int i = 0; i < panels.Length; i++)
         {
-            panels[i].SetActive(i == 0);
+            panels[i].SetActive(i == 2);
         }
 
-        BottomNavigationController bottomNav = CreateBottomNavigation(canvasObject, canvasRect, panels, 0);
+        BottomNavigationController bottomNav = CreateBottomNavigation(canvasObject, canvasRect, panels, 2);
         if (topBarCtrl != null && bottomNav != null)
         {
             SerializedObject topBarSO = new SerializedObject(topBarCtrl);
