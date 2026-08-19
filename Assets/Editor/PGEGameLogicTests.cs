@@ -1,5 +1,8 @@
+using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
+using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -350,6 +353,104 @@ public class PGEGameLogicTests
         SerializedProperty chapterItem = itemsProp.GetArrayElementAtIndex(2);
         GameObject boundPanel = chapterItem.FindPropertyRelative("panel").objectReferenceValue as GameObject;
         Assert.That(boundPanel, Is.EqualTo(contentChapterPanel.gameObject), "BottomNavigation items[2].panel must point to Canvas/Content/ChapterPanel.");
+    }
+
+    [Test]
+    public void MainMenu_ShopPanel_HasFunctionalShopControllerAndOffers()
+    {
+        string scenePath = "Assets/Scenes/MainMenu.unity";
+        Scene scene = UnityEditor.SceneManagement.EditorSceneManager.OpenScene(scenePath, UnityEditor.SceneManagement.OpenSceneMode.Single);
+        Assert.That(scene.IsValid(), Is.True);
+
+        Canvas canvas = Object.FindObjectOfType<Canvas>();
+        Transform content = canvas.transform.Find("Content");
+        Assert.That(content.GetComponent<ContentSizeFitter>(), Is.Null, "Canvas/Content must not resize full-screen tab panels.");
+        Assert.That(content.GetComponent<GridLayoutGroup>(), Is.Null, "Canvas/Content must not lay out full-screen tab panels as grid cells.");
+
+        Transform shopPanel = canvas.transform.Find("Content/ShopPanel");
+        Assert.That(shopPanel, Is.Not.Null, "Canvas/Content/ShopPanel must exist.");
+        Assert.That(shopPanel.GetComponent<ScrollRect>(), Is.Not.Null, "ShopPanel must be scrollable.");
+
+        ShopController shop = shopPanel.GetComponent<ShopController>();
+        Assert.That(shop, Is.Not.Null, "ShopPanel must use ShopController instead of a coming-soon placeholder.");
+
+        SerializedObject shopSO = new SerializedObject(shop);
+        Assert.That(shopSO.FindProperty("offers").arraySize, Is.EqualTo(7), "ShopPanel must expose all seven configured offers.");
+    }
+
+    [Test]
+    public void MainMenu_DefaultNavigationItem_IsTheOnlyActiveContentPanel()
+    {
+        const string scenePath = "Assets/Scenes/MainMenu.unity";
+        Scene scene = UnityEditor.SceneManagement.EditorSceneManager.OpenScene(scenePath, UnityEditor.SceneManagement.OpenSceneMode.Single);
+        Assert.That(scene.IsValid(), Is.True);
+
+        BottomNavigationController bottomNav = Object.FindObjectOfType<BottomNavigationController>();
+        Assert.That(bottomNav, Is.Not.Null);
+
+        SerializedObject navSO = new SerializedObject(bottomNav);
+        SerializedProperty items = navSO.FindProperty("items");
+        int defaultSelectedIndex = navSO.FindProperty("defaultSelectedIndex").intValue;
+        Color normalBackground = navSO.FindProperty("normalColor").colorValue;
+        Color selectedBackground = navSO.FindProperty("selectedColor").colorValue;
+        Color normalBorder = navSO.FindProperty("normalBorderColor").colorValue;
+        Color selectedBorder = navSO.FindProperty("selectedBorderColor").colorValue;
+        Color normalContent = navSO.FindProperty("normalContentColor").colorValue;
+        Color selectedContent = navSO.FindProperty("selectedContentColor").colorValue;
+        Assert.That(defaultSelectedIndex, Is.InRange(0, items.arraySize - 1));
+
+        for (int i = 0; i < items.arraySize; i++)
+        {
+            SerializedProperty item = items.GetArrayElementAtIndex(i);
+            bool selected = i == defaultSelectedIndex;
+            GameObject panel = item.FindPropertyRelative("panel").objectReferenceValue as GameObject;
+            Assert.That(panel, Is.Not.Null, $"Navigation item {i} must reference a panel.");
+            Assert.That(panel.activeSelf, Is.EqualTo(selected), "Exactly the configured default tab must be active in the saved scene.");
+
+            Image background = item.FindPropertyRelative("background").objectReferenceValue as Image;
+            Image icon = item.FindPropertyRelative("icon").objectReferenceValue as Image;
+            TMP_Text label = item.FindPropertyRelative("label").objectReferenceValue as TMP_Text;
+            Button button = item.FindPropertyRelative("button").objectReferenceValue as Button;
+            Image border = item.FindPropertyRelative("border").objectReferenceValue as Image ?? button.GetComponent<Image>();
+
+            Assert.That(background.color, Is.EqualTo(selected ? selectedBackground : normalBackground));
+            Assert.That(border.color, Is.EqualTo(selected ? selectedBorder : normalBorder));
+            Assert.That(icon.color, Is.EqualTo(selected ? selectedContent : normalContent));
+            Assert.That(label.color, Is.EqualTo(selected ? selectedContent : normalContent));
+        }
+    }
+
+    [Test]
+    public void MainMenu_LabAtlasSpriteReferences_HaveValidLocalIds()
+    {
+        const string scenePath = "Assets/Scenes/MainMenu.unity";
+        const string atlasPath = "Assets/UI/Lab/Generated/lab-icon-atlas.png";
+        string atlasGuid = AssetDatabase.AssetPathToGUID(atlasPath);
+        Assert.That(atlasGuid, Is.Not.Empty);
+
+        var validLocalIds = new HashSet<long>();
+        foreach (Object asset in AssetDatabase.LoadAllAssetsAtPath(atlasPath))
+        {
+            if (!(asset is Sprite sprite)) continue;
+
+            Assert.That(AssetDatabase.TryGetGUIDAndLocalFileIdentifier(sprite, out string spriteGuid, out long localId), Is.True);
+            Assert.That(spriteGuid, Is.EqualTo(atlasGuid));
+            validLocalIds.Add(localId);
+        }
+
+        MatchCollection references = Regex.Matches(
+            File.ReadAllText(scenePath),
+            @"fileID:\s*(-?\d+), guid:\s*" + atlasGuid);
+        Assert.That(references.Count, Is.GreaterThan(0));
+
+        var missingLocalIds = new HashSet<long>();
+        foreach (Match reference in references)
+        {
+            long localId = long.Parse(reference.Groups[1].Value);
+            if (!validLocalIds.Contains(localId)) missingLocalIds.Add(localId);
+        }
+
+        Assert.That(missingLocalIds, Is.Empty, "Every Lab atlas sprite reference in MainMenu must resolve to a current sprite local ID.");
     }
 
     [Test]

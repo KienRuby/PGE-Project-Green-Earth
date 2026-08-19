@@ -39,6 +39,8 @@ public static class LabMenuSceneBuilder
     private const string PreviewPath = "Assets/UI/Lab/Generated/lab-menu-preview.png";
     private const string ChipsetPreviewPath = "Assets/UI/Chipset/Generated/chipset-menu-preview.png";
     private const string BuildRequestPath = "Assets/Editor/PGE_LabUI_BuildRequest.txt";
+    private const string ShopBuildRequestPath = "Assets/Editor/PGE_ShopUI_BuildRequest.txt";
+    private const string FontPath = "Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset";
 
     private static readonly Color Navy = new Color32(8, 39, 69, 255);
     private static readonly Color Border = new Color32(8, 30, 42, 255);
@@ -59,12 +61,121 @@ public static class LabMenuSceneBuilder
     static LabMenuSceneBuilder()
     {
         EditorApplication.update += TryBuildRequestedScene;
+        EditorApplication.update += TryBuildRequestedShopPanel;
     }
 
     [MenuItem("PGE/UI/Rebuild Full Main Menu (Chipset & Lab)")]
     public static void BuildFromMenu()
     {
         BuildLabMenuScene();
+    }
+
+    [MenuItem("PGE/UI/Rebuild Shop Panel")]
+    public static void RebuildShopPanel()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling || EditorApplication.isUpdating)
+        {
+            Debug.LogWarning("[LabMenuSceneBuilder] Stop Play Mode before rebuilding the Shop panel.");
+            return;
+        }
+
+        font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath);
+        if (font == null)
+        {
+            throw new InvalidOperationException($"[LabMenuSceneBuilder] Font not found at {FontPath}.");
+        }
+
+        Scene scene = SceneManager.GetActiveScene();
+        if (!string.Equals(scene.path, ScenePath, StringComparison.OrdinalIgnoreCase))
+        {
+            scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+        }
+
+        Canvas canvas = UnityEngine.Object.FindObjectOfType<Canvas>();
+        RectTransform content = canvas != null ? canvas.transform.Find("Content") as RectTransform : null;
+        if (content == null)
+        {
+            throw new InvalidOperationException("[LabMenuSceneBuilder] Canvas/Content was not found in MainMenu.");
+        }
+
+        RemoveLegacyContentLayout(content);
+
+        Transform existingShopPanel = content.Find("ShopPanel");
+        GameObject shopPanel;
+        if (existingShopPanel != null &&
+            existingShopPanel.GetComponent<ScrollRect>() != null &&
+            existingShopPanel.GetComponent<ShopController>() != null)
+        {
+            shopPanel = existingShopPanel.gameObject;
+        }
+        else
+        {
+            if (existingShopPanel != null)
+            {
+                UnityEngine.Object.DestroyImmediate(existingShopPanel.gameObject);
+            }
+
+            shopPanel = CreateShopPanel(content, null, null, null);
+            shopPanel.name = "ShopPanel";
+            shopPanel.SetActive(false);
+        }
+
+        BottomNavigationController bottomNav = UnityEngine.Object.FindObjectOfType<BottomNavigationController>();
+        if (bottomNav == null)
+        {
+            throw new InvalidOperationException("[LabMenuSceneBuilder] BottomNavigationController was not found in MainMenu.");
+        }
+
+        SerializedObject navSO = new SerializedObject(bottomNav);
+        SerializedProperty items = GetRequiredProperty(navSO, "items");
+        if (items.arraySize == 0)
+        {
+            throw new InvalidOperationException("[LabMenuSceneBuilder] BottomNavigationController has no navigation items.");
+        }
+
+        GetRequiredRelativeProperty(items.GetArrayElementAtIndex(0), "panel").objectReferenceValue = shopPanel;
+        int defaultSelectedIndex = Mathf.Clamp(
+            GetRequiredProperty(navSO, "defaultSelectedIndex").intValue,
+            0,
+            items.arraySize - 1);
+        navSO.ApplyModifiedPropertiesWithoutUndo();
+
+        // Persist one visible tab in Edit Mode as well as at runtime, where Start() calls Select().
+        bottomNav.Select(defaultSelectedIndex);
+
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        Debug.Log("[LabMenuSceneBuilder] Functional ShopPanel rebuilt in MainMenu.");
+    }
+
+    private static void TryBuildRequestedShopPanel()
+    {
+        if (!File.Exists(ShopBuildRequestPath) ||
+            EditorApplication.isPlayingOrWillChangePlaymode ||
+            EditorApplication.isCompiling ||
+            EditorApplication.isUpdating)
+        {
+            return;
+        }
+
+        RebuildShopPanel();
+        AssetDatabase.DeleteAsset(ShopBuildRequestPath);
+        AssetDatabase.Refresh();
+    }
+
+    private static void RemoveLegacyContentLayout(RectTransform content)
+    {
+        ContentSizeFitter contentSizeFitter = content.GetComponent<ContentSizeFitter>();
+        if (contentSizeFitter != null)
+        {
+            UnityEngine.Object.DestroyImmediate(contentSizeFitter);
+        }
+
+        GridLayoutGroup gridLayout = content.GetComponent<GridLayoutGroup>();
+        if (gridLayout != null)
+        {
+            UnityEngine.Object.DestroyImmediate(gridLayout);
+        }
     }
 
     private static void TryBuildRequestedScene()
