@@ -404,11 +404,7 @@ public static class LabMenuSceneBuilder
         // Default to Chipset Tab (index 3)
         for (int i = 0; i < panels.Length; i++)
         {
-<<<<<<< HEAD
-            panels[i].SetActive(i == 0);
-=======
             panels[i].SetActive(i == 3);
->>>>>>> a0a718e
         }
 
         CreateBottomNavigation(canvasObject, canvasRect, panels, 3);
@@ -421,19 +417,11 @@ public static class LabMenuSceneBuilder
         out TMP_Text chipBalanceText,
         out TMP_Text redChipBalanceText)
     {
-<<<<<<< HEAD
-        energyBalanceText = CreateResourceDisplay(parent, "Energy", 0.025f, 0.265f, "energy", "24/50", "05:46", Cream);
-        chipBalanceText = CreateResourceDisplay(parent, "ChipCurrency", 0.285f, 0.525f, "chip-currency", "134,936", string.Empty, Cream);
-        redChipBalanceText = CreateResourceDisplay(parent, "RedCurrency", 0.545f, 0.765f, "red-currency", "15,516", string.Empty, Cream);
-        CreateTopIconButton(parent, "MailButton", 0.79f, 0.885f, "mail");
-        CreateTopIconButton(parent, "SettingButton", 0.895f, 0.99f, "settings");
-=======
         energyBalanceText = CreateResourceDisplay(parent, "Energy", 0.025f, 0.265f, "energy", "370/50", "+", Cream);
         chipBalanceText = CreateResourceDisplay(parent, "ChipCurrency", 0.285f, 0.525f, "chip-currency", "956,467", "+", Cream);
         redChipBalanceText = CreateResourceDisplay(parent, "RedCurrency", 0.545f, 0.765f, "red-currency", "98,762,732", "+", Cream);
         CreateTopIconButton(parent, "MailButton", 0.79f, 0.885f, "mail", true);
         CreateTopIconButton(parent, "SettingButton", 0.895f, 0.99f, "settings", false);
->>>>>>> a0a718e
     }
 
     private static TMP_Text CreateResourceDisplay(
