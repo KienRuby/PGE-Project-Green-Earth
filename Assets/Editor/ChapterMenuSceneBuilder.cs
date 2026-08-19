@@ -14,7 +14,6 @@ using UnityEngine.UI;
 /// Xây dựng UI bên trong Canvas/Content/ChapterPanel dùng chung shell và visual assets với Lab/Shop.
 /// Menu: PGE > UI > Build Chapter Screen
 /// </summary>
-[InitializeOnLoad]
 public static class ChapterMenuSceneBuilder
 {
     private const string ScenePath = "Assets/Scenes/MainMenu.unity";
@@ -37,43 +36,10 @@ public static class ChapterMenuSceneBuilder
 
     private static TMP_FontAsset font;
 
-    static ChapterMenuSceneBuilder()
-    {
-        EditorApplication.delayCall += TryBuildRequestedScene;
-    }
-
     [MenuItem("PGE/UI/Build Chapter Screen")]
     public static void BuildFromMenu()
     {
         BuildChapterScreenScene();
-    }
-
-    public static void RequestBuild()
-    {
-        File.WriteAllText(BuildRequestPath, "build");
-        EditorApplication.delayCall += TryBuildRequestedScene;
-    }
-
-    private static void TryBuildRequestedScene()
-    {
-        if (!File.Exists(BuildRequestPath))
-        {
-            return;
-        }
-
-        if (EditorApplication.isPlayingOrWillChangePlaymode)
-        {
-            EditorApplication.isPlaying = false;
-            EditorApplication.delayCall += TryBuildRequestedScene;
-            return;
-        }
-
-        BuildChapterScreenScene();
-        if (File.Exists(BuildRequestPath))
-        {
-            AssetDatabase.DeleteAsset(BuildRequestPath);
-        }
-        AssetDatabase.Refresh();
     }
 
     public static void BuildChapterScreenScene()

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -796,6 +797,121 @@ public class ChapterSystemTests
     private string dataChipFormattedText(string text)
     {
         return text.Trim();
+    }
+
+    [Test]
+    public void CustomWaveConfigManager_CloneAndModify_DoesNotAffectOriginalChapterData()
+    {
+        ChapterData original = ScriptableObject.CreateInstance<ChapterData>();
+        original.chapterNumber = 1;
+        original.chapterTitle = "Test Grassland";
+        original.totalWaves = 5;
+        original.GenerateWaves();
+
+        int originalEnemies = original.waves[0].totalEnemiesToSpawn;
+        float originalExp = original.waves[0].expMultiplier;
+
+        List<EnemySpawner.WaveConfig> clone = CustomWaveConfigManager.CloneFromChapter(original);
+        Assert.That(clone.Count, Is.EqualTo(5));
+
+        clone[0].totalEnemiesToSpawn = 99;
+        clone[0].expMultiplier = 5.0f;
+        clone[0].waveDuration = 120f;
+
+        Assert.That(original.waves[0].totalEnemiesToSpawn, Is.EqualTo(originalEnemies));
+        Assert.That(original.waves[0].expMultiplier, Is.EqualTo(originalExp));
+
+        Assert.That(clone[0].totalEnemiesToSpawn, Is.EqualTo(99));
+        Assert.That(clone[0].expMultiplier, Is.EqualTo(5.0f));
+        Assert.That(clone[0].waveDuration, Is.EqualTo(120f));
+
+        ScriptableObject.DestroyImmediate(original);
+    }
+
+    [Test]
+    public void CustomWaveConfigManager_SetAndGetActiveWaves_StoresDataCorrectly()
+    {
+        CustomWaveConfigManager.ClearAllCustomWaves();
+        Assert.That(CustomWaveConfigManager.HasCustomWaves(2), Is.False);
+
+        List<EnemySpawner.WaveConfig> customList = new List<EnemySpawner.WaveConfig>
+        {
+            new EnemySpawner.WaveConfig
+            {
+                waveName = "Custom Wave 1",
+                totalEnemiesToSpawn = 50,
+                expMultiplier = 3.5f,
+                waveDuration = 45f,
+                breakDurationAfterWave = 5f
+            }
+        };
+
+        CustomWaveConfigManager.SetActiveCustomWaves(2, customList);
+
+        Assert.That(CustomWaveConfigManager.HasCustomWaves(2), Is.True);
+        var retrieved = CustomWaveConfigManager.GetActiveWaves(2);
+        Assert.That(retrieved, Is.Not.Null);
+        Assert.That(retrieved.Count, Is.EqualTo(1));
+        Assert.That(retrieved[0].waveName, Is.EqualTo("Custom Wave 1"));
+        Assert.That(retrieved[0].totalEnemiesToSpawn, Is.EqualTo(50));
+        Assert.That(retrieved[0].expMultiplier, Is.EqualTo(3.5f));
+        Assert.That(retrieved[0].waveDuration, Is.EqualTo(45f));
+        Assert.That(retrieved[0].breakDurationAfterWave, Is.EqualTo(5f));
+
+        CustomWaveConfigManager.ClearAllCustomWaves();
+        Assert.That(CustomWaveConfigManager.HasCustomWaves(2), Is.False);
+    }
+
+    [Test]
+    public void EnemySpawner_LoadSelectedChapterWaves_PrefersCustomWaves()
+    {
+        int origSelected = PlayerDataService.SelectedChapterIndex;
+        try
+        {
+            PlayerDataService.SelectedChapterIndex = 0;
+
+            List<EnemySpawner.WaveConfig> customWaves = new List<EnemySpawner.WaveConfig>
+            {
+                new EnemySpawner.WaveConfig { waveName = "Custom 1", totalEnemiesToSpawn = 25, expMultiplier = 4.0f },
+                new EnemySpawner.WaveConfig { waveName = "Custom 2", totalEnemiesToSpawn = 35, expMultiplier = 6.0f }
+            };
+
+            CustomWaveConfigManager.SetActiveCustomWaves(0, customWaves);
+
+            GameObject spawnerGo = new GameObject("TestSpawner");
+            EnemySpawner spawner = spawnerGo.AddComponent<EnemySpawner>();
+
+            spawner.LoadSelectedChapterWaves();
+
+            Assert.That(spawner.Waves, Is.Not.Null);
+            Assert.That(spawner.Waves.Count, Is.EqualTo(2));
+            Assert.That(spawner.Waves[0].waveName, Is.EqualTo("Custom 1"));
+            Assert.That(spawner.Waves[0].totalEnemiesToSpawn, Is.EqualTo(25));
+            Assert.That(spawner.Waves[0].expMultiplier, Is.EqualTo(4.0f));
+            Assert.That(spawner.Waves[1].totalEnemiesToSpawn, Is.EqualTo(35));
+
+            Object.DestroyImmediate(spawnerGo);
+        }
+        finally
+        {
+            CustomWaveConfigManager.ClearAllCustomWaves();
+            PlayerDataService.SelectedChapterIndex = origSelected;
+        }
+    }
+
+    [Test]
+    public void EnemyHealth_ExpReward_ScalesCorrectly()
+    {
+        GameObject enemyGo = new GameObject("EnemyExpTest");
+        EnemyHealth health = enemyGo.AddComponent<EnemyHealth>();
+
+        health.SetExpReward(50);
+        Assert.That(health.ExpReward, Is.EqualTo(50));
+
+        health.SetExpReward(0);
+        Assert.That(health.ExpReward, Is.EqualTo(0));
+
+        Object.DestroyImmediate(enemyGo);
     }
 }
 

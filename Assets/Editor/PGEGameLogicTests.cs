@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 using TMPro;
@@ -420,6 +421,78 @@ public class PGEGameLogicTests
         }
     }
 
+    [TestCase(0f, 1f)]
+    [TestCase(90f, 1f)]
+    [TestCase(180f, -1f)]
+    [TestCase(-90f, 1f)]
+    public void CalculateAimScale_FlipsOnlyYAxis(float angle, float expectedYSign)
+    {
+        MethodInfo method = typeof(PlayerAutoShooter).GetMethod(
+            "CalculateAimScale",
+            BindingFlags.NonPublic | BindingFlags.Static
+        );
+
+        Assert.That(method, Is.Not.Null);
+
+        Vector3 baseScale = new Vector3(2f, 3f, 4f);
+        Vector3 result = (Vector3)method.Invoke(null, new object[] { angle, baseScale });
+
+        Assert.That(result.x, Is.EqualTo(baseScale.x));
+        Assert.That(result.y, Is.EqualTo(Mathf.Abs(baseScale.y) * expectedYSign));
+        Assert.That(result.z, Is.EqualTo(baseScale.z));
+    }
+
+    [TestCase(false, 2f)]
+    [TestCase(true, -2f)]
+    public void CalculateBodyScale_MirrorsOnlyXAxis(
+        bool isAimingLeft,
+        float expectedX
+    )
+    {
+        MethodInfo method = typeof(PlayerAutoShooter).GetMethod(
+            "CalculateBodyScale",
+            BindingFlags.NonPublic | BindingFlags.Static
+        );
+
+        Assert.That(method, Is.Not.Null);
+
+        Vector3 baseScale = new Vector3(2f, 3f, 4f);
+        Vector3 result = (Vector3)method.Invoke(
+            null,
+            new object[] { isAimingLeft, baseScale }
+        );
+
+        Assert.That(result.x, Is.EqualTo(expectedX));
+        Assert.That(result.y, Is.EqualTo(baseScale.y));
+        Assert.That(result.z, Is.EqualTo(baseScale.z));
+    }
+
+    [TestCase(0f, false, 0f)]
+    [TestCase(90f, false, 90f)]
+    [TestCase(180f, true, 0f)]
+    [TestCase(135f, true, 45f)]
+    [TestCase(-135f, true, -45f)]
+    public void CalculateLocalAimAngle_CompensatesBodyMirror(
+        float worldAngle,
+        bool isAimingLeft,
+        float expectedLocalAngle
+    )
+    {
+        MethodInfo method = typeof(PlayerAutoShooter).GetMethod(
+            "CalculateLocalAimAngle",
+            BindingFlags.NonPublic | BindingFlags.Static
+        );
+
+        Assert.That(method, Is.Not.Null);
+
+        float result = (float)method.Invoke(
+            null,
+            new object[] { worldAngle, isAimingLeft }
+        );
+
+        Assert.That(Mathf.DeltaAngle(expectedLocalAngle, result), Is.EqualTo(0f));
+    }
+
     [Test]
     public void MainMenu_LabAtlasSpriteReferences_HaveValidLocalIds()
     {
@@ -468,7 +541,6 @@ public class PGEGameLogicTests
         Transform stageBg = chapterPanel.Find("StagePreviewWindow/Viewport/StageBackground");
         Assert.That(stageBg, Is.Not.Null);
         Image stageBgImg = stageBg.GetComponent<Image>();
-        Assert.That(stageBgImg, Is.Not.Null);
         Assert.That(stageBgImg.sprite, Is.Not.Null, "StageBackground must have a valid sprite assigned.");
 
         Transform boss = chapterPanel.Find("StagePreviewWindow/Viewport/BossSilhouette");
@@ -498,5 +570,176 @@ public class PGEGameLogicTests
             Assert.That(chapter.previewBackground, Is.Not.Null, $"Chapter {chapter.chapterNumber} must have previewBackground assigned.");
             Assert.That(chapter.bossSilhouette, Is.Not.Null, $"Chapter {chapter.chapterNumber} must have bossSilhouette assigned.");
         }
+    }
+
+    [Test]
+    public void PauseModalController_OpenAndClose_TogglesTimeScaleAndActiveState()
+    {
+        GameObject modalRoot = new GameObject("PauseModalRoot");
+        GameObject statsPnl = new GameObject("StatsPanel");
+        GameObject chipPnl = new GameObject("ChipPanel");
+        GameObject artPnl = new GameObject("ArtPanel");
+        GameObject defPnl = new GameObject("DefPanel");
+        GameObject atkPnl = new GameObject("AtkPanel");
+        GameObject othPnl = new GameObject("OthPanel");
+
+        GameObject resumeBtnGo = new GameObject("ResumeBtn");
+        Button resumeBtn = resumeBtnGo.AddComponent<Button>();
+
+        GameObject homeBtnGo = new GameObject("HomeBtn");
+        Button homeBtn = homeBtnGo.AddComponent<Button>();
+
+        GameObject hpTxtGo = new GameObject("HpText");
+        TMP_Text hpTxt = hpTxtGo.AddComponent<TextMeshProUGUI>();
+
+        GameObject defTxtGo = new GameObject("DefText");
+        TMP_Text defTxt = defTxtGo.AddComponent<TextMeshProUGUI>();
+
+        GameObject lvlTxtGo = new GameObject("LvlText");
+        TMP_Text lvlTxt = lvlTxtGo.AddComponent<TextMeshProUGUI>();
+
+        PauseModalController pauseCtrl = modalRoot.AddComponent<PauseModalController>();
+        pauseCtrl.SetReferencesForTesting(
+            modalRoot, resumeBtn, homeBtn,
+            null, null, null,
+            statsPnl, chipPnl, artPnl,
+            null, null, null,
+            defPnl, atkPnl, othPnl,
+            hpTxt, defTxt, lvlTxt
+        );
+
+        float originalTimeScale = Time.timeScale;
+        try
+        {
+            pauseCtrl.OpenPauseModal();
+            Assert.That(pauseCtrl.IsPaused, Is.True);
+            Assert.That(Time.timeScale, Is.EqualTo(0f));
+            Assert.That(modalRoot.activeSelf, Is.True);
+
+            pauseCtrl.ResumeGame();
+            Assert.That(pauseCtrl.IsPaused, Is.False);
+            Assert.That(Time.timeScale, Is.EqualTo(1f));
+            Assert.That(modalRoot.activeSelf, Is.False);
+        }
+        finally
+        {
+            Time.timeScale = originalTimeScale;
+            Object.DestroyImmediate(modalRoot);
+            Object.DestroyImmediate(statsPnl);
+            Object.DestroyImmediate(chipPnl);
+            Object.DestroyImmediate(artPnl);
+            Object.DestroyImmediate(defPnl);
+            Object.DestroyImmediate(atkPnl);
+            Object.DestroyImmediate(othPnl);
+            Object.DestroyImmediate(resumeBtnGo);
+            Object.DestroyImmediate(homeBtnGo);
+            Object.DestroyImmediate(hpTxtGo);
+            Object.DestroyImmediate(defTxtGo);
+            Object.DestroyImmediate(lvlTxtGo);
+        }
+    }
+
+    [Test]
+    public void PauseModalController_TabSwitching_UpdatesPanels()
+    {
+        GameObject modalRoot = new GameObject("PauseModalRoot");
+        GameObject statsPnl = new GameObject("StatsPanel");
+        GameObject chipPnl = new GameObject("ChipPanel");
+        GameObject artPnl = new GameObject("ArtPanel");
+        GameObject defPnl = new GameObject("DefPanel");
+        GameObject atkPnl = new GameObject("AtkPanel");
+        GameObject othPnl = new GameObject("OthPanel");
+
+        PauseModalController pauseCtrl = modalRoot.AddComponent<PauseModalController>();
+        pauseCtrl.SetReferencesForTesting(
+            modalRoot, null, null,
+            null, null, null,
+            statsPnl, chipPnl, artPnl,
+            null, null, null,
+            defPnl, atkPnl, othPnl,
+            null, null, null
+        );
+
+        pauseCtrl.SelectMainTab(1); // CHIPSET
+        Assert.That(pauseCtrl.CurrentMainTab, Is.EqualTo(1));
+        Assert.That(statsPnl.activeSelf, Is.False);
+        Assert.That(chipPnl.activeSelf, Is.True);
+        Assert.That(artPnl.activeSelf, Is.False);
+
+        pauseCtrl.SelectMainTab(2); // ARTIFACT
+        Assert.That(pauseCtrl.CurrentMainTab, Is.EqualTo(2));
+        Assert.That(statsPnl.activeSelf, Is.False);
+        Assert.That(chipPnl.activeSelf, Is.False);
+        Assert.That(artPnl.activeSelf, Is.True);
+
+        pauseCtrl.SelectMainTab(0); // STATS
+        Assert.That(pauseCtrl.CurrentMainTab, Is.EqualTo(0));
+        Assert.That(statsPnl.activeSelf, Is.True);
+        Assert.That(chipPnl.activeSelf, Is.False);
+        Assert.That(artPnl.activeSelf, Is.False);
+
+        // Sub-Tabs
+        pauseCtrl.SelectSubTab(1); // Attack
+        Assert.That(pauseCtrl.CurrentSubTab, Is.EqualTo(1));
+        Assert.That(defPnl.activeSelf, Is.False);
+        Assert.That(atkPnl.activeSelf, Is.True);
+        Assert.That(othPnl.activeSelf, Is.False);
+
+        pauseCtrl.SelectSubTab(2); // Other
+        Assert.That(pauseCtrl.CurrentSubTab, Is.EqualTo(2));
+        Assert.That(defPnl.activeSelf, Is.False);
+        Assert.That(atkPnl.activeSelf, Is.False);
+        Assert.That(othPnl.activeSelf, Is.True);
+
+        Object.DestroyImmediate(modalRoot);
+        Object.DestroyImmediate(statsPnl);
+        Object.DestroyImmediate(chipPnl);
+        Object.DestroyImmediate(artPnl);
+        Object.DestroyImmediate(defPnl);
+        Object.DestroyImmediate(atkPnl);
+        Object.DestroyImmediate(othPnl);
+    }
+
+    [Test]
+    public void PauseModalController_HomeButton_OpensQuitConfirmModal_AndNoCancels()
+    {
+        GameObject modalRoot = new GameObject("PauseModalRoot");
+        GameObject confirmPnl = new GameObject("QuitConfirmDialog");
+
+        GameObject homeBtnGo = new GameObject("HomeBtn");
+        Button homeBtn = homeBtnGo.AddComponent<Button>();
+
+        GameObject noBtnGo = new GameObject("NoBtn");
+        Button noBtn = noBtnGo.AddComponent<Button>();
+
+        GameObject okBtnGo = new GameObject("OkBtn");
+        Button okBtn = okBtnGo.AddComponent<Button>();
+
+        PauseModalController pauseCtrl = modalRoot.AddComponent<PauseModalController>();
+        pauseCtrl.SetReferencesForTesting(
+            modalRoot, null, homeBtn,
+            null, null, null,
+            null, null, null,
+            null, null, null,
+            null, null, null,
+            null, null, null,
+            confirmPnl, noBtn, okBtn
+        );
+
+        confirmPnl.SetActive(false);
+
+        // Click Home -> Confirmation dialog opens
+        pauseCtrl.OnHomeButtonClicked();
+        Assert.That(confirmPnl.activeSelf, Is.True);
+
+        // Click No -> Confirmation dialog closes
+        pauseCtrl.OnConfirmNoClicked();
+        Assert.That(confirmPnl.activeSelf, Is.False);
+
+        Object.DestroyImmediate(modalRoot);
+        Object.DestroyImmediate(confirmPnl);
+        Object.DestroyImmediate(homeBtnGo);
+        Object.DestroyImmediate(noBtnGo);
+        Object.DestroyImmediate(okBtnGo);
     }
 }

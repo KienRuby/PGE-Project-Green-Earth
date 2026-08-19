@@ -99,6 +99,7 @@ public class ChapterData : ScriptableObject
                 healthMultiplier = isLast ? wavePower * 1.25f : wavePower,
                 damageMultiplier = isLast ? (1.0f + i * (wavePowerGrowthRate * 0.75f)) * chapterDifficultyMultiplier * 1.2f : (1.0f + i * (wavePowerGrowthRate * 0.75f)) * chapterDifficultyMultiplier,
                 speedMultiplier = 1.0f + i * 0.03f,
+                expMultiplier = 1.0f + i * 0.05f,
                 isBossWave = isLast,
                 customBossPrefab = isLast ? chapterBossPrefab : null,
                 bossCount = 1,
@@ -129,5 +130,124 @@ public class ChapterData : ScriptableObject
                 GenerateWaves();
             }
         }
+    }
+}
+
+/// <summary>
+/// Quản lý dữ liệu thông số Wave được người chơi tùy chỉnh tại Main Menu và truyền sang Gameplay Scene.
+/// Hỗ trợ Clone độc lập bộ wave gốc để người chơi tự do tăng giảm số quái, EXP, thời gian mà không ảnh hưởng ScriptableObject gốc.
+/// </summary>
+public static class CustomWaveConfigManager
+{
+    private static readonly Dictionary<int, List<EnemySpawner.WaveConfig>> customWavesPerChapter = new Dictionary<int, List<EnemySpawner.WaveConfig>>();
+
+    /// <summary>
+    /// Đánh dấu xem chapter có cấu hình wave tùy chỉnh hay không.
+    /// </summary>
+    public static bool HasCustomWaves(int chapterIndex)
+    {
+        return customWavesPerChapter.ContainsKey(chapterIndex) && customWavesPerChapter[chapterIndex] != null && customWavesPerChapter[chapterIndex].Count > 0;
+    }
+
+    /// <summary>
+    /// Lấy danh sách Wave tùy chỉnh cho chapter cụ thể.
+    /// </summary>
+    public static List<EnemySpawner.WaveConfig> GetActiveWaves(int chapterIndex)
+    {
+        if (customWavesPerChapter.TryGetValue(chapterIndex, out var list))
+        {
+            return list;
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Lưu danh sách Wave tùy biến cho chapter.
+    /// </summary>
+    public static void SetActiveCustomWaves(int chapterIndex, List<EnemySpawner.WaveConfig> waves)
+    {
+        if (waves == null)
+        {
+            customWavesPerChapter.Remove(chapterIndex);
+            return;
+        }
+
+        customWavesPerChapter[chapterIndex] = CloneWaves(waves);
+    }
+
+    /// <summary>
+    /// Tạo bản sao (Clone) độc lập từ ChapterData để người chơi chỉnh sửa.
+    /// </summary>
+    public static List<EnemySpawner.WaveConfig> CloneFromChapter(ChapterData chapter)
+    {
+        if (chapter == null) return new List<EnemySpawner.WaveConfig>();
+
+        if (chapter.waves == null || chapter.waves.Count == 0 || chapter.waves.Count != chapter.totalWaves)
+        {
+            chapter.GenerateWaves();
+        }
+
+        return CloneWaves(chapter.waves);
+    }
+
+    /// <summary>
+    /// Khôi phục về cấu hình Wave mặc định của ChapterData.
+    /// </summary>
+    public static void ResetToDefault(int chapterIndex, ChapterData chapter)
+    {
+        if (chapter != null)
+        {
+            chapter.GenerateWaves();
+            customWavesPerChapter[chapterIndex] = CloneWaves(chapter.waves);
+        }
+        else
+        {
+            customWavesPerChapter.Remove(chapterIndex);
+        }
+    }
+
+    /// <summary>
+    /// Xóa toàn bộ cấu hình tùy chỉnh của tất cả chapter.
+    /// </summary>
+    public static void ClearAllCustomWaves()
+    {
+        customWavesPerChapter.Clear();
+    }
+
+    /// <summary>
+    /// Tạo bản sao sâu (deep clone) của danh sách WaveConfig để tránh tham chiếu bộ nhớ chung.
+    /// </summary>
+    public static List<EnemySpawner.WaveConfig> CloneWaves(List<EnemySpawner.WaveConfig> source)
+    {
+        if (source == null) return new List<EnemySpawner.WaveConfig>();
+
+        List<EnemySpawner.WaveConfig> cloned = new List<EnemySpawner.WaveConfig>(source.Count);
+        for (int i = 0; i < source.Count; i++)
+        {
+            EnemySpawner.WaveConfig src = source[i];
+            if (src == null) continue;
+
+            EnemySpawner.WaveConfig dst = new EnemySpawner.WaveConfig
+            {
+                waveName = src.waveName,
+                totalEnemiesToSpawn = src.totalEnemiesToSpawn,
+                maxConcurrentEnemies = src.maxConcurrentEnemies,
+                spawnInterval = src.spawnInterval,
+                enemiesPerSpawn = src.enemiesPerSpawn,
+                enemyPool = src.enemyPool != null ? new List<EnemySpawner.EnemySpawnEntry>(src.enemyPool) : new List<EnemySpawner.EnemySpawnEntry>(),
+                healthMultiplier = src.healthMultiplier,
+                damageMultiplier = src.damageMultiplier,
+                speedMultiplier = src.speedMultiplier,
+                expMultiplier = src.expMultiplier,
+                isBossWave = src.isBossWave,
+                customBossPrefab = src.customBossPrefab,
+                bossCount = src.bossCount,
+                bossSpawnDelay = src.bossSpawnDelay,
+                breakDurationAfterWave = src.breakDurationAfterWave,
+                waveDuration = src.waveDuration
+            };
+            cloned.Add(dst);
+        }
+        return cloned;
     }
 }

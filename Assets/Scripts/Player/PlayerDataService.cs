@@ -28,6 +28,7 @@ public static class PlayerDataService
     {
         Application.targetFrameRate = 60;
         QualitySettings.vSyncCount = 0;
+        Screen.orientation = ScreenOrientation.Portrait;
     }
 
     // =========================================================================

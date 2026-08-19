@@ -40,6 +40,11 @@ public class PlayerMovement : MonoBehaviour
             rb.gravityScale = 0f;
             rb.freezeRotation = true;
         }
+
+        if (joystick == null)
+        {
+            joystick = FindObjectOfType<VirtualJoystick>();
+        }
     }
 
     public void SetMoveSpeedBonus(float bonus)

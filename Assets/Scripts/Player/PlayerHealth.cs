@@ -1,6 +1,14 @@
 using System;
 using UnityEngine;
 
+/// <summary>
+/// Interface cho các đối tượng có thể nhận sát thương.
+/// </summary>
+public interface IDamageable
+{
+    void TakeDamage(int damage);
+}
+
 public class PlayerHealth : MonoBehaviour, IDamageable
 {
     [Header("Health")]

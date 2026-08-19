@@ -52,6 +52,10 @@ public class EnemySpawner : MonoBehaviour
         [Tooltip("Hệ số nhân Tốc độ di chuyển của quái trong Wave này.")]
         public float speedMultiplier = 1.0f;
 
+        [Header("EXP & Reward Settings")]
+        [Tooltip("Hệ số nhân Điểm kinh nghiệm (EXP) rơi từ quái trong Wave này (1.0 = bình thường, 2.0 = x2 EXP).")]
+        public float expMultiplier = 1.0f;
+
         [Header("Boss Wave Settings (Wave Cuối Cùng)")]
         [Tooltip("Đánh dấu Wave này là Wave có Boss (mặc định là Wave cuối cùng).")]
         public bool isBossWave = false;
@@ -184,35 +188,47 @@ public class EnemySpawner : MonoBehaviour
         }
 
         int selectedIndex = PlayerDataService.SelectedChapterIndex;
-        ChapterData currentChapter = chapterDatabase != null ? chapterDatabase.GetChapter(selectedIndex) : null;
-
-        if (currentChapter != null)
+        if (CustomWaveConfigManager.HasCustomWaves(selectedIndex))
         {
-            if (currentChapter.waves == null || currentChapter.waves.Count == 0 || currentChapter.waves.Count != currentChapter.totalWaves)
+            var customWaves = CustomWaveConfigManager.GetActiveWaves(selectedIndex);
+            if (customWaves != null && customWaves.Count > 0)
             {
-                currentChapter.GenerateWaves();
+                waves = new List<WaveConfig>(customWaves);
+                Debug.Log($"[EnemySpawner] 🛠️ Đã nạp {waves.Count} Custom Waves được tùy chỉnh từ MainMenu cho Chapter {selectedIndex + 1}!");
             }
-
-            if (currentChapter.waves != null && currentChapter.waves.Count > 0)
-            {
-                waves = new List<WaveConfig>(currentChapter.waves);
-            }
-
-            if (currentChapter.chapterEnemyPool != null && currentChapter.chapterEnemyPool.Count > 0)
-            {
-                defaultEnemyList = new List<EnemySpawnEntry>(currentChapter.chapterEnemyPool);
-            }
-
-            if (currentChapter.chapterBossPrefab != null && waves.Count > 0)
-            {
-                waves[waves.Count - 1].customBossPrefab = currentChapter.chapterBossPrefab;
-            }
-
-            Debug.Log($"[EnemySpawner] 🎮 Đã nạp thành công bộ Wave riêng của Chapter {currentChapter.chapterNumber}: '{currentChapter.chapterTitle}' ({waves.Count} waves, Độ khó Chapter: x{currentChapter.chapterDifficultyMultiplier:F2})!");
         }
-        else if (waves == null || waves.Count == 0)
+        else
         {
-            GenerateDefaultWaves(10);
+            ChapterData currentChapter = chapterDatabase != null ? chapterDatabase.GetChapter(selectedIndex) : null;
+
+            if (currentChapter != null)
+            {
+                if (currentChapter.waves == null || currentChapter.waves.Count == 0 || currentChapter.waves.Count != currentChapter.totalWaves)
+                {
+                    currentChapter.GenerateWaves();
+                }
+
+                if (currentChapter.waves != null && currentChapter.waves.Count > 0)
+                {
+                    waves = new List<WaveConfig>(currentChapter.waves);
+                }
+
+                if (currentChapter.chapterEnemyPool != null && currentChapter.chapterEnemyPool.Count > 0)
+                {
+                    defaultEnemyList = new List<EnemySpawnEntry>(currentChapter.chapterEnemyPool);
+                }
+
+                if (currentChapter.chapterBossPrefab != null && waves.Count > 0)
+                {
+                    waves[waves.Count - 1].customBossPrefab = currentChapter.chapterBossPrefab;
+                }
+
+                Debug.Log($"[EnemySpawner] 🎮 Đã nạp thành công bộ Wave riêng của Chapter {currentChapter.chapterNumber}: '{currentChapter.chapterTitle}' ({waves.Count} waves, Độ khó Chapter: x{currentChapter.chapterDifficultyMultiplier:F2})!");
+            }
+            else if (waves == null || waves.Count == 0)
+            {
+                GenerateDefaultWaves(10);
+            }
         }
     }
 
@@ -384,7 +400,7 @@ public class EnemySpawner : MonoBehaviour
 
         enemiesSpawnedInWave++;
 
-        ApplyEnemyModifiers(enemyObj, config.healthMultiplier, config.damageMultiplier, config.speedMultiplier, false);
+        ApplyEnemyModifiers(enemyObj, config.healthMultiplier, config.damageMultiplier, config.speedMultiplier, config.expMultiplier, false);
 
         EnemyHealth health = enemyObj.GetComponent<EnemyHealth>();
         if (health != null)
@@ -426,6 +442,7 @@ public class EnemySpawner : MonoBehaviour
         float bossHealthMul = config.healthMultiplier * (isCustomBoss ? 1.0f : 8.0f);
         float bossDamageMul = config.damageMultiplier * (isCustomBoss ? 1.0f : 2.5f);
         float bossSpeedMul = config.speedMultiplier * (isCustomBoss ? 1.0f : 1.1f);
+        float bossExpMul = config.expMultiplier * (isCustomBoss ? 2.0f : 5.0f);
 
         if (!isCustomBoss)
         {
@@ -439,7 +456,7 @@ public class EnemySpawner : MonoBehaviour
             }
         }
 
-        ApplyEnemyModifiers(bossObj, bossHealthMul, bossDamageMul, bossSpeedMul, true);
+        ApplyEnemyModifiers(bossObj, bossHealthMul, bossDamageMul, bossSpeedMul, bossExpMul, true);
 
         EnemyHealth health = bossObj.GetComponent<EnemyHealth>();
         if (health != null)
@@ -457,7 +474,7 @@ public class EnemySpawner : MonoBehaviour
         OnBossSpawned?.Invoke(bossObj);
     }
 
-    private void ApplyEnemyModifiers(GameObject enemyObj, float healthMul, float damageMul, float speedMul, bool isBoss)
+    private void ApplyEnemyModifiers(GameObject enemyObj, float healthMul, float damageMul, float speedMul, float expMul, bool isBoss)
     {
         if (enemyObj == null) return;
 
@@ -469,13 +486,17 @@ public class EnemySpawner : MonoBehaviour
             movement.MoveSpeed *= Mathf.Max(0.1f, speedMul);
         }
 
-        // Máu quái
+        // Máu quái & EXP
         EnemyHealth health = enemyObj.GetComponent<EnemyHealth>();
         if (health != null)
         {
             int baseHealth = health.MaxHealth;
             int scaledHealth = Mathf.RoundToInt(baseHealth * Mathf.Max(0.5f, healthMul));
             health.SetMaxHealth(scaledHealth, true);
+
+            int baseExp = health.ExpReward;
+            int scaledExp = Mathf.RoundToInt(baseExp * Mathf.Max(0f, expMul));
+            health.SetExpReward(scaledExp);
         }
 
         // Sát thương va chạm

@@ -44,6 +44,9 @@ public class WaveHUDController : MonoBehaviour
     [Tooltip("Nút tạm dừng game ở góc trên bên phải.")]
     [SerializeField] private Button pauseButton;
 
+    [Tooltip("Controller quản lý Pause Modal chi tiết (Stats, Chipset, Artifact).")]
+    [SerializeField] private PauseModalController pauseModalController;
+
     [Tooltip("Panel Menu tạm dừng xuất hiện khi bấm Pause.")]
     [SerializeField] private GameObject pausePanel;
 
@@ -94,6 +97,11 @@ public class WaveHUDController : MonoBehaviour
         if (playerLevelController == null)
         {
             playerLevelController = FindObjectOfType<PlayerLevelController>();
+        }
+
+        if (pauseModalController == null)
+        {
+            pauseModalController = FindObjectOfType<PauseModalController>(true);
         }
 
         if (pauseButton != null)
@@ -293,6 +301,13 @@ public class WaveHUDController : MonoBehaviour
 
     public void TogglePause()
     {
+        if (pauseModalController != null)
+        {
+            pauseModalController.TogglePause();
+            isPaused = pauseModalController.IsPaused;
+            return;
+        }
+
         if (isPaused)
         {
             ResumeGame();
@@ -305,6 +320,13 @@ public class WaveHUDController : MonoBehaviour
 
     public void PauseGame()
     {
+        if (pauseModalController != null)
+        {
+            pauseModalController.OpenPauseModal();
+            isPaused = true;
+            return;
+        }
+
         isPaused = true;
         Time.timeScale = 0f;
         if (pausePanel != null)
@@ -315,6 +337,13 @@ public class WaveHUDController : MonoBehaviour
 
     public void ResumeGame()
     {
+        if (pauseModalController != null)
+        {
+            pauseModalController.ResumeGame();
+            isPaused = false;
+            return;
+        }
+
         isPaused = false;
         Time.timeScale = 1f;
         if (pausePanel != null)

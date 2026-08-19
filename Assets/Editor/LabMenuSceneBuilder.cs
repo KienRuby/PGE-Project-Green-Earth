@@ -12,7 +12,6 @@ using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-[InitializeOnLoad]
 public static class LabMenuSceneBuilder
 {
     private sealed class SlotView
@@ -57,12 +56,6 @@ public static class LabMenuSceneBuilder
     private static readonly Color FieryOrange = new Color32(255, 120, 30, 255);
 
     private static TMP_FontAsset font;
-
-    static LabMenuSceneBuilder()
-    {
-        EditorApplication.update += TryBuildRequestedScene;
-        EditorApplication.update += TryBuildRequestedShopPanel;
-    }
 
     [MenuItem("PGE/UI/Rebuild Full Main Menu (Chipset & Lab)")]
     public static void BuildFromMenu()

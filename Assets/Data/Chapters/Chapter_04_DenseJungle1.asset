@@ -22,3 +22,171 @@ MonoBehaviour:
   gameplaySceneName: GamePlay
   levelConfigId: dense_jungle_1
   isLocked: 1
+  autoGenerateWaves: 1
+  chapterDifficultyMultiplier: 1.75
+  wavePowerGrowthRate: 0.08
+  defaultWaveDuration: 30
+  finalBossWaveDuration: 60
+  chapterEnemyPool: []
+  chapterBossPrefab: {fileID: 249402678474551263, guid: e9b7463808b4ee340950a632a574d9fa, type: 3}
+  waves:
+  - waveName: Wave 1
+    totalEnemiesToSpawn: 35
+    maxConcurrentEnemies: 28
+    spawnInterval: 0.8
+    enemiesPerSpawn: 2
+    enemyPool: []
+    healthMultiplier: 1.75
+    damageMultiplier: 1.5
+    speedMultiplier: 1.1
+    expMultiplier: 1.3
+    isBossWave: 0
+    customBossPrefab: {fileID: 0}
+    bossCount: 1
+    bossSpawnDelay: 0
+    breakDurationAfterWave: 1
+    waveDuration: 25
+  - waveName: Wave 2
+    totalEnemiesToSpawn: 42
+    maxConcurrentEnemies: 30
+    spawnInterval: 0.75
+    enemiesPerSpawn: 3
+    enemyPool: []
+    healthMultiplier: 1.85
+    damageMultiplier: 1.6
+    speedMultiplier: 1.14
+    expMultiplier: 1.35
+    isBossWave: 0
+    customBossPrefab: {fileID: 0}
+    bossCount: 1
+    bossSpawnDelay: 0
+    breakDurationAfterWave: 1
+    waveDuration: 26
+  - waveName: Wave 3
+    totalEnemiesToSpawn: 50
+    maxConcurrentEnemies: 32
+    spawnInterval: 0.7
+    enemiesPerSpawn: 3
+    enemyPool: []
+    healthMultiplier: 1.95
+    damageMultiplier: 1.7
+    speedMultiplier: 1.18
+    expMultiplier: 1.4
+    isBossWave: 0
+    customBossPrefab: {fileID: 0}
+    bossCount: 1
+    bossSpawnDelay: 0
+    breakDurationAfterWave: 1
+    waveDuration: 28
+  - waveName: Wave 4
+    totalEnemiesToSpawn: 60
+    maxConcurrentEnemies: 35
+    spawnInterval: 0.65
+    enemiesPerSpawn: 3
+    enemyPool: []
+    healthMultiplier: 2.05
+    damageMultiplier: 1.8
+    speedMultiplier: 1.22
+    expMultiplier: 1.45
+    isBossWave: 0
+    customBossPrefab: {fileID: 0}
+    bossCount: 1
+    bossSpawnDelay: 0
+    breakDurationAfterWave: 1
+    waveDuration: 30
+  - waveName: Wave 5
+    totalEnemiesToSpawn: 70
+    maxConcurrentEnemies: 38
+    spawnInterval: 0.6
+    enemiesPerSpawn: 4
+    enemyPool: []
+    healthMultiplier: 2.15
+    damageMultiplier: 1.9
+    speedMultiplier: 1.25
+    expMultiplier: 1.5
+    isBossWave: 0
+    customBossPrefab: {fileID: 0}
+    bossCount: 1
+    bossSpawnDelay: 0
+    breakDurationAfterWave: 1
+    waveDuration: 32
+  - waveName: Wave 6
+    totalEnemiesToSpawn: 80
+    maxConcurrentEnemies: 40
+    spawnInterval: 0.55
+    enemiesPerSpawn: 4
+    enemyPool: []
+    healthMultiplier: 2.25
+    damageMultiplier: 2.0
+    speedMultiplier: 1.28
+    expMultiplier: 1.55
+    isBossWave: 0
+    customBossPrefab: {fileID: 0}
+    bossCount: 1
+    bossSpawnDelay: 0
+    breakDurationAfterWave: 1
+    waveDuration: 32
+  - waveName: Wave 7
+    totalEnemiesToSpawn: 92
+    maxConcurrentEnemies: 45
+    spawnInterval: 0.5
+    enemiesPerSpawn: 4
+    enemyPool: []
+    healthMultiplier: 2.35
+    damageMultiplier: 2.1
+    speedMultiplier: 1.32
+    expMultiplier: 1.6
+    isBossWave: 0
+    customBossPrefab: {fileID: 0}
+    bossCount: 1
+    bossSpawnDelay: 0
+    breakDurationAfterWave: 1
+    waveDuration: 35
+  - waveName: Wave 8
+    totalEnemiesToSpawn: 105
+    maxConcurrentEnemies: 48
+    spawnInterval: 0.45
+    enemiesPerSpawn: 4
+    enemyPool: []
+    healthMultiplier: 2.45
+    damageMultiplier: 2.2
+    speedMultiplier: 1.35
+    expMultiplier: 1.65
+    isBossWave: 0
+    customBossPrefab: {fileID: 0}
+    bossCount: 1
+    bossSpawnDelay: 0
+    breakDurationAfterWave: 1
+    waveDuration: 35
+  - waveName: Wave 9
+    totalEnemiesToSpawn: 120
+    maxConcurrentEnemies: 50
+    spawnInterval: 0.4
+    enemiesPerSpawn: 5
+    enemyPool: []
+    healthMultiplier: 2.55
+    damageMultiplier: 2.3
+    speedMultiplier: 1.38
+    expMultiplier: 1.7
+    isBossWave: 0
+    customBossPrefab: {fileID: 0}
+    bossCount: 1
+    bossSpawnDelay: 0
+    breakDurationAfterWave: 1
+    waveDuration: 35
+  - waveName: Wave 10 - FINAL BOSS
+    totalEnemiesToSpawn: 140
+    maxConcurrentEnemies: 55
+    spawnInterval: 0.35
+    enemiesPerSpawn: 5
+    enemyPool: []
+    healthMultiplier: 3.5
+    damageMultiplier: 3.0
+    speedMultiplier: 1.45
+    expMultiplier: 2.0
+    isBossWave: 1
+    customBossPrefab: {fileID: 0}
+    bossCount: 1
+    bossSpawnDelay: 2
+    breakDurationAfterWave: 2
+    waveDuration: 60
