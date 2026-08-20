@@ -128,16 +128,18 @@ TextureImporter:
 
 sprite_names = [
     # Row 0
-    "drone-snowflake", "drone-spider", "drone-antenna-eye", "drone-cross-visor", "drone-capsule",
+    "drone-snowflake", "drone-spider", "drone-antenna-eye", "drone-cross-visor", "drone-capsule", "drone-spiky-mine",
     # Row 1
-    "drone-spiky-mine", "drone-octagon-shield", "drone-claw-magnet", "drone-dual-rotor", "drone-stealth-wing",
+    "drone-octagon-shield", "drone-claw-magnet", "drone-dual-rotor", "drone-stealth-wing", "drone-laser-sentry", "drone-plasma-orb",
     # Row 2
-    "drone-laser-sentry", "drone-plasma-orb", "buddy-frame-normal", "buddy-frame-rare", "buddy-frame-epic",
+    "buddy-frame-normal", "buddy-frame-rare", "buddy-frame-epic", "buddy-frame-holographic", "icon-lock-buddy", "badge-upgrade-green",
     # Row 3
-    "buddy-frame-holographic", "icon-lock-buddy", "badge-upgrade-green", "wave-pulse-cyan", "icon-drone-tab"
+    "wave-pulse-cyan", "icon-drone-tab", "icon-lock-blue", "icon-lock-purple", "icon-lock-yellow", "icon-lock-pink",
+    # Row 4
+    "icon-lock-unlocked", "btn-enhance-plate", "btn-advance-plate", "btn-equip-plate", "mini-chip-icon", "mini-red-gem"
 ]
 
-cols = 5
+cols = 6
 rows = 5
 cell_size = 256
 
@@ -213,4 +215,4 @@ full_meta = meta_template_header + sprites_yaml + meta_footer
 with open(r"Assets/UI/Buddy/Generated/buddy-atlas.png.meta", "w", encoding="utf-8") as f:
     f.write(full_meta)
 
-print("Updated Assets/UI/Buddy/Generated/buddy-atlas.png.meta with 20 sliced Buddy sprites successfully!")
+print(f"Updated Assets/UI/Buddy/Generated/buddy-atlas.png.meta with {len(sprite_names)} sliced Buddy sprites successfully!")

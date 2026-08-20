@@ -551,19 +551,19 @@ public static class LabMenuSceneBuilder
 
         string[,] iconNames =
         {
-            { "drone-snowflake", "drone-spider", "drone-antenna-eye", "drone-cross-visor", "drone-capsule" },
-            { "drone-spiky-mine", "drone-octagon-shield", "drone-claw-magnet", "drone-dual-rotor", "drone-stealth-wing" },
-            { "drone-laser-sentry", "drone-plasma-orb", "buddy-frame-normal", "buddy-frame-rare", "buddy-frame-epic" },
-            { "buddy-frame-holographic", "icon-lock-buddy", "badge-upgrade-green", "wave-pulse-cyan", "icon-drone-tab" },
-            { "", "", "", "", "" }
+            { "drone-snowflake", "drone-spider", "drone-antenna-eye", "drone-cross-visor", "drone-capsule", "drone-spiky-mine" },
+            { "drone-octagon-shield", "drone-claw-magnet", "drone-dual-rotor", "drone-stealth-wing", "drone-laser-sentry", "drone-plasma-orb" },
+            { "buddy-frame-normal", "buddy-frame-rare", "buddy-frame-epic", "buddy-frame-holographic", "icon-lock-buddy", "badge-upgrade-green" },
+            { "wave-pulse-cyan", "icon-drone-tab", "icon-lock-blue", "icon-lock-purple", "icon-lock-yellow", "icon-lock-pink" },
+            { "icon-lock-unlocked", "btn-enhance-plate", "btn-advance-plate", "btn-equip-plate", "mini-chip-icon", "mini-red-gem" }
         };
 
         float cellWidth = 256f;
         float cellHeight = 256f;
         List<SpriteRect> sprites = new List<SpriteRect>();
-        for (int row = 0; row < 4; row++)
+        for (int row = 0; row < 5; row++)
         {
-            for (int column = 0; column < 5; column++)
+            for (int column = 0; column < 6; column++)
             {
                 if (string.IsNullOrEmpty(iconNames[row, column])) continue;
                 sprites.Add(new SpriteRect
@@ -1296,8 +1296,9 @@ public static class LabMenuSceneBuilder
         cardPrefab.SetActive(false);
 
         // 5. Detail Modal
-        GameObject detailModal = CreateBuddyDetailModal(canvasRect, out Image dIcon, out TMP_Text dName, out TMP_Text dLevel,
-            out TMP_Text dTier, out TMP_Text dStats, out TMP_Text dAbility, out Button dUpgradeBtn, out TMP_Text dUpgradeBtnText,
+        GameObject detailModal = CreateBuddyDetailModal(canvasRect, out BuddyCardUI dTopCard, out TMP_Text dName, out TMP_Text dTier,
+            out TMP_Text dDesc, out TMP_Text dBaseStat, out Image[] dPerkIcons, out TMP_Text[] dPerkTexts,
+            out Button dEnhanceBtn, out TMP_Text dEnhanceCostText, out Button dAdvanceTierBtn, out TMP_Text dAdvanceTierText,
             out Button dEquipBtn, out TMP_Text dEquipBtnText, out Button dCloseBtn);
         detailModal.SetActive(false);
 
@@ -1346,14 +1347,24 @@ public static class LabMenuSceneBuilder
         sController.FindProperty("cardPrefab").objectReferenceValue = cardPrefab;
 
         sController.FindProperty("detailModal").objectReferenceValue = detailModal;
-        sController.FindProperty("detailIcon").objectReferenceValue = dIcon;
+        sController.FindProperty("detailTopCard").objectReferenceValue = dTopCard;
         sController.FindProperty("detailNameText").objectReferenceValue = dName;
-        sController.FindProperty("detailLevelText").objectReferenceValue = dLevel;
         sController.FindProperty("detailTierText").objectReferenceValue = dTier;
-        sController.FindProperty("detailStatsText").objectReferenceValue = dStats;
-        sController.FindProperty("detailAbilityText").objectReferenceValue = dAbility;
-        sController.FindProperty("detailUpgradeBtn").objectReferenceValue = dUpgradeBtn;
-        sController.FindProperty("detailUpgradeBtnText").objectReferenceValue = dUpgradeBtnText;
+        sController.FindProperty("detailDescText").objectReferenceValue = dDesc;
+        sController.FindProperty("detailBaseStatText").objectReferenceValue = dBaseStat;
+
+        SerializedProperty sPerkIcons = sController.FindProperty("perkRowIcons");
+        sPerkIcons.arraySize = 4;
+        for (int i = 0; i < 4; i++) sPerkIcons.GetArrayElementAtIndex(i).objectReferenceValue = dPerkIcons[i];
+
+        SerializedProperty sPerkTexts = sController.FindProperty("perkRowTexts");
+        sPerkTexts.arraySize = 4;
+        for (int i = 0; i < 4; i++) sPerkTexts.GetArrayElementAtIndex(i).objectReferenceValue = dPerkTexts[i];
+
+        sController.FindProperty("detailEnhanceBtn").objectReferenceValue = dEnhanceBtn;
+        sController.FindProperty("detailEnhanceCostText").objectReferenceValue = dEnhanceCostText;
+        sController.FindProperty("detailAdvanceTierBtn").objectReferenceValue = dAdvanceTierBtn;
+        sController.FindProperty("detailAdvanceTierText").objectReferenceValue = dAdvanceTierText;
         sController.FindProperty("detailEquipBtn").objectReferenceValue = dEquipBtn;
         sController.FindProperty("detailEquipBtnText").objectReferenceValue = dEquipBtnText;
         sController.FindProperty("detailCloseBtn").objectReferenceValue = dCloseBtn;
@@ -1386,6 +1397,15 @@ public static class LabMenuSceneBuilder
 
         sController.FindProperty("upgradeArrowSprite").objectReferenceValue = allBuddySprites.FirstOrDefault(s => s.name == "badge-upgrade-green");
         sController.FindProperty("lockSlotSprite").objectReferenceValue = allBuddySprites.FirstOrDefault(s => s.name == "icon-lock-buddy");
+
+        SerializedProperty sTierLocks = sController.FindProperty("lockTierSprites");
+        sTierLocks.arraySize = 4;
+        sTierLocks.GetArrayElementAtIndex(0).objectReferenceValue = allBuddySprites.FirstOrDefault(s => s.name == "icon-lock-blue");
+        sTierLocks.GetArrayElementAtIndex(1).objectReferenceValue = allBuddySprites.FirstOrDefault(s => s.name == "icon-lock-purple");
+        sTierLocks.GetArrayElementAtIndex(2).objectReferenceValue = allBuddySprites.FirstOrDefault(s => s.name == "icon-lock-yellow");
+        sTierLocks.GetArrayElementAtIndex(3).objectReferenceValue = allBuddySprites.FirstOrDefault(s => s.name == "icon-lock-pink");
+
+        sController.FindProperty("unlockedCheckSprite").objectReferenceValue = allBuddySprites.FirstOrDefault(s => s.name == "icon-lock-unlocked");
 
         sController.ApplyModifiedPropertiesWithoutUndo();
 
@@ -1507,14 +1527,17 @@ public static class LabMenuSceneBuilder
 
     private static GameObject CreateBuddyDetailModal(
         RectTransform canvasRect,
-        out Image detailIcon,
+        out BuddyCardUI topCard,
         out TMP_Text nameText,
-        out TMP_Text levelText,
         out TMP_Text tierText,
-        out TMP_Text statsText,
-        out TMP_Text abilityText,
-        out Button upgradeBtn,
-        out TMP_Text upgradeBtnText,
+        out TMP_Text descText,
+        out TMP_Text baseStatText,
+        out Image[] perkIcons,
+        out TMP_Text[] perkTexts,
+        out Button enhanceBtn,
+        out TMP_Text enhanceCostText,
+        out Button advanceTierBtn,
+        out TMP_Text advanceTierText,
         out Button equipBtn,
         out TMP_Text equipBtnText,
         out Button closeBtn)
@@ -1525,81 +1548,122 @@ public static class LabMenuSceneBuilder
         dim.color = new Color32(5, 20, 30, 225);
         dim.raycastTarget = true;
 
-        GameObject cardBox = CreateFrame("ModalBox", modalRoot, DarkPanel, BrightCyan, out _);
+        Button dimBtn = modalRoot.gameObject.AddComponent<Button>();
+        dimBtn.targetGraphic = dim;
+
+        GameObject cardBox = CreateFrame("ModalBox", modalRoot, DarkPanel, BrightCyan, out Image boxBg);
         RectTransform boxRect = cardBox.GetComponent<RectTransform>();
-        Anchor(boxRect, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(960f, 1260f));
+        Anchor(boxRect, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(900f, 1380f));
+        boxBg.raycastTarget = true;
 
-        // Title Header
-        TMP_Text title = CreateText("Title", boxRect, "BUDDY INSPECTOR", 42f, BrightCyan, TextAlignmentOptions.Center);
-        Anchor(title.rectTransform, new Vector2(0.5f, 0.94f), Vector2.zero, new Vector2(600f, 50f));
-
-        // Close Button
+        // Close Button (Top Right)
         GameObject closeObj = CreateFrame("CloseBtn", boxRect, FieryRed, FieryOrange, out Image closeBg);
         RectTransform closeRect = closeObj.GetComponent<RectTransform>();
-        Anchor(closeRect, new Vector2(0.93f, 0.94f), Vector2.zero, new Vector2(60f, 60f));
-        TMP_Text closeTxt = CreateText("X", closeRect, "X", 36f, Color.white, TextAlignmentOptions.Center);
+        Anchor(closeRect, new Vector2(0.93f, 0.96f), Vector2.zero, new Vector2(54f, 54f));
+        TMP_Text closeTxt = CreateText("X", closeRect, "X", 32f, Color.white, TextAlignmentOptions.Center);
         Stretch(closeTxt.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
         closeBg.raycastTarget = true;
         closeBtn = closeObj.AddComponent<Button>();
         closeBtn.targetGraphic = closeBg;
+        dimBtn.onClick.AddListener(() => modalRoot.gameObject.SetActive(false));
 
-        // Big Icon Frame
-        GameObject iconFrameObj = CreateFrame("IconFrame", boxRect, new Color32(8, 30, 48, 255), BrightCyan, out _);
-        RectTransform iconFrameRect = iconFrameObj.GetComponent<RectTransform>();
-        Anchor(iconFrameRect, new Vector2(0.24f, 0.77f), Vector2.zero, new Vector2(220f, 220f));
-        detailIcon = CreateBuddyIcon("Icon", iconFrameRect, "drone-snowflake", 160f);
-        Anchor(detailIcon.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(160f, 160f));
+        // 1. Top Card Display
+        topCard = CreateBuddyCardUI(boxRect, "TopCard", new Vector2(285f, 335f));
+        Anchor(topCard.GetComponent<RectTransform>(), new Vector2(0.5f, 0.84f), Vector2.zero, new Vector2(285f, 335f));
 
-        // Name & Tier Info
-        nameText = CreateText("Name", boxRect, "Snowflake Drone", 46f, Color.white, TextAlignmentOptions.Left);
-        Anchor(nameText.rectTransform, new Vector2(0.68f, 0.83f), Vector2.zero, new Vector2(460f, 55f));
+        // 2. Drone Title
+        nameText = CreateText("Name", boxRect, "Turret Buffer", 44f, Color.white, TextAlignmentOptions.Center);
+        Anchor(nameText.rectTransform, new Vector2(0.5f, 0.695f), Vector2.zero, new Vector2(800f, 52f));
 
-        levelText = CreateText("Level", boxRect, "LEVEL 01", 34f, Yellow, TextAlignmentOptions.Left);
-        Anchor(levelText.rectTransform, new Vector2(0.68f, 0.76f), Vector2.zero, new Vector2(460f, 45f));
+        // 3. Drone Tier Subtitle
+        tierText = CreateText("Tier", boxRect, "Common", 28f, new Color32(190, 225, 235, 255), TextAlignmentOptions.Center);
+        Anchor(tierText.rectTransform, new Vector2(0.5f, 0.655f), Vector2.zero, new Vector2(800f, 40f));
 
-        tierText = CreateText("Tier", boxRect, "COMMON", 30f, BrightCyan, TextAlignmentOptions.Left);
-        Anchor(tierText.rectTransform, new Vector2(0.68f, 0.70f), Vector2.zero, new Vector2(460f, 40f));
+        // 4. Description
+        descText = CreateText("Description", boxRect, "Improves the skills of all Turrets.", 26f, Color.white, TextAlignmentOptions.Center);
+        Anchor(descText.rectTransform, new Vector2(0.5f, 0.610f), Vector2.zero, new Vector2(800f, 40f));
 
-        // Stats Box
-        GameObject statsBox = CreateFrame("StatsBox", boxRect, new Color32(14, 42, 54, 255), TealBorder, out _);
-        RectTransform statsBoxRect = statsBox.GetComponent<RectTransform>();
-        Anchor(statsBoxRect, new Vector2(0.5f, 0.48f), Vector2.zero, new Vector2(880f, 280f));
+        // 5. Base Stat Line
+        baseStatText = CreateText("BaseStat", boxRect, "All Turrets' Duration <color=#FFCB49>10%</color>", 28f, Color.white, TextAlignmentOptions.Center);
+        Anchor(baseStatText.rectTransform, new Vector2(0.5f, 0.555f), Vector2.zero, new Vector2(800f, 44f));
 
-        TMP_Text statsHeader = CreateText("StatsHeader", statsBoxRect, "DRONE COMBAT SPECIFICATIONS", 30f, Yellow, TextAlignmentOptions.Left);
-        Anchor(statsHeader.rectTransform, new Vector2(0.5f, 0.86f), Vector2.zero, new Vector2(820f, 40f));
+        // 6. 4 Tier Perk Rows
+        perkIcons = new Image[4];
+        perkTexts = new TMP_Text[4];
 
-        statsText = CreateText("StatsContent", statsBoxRect, "• Drone ATK: +24%\n• Fire Rate: +12%\n• Tactical support drone that freezes approaching hostiles and shields the player.", 28f, Color.white, TextAlignmentOptions.Left);
-        Anchor(statsText.rectTransform, new Vector2(0.5f, 0.44f), Vector2.zero, new Vector2(820f, 170f));
+        string[] defaultLockSprites = { "icon-lock-blue", "icon-lock-purple", "icon-lock-yellow", "icon-lock-pink" };
+        string[] defaultPerks = {
+            "Turret Duration +20%(<color=#38BDF8>Magic</color>Unlock)",
+            "Turret Duration +30%(<color=#C084FC>Rare</color>Unlock)",
+            "Turret Duration +30%(<color=#FACC15>Unique</color>Unlock)",
+            "Turret Duration +30%(<color=#FB7185>Epic</color>Unlock)"
+        };
 
-        // Special Ability Box
-        GameObject abilityBox = CreateFrame("AbilityBox", boxRect, new Color32(14, 42, 54, 255), TealBorder, out _);
-        RectTransform abilityBoxRect = abilityBox.GetComponent<RectTransform>();
-        Anchor(abilityBoxRect, new Vector2(0.5f, 0.23f), Vector2.zero, new Vector2(880f, 180f));
+        float startY = 0.485f;
+        float deltaY = 0.055f;
 
-        TMP_Text abilityHeader = CreateText("AbilityHeader", abilityBoxRect, "SPECIAL SUPPORT PROTOCOL", 30f, BrightCyan, TextAlignmentOptions.Left);
-        Anchor(abilityHeader.rectTransform, new Vector2(0.5f, 0.76f), Vector2.zero, new Vector2(820f, 40f));
+        for (int i = 0; i < 4; i++)
+        {
+            RectTransform rowRect = CreateRect($"PerkRow_{i}", boxRect);
+            Anchor(rowRect, new Vector2(0.5f, startY - i * deltaY), Vector2.zero, new Vector2(780f, 50f));
 
-        abilityText = CreateText("AbilityContent", abilityBoxRect, "• Frost Nova: Emits a freezing pulse slowing enemies by 35% every 8s.", 28f, BrightCyan, TextAlignmentOptions.Left);
-        Anchor(abilityText.rectTransform, new Vector2(0.5f, 0.35f), Vector2.zero, new Vector2(820f, 90f));
+            Image lockImg = CreateBuddyIcon("LockIcon", rowRect, defaultLockSprites[i], 42f);
+            Anchor(lockImg.rectTransform, new Vector2(0.08f, 0.5f), Vector2.zero, new Vector2(42f, 42f));
+            perkIcons[i] = lockImg;
 
-        // Bottom Action Buttons
-        GameObject upgBtnObj = CreateFrame("UpgradeBtn", boxRect, new Color32(20, 140, 60, 255), Yellow, out Image upgBg);
-        RectTransform upgBtnRect = upgBtnObj.GetComponent<RectTransform>();
-        Anchor(upgBtnRect, new Vector2(0.72f, 0.08f), Vector2.zero, new Vector2(400f, 90f));
-        upgradeBtnText = CreateText("Label", upgBtnRect, "UPGRADE (65/3)", 32f, Color.white, TextAlignmentOptions.Center);
-        Stretch(upgradeBtnText.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-        upgBg.raycastTarget = true;
-        upgradeBtn = upgBtnObj.AddComponent<Button>();
-        upgradeBtn.targetGraphic = upgBg;
+            TMP_Text pText = CreateText("PerkText", rowRect, defaultPerks[i], 26f, Color.white, TextAlignmentOptions.Left);
+            Anchor(pText.rectTransform, new Vector2(0.57f, 0.5f), Vector2.zero, new Vector2(650f, 44f));
+            perkTexts[i] = pText;
+        }
 
+        // 7. Action Buttons
+        // Equip Button (Bottom Left)
         GameObject eqBtnObj = CreateFrame("EquipBtn", boxRect, Yellow, Border, out Image eqBg);
+        eqBg.sprite = LoadBuddySprite("btn-equip-plate");
         RectTransform eqBtnRect = eqBtnObj.GetComponent<RectTransform>();
-        Anchor(eqBtnRect, new Vector2(0.28f, 0.08f), Vector2.zero, new Vector2(400f, 90f));
-        equipBtnText = CreateText("Label", eqBtnRect, "EQUIP", 34f, new Color32(10, 20, 30, 255), TextAlignmentOptions.Center);
+        Anchor(eqBtnRect, new Vector2(0.26f, 0.12f), Vector2.zero, new Vector2(280f, 135f));
+        equipBtnText = CreateText("Label", eqBtnRect, "EQUIP", 36f, new Color32(10, 20, 30, 255), TextAlignmentOptions.Center);
         Stretch(equipBtnText.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
         eqBg.raycastTarget = true;
         equipBtn = eqBtnObj.AddComponent<Button>();
         equipBtn.targetGraphic = eqBg;
+
+        // Enhance Button (Bottom Right Top)
+        GameObject enhBtnObj = CreateFrame("EnhanceBtn", boxRect, new Color32(34, 197, 94, 255), BrightCyan, out Image enhBg);
+        enhBg.sprite = LoadBuddySprite("btn-enhance-plate");
+        RectTransform enhBtnRect = enhBtnObj.GetComponent<RectTransform>();
+        Anchor(enhBtnRect, new Vector2(0.71f, 0.16f), Vector2.zero, new Vector2(360f, 90f));
+        enhBg.raycastTarget = true;
+        enhanceBtn = enhBtnObj.AddComponent<Button>();
+        enhanceBtn.targetGraphic = enhBg;
+
+        TMP_Text enhLabel = CreateText("Label", enhBtnRect, "Enhance", 26f, new Color32(10, 20, 30, 255), TextAlignmentOptions.Center);
+        Anchor(enhLabel.rectTransform, new Vector2(0.5f, 0.70f), Vector2.zero, new Vector2(320f, 32f));
+
+        RectTransform costRow = CreateRect("CostRow", enhBtnRect);
+        Anchor(costRow, new Vector2(0.5f, 0.30f), Vector2.zero, new Vector2(200f, 34f));
+        HorizontalLayoutGroup costLayout = costRow.gameObject.AddComponent<HorizontalLayoutGroup>();
+        costLayout.childAlignment = TextAnchor.MiddleCenter;
+        costLayout.spacing = 8f;
+        costLayout.childControlWidth = false;
+        costLayout.childControlHeight = false;
+
+        enhanceCostText = CreateText("CostValue", costRow, "500", 24f, new Color32(10, 20, 30, 255), TextAlignmentOptions.Center);
+        enhanceCostText.rectTransform.sizeDelta = new Vector2(70f, 30f);
+        Image chipMini = CreateBuddyIcon("ChipIcon", costRow, "mini-chip-icon", 30f);
+        chipMini.rectTransform.sizeDelta = new Vector2(30f, 30f);
+
+        // Advance Tier Button (Bottom Right Bottom)
+        GameObject advBtnObj = CreateFrame("AdvanceTierBtn", boxRect, new Color32(132, 204, 22, 255), Yellow, out Image advBg);
+        advBg.sprite = LoadBuddySprite("btn-advance-plate");
+        RectTransform advBtnRect = advBtnObj.GetComponent<RectTransform>();
+        Anchor(advBtnRect, new Vector2(0.71f, 0.075f), Vector2.zero, new Vector2(360f, 80f));
+        advBg.raycastTarget = true;
+        advanceTierBtn = advBtnObj.AddComponent<Button>();
+        advanceTierBtn.targetGraphic = advBg;
+
+        advanceTierText = CreateText("Label", advBtnRect, "Advance Tier (79/3)", 24f, new Color32(10, 20, 30, 255), TextAlignmentOptions.Center);
+        Stretch(advanceTierText.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
         return modalRoot.gameObject;
     }

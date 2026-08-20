@@ -7,10 +7,12 @@ using UnityEngine.UI;
 
 public enum BuddyTier
 {
-    Common = 1,
+    Common = 0,
+    Magic = 1,
     Rare = 2,
-    Epic = 3,
-    Holographic = 4
+    Unique = 3,
+    Epic = 4,
+    Holographic = 5
 }
 
 [Serializable]
@@ -23,21 +25,34 @@ public class BuddyItemData
     public int level = 1;
     public int count = 0;
     public int requiredCount = 3;
-    public float atkBonus = 15f;
-    public float fireRateBonus = 10f;
-    public string specialAbility;
+    public int enhanceCost = 500;
     public string description;
+    public string baseStatText;
+    public string magicPerkText;
+    public string rarePerkText;
+    public string uniquePerkText;
+    public string epicPerkText;
 
-    public bool CanUpgrade => count >= requiredCount && requiredCount > 0;
+    public bool CanEnhance => ChipManager.DataChips >= enhanceCost;
+    public bool CanAdvanceTier => count >= requiredCount && requiredCount > 0;
+    public bool CanUpgrade => CanEnhance || CanAdvanceTier;
 
-    public void Upgrade()
+    public bool Enhance()
     {
-        if (!CanUpgrade) return;
-        count -= requiredCount;
+        if (ChipManager.DataChips < enhanceCost) return false;
+        if (!ChipManager.TrySpendDataChips(enhanceCost)) return false;
         level++;
-        atkBonus += 5f;
-        fireRateBonus += 2.5f;
-        requiredCount = Mathf.RoundToInt(requiredCount * 1.5f) + 1;
+        enhanceCost = Mathf.RoundToInt(enhanceCost * 1.35f);
+        return true;
+    }
+
+    public bool AdvanceTier()
+    {
+        if (!CanAdvanceTier) return false;
+        count -= requiredCount;
+        tier = (BuddyTier)Mathf.Min((int)tier + 1, (int)BuddyTier.Holographic);
+        requiredCount = Mathf.RoundToInt(requiredCount * 1.6f) + 1;
+        return true;
     }
 
     public BuddyItemData Clone()
@@ -51,10 +66,13 @@ public class BuddyItemData
             level = this.level,
             count = this.count,
             requiredCount = this.requiredCount,
-            atkBonus = this.atkBonus,
-            fireRateBonus = this.fireRateBonus,
-            specialAbility = this.specialAbility,
-            description = this.description
+            enhanceCost = this.enhanceCost,
+            description = this.description,
+            baseStatText = this.baseStatText,
+            magicPerkText = this.magicPerkText,
+            rarePerkText = this.rarePerkText,
+            uniquePerkText = this.uniquePerkText,
+            epicPerkText = this.epicPerkText
         };
     }
 }
@@ -98,16 +116,23 @@ public class BuddyController : MonoBehaviour
     [SerializeField] private Transform inventoryContent;
     [SerializeField] private GameObject cardPrefab;
 
-    [Header("Detail Modal")]
+    [Header("Detail Modal (Exact UI)")]
     [SerializeField] private GameObject detailModal;
-    [SerializeField] private Image detailIcon;
+    [SerializeField] private BuddyCardUI detailTopCard;
     [SerializeField] private TMP_Text detailNameText;
-    [SerializeField] private TMP_Text detailLevelText;
     [SerializeField] private TMP_Text detailTierText;
-    [SerializeField] private TMP_Text detailStatsText;
-    [SerializeField] private TMP_Text detailAbilityText;
-    [SerializeField] private Button detailUpgradeBtn;
-    [SerializeField] private TMP_Text detailUpgradeBtnText;
+    [SerializeField] private TMP_Text detailDescText;
+    [SerializeField] private TMP_Text detailBaseStatText;
+
+    // 4 Tier Perk Rows
+    [SerializeField] private Image[] perkRowIcons = new Image[4];
+    [SerializeField] private TMP_Text[] perkRowTexts = new TMP_Text[4];
+
+    [Header("Detail Action Buttons")]
+    [SerializeField] private Button detailEnhanceBtn;
+    [SerializeField] private TMP_Text detailEnhanceCostText;
+    [SerializeField] private Button detailAdvanceTierBtn;
+    [SerializeField] private TMP_Text detailAdvanceTierText;
     [SerializeField] private Button detailEquipBtn;
     [SerializeField] private TMP_Text detailEquipBtnText;
     [SerializeField] private Button detailCloseBtn;
@@ -118,19 +143,19 @@ public class BuddyController : MonoBehaviour
 
     [Header("Sprites Database")]
     [SerializeField] private Sprite[] droneIcons;
-    [SerializeField] private Sprite[] frameSprites; // 0: Common, 1: Rare, 2: Epic, 3: Holographic
+    [SerializeField] private Sprite[] frameSprites;
     [SerializeField] private Sprite upgradeArrowSprite;
     [SerializeField] private Sprite lockSlotSprite;
+    [SerializeField] private Sprite[] lockTierSprites = new Sprite[4]; // 0: Magic, 1: Rare, 2: Unique, 3: Epic
+    [SerializeField] private Sprite unlockedCheckSprite;
 
-    private int activeDeckIndex = 0; // Default to Preset 1 (index 0) as in screenshot
+    private int activeDeckIndex = 0;
     private bool sortByQuantity = true;
     private BuddyItemData selectedDetailBuddy;
 
-    // Database of all drones matching screenshot
     [SerializeField] private List<BuddyItemData> allBuddies = new List<BuddyItemData>();
-    // 3 Decks holding IDs of equipped buddies (3 slots each)
     private int[][] deckEquippedIds = new int[3][];
-    private bool[] slotUnlocked = new bool[] { true, true, false }; // Slot 1 unlocked, Slot 2 unlocked, Slot 3 locked
+    private bool[] slotUnlocked = new bool[] { true, true, false };
     private List<BuddyCardUI> spawnedInventoryCards = new List<BuddyCardUI>();
 
     private static readonly Color SelectedPresetColor = new Color32(255, 203, 73, 255);
@@ -172,6 +197,10 @@ public class BuddyController : MonoBehaviour
     private void HandleCurrencyChanged(int _)
     {
         RefreshTopBar();
+        if (detailModal != null && detailModal.activeSelf)
+        {
+            RefreshDetailModal();
+        }
     }
 
     public void InitializeDatabase()
@@ -180,189 +209,224 @@ public class BuddyController : MonoBehaviour
 
         allBuddies = new List<BuddyItemData>
         {
-            // 1. Drone Snowflake (Equipped in Slot 1 in screenshot)
+            // 1. Drone Snowflake (Frost Sentinel)
             new BuddyItemData
             {
                 id = 1,
-                buddyName = "Snowflake Drone",
+                buddyName = "Frost Sentinel",
                 iconKey = "drone-snowflake",
                 tier = BuddyTier.Common,
                 level = 1,
                 count = 65,
                 requiredCount = 3,
-                atkBonus = 24f,
-                fireRateBonus = 12f,
-                specialAbility = "Frost Nova: Emits a freezing pulse slowing enemies by 35% every 8s.",
-                description = "Tactical support drone that freezes approaching hostiles and shields the player."
+                enhanceCost = 500,
+                description = "Emits freezing pulses slowing hostile squads.",
+                baseStatText = "All Weapons' Slow Effect <color=#FFCB49>15%</color>",
+                magicPerkText = "Slow Duration +20%",
+                rarePerkText = "Frost Aura Radius +30%",
+                uniquePerkText = "Freeze Siphon +30%",
+                epicPerkText = "Blizzard Surge +30%"
             },
-            // 2. Drone Spider (79/3 in screenshot)
+            // 2. Drone Spider (Turret Buffer - As in user screenshot)
             new BuddyItemData
             {
                 id = 2,
-                buddyName = "Spider Quad Drone",
+                buddyName = "Turret Buffer",
                 iconKey = "drone-spider",
                 tier = BuddyTier.Common,
                 level = 1,
                 count = 79,
                 requiredCount = 3,
-                atkBonus = 28f,
-                fireRateBonus = 15f,
-                specialAbility = "Web Net: Traps the closest 3 enemies, immobilizing them for 2.5s.",
-                description = "Agile quad-legged autonomous unit specializing in ground crowd control."
+                enhanceCost = 500,
+                description = "Improves the skills of all Turrets.",
+                baseStatText = "All Turrets' Duration <color=#FFCB49>10%</color>",
+                magicPerkText = "Turret Duration +20%",
+                rarePerkText = "Turret Duration +30%",
+                uniquePerkText = "Turret Duration +30%",
+                epicPerkText = "Turret Duration +30%"
             },
-            // 3. Drone Antenna Eye (67/3 in screenshot)
+            // 3. Drone Antenna Eye (Radar Eye)
             new BuddyItemData
             {
                 id = 3,
-                buddyName = "Antenna Eye Drone",
+                buddyName = "Radar Eye",
                 iconKey = "drone-antenna-eye",
                 tier = BuddyTier.Common,
                 level = 1,
                 count = 67,
                 requiredCount = 3,
-                atkBonus = 22f,
-                fireRateBonus = 20f,
-                specialAbility = "Radar Scan: Increases player Critical Hit Rate by +10% within radius.",
-                description = "Reconnaissance eye drone providing critical targeting data to all weapon systems."
+                enhanceCost = 500,
+                description = "Scans hostiles and pinpoints critical weaknesses.",
+                baseStatText = "All Weapons' CRIT Rate <color=#FFCB49>+5%</color>",
+                magicPerkText = "CRIT Damage +20%",
+                rarePerkText = "Scan Range +30%",
+                uniquePerkText = "Weakpoint Bonus +30%",
+                epicPerkText = "Target Lock +30%"
             },
-            // 4. Drone Cross Visor (60/3 in screenshot)
+            // 4. Drone Cross Visor (Assault Blaster)
             new BuddyItemData
             {
                 id = 4,
-                buddyName = "Cross Visor Drone",
+                buddyName = "Assault Blaster",
                 iconKey = "drone-cross-visor",
                 tier = BuddyTier.Common,
                 level = 1,
                 count = 60,
                 requiredCount = 3,
-                atkBonus = 32f,
-                fireRateBonus = 10f,
-                specialAbility = "Overcharge Laser: Fires a continuous twin laser beam dealing 180% damage.",
-                description = "Heavy assault robot head unit with high-powered dual optical blasters."
+                enhanceCost = 500,
+                description = "Continuous twin blaster providing direct firepower.",
+                baseStatText = "All Weapons' ATK <color=#FFCB49>+12%</color>",
+                magicPerkText = "Blaster ATK +20%",
+                rarePerkText = "Fire Rate +30%",
+                uniquePerkText = "Dual Shot ATK +30%",
+                epicPerkText = "Overheat Surge +30%"
             },
-            // 5. Drone Capsule (58/3 in screenshot)
+            // 5. Drone Capsule (Nano Healer)
             new BuddyItemData
             {
                 id = 5,
-                buddyName = "Capsule Drone",
+                buddyName = "Nano Healer",
                 iconKey = "drone-capsule",
                 tier = BuddyTier.Common,
                 level = 1,
                 count = 58,
                 requiredCount = 3,
-                atkBonus = 20f,
-                fireRateBonus = 14f,
-                specialAbility = "Nano Repair: Restores +2 HP every 5 seconds to the player.",
-                description = "Defensive support drone equipped with automated nano-repair capsules."
+                enhanceCost = 500,
+                description = "Dispatches automated nano-capsules to regenerate health.",
+                baseStatText = "Player HP Recovery <color=#FFCB49>+2 HP/s</color>",
+                magicPerkText = "Heal Amount +20%",
+                rarePerkText = "Repair Speed +30%",
+                uniquePerkText = "Shield Battery +30%",
+                epicPerkText = "Emergency Revive +30%"
             },
-            // 6. Drone Spiky Mine (51/3 in screenshot)
+            // 6. Drone Spiky Mine (Mine Layer)
             new BuddyItemData
             {
                 id = 6,
-                buddyName = "Spiky Mine Drone",
+                buddyName = "Mine Layer",
                 iconKey = "drone-spiky-mine",
                 tier = BuddyTier.Common,
                 level = 1,
                 count = 51,
                 requiredCount = 3,
-                atkBonus = 36f,
-                fireRateBonus = 8f,
-                specialAbility = "Shrapnel Blast: Detonates explosive spikes when enemies get too close.",
-                description = "Heavy defensive orb that repels swarming monsters with lethal shrapnel."
+                enhanceCost = 500,
+                description = "Deploys cluster shrapnel mines around the player.",
+                baseStatText = "Mine AoE Range <color=#FFCB49>+15%</color>",
+                magicPerkText = "Mine ATK +20%",
+                rarePerkText = "Mine Cooldown -30%",
+                uniquePerkText = "Cluster Count +30%",
+                epicPerkText = "Shrapnel Blast +30%"
             },
-            // 7. Drone Octagon Shield (51/3 in screenshot)
+            // 7. Drone Octagon Shield (Aegis Defender)
             new BuddyItemData
             {
                 id = 7,
-                buddyName = "Octagon Shield Drone",
+                buddyName = "Aegis Defender",
                 iconKey = "drone-octagon-shield",
                 tier = BuddyTier.Common,
                 level = 1,
                 count = 51,
                 requiredCount = 3,
-                atkBonus = 18f,
-                fireRateBonus = 10f,
-                specialAbility = "Barrier Field: Absorbs up to 200 incoming projectile damage.",
-                description = "Guardian drone projecting an 8-sided geometric forcefield around the hero."
+                enhanceCost = 500,
+                description = "Projects a geometric barrier blocking incoming enemy fire.",
+                baseStatText = "Player Shield Defense <color=#FFCB49>+18%</color>",
+                magicPerkText = "Barrier Duration +20%",
+                rarePerkText = "Cooldown -30%",
+                uniquePerkText = "Damage Absorption +30%",
+                epicPerkText = "Pulse Reflection +30%"
             },
-            // 8. Drone Claw Magnet (48/3 in screenshot)
+            // 8. Drone Claw Magnet (Scavenger Unit)
             new BuddyItemData
             {
                 id = 8,
-                buddyName = "Claw Magnet Drone",
+                buddyName = "Scavenger Unit",
                 iconKey = "drone-claw-magnet",
                 tier = BuddyTier.Common,
                 level = 1,
                 count = 48,
                 requiredCount = 3,
-                atkBonus = 26f,
-                fireRateBonus = 12f,
-                specialAbility = "Magnetic Pull: Pulls dropped EXP and Data Chips from 50% farther away.",
-                description = "Utility scavenger drone maximizing resource collection speed."
+                enhanceCost = 500,
+                description = "Magnetically attracts dropped chips and energy cells.",
+                baseStatText = "Resource Vacuum Radius <color=#FFCB49>+35%</color>",
+                magicPerkText = "Pickup Range +20%",
+                rarePerkText = "Chip Drop Rate +30%",
+                uniquePerkText = "Exp Attraction +30%",
+                epicPerkText = "Scrap Recycling +30%"
             },
-            // 9. Drone Dual Rotor (46/3 in screenshot)
+            // 9. Drone Dual Rotor (Air Striker)
             new BuddyItemData
             {
                 id = 9,
-                buddyName = "Dual Rotor Drone",
+                buddyName = "Air Striker",
                 iconKey = "drone-dual-rotor",
                 tier = BuddyTier.Common,
                 level = 1,
                 count = 46,
                 requiredCount = 3,
-                atkBonus = 30f,
-                fireRateBonus = 18f,
-                specialAbility = "Air Strike: Drops mini-bombs over clustered enemy squads.",
-                description = "High-speed twin propeller drone providing rapid aerial bombardment."
+                enhanceCost = 500,
+                description = "Executes aerial bombardment on congested monster waves.",
+                baseStatText = "Bombing Splash Damage <color=#FFCB49>+20%</color>",
+                magicPerkText = "Air Bomb ATK +20%",
+                rarePerkText = "Flight Speed +30%",
+                uniquePerkText = "Bomb Radius +30%",
+                epicPerkText = "Napalm Burn +30%"
             },
-            // 10. Drone Stealth Wing (38/3 in screenshot)
+            // 10. Drone Stealth Wing (Armor Piercer)
             new BuddyItemData
             {
                 id = 10,
-                buddyName = "Stealth Wing Drone",
+                buddyName = "Armor Piercer",
                 iconKey = "drone-stealth-wing",
                 tier = BuddyTier.Common,
                 level = 1,
                 count = 38,
                 requiredCount = 3,
-                atkBonus = 34f,
-                fireRateBonus = 16f,
-                specialAbility = "Plasma Dart: Bypasses 50% of enemy armor defense.",
-                description = "Advanced stealth unit delivering precision armor-piercing strikes."
+                enhanceCost = 500,
+                description = "Fires high-velocity darts piercing armored threats.",
+                baseStatText = "Armor Penetration <color=#FFCB49>+25%</color>",
+                magicPerkText = "Dart Speed +20%",
+                rarePerkText = "Critical Strike +30%",
+                uniquePerkText = "Bleed Damage +30%",
+                epicPerkText = "Stealth Strike +30%"
             },
-            // 11. Drone Laser Sentry
+            // 11. Drone Laser Sentry (Beam Sentry)
             new BuddyItemData
             {
                 id = 11,
-                buddyName = "Laser Sentry Drone",
+                buddyName = "Beam Sentry",
                 iconKey = "drone-laser-sentry",
                 tier = BuddyTier.Rare,
                 level = 1,
                 count = 30,
                 requiredCount = 5,
-                atkBonus = 45f,
-                fireRateBonus = 22f,
-                specialAbility = "Lock-on Beam: Continuously burns boss targets with escalating damage.",
-                description = "Target-tracking sentry drone optimized for single-target boss elimination."
+                enhanceCost = 750,
+                description = "Locks onto highest HP targets with continuous thermal beams.",
+                baseStatText = "Boss Target Damage <color=#FFCB49>+30%</color>",
+                magicPerkText = "Beam ATK +20%",
+                rarePerkText = "Burn Duration +30%",
+                uniquePerkText = "Beam Width +30%",
+                epicPerkText = "Thermal Meltdown +30%"
             },
-            // 12. Drone Plasma Orb
+            // 12. Drone Plasma Orb (Plasma Vortex)
             new BuddyItemData
             {
                 id = 12,
-                buddyName = "Plasma Orb Drone",
+                buddyName = "Plasma Vortex",
                 iconKey = "drone-plasma-orb",
                 tier = BuddyTier.Epic,
                 level = 1,
                 count = 24,
                 requiredCount = 7,
-                atkBonus = 60f,
-                fireRateBonus = 14f,
-                specialAbility = "Plasma Storm: Creates electrical vortices zapping all nearby threats.",
-                description = "Experimental high-energy plasma core drone unleashing devastating storms."
+                enhanceCost = 1000,
+                description = "Unleashes swirling electrical vortices annihilating crowds.",
+                baseStatText = "All Weapons' Lightning ATK <color=#FFCB49>+35%</color>",
+                magicPerkText = "Vortex Radius +20%",
+                rarePerkText = "Zap Chains +30%",
+                uniquePerkText = "Discharge ATK +30%",
+                epicPerkText = "Supernova Surge +30%"
             }
         };
 
-        // Preset 1: Slot 1 equipped with Snowflake Drone (ID 1), Slot 2 Empty (-1), Slot 3 Locked (-2)
         deckEquippedIds[0] = new int[] { 1, -1, -2 };
         deckEquippedIds[1] = new int[] { 2, -1, -2 };
         deckEquippedIds[2] = new int[] { 3, -1, -2 };
@@ -381,7 +445,8 @@ public class BuddyController : MonoBehaviour
         if (robotPetModeBtn != null) robotPetModeBtn.onClick.AddListener(() => ShowToast("Robot Pet unlocks at Chapter 12!"));
 
         if (detailCloseBtn != null) detailCloseBtn.onClick.AddListener(() => detailModal.SetActive(false));
-        if (detailUpgradeBtn != null) detailUpgradeBtn.onClick.AddListener(UpgradeSelectedDetailBuddy);
+        if (detailEnhanceBtn != null) detailEnhanceBtn.onClick.AddListener(EnhanceSelectedBuddy);
+        if (detailAdvanceTierBtn != null) detailAdvanceTierBtn.onClick.AddListener(AdvanceTierSelectedBuddy);
         if (detailEquipBtn != null) detailEquipBtn.onClick.AddListener(ToggleEquipSelectedBuddy);
     }
 
@@ -439,17 +504,14 @@ public class BuddyController : MonoBehaviour
 
             if (buddyId == -2 || !slotUnlocked[i])
             {
-                // Locked Slot
                 equippedSlots[i].SetupLocked(frame, () => ShowToast($"Slot {i + 1} unlocks at Chapter 8!"));
             }
             else if (buddyId == -1)
             {
-                // Empty Slot
                 equippedSlots[i].SetupEmpty(frame, () => ShowToast($"Slot {i + 1} is Empty. Select a drone from below to equip."));
             }
             else
             {
-                // Equipped Drone
                 BuddyItemData buddy = allBuddies.FirstOrDefault(b => b.id == buddyId);
                 if (buddy != null)
                 {
@@ -469,7 +531,6 @@ public class BuddyController : MonoBehaviour
     {
         if (inventoryContent == null || cardPrefab == null) return;
 
-        // Sort items
         List<BuddyItemData> sortedList = new List<BuddyItemData>(allBuddies);
         if (sortByQuantity)
         {
@@ -480,7 +541,6 @@ public class BuddyController : MonoBehaviour
             sortedList = sortedList.OrderByDescending(b => (int)b.tier).ThenByDescending(b => b.level).ToList();
         }
 
-        // Reuse or instantiate cards
         for (int i = 0; i < sortedList.Count; i++)
         {
             BuddyCardUI card;
@@ -510,22 +570,7 @@ public class BuddyController : MonoBehaviour
 
     public void QuickUpgradeBuddy(BuddyItemData buddy)
     {
-        if (buddy == null || !buddy.CanUpgrade)
-        {
-            ShowToast("Not enough drone fragments to upgrade!");
-            return;
-        }
-
-        buddy.Upgrade();
-        ChipManager.AddDataChips(150);
-        RefreshTopBar();
-        RefreshEquippedGrid();
-        RefreshInventory();
-        if (detailModal != null && detailModal.activeSelf && selectedDetailBuddy == buddy)
-        {
-            RefreshDetailModal();
-        }
-        ShowToast($"Upgraded {buddy.buddyName} to LV.{buddy.level:00}!");
+        OpenDetailModal(buddy);
     }
 
     public void OpenDetailModal(BuddyItemData buddy)
@@ -536,28 +581,87 @@ public class BuddyController : MonoBehaviour
         detailModal.SetActive(true);
     }
 
-    private void RefreshDetailModal()
+    public void RefreshDetailModal()
     {
         if (selectedDetailBuddy == null) return;
 
-        if (detailIcon != null) detailIcon.sprite = GetIconSprite(selectedDetailBuddy.iconKey);
-        if (detailNameText != null) detailNameText.text = selectedDetailBuddy.buddyName;
-        if (detailLevelText != null) detailLevelText.text = $"LEVEL {selectedDetailBuddy.level:00}";
-        if (detailTierText != null) detailTierText.text = selectedDetailBuddy.tier.ToString().ToUpper();
-        if (detailStatsText != null) detailStatsText.text = $"• Drone ATK: +{selectedDetailBuddy.atkBonus:0}%\n• Fire Rate: +{selectedDetailBuddy.fireRateBonus:0}%\n• {selectedDetailBuddy.description}";
-        if (detailAbilityText != null) detailAbilityText.text = $"• <color=#40DAD2>{selectedDetailBuddy.specialAbility}</color>";
-
-        if (detailUpgradeBtn != null)
+        // 1. Top Card
+        if (detailTopCard != null)
         {
-            detailUpgradeBtn.interactable = selectedDetailBuddy.CanUpgrade;
-            if (detailUpgradeBtnText != null)
+            Sprite icon = GetIconSprite(selectedDetailBuddy.iconKey);
+            Sprite frame = GetFrameSprite(selectedDetailBuddy.tier);
+            detailTopCard.Setup(selectedDetailBuddy, icon, frame);
+        }
+
+        // 2. Name & Tier
+        if (detailNameText != null) detailNameText.text = selectedDetailBuddy.buddyName;
+        if (detailTierText != null) detailTierText.text = selectedDetailBuddy.tier.ToString();
+
+        // 3. Description & Base Stat
+        if (detailDescText != null) detailDescText.text = selectedDetailBuddy.description;
+        if (detailBaseStatText != null) detailBaseStatText.text = selectedDetailBuddy.baseStatText;
+
+        // 4. 4 Tier Perk Rows with colored unlock tags
+        string[] tierNames = { "Magic", "Rare", "Unique", "Epic" };
+        string[] tierColors = { "#38BDF8", "#C084FC", "#FACC15", "#FB7185" };
+        string[] perkTexts = {
+            selectedDetailBuddy.magicPerkText,
+            selectedDetailBuddy.rarePerkText,
+            selectedDetailBuddy.uniquePerkText,
+            selectedDetailBuddy.epicPerkText
+        };
+
+        for (int i = 0; i < 4; i++)
+        {
+            bool isUnlocked = (int)selectedDetailBuddy.tier > i;
+            if (i < perkRowIcons.Length && perkRowIcons[i] != null)
             {
-                detailUpgradeBtnText.text = selectedDetailBuddy.requiredCount > 0
-                    ? $"UPGRADE ({selectedDetailBuddy.count}/{selectedDetailBuddy.requiredCount})"
-                    : "MAX LEVEL";
+                if (isUnlocked && unlockedCheckSprite != null)
+                {
+                    perkRowIcons[i].sprite = unlockedCheckSprite;
+                }
+                else if (i < lockTierSprites.Length && lockTierSprites[i] != null)
+                {
+                    perkRowIcons[i].sprite = lockTierSprites[i];
+                }
+            }
+
+            if (i < perkRowTexts.Length && perkRowTexts[i] != null)
+            {
+                if (isUnlocked)
+                {
+                    perkRowTexts[i].text = $"<color=#40DAD2>{perkTexts[i]}</color> <color=#22C55E>[ACTIVE]</color>";
+                }
+                else
+                {
+                    perkRowTexts[i].text = $"{perkTexts[i]}(<color={tierColors[i]}>{tierNames[i]}</color>Unlock)";
+                }
             }
         }
 
+        // 5. Enhance Button
+        if (detailEnhanceCostText != null)
+        {
+            detailEnhanceCostText.text = $"{selectedDetailBuddy.enhanceCost}";
+        }
+        if (detailEnhanceBtn != null)
+        {
+            detailEnhanceBtn.interactable = selectedDetailBuddy.CanEnhance;
+        }
+
+        // 6. Advance Tier Button
+        if (detailAdvanceTierText != null)
+        {
+            detailAdvanceTierText.text = selectedDetailBuddy.requiredCount > 0
+                ? $"Advance Tier ({selectedDetailBuddy.count}/{selectedDetailBuddy.requiredCount})"
+                : "MAX TIER";
+        }
+        if (detailAdvanceTierBtn != null)
+        {
+            detailAdvanceTierBtn.interactable = selectedDetailBuddy.CanAdvanceTier;
+        }
+
+        // 7. Equip / Unequip Button
         bool isEquipped = deckEquippedIds[activeDeckIndex].Contains(selectedDetailBuddy.id);
         if (detailEquipBtnText != null)
         {
@@ -565,11 +669,41 @@ public class BuddyController : MonoBehaviour
         }
     }
 
-    private void UpgradeSelectedDetailBuddy()
+    private void EnhanceSelectedBuddy()
     {
-        if (selectedDetailBuddy != null)
+        if (selectedDetailBuddy == null) return;
+        if (!selectedDetailBuddy.CanEnhance)
         {
-            QuickUpgradeBuddy(selectedDetailBuddy);
+            ShowToast("Not enough Data Chips to enhance!");
+            return;
+        }
+
+        if (selectedDetailBuddy.Enhance())
+        {
+            RefreshTopBar();
+            RefreshEquippedGrid();
+            RefreshInventory();
+            RefreshDetailModal();
+            ShowToast($"Enhanced {selectedDetailBuddy.buddyName} to LV.{selectedDetailBuddy.level:00}!");
+        }
+    }
+
+    private void AdvanceTierSelectedBuddy()
+    {
+        if (selectedDetailBuddy == null) return;
+        if (!selectedDetailBuddy.CanAdvanceTier)
+        {
+            ShowToast("Not enough fragments to advance tier!");
+            return;
+        }
+
+        if (selectedDetailBuddy.AdvanceTier())
+        {
+            RefreshTopBar();
+            RefreshEquippedGrid();
+            RefreshInventory();
+            RefreshDetailModal();
+            ShowToast($"Advanced {selectedDetailBuddy.buddyName} to {selectedDetailBuddy.tier} Tier!");
         }
     }
 
@@ -582,13 +716,11 @@ public class BuddyController : MonoBehaviour
 
         if (indexInDeck >= 0)
         {
-            // Unequip
             currentDeck[indexInDeck] = -1;
             ShowToast($"Unequipped {selectedDetailBuddy.buddyName}");
         }
         else
         {
-            // Find empty slot (among unlocked slots 0 and 1)
             int emptyIndex = -1;
             for (int i = 0; i < currentDeck.Length; i++)
             {
@@ -606,7 +738,6 @@ public class BuddyController : MonoBehaviour
             }
             else
             {
-                // Replace slot 0 if all full
                 currentDeck[0] = selectedDetailBuddy.id;
                 ShowToast($"Replaced Slot 1 with {selectedDetailBuddy.buddyName}");
             }
@@ -629,12 +760,14 @@ public class BuddyController : MonoBehaviour
         {
             case BuddyTier.Common:
                 return frameSprites.Length > 0 ? frameSprites[0] : null;
+            case BuddyTier.Magic:
             case BuddyTier.Rare:
                 return frameSprites.Length > 1 ? frameSprites[1] : frameSprites[0];
+            case BuddyTier.Unique:
             case BuddyTier.Epic:
                 return frameSprites.Length > 2 ? frameSprites[2] : frameSprites[0];
             case BuddyTier.Holographic:
-                return frameSprites.Length > 3 ? frameSprites[3] : (frameSprites.Length > 2 ? frameSprites[2] : frameSprites[0]);
+                return frameSprites.Length > 3 ? frameSprites[3] : frameSprites[0];
             default:
                 return frameSprites[0];
         }

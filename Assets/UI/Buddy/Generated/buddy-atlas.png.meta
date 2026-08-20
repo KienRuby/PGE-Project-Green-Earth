@@ -137,7 +137,7 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 05386269aed590246a99b721887417d4
+      spriteID: 3e7d1e5586840efe04245ed37e9ac938
       internalID: 4137033298118205058
       vertices: []
       indices: 
@@ -158,7 +158,7 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 825f1e2383ea4054e9a55894018be5d0
+      spriteID: b71f8c5e3c837d7b2a93a7c2103cece7
       internalID: 5879385066240747477
       vertices: []
       indices: 
@@ -179,7 +179,7 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: cd284901cb4d532499450a4ad8a112eb
+      spriteID: f8f2586a08a5c50127e03be4c3f502ea
       internalID: -4638666424103510695
       vertices: []
       indices: 
@@ -200,7 +200,7 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 5787cb40affca8a40ac6ff8a669903df
+      spriteID: 767c35a9f8a0823249f9f715c421e845
       internalID: 3753354610311574428
       vertices: []
       indices: 
@@ -221,7 +221,7 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 83c1ac0f9b9c832449118685b7ea74b7
+      spriteID: 5cfdee37ca85d5e227736205c646758d
       internalID: -8241658401041118982
       vertices: []
       indices: 
@@ -231,8 +231,8 @@ TextureImporter:
       name: drone-spiky-mine
       rect:
         serializedVersion: 2
-        x: 0
-        y: 768
+        x: 1280
+        y: 1024
         width: 256
         height: 256
       alignment: 0
@@ -242,7 +242,7 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 6c40707668e1dc64d9edbbbaafc4db8e
+      spriteID: fd8175320969fb449b2fb1346d8626df
       internalID: 2986920648782021610
       vertices: []
       indices: 
@@ -252,7 +252,7 @@ TextureImporter:
       name: drone-octagon-shield
       rect:
         serializedVersion: 2
-        x: 256
+        x: 0
         y: 768
         width: 256
         height: 256
@@ -263,7 +263,7 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: cb4f42b395173454eae28bf8e1129703
+      spriteID: 78f2b037346e4ab00765eca792a776da
       internalID: 5926068788238431893
       vertices: []
       indices: 
@@ -273,7 +273,7 @@ TextureImporter:
       name: drone-claw-magnet
       rect:
         serializedVersion: 2
-        x: 512
+        x: 256
         y: 768
         width: 256
         height: 256
@@ -284,7 +284,7 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 02ccfd1042bae6548b1e434d45384b03
+      spriteID: f6d4bd8b2dd9cbf407f30dab67b5ab3a
       internalID: -5378373710110035069
       vertices: []
       indices: 
@@ -294,7 +294,7 @@ TextureImporter:
       name: drone-dual-rotor
       rect:
         serializedVersion: 2
-        x: 768
+        x: 512
         y: 768
         width: 256
         height: 256
@@ -305,7 +305,7 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 8fc7e98e22da87847a92cb0a7c85b45f
+      spriteID: 910e93516dd7c5d10a6e865d7eada55d
       internalID: 2913529819253876765
       vertices: []
       indices: 
@@ -315,6 +315,27 @@ TextureImporter:
       name: drone-stealth-wing
       rect:
         serializedVersion: 2
+        x: 768
+        y: 768
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 10a6bf952d204acf1d8425ea8560d34c
+      internalID: 8919754310080449623
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: drone-laser-sentry
+      rect:
+        serializedVersion: 2
         x: 1024
         y: 768
         width: 256
@@ -326,28 +347,7 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 3ce9524b93e02ff419cedc947a4eb661
-      internalID: 8919754310080449623
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: drone-laser-sentry
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 512
-        width: 256
-        height: 256
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 681fd4bb040b9684baf725c13d78f088
+      spriteID: 16a31a62ec595ead692904080dadadd9
       internalID: 709792436686356200
       vertices: []
       indices: 
@@ -357,6 +357,48 @@ TextureImporter:
       name: drone-plasma-orb
       rect:
         serializedVersion: 2
+        x: 1280
+        y: 768
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 840527bec61b35293962bf4e1a0adc94
+      internalID: -9044355287875397586
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: buddy-frame-normal
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 512
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 14631e455c8319a682866b1e2c0fbaca
+      internalID: 7780385752199456056
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: buddy-frame-rare
+      rect:
+        serializedVersion: 2
         x: 256
         y: 512
         width: 256
@@ -368,14 +410,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: c6c0df08da79de94ea6df1fa6063d3c0
-      internalID: -9044355287875397586
+      spriteID: 97bc521ff8ee3bd84482b0c7c97e5a0b
+      internalID: 6466239437748059917
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: buddy-frame-normal
+      name: buddy-frame-epic
       rect:
         serializedVersion: 2
         x: 512
@@ -389,14 +431,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 3a9e042f73853b44cbc630f443395145
-      internalID: 7780385752199456056
+      spriteID: 6b9f32908b2868c7122ae43f28130607
+      internalID: -7348707315673418418
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: buddy-frame-rare
+      name: buddy-frame-holographic
       rect:
         serializedVersion: 2
         x: 768
@@ -410,14 +452,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 7b128ad4a108c2e43b0b4e4583cfb65c
-      internalID: 6466239437748059917
+      spriteID: 97868f90914a63f8f482184abcc8f610
+      internalID: -3213224868220672908
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: buddy-frame-epic
+      name: icon-lock-buddy
       rect:
         serializedVersion: 2
         x: 1024
@@ -431,14 +473,35 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 8fb594be0c8c0464da855a12c0fd7c9d
-      internalID: -7348707315673418418
+      spriteID: c47ddbed3853a3da94f9a4cee3c0eaea
+      internalID: -6620069027460305772
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: buddy-frame-holographic
+      name: badge-upgrade-green
+      rect:
+        serializedVersion: 2
+        x: 1280
+        y: 512
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 04fa0cae7f0de81984abf245e9e842e7
+      internalID: 3744143520558363163
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: wave-pulse-cyan
       rect:
         serializedVersion: 2
         x: 0
@@ -452,14 +515,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 6e774da458c49c243b185f1c7424416f
-      internalID: -3213224868220672908
+      spriteID: 043aa082ac7e647875197e18eb70aaa2
+      internalID: 7647390781302118217
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: icon-lock-buddy
+      name: icon-drone-tab
       rect:
         serializedVersion: 2
         x: 256
@@ -473,14 +536,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 9cd23de94081cc74282bbf84da5c6e68
-      internalID: -6620069027460305772
+      spriteID: 815e655f953e69207c73740b0fd03eaf
+      internalID: 271333761890153877
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: badge-upgrade-green
+      name: icon-lock-blue
       rect:
         serializedVersion: 2
         x: 512
@@ -494,14 +557,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: ae68fd18953eaf848b42acb84b6e0f64
-      internalID: 3744143520558363163
+      spriteID: ccb0a2baa1a2a5f948b6a51f17968a8d
+      internalID: 6881975095238373034
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: wave-pulse-cyan
+      name: icon-lock-purple
       rect:
         serializedVersion: 2
         x: 768
@@ -515,14 +578,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: f5ebd24f781105f4bae9b9f9f90fd967
-      internalID: 7647390781302118217
+      spriteID: 23a5f384fdb6db68b23fa802776e5053
+      internalID: 4129604470339253862
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: icon-drone-tab
+      name: icon-lock-yellow
       rect:
         serializedVersion: 2
         x: 1024
@@ -536,8 +599,155 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 9bb83fd415973744f9f3661fa261db4b
-      internalID: 271333761890153877
+      spriteID: f7e604b89e99fe96a418c65fc718f2f2
+      internalID: 5560631204336547995
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon-lock-pink
+      rect:
+        serializedVersion: 2
+        x: 1280
+        y: 256
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 340e75873b883723cdfb45bd34b139c8
+      internalID: 3718471499159931901
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon-lock-unlocked
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7d897bf6b39e88da4d855322b4a3e1b6
+      internalID: -1290102306261120129
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn-enhance-plate
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 0
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1f9fc6bcfec5a62b2d0c2b868960d731
+      internalID: -6913394274714070666
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn-advance-plate
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 0
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6618c6af382c05158e2220550f82abc9
+      internalID: 41706019716537720
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: btn-equip-plate
+      rect:
+        serializedVersion: 2
+        x: 768
+        y: 0
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4b236fe17d1523d2a45996cdb19d5990
+      internalID: -6259451952051397127
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mini-chip-icon
+      rect:
+        serializedVersion: 2
+        x: 1024
+        y: 0
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 06830d2c57dcdc0892ae943bca37d1ba
+      internalID: 3681425778850872489
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mini-red-gem
+      rect:
+        serializedVersion: 2
+        x: 1280
+        y: 0
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f8becf50e403237f8baaa4be28a295ed
+      internalID: -6164735594702996487
       vertices: []
       indices: 
       edges: []
@@ -554,6 +764,9 @@ TextureImporter:
     secondaryTextures: []
     nameFileIdTable:
       badge-upgrade-green: 3744143520558363163
+      btn-advance-plate: 41706019716537720
+      btn-enhance-plate: -6913394274714070666
+      btn-equip-plate: -6259451952051397127
       buddy-frame-epic: -7348707315673418418
       buddy-frame-holographic: -3213224868220672908
       buddy-frame-normal: 7780385752199456056
@@ -571,7 +784,14 @@ TextureImporter:
       drone-spiky-mine: 2986920648782021610
       drone-stealth-wing: 8919754310080449623
       icon-drone-tab: 271333761890153877
+      icon-lock-blue: 6881975095238373034
       icon-lock-buddy: -6620069027460305772
+      icon-lock-pink: 3718471499159931901
+      icon-lock-purple: 4129604470339253862
+      icon-lock-unlocked: -1290102306261120129
+      icon-lock-yellow: 5560631204336547995
+      mini-chip-icon: 3681425778850872489
+      mini-red-gem: -6164735594702996487
       wave-pulse-cyan: 7647390781302118217
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0

@@ -930,7 +930,7 @@ public class PGEGameLogicTests
     }
 
     [Test]
-    public void Buddy_Upgrade_ConsumesCount_And_IncreasesLevel()
+    public void Buddy_EnhanceAndAdvanceTier_ConsumesResources_And_IncreasesProgression()
     {
         BuddyItemData drone = new BuddyItemData
         {
@@ -941,18 +941,24 @@ public class PGEGameLogicTests
             level = 1,
             count = 10,
             requiredCount = 3,
-            atkBonus = 15f
+            enhanceCost = 500
         };
 
-        Assert.That(drone.CanUpgrade, Is.True);
-        float initialAtk = drone.atkBonus;
-
-        drone.Upgrade();
-
-        Assert.That(drone.level, Is.EqualTo(2));
+        // Advance Tier with fragments
+        Assert.That(drone.CanAdvanceTier, Is.True);
+        bool adv = drone.AdvanceTier();
+        Assert.That(adv, Is.True);
+        Assert.That(drone.tier, Is.EqualTo(BuddyTier.Magic));
         Assert.That(drone.count, Is.EqualTo(7));
-        Assert.That(drone.atkBonus, Is.GreaterThan(initialAtk));
         Assert.That(drone.requiredCount, Is.GreaterThan(3));
+
+        // Enhance level with Data Chips
+        ChipManager.DataChips = 2000;
+        Assert.That(drone.CanEnhance, Is.True);
+        bool enh = drone.Enhance();
+        Assert.That(enh, Is.True);
+        Assert.That(drone.level, Is.EqualTo(2));
+        Assert.That(drone.enhanceCost, Is.GreaterThan(500));
     }
 
     [Test]
