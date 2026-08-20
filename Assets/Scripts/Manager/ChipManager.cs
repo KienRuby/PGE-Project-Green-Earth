@@ -60,6 +60,10 @@ public sealed class ChipManager : MonoBehaviour
     [Tooltip("Số Năng Lượng (Energy) hiển thị trong chế độ Test.")]
     [SerializeField] private int testEnergy = 100;
 
+    [Min(0)]
+    [Tooltip("Số Đá Tiến Bậc (Advance Stones) hiển thị trong chế độ Test.")]
+    [SerializeField] private int testAdvanceStones = 9999;
+
     [Header("=== DEFAULT BALANCES (CHẾ ĐỘ THƯỜNG) ===")]
     [Min(0)]
     [SerializeField] private int defaultStartingDataChips = 134936;
@@ -70,6 +74,9 @@ public sealed class ChipManager : MonoBehaviour
     [Min(0)]
     [SerializeField] private int defaultStartingEnergy = 50;
 
+    [Min(0)]
+    [SerializeField] private int defaultStartingAdvanceStones = 50;
+
     [Min(1)]
     [SerializeField] private int maximumEnergy = 100;
 
@@ -79,6 +86,7 @@ public sealed class ChipManager : MonoBehaviour
     public static event Action<int> OnDataChipsChanged;
     public static event Action<int> OnRedGemsChanged;
     public static event Action<int> OnEnergyChanged;
+    public static event Action<int> OnAdvanceStonesChanged;
     public static event Action<bool> OnTestModeChanged;
 
     // =========================================================================
@@ -170,6 +178,11 @@ public sealed class ChipManager : MonoBehaviour
         if (!PlayerPrefs.HasKey(PlayerDataService.EnergyKey))
         {
             PlayerDataService.Energy = defaultStartingEnergy;
+        }
+
+        if (!PlayerPrefs.HasKey(PlayerDataService.AdvanceStonesKey))
+        {
+            PlayerDataService.AdvanceStones = defaultStartingAdvanceStones;
         }
     }
 
@@ -311,6 +324,34 @@ public sealed class ChipManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Số lượng Đá Tiến Bậc (Advance Stones) hiện có.
+    /// </summary>
+    public static int AdvanceStones
+    {
+        get
+        {
+            if (IsTestMode)
+            {
+                return Instance.testAdvanceStones;
+            }
+            return PlayerDataService.AdvanceStones;
+        }
+        set
+        {
+            if (IsTestMode)
+            {
+                Instance.testAdvanceStones = Mathf.Max(0, value);
+                OnAdvanceStonesChanged?.Invoke(Instance.testAdvanceStones);
+            }
+            else
+            {
+                PlayerDataService.AdvanceStones = value;
+                OnAdvanceStonesChanged?.Invoke(PlayerDataService.AdvanceStones);
+            }
+        }
+    }
+
     public static int MaxEnergy => Instance != null ? Instance.maximumEnergy : 100;
 
     // =========================================================================
@@ -333,6 +374,12 @@ public sealed class ChipManager : MonoBehaviour
     {
         if (IsInfiniteInTest) return true;
         return Energy >= amount;
+    }
+
+    public static bool HasEnoughAdvanceStones(int amount)
+    {
+        if (IsInfiniteInTest) return true;
+        return AdvanceStones >= amount;
     }
 
     /// <summary>
@@ -389,6 +436,24 @@ public sealed class ChipManager : MonoBehaviour
         return true;
     }
 
+    /// <summary>
+    /// Trừ Đá Tiến Bậc (Advance Stones). Khi Test Mode bật trong Editor, luôn thành công.
+    /// </summary>
+    public static bool TrySpendAdvanceStones(int amount)
+    {
+        if (amount < 0) return false;
+
+        if (IsInfiniteInTest)
+        {
+            return true;
+        }
+
+        if (AdvanceStones < amount) return false;
+
+        AdvanceStones -= amount;
+        return true;
+    }
+
     public static void AddDataChips(int amount)
     {
         if (amount <= 0) return;
@@ -407,11 +472,18 @@ public sealed class ChipManager : MonoBehaviour
         Energy += amount;
     }
 
+    public static void AddAdvanceStones(int amount)
+    {
+        if (amount <= 0) return;
+        AdvanceStones += amount;
+    }
+
     public void NotifyAllBalancesChanged()
     {
         OnDataChipsChanged?.Invoke(DataChips);
         OnRedGemsChanged?.Invoke(RedGems);
         OnEnergyChanged?.Invoke(Energy);
+        OnAdvanceStonesChanged?.Invoke(AdvanceStones);
     }
 
     // =========================================================================
@@ -441,6 +513,13 @@ public sealed class ChipManager : MonoBehaviour
         Debug.Log($"[ChipManager] Đã đặt RedGems = {RedGems:N0}");
     }
 
+    [ContextMenu("Set 9,999 Advance Stones")]
+    public void CheatMaxAdvanceStones()
+    {
+        AdvanceStones = 9999;
+        Debug.Log($"[ChipManager] Đã đặt AdvanceStones = {AdvanceStones:N0}");
+    }
+
     [ContextMenu("Reset Balances to Defaults")]
     public void ResetBalancesToDefault()
     {
@@ -448,6 +527,7 @@ public sealed class ChipManager : MonoBehaviour
         PlayerDataService.DataChips = defaultStartingDataChips;
         PlayerDataService.RedGems = defaultStartingRedGems;
         PlayerDataService.Energy = defaultStartingEnergy;
+        PlayerDataService.AdvanceStones = defaultStartingAdvanceStones;
         PlayerPrefs.Save();
         NotifyAllBalancesChanged();
         Debug.Log("[ChipManager] Đã reset toàn bộ số dư về mặc định ban đầu.");

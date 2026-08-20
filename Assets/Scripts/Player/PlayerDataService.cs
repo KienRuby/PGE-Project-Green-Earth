@@ -15,6 +15,7 @@ public static class PlayerDataService
     public const string ChipsetsKey = DataChipsKey;
     public const string RedGemsKey = "PGE.Shop.Balance.RedGems";
     public const string EnergyKey = "PGE.Lab.Balance.Energy";
+    public const string AdvanceStonesKey = "PGE.Chipset.Balance.AdvanceStones";
     public const string NextEnergyUtcKey = "PGE.Lab.NextEnergyUtc";
     public const string CompletedRollsKey = "PGE.Lab.CompletedRolls";
     public const string ItemLevelKeyPrefix = "PGE.Lab.ItemLevel.";
@@ -43,6 +44,7 @@ public static class PlayerDataService
 
     public static event Action<int> OnRedGemsChanged;
     public static event Action<int> OnEnergyChanged;
+    public static event Action<int> OnAdvanceStonesChanged;
     public static event Action<string> OnSelectedWeaponChanged;
 
     // =========================================================================
@@ -100,6 +102,21 @@ public static class PlayerDataService
             PlayerPrefs.SetInt(EnergyKey, clamped);
             PlayerPrefs.Save();
             OnEnergyChanged?.Invoke(clamped);
+        }
+    }
+
+    /// <summary>
+    /// Số lượng Đá Tiến Bậc (Advance Stones) dùng để đột phá các Chipset lên Tier 5 (Max LV.24).
+    /// </summary>
+    public static int AdvanceStones
+    {
+        get => PlayerPrefs.GetInt(AdvanceStonesKey, 50);
+        set
+        {
+            int clamped = Mathf.Max(0, value);
+            PlayerPrefs.SetInt(AdvanceStonesKey, clamped);
+            PlayerPrefs.Save();
+            OnAdvanceStonesChanged?.Invoke(clamped);
         }
     }
 
@@ -185,6 +202,7 @@ public static class PlayerDataService
     public static bool HasEnoughDataChips(int amount) => DataChips >= amount;
     public static bool HasEnoughRedGems(int amount) => RedGems >= amount;
     public static bool HasEnoughEnergy(int amount) => Energy >= amount;
+    public static bool HasEnoughAdvanceStones(int amount) => AdvanceStones >= amount;
 
     public static bool TrySpendDataChips(int amount)
     {
@@ -207,6 +225,13 @@ public static class PlayerDataService
         return true;
     }
 
+    public static bool TrySpendAdvanceStones(int amount)
+    {
+        if (amount < 0 || AdvanceStones < amount) return false;
+        AdvanceStones -= amount;
+        return true;
+    }
+
     public static void AddDataChips(int amount)
     {
         if (amount > 0) DataChips += amount;
@@ -220,6 +245,11 @@ public static class PlayerDataService
     public static void AddEnergy(int amount)
     {
         if (amount > 0) Energy += amount;
+    }
+
+    public static void AddAdvanceStones(int amount)
+    {
+        if (amount > 0) AdvanceStones += amount;
     }
 
     // =========================================================================

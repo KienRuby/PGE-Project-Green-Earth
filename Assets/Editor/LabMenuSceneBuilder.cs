@@ -12,8 +12,16 @@ using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
+[InitializeOnLoad]
 public static class LabMenuSceneBuilder
 {
+    static LabMenuSceneBuilder()
+    {
+        EditorApplication.update += TryBuildRequestedScene;
+        EditorApplication.update += TryBuildRequestedShopPanel;
+        EditorApplication.update += TryBuildRequestedBuddyPanel;
+    }
+
     private sealed class SlotView
     {
         public GameObject lockedGroup;
@@ -35,10 +43,13 @@ public static class LabMenuSceneBuilder
     private const string BackgroundPath = "Assets/UI/Lab/Generated/lab-background.png";
     private const string IconAtlasPath = "Assets/UI/Lab/Generated/lab-icon-atlas.png";
     private const string ChipsetAtlasPath = "Assets/UI/Chipset/Generated/chipset-atlas.png";
+    private const string BuddyAtlasPath = "Assets/UI/Buddy/Generated/buddy-atlas.png";
     private const string PreviewPath = "Assets/UI/Lab/Generated/lab-menu-preview.png";
     private const string ChipsetPreviewPath = "Assets/UI/Chipset/Generated/chipset-menu-preview.png";
+    private const string BuddyPreviewPath = "Assets/UI/Buddy/Generated/buddy-menu-preview.png";
     private const string BuildRequestPath = "Assets/Editor/PGE_LabUI_BuildRequest.txt";
     private const string ShopBuildRequestPath = "Assets/Editor/PGE_ShopUI_BuildRequest.txt";
+    private const string BuddyBuildRequestPath = "Assets/Editor/PGE_BuddyUI_BuildRequest.txt";
     private const string FontPath = "Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset";
 
     private static readonly Color Navy = new Color32(8, 39, 69, 255);
@@ -57,10 +68,81 @@ public static class LabMenuSceneBuilder
 
     private static TMP_FontAsset font;
 
-    [MenuItem("PGE/UI/Rebuild Full Main Menu (Chipset & Lab)")]
+    [MenuItem("PGE/UI/Rebuild Full Main Menu (Chipset, Buddy & Lab)")]
     public static void BuildFromMenu()
     {
         BuildLabMenuScene();
+    }
+
+    [MenuItem("PGE/UI/Rebuild Buddy Panel")]
+    public static void RebuildBuddyPanel()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling || EditorApplication.isUpdating)
+        {
+            Debug.LogWarning("[LabMenuSceneBuilder] Stop Play Mode before rebuilding the Buddy panel.");
+            return;
+        }
+
+        ConfigureTextures();
+        ConfigureBuddyTextures();
+
+        font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath);
+        if (font == null)
+        {
+            throw new InvalidOperationException($"[LabMenuSceneBuilder] Font not found at {FontPath}.");
+        }
+
+        Scene scene = SceneManager.GetActiveScene();
+        if (!string.Equals(scene.path, ScenePath, StringComparison.OrdinalIgnoreCase))
+        {
+            scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+        }
+
+        Canvas canvas = UnityEngine.Object.FindObjectOfType<Canvas>();
+        RectTransform content = canvas != null ? canvas.transform.Find("Content") as RectTransform : null;
+        if (content == null)
+        {
+            throw new InvalidOperationException("[LabMenuSceneBuilder] Canvas/Content was not found in MainMenu.");
+        }
+
+        RemoveLegacyContentLayout(content);
+
+        Transform existingBuddyPanel = content.Find("BuddyPanel");
+        if (existingBuddyPanel != null)
+        {
+            UnityEngine.Object.DestroyImmediate(existingBuddyPanel.gameObject);
+        }
+
+        TopBarCurrencyController topBar = UnityEngine.Object.FindObjectOfType<TopBarCurrencyController>();
+        TMP_Text energyText = null, chipText = null, redText = null;
+        if (topBar != null)
+        {
+            SerializedObject tbSO = new SerializedObject(topBar);
+            energyText = tbSO.FindProperty("energyText")?.objectReferenceValue as TMP_Text;
+            chipText = tbSO.FindProperty("dataChipText")?.objectReferenceValue as TMP_Text;
+            redText = tbSO.FindProperty("redGemText")?.objectReferenceValue as TMP_Text;
+        }
+
+        GameObject buddyPanel = CreateBuddyPanel(content, canvas.GetComponent<RectTransform>(), energyText, chipText, redText);
+        buddyPanel.name = "BuddyPanel";
+        buddyPanel.SetActive(true);
+
+        BottomNavigationController bottomNav = UnityEngine.Object.FindObjectOfType<BottomNavigationController>();
+        if (bottomNav != null)
+        {
+            SerializedObject navSO = new SerializedObject(bottomNav);
+            SerializedProperty items = GetRequiredProperty(navSO, "items");
+            if (items.arraySize > 4)
+            {
+                GetRequiredRelativeProperty(items.GetArrayElementAtIndex(4), "panel").objectReferenceValue = buddyPanel;
+                navSO.ApplyModifiedPropertiesWithoutUndo();
+            }
+            bottomNav.Select(4);
+        }
+
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        Debug.Log("[LabMenuSceneBuilder] Functional BuddyPanel rebuilt in MainMenu.");
     }
 
     [MenuItem("PGE/UI/Rebuild Shop Panel")]
@@ -156,6 +238,25 @@ public static class LabMenuSceneBuilder
         AssetDatabase.Refresh();
     }
 
+    private static void TryBuildRequestedBuddyPanel()
+    {
+        if (!File.Exists(BuddyBuildRequestPath) ||
+            EditorApplication.isPlayingOrWillChangePlaymode ||
+            EditorApplication.isCompiling ||
+            EditorApplication.isUpdating)
+        {
+            return;
+        }
+
+        RebuildBuddyPanel();
+        try
+        {
+            File.Delete(BuddyBuildRequestPath);
+        }
+        catch {}
+        AssetDatabase.Refresh();
+    }
+
     private static void RemoveLegacyContentLayout(RectTransform content)
     {
         ContentSizeFitter contentSizeFitter = content.GetComponent<ContentSizeFitter>();
@@ -202,6 +303,7 @@ public static class LabMenuSceneBuilder
 
         ConfigureTextures();
         ConfigureChipsetTextures();
+        ConfigureBuddyTextures();
 
         font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(
             "Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset");
@@ -437,6 +539,97 @@ public static class LabMenuSceneBuilder
         Debug.Log($"[Chipset] Cached {cachedChipsetSprites.Length} sprites: {string.Join(", ", cachedChipsetSprites.Select(s => s.name))}");
     }
 
+    private static void ConfigureBuddyTextures()
+    {
+        AssetDatabase.ImportAsset(BuddyAtlasPath, ImportAssetOptions.ForceSynchronousImport);
+        Texture2D atlas = AssetDatabase.LoadAssetAtPath<Texture2D>(BuddyAtlasPath);
+        TextureImporter atlasImporter = AssetImporter.GetAtPath(BuddyAtlasPath) as TextureImporter;
+        if (atlasImporter == null || atlas == null)
+        {
+            return;
+        }
+
+        string[,] iconNames =
+        {
+            { "drone-snowflake", "drone-spider", "drone-antenna-eye", "drone-cross-visor", "drone-capsule" },
+            { "drone-spiky-mine", "drone-octagon-shield", "drone-claw-magnet", "drone-dual-rotor", "drone-stealth-wing" },
+            { "drone-laser-sentry", "drone-plasma-orb", "buddy-frame-normal", "buddy-frame-rare", "buddy-frame-epic" },
+            { "buddy-frame-holographic", "icon-lock-buddy", "badge-upgrade-green", "wave-pulse-cyan", "icon-drone-tab" },
+            { "", "", "", "", "" }
+        };
+
+        float cellWidth = 256f;
+        float cellHeight = 256f;
+        List<SpriteRect> sprites = new List<SpriteRect>();
+        for (int row = 0; row < 4; row++)
+        {
+            for (int column = 0; column < 5; column++)
+            {
+                if (string.IsNullOrEmpty(iconNames[row, column])) continue;
+                sprites.Add(new SpriteRect
+                {
+                    name = iconNames[row, column],
+                    alignment = SpriteAlignment.Center,
+                    pivot = new Vector2(0.5f, 0.5f),
+                    spriteID = GUID.Generate(),
+                    rect = new Rect(
+                        column * cellWidth,
+                        (4 - row) * cellHeight,
+                        cellWidth,
+                        cellHeight)
+                });
+            }
+        }
+
+        atlasImporter.textureType = TextureImporterType.Sprite;
+        atlasImporter.spriteImportMode = SpriteImportMode.Multiple;
+        atlasImporter.spritePixelsPerUnit = 100f;
+        atlasImporter.mipmapEnabled = false;
+        atlasImporter.alphaIsTransparency = true;
+        atlasImporter.wrapMode = TextureWrapMode.Clamp;
+        atlasImporter.filterMode = FilterMode.Point;
+        atlasImporter.maxTextureSize = 2048;
+        atlasImporter.SaveAndReimport();
+
+        SpriteDataProviderFactories factories = new SpriteDataProviderFactories();
+        factories.Init();
+        ISpriteEditorDataProvider dataProvider = factories.GetSpriteEditorDataProviderFromObject(atlasImporter);
+        dataProvider.InitSpriteEditorDataProvider();
+        dataProvider.SetSpriteRects(sprites.ToArray());
+        dataProvider.Apply();
+        atlasImporter.SaveAndReimport();
+
+        AssetDatabase.ImportAsset(BuddyAtlasPath, ImportAssetOptions.ForceSynchronousImport);
+        AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+        CacheBuddySprites();
+    }
+
+    private static Sprite[] cachedBuddySprites;
+
+    private static void CacheBuddySprites()
+    {
+        cachedBuddySprites = AssetDatabase.LoadAllAssetsAtPath(BuddyAtlasPath).OfType<Sprite>().ToArray();
+        Debug.Log($"[Buddy] Cached {cachedBuddySprites.Length} sprites: {string.Join(", ", cachedBuddySprites.Select(s => s.name))}");
+    }
+
+    private static Sprite LoadBuddySprite(string spriteName)
+    {
+        if (cachedBuddySprites == null || cachedBuddySprites.Length == 0)
+        {
+            CacheBuddySprites();
+        }
+        return cachedBuddySprites?.FirstOrDefault(sprite => string.Equals(sprite.name, spriteName, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static Image CreateBuddyIcon(string name, Transform parent, string spriteName, float size)
+    {
+        Image image = CreateImage(name, parent, Color.white, false);
+        image.sprite = LoadBuddySprite(spriteName);
+        image.preserveAspect = true;
+        image.rectTransform.sizeDelta = new Vector2(size, size);
+        return image;
+    }
+
     private static Camera CreateCamera()
     {
         GameObject cameraObject = new GameObject("Main Camera", typeof(Camera), typeof(AudioListener));
@@ -503,7 +696,7 @@ public static class LabMenuSceneBuilder
         panels[1] = CreateLabPanel(content, energyBalanceText, chipBalanceText, redChipBalanceText);
         panels[2] = ChapterMenuSceneBuilder.BuildChapterPanel(content, font);
         panels[3] = CreateChipsetPanel(content, canvasRect, energyBalanceText, chipBalanceText, redChipBalanceText);
-        panels[4] = CreatePlaceholderPanel(content, "BuddyPanel", "BUDDY", "Drone hangar is being prepared");
+        panels[4] = CreateBuddyPanel(content, canvasRect, energyBalanceText, chipBalanceText, redChipBalanceText);
 
         // Default to Chapter Tab (index 2)
         for (int i = 0; i < panels.Length; i++)
@@ -901,7 +1094,9 @@ public static class LabMenuSceneBuilder
         string[] iconKeys = {
             "standard-gun", "rifle", "rocket-punch", "spinning-blade", "multigun",
             "gun-turret", "spiky-discus", "shotgun", "energy-jumper-cables", "high-explosive-mine",
-            "aiming-lens", "plasma-field", "laser-eye", "biochemical-mine", "tesla-coil"
+            "aiming-lens", "plasma-field", "laser-eye", "biochemical-mine", "tesla-coil",
+            "atk-module", "black-hole-mine", "sonic-boom", "big-battery", "turret-module",
+            "ice-turret", "invincible-shield", "healing-turret", "flamethrower"
         };
         Sprite[] chipIcons = iconKeys.Select(k => allChipsetSprites.FirstOrDefault(s => s.name == k)).Where(s => s != null).ToArray();
         Sprite[] frameSprites = new[] {
@@ -921,10 +1116,492 @@ public static class LabMenuSceneBuilder
 
         sController.FindProperty("starSprite").objectReferenceValue = allChipsetSprites.FirstOrDefault(s => s.name == "icon-star");
         sController.FindProperty("upgradeArrowSprite").objectReferenceValue = allChipsetSprites.FirstOrDefault(s => s.name == "badge-upgrade");
+        sController.FindProperty("advanceStoneSprite").objectReferenceValue = allChipsetSprites.FirstOrDefault(s => s.name == "advance-stone");
 
         sController.ApplyModifiedPropertiesWithoutUndo();
 
         return panel.gameObject;
+    }
+
+    private static GameObject CreateBuddyPanel(
+        RectTransform parent,
+        RectTransform canvasRect,
+        TMP_Text energyText,
+        TMP_Text chipCurrencyText,
+        TMP_Text redCurrencyText)
+    {
+        RectTransform panel = CreateRect("BuddyPanel", parent);
+        Stretch(panel, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+
+        // 1. Top Tabs (Drone vs Robot Pet)
+        RectTransform topTabs = CreateRect("TopTabs", panel);
+        topTabs.anchorMin = new Vector2(0f, 1f);
+        topTabs.anchorMax = new Vector2(1f, 1f);
+        topTabs.pivot = new Vector2(0.5f, 1f);
+        topTabs.anchoredPosition = new Vector2(0f, -10f);
+        topTabs.sizeDelta = new Vector2(0f, 105f);
+
+        // Left tab: Drone (Active)
+        GameObject tabDroneObj = CreateFrame("TabDrone", topTabs, BrightTeal, BrightCyan, out Image tabDroneBg);
+        RectTransform tabDroneRect = tabDroneObj.GetComponent<RectTransform>();
+        Stretch(tabDroneRect, new Vector2(0.03f, 0f), new Vector2(0.485f, 1f), Vector2.zero, Vector2.zero);
+        TMP_Text tabDroneText = CreateText("Label", tabDroneRect, "Drone", 44f, Color.white, TextAlignmentOptions.Center);
+        Anchor(tabDroneText.rectTransform, new Vector2(0.5f, 0.62f), Vector2.zero, new Vector2(300f, 50f));
+        Image waveImg = CreateBuddyIcon("Wave", tabDroneRect, "wave-pulse-cyan", 140f);
+        Anchor(waveImg.rectTransform, new Vector2(0.5f, 0.22f), Vector2.zero, new Vector2(140f, 30f));
+        Button tabDroneBtn = tabDroneObj.AddComponent<Button>();
+        tabDroneBtn.targetGraphic = tabDroneBg;
+
+        // Right tab: Robot Pet (Locked)
+        GameObject tabRobotPetObj = CreateFrame("TabRobotPet", topTabs, new Color32(16, 52, 54, 235), new Color32(12, 38, 42, 255), out Image tabRobotPetBg);
+        RectTransform tabRobotPetRect = tabRobotPetObj.GetComponent<RectTransform>();
+        Stretch(tabRobotPetRect, new Vector2(0.515f, 0f), new Vector2(0.97f, 1f), Vector2.zero, Vector2.zero);
+        TMP_Text tabRobotPetText = CreateText("Label", tabRobotPetRect, "Robot Pet", 36f, new Color32(40, 95, 95, 255), TextAlignmentOptions.Center);
+        Anchor(tabRobotPetText.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(400f, 50f));
+        Image lockImg = CreateBuddyIcon("Lock", tabRobotPetRect, "icon-lock-buddy", 60f);
+        Anchor(lockImg.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(60f, 60f));
+        Button tabRobotPetBtn = tabRobotPetObj.AddComponent<Button>();
+        tabRobotPetBtn.targetGraphic = tabRobotPetBg;
+
+        // 2. Equipped Buddy Board
+        GameObject boardObj = CreateFrame("EquippedBoard", panel, DarkPanel, TealBorder, out Image boardBg);
+        RectTransform boardRect = boardObj.GetComponent<RectTransform>();
+        boardRect.anchorMin = new Vector2(0.5f, 1f);
+        boardRect.anchorMax = new Vector2(0.5f, 1f);
+        boardRect.pivot = new Vector2(0.5f, 1f);
+        boardRect.anchoredPosition = new Vector2(0f, -125f);
+        boardRect.sizeDelta = new Vector2(1020f, 530f);
+
+        // Header inside Board: Presets 1, 2, 3
+        RectTransform boardHeader = CreateRect("BoardHeader", boardRect);
+        boardHeader.anchorMin = new Vector2(0f, 1f);
+        boardHeader.anchorMax = new Vector2(1f, 1f);
+        boardHeader.pivot = new Vector2(0.5f, 1f);
+        boardHeader.anchoredPosition = new Vector2(0f, 10f);
+        boardHeader.sizeDelta = new Vector2(0f, 75f);
+
+        // Preset buttons
+        Button p1Btn = CreatePresetButton(boardHeader, "Preset1", 0.40f, "1", true, out Image p1Bg, out TMP_Text p1Text);
+        Button p2Btn = CreatePresetButton(boardHeader, "Preset2", 0.50f, "2", false, out Image p2Bg, out TMP_Text p2Text);
+        Button p3Btn = CreatePresetButton(boardHeader, "Preset3", 0.60f, "3", false, out Image p3Bg, out TMP_Text p3Text);
+
+        // Equipped Slots (1 row x 3 columns)
+        RectTransform equippedRow = CreateRect("EquippedRow", boardRect);
+        equippedRow.anchorMin = new Vector2(0f, 0f);
+        equippedRow.anchorMax = new Vector2(1f, 1f);
+        equippedRow.offsetMin = new Vector2(30f, 25f);
+        equippedRow.offsetMax = new Vector2(-30f, -55f);
+
+        HorizontalLayoutGroup eqLayout = equippedRow.gameObject.AddComponent<HorizontalLayoutGroup>();
+        eqLayout.childAlignment = TextAnchor.MiddleCenter;
+        eqLayout.spacing = 35f;
+        eqLayout.childForceExpandWidth = false;
+        eqLayout.childForceExpandHeight = false;
+        eqLayout.childControlWidth = false;
+        eqLayout.childControlHeight = false;
+
+        BuddyCardUI[] equippedCardSlots = new BuddyCardUI[3];
+        equippedCardSlots[0] = CreateBuddyCardUI(equippedRow, "EquippedSlot_0", new Vector2(250f, 320f));
+        equippedCardSlots[1] = CreateBuddyCardUI(equippedRow, "EquippedSlot_1", new Vector2(250f, 320f));
+        equippedCardSlots[2] = CreateBuddyCardUI(equippedRow, "EquippedSlot_2", new Vector2(250f, 320f));
+
+        // Lower Section Background Tint
+        Image invBgTint = CreateImage("InventoryBgTint", panel, new Color32(18, 62, 74, 210), false);
+        Stretch(invBgTint.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, new Vector2(0f, -670f));
+
+        // 3. Sort Filter Bar
+        RectTransform sortBar = CreateRect("SortFilterBar", panel);
+        sortBar.anchorMin = new Vector2(0.5f, 1f);
+        sortBar.anchorMax = new Vector2(0.5f, 1f);
+        sortBar.pivot = new Vector2(0.5f, 1f);
+        sortBar.anchoredPosition = new Vector2(0f, -690f);
+        sortBar.sizeDelta = new Vector2(1020f, 70f);
+
+        GameObject byTierObj = CreateFrame("ByTierBtn", sortBar, new Color32(18, 58, 68, 255), BrightCyan, out Image byTierBg);
+        RectTransform byTierRect = byTierObj.GetComponent<RectTransform>();
+        Anchor(byTierRect, new Vector2(0.36f, 0.5f), Vector2.zero, new Vector2(240f, 62f));
+        TMP_Text byTierText = CreateText("Label", byTierRect, "By Tier", 34f, Color.white, TextAlignmentOptions.Center);
+        Stretch(byTierText.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        byTierBg.raycastTarget = true;
+        Button byTierBtn = byTierObj.AddComponent<Button>();
+        byTierBtn.targetGraphic = byTierBg;
+
+        GameObject byQtyObj = CreateFrame("ByQtyBtn", sortBar, Yellow, Border, out Image byQtyBg);
+        RectTransform byQtyRect = byQtyObj.GetComponent<RectTransform>();
+        Anchor(byQtyRect, new Vector2(0.64f, 0.5f), Vector2.zero, new Vector2(250f, 62f));
+        TMP_Text byQtyText = CreateText("Label", byQtyRect, "By Quantity", 34f, new Color32(10, 20, 30, 255), TextAlignmentOptions.Center);
+        Stretch(byQtyText.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        byQtyBg.raycastTarget = true;
+        Button byQtyBtn = byQtyObj.AddComponent<Button>();
+        byQtyBtn.targetGraphic = byQtyBg;
+
+        // 4. Inventory Scroll View (3 columns)
+        RectTransform scrollRoot = CreateRect("InventoryScrollView", panel);
+        Stretch(scrollRoot, Vector2.zero, Vector2.one, new Vector2(20f, 15f), new Vector2(-20f, -770f));
+
+        ScrollRect scrollRect = scrollRoot.gameObject.AddComponent<ScrollRect>();
+        scrollRect.horizontal = false;
+        scrollRect.vertical = true;
+        scrollRect.scrollSensitivity = 25f;
+
+        RectTransform viewport = CreateRect("Viewport", scrollRoot);
+        Stretch(viewport, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        viewport.gameObject.AddComponent<RectMask2D>();
+        scrollRect.viewport = viewport;
+
+        RectTransform invContent = CreateRect("Content", viewport);
+        invContent.anchorMin = new Vector2(0f, 1f);
+        invContent.anchorMax = new Vector2(1f, 1f);
+        invContent.pivot = new Vector2(0.5f, 1f);
+        invContent.anchoredPosition = Vector2.zero;
+        invContent.sizeDelta = new Vector2(0f, 900f);
+        scrollRect.content = invContent;
+
+        GridLayoutGroup invLayout = invContent.gameObject.AddComponent<GridLayoutGroup>();
+        invLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+        invLayout.constraintCount = 3;
+        invLayout.cellSize = new Vector2(285f, 330f);
+        invLayout.spacing = new Vector2(35f, 25f);
+        invLayout.padding = new RectOffset(20, 20, 10, 30);
+        invLayout.childAlignment = TextAnchor.UpperCenter;
+
+        ContentSizeFitter fitter = invContent.gameObject.AddComponent<ContentSizeFitter>();
+        fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+        // Pre-configure the 3 equipped slots
+        ConfigureBuddyCardStaticView(equippedCardSlots[0], "drone-snowflake", "buddy-frame-normal", "LV.01", "65/3", true);
+        ConfigureBuddyCardEmptyStaticView(equippedCardSlots[1], "buddy-frame-normal");
+        ConfigureBuddyCardLockedStaticView(equippedCardSlots[2], "buddy-frame-normal");
+
+        // Pre-populate Inventory cards (matching screenshot: 9 cards in 3x3)
+        string[] invIcons = {
+            "drone-spider", "drone-antenna-eye", "drone-cross-visor",
+            "drone-capsule", "drone-spiky-mine", "drone-octagon-shield",
+            "drone-claw-magnet", "drone-dual-rotor", "drone-stealth-wing"
+        };
+        string[] invProgress = {
+            "79/3", "67/3", "60/3",
+            "58/3", "51/3", "51/3",
+            "48/3", "46/3", "38/3"
+        };
+
+        for (int i = 0; i < invIcons.Length; i++)
+        {
+            BuddyCardUI invCard = CreateBuddyCardUI(invContent, $"InvCard_{i:00}", new Vector2(285f, 330f));
+            ConfigureBuddyCardStaticView(invCard, invIcons[i], "buddy-frame-normal", "LV.01", invProgress[i], true);
+        }
+
+        // Template Prefab
+        GameObject cardPrefab = CreateBuddyCardUI(invContent, "BuddyCardTemplate", new Vector2(285f, 330f)).gameObject;
+        cardPrefab.SetActive(false);
+
+        // 5. Detail Modal
+        GameObject detailModal = CreateBuddyDetailModal(canvasRect, out Image dIcon, out TMP_Text dName, out TMP_Text dLevel,
+            out TMP_Text dTier, out TMP_Text dStats, out TMP_Text dAbility, out Button dUpgradeBtn, out TMP_Text dUpgradeBtnText,
+            out Button dEquipBtn, out TMP_Text dEquipBtnText, out Button dCloseBtn);
+        detailModal.SetActive(false);
+
+        // 6. Toast Message
+        GameObject toastRoot = CreateToastRoot(canvasRect, out TMP_Text toastText);
+        toastRoot.SetActive(false);
+
+        // Controller Setup
+        BuddyController controller = panel.gameObject.AddComponent<BuddyController>();
+        SerializedObject sController = new SerializedObject(controller);
+
+        sController.FindProperty("energyText").objectReferenceValue = energyText;
+        sController.FindProperty("chipCurrencyText").objectReferenceValue = chipCurrencyText;
+        sController.FindProperty("redCurrencyText").objectReferenceValue = redCurrencyText;
+
+        sController.FindProperty("droneModeBtn").objectReferenceValue = tabDroneBtn;
+        sController.FindProperty("robotPetModeBtn").objectReferenceValue = tabRobotPetBtn;
+        sController.FindProperty("droneModeBg").objectReferenceValue = tabDroneBg;
+        sController.FindProperty("robotPetModeBg").objectReferenceValue = tabRobotPetBg;
+
+        sController.FindProperty("preset1Btn").objectReferenceValue = p1Btn;
+        sController.FindProperty("preset2Btn").objectReferenceValue = p2Btn;
+        sController.FindProperty("preset3Btn").objectReferenceValue = p3Btn;
+        sController.FindProperty("preset1Bg").objectReferenceValue = p1Bg;
+        sController.FindProperty("preset2Bg").objectReferenceValue = p2Bg;
+        sController.FindProperty("preset3Bg").objectReferenceValue = p3Bg;
+        sController.FindProperty("preset1Text").objectReferenceValue = p1Text;
+        sController.FindProperty("preset2Text").objectReferenceValue = p2Text;
+        sController.FindProperty("preset3Text").objectReferenceValue = p3Text;
+
+        SerializedProperty sEquipped = sController.FindProperty("equippedSlots");
+        sEquipped.arraySize = 3;
+        for (int i = 0; i < 3; i++)
+        {
+            sEquipped.GetArrayElementAtIndex(i).objectReferenceValue = equippedCardSlots[i];
+        }
+
+        sController.FindProperty("byTierBtn").objectReferenceValue = byTierBtn;
+        sController.FindProperty("byQuantityBtn").objectReferenceValue = byQtyBtn;
+        sController.FindProperty("byTierBg").objectReferenceValue = byTierBg;
+        sController.FindProperty("byQuantityBg").objectReferenceValue = byQtyBg;
+        sController.FindProperty("byTierText").objectReferenceValue = byTierText;
+        sController.FindProperty("byQuantityText").objectReferenceValue = byQtyText;
+
+        sController.FindProperty("inventoryContent").objectReferenceValue = invContent;
+        sController.FindProperty("cardPrefab").objectReferenceValue = cardPrefab;
+
+        sController.FindProperty("detailModal").objectReferenceValue = detailModal;
+        sController.FindProperty("detailIcon").objectReferenceValue = dIcon;
+        sController.FindProperty("detailNameText").objectReferenceValue = dName;
+        sController.FindProperty("detailLevelText").objectReferenceValue = dLevel;
+        sController.FindProperty("detailTierText").objectReferenceValue = dTier;
+        sController.FindProperty("detailStatsText").objectReferenceValue = dStats;
+        sController.FindProperty("detailAbilityText").objectReferenceValue = dAbility;
+        sController.FindProperty("detailUpgradeBtn").objectReferenceValue = dUpgradeBtn;
+        sController.FindProperty("detailUpgradeBtnText").objectReferenceValue = dUpgradeBtnText;
+        sController.FindProperty("detailEquipBtn").objectReferenceValue = dEquipBtn;
+        sController.FindProperty("detailEquipBtnText").objectReferenceValue = dEquipBtnText;
+        sController.FindProperty("detailCloseBtn").objectReferenceValue = dCloseBtn;
+
+        sController.FindProperty("toastRoot").objectReferenceValue = toastRoot;
+        sController.FindProperty("toastText").objectReferenceValue = toastText;
+
+        // Load Sprites into database
+        Sprite[] allBuddySprites = AssetDatabase.LoadAllAssetRepresentationsAtPath(BuddyAtlasPath).OfType<Sprite>().ToArray();
+        string[] iconKeys = {
+            "drone-snowflake", "drone-spider", "drone-antenna-eye", "drone-cross-visor", "drone-capsule",
+            "drone-spiky-mine", "drone-octagon-shield", "drone-claw-magnet", "drone-dual-rotor", "drone-stealth-wing",
+            "drone-laser-sentry", "drone-plasma-orb"
+        };
+        Sprite[] droneIcons = iconKeys.Select(k => allBuddySprites.FirstOrDefault(s => s.name == k)).Where(s => s != null).ToArray();
+        Sprite[] frameSprites = new[] {
+            allBuddySprites.FirstOrDefault(s => s.name == "buddy-frame-normal"),
+            allBuddySprites.FirstOrDefault(s => s.name == "buddy-frame-rare"),
+            allBuddySprites.FirstOrDefault(s => s.name == "buddy-frame-epic"),
+            allBuddySprites.FirstOrDefault(s => s.name == "buddy-frame-holographic")
+        };
+
+        SerializedProperty sIcons = sController.FindProperty("droneIcons");
+        sIcons.arraySize = droneIcons.Length;
+        for (int i = 0; i < droneIcons.Length; i++) sIcons.GetArrayElementAtIndex(i).objectReferenceValue = droneIcons[i];
+
+        SerializedProperty sFrames = sController.FindProperty("frameSprites");
+        sFrames.arraySize = frameSprites.Length;
+        for (int i = 0; i < frameSprites.Length; i++) sFrames.GetArrayElementAtIndex(i).objectReferenceValue = frameSprites[i];
+
+        sController.FindProperty("upgradeArrowSprite").objectReferenceValue = allBuddySprites.FirstOrDefault(s => s.name == "badge-upgrade-green");
+        sController.FindProperty("lockSlotSprite").objectReferenceValue = allBuddySprites.FirstOrDefault(s => s.name == "icon-lock-buddy");
+
+        sController.ApplyModifiedPropertiesWithoutUndo();
+
+        return panel.gameObject;
+    }
+
+    private static BuddyCardUI CreateBuddyCardUI(RectTransform parent, string name, Vector2 size)
+    {
+        RectTransform cardRoot = CreateRect(name, parent);
+        cardRoot.sizeDelta = size;
+
+        // Card Frame Image
+        Image cardFrame = cardRoot.gameObject.AddComponent<Image>();
+        cardFrame.sprite = LoadBuddySprite("buddy-frame-normal");
+        cardFrame.type = Image.Type.Simple;
+        cardFrame.preserveAspect = false;
+        cardFrame.raycastTarget = true;
+
+        Button cardBtn = cardRoot.gameObject.AddComponent<Button>();
+        cardBtn.targetGraphic = cardFrame;
+
+        // 1. Normal Content Group
+        RectTransform normalGroup = CreateRect("NormalContentGroup", cardRoot);
+        Stretch(normalGroup, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+
+        // Top Level Text
+        TMP_Text levelText = CreateText("LevelText", normalGroup, "LV.01", 26f, Yellow, TextAlignmentOptions.Center);
+        Anchor(levelText.rectTransform, new Vector2(0.5f, 0.81f), Vector2.zero, new Vector2(size.x * 0.9f, 32f));
+
+        // Center Drone Icon
+        Image centerIcon = CreateBuddyIcon("DroneIcon", normalGroup, "drone-snowflake", 140f);
+        Anchor(centerIcon.rectTransform, new Vector2(0.5f, 0.50f), Vector2.zero, new Vector2(140f, 140f));
+
+        // Bottom Progress Bar
+        RectTransform bottomBar = CreateRect("BottomBar", normalGroup);
+        Stretch(bottomBar, new Vector2(0.08f, 0.08f), new Vector2(0.92f, 0.24f), Vector2.zero, Vector2.zero);
+        Image bottomBarBg = bottomBar.gameObject.AddComponent<Image>();
+        bottomBarBg.color = new Color32(20, 140, 60, 240);
+        bottomBarBg.raycastTarget = false;
+
+        TMP_Text progressText = CreateText("ProgressText", bottomBar, "65/3", 26f, Color.white, TextAlignmentOptions.Center);
+        Stretch(progressText.rectTransform, Vector2.zero, Vector2.one, new Vector2(6f, 0f), new Vector2(-36f, 0f));
+
+        // Upgrade Green Arrow Button
+        GameObject upgradeArrowObj = new GameObject("UpgradeArrowGroup", typeof(RectTransform));
+        RectTransform arrowRect = upgradeArrowObj.GetComponent<RectTransform>();
+        arrowRect.SetParent(normalGroup, false);
+        Anchor(arrowRect, new Vector2(0.86f, 0.16f), Vector2.zero, new Vector2(46f, 46f));
+
+        Image arrowIcon = upgradeArrowObj.AddComponent<Image>();
+        arrowIcon.sprite = LoadBuddySprite("badge-upgrade-green");
+        arrowIcon.preserveAspect = true;
+        arrowIcon.raycastTarget = true;
+
+        Button upgradeBtn = upgradeArrowObj.AddComponent<Button>();
+        upgradeBtn.targetGraphic = arrowIcon;
+
+        // 2. Empty Slot Group
+        RectTransform emptyGroup = CreateRect("EmptySlotGroup", cardRoot);
+        Stretch(emptyGroup, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        TMP_Text emptyText = CreateText("EmptyLabel", emptyGroup, "Empty", 36f, BrightCyan, TextAlignmentOptions.Center);
+        Stretch(emptyText.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        emptyGroup.gameObject.SetActive(false);
+
+        // 3. Locked Slot Group
+        RectTransform lockedGroup = CreateRect("LockedSlotGroup", cardRoot);
+        Stretch(lockedGroup, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        Image lockIcon = CreateBuddyIcon("LockIcon", lockedGroup, "icon-lock-buddy", 80f);
+        Anchor(lockIcon.rectTransform, new Vector2(0.5f, 0.58f), Vector2.zero, new Vector2(80f, 80f));
+        TMP_Text lockedText = CreateText("LockedLabel", lockedGroup, "LOCKED", 30f, BrightCyan, TextAlignmentOptions.Center);
+        Anchor(lockedText.rectTransform, new Vector2(0.5f, 0.30f), Vector2.zero, new Vector2(200f, 40f));
+        lockedGroup.gameObject.SetActive(false);
+
+        // Wire Component
+        BuddyCardUI cardComp = cardRoot.gameObject.AddComponent<BuddyCardUI>();
+        cardComp.InitializeReferences(cardFrame, centerIcon, levelText, progressText, cardBtn, upgradeBtn, upgradeArrowObj, normalGroup.gameObject, emptyGroup.gameObject, lockedGroup.gameObject);
+
+        return cardComp;
+    }
+
+    private static void ConfigureBuddyCardStaticView(
+        BuddyCardUI card,
+        string iconName,
+        string frameName,
+        string level,
+        string progress,
+        bool canUpgrade)
+    {
+        if (card == null) return;
+        Sprite frameSprite = LoadBuddySprite(frameName);
+        Sprite iconSprite = LoadBuddySprite(iconName);
+        BuddyItemData dummy = new BuddyItemData
+        {
+            buddyName = iconName,
+            iconKey = iconName,
+            level = 1,
+            count = 65,
+            requiredCount = 3
+        };
+        card.Setup(dummy, iconSprite, frameSprite);
+        EditorUtility.SetDirty(card.gameObject);
+    }
+
+    private static void ConfigureBuddyCardEmptyStaticView(BuddyCardUI card, string frameName)
+    {
+        if (card == null) return;
+        Sprite frameSprite = LoadBuddySprite(frameName);
+        card.SetupEmpty(frameSprite);
+        EditorUtility.SetDirty(card.gameObject);
+    }
+
+    private static void ConfigureBuddyCardLockedStaticView(BuddyCardUI card, string frameName)
+    {
+        if (card == null) return;
+        Sprite frameSprite = LoadBuddySprite(frameName);
+        card.SetupLocked(frameSprite);
+        EditorUtility.SetDirty(card.gameObject);
+    }
+
+    private static GameObject CreateBuddyDetailModal(
+        RectTransform canvasRect,
+        out Image detailIcon,
+        out TMP_Text nameText,
+        out TMP_Text levelText,
+        out TMP_Text tierText,
+        out TMP_Text statsText,
+        out TMP_Text abilityText,
+        out Button upgradeBtn,
+        out TMP_Text upgradeBtnText,
+        out Button equipBtn,
+        out TMP_Text equipBtnText,
+        out Button closeBtn)
+    {
+        RectTransform modalRoot = CreateRect("BuddyDetailModal", canvasRect);
+        Stretch(modalRoot, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        Image dim = modalRoot.gameObject.AddComponent<Image>();
+        dim.color = new Color32(5, 20, 30, 225);
+        dim.raycastTarget = true;
+
+        GameObject cardBox = CreateFrame("ModalBox", modalRoot, DarkPanel, BrightCyan, out _);
+        RectTransform boxRect = cardBox.GetComponent<RectTransform>();
+        Anchor(boxRect, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(960f, 1260f));
+
+        // Title Header
+        TMP_Text title = CreateText("Title", boxRect, "BUDDY INSPECTOR", 42f, BrightCyan, TextAlignmentOptions.Center);
+        Anchor(title.rectTransform, new Vector2(0.5f, 0.94f), Vector2.zero, new Vector2(600f, 50f));
+
+        // Close Button
+        GameObject closeObj = CreateFrame("CloseBtn", boxRect, FieryRed, FieryOrange, out Image closeBg);
+        RectTransform closeRect = closeObj.GetComponent<RectTransform>();
+        Anchor(closeRect, new Vector2(0.93f, 0.94f), Vector2.zero, new Vector2(60f, 60f));
+        TMP_Text closeTxt = CreateText("X", closeRect, "X", 36f, Color.white, TextAlignmentOptions.Center);
+        Stretch(closeTxt.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        closeBg.raycastTarget = true;
+        closeBtn = closeObj.AddComponent<Button>();
+        closeBtn.targetGraphic = closeBg;
+
+        // Big Icon Frame
+        GameObject iconFrameObj = CreateFrame("IconFrame", boxRect, new Color32(8, 30, 48, 255), BrightCyan, out _);
+        RectTransform iconFrameRect = iconFrameObj.GetComponent<RectTransform>();
+        Anchor(iconFrameRect, new Vector2(0.24f, 0.77f), Vector2.zero, new Vector2(220f, 220f));
+        detailIcon = CreateBuddyIcon("Icon", iconFrameRect, "drone-snowflake", 160f);
+        Anchor(detailIcon.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(160f, 160f));
+
+        // Name & Tier Info
+        nameText = CreateText("Name", boxRect, "Snowflake Drone", 46f, Color.white, TextAlignmentOptions.Left);
+        Anchor(nameText.rectTransform, new Vector2(0.68f, 0.83f), Vector2.zero, new Vector2(460f, 55f));
+
+        levelText = CreateText("Level", boxRect, "LEVEL 01", 34f, Yellow, TextAlignmentOptions.Left);
+        Anchor(levelText.rectTransform, new Vector2(0.68f, 0.76f), Vector2.zero, new Vector2(460f, 45f));
+
+        tierText = CreateText("Tier", boxRect, "COMMON", 30f, BrightCyan, TextAlignmentOptions.Left);
+        Anchor(tierText.rectTransform, new Vector2(0.68f, 0.70f), Vector2.zero, new Vector2(460f, 40f));
+
+        // Stats Box
+        GameObject statsBox = CreateFrame("StatsBox", boxRect, new Color32(14, 42, 54, 255), TealBorder, out _);
+        RectTransform statsBoxRect = statsBox.GetComponent<RectTransform>();
+        Anchor(statsBoxRect, new Vector2(0.5f, 0.48f), Vector2.zero, new Vector2(880f, 280f));
+
+        TMP_Text statsHeader = CreateText("StatsHeader", statsBoxRect, "DRONE COMBAT SPECIFICATIONS", 30f, Yellow, TextAlignmentOptions.Left);
+        Anchor(statsHeader.rectTransform, new Vector2(0.5f, 0.86f), Vector2.zero, new Vector2(820f, 40f));
+
+        statsText = CreateText("StatsContent", statsBoxRect, "• Drone ATK: +24%\n• Fire Rate: +12%\n• Tactical support drone that freezes approaching hostiles and shields the player.", 28f, Color.white, TextAlignmentOptions.Left);
+        Anchor(statsText.rectTransform, new Vector2(0.5f, 0.44f), Vector2.zero, new Vector2(820f, 170f));
+
+        // Special Ability Box
+        GameObject abilityBox = CreateFrame("AbilityBox", boxRect, new Color32(14, 42, 54, 255), TealBorder, out _);
+        RectTransform abilityBoxRect = abilityBox.GetComponent<RectTransform>();
+        Anchor(abilityBoxRect, new Vector2(0.5f, 0.23f), Vector2.zero, new Vector2(880f, 180f));
+
+        TMP_Text abilityHeader = CreateText("AbilityHeader", abilityBoxRect, "SPECIAL SUPPORT PROTOCOL", 30f, BrightCyan, TextAlignmentOptions.Left);
+        Anchor(abilityHeader.rectTransform, new Vector2(0.5f, 0.76f), Vector2.zero, new Vector2(820f, 40f));
+
+        abilityText = CreateText("AbilityContent", abilityBoxRect, "• Frost Nova: Emits a freezing pulse slowing enemies by 35% every 8s.", 28f, BrightCyan, TextAlignmentOptions.Left);
+        Anchor(abilityText.rectTransform, new Vector2(0.5f, 0.35f), Vector2.zero, new Vector2(820f, 90f));
+
+        // Bottom Action Buttons
+        GameObject upgBtnObj = CreateFrame("UpgradeBtn", boxRect, new Color32(20, 140, 60, 255), Yellow, out Image upgBg);
+        RectTransform upgBtnRect = upgBtnObj.GetComponent<RectTransform>();
+        Anchor(upgBtnRect, new Vector2(0.72f, 0.08f), Vector2.zero, new Vector2(400f, 90f));
+        upgradeBtnText = CreateText("Label", upgBtnRect, "UPGRADE (65/3)", 32f, Color.white, TextAlignmentOptions.Center);
+        Stretch(upgradeBtnText.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        upgBg.raycastTarget = true;
+        upgradeBtn = upgBtnObj.AddComponent<Button>();
+        upgradeBtn.targetGraphic = upgBg;
+
+        GameObject eqBtnObj = CreateFrame("EquipBtn", boxRect, Yellow, Border, out Image eqBg);
+        RectTransform eqBtnRect = eqBtnObj.GetComponent<RectTransform>();
+        Anchor(eqBtnRect, new Vector2(0.28f, 0.08f), Vector2.zero, new Vector2(400f, 90f));
+        equipBtnText = CreateText("Label", eqBtnRect, "EQUIP", 34f, new Color32(10, 20, 30, 255), TextAlignmentOptions.Center);
+        Stretch(equipBtnText.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        eqBg.raycastTarget = true;
+        equipBtn = eqBtnObj.AddComponent<Button>();
+        equipBtn.targetGraphic = eqBg;
+
+        return modalRoot.gameObject;
     }
 
     private static Button CreatePresetButton(
