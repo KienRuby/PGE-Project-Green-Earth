@@ -1237,6 +1237,80 @@ public class ChapterSystemTests
             Object.DestroyImmediate(sprite2);
         }
     }
+
+    [Test]
+    public void PauseModalController_OpensOnFirstClick_AndResumesCorrectly()
+    {
+        GameObject modalGo = new GameObject("PauseModal");
+        modalGo.SetActive(false); // Ban đầu Inactive trong scene
+
+        PauseModalController pauseCtrl = modalGo.AddComponent<PauseModalController>();
+
+        SerializedObject so = new SerializedObject(pauseCtrl);
+        so.FindProperty("modalRoot").objectReferenceValue = modalGo;
+        so.ApplyModifiedProperties();
+
+        try
+        {
+            // Lần bấm 1: Nút Pause được bấm
+            pauseCtrl.TogglePause();
+
+            Assert.That(pauseCtrl.IsPaused, Is.True, "Lần bấm 1: IsPaused phải là true.");
+            Assert.That(modalGo.activeSelf, Is.True, "Lần bấm 1: modalRoot phải HIỆN (activeSelf == true) ngay lập tức!");
+            Assert.That(Time.timeScale, Is.EqualTo(0f), "Lần bấm 1: Time.timeScale phải là 0.");
+
+            // Bấm Resume
+            pauseCtrl.ResumeGame();
+
+            Assert.That(pauseCtrl.IsPaused, Is.False, "Sau Resume: IsPaused phải là false.");
+            Assert.That(modalGo.activeSelf, Is.False, "Sau Resume: modalRoot phải ẨN (activeSelf == false).");
+            Assert.That(Time.timeScale, Is.EqualTo(1f), "Sau Resume: Time.timeScale phải là 1.");
+
+            // Lần bấm 2: Nút Pause được bấm lại
+            pauseCtrl.TogglePause();
+
+            Assert.That(pauseCtrl.IsPaused, Is.True, "Lần bấm 2: IsPaused phải là true.");
+            Assert.That(modalGo.activeSelf, Is.True, "Lần bấm 2: modalRoot phải HIỆN (activeSelf == true).");
+            Assert.That(Time.timeScale, Is.EqualTo(0f), "Lần bấm 2: Time.timeScale phải là 0.");
+        }
+        finally
+        {
+            Time.timeScale = 1f;
+            Object.DestroyImmediate(modalGo);
+        }
+    }
+
+    [Test]
+    public void EnemyHealth_DeathFadeOut_AndPoolReset_RestoresAlpha()
+    {
+        GameObject enemyGo = new GameObject("TestEnemy");
+        SpriteRenderer sr = enemyGo.AddComponent<SpriteRenderer>();
+        sr.color = new Color(1f, 1f, 1f, 1f);
+
+        EnemyHealth health = enemyGo.AddComponent<EnemyHealth>();
+        health.CacheSpriteRenderers();
+
+        try
+        {
+            // Kiểm tra màu ban đầu
+            Assert.That(sr.color.a, Is.EqualTo(1f), "Alpha ban đầu của SpriteRenderer phải là 1.0.");
+
+            // Mô phỏng hiệu ứng fade out (giảm alpha xuống 0 khi chết)
+            sr.color = new Color(1f, 1f, 1f, 0f);
+            Assert.That(sr.color.a, Is.EqualTo(0f), "Sau khi fade out, alpha phải về 0.0.");
+
+            // Khi được tái sinh từ Pool (ResetForSpawn)
+            health.ResetForSpawn();
+
+            Assert.That(sr.color.a, Is.EqualTo(1f), "Sau khi ResetForSpawn, alpha của SpriteRenderer phải được phục hồi về 1.0 đầy đủ.");
+            Assert.That(health.IsDead, Is.False, "Sau khi ResetForSpawn, IsDead phải là false.");
+            Assert.That(health.CurrentHealth, Is.EqualTo(health.MaxHealth), "Sau khi ResetForSpawn, máu phải đầy.");
+        }
+        finally
+        {
+            Object.DestroyImmediate(enemyGo);
+        }
+    }
 }
 
 

@@ -25,6 +25,15 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     [Tooltip("Thời gian trễ cộng thêm trước khi quái vật bị thu hồi về Pool sau khi animation kết thúc (giây).")]
     [SerializeField] private float destroyDelay = 0f;
 
+    [Tooltip("Thời gian hiệu ứng mờ dần (Fade-out) trước khi biến mất và thu hồi về Pool (giây).")]
+    [SerializeField] private float fadeOutDuration = 0.5f;
+
+    public float FadeOutDuration
+    {
+        get => fadeOutDuration;
+        set => fadeOutDuration = Mathf.Max(0f, value);
+    }
+
     private int baseMaxHealth;
     private int baseExpReward;
 
@@ -44,6 +53,8 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     private EnemyMovement enemyMovement;
     private BossMovement bossMovement;
     private Rigidbody2D rb;
+    private SpriteRenderer[] spriteRenderers;
+    private Color[] initialSpriteColors;
     private float cachedDeathDuration;
     private bool hasDeathTriggerParam;
     private string defaultAnimationState = "run";
@@ -71,6 +82,8 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
         rb = GetComponent<Rigidbody2D>();
         CurrentHealth = maxHealth;
 
+        CacheSpriteRenderers();
+
         // Lưu lại vị trí/góc xoay/tỉ lệ ban đầu của tất cả child transforms (chân, thân, v.v. - trừ root)
         // để khôi phục chính xác 100% khi tái sử dụng từ Pool mà không ghi đè vị trí spawn của quái
         Transform[] allTransforms = GetComponentsInChildren<Transform>(true);
@@ -89,6 +102,22 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
         cachedChildSnapshots = childList.ToArray();
 
         CacheDeathAnimationSettings();
+    }
+
+    public void CacheSpriteRenderers()
+    {
+        spriteRenderers = GetComponentsInChildren<SpriteRenderer>(true);
+        if (spriteRenderers != null && spriteRenderers.Length > 0)
+        {
+            initialSpriteColors = new Color[spriteRenderers.Length];
+            for (int i = 0; i < spriteRenderers.Length; i++)
+            {
+                if (spriteRenderers[i] != null)
+                {
+                    initialSpriteColors[i] = spriteRenderers[i].color;
+                }
+            }
+        }
     }
 
     private void CacheDeathAnimationSettings()
@@ -240,11 +269,11 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
             }
         }
 
-        float totalWait = Mathf.Max(0.1f, animDuration + destroyDelay);
+        float animWait = Mathf.Max(0.05f, animDuration + destroyDelay);
         float elapsed = 0f;
 
-        // Giữ cố định 100% tọa độ tại chỗ trong từng frame cho đến khi animation kết thúc
-        while (elapsed < totalWait)
+        // Giai đoạn 1: Giữ cố định 100% tọa độ tại chỗ và phát trọn vẹn animation Die
+        while (elapsed < animWait)
         {
             transform.position = lockedPos;
             transform.rotation = lockedRot;
@@ -255,6 +284,44 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
         }
 
         transform.position = lockedPos;
+
+        // Giai đoạn 2: Hiệu ứng Mờ dần (Fade Out) từ màu hiện tại về Alpha = 0
+        if (fadeOutDuration > 0f && spriteRenderers != null && spriteRenderers.Length > 0)
+        {
+            float fadeElapsed = 0f;
+            while (fadeElapsed < fadeOutDuration)
+            {
+                transform.position = lockedPos;
+                transform.rotation = lockedRot;
+                transform.localScale = lockedScale;
+
+                fadeElapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(fadeElapsed / fadeOutDuration);
+
+                for (int i = 0; i < spriteRenderers.Length; i++)
+                {
+                    if (spriteRenderers[i] != null)
+                    {
+                        Color orig = (initialSpriteColors != null && i < initialSpriteColors.Length) ? initialSpriteColors[i] : Color.white;
+                        float newAlpha = Mathf.Lerp(orig.a, 0f, t);
+                        spriteRenderers[i].color = new Color(orig.r, orig.g, orig.b, newAlpha);
+                    }
+                }
+
+                yield return null;
+            }
+
+            // Đảm bảo alpha về 0 hoàn toàn trước khi thu hồi
+            for (int i = 0; i < spriteRenderers.Length; i++)
+            {
+                if (spriteRenderers[i] != null)
+                {
+                    Color orig = (initialSpriteColors != null && i < initialSpriteColors.Length) ? initialSpriteColors[i] : Color.white;
+                    spriteRenderers[i].color = new Color(orig.r, orig.g, orig.b, 0f);
+                }
+            }
+        }
+
         deathRoutine = null;
         Despawn();
     }
@@ -328,6 +395,23 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
                     t.localPosition = cachedChildSnapshots[i].localPosition;
                     t.localRotation = cachedChildSnapshots[i].localRotation;
                     t.localScale = cachedChildSnapshots[i].localScale;
+                }
+            }
+        }
+
+        // Khôi phục lại toàn bộ màu sắc và alpha = 1.0 ban đầu cho các SpriteRenderer
+        if (spriteRenderers == null || spriteRenderers.Length == 0)
+        {
+            CacheSpriteRenderers();
+        }
+
+        if (spriteRenderers != null && initialSpriteColors != null)
+        {
+            for (int i = 0; i < spriteRenderers.Length; i++)
+            {
+                if (spriteRenderers[i] != null && i < initialSpriteColors.Length)
+                {
+                    spriteRenderers[i].color = initialSpriteColors[i];
                 }
             }
         }
