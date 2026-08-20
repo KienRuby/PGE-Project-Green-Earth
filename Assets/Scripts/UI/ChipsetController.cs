@@ -223,6 +223,9 @@ public class ChipsetController : MonoBehaviour
         ChipManager.OnRedGemsChanged += HandleCurrencyChanged;
         ChipManager.OnEnergyChanged += HandleCurrencyChanged;
         ChipManager.OnAdvanceStonesChanged += HandleCurrencyChanged;
+        ChipManager.OnTestModeChanged += HandleTestModeChanged;
+
+        RefreshTopBar();
     }
 
     private void OnDisable()
@@ -231,6 +234,12 @@ public class ChipsetController : MonoBehaviour
         ChipManager.OnRedGemsChanged -= HandleCurrencyChanged;
         ChipManager.OnEnergyChanged -= HandleCurrencyChanged;
         ChipManager.OnAdvanceStonesChanged -= HandleCurrencyChanged;
+        ChipManager.OnTestModeChanged -= HandleTestModeChanged;
+    }
+
+    private void HandleTestModeChanged(bool _)
+    {
+        HandleCurrencyChanged(0);
     }
 
     private void HandleCurrencyChanged(int _)
@@ -244,10 +253,10 @@ public class ChipsetController : MonoBehaviour
 
     public void InitializeDatabase()
     {
-        if (allChips.Count > 0) return;
-
-        allChips = new List<ChipItemData>
+        if (allChips == null || allChips.Count == 0)
         {
+            allChips = new List<ChipItemData>
+            {
             // 1. Standard Gun
             new ChipItemData
             {
@@ -635,42 +644,125 @@ public class ChipsetController : MonoBehaviour
                 epicBonus = "Epic: ATK +100%"
             }
         };
-
-        // Preset 3 equipped chips (Slots 1 to 10)
-        deckEquippedIds[2] = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-        // Preset 1 & 2
-        deckEquippedIds[0] = new int[] { 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 };
-        deckEquippedIds[1] = new int[] { 21, 22, 23, 24, 1, 2, 3, 4, 5, 6 };
     }
 
-    private void SetupEventListeners()
+    // 1. Tải tiến trình đã lưu cho từng chip nếu có
+    for (int i = 0; i < allChips.Count; i++)
     {
-        if (preset1Btn != null) preset1Btn.onClick.AddListener(() => SwitchDeck(0));
-        if (preset2Btn != null) preset2Btn.onClick.AddListener(() => SwitchDeck(1));
-        if (preset3Btn != null) preset3Btn.onClick.AddListener(() => SwitchDeck(2));
-
-        if (byTierBtn != null) byTierBtn.onClick.AddListener(() => SetSortMode(false));
-        if (byQuantityBtn != null) byQuantityBtn.onClick.AddListener(() => SetSortMode(true));
-
-        if (blastFurnaceBtn != null) blastFurnaceBtn.onClick.AddListener(OpenFurnaceModal);
-        if (furnaceCloseBtn != null) furnaceCloseBtn.onClick.AddListener(() => furnaceModal.SetActive(false));
-        if (furnaceDismantleBtn != null) furnaceDismantleBtn.onClick.AddListener(ExecuteDismantle);
-
-        if (chipsetModeBtn != null) chipsetModeBtn.onClick.AddListener(() => ShowToast("Chipset Configuration Active"));
-        if (highTechModeBtn != null) highTechModeBtn.onClick.AddListener(() => ShowToast("High-Tech Chipset unlocks at Chapter 10!"));
-
-        if (detailCloseBtn != null) detailCloseBtn.onClick.AddListener(() => detailModal.SetActive(false));
-        if (detailUpgradeBtn != null) detailUpgradeBtn.onClick.AddListener(OnDetailActionButtonClicked);
-        if (detailEquipBtn != null) detailEquipBtn.onClick.AddListener(ToggleEquipSelectedChip);
+        ChipItemData chip = allChips[i];
+        if (chip != null && PlayerDataService.LoadChipsetItemData(chip.id, out int level, out int tier, out int count, out int reqCount, out bool hasStar))
+        {
+            chip.level = level;
+            chip.tier = (ChipTier)tier;
+            chip.count = count;
+            chip.requiredCount = reqCount;
+            chip.hasStar = hasStar;
+        }
     }
 
-    public void SwitchDeck(int deckIndex)
+    // 2. Tải 3 Deck trang bị đã lưu (hoặc dùng mặc định nếu chưa lưu)
+    if (deckEquippedIds == null || deckEquippedIds.Length != 3)
     {
-        activeDeckIndex = deckIndex;
-        RefreshPresetButtons();
-        RefreshEquippedGrid();
-        ShowToast($"Switched to Preset Deck {deckIndex + 1}");
+        deckEquippedIds = new int[3][];
     }
+    deckEquippedIds[0] = PlayerDataService.LoadChipsetDeck(0, new int[] { 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 });
+    deckEquippedIds[1] = PlayerDataService.LoadChipsetDeck(1, new int[] { 21, 22, 23, 24, 1, 2, 3, 4, 5, 6 });
+    deckEquippedIds[2] = PlayerDataService.LoadChipsetDeck(2, new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
+
+    // 3. Tải active deck index
+    activeDeckIndex = PlayerDataService.ActiveChipsetDeckIndex;
+}
+
+public void SaveChip(ChipItemData chip)
+{
+    if (chip == null) return;
+    PlayerDataService.SaveChipsetItemData(chip.id, chip.level, (int)chip.tier, chip.count, chip.requiredCount, chip.hasStar);
+}
+
+public void SaveAllChips()
+{
+    if (allChips == null) return;
+    for (int i = 0; i < allChips.Count; i++)
+    {
+        SaveChip(allChips[i]);
+    }
+}
+
+public void SaveCurrentDeck()
+{
+    if (deckEquippedIds != null && activeDeckIndex >= 0 && activeDeckIndex < deckEquippedIds.Length)
+    {
+        PlayerDataService.SaveChipsetDeck(activeDeckIndex, deckEquippedIds[activeDeckIndex]);
+    }
+}
+
+public void SaveAllDecks()
+{
+    if (deckEquippedIds == null) return;
+    for (int i = 0; i < deckEquippedIds.Length; i++)
+    {
+        PlayerDataService.SaveChipsetDeck(i, deckEquippedIds[i]);
+    }
+}
+
+public void SaveAllState()
+{
+    SaveAllChips();
+    SaveAllDecks();
+    PlayerDataService.ActiveChipsetDeckIndex = activeDeckIndex;
+}
+
+public void ResetChipsetToDefaults()
+{
+    PlayerPrefs.DeleteKey(PlayerDataService.ChipsetActiveDeckKey);
+    for (int i = 0; i < 3; i++)
+    {
+        PlayerPrefs.DeleteKey(PlayerDataService.GetDeckKey(i));
+    }
+    for (int i = 1; i <= 24; i++)
+    {
+        string pfx = PlayerDataService.GetChipItemPrefix(i);
+        PlayerPrefs.DeleteKey($"{pfx}Level");
+        PlayerPrefs.DeleteKey($"{pfx}Tier");
+        PlayerPrefs.DeleteKey($"{pfx}Count");
+        PlayerPrefs.DeleteKey($"{pfx}ReqCount");
+        PlayerPrefs.DeleteKey($"{pfx}HasStar");
+    }
+    PlayerPrefs.Save();
+
+    allChips.Clear();
+    InitializeDatabase();
+}
+
+private void SetupEventListeners()
+{
+    if (preset1Btn != null) preset1Btn.onClick.AddListener(() => SwitchDeck(0));
+    if (preset2Btn != null) preset2Btn.onClick.AddListener(() => SwitchDeck(1));
+    if (preset3Btn != null) preset3Btn.onClick.AddListener(() => SwitchDeck(2));
+
+    if (byTierBtn != null) byTierBtn.onClick.AddListener(() => SetSortMode(false));
+    if (byQuantityBtn != null) byQuantityBtn.onClick.AddListener(() => SetSortMode(true));
+
+    if (blastFurnaceBtn != null) blastFurnaceBtn.onClick.AddListener(OpenFurnaceModal);
+    if (furnaceCloseBtn != null) furnaceCloseBtn.onClick.AddListener(() => furnaceModal.SetActive(false));
+    if (furnaceDismantleBtn != null) furnaceDismantleBtn.onClick.AddListener(ExecuteDismantle);
+
+    if (chipsetModeBtn != null) chipsetModeBtn.onClick.AddListener(() => ShowToast("Chipset Configuration Active"));
+    if (highTechModeBtn != null) highTechModeBtn.onClick.AddListener(() => ShowToast("High-Tech Chipset unlocks at Chapter 10!"));
+
+    if (detailCloseBtn != null) detailCloseBtn.onClick.AddListener(() => detailModal.SetActive(false));
+    if (detailUpgradeBtn != null) detailUpgradeBtn.onClick.AddListener(OnDetailActionButtonClicked);
+    if (detailEquipBtn != null) detailEquipBtn.onClick.AddListener(ToggleEquipSelectedChip);
+}
+
+public void SwitchDeck(int deckIndex)
+{
+    activeDeckIndex = Mathf.Clamp(deckIndex, 0, 2);
+    PlayerDataService.ActiveChipsetDeckIndex = activeDeckIndex;
+    RefreshPresetButtons();
+    RefreshEquippedGrid();
+    ShowToast($"Switched to Preset Deck {deckIndex + 1}");
+}
 
     public void SetSortMode(bool quantitySort)
     {
@@ -788,6 +880,7 @@ public class ChipsetController : MonoBehaviour
             bool success = chip.AdvanceTier();
             if (success)
             {
+                SaveChip(chip);
                 RefreshTopBar();
                 RefreshEquippedGrid();
                 RefreshInventory();
@@ -804,6 +897,7 @@ public class ChipsetController : MonoBehaviour
         {
             chip.Upgrade();
             ChipManager.AddDataChips(100);
+            SaveChip(chip);
             RefreshTopBar();
             RefreshEquippedGrid();
             RefreshInventory();
@@ -967,6 +1061,7 @@ public class ChipsetController : MonoBehaviour
             ShowToast($"Equipped {selectedDetailChip.chipName} to Slot {emptyIndex + 1}");
         }
 
+        SaveCurrentDeck();
         RefreshEquippedGrid();
         RefreshDetailModal();
     }
@@ -998,6 +1093,7 @@ public class ChipsetController : MonoBehaviour
 
         long gainedCurrency = dismantledPieces * 250L;
         ChipManager.AddDataChips((int)Math.Min(gainedCurrency, int.MaxValue));
+        SaveAllChips();
         RefreshTopBar();
         RefreshEquippedGrid();
         RefreshInventory();

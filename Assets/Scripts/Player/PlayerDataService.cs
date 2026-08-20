@@ -280,4 +280,100 @@ public static class PlayerDataService
         int current = GetItemLevel(itemName);
         SetItemLevel(itemName, current + amount);
     }
+
+    // =========================================================================
+    // CHIPSET & DECK PERSISTENCE
+    // =========================================================================
+    public const string ChipsetActiveDeckKey = "PGE.Chipset.ActiveDeck";
+    public const string ChipsetDeckPrefix = "PGE.Chipset.Deck.";
+    public const string ChipsetItemPrefix = "PGE.Chipset.Item.";
+
+    public static int ActiveChipsetDeckIndex
+    {
+        get => Mathf.Clamp(PlayerPrefs.GetInt(ChipsetActiveDeckKey, 2), 0, 2); // Mặc định Preset 3 (index 2)
+        set
+        {
+            PlayerPrefs.SetInt(ChipsetActiveDeckKey, Mathf.Clamp(value, 0, 2));
+            PlayerPrefs.Save();
+        }
+    }
+
+    public static string GetDeckKey(int deckIndex) => $"{ChipsetDeckPrefix}{deckIndex}";
+
+    public static void SaveChipsetDeck(int deckIndex, int[] equippedIds)
+    {
+        if (equippedIds == null) return;
+        string serialized = string.Join(",", equippedIds);
+        PlayerPrefs.SetString(GetDeckKey(deckIndex), serialized);
+        PlayerPrefs.Save();
+    }
+
+    public static int[] LoadChipsetDeck(int deckIndex, int[] defaultIds)
+    {
+        string key = GetDeckKey(deckIndex);
+        if (!PlayerPrefs.HasKey(key))
+        {
+            return defaultIds != null ? (int[])defaultIds.Clone() : new int[10];
+        }
+
+        string raw = PlayerPrefs.GetString(key, string.Empty);
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return defaultIds != null ? (int[])defaultIds.Clone() : new int[10];
+        }
+
+        string[] tokens = raw.Split(',');
+        int[] result = new int[tokens.Length];
+        for (int i = 0; i < tokens.Length; i++)
+        {
+            if (int.TryParse(tokens[i], out int id))
+            {
+                result[i] = id;
+            }
+            else
+            {
+                result[i] = -1;
+            }
+        }
+        return result;
+    }
+
+    public static string GetChipItemPrefix(int id) => $"{ChipsetItemPrefix}{id}.";
+
+    public static bool HasChipsetItemData(int id)
+    {
+        return PlayerPrefs.HasKey($"{GetChipItemPrefix(id)}Level");
+    }
+
+    public static void SaveChipsetItemData(int id, int level, int tier, int count, int reqCount, bool hasStar)
+    {
+        string pfx = GetChipItemPrefix(id);
+        PlayerPrefs.SetInt($"{pfx}Level", level);
+        PlayerPrefs.SetInt($"{pfx}Tier", tier);
+        PlayerPrefs.SetInt($"{pfx}Count", count);
+        PlayerPrefs.SetInt($"{pfx}ReqCount", reqCount);
+        PlayerPrefs.SetInt($"{pfx}HasStar", hasStar ? 1 : 0);
+        PlayerPrefs.Save();
+    }
+
+    public static bool LoadChipsetItemData(int id, out int level, out int tier, out int count, out int reqCount, out bool hasStar)
+    {
+        string pfx = GetChipItemPrefix(id);
+        if (!PlayerPrefs.HasKey($"{pfx}Level"))
+        {
+            level = 1;
+            tier = 1;
+            count = 0;
+            reqCount = 3;
+            hasStar = false;
+            return false;
+        }
+
+        level = PlayerPrefs.GetInt($"{pfx}Level", 1);
+        tier = PlayerPrefs.GetInt($"{pfx}Tier", 1);
+        count = PlayerPrefs.GetInt($"{pfx}Count", 0);
+        reqCount = PlayerPrefs.GetInt($"{pfx}ReqCount", 3);
+        hasStar = PlayerPrefs.GetInt($"{pfx}HasStar", 0) == 1;
+        return true;
+    }
 }

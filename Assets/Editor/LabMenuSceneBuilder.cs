@@ -428,16 +428,27 @@ public static class LabMenuSceneBuilder
         SpriteRect[] sprites = new SpriteRect[15];
         int spriteIndex = 0;
 
+        SpriteDataProviderFactories factories = new SpriteDataProviderFactories();
+        factories.Init();
+        ISpriteEditorDataProvider dataProvider = factories.GetSpriteEditorDataProviderFromObject(atlasImporter);
+        dataProvider.InitSpriteEditorDataProvider();
+        SpriteRect[] existingRects = dataProvider.GetSpriteRects();
+        Dictionary<string, GUID> existingGuids = existingRects != null
+            ? existingRects.Where(r => !string.IsNullOrEmpty(r.name)).ToDictionary(r => r.name, r => r.spriteID)
+            : new Dictionary<string, GUID>();
+
         for (int row = 0; row < 3; row++)
         {
             for (int column = 0; column < 5; column++)
             {
+                string sName = iconNames[row, column];
+                GUID spGuid = existingGuids.TryGetValue(sName, out GUID existingId) ? existingId : GUID.Generate();
                 sprites[spriteIndex++] = new SpriteRect
                 {
-                    name = iconNames[row, column],
+                    name = sName,
                     alignment = SpriteAlignment.Center,
                     pivot = new Vector2(0.5f, 0.5f),
-                    spriteID = GUID.Generate(),
+                    spriteID = spGuid,
                     rect = new Rect(
                         column * cellWidth,
                         (2 - row) * cellHeight,
@@ -457,9 +468,7 @@ public static class LabMenuSceneBuilder
         atlasImporter.maxTextureSize = 2048;
         atlasImporter.SaveAndReimport();
 
-        SpriteDataProviderFactories factories = new SpriteDataProviderFactories();
-        factories.Init();
-        ISpriteEditorDataProvider dataProvider = factories.GetSpriteEditorDataProviderFromObject(atlasImporter);
+        dataProvider = factories.GetSpriteEditorDataProviderFromObject(atlasImporter);
         dataProvider.InitSpriteEditorDataProvider();
         dataProvider.SetSpriteRects(sprites);
         dataProvider.Apply();
@@ -488,17 +497,29 @@ public static class LabMenuSceneBuilder
         float cellWidth = 256f;
         float cellHeight = 256f;
         SpriteRect[] sprites = new SpriteRect[25];
+
+        SpriteDataProviderFactories factories = new SpriteDataProviderFactories();
+        factories.Init();
+        ISpriteEditorDataProvider dataProvider = factories.GetSpriteEditorDataProviderFromObject(atlasImporter);
+        dataProvider.InitSpriteEditorDataProvider();
+        SpriteRect[] existingRects = dataProvider.GetSpriteRects();
+        Dictionary<string, GUID> existingGuids = existingRects != null
+            ? existingRects.Where(r => !string.IsNullOrEmpty(r.name)).ToDictionary(r => r.name, r => r.spriteID)
+            : new Dictionary<string, GUID>();
+
         for (int row = 0; row < 5; row++)
         {
             for (int column = 0; column < 5; column++)
             {
                 int index = row * 5 + column;
+                string sName = iconNames[row, column];
+                GUID spGuid = existingGuids.TryGetValue(sName, out GUID existingId) ? existingId : GUID.Generate();
                 sprites[index] = new SpriteRect
                 {
-                    name = iconNames[row, column],
+                    name = sName,
                     alignment = SpriteAlignment.Center,
                     pivot = new Vector2(0.5f, 0.5f),
-                    spriteID = GUID.Generate(),
+                    spriteID = spGuid,
                     rect = new Rect(
                         column * cellWidth,
                         (4 - row) * cellHeight,
@@ -518,9 +539,7 @@ public static class LabMenuSceneBuilder
         atlasImporter.maxTextureSize = 2048;
         atlasImporter.SaveAndReimport();
 
-        SpriteDataProviderFactories factories = new SpriteDataProviderFactories();
-        factories.Init();
-        ISpriteEditorDataProvider dataProvider = factories.GetSpriteEditorDataProviderFromObject(atlasImporter);
+        dataProvider = factories.GetSpriteEditorDataProviderFromObject(atlasImporter);
         dataProvider.InitSpriteEditorDataProvider();
         dataProvider.SetSpriteRects(sprites);
         dataProvider.Apply();
@@ -561,17 +580,29 @@ public static class LabMenuSceneBuilder
         float cellWidth = 256f;
         float cellHeight = 256f;
         List<SpriteRect> sprites = new List<SpriteRect>();
+
+        SpriteDataProviderFactories factories = new SpriteDataProviderFactories();
+        factories.Init();
+        ISpriteEditorDataProvider dataProvider = factories.GetSpriteEditorDataProviderFromObject(atlasImporter);
+        dataProvider.InitSpriteEditorDataProvider();
+        SpriteRect[] existingRects = dataProvider.GetSpriteRects();
+        Dictionary<string, GUID> existingGuids = existingRects != null
+            ? existingRects.Where(r => !string.IsNullOrEmpty(r.name)).ToDictionary(r => r.name, r => r.spriteID)
+            : new Dictionary<string, GUID>();
+
         for (int row = 0; row < 4; row++)
         {
             for (int column = 0; column < 5; column++)
             {
-                if (string.IsNullOrEmpty(iconNames[row, column])) continue;
+                string sName = iconNames[row, column];
+                if (string.IsNullOrEmpty(sName)) continue;
+                GUID spGuid = existingGuids.TryGetValue(sName, out GUID existingId) ? existingId : GUID.Generate();
                 sprites.Add(new SpriteRect
                 {
-                    name = iconNames[row, column],
+                    name = sName,
                     alignment = SpriteAlignment.Center,
                     pivot = new Vector2(0.5f, 0.5f),
-                    spriteID = GUID.Generate(),
+                    spriteID = spGuid,
                     rect = new Rect(
                         column * cellWidth,
                         (4 - row) * cellHeight,
@@ -591,9 +622,7 @@ public static class LabMenuSceneBuilder
         atlasImporter.maxTextureSize = 2048;
         atlasImporter.SaveAndReimport();
 
-        SpriteDataProviderFactories factories = new SpriteDataProviderFactories();
-        factories.Init();
-        ISpriteEditorDataProvider dataProvider = factories.GetSpriteEditorDataProviderFromObject(atlasImporter);
+        dataProvider = factories.GetSpriteEditorDataProviderFromObject(atlasImporter);
         dataProvider.InitSpriteEditorDataProvider();
         dataProvider.SetSpriteRects(sprites.ToArray());
         dataProvider.Apply();

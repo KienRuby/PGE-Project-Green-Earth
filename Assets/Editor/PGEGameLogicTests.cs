@@ -979,6 +979,97 @@ public class PGEGameLogicTests
 
         Object.DestroyImmediate(go);
     }
+
+    [Test]
+    public void Chipset_SaveAndLoad_PreservesDeckAndProgression()
+    {
+        // 1. Clear saved data
+        PlayerPrefs.DeleteKey(PlayerDataService.ChipsetActiveDeckKey);
+        for (int i = 0; i < 3; i++) PlayerPrefs.DeleteKey(PlayerDataService.GetDeckKey(i));
+        for (int i = 1; i <= 24; i++)
+        {
+            string pfx = PlayerDataService.GetChipItemPrefix(i);
+            PlayerPrefs.DeleteKey($"{pfx}Level");
+            PlayerPrefs.DeleteKey($"{pfx}Tier");
+            PlayerPrefs.DeleteKey($"{pfx}Count");
+            PlayerPrefs.DeleteKey($"{pfx}ReqCount");
+            PlayerPrefs.DeleteKey($"{pfx}HasStar");
+        }
+        PlayerPrefs.Save();
+
+        GameObject go1 = new GameObject("ChipsetTest1");
+        ChipsetController ctrl1 = go1.AddComponent<ChipsetController>();
+        ctrl1.InitializeDatabase();
+
+        // Check default active deck is 2 (Preset 3)
+        Assert.That(ctrl1.AllChips.Count, Is.EqualTo(24));
+
+        // Modify chip 1 progression
+        var chip1 = ctrl1.AllChips[0];
+        chip1.level = 5;
+        chip1.tier = ChipTier.Rare;
+        chip1.count = 88;
+        ctrl1.SaveChip(chip1);
+
+        // Switch deck to Preset 1 (index 0)
+        ctrl1.SwitchDeck(0);
+        ctrl1.SaveAllState();
+
+        Object.DestroyImmediate(go1);
+
+        // Verify with new controller instance
+        GameObject go2 = new GameObject("ChipsetTest2");
+        ChipsetController ctrl2 = go2.AddComponent<ChipsetController>();
+        ctrl2.InitializeDatabase();
+
+        var loadedChip1 = ctrl2.AllChips[0];
+        Assert.That(loadedChip1.level, Is.EqualTo(5));
+        Assert.That(loadedChip1.tier, Is.EqualTo(ChipTier.Rare));
+        Assert.That(loadedChip1.count, Is.EqualTo(88));
+        Assert.That(PlayerDataService.ActiveChipsetDeckIndex, Is.EqualTo(0));
+
+        Object.DestroyImmediate(go2);
+    }
+
+    [Test]
+    public void Chipset_RealtimeCurrencySync_UpdatesTopBarOnEvents()
+    {
+        GameObject go = new GameObject("ChipsetTopBarTest");
+        ChipsetController ctrl = go.AddComponent<ChipsetController>();
+
+        TMP_Text energyText = new GameObject("Energy").AddComponent<TextMeshProUGUI>();
+        TMP_Text chipText = new GameObject("Chip").AddComponent<TextMeshProUGUI>();
+        TMP_Text redText = new GameObject("Red").AddComponent<TextMeshProUGUI>();
+        TMP_Text stonesText = new GameObject("Stones").AddComponent<TextMeshProUGUI>();
+
+        // Set private fields via reflection for testing
+        var type = typeof(ChipsetController);
+        type.GetField("energyText", BindingFlags.NonPublic | BindingFlags.Instance)?.SetValue(ctrl, energyText);
+        type.GetField("chipCurrencyText", BindingFlags.NonPublic | BindingFlags.Instance)?.SetValue(ctrl, chipText);
+        type.GetField("redCurrencyText", BindingFlags.NonPublic | BindingFlags.Instance)?.SetValue(ctrl, redText);
+        type.GetField("advanceStonesText", BindingFlags.NonPublic | BindingFlags.Instance)?.SetValue(ctrl, stonesText);
+
+        ctrl.InitializeDatabase();
+
+        // Enable component to subscribe to ChipManager events
+        ctrl.enabled = true;
+
+        ChipManager.DataChips = 54321;
+        ChipManager.RedGems = 12345;
+        ChipManager.Energy = 42;
+        ChipManager.AdvanceStones = 99;
+
+        Assert.That(chipText.text, Is.EqualTo("54,321"));
+        Assert.That(redText.text, Is.EqualTo("12,345"));
+        Assert.That(energyText.text, Is.EqualTo($"42/{ChipManager.MaxEnergy}"));
+        Assert.That(stonesText.text, Is.EqualTo("99"));
+
+        Object.DestroyImmediate(energyText.gameObject);
+        Object.DestroyImmediate(chipText.gameObject);
+        Object.DestroyImmediate(redText.gameObject);
+        Object.DestroyImmediate(stonesText.gameObject);
+        Object.DestroyImmediate(go);
+    }
 }
 
 
