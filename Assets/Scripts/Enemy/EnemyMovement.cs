@@ -39,15 +39,18 @@ public class EnemyMovement : MonoBehaviour, IPoolable
     // Buffer cố định để quét quái xung quanh không tạo rác GC
     private readonly Collider2D[] nearbyCollidersBuffer = new Collider2D[16];
     private ContactFilter2D contactFilter;
+    private float baseMoveSpeed;
 
     public float MoveSpeed
     {
         get => moveSpeed;
         set => moveSpeed = value;
     }
+    public float BaseMoveSpeed => baseMoveSpeed > 0 ? baseMoveSpeed : moveSpeed;
 
     private void Awake()
     {
+        baseMoveSpeed = moveSpeed;
         rb = GetComponent<Rigidbody2D>();
         rb.gravityScale = 0f;
         rb.freezeRotation = true;
@@ -239,6 +242,13 @@ public class EnemyMovement : MonoBehaviour, IPoolable
 
     public void OnSpawnFromPool()
     {
+        moveSpeed = BaseMoveSpeed;
+        if (initialScale != Vector3.zero)
+        {
+            transform.localScale = initialScale;
+        }
+        isFacingRight = !initialFacingLeft;
+
         if (rb != null)
         {
             rb.velocity = Vector2.zero;
@@ -247,6 +257,7 @@ public class EnemyMovement : MonoBehaviour, IPoolable
 
     public void OnReturnToPool()
     {
+        moveSpeed = BaseMoveSpeed;
         if (rb != null)
         {
             rb.velocity = Vector2.zero;

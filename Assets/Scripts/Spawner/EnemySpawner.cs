@@ -485,25 +485,25 @@ public class EnemySpawner : MonoBehaviour
         if (movement != null)
         {
             movement.SetTarget(playerTransform);
-            movement.MoveSpeed *= Mathf.Max(0.1f, speedMul);
+            movement.MoveSpeed = movement.BaseMoveSpeed * Mathf.Max(0.1f, speedMul);
         }
 
         BossMovement bossMovement = enemyObj.GetComponent<BossMovement>();
         if (bossMovement != null)
         {
             bossMovement.SetTarget(playerTransform);
-            bossMovement.MoveSpeed *= Mathf.Max(0.1f, speedMul);
+            bossMovement.MoveSpeed = bossMovement.BaseMoveSpeed * Mathf.Max(0.1f, speedMul);
         }
 
         // Máu quái & EXP
         EnemyHealth health = enemyObj.GetComponent<EnemyHealth>();
         if (health != null)
         {
-            int baseHealth = health.MaxHealth;
+            int baseHealth = health.BaseMaxHealth;
             int scaledHealth = Mathf.RoundToInt(baseHealth * Mathf.Max(0.5f, healthMul));
             health.SetMaxHealth(scaledHealth, true);
 
-            int baseExp = health.ExpReward;
+            int baseExp = health.BaseExpReward;
             int scaledExp = Mathf.RoundToInt(baseExp * Mathf.Max(0f, expMul));
             health.SetExpReward(scaledExp);
         }
@@ -512,7 +512,7 @@ public class EnemySpawner : MonoBehaviour
         EnemyContactDamage contactDamage = enemyObj.GetComponent<EnemyContactDamage>();
         if (contactDamage != null)
         {
-            int baseDamage = contactDamage.Damage;
+            int baseDamage = contactDamage.BaseDamage;
             int scaledDamage = Mathf.RoundToInt(baseDamage * Mathf.Max(0.5f, damageMul));
             contactDamage.SetDamage(scaledDamage);
         }

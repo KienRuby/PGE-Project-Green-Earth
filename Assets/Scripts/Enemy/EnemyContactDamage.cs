@@ -1,16 +1,36 @@
 using UnityEngine;
 
-public class EnemyContactDamage : MonoBehaviour
+public class EnemyContactDamage : MonoBehaviour, IPoolable
 {
     [Header("Damage")]
     [Tooltip("Lượng sát thương gây ra khi quái vật va chạm vào Player.")]
     [SerializeField] private int damage = 10;
 
+    private int baseDamage;
+
     public int Damage => damage;
+    public int BaseDamage => baseDamage > 0 ? baseDamage : damage;
+
+    private void Awake()
+    {
+        baseDamage = damage;
+    }
 
     public void SetDamage(int newDamage)
     {
         damage = Mathf.Max(1, newDamage);
+    }
+
+    public void OnSpawnFromPool()
+    {
+        damage = BaseDamage;
+        nextDamageTime = 0f;
+    }
+
+    public void OnReturnToPool()
+    {
+        damage = BaseDamage;
+        nextDamageTime = 0f;
     }
 
     [Header("Attack Cooldown")]

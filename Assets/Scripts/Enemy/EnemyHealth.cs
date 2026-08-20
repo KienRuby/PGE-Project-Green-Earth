@@ -25,9 +25,14 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     [Tooltip("Thời gian trễ cộng thêm trước khi quái vật bị thu hồi về Pool sau khi animation kết thúc (giây).")]
     [SerializeField] private float destroyDelay = 0f;
 
+    private int baseMaxHealth;
+    private int baseExpReward;
+
     public int CurrentHealth { get; private set; }
     public int MaxHealth => maxHealth;
+    public int BaseMaxHealth => baseMaxHealth > 0 ? baseMaxHealth : maxHealth;
     public int ExpReward => expReward;
+    public int BaseExpReward => baseExpReward > 0 ? baseExpReward : expReward;
     public bool IsDead { get; private set; }
 
     public event Action<int, int> OnHealthChanged;
@@ -42,6 +47,8 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
 
     private void Awake()
     {
+        baseMaxHealth = maxHealth;
+        baseExpReward = expReward;
         colliders = GetComponentsInChildren<Collider2D>(true);
         animator = GetComponent<Animator>() ?? GetComponentInChildren<Animator>();
         enemyMovement = GetComponent<EnemyMovement>();

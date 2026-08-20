@@ -83,18 +83,21 @@ public class BossMovement : MonoBehaviour, IPoolable
     private Vector3 initialScale;
     private bool isFacingRight = true;
     private bool isEnraged = false;
+    private float baseMoveSpeed;
 
     public float MoveSpeed
     {
         get => moveSpeed;
         set => moveSpeed = value;
     }
+    public float BaseMoveSpeed => baseMoveSpeed > 0 ? baseMoveSpeed : moveSpeed;
 
     public BossState CurrentState => currentState;
     public bool IsEnraged => isEnraged;
 
     private void Awake()
     {
+        baseMoveSpeed = moveSpeed;
         rb = GetComponent<Rigidbody2D>();
         rb.gravityScale = 0f;
         rb.freezeRotation = true;
@@ -322,14 +325,21 @@ public class BossMovement : MonoBehaviour, IPoolable
 
     public void OnSpawnFromPool()
     {
+        moveSpeed = BaseMoveSpeed;
         currentState = BossState.Chase;
         isEnraged = false;
+        if (initialScale != Vector3.zero)
+        {
+            transform.localScale = initialScale;
+        }
+        isFacingRight = !initialFacingLeft;
         dashTimer = Random.Range(dashCooldown * 0.5f, dashCooldown);
         RestoreSpritesColor();
     }
 
     public void OnReturnToPool()
     {
+        moveSpeed = BaseMoveSpeed;
         currentState = BossState.Chase;
         isEnraged = false;
         if (rb != null) rb.velocity = Vector2.zero;

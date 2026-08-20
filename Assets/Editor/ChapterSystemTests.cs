@@ -913,5 +913,83 @@ public class ChapterSystemTests
 
         Object.DestroyImmediate(enemyGo);
     }
+
+    [Test]
+    public void Chapter1_WaveConfig_Wave1IsNotBossWaveAndWave10IsBossWave()
+    {
+        ChapterData c1 = AssetDatabase.LoadAssetAtPath<ChapterData>("Assets/Data/Chapters/Chapter_01_Grassland.asset");
+        Assert.That(c1, Is.Not.Null, "Không tìm thấy Chapter_01_Grassland.asset");
+        Assert.That(c1.waves, Is.Not.Null);
+        Assert.That(c1.waves.Count, Is.GreaterThanOrEqualTo(10));
+
+        // Wave 1 must NOT be a boss wave
+        Assert.That(c1.waves[0].isBossWave, Is.False, "Wave 1 của Chapter 1 không được là Boss Wave.");
+        Assert.That(c1.waves[0].customBossPrefab, Is.Null, "Wave 1 của Chapter 1 không được gán customBossPrefab.");
+
+        // Wave 10 MUST be a boss wave
+        Assert.That(c1.waves[9].isBossWave, Is.True, "Wave 10 của Chapter 1 phải là Boss Wave.");
+        Assert.That(c1.waves[9].customBossPrefab, Is.Not.Null, "Wave 10 của Chapter 1 phải có customBossPrefab.");
+    }
+
+    [Test]
+    public void EnemyPooling_StatsDoNotCompoundAcrossSpawns()
+    {
+        GameObject enemyGo = new GameObject("PoolingCompoundingTest");
+        EnemyHealth health = enemyGo.AddComponent<EnemyHealth>();
+        EnemyMovement movement = enemyGo.AddComponent<EnemyMovement>();
+        EnemyContactDamage contact = enemyGo.AddComponent<EnemyContactDamage>();
+
+        int baseHp = health.BaseMaxHealth;
+        int baseExp = health.BaseExpReward;
+        float baseSpeed = movement.BaseMoveSpeed;
+        int baseDmg = contact.BaseDamage;
+
+        // Wave 1: 1.1x scaling
+        health.SetMaxHealth(Mathf.RoundToInt(health.BaseMaxHealth * 1.1f), true);
+        health.SetExpReward(Mathf.RoundToInt(health.BaseExpReward * 1.1f));
+        movement.MoveSpeed = movement.BaseMoveSpeed * 1.1f;
+        contact.SetDamage(Mathf.RoundToInt(contact.BaseDamage * 1.1f));
+
+        // Return to pool & spawn again for Wave 2: 1.2x scaling
+        health.OnReturnToPool();
+        movement.OnReturnToPool();
+        contact.OnReturnToPool();
+
+        health.OnSpawnFromPool();
+        movement.OnSpawnFromPool();
+        contact.OnSpawnFromPool();
+
+        health.SetMaxHealth(Mathf.RoundToInt(health.BaseMaxHealth * 1.2f), true);
+        health.SetExpReward(Mathf.RoundToInt(health.BaseExpReward * 1.2f));
+        movement.MoveSpeed = movement.BaseMoveSpeed * 1.2f;
+        contact.SetDamage(Mathf.RoundToInt(contact.BaseDamage * 1.2f));
+
+        Assert.That(health.MaxHealth, Is.EqualTo(Mathf.RoundToInt(baseHp * 1.2f)));
+        Assert.That(health.ExpReward, Is.EqualTo(Mathf.RoundToInt(baseExp * 1.2f)));
+        Assert.That(movement.MoveSpeed, Is.EqualTo(baseSpeed * 1.2f).Within(0.001f));
+        Assert.That(contact.Damage, Is.EqualTo(Mathf.RoundToInt(baseDmg * 1.2f)));
+
+        Object.DestroyImmediate(enemyGo);
+    }
+
+    [Test]
+    public void PlayerHealth_ExecutionOrder_BaseHealthNotCorrupted()
+    {
+        GameObject playerGo = new GameObject("PlayerHealthExecutionOrderTest");
+        PlayerHealth health = playerGo.AddComponent<PlayerHealth>();
+
+        // Simulate PlayerStatsManager setting max health before Awake
+        health.SetMaxHealth(150, true);
+
+        Assert.That(health.BaseMaxHealth, Is.EqualTo(100), "BaseMaxHealth phải giữ nguyên 100.");
+        Assert.That(health.MaxHealth, Is.EqualTo(150));
+
+        // Re-applying bonus (e.g. 50 bonus)
+        health.SetMaxHealth(health.BaseMaxHealth + 50, true);
+        Assert.That(health.MaxHealth, Is.EqualTo(150), "MaxHealth sau khi tính lại bonus từ BaseMaxHealth phải vẫn là 150 chứ không phải 200.");
+
+        Object.DestroyImmediate(playerGo);
+    }
 }
+
 
