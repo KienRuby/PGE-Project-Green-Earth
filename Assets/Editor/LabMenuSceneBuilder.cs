@@ -12,8 +12,16 @@ using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
+[InitializeOnLoad]
 public static class LabMenuSceneBuilder
 {
+    static LabMenuSceneBuilder()
+    {
+        EditorApplication.update += TryBuildRequestedScene;
+        EditorApplication.update += TryBuildRequestedShopPanel;
+        EditorApplication.update += TryBuildRequestedBuddyPanel;
+    }
+
     private sealed class SlotView
     {
         public GameObject lockedGroup;
@@ -41,6 +49,7 @@ public static class LabMenuSceneBuilder
     private const string BuddyPreviewPath = "Assets/UI/Buddy/Generated/buddy-menu-preview.png";
     private const string BuildRequestPath = "Assets/Editor/PGE_LabUI_BuildRequest.txt";
     private const string ShopBuildRequestPath = "Assets/Editor/PGE_ShopUI_BuildRequest.txt";
+    private const string BuddyBuildRequestPath = "Assets/Editor/PGE_BuddyUI_BuildRequest.txt";
     private const string FontPath = "Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset";
 
     private static readonly Color Navy = new Color32(8, 39, 69, 255);
@@ -59,10 +68,81 @@ public static class LabMenuSceneBuilder
 
     private static TMP_FontAsset font;
 
-    [MenuItem("PGE/UI/Rebuild Full Main Menu (Chipset & Lab)")]
+    [MenuItem("PGE/UI/Rebuild Full Main Menu (Chipset, Buddy & Lab)")]
     public static void BuildFromMenu()
     {
         BuildLabMenuScene();
+    }
+
+    [MenuItem("PGE/UI/Rebuild Buddy Panel")]
+    public static void RebuildBuddyPanel()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling || EditorApplication.isUpdating)
+        {
+            Debug.LogWarning("[LabMenuSceneBuilder] Stop Play Mode before rebuilding the Buddy panel.");
+            return;
+        }
+
+        ConfigureTextures();
+        ConfigureBuddyTextures();
+
+        font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath);
+        if (font == null)
+        {
+            throw new InvalidOperationException($"[LabMenuSceneBuilder] Font not found at {FontPath}.");
+        }
+
+        Scene scene = SceneManager.GetActiveScene();
+        if (!string.Equals(scene.path, ScenePath, StringComparison.OrdinalIgnoreCase))
+        {
+            scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+        }
+
+        Canvas canvas = UnityEngine.Object.FindObjectOfType<Canvas>();
+        RectTransform content = canvas != null ? canvas.transform.Find("Content") as RectTransform : null;
+        if (content == null)
+        {
+            throw new InvalidOperationException("[LabMenuSceneBuilder] Canvas/Content was not found in MainMenu.");
+        }
+
+        RemoveLegacyContentLayout(content);
+
+        Transform existingBuddyPanel = content.Find("BuddyPanel");
+        if (existingBuddyPanel != null)
+        {
+            UnityEngine.Object.DestroyImmediate(existingBuddyPanel.gameObject);
+        }
+
+        TopBarCurrencyController topBar = UnityEngine.Object.FindObjectOfType<TopBarCurrencyController>();
+        TMP_Text energyText = null, chipText = null, redText = null;
+        if (topBar != null)
+        {
+            SerializedObject tbSO = new SerializedObject(topBar);
+            energyText = tbSO.FindProperty("energyText")?.objectReferenceValue as TMP_Text;
+            chipText = tbSO.FindProperty("dataChipText")?.objectReferenceValue as TMP_Text;
+            redText = tbSO.FindProperty("redGemText")?.objectReferenceValue as TMP_Text;
+        }
+
+        GameObject buddyPanel = CreateBuddyPanel(content, canvas.GetComponent<RectTransform>(), energyText, chipText, redText);
+        buddyPanel.name = "BuddyPanel";
+        buddyPanel.SetActive(true);
+
+        BottomNavigationController bottomNav = UnityEngine.Object.FindObjectOfType<BottomNavigationController>();
+        if (bottomNav != null)
+        {
+            SerializedObject navSO = new SerializedObject(bottomNav);
+            SerializedProperty items = GetRequiredProperty(navSO, "items");
+            if (items.arraySize > 4)
+            {
+                GetRequiredRelativeProperty(items.GetArrayElementAtIndex(4), "panel").objectReferenceValue = buddyPanel;
+                navSO.ApplyModifiedPropertiesWithoutUndo();
+            }
+            bottomNav.Select(4);
+        }
+
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        Debug.Log("[LabMenuSceneBuilder] Functional BuddyPanel rebuilt in MainMenu.");
     }
 
     [MenuItem("PGE/UI/Rebuild Shop Panel")]
@@ -155,6 +235,25 @@ public static class LabMenuSceneBuilder
 
         RebuildShopPanel();
         AssetDatabase.DeleteAsset(ShopBuildRequestPath);
+        AssetDatabase.Refresh();
+    }
+
+    private static void TryBuildRequestedBuddyPanel()
+    {
+        if (!File.Exists(BuddyBuildRequestPath) ||
+            EditorApplication.isPlayingOrWillChangePlaymode ||
+            EditorApplication.isCompiling ||
+            EditorApplication.isUpdating)
+        {
+            return;
+        }
+
+        RebuildBuddyPanel();
+        try
+        {
+            File.Delete(BuddyBuildRequestPath);
+        }
+        catch {}
         AssetDatabase.Refresh();
     }
 

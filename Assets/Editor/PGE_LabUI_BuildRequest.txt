@@ -1,1 +1,1 @@
-rebuild-mainmenu-buddy
+rebuild-full-mainmenu
