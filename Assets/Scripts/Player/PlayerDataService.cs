@@ -56,7 +56,7 @@ public static class PlayerDataService
     /// </summary>
     public static int DataChips
     {
-        get => PlayerPrefs.GetInt(DataChipsKey, 0);
+        get => PlayerPrefs.GetInt(DataChipsKey, 1000);
         set
         {
             int clamped = Mathf.Max(0, value);
@@ -80,7 +80,7 @@ public static class PlayerDataService
     /// </summary>
     public static int RedGems
     {
-        get => PlayerPrefs.GetInt(RedGemsKey, 0);
+        get => PlayerPrefs.GetInt(RedGemsKey, 1000);
         set
         {
             int clamped = Mathf.Max(0, value);
@@ -91,11 +91,11 @@ public static class PlayerDataService
     }
 
     /// <summary>
-    /// Năng lượng hiện có (Energy) của người chơi dùng để vào trận chơi.
+    /// Năng lượng hiện có (Energy) của người chơi dùng để vào trận chơi (Mặc định full 100).
     /// </summary>
     public static int Energy
     {
-        get => PlayerPrefs.GetInt(EnergyKey, 30);
+        get => PlayerPrefs.GetInt(EnergyKey, 100);
         set
         {
             int clamped = Mathf.Max(0, value);
@@ -110,7 +110,7 @@ public static class PlayerDataService
     /// </summary>
     public static int AdvanceStones
     {
-        get => PlayerPrefs.GetInt(AdvanceStonesKey, 50);
+        get => PlayerPrefs.GetInt(AdvanceStonesKey, 0);
         set
         {
             int clamped = Mathf.Max(0, value);

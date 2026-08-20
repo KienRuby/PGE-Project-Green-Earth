@@ -121,6 +121,10 @@ public class EnemySpawner : MonoBehaviour
     [Tooltip("Chu kỳ kiểm tra thu hồi quái ở quá xa người chơi (giây).")]
     [SerializeField] private float despawnCheckInterval = 1.5f;
 
+    [Header("Debug & Diagnostics")]
+    [Tooltip("Bật in log tọa độ tính toán và tọa độ thực tế khi spawn quái vật để kiểm tra lỗi dồn quái.")]
+    [SerializeField] private bool enableSpawnDebugLogs = false;
+
     // Runtime tracking
     private int currentWaveIndex = 0;
     private int enemiesSpawnedInWave = 0;
@@ -400,6 +404,11 @@ public class EnemySpawner : MonoBehaviour
         GameObject enemyObj = SpawnGameObject(prefabToSpawn, spawnPosition);
         if (enemyObj == null) return;
 
+        if (enableSpawnDebugLogs)
+        {
+            Debug.Log($"[Spawn Test] Tọa độ tính toán: {spawnPosition} | Tọa độ thực tế của Enemy: {enemyObj.transform.position}");
+        }
+
         enemiesSpawnedInWave++;
 
         ApplyEnemyModifiers(enemyObj, config.healthMultiplier, config.damageMultiplier, config.speedMultiplier, config.expMultiplier, false);
@@ -668,7 +677,14 @@ public class EnemySpawner : MonoBehaviour
         float randomRadius = Random.Range(minSpawnRadius, maxSpawnRadius);
 
         Vector2 offset = new Vector2(Mathf.Cos(randomAngle), Mathf.Sin(randomAngle)) * randomRadius;
-        return playerPos + offset;
+        Vector2 rawSpawnPos = playerPos + offset;
+
+        if (MapBoundary.Instance != null)
+        {
+            return MapBoundary.Instance.ClampSpawnPosition(rawSpawnPos);
+        }
+
+        return rawSpawnPos;
     }
 
     private void CheckAndDespawnFarEnemies()
@@ -793,12 +809,22 @@ public class EnemySpawner : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        if (playerTransform == null) return;
+        Transform target = playerTransform;
+#if UNITY_EDITOR
+        if (target == null)
+        {
+            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+            if (playerObj != null) target = playerObj.transform;
+        }
+#endif
+        if (target == null) target = transform;
 
-        Gizmos.color = Color.green;
-        Gizmos.DrawWireSphere(playerTransform.position, minSpawnRadius);
+        // Vòng tròn xanh lá: Bán kính sinh quái tối thiểu (ngoài tầm nhìn camera)
+        Gizmos.color = new Color(0f, 1f, 0f, 0.85f);
+        Gizmos.DrawWireSphere(target.position, minSpawnRadius);
 
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(playerTransform.position, maxSpawnRadius);
+        // Vòng tròn đỏ: Bán kính sinh quái tối đa xung quanh Player
+        Gizmos.color = new Color(1f, 0.2f, 0.2f, 0.85f);
+        Gizmos.DrawWireSphere(target.position, maxSpawnRadius);
     }
 }

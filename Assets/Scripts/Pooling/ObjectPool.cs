@@ -84,13 +84,14 @@ public class ObjectPool
         obj.name = prefab.name;
         obj.SetActive(false);
 
-        // Đính kèm PoolMember để biết instance thuộc về pool nào
+        // Đính kèm PoolMember để biết instance thuộc về pool nào và cache IPoolable
         PoolMember member = obj.GetComponent<PoolMember>();
         if (member == null)
         {
             member = obj.AddComponent<PoolMember>();
         }
         member.Pool = this;
+        member.Poolables = obj.GetComponentsInChildren<IPoolable>(true);
 
         poolQueue.Enqueue(obj);
         inPoolSet.Add(obj);
@@ -139,10 +140,21 @@ public class ObjectPool
         obj.transform.rotation = rotation;
         obj.SetActive(true);
 
-        IPoolable[] poolables = obj.GetComponentsInChildren<IPoolable>(true);
-        for (int i = 0; i < poolables.Length; i++)
+        PoolMember member = obj.GetComponent<PoolMember>();
+        if (member != null && member.Poolables != null)
         {
-            poolables[i].OnSpawnFromPool();
+            for (int i = 0; i < member.Poolables.Length; i++)
+            {
+                member.Poolables[i]?.OnSpawnFromPool();
+            }
+        }
+        else
+        {
+            IPoolable[] poolables = obj.GetComponentsInChildren<IPoolable>(true);
+            for (int i = 0; i < poolables.Length; i++)
+            {
+                poolables[i].OnSpawnFromPool();
+            }
         }
 
         return obj;
@@ -160,10 +172,21 @@ public class ObjectPool
             return;
         }
 
-        IPoolable[] poolables = obj.GetComponentsInChildren<IPoolable>(true);
-        for (int i = 0; i < poolables.Length; i++)
+        PoolMember member = obj.GetComponent<PoolMember>();
+        if (member != null && member.Poolables != null)
         {
-            poolables[i].OnReturnToPool();
+            for (int i = 0; i < member.Poolables.Length; i++)
+            {
+                member.Poolables[i]?.OnReturnToPool();
+            }
+        }
+        else
+        {
+            IPoolable[] poolables = obj.GetComponentsInChildren<IPoolable>(true);
+            for (int i = 0; i < poolables.Length; i++)
+            {
+                poolables[i].OnReturnToPool();
+            }
         }
 
         obj.SetActive(false);
@@ -173,11 +196,12 @@ public class ObjectPool
 }
 
 /// <summary>
-/// Component nội bộ giúp một GameObject tự biết pool quản lý nó.
+/// Component nội bộ giúp một GameObject tự biết pool quản lý nó và cache danh sách IPoolable.
 /// </summary>
 public class PoolMember : MonoBehaviour
 {
     public ObjectPool Pool { get; set; }
+    public IPoolable[] Poolables { get; set; }
 
     public void ReturnToPool()
     {

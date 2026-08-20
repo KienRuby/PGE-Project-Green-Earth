@@ -75,7 +75,7 @@ public class GatlingSpinner : MonoBehaviour
         }
         else if (!isFiring && currentSpinFPS <= 0.5f && defaultSprite != null)
         {
-            if (spriteRenderer != null)
+            if (spriteRenderer != null && spriteRenderer.sprite != defaultSprite)
             {
                 spriteRenderer.sprite = defaultSprite;
             }

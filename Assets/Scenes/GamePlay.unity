@@ -15698,6 +15698,7 @@ GameObject:
   - component: {fileID: 2000000003}
   - component: {fileID: 2000000001}
   - component: {fileID: 2000000002}
+  - component: {fileID: 2000000004}
   m_Layer: 0
   m_Name: Background_Ground
   m_TagString: Untagged
@@ -15747,7 +15748,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: -100
   m_Sprite: {fileID: 21300000, guid: 5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 2
@@ -15766,14 +15767,37 @@ MonoBehaviour:
   m_GameObject: {fileID: 2000000000}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d, type: 3}
+  m_Script: {fileID: 11500000, guid: 9a8b7c6d5e4f30291827364554637282, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  followTarget: {fileID: 519420032}
-  mapCoverageSize: {x: 40, y: 40}
-  tileSize: 10.24
-  sortingLayerName: Default
-  orderInLayer: -100
+  chapterDatabase: {fileID: 0}
+  useSceneSpriteIfChapterEmpty: 1
+  defaultGroundSprite: {fileID: 0}
+  defaultMapSize: {x: 40, y: 40}
+  defaultMapColor: {r: 1, g: 1, b: 1, a: 1}
+  defaultPlayerPadding: 0.6
+  groundZPosition: 10
+  sortingOrder: -100
+--- !u!114 &2000000004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f7e6d5c4b3a20191827364554637281, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  autoFitFromSpriteRenderer: 1
+  mapCenter: {x: 0, y: 0}
+  mapSize: {x: 40, y: 40}
+  playerPadding: 0.6
+  showGizmos: 1
+  mapBoundaryColor: {r: 0, g: 1, b: 0.5, a: 0.9}
+  playerLimitColor: {r: 1, g: 0.85, b: 0.1, a: 0.8}
+  cameraLimitColor: {r: 1, g: 0.2, b: 0.8, a: 0.7}
 --- !u!4 &2000000003
 Transform:
   m_ObjectHideFlags: 0

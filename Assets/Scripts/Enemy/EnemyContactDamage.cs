@@ -51,11 +51,14 @@ public class EnemyContactDamage : MonoBehaviour, IPoolable
 
     private void TryDamage(Collider2D targetCollider)
     {
-        if (Time.time < nextDamageTime)
+        if (targetCollider == null || Time.time < nextDamageTime)
             return;
 
-        PlayerHealth playerHealth =
-            targetCollider.GetComponentInParent<PlayerHealth>();
+        // Fast path: Nếu không phải Player thì bỏ qua ngay lập tức
+        if (!targetCollider.CompareTag("Player"))
+            return;
+
+        PlayerHealth playerHealth = targetCollider.GetComponentInParent<PlayerHealth>();
 
         if (playerHealth == null)
             return;
@@ -65,7 +68,6 @@ public class EnemyContactDamage : MonoBehaviour, IPoolable
 
         playerHealth.TakeDamage(damage);
 
-        nextDamageTime =
-            Time.time + damageInterval;
+        nextDamageTime = Time.time + damageInterval;
     }
 }

@@ -151,9 +151,13 @@ public class BossMovement : MonoBehaviour, IPoolable
             float currentCooldown = isEnraged ? (dashCooldown * enrageCooldownMultiplier) : dashCooldown;
             dashTimer -= Time.deltaTime;
 
-            if (dashTimer <= 0f && player != null && Vector2.Distance(rb.position, player.position) > stoppingDistance * 1.5f)
+            if (dashTimer <= 0f && player != null)
             {
-                StartWindup();
+                float minDashDist = stoppingDistance * 1.5f;
+                if ((rb.position - (Vector2)player.position).sqrMagnitude > minDashDist * minDashDist)
+                {
+                    StartWindup();
+                }
             }
         }
     }

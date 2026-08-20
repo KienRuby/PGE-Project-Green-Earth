@@ -3,53 +3,61 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Điều khiển thanh điều hướng dưới cùng (Bottom Navigation):
+/// - Khi bấm vào 1 tab: Tab đó sáng lên (chuyển sang Sprite của 'thanh điều hướng 1').
+/// - 4 tab còn lại chuyển về trạng thái tối (chuyển sang Sprite của 'thanh điều hướng 2').
+/// - Bật/Tắt panel nội dung tương ứng của từng tab (Shop, Lab, Chapter, Chipset, Buddy).
+/// </summary>
 public class BottomNavigationController : MonoBehaviour
 {
     [Serializable]
     public class NavigationItem
     {
+        [Tooltip("Tên gợi nhớ mục điều hướng (Shop, Lab, Chapter, Chipset, Buddy).")]
+        public string name = "Tab";
+
         [Tooltip("Nút bấm dùng để chọn mục điều hướng này.")]
         public Button button;
 
         [Tooltip("Panel nội dung sẽ được hiển thị khi mục này được chọn.")]
         public GameObject panel;
 
-        [Tooltip("Ảnh nền của nút, dùng để đổi màu giữa trạng thái thường và đang chọn.")]
+        [Tooltip("Image của nút để thay đổi Sprite (nếu để trống sẽ tự lấy Image trên button).")]
+        public Image buttonImage;
+
+        [Header("Sprites Configuration")]
+        [Tooltip("Sprite sáng khi Tab ĐƯỢC CHỌN (cắt từ 'thanh điều hướng 1').")]
+        public Sprite activeSprite;
+
+        [Tooltip("Sprite tối khi Tab KHÔNG ĐƯỢC CHỌN (cắt từ 'thanh điều hướng 2').")]
+        public Sprite inactiveSprite;
+
+        [Header("Legacy / Optional Tint Colors")]
+        [Tooltip("Ảnh nền phụ (nếu có tách lớp).")]
         public Image background;
 
-        [Tooltip("Ảnh khung viền ngoài của nút (Frame/Border), tự tìm trên button nếu để trống.")]
-        public Image border;
-
-        [Tooltip("Biểu tượng của mục điều hướng, dùng để đổi màu theo trạng thái chọn.")]
+        [Tooltip("Biểu tượng phụ (nếu có tách icon riêng).")]
         public Image icon;
 
-        [Tooltip("Nhãn chữ của mục điều hướng, dùng để đổi màu theo trạng thái chọn.")]
+        [Tooltip("Nhãn chữ (nếu có tách Text riêng).")]
         public TMP_Text label;
     }
 
-    [Tooltip("Danh sách các mục trên thanh điều hướng dưới cùng theo đúng thứ tự hiển thị.")]
+    [Tooltip("Danh sách 5 mục trên thanh điều hướng (Shop, Lab, Chapter, Chipset, Buddy).")]
     [SerializeField] private NavigationItem[] items;
 
-    [Tooltip("Vị trí mục được chọn khi màn hình khởi động. Chỉ số bắt đầu từ 0.")]
-    [SerializeField] private int defaultSelectedIndex = 1;
+    [Tooltip("Vị trí mục được chọn khi khởi động (0: Shop, 1: Lab, 2: Chapter, 3: Chipset, 4: Buddy).")]
+    [SerializeField] private int defaultSelectedIndex = 2;
 
-    [Tooltip("Màu nền của nút khi mục chưa được chọn.")]
-    [SerializeField] private Color normalColor = new Color32(30, 83, 94, 255);
+    [Header("Visual Feedback")]
+    [Tooltip("Tự động đặt màu Image thành trắng khi đổi sprite để sprite hiển thị đúng màu gốc 100%.")]
+    [SerializeField] private bool resetImageColorToWhite = true;
 
-    [Tooltip("Màu nền của nút khi mục đang được chọn.")]
-    [SerializeField] private Color selectedColor = new Color32(71, 178, 174, 255);
+    private int currentIndex = -1;
 
-    [Tooltip("Màu khung viền ngoài khi mục chưa được chọn.")]
-    [SerializeField] private Color normalBorderColor = new Color32(39, 105, 110, 255);
-
-    [Tooltip("Màu khung viền ngoài khi mục đang được chọn.")]
-    [SerializeField] private Color selectedBorderColor = new Color32(239, 247, 238, 255);
-
-    [Tooltip("Màu biểu tượng và nhãn chữ khi mục chưa được chọn.")]
-    [SerializeField] private Color normalContentColor = new Color32(54, 117, 124, 255);
-
-    [Tooltip("Màu biểu tượng và nhãn chữ khi mục đang được chọn.")]
-    [SerializeField] private Color selectedContentColor = Color.white;
+    public int CurrentIndex => currentIndex;
+    public NavigationItem[] Items => items;
 
     private void Start()
     {
@@ -65,6 +73,12 @@ public class BottomNavigationController : MonoBehaviour
             {
                 items[i].button.onClick.RemoveAllListeners();
                 items[i].button.onClick.AddListener(() => Select(index));
+
+                Image img = items[i].buttonImage != null ? items[i].buttonImage : items[i].button.GetComponent<Image>();
+                if (img != null)
+                {
+                    img.raycastTarget = true;
+                }
             }
         }
 
@@ -84,6 +98,9 @@ public class BottomNavigationController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Chuyển đổi tab đang chọn: Nút chọn sẽ dùng activeSprite (thanh 1), các nút khác dùng inactiveSprite (thanh 2).
+    /// </summary>
     public void Select(int selectedIndex)
     {
         if (items == null || selectedIndex < 0 || selectedIndex >= items.Length)
@@ -91,39 +108,112 @@ public class BottomNavigationController : MonoBehaviour
             return;
         }
 
+        currentIndex = selectedIndex;
+
         for (int i = 0; i < items.Length; i++)
         {
             NavigationItem item = items[i];
             if (item == null) continue;
 
-            bool selected = i == selectedIndex;
+            bool isSelected = (i == selectedIndex);
 
+            // 1. Bật/Tắt Panel nội dung tương ứng
             if (item.panel != null)
             {
-                item.panel.SetActive(selected);
+                item.panel.SetActive(isSelected);
             }
 
-            if (item.background != null)
+            // 2. Tìm Image hiển thị của Button
+            Image targetImage = item.buttonImage;
+            if (targetImage == null && item.button != null)
             {
-                item.background.color = selected ? selectedColor : normalColor;
+                targetImage = item.button.GetComponent<Image>();
             }
 
-            Image borderImage = item.border != null ? item.border : (item.button != null ? item.button.GetComponent<Image>() : null);
-            if (borderImage != null && borderImage != item.background)
+            // 3. Đổi Sprite giữa Thanh 1 (Sáng) và Thanh 2 (Tối)
+            if (targetImage != null)
             {
-                borderImage.color = selected ? selectedBorderColor : normalBorderColor;
+                targetImage.raycastTarget = true; // Đảm bảo luôn nhận click 100%
+
+                Sprite targetSprite = isSelected ? item.activeSprite : item.inactiveSprite;
+                if (targetSprite != null)
+                {
+                    targetImage.sprite = targetSprite;
+                }
+
+                if (resetImageColorToWhite)
+                {
+                    targetImage.color = Color.white;
+                }
             }
 
-            Color contentColor = selected ? selectedContentColor : normalContentColor;
+            // 4. Nếu có icon hoặc label tách riêng
             if (item.icon != null)
             {
-                item.icon.color = contentColor;
+                item.icon.color = isSelected ? Color.white : new Color(0.6f, 0.8f, 0.85f, 0.8f);
             }
 
             if (item.label != null)
             {
-                item.label.color = contentColor;
+                item.label.color = isSelected ? Color.white : new Color(0.6f, 0.8f, 0.85f, 0.8f);
             }
         }
     }
+
+#if UNITY_EDITOR
+    [ContextMenu("Tự động gán Sprites từ thanh điều hướng 1 & 2")]
+    public void AutoAssignSpritesFromProject()
+    {
+        Sprite[] activeSprites = UnityEditor.AssetDatabase.LoadAllAssetsAtPath("Assets/Sprites/UI/thanh điều hướng 1.png")
+            as Sprite[];
+        Sprite[] inactiveSprites = UnityEditor.AssetDatabase.LoadAllAssetsAtPath("Assets/Sprites/UI/thanh điều hướng 2.png")
+            as Sprite[];
+
+        if (activeSprites == null || inactiveSprites == null)
+        {
+            Debug.LogWarning("[BottomNav] Không tìm thấy file 'thanh điều hướng 1.png' hoặc 'thanh điều hướng 2.png' trong Assets/Sprites/UI/");
+            return;
+        }
+
+        string[] tabNames = { "Shop", "Lab", "Chapter", "Chipset", "Buddy" };
+
+        if (items == null || items.Length != 5)
+        {
+            items = new NavigationItem[5];
+            for (int i = 0; i < 5; i++)
+            {
+                items[i] = new NavigationItem { name = tabNames[i] };
+            }
+        }
+
+        for (int i = 0; i < items.Length && i < tabNames.Length; i++)
+        {
+            string tabName = tabNames[i];
+            items[i].name = tabName;
+
+            // Tìm active sprite
+            foreach (var s in activeSprites)
+            {
+                if (s != null && s.name.Equals(tabName, StringComparison.OrdinalIgnoreCase))
+                {
+                    items[i].activeSprite = s;
+                    break;
+                }
+            }
+
+            // Tìm inactive sprite
+            foreach (var s in inactiveSprites)
+            {
+                if (s != null && s.name.Equals(tabName, StringComparison.OrdinalIgnoreCase))
+                {
+                    items[i].inactiveSprite = s;
+                    break;
+                }
+            }
+        }
+
+        UnityEditor.EditorUtility.SetDirty(this);
+        Debug.Log("[BottomNav] ✅ Đã tự động liên kết thành công 5 cặp Sprite cho các tab (Shop, Lab, Chapter, Chipset, Buddy)!");
+    }
+#endif
 }

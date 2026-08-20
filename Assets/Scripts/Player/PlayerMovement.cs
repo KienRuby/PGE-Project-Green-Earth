@@ -64,6 +64,11 @@ public class PlayerMovement : MonoBehaviour
 
         ReadKeyboard();
 
+        if (joystick == null)
+        {
+            joystick = FindObjectOfType<VirtualJoystick>(true);
+        }
+
         Vector2 joystickInput = (joystick != null && joystick.gameObject.activeInHierarchy)
             ? joystick.Direction
             : Vector2.zero;
@@ -102,17 +107,57 @@ public class PlayerMovement : MonoBehaviour
 
         if (rb != null)
         {
-            rb.velocity = movement;
+            Vector2 targetPos = rb.position + movement * Time.fixedDeltaTime;
+
+            if (MapBoundary.Instance != null)
+            {
+                targetPos = MapBoundary.Instance.ClampPlayerPosition(targetPos);
+                Vector2 diff = targetPos - rb.position;
+                if (Time.fixedDeltaTime > 0.0001f)
+                {
+                    rb.velocity = diff / Time.fixedDeltaTime;
+                }
+                else
+                {
+                    rb.velocity = movement;
+                }
+            }
+            else
+            {
+                rb.velocity = movement;
+            }
 
             // Fallback nếu Rigidbody kinematic hoặc bị kẹt
             if (rb.bodyType == RigidbodyType2D.Kinematic)
             {
-                rb.MovePosition(rb.position + movement * Time.fixedDeltaTime);
+                rb.MovePosition(targetPos);
             }
         }
         else
         {
-            transform.position += (Vector3)(movement * Time.fixedDeltaTime);
+            Vector2 targetPos = (Vector2)transform.position + movement * Time.fixedDeltaTime;
+            if (MapBoundary.Instance != null)
+            {
+                targetPos = MapBoundary.Instance.ClampPlayerPosition(targetPos);
+            }
+            transform.position = new Vector3(targetPos.x, targetPos.y, transform.position.z);
+        }
+    }
+
+    private void LateUpdate()
+    {
+        // Lớp bảo vệ chắc chắn 100% Player không bị lực đẩy của quái văng ra ngoài biên
+        if (MapBoundary.Instance != null && (playerHealth == null || !playerHealth.IsDead))
+        {
+            Vector2 clamped = MapBoundary.Instance.ClampPlayerPosition(transform.position);
+            if ((Vector2)transform.position != clamped)
+            {
+                transform.position = new Vector3(clamped.x, clamped.y, transform.position.z);
+                if (rb != null)
+                {
+                    rb.position = clamped;
+                }
+            }
         }
     }
 

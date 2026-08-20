@@ -16,8 +16,13 @@ MonoBehaviour:
   chapterTitle: Grassland Outskirts
   totalWaves: 10
   energyCost: 10
-  previewBackground: {fileID: 21300000, guid: 0377c92faaf76cc4d97b14ef7cfeeb09, type: 3}
-  bossSilhouette: {fileID: 75238015, guid: 5424adb2f9ebec9459ec5817bc67a31c, type: 3}
+  previewBackground: {fileID: 896282970, guid: d9e98077defe2e542af60da1db6ba24d, type: 3}
+  bossSilhouette: {fileID: 21300000, guid: f69b6363b6220a24faa3bb42da143ecd, type: 3}
+  mapGroundSprite: {fileID: 21300000, guid: e92326fa91624344e844f543e748a31e, type: 3}
+  mapSize: {x: 40, y: 40}
+  mapColor: {r: 1, g: 1, b: 1, a: 1}
+  groundDrawMode: 2
+  playerBoundaryPadding: 0.6
   flavorText: Mutant spores have been detected on the outskirts.
   gameplaySceneName: GamePlay
   levelConfigId: grassland_1
@@ -25,8 +30,8 @@ MonoBehaviour:
   autoGenerateWaves: 1
   chapterDifficultyMultiplier: 1
   wavePowerGrowthRate: 0.08
-  defaultWaveDuration: 30
-  finalBossWaveDuration: 60
+  defaultWaveDuration: 10
+  finalBossWaveDuration: 20
   chapterEnemyPool:
   - enemyPrefab: {fileID: 6558628254369202594, guid: cae7dc80e82b3b14bade28b18c3b19ff, type: 3}
     spawnWeight: 10
@@ -49,8 +54,8 @@ MonoBehaviour:
     damageMultiplier: 1
     speedMultiplier: 1
     expMultiplier: 1
-    isBossWave: 0
-    customBossPrefab: {fileID: 0}
+    isBossWave: 1
+    customBossPrefab: {fileID: 1010797112834101214, guid: 616d9ac7cedf5eb46b9e23335d25aa30, type: 3}
     bossCount: 1
     bossSpawnDelay: 0
     breakDurationAfterWave: 1

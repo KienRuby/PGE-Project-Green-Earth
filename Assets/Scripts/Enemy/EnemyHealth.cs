@@ -44,6 +44,21 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     private EnemyMovement enemyMovement;
     private BossMovement bossMovement;
     private Rigidbody2D rb;
+    private float cachedDeathDuration;
+    private bool hasDeathTriggerParam;
+    private string defaultAnimationState = "run";
+    private int defaultStateHash;
+    private Coroutine deathRoutine;
+
+    private struct ChildTransformSnapshot
+    {
+        public Transform transform;
+        public Vector3 localPosition;
+        public Quaternion localRotation;
+        public Vector3 localScale;
+    }
+
+    private ChildTransformSnapshot[] cachedChildSnapshots;
 
     private void Awake()
     {
@@ -55,6 +70,62 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
         bossMovement = GetComponent<BossMovement>();
         rb = GetComponent<Rigidbody2D>();
         CurrentHealth = maxHealth;
+
+        // Lưu lại vị trí/góc xoay/tỉ lệ ban đầu của tất cả child transforms (chân, thân, v.v. - trừ root)
+        // để khôi phục chính xác 100% khi tái sử dụng từ Pool mà không ghi đè vị trí spawn của quái
+        Transform[] allTransforms = GetComponentsInChildren<Transform>(true);
+        var childList = new System.Collections.Generic.List<ChildTransformSnapshot>(allTransforms.Length);
+        for (int i = 0; i < allTransforms.Length; i++)
+        {
+            if (allTransforms[i] == transform) continue; // Bỏ qua Root transform để giữ nguyên spawn position
+            childList.Add(new ChildTransformSnapshot
+            {
+                transform = allTransforms[i],
+                localPosition = allTransforms[i].localPosition,
+                localRotation = allTransforms[i].localRotation,
+                localScale = allTransforms[i].localScale
+            });
+        }
+        cachedChildSnapshots = childList.ToArray();
+
+        CacheDeathAnimationSettings();
+    }
+
+    private void CacheDeathAnimationSettings()
+    {
+        cachedDeathDuration = fallbackDeathDuration;
+        if (animator != null && animator.runtimeAnimatorController != null)
+        {
+            AnimationClip[] clips = animator.runtimeAnimatorController.animationClips;
+            if (clips != null)
+            {
+                foreach (AnimationClip clip in clips)
+                {
+                    if (clip != null)
+                    {
+                        if (string.Equals(clip.name, deathAnimationState, StringComparison.OrdinalIgnoreCase) ||
+                            string.Equals(clip.name, "DieBig", StringComparison.OrdinalIgnoreCase))
+                        {
+                            cachedDeathDuration = clip.length;
+                        }
+                        else if (string.Equals(clip.name, "run", StringComparison.OrdinalIgnoreCase) ||
+                                 string.Equals(clip.name, "Run", StringComparison.OrdinalIgnoreCase) ||
+                                 string.Equals(clip.name, "runbig", StringComparison.OrdinalIgnoreCase) ||
+                                 string.Equals(clip.name, "walk", StringComparison.OrdinalIgnoreCase) ||
+                                 string.Equals(clip.name, "idle", StringComparison.OrdinalIgnoreCase))
+                        {
+                            defaultAnimationState = clip.name;
+                            defaultStateHash = Animator.StringToHash(clip.name);
+                        }
+                    }
+                }
+            }
+            if (defaultStateHash == 0 && !string.IsNullOrEmpty(defaultAnimationState))
+            {
+                defaultStateHash = Animator.StringToHash(defaultAnimationState);
+            }
+            hasDeathTriggerParam = HasParameter(animator, deathAnimationTrigger, AnimatorControllerParameterType.Trigger);
+        }
     }
 
     private void Start()
@@ -138,12 +209,16 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
         OnDeath?.Invoke(this);
 
         // 5. Khóa chặt vị trí và chạy animation Die trọn vẹn rồi mới thu hồi / destroy
-        StartCoroutine(PlayDeathAnimationAndDespawn(transform.position, transform.rotation, transform.localScale));
+        if (deathRoutine != null)
+        {
+            StopCoroutine(deathRoutine);
+        }
+        deathRoutine = StartCoroutine(PlayDeathAnimationAndDespawn(transform.position, transform.rotation, transform.localScale));
     }
 
     private IEnumerator PlayDeathAnimationAndDespawn(Vector3 lockedPos, Quaternion lockedRot, Vector3 lockedScale)
     {
-        float animDuration = fallbackDeathDuration;
+        float animDuration = cachedDeathDuration > 0f ? cachedDeathDuration : fallbackDeathDuration;
 
         if (animator == null)
         {
@@ -153,24 +228,9 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
         if (animator != null && animator.gameObject.activeInHierarchy)
         {
             animator.applyRootMotion = false;
-
-            if (animator.runtimeAnimatorController != null)
-            {
-                AnimationClip[] clips = animator.runtimeAnimatorController.animationClips;
-                foreach (AnimationClip clip in clips)
-                {
-                    if (clip != null && (string.Equals(clip.name, deathAnimationState, StringComparison.OrdinalIgnoreCase) ||
-                                         string.Equals(clip.name, "DieBig", StringComparison.OrdinalIgnoreCase)))
-                    {
-                        animDuration = clip.length;
-                        break;
-                    }
-                }
-            }
-
             animator.speed = 1f;
 
-            if (HasParameter(animator, deathAnimationTrigger, AnimatorControllerParameterType.Trigger))
+            if (hasDeathTriggerParam)
             {
                 animator.SetTrigger(deathAnimationTrigger);
             }
@@ -195,6 +255,7 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
         }
 
         transform.position = lockedPos;
+        deathRoutine = null;
         Despawn();
     }
 
@@ -227,9 +288,53 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
 
     public void OnSpawnFromPool()
     {
+        ResetForSpawn();
+    }
+
+    /// <summary>
+    /// Hợp đồng Reset duy nhất: Đảm bảo mọi Runtime State, Visual Pose, Physics và Animator 
+    /// được khôi phục 100% về trạng thái sống ngay tại Frame 0 khi lấy từ Pool.
+    /// </summary>
+    public void ResetForSpawn()
+    {
+        if (deathRoutine != null)
+        {
+            StopCoroutine(deathRoutine);
+            deathRoutine = null;
+        }
+
         IsDead = false;
         CurrentHealth = maxHealth;
 
+        ResetVisualState();
+        ResetPhysicsState();
+        ResetMovementState();
+        ResetAnimatorState();
+
+        OnHealthChanged?.Invoke(CurrentHealth, maxHealth);
+    }
+
+    private void ResetVisualState()
+    {
+        transform.rotation = Quaternion.identity;
+
+        if (cachedChildSnapshots != null)
+        {
+            for (int i = 0; i < cachedChildSnapshots.Length; i++)
+            {
+                Transform t = cachedChildSnapshots[i].transform;
+                if (t != null && t != transform)
+                {
+                    t.localPosition = cachedChildSnapshots[i].localPosition;
+                    t.localRotation = cachedChildSnapshots[i].localRotation;
+                    t.localScale = cachedChildSnapshots[i].localScale;
+                }
+            }
+        }
+    }
+
+    private void ResetPhysicsState()
+    {
         if (colliders != null)
         {
             for (int i = 0; i < colliders.Length; i++)
@@ -244,24 +349,53 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
             rb.velocity = Vector2.zero;
             rb.angularVelocity = 0f;
         }
+    }
 
+    private void ResetMovementState()
+    {
         if (enemyMovement != null) enemyMovement.enabled = true;
         if (bossMovement != null) bossMovement.enabled = true;
+    }
 
-        if (animator != null && animator.gameObject.activeInHierarchy)
+    private void ResetAnimatorState()
+    {
+        if (animator == null) return;
+
+        animator.applyRootMotion = false;
+        if (hasDeathTriggerParam)
         {
-            animator.applyRootMotion = false;
-            animator.Rebind();
-            animator.Update(0f);
+            animator.ResetTrigger(deathAnimationTrigger);
         }
 
-        OnHealthChanged?.Invoke(CurrentHealth, maxHealth);
+        if (defaultStateHash != 0)
+        {
+            animator.Play(defaultStateHash, 0, 0f);
+        }
+        else if (!string.IsNullOrEmpty(defaultAnimationState))
+        {
+            animator.Play(defaultAnimationState, 0, 0f);
+        }
+        else
+        {
+            animator.Play(0, 0, 0f);
+        }
+
+        // Cập nhật ngay tại frame 0 để render chuẩn pose di chuyển ngay frame đầu tiên
+        animator.Update(0f);
     }
 
     public void OnReturnToPool()
     {
         IsDead = true;
-        StopAllCoroutines();
+        if (deathRoutine != null)
+        {
+            StopCoroutine(deathRoutine);
+            deathRoutine = null;
+        }
+        if (animator != null && hasDeathTriggerParam)
+        {
+            animator.ResetTrigger(deathAnimationTrigger);
+        }
         OnDeath = null;
         OnEnemyDeath = null;
         OnHealthChanged = null;
@@ -269,7 +403,11 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
 
     private void OnDestroy()
     {
-        StopAllCoroutines();
+        if (deathRoutine != null)
+        {
+            StopCoroutine(deathRoutine);
+            deathRoutine = null;
+        }
         OnDeath = null;
         OnEnemyDeath = null;
         OnHealthChanged = null;

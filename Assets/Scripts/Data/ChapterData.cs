@@ -30,6 +30,23 @@ public class ChapterData : ScriptableObject
     [Tooltip("Bóng đen quái vật trùm (Boss Silhouette) hiển thị ở trung tâm khung xem trước. Dễ dàng thay thế sprite mới.")]
     public Sprite bossSilhouette;
 
+    [Header("Map & Environment Configuration")]
+    [Tooltip("Sprite sàn/bản đồ hiển thị trong màn chơi của Chapter này (nếu để trống sẽ dùng sprite nền mặc định).")]
+    public Sprite mapGroundSprite;
+
+    [Tooltip("Kích thước bản đồ (Rộng X, Cao Y theo đơn vị Unity).")]
+    public Vector2 mapSize = new Vector2(40f, 40f);
+
+    [Tooltip("Màu sắc / Tông màu chiếu sáng môi trường cho mặt sàn Chapter này.")]
+    public Color mapColor = Color.white;
+
+    [Tooltip("Chế độ vẽ Sprite sàn: Tiled (lặp lại texture gạch sàn) hoặc Simple (ảnh vẽ tay 1 tấm).")]
+    public SpriteDrawMode groundDrawMode = SpriteDrawMode.Tiled;
+
+    [Tooltip("Khoảng cách đệm an toàn từ mép bản đồ để nhân vật không bị lòi ra ngoài viền.")]
+    [Range(0.1f, 3.0f)]
+    public float playerBoundaryPadding = 0.6f;
+
     [Header("Story & Flavor")]
     [TextArea(2, 4)]
     [Tooltip("Câu thoại dẫn truyện / gợi mở xuất hiện phía dưới quái vật trùm.")]

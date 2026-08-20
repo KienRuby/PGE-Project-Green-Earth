@@ -40,6 +40,8 @@ public class Projectile : MonoBehaviour, IPoolable
         if (rb != null)
         {
             rb.gravityScale = 0f;
+            rb.interpolation = RigidbodyInterpolation2D.None;
+            rb.bodyType = RigidbodyType2D.Kinematic;
             rb.useFullKinematicContacts = true;
         }
     }
@@ -99,15 +101,12 @@ public class Projectile : MonoBehaviour, IPoolable
 
         if (rb != null)
         {
-            if (rb.bodyType == RigidbodyType2D.Kinematic)
-            {
-                Vector2 nextPos = rb.position + moveDirection * (moveSpeed * Time.fixedDeltaTime);
-                rb.MovePosition(nextPos);
-            }
-            else
-            {
-                rb.velocity = moveDirection * moveSpeed;
-            }
+            Vector2 nextPos = rb.position + moveDirection * (moveSpeed * Time.fixedDeltaTime);
+            rb.MovePosition(nextPos);
+        }
+        else
+        {
+            transform.position += (Vector3)(moveDirection * (moveSpeed * Time.fixedDeltaTime));
         }
     }
 
@@ -132,8 +131,8 @@ public class Projectile : MonoBehaviour, IPoolable
     {
         if (other == null) return;
 
-        // Tránh bắn trúng Player
-        if (other.CompareTag("Player") || other.GetComponentInParent<PlayerHealth>() != null)
+        // Tránh bắn trúng Player hoặc các viên đạn khác (Fast Path Tag Check)
+        if (other.CompareTag("Player") || other.CompareTag("BulletPlayer"))
         {
             return;
         }
@@ -141,8 +140,8 @@ public class Projectile : MonoBehaviour, IPoolable
         IDamageable damageable = other.GetComponentInParent<IDamageable>();
         if (damageable != null)
         {
-            EnemyHealth enemyHealth = other.GetComponentInParent<EnemyHealth>();
-            if (enemyHealth != null && enemyHealth.IsDead)
+            // Tránh gọi GetComponentInParent lần 2
+            if (damageable is EnemyHealth enemyHealth && enemyHealth.IsDead)
             {
                 return;
             }

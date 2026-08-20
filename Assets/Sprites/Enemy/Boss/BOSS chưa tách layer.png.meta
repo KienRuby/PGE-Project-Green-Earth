@@ -1,0 +1,567 @@
+fileFormatVersion: 2
+guid: f69b6363b6220a24faa3bb42da143ecd
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: "BOSS ch\u01B0a t\xE1ch layer_0"
+      rect:
+        serializedVersion: 2
+        x: 1103
+        y: 3015
+        width: 33
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9a16ef4e5deed2840afdeff3996524c8
+      internalID: -1808385159
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "BOSS ch\u01B0a t\xE1ch layer_1"
+      rect:
+        serializedVersion: 2
+        x: 1148
+        y: 3038
+        width: 11
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fd09b1d98e94f9b4eb281c211cbdc85f
+      internalID: -674804852
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "BOSS ch\u01B0a t\xE1ch layer_2"
+      rect:
+        serializedVersion: 2
+        x: 1204
+        y: 3026
+        width: 11
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c3faaf8bcbc8dd7489a4585c5dec0dee
+      internalID: -848445027
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Boss
+      rect:
+        serializedVersion: 2
+        x: 426
+        y: 1899
+        width: 1353
+        height: 1117
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1e435b7c4e617d04eb417927976e4a5c
+      internalID: 809222454
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "BOSS ch\u01B0a t\xE1ch layer_4"
+      rect:
+        serializedVersion: 2
+        x: 1226
+        y: 2981
+        width: 34
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 119c631b38d1f1441930d2208ff5689f
+      internalID: 11568531
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "BOSS ch\u01B0a t\xE1ch layer_5"
+      rect:
+        serializedVersion: 2
+        x: 1778
+        y: 2318
+        width: 14
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d827f23e1ad686e4a9019b9f151387a3
+      internalID: 382706971
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "BOSS ch\u01B0a t\xE1ch layer_6"
+      rect:
+        serializedVersion: 2
+        x: 1789
+        y: 2284
+        width: 11
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5a0dffbf2a811394482da477b6cf2e63
+      internalID: -1069275668
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "BOSS ch\u01B0a t\xE1ch layer_7"
+      rect:
+        serializedVersion: 2
+        x: 1800
+        y: 2239
+        width: 6
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: edd688d629a01df458a8169c11181d12
+      internalID: 807009500
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "BOSS ch\u01B0a t\xE1ch layer_8"
+      rect:
+        serializedVersion: 2
+        x: 1800
+        y: 2216
+        width: 6
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d3b5e55658e8d4d45807fe8f8df8678d
+      internalID: -84624243
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "BOSS ch\u01B0a t\xE1ch layer_9"
+      rect:
+        serializedVersion: 2
+        x: 1800
+        y: 2183
+        width: 7
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0c2df7abf0ae0014ba6189393dfeda8f
+      internalID: 693246811
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "BOSS ch\u01B0a t\xE1ch layer_10"
+      rect:
+        serializedVersion: 2
+        x: 428
+        y: 2171
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: edc4d479cbdf93147ae844c09346438a
+      internalID: 1626880680
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "BOSS ch\u01B0a t\xE1ch layer_11"
+      rect:
+        serializedVersion: 2
+        x: 1800
+        y: 2149
+        width: 6
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 193c218152cc063498a4c42abdbb0faa
+      internalID: -821714810
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "BOSS ch\u01B0a t\xE1ch layer_12"
+      rect:
+        serializedVersion: 2
+        x: 426
+        y: 2102
+        width: 13
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5738dce255897344798dd58953606193
+      internalID: -1668433710
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "BOSS ch\u01B0a t\xE1ch layer_13"
+      rect:
+        serializedVersion: 2
+        x: 1789
+        y: 2087
+        width: 15
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3e4e3be878361b04a9a734334c020c7a
+      internalID: 1345623958
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "BOSS ch\u01B0a t\xE1ch layer_14"
+      rect:
+        serializedVersion: 2
+        x: 1778
+        y: 2014
+        width: 14
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a75215cfb94930445a3b4a4fc6d796ee
+      internalID: -557878628
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "BOSS ch\u01B0a t\xE1ch layer_15"
+      rect:
+        serializedVersion: 2
+        x: 527
+        y: 1900
+        width: 24
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 192246b773b70964295ea7f664ca493a
+      internalID: 1003297782
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "BOSS ch\u01B0a t\xE1ch layer_16"
+      rect:
+        serializedVersion: 2
+        x: 1654
+        y: 1909
+        width: 22
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f12a512b2c077c646a3ae47efbde4fb6
+      internalID: 1306902336
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "BOSS ch\u01B0a t\xE1ch layer_17"
+      rect:
+        serializedVersion: 2
+        x: 1699
+        y: 1907
+        width: 22
+        height: 5
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 482ec2ac127b74d4d82a236ff75b9590
+      internalID: 2080606867
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "BOSS ch\u01B0a t\xE1ch layer_18"
+      rect:
+        serializedVersion: 2
+        x: 1249
+        y: 1894
+        width: 22
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 16b7f4c8b70d0834b9676dd496df05b6
+      internalID: 618111528
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "BOSS ch\u01B0a t\xE1ch layer_19"
+      rect:
+        serializedVersion: 2
+        x: 1283
+        y: 1896
+        width: 22
+        height: 5
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 690572de7057b1842a74003f93bb0492
+      internalID: -873449470
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      "BOSS ch\u01B0a t\xE1ch layer_0": -1808385159
+      "BOSS ch\u01B0a t\xE1ch layer_1": -674804852
+      "BOSS ch\u01B0a t\xE1ch layer_10": 1626880680
+      "BOSS ch\u01B0a t\xE1ch layer_11": -821714810
+      "BOSS ch\u01B0a t\xE1ch layer_12": -1668433710
+      "BOSS ch\u01B0a t\xE1ch layer_13": 1345623958
+      "BOSS ch\u01B0a t\xE1ch layer_14": -557878628
+      "BOSS ch\u01B0a t\xE1ch layer_15": 1003297782
+      "BOSS ch\u01B0a t\xE1ch layer_16": 1306902336
+      "BOSS ch\u01B0a t\xE1ch layer_17": 2080606867
+      "BOSS ch\u01B0a t\xE1ch layer_18": 618111528
+      "BOSS ch\u01B0a t\xE1ch layer_19": -873449470
+      "BOSS ch\u01B0a t\xE1ch layer_2": -848445027
+      "BOSS ch\u01B0a t\xE1ch layer_4": 11568531
+      "BOSS ch\u01B0a t\xE1ch layer_5": 382706971
+      "BOSS ch\u01B0a t\xE1ch layer_6": -1069275668
+      "BOSS ch\u01B0a t\xE1ch layer_7": 807009500
+      "BOSS ch\u01B0a t\xE1ch layer_8": -84624243
+      "BOSS ch\u01B0a t\xE1ch layer_9": 693246811
+      Boss: 809222454
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

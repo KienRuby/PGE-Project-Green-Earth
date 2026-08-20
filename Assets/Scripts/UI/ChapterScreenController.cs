@@ -53,6 +53,12 @@ public class ChapterScreenController : MonoBehaviour
     [Tooltip("Nút Start lớn màu xanh bắt đầu trận đấu.")]
     [SerializeField] private Button startButton;
 
+    [Tooltip("Sprite nút Start ở trạng thái bình thường (Sprite 1: nút start_0).")]
+    [SerializeField] private Sprite normalStartSprite;
+
+    [Tooltip("Sprite nút Start khi nhấn vào (Sprite 2: nút start_1).")]
+    [SerializeField] private Sprite pressedStartSprite;
+
     [Tooltip("Text nhãn hiển thị trên nút bắt đầu (ví dụ: 'Start' hoặc 'Locked').")]
     [SerializeField] private TMP_Text startButtonLabel;
 
@@ -113,6 +119,7 @@ public class ChapterScreenController : MonoBehaviour
         {
             startButton.onClick.RemoveListener(OnStartButtonClicked);
             startButton.onClick.AddListener(OnStartButtonClicked);
+            SetupStartButtonTransition();
         }
     }
 
@@ -275,28 +282,83 @@ public class ChapterScreenController : MonoBehaviour
             if (costBox != null) costBox.SetActive(!isLocked);
         }
 
+        // Nếu Chapter chưa mở khóa -> Ẩn hoàn toàn nút Start
+        if (startButton != null)
+        {
+            startButton.gameObject.SetActive(!isLocked);
+        }
+
+        SetupStartButtonTransition();
         UpdateButtonState();
+    }
+
+    public void SetupStartButtonTransition()
+    {
+        if (startButton == null) return;
+
+        if (normalStartSprite == null || pressedStartSprite == null)
+        {
+#if UNITY_EDITOR
+            Sprite[] sprites = UnityEditor.AssetDatabase.LoadAllAssetsAtPath("Assets/Sprites/UI/nút start.png") as Sprite[];
+            if (sprites != null)
+            {
+                foreach (var s in sprites)
+                {
+                    if (s == null) continue;
+                    if (s.name == "nút start_0" && normalStartSprite == null) normalStartSprite = s;
+                    if (s.name == "nút start_1" && pressedStartSprite == null) pressedStartSprite = s;
+                }
+            }
+#endif
+        }
+
+        if (normalStartSprite != null && pressedStartSprite != null)
+        {
+            startButton.transition = Selectable.Transition.SpriteSwap;
+
+            var btnImage = startButton.targetGraphic as Image ?? startButton.GetComponent<Image>();
+            if (btnImage != null)
+            {
+                btnImage.sprite = normalStartSprite;
+                btnImage.color = Color.white;
+                btnImage.raycastTarget = true;
+            }
+
+            SpriteState state = startButton.spriteState;
+            state.highlightedSprite = normalStartSprite;
+            state.pressedSprite = pressedStartSprite;
+            state.selectedSprite = normalStartSprite;
+            state.disabledSprite = normalStartSprite;
+            startButton.spriteState = state;
+        }
     }
 
     private void UpdateButtonState()
     {
         bool isLocked = IsCurrentChapterLocked();
+
+        // Đảm bảo nút Start chỉ hiển thị khi Chapter đã mở khóa
+        if (startButton != null)
+        {
+            startButton.gameObject.SetActive(!isLocked);
+        }
+
+        if (isLocked || startButton == null) return;
+
         int cost = currentChapter != null ? currentChapter.energyCost : 10;
         bool hasEnoughEnergy = ChipManager.HasEnoughEnergy(cost);
 
-        if (startButton != null)
+        var btnImage = startButton.targetGraphic as Image ?? startButton.GetComponent<Image>();
+        if (btnImage != null)
         {
-            var btnImage = startButton.targetGraphic as Image ?? startButton.GetComponent<Image>();
-            if (btnImage != null)
+            if (normalStartSprite != null)
             {
-                if (isLocked)
-                {
-                    btnImage.color = lockedButtonColor;
-                }
-                else
-                {
-                    btnImage.color = hasEnoughEnergy ? affordableButtonColor : unaffordableButtonColor;
-                }
+                // Khi dùng Custom Sprite, giữ màu gốc và làm mờ nếu không đủ năng lượng
+                btnImage.color = hasEnoughEnergy ? Color.white : unaffordableButtonColor;
+            }
+            else
+            {
+                btnImage.color = hasEnoughEnergy ? affordableButtonColor : unaffordableButtonColor;
             }
         }
     }
@@ -360,6 +422,15 @@ public class ChapterScreenController : MonoBehaviour
         lockOverlay = lockObj;
         startButtonLabel = label;
         costBox = costObj;
+        RefreshChapterView();
+    }
+
+    public void SetStartButtonForTesting(Button btn, Sprite normal = null, Sprite pressed = null)
+    {
+        startButton = btn;
+        normalStartSprite = normal;
+        pressedStartSprite = pressed;
+        SetupStartButtonTransition();
         RefreshChapterView();
     }
 
