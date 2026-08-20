@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class VirtualJoystick : MonoBehaviour,
     IPointerDownHandler,
@@ -22,15 +23,35 @@ public class VirtualJoystick : MonoBehaviour,
     [SerializeField] private bool keepInsideScreen = true;
 
     private RectTransform touchArea;
-
+    private Vector2 pointerDownScreenPos;
     private Vector2 input;
     private bool isPressed;
 
     public Vector2 Direction => input;
+    public bool IsPressed => isPressed;
 
     private void Awake()
     {
         touchArea = transform as RectTransform;
+
+        // Đảm bảo các con (Background, Handle) không nuốt/chặn sự kiện raycast của TouchArea
+        if (background != null)
+        {
+            Graphic bgGraphic = background.GetComponent<Graphic>();
+            if (bgGraphic != null) bgGraphic.raycastTarget = false;
+        }
+
+        if (handle != null)
+        {
+            Graphic handleGraphic = handle.GetComponent<Graphic>();
+            if (handleGraphic != null) handleGraphic.raycastTarget = false;
+        }
+
+        Graphic touchGraphic = GetComponent<Graphic>();
+        if (touchGraphic != null)
+        {
+            touchGraphic.raycastTarget = true;
+        }
 
         HideJoystick();
     }
@@ -39,6 +60,8 @@ public class VirtualJoystick : MonoBehaviour,
     {
         if (background == null || handle == null)
             return;
+
+        pointerDownScreenPos = eventData.position;
 
         if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
                 touchArea,
@@ -49,20 +72,15 @@ public class VirtualJoystick : MonoBehaviour,
             return;
         }
 
-        // Không cho joystick bị tràn ra ngoài màn hình.
         if (keepInsideScreen)
             localPoint = ClampJoystickPosition(localPoint);
 
         background.anchoredPosition = localPoint;
-
         background.gameObject.SetActive(true);
 
         handle.anchoredPosition = Vector2.zero;
-
         input = Vector2.zero;
         isPressed = true;
-
-        OnDrag(eventData);
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -76,27 +94,18 @@ public class VirtualJoystick : MonoBehaviour,
                 eventData.pressEventCamera,
                 out Vector2 localPoint))
         {
+            Vector2 screenDiff = eventData.position - pointerDownScreenPos;
+            float fallbackRadius = 70f;
+            input = Vector2.ClampMagnitude(screenDiff / fallbackRadius, 1f);
+            handle.anchoredPosition = input * (fallbackRadius * handleRange);
             return;
         }
 
-        float radius =
-            Mathf.Min(
-                background.rect.width,
-                background.rect.height
-            ) * 0.5f;
+        float radius = Mathf.Min(background.rect.width, background.rect.height) * 0.5f;
+        if (radius <= 0.01f) radius = 50f;
 
-        if (radius <= 0f)
-            return;
-
-        input = Vector2.ClampMagnitude(
-            localPoint / radius,
-            1f
-        );
-
-        handle.anchoredPosition =
-            input *
-            radius *
-            handleRange;
+        input = Vector2.ClampMagnitude(localPoint / radius, 1f);
+        handle.anchoredPosition = input * radius * handleRange;
     }
 
     public void OnPointerUp(PointerEventData eventData)
@@ -110,12 +119,8 @@ public class VirtualJoystick : MonoBehaviour,
             return position;
 
         Rect areaRect = touchArea.rect;
-
-        float halfWidth =
-            background.rect.width * 0.5f;
-
-        float halfHeight =
-            background.rect.height * 0.5f;
+        float halfWidth = background.rect.width * 0.5f;
+        float halfHeight = background.rect.height * 0.5f;
 
         position.x = Mathf.Clamp(
             position.x,
@@ -156,4 +161,4 @@ public class VirtualJoystick : MonoBehaviour,
     {
         HideJoystick();
     }
-}
+}

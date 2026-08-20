@@ -1,0 +1,1073 @@
+fileFormatVersion: 2
+guid: 6833c4b736d21644098c3efa1efa6152
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_0"
+      rect:
+        serializedVersion: 2
+        x: 1661
+        y: 2340
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cb6d62f5c6d8545438631a9c4d4d38de
+      internalID: -1915684397
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_1"
+      rect:
+        serializedVersion: 2
+        x: 1699
+        y: 2351
+        width: 11
+        height: 10
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cfee07598c2dcd447bf0556214fe1280
+      internalID: 1118391654
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_2"
+      rect:
+        serializedVersion: 2
+        x: 1755
+        y: 2340
+        width: 22
+        height: 24
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 58e3b31ca8ecbba47b9012d41a528808
+      internalID: 1907900089
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "ch\xE2n tr\u01B0\u1EDB 3"
+      rect:
+        serializedVersion: 2
+        x: 1372
+        y: 1934
+        width: 407
+        height: 408
+      alignment: 9
+      pivot: {x: 0.13642243, y: 0.72076654}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 39b731f65ed190c45a7761a139f634cc
+      internalID: -687689712
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_4"
+      rect:
+        serializedVersion: 2
+        x: 1620
+        y: 2329
+        width: 22
+        height: 15
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d82654261fb87814bb61f886429c8a3c
+      internalID: 460709443
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_5"
+      rect:
+        serializedVersion: 2
+        x: 1778
+        y: 2318
+        width: 14
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c56c31a63bf141041975613bb9bfa9e8
+      internalID: 1830892033
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_6"
+      rect:
+        serializedVersion: 2
+        x: 1271
+        y: 2318
+        width: 11
+        height: 5
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ba790a6e50d438f459f76fe4e795bcc7
+      internalID: -1452000843
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_7"
+      rect:
+        serializedVersion: 2
+        x: 1316
+        y: 2306
+        width: 21
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 86cc4f9e673e3084a940258374056263
+      internalID: 377277899
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "ch\xE2n tr\u01B0\u1EDBc 2"
+      rect:
+        serializedVersion: 2
+        x: 1135
+        y: 1924
+        width: 224
+        height: 373
+      alignment: 9
+      pivot: {x: 0.21277945, y: 0.6379899}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7f96edef953d5f34882941a84995e444
+      internalID: -537986386
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_9"
+      rect:
+        serializedVersion: 2
+        x: 1247
+        y: 2295
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e99dbcb237f92894bb95d2dbe34bc8b0
+      internalID: -1421719428
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_10"
+      rect:
+        serializedVersion: 2
+        x: 1339
+        y: 2295
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8befa107242dbd44190336094638db2e
+      internalID: 265165827
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_11"
+      rect:
+        serializedVersion: 2
+        x: 1789
+        y: 2284
+        width: 11
+        height: 22
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b8929c7cb0641bf4793e341765c4a654
+      internalID: 838341393
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_12"
+      rect:
+        serializedVersion: 2
+        x: 1361
+        y: 2273
+        width: 10
+        height: 9
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9d6e4d4e9d3c37442a11009891272c94
+      internalID: 1943183791
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_13"
+      rect:
+        serializedVersion: 2
+        x: 540
+        y: 2261
+        width: 22
+        height: 8
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d7291fb52b7efb048b1b48cff6c8bb57
+      internalID: -630261116
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_14"
+      rect:
+        serializedVersion: 2
+        x: 574
+        y: 2261
+        width: 22
+        height: 10
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f947c138ec2f6b14abd6b158dfafcb5c
+      internalID: -458537254
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_15"
+      rect:
+        serializedVersion: 2
+        x: 619
+        y: 2261
+        width: 11
+        height: 8
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 46e6bbdfff183574fb0f68c37cad644c
+      internalID: 1859003479
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_16"
+      rect:
+        serializedVersion: 2
+        x: 641
+        y: 2261
+        width: 11
+        height: 6
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5d7ab9a5f583e5a4a9310961c52d2498
+      internalID: -578269344
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_17"
+      rect:
+        serializedVersion: 2
+        x: 664
+        y: 2261
+        width: 67
+        height: 6
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b304ed45f116625438d59b1227ff411c
+      internalID: 1241810933
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_18"
+      rect:
+        serializedVersion: 2
+        x: 743
+        y: 2250
+        width: 27
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9e522262963873a48833eec098ca3138
+      internalID: 95147325
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "ch\xE2n tr\u01B0\u1EDBc 1"
+      rect:
+        serializedVersion: 2
+        x: 426
+        y: 1911
+        width: 476
+        height: 345
+      alignment: 9
+      pivot: {x: 0.8694449, y: 0.841891}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 365c0c9f985ed5f46b06265293349c08
+      internalID: -1958048967
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_20"
+      rect:
+        serializedVersion: 2
+        x: 495
+        y: 2250
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 150baa16adf499140b891ef9aae844d4
+      internalID: 751493
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_21"
+      rect:
+        serializedVersion: 2
+        x: 788
+        y: 2250
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9b2325fc22637a241821d15183000382
+      internalID: -1540214678
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_22"
+      rect:
+        serializedVersion: 2
+        x: 821
+        y: 2250
+        width: 11
+        height: 6
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 290359205a889784cacdc1789e31e57c
+      internalID: 171491722
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_23"
+      rect:
+        serializedVersion: 2
+        x: 1350
+        y: 2252
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 089514cf9b90afd44b09c9f741257e27
+      internalID: 725167113
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_24"
+      rect:
+        serializedVersion: 2
+        x: 1800
+        y: 2239
+        width: 6
+        height: 22
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6d47d67f544d8164d822fa2c4083b28e
+      internalID: 723474094
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_25"
+      rect:
+        serializedVersion: 2
+        x: 1800
+        y: 2216
+        width: 6
+        height: 11
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6b1d9d77e8483694f8861c663ec7ee51
+      internalID: -942818544
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_26"
+      rect:
+        serializedVersion: 2
+        x: 1800
+        y: 2183
+        width: 7
+        height: 22
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d976532fdd41b8147890827533da1f9b
+      internalID: 1659519236
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_27"
+      rect:
+        serializedVersion: 2
+        x: 428
+        y: 2171
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bd44f6ee6fcbb2f46be50f48e222b698
+      internalID: -1284477271
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_28"
+      rect:
+        serializedVersion: 2
+        x: 855
+        y: 2156
+        width: 15
+        height: 15
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5385c9d267cd3ca47b258f496bff0062
+      internalID: -605376758
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_29"
+      rect:
+        serializedVersion: 2
+        x: 1800
+        y: 2149
+        width: 6
+        height: 22
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a2b3595f81575544a978424d7800d15e
+      internalID: -1938797873
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_30"
+      rect:
+        serializedVersion: 2
+        x: 426
+        y: 2102
+        width: 13
+        height: 24
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f8bf5d9734f541d4ca009c3d043b4e0c
+      internalID: 1321090684
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_31"
+      rect:
+        serializedVersion: 2
+        x: 1361
+        y: 2059
+        width: 25
+        height: 45
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0f87791118d681e42a9649115a6b7eb7
+      internalID: 1353924982
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_32"
+      rect:
+        serializedVersion: 2
+        x: 1789
+        y: 2087
+        width: 15
+        height: 39
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 170b0c261e4773d458ddc154a6d3885e
+      internalID: -1802832257
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_33"
+      rect:
+        serializedVersion: 2
+        x: 1778
+        y: 2014
+        width: 14
+        height: 22
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cb99011232730784d8df4e85cbd2830b
+      internalID: -130668118
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_34"
+      rect:
+        serializedVersion: 2
+        x: 1168
+        y: 1899
+        width: 47
+        height: 36
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cd0e312521953084cb3390f9abbe5d8e
+      internalID: 1131281000
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_35"
+      rect:
+        serializedVersion: 2
+        x: 1350
+        y: 1913
+        width: 22
+        height: 22
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7e9df75807ae479419dd2d07a663ccdf
+      internalID: -1799704020
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_36"
+      rect:
+        serializedVersion: 2
+        x: 1596
+        y: 1922
+        width: 24
+        height: 24
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0d6cac1fa4942a14297c99f29a12f41b
+      internalID: 2063300393
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_37"
+      rect:
+        serializedVersion: 2
+        x: 1654
+        y: 1909
+        width: 22
+        height: 15
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 91e69c24ccfa66248b0600f7ac70f2d4
+      internalID: -1194128221
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_38"
+      rect:
+        serializedVersion: 2
+        x: 1733
+        y: 1913
+        width: 33
+        height: 33
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6668a6facdcff9b4b9980a1ac7edfb13
+      internalID: -1806637983
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_39"
+      rect:
+        serializedVersion: 2
+        x: 527
+        y: 1900
+        width: 24
+        height: 12
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 37b7a4b9f9ee41d469d066592ad2a16c
+      internalID: 131938052
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_40"
+      rect:
+        serializedVersion: 2
+        x: 1699
+        y: 1907
+        width: 22
+        height: 5
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0694a0aaa38590246afbd71bfe1b814f
+      internalID: -1204955445
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_41"
+      rect:
+        serializedVersion: 2
+        x: 1249
+        y: 1894
+        width: 22
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 526dfc9d7f88cff4493f1c84b6969bce
+      internalID: 1441570537
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n tr\u01B0\u1EDBc_42"
+      rect:
+        serializedVersion: 2
+        x: 1283
+        y: 1896
+        width: 46
+        height: 5
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: be39406c0fc13e14ba8b0ae8bcecc391
+      internalID: -1026278125
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_0": -1915684397
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_1": 1118391654
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_10": 265165827
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_11": 838341393
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_12": 1943183791
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_13": -630261116
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_14": -458537254
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_15": 1859003479
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_16": -578269344
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_17": 1241810933
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_18": 95147325
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_2": 1907900089
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_20": 751493
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_21": -1540214678
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_22": 171491722
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_23": 725167113
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_24": 723474094
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_25": -942818544
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_26": 1659519236
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_27": -1284477271
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_28": -605376758
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_29": -1938797873
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_30": 1321090684
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_31": 1353924982
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_32": -1802832257
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_33": -130668118
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_34": 1131281000
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_35": -1799704020
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_36": 2063300393
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_37": -1194128221
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_38": -1806637983
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_39": 131938052
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_4": 460709443
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_40": -1204955445
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_41": 1441570537
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_42": -1026278125
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_5": 1830892033
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_6": -1452000843
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_7": 377277899
+      "boss 1- ch\xE2n tr\u01B0\u1EDBc_9": -1421719428
+      "ch\xE2n tr\u01B0\u1EDB 3": -687689712
+      "ch\xE2n tr\u01B0\u1EDBc 1": -1958048967
+      "ch\xE2n tr\u01B0\u1EDBc 2": -537986386
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

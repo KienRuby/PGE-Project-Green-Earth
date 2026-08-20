@@ -161,6 +161,8 @@ public class EnemySpawner : MonoBehaviour
     public int TotalEnemiesInCurrentWave => GetCurrentWaveConfig() != null ? GetCurrentWaveConfig().totalEnemiesToSpawn : 0;
     public int CurrentActiveEnemiesCount => activeEnemies.Count;
     public int CurrentActiveBossesCount => activeBosses.Count;
+    public EnemyHealth CurrentActiveBoss => activeBosses.Count > 0 ? activeBosses[0] : null;
+    public IReadOnlyList<EnemyHealth> ActiveBosses => activeBosses;
     public float GameTime => gameTimer;
     public float WaveElapsedTime => waveElapsedTime;
     public float CurrentWaveDuration => GetCurrentWaveConfig() != null ? GetCurrentWaveConfig().waveDuration : 30f;
@@ -484,6 +486,13 @@ public class EnemySpawner : MonoBehaviour
         {
             movement.SetTarget(playerTransform);
             movement.MoveSpeed *= Mathf.Max(0.1f, speedMul);
+        }
+
+        BossMovement bossMovement = enemyObj.GetComponent<BossMovement>();
+        if (bossMovement != null)
+        {
+            bossMovement.SetTarget(playerTransform);
+            bossMovement.MoveSpeed *= Mathf.Max(0.1f, speedMul);
         }
 
         // Máu quái & EXP

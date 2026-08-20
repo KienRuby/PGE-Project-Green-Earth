@@ -176,6 +176,62 @@ public static class GamePlayHUDSceneBuilder
         expFill.fillAmount = 0.0f;
 
         // ==========================================
+        // B2. THANH MÁU BOSS (NGAY DƯỚI THANH LEVEL)
+        // ==========================================
+        GameObject bossHealthContainerObj = new GameObject("BossHealthContainer", typeof(RectTransform), typeof(CanvasGroup));
+        bossHealthContainerObj.transform.SetParent(topHudRect, false);
+        RectTransform bossHealthRt = bossHealthContainerObj.GetComponent<RectTransform>();
+        bossHealthRt.anchorMin = new Vector2(0.5f, 1f);
+        bossHealthRt.anchorMax = new Vector2(0.5f, 1f);
+        bossHealthRt.pivot = new Vector2(0.5f, 0.5f);
+        bossHealthRt.anchoredPosition = new Vector2(0f, -175f);
+        bossHealthRt.sizeDelta = new Vector2(540f, 65f);
+
+        CanvasGroup bossCanvasGroup = bossHealthContainerObj.GetComponent<CanvasGroup>();
+        bossCanvasGroup.alpha = 0f;
+
+        // Tên Boss
+        TMP_Text bossNameTxt = CreateText("BossNameText", bossHealthContainerObj.transform, "⚠️ BOSS FIGHT ⚠️", 22f, new Color32(255, 90, 90, 255), TextAlignmentOptions.Center);
+        bossNameTxt.rectTransform.anchoredPosition = new Vector2(0f, 20f);
+        bossNameTxt.fontStyle = FontStyles.Bold;
+
+        // Khung viền thanh máu Boss
+        Image bossHpBorder = CreateImage("BossHpBorder", bossHealthContainerObj.transform, DarkBorder, rectSprite);
+        bossHpBorder.rectTransform.anchoredPosition = new Vector2(0f, -10f);
+        bossHpBorder.rectTransform.sizeDelta = new Vector2(520f, 26f);
+
+        // Nền tối thanh máu Boss
+        Color32 bossBgColor = new Color32(40, 10, 15, 255);
+        Image bossHpBg = CreateImage("BossHpBg", bossHpBorder.transform, bossBgColor, rectSprite);
+        bossHpBg.rectTransform.anchoredPosition = Vector2.zero;
+        bossHpBg.rectTransform.sizeDelta = new Vector2(512f, 20f);
+
+        // Thanh máu bóng (Ghost Damage Fill - tụt chậm)
+        Color32 bossGhostColor = new Color32(180, 50, 40, 255);
+        Image bossGhostFill = CreateImage("BossGhostFill", bossHpBorder.transform, bossGhostColor, rectSprite);
+        bossGhostFill.rectTransform.anchoredPosition = Vector2.zero;
+        bossGhostFill.rectTransform.sizeDelta = new Vector2(512f, 20f);
+        bossGhostFill.type = Image.Type.Filled;
+        bossGhostFill.fillMethod = Image.FillMethod.Horizontal;
+        bossGhostFill.fillOrigin = (int)Image.OriginHorizontal.Left;
+        bossGhostFill.fillAmount = 1.0f;
+
+        // Thanh máu chính Boss (Bright Red Fill)
+        Color32 bossRedColor = new Color32(230, 40, 40, 255);
+        Image bossHpFill = CreateImage("BossHpFill", bossHpBorder.transform, bossRedColor, rectSprite);
+        bossHpFill.rectTransform.anchoredPosition = Vector2.zero;
+        bossHpFill.rectTransform.sizeDelta = new Vector2(512f, 20f);
+        bossHpFill.type = Image.Type.Filled;
+        bossHpFill.fillMethod = Image.FillMethod.Horizontal;
+        bossHpFill.fillOrigin = (int)Image.OriginHorizontal.Left;
+        bossHpFill.fillAmount = 1.0f;
+
+        // Số máu chi tiết
+        TMP_Text bossHpNumTxt = CreateText("BossHpText", bossHpBorder.transform, "", 16f, Cream, TextAlignmentOptions.Center);
+        bossHpNumTxt.rectTransform.anchoredPosition = new Vector2(0f, 0f);
+        bossHpNumTxt.fontStyle = FontStyles.Bold;
+
+        // ==========================================
         // C. NÚT PAUSE '||' (GÓC TRÊN BÊN PHẢI)
         // ==========================================
         GameObject pauseBtnObj = new GameObject("PauseButton", typeof(RectTransform), typeof(Button));
@@ -207,16 +263,33 @@ public static class GamePlayHUDSceneBuilder
         PauseModalController pauseModalCtrl = pauseModalObj.GetComponent<PauseModalController>();
 
         // ==========================================
-        // E. WAVE HUD CONTROLLER LINKING
+        // E. CONTROLLERS LINKING
         // ==========================================
+        EnemySpawner spawner = GameObject.FindObjectOfType<EnemySpawner>();
+        PlayerLevelController levelCtrl = playerObj != null ? playerObj.GetComponent<PlayerLevelController>() : GameObject.FindObjectOfType<PlayerLevelController>();
+
+        // 1. BossHealthBarUI linking
+        BossHealthBarUI bossUiCtrl = bossHealthContainerObj.GetComponent<BossHealthBarUI>();
+        if (bossUiCtrl == null)
+        {
+            bossUiCtrl = bossHealthContainerObj.AddComponent<BossHealthBarUI>();
+        }
+        SerializedObject bossSo = new SerializedObject(bossUiCtrl);
+        bossSo.FindProperty("enemySpawner").objectReferenceValue = spawner;
+        bossSo.FindProperty("canvasGroup").objectReferenceValue = bossCanvasGroup;
+        bossSo.FindProperty("bossNameText").objectReferenceValue = bossNameTxt;
+        bossSo.FindProperty("healthFillImage").objectReferenceValue = bossHpFill;
+        bossSo.FindProperty("damageGhostFillImage").objectReferenceValue = bossGhostFill;
+        bossSo.FindProperty("healthNumberText").objectReferenceValue = bossHpNumTxt;
+        bossSo.ApplyModifiedProperties();
+        EditorUtility.SetDirty(bossUiCtrl);
+
+        // 2. WaveHUDController linking
         WaveHUDController hudCtrl = canvasObj.GetComponent<WaveHUDController>();
         if (hudCtrl == null)
         {
             hudCtrl = canvasObj.AddComponent<WaveHUDController>();
         }
-
-        EnemySpawner spawner = GameObject.FindObjectOfType<EnemySpawner>();
-        PlayerLevelController levelCtrl = playerObj != null ? playerObj.GetComponent<PlayerLevelController>() : GameObject.FindObjectOfType<PlayerLevelController>();
 
         SerializedObject so = new SerializedObject(hudCtrl);
         so.FindProperty("enemySpawner").objectReferenceValue = spawner;
@@ -235,7 +308,7 @@ public static class GamePlayHUDSceneBuilder
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
 
-        Debug.Log("[GamePlayHUDSceneBuilder] ✅ Đã khởi tạo thành công HUD & Pause Menu chuẩn pixel cho GamePlay!");
+        Debug.Log("[GamePlayHUDSceneBuilder] ✅ Đã khởi tạo thành công HUD, Boss Health Bar & Pause Menu chuẩn pixel cho GamePlay!");
     }
 
     private static GameObject BuildPauseModal(Transform canvasTr, TMP_FontAsset fontAsset)

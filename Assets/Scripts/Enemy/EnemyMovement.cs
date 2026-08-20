@@ -20,9 +20,21 @@ public class EnemyMovement : MonoBehaviour, IPoolable
     [Tooltip("LayerMask của quái vật để quét va chạm tách đàn (tự động gán Layer 'Enemy' nếu để trống).")]
     [SerializeField] private LayerMask enemyLayer;
 
+    [Header("Facing / Flipping")]
+    [Tooltip("Tự động lật hướng mặt (quay trái/phải) về phía Player.")]
+    [SerializeField] private bool autoFlipFacing = true;
+
+    [Tooltip("Hướng mặt mặc định của sprite gốc trong prefab (chọn true nếu sprite gốc vẽ hướng sang trái).")]
+    [SerializeField] private bool initialFacingLeft = false;
+
+    [Tooltip("Vùng đệm khoảng cách X để chống rung lắc khi đứng thẳng hàng dọc với Player.")]
+    [SerializeField] private float flipDeadzone = 0.05f;
+
     private Rigidbody2D rb;
     private Transform player;
     private float nextPlayerSearchTime;
+    private Vector3 initialScale;
+    private bool isFacingRight = true;
 
     // Buffer cố định để quét quái xung quanh không tạo rác GC
     private readonly Collider2D[] nearbyCollidersBuffer = new Collider2D[16];
@@ -39,6 +51,8 @@ public class EnemyMovement : MonoBehaviour, IPoolable
         rb = GetComponent<Rigidbody2D>();
         rb.gravityScale = 0f;
         rb.freezeRotation = true;
+        initialScale = transform.localScale;
+        isFacingRight = !initialFacingLeft;
 
         if (enemyLayer.value == 0)
         {
@@ -104,6 +118,28 @@ public class EnemyMovement : MonoBehaviour, IPoolable
 
         Vector2 newPosition = rb.position + finalDirection * moveSpeed * Time.fixedDeltaTime;
         rb.MovePosition(newPosition);
+
+        UpdateFacingDirection();
+    }
+
+    /// <summary>
+    /// Tự động lật mặt theo hướng Player (Trái/Phải).
+    /// </summary>
+    private void UpdateFacingDirection()
+    {
+        if (!autoFlipFacing || player == null) return;
+
+        float diffX = player.position.x - transform.position.x;
+        if (Mathf.Abs(diffX) < flipDeadzone) return;
+
+        bool shouldFaceRight = diffX > 0;
+        if (shouldFaceRight != isFacingRight)
+        {
+            isFacingRight = shouldFaceRight;
+            float absScaleX = Mathf.Abs(initialScale.x);
+            float sign = (isFacingRight ^ initialFacingLeft) ? 1f : -1f;
+            transform.localScale = new Vector3(absScaleX * sign, initialScale.y, initialScale.z);
+        }
     }
 
     /// <summary>

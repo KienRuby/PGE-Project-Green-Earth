@@ -8,7 +8,7 @@ using UnityEngine.InputSystem;
 public class PlayerMovement : MonoBehaviour
 {
     [Header("Movement")]
-    [Tooltip("Tốc độ di chuyển của Player.")]
+    [Tooltip("Tốc độ di chuyển cơ bản của Player.")]
     [SerializeField] private float moveSpeed = 5f;
 
     [Header("Mobile")]
@@ -28,7 +28,8 @@ public class PlayerMovement : MonoBehaviour
     private Vector2 keyboardInput;
 
     public Vector2 MoveDirection => moveInput;
-    public float MoveSpeed => moveSpeed + moveSpeedBonus;
+    public float MoveSpeed => EffectiveSpeed;
+    public float EffectiveSpeed => Mathf.Max(3.5f, moveSpeed) + moveSpeedBonus;
 
     private void Awake()
     {
@@ -43,7 +44,7 @@ public class PlayerMovement : MonoBehaviour
 
         if (joystick == null)
         {
-            joystick = FindObjectOfType<VirtualJoystick>();
+            joystick = FindObjectOfType<VirtualJoystick>(true);
         }
     }
 
@@ -63,12 +64,11 @@ public class PlayerMovement : MonoBehaviour
 
         ReadKeyboard();
 
-        Vector2 joystickInput =
-            joystick != null
+        Vector2 joystickInput = (joystick != null && joystick.gameObject.activeInHierarchy)
             ? joystick.Direction
             : Vector2.zero;
 
-        // Kết hợp cả Joystick lẫn Bàn phím
+        // Ưu tiên Joystick nếu đang gạt, hoặc dùng Bàn phím
         if (joystickInput.sqrMagnitude > 0.001f)
         {
             moveInput = joystickInput;
@@ -84,9 +84,8 @@ public class PlayerMovement : MonoBehaviour
 
         moveInput = Vector2.ClampMagnitude(moveInput, 1f);
 
-        // Cập nhật thông số Debug để theo dõi trực tiếp trên Inspector
         debugInput = moveInput;
-        debugEffectiveSpeed = moveSpeed + moveSpeedBonus;
+        debugEffectiveSpeed = EffectiveSpeed;
         debugCurrentPosition = transform.position;
     }
 
@@ -98,12 +97,18 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
 
-        float currentSpeed = moveSpeed + moveSpeedBonus;
+        float currentSpeed = EffectiveSpeed;
         Vector2 movement = moveInput * currentSpeed;
 
         if (rb != null)
         {
             rb.velocity = movement;
+
+            // Fallback nếu Rigidbody kinematic hoặc bị kẹt
+            if (rb.bodyType == RigidbodyType2D.Kinematic)
+            {
+                rb.MovePosition(rb.position + movement * Time.fixedDeltaTime);
+            }
         }
         else
         {
@@ -115,7 +120,7 @@ public class PlayerMovement : MonoBehaviour
     {
         keyboardInput = Vector2.zero;
 
-        // 1. Đọc trực tiếp phím bấm vật lý (W, A, S, D, Mũi tên)
+        // 1. Phím vật lý W, A, S, D và Mũi tên
         if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
         {
             keyboardInput.y += 1f;
@@ -136,15 +141,22 @@ public class PlayerMovement : MonoBehaviour
             keyboardInput.x += 1f;
         }
 
-        // 2. Fallback sang Axis
+        // 2. Fallback sang Input.GetAxisRaw ("Horizontal", "Vertical")
         if (keyboardInput == Vector2.zero)
         {
-            float h = Input.GetAxisRaw("Horizontal");
-            float v = Input.GetAxisRaw("Vertical");
-            if (Mathf.Abs(h) > 0.01f || Mathf.Abs(v) > 0.01f)
+            try
             {
-                keyboardInput.x = h;
-                keyboardInput.y = v;
+                float h = Input.GetAxisRaw("Horizontal");
+                float v = Input.GetAxisRaw("Vertical");
+                if (Mathf.Abs(h) > 0.01f || Mathf.Abs(v) > 0.01f)
+                {
+                    keyboardInput.x = h;
+                    keyboardInput.y = v;
+                }
+            }
+            catch
+            {
+                // Bỏ qua nếu chưa định nghĩa Axis
             }
         }
 
@@ -160,4 +172,4 @@ public class PlayerMovement : MonoBehaviour
 
         keyboardInput = Vector2.ClampMagnitude(keyboardInput, 1f);
     }
-}
+}

@@ -1,0 +1,809 @@
+fileFormatVersion: 2
+guid: f2fcaf085aad6a84a926e4775b02cdd1
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n sau_0"
+      rect:
+        serializedVersion: 2
+        x: 1598
+        y: 2464
+        width: 22
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 99b9df2ea9286b34fa3321154635d3a1
+      internalID: 1865473832
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n sau_1"
+      rect:
+        serializedVersion: 2
+        x: 1519
+        y: 2453
+        width: 33
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 46f7fec5b7e36fb40bb8473b5c980291
+      internalID: 394987314
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n sau_2"
+      rect:
+        serializedVersion: 2
+        x: 1631
+        y: 2453
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0d16ab7f398ebf7468dac74df47821e4
+      internalID: 1964685922
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "ch\xE2n sau 1"
+      rect:
+        serializedVersion: 2
+        x: 563
+        y: 1973
+        width: 281
+        height: 470
+      alignment: 9
+      pivot: {x: 0.93957543, y: 0.5892261}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fd576b110cacdba42a53439fe4fd0fd6
+      internalID: -1254322913
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "ch\xE2n sau 3"
+      rect:
+        serializedVersion: 2
+        x: 1404
+        y: 1969
+        width: 252
+        height: 473
+      alignment: 9
+      pivot: {x: 0.16414921, y: 0.7998315}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f69b1b4236837b24b92ec50920ca6ad5
+      internalID: -740062819
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n sau_5"
+      rect:
+        serializedVersion: 2
+        x: 1508
+        y: 2441
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1fd27b7b3cf029148927271184a9d43b
+      internalID: 1005980078
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n sau_6"
+      rect:
+        serializedVersion: 2
+        x: 1643
+        y: 2441
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3be58de1f28976b4bbca33698fc9c577
+      internalID: 1141798143
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n sau_7"
+      rect:
+        serializedVersion: 2
+        x: 686
+        y: 2408
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 60e209df3e10c75408436983cc626bd5
+      internalID: 203867001
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n sau_8"
+      rect:
+        serializedVersion: 2
+        x: 1654
+        y: 2408
+        width: 13
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0c45594a75224504fa1f67425056e572
+      internalID: 1174789553
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n sau_9"
+      rect:
+        serializedVersion: 2
+        x: 1665
+        y: 2351
+        width: 6
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8a64be89b2436ad45a92abc941ba7e4e
+      internalID: -75901458
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n sau_10"
+      rect:
+        serializedVersion: 2
+        x: 1665
+        y: 2295
+        width: 4
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8838e3703e7f608448ef20e2fb0e1189
+      internalID: 1426250800
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n sau_11"
+      rect:
+        serializedVersion: 2
+        x: 1665
+        y: 2280
+        width: 4
+        height: 4
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e0a7dff9cd0b38e4c93c47f6d6b5605b
+      internalID: -1908711797
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n sau_12"
+      rect:
+        serializedVersion: 2
+        x: 1654
+        y: 2250
+        width: 13
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a453bd64fc6187b408d07994f0ba1617
+      internalID: 1055425818
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n sau_13"
+      rect:
+        serializedVersion: 2
+        x: 868
+        y: 2194
+        width: 43
+        height: 56
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8228735b026f8b64d8e1ce1276517c99
+      internalID: 29279526
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "ch\xE2n sau 2"
+      rect:
+        serializedVersion: 2
+        x: 893
+        y: 1980
+        width: 124
+        height: 247
+      alignment: 9
+      pivot: {x: 0.32168037, y: 0.91365033}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 360881aa70741c742afa13a3d5e19713
+      internalID: -674077209
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n sau_15"
+      rect:
+        serializedVersion: 2
+        x: 864
+        y: 2126
+        width: 13
+        height: 56
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 25b7985dddb8751498a30190d1d1e9fa
+      internalID: 286480007
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n sau_16"
+      rect:
+        serializedVersion: 2
+        x: 544
+        y: 2081
+        width: 7
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4d8a64281fe43d943ba4877d41e8637d
+      internalID: -139248242
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n sau_17"
+      rect:
+        serializedVersion: 2
+        x: 542
+        y: 2059
+        width: 9
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e3299a100f07f394fa33cde6a18eeafb
+      internalID: -582808281
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n sau_18"
+      rect:
+        serializedVersion: 2
+        x: 878
+        y: 2048
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2300e469660ec7f489db64bb4201ecb7
+      internalID: 1468578352
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n sau_19"
+      rect:
+        serializedVersion: 2
+        x: 1013
+        y: 2012
+        width: 35
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6ad6b4d0d9c90354aaabf9c0968cbc8d
+      internalID: -708790864
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n sau_20"
+      rect:
+        serializedVersion: 2
+        x: 542
+        y: 2036
+        width: 9
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fe08cbf87a689654cb5d4ca37741367c
+      internalID: -1414753889
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n sau_21"
+      rect:
+        serializedVersion: 2
+        x: 544
+        y: 1980
+        width: 41
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: db52d80b43a2cca4fa5234f0c8ef272a
+      internalID: -1191998302
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n sau_22"
+      rect:
+        serializedVersion: 2
+        x: 883
+        y: 2003
+        width: 17
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1cded08422b436e47adcaf7fa0c1079c
+      internalID: -1454740802
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n sau_23"
+      rect:
+        serializedVersion: 2
+        x: 896
+        y: 1956
+        width: 38
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bc4f923c6df73e446958de556cbe3498
+      internalID: 288224625
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n sau_24"
+      rect:
+        serializedVersion: 2
+        x: 1013
+        y: 1980
+        width: 22
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3ca7b19077ad87144b67e0717059fbf1
+      internalID: 179696147
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n sau_25"
+      rect:
+        serializedVersion: 2
+        x: 596
+        y: 1969
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 25242aa9a07bb7944afdda78c54f1039
+      internalID: -1212626328
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n sau_26"
+      rect:
+        serializedVersion: 2
+        x: 653
+        y: 1956
+        width: 33
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1621224e3aaa7ec4380e7cec8a3fbca5
+      internalID: -1381336231
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n sau_27"
+      rect:
+        serializedVersion: 2
+        x: 698
+        y: 1963
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 91f37827b71bdc24ab627598f4481b4e
+      internalID: 149313315
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n sau_28"
+      rect:
+        serializedVersion: 2
+        x: 945
+        y: 1956
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2b4a8c7d490e8ab43a33545166490acd
+      internalID: -368475769
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n sau_29"
+      rect:
+        serializedVersion: 2
+        x: 979
+        y: 1963
+        width: 15
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 73218714e4d341943b89e6fa61166e65
+      internalID: -235997988
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "boss 1- ch\xE2n sau_30"
+      rect:
+        serializedVersion: 2
+        x: 1496
+        y: 1961
+        width: 34
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 467e25625ae87964c9631b0024def90f
+      internalID: 854197679
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      "boss 1- ch\xE2n sau_0": 1865473832
+      "boss 1- ch\xE2n sau_1": 394987314
+      "boss 1- ch\xE2n sau_10": 1426250800
+      "boss 1- ch\xE2n sau_11": -1908711797
+      "boss 1- ch\xE2n sau_12": 1055425818
+      "boss 1- ch\xE2n sau_13": 29279526
+      "boss 1- ch\xE2n sau_15": 286480007
+      "boss 1- ch\xE2n sau_16": -139248242
+      "boss 1- ch\xE2n sau_17": -582808281
+      "boss 1- ch\xE2n sau_18": 1468578352
+      "boss 1- ch\xE2n sau_19": -708790864
+      "boss 1- ch\xE2n sau_2": 1964685922
+      "boss 1- ch\xE2n sau_20": -1414753889
+      "boss 1- ch\xE2n sau_21": -1191998302
+      "boss 1- ch\xE2n sau_22": -1454740802
+      "boss 1- ch\xE2n sau_23": 288224625
+      "boss 1- ch\xE2n sau_24": 179696147
+      "boss 1- ch\xE2n sau_25": -1212626328
+      "boss 1- ch\xE2n sau_26": -1381336231
+      "boss 1- ch\xE2n sau_27": 149313315
+      "boss 1- ch\xE2n sau_28": -368475769
+      "boss 1- ch\xE2n sau_29": -235997988
+      "boss 1- ch\xE2n sau_30": 854197679
+      "boss 1- ch\xE2n sau_5": 1005980078
+      "boss 1- ch\xE2n sau_6": 1141798143
+      "boss 1- ch\xE2n sau_7": 203867001
+      "boss 1- ch\xE2n sau_8": 1174789553
+      "boss 1- ch\xE2n sau_9": -75901458
+      "ch\xE2n sau 1": -1254322913
+      "ch\xE2n sau 2": -674077209
+      "ch\xE2n sau 3": -740062819
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
