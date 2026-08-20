@@ -46,12 +46,31 @@ public class ChipsetCardUI : MonoBehaviour
 
         if (levelText != null)
         {
-            levelText.text = $"LV.{data.level:00}";
+            if (data.IsMaxOverall)
+            {
+                levelText.text = $"LV.{data.level:00} MAX";
+            }
+            else if (data.IsAtTierCap)
+            {
+                levelText.text = $"LV.{data.level:00} CAP";
+            }
+            else
+            {
+                levelText.text = $"LV.{data.level:00}";
+            }
         }
 
         if (progressText != null)
         {
-            if (data.requiredCount > 0)
+            if (data.IsMaxOverall)
+            {
+                progressText.text = "MAX";
+            }
+            else if (data.CanAdvanceTier)
+            {
+                progressText.text = data.NeedsAdvanceStones ? "10 STONES" : "ADVANCE";
+            }
+            else if (data.requiredCount > 0)
             {
                 progressText.text = $"{data.count}/{data.requiredCount}";
             }
@@ -61,10 +80,10 @@ public class ChipsetCardUI : MonoBehaviour
             }
         }
 
-        bool canUpgrade = data.CanUpgrade;
+        bool hasAction = data.CanUpgrade || data.CanAdvanceTier;
         if (upgradeArrowGroup != null)
         {
-            upgradeArrowGroup.SetActive(canUpgrade);
+            upgradeArrowGroup.SetActive(hasAction);
         }
 
         if (starObject != null)
@@ -91,12 +110,31 @@ public class ChipsetCardUI : MonoBehaviour
 
         if (levelText != null)
         {
-            levelText.text = $"LV.{boundData.level:00}";
+            if (boundData.IsMaxOverall)
+            {
+                levelText.text = $"LV.{boundData.level:00} MAX";
+            }
+            else if (boundData.IsAtTierCap)
+            {
+                levelText.text = $"LV.{boundData.level:00} CAP";
+            }
+            else
+            {
+                levelText.text = $"LV.{boundData.level:00}";
+            }
         }
 
         if (progressText != null)
         {
-            if (boundData.requiredCount > 0)
+            if (boundData.IsMaxOverall)
+            {
+                progressText.text = "MAX";
+            }
+            else if (boundData.CanAdvanceTier)
+            {
+                progressText.text = boundData.NeedsAdvanceStones ? "10 STONES" : "ADVANCE";
+            }
+            else if (boundData.requiredCount > 0)
             {
                 progressText.text = $"{boundData.count}/{boundData.requiredCount}";
             }
@@ -106,9 +144,10 @@ public class ChipsetCardUI : MonoBehaviour
             }
         }
 
+        bool hasAction = boundData.CanUpgrade || boundData.CanAdvanceTier;
         if (upgradeArrowGroup != null)
         {
-            upgradeArrowGroup.SetActive(boundData.CanUpgrade);
+            upgradeArrowGroup.SetActive(hasAction);
         }
 
         if (starObject != null)

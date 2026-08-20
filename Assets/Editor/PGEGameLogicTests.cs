@@ -742,4 +742,166 @@ public class PGEGameLogicTests
         Object.DestroyImmediate(noBtnGo);
         Object.DestroyImmediate(okBtnGo);
     }
+
+    [Test]
+    public void Chipset_All24Chips_AreProperlyConfigured()
+    {
+        GameObject go = new GameObject("ChipsetControllerTest");
+        ChipsetController controller = go.AddComponent<ChipsetController>();
+        controller.InitializeDatabase();
+
+        Assert.That(controller.AllChips.Count, Is.EqualTo(24), "Database phải chứa đúng 24 loại chip set.");
+
+        string[] expectedNames = {
+            "Standard Gun", "Rifle", "Rocket Punch", "Spinning Blade", "Multigun",
+            "Gun Turret", "Spiky Discus", "Shotgun", "Energy Jumper Cables", "High-Explosive Mine",
+            "Aiming Lens", "Plasma Field", "Laser Eye", "Biochemical Mine", "Tesla Coil",
+            "ATK Module", "Black Hole Mine", "Sonic Boom", "Big Battery", "Turret Module",
+            "Ice Turret", "Invincible Shield", "Healing Turret", "Flamethrower"
+        };
+
+        for (int i = 0; i < 24; i++)
+        {
+            var chip = controller.AllChips[i];
+            Assert.That(chip.id, Is.EqualTo(i + 1));
+            Assert.That(chip.chipName, Is.EqualTo(expectedNames[i]));
+            Assert.That(string.IsNullOrWhiteSpace(chip.iconKey), Is.False);
+            Assert.That(string.IsNullOrWhiteSpace(chip.baseStatsSummary), Is.False, $"Base stats của {chip.chipName} không được rỗng.");
+            Assert.That(string.IsNullOrWhiteSpace(chip.magicBonus), Is.False, $"Magic bonus của {chip.chipName} không được rỗng.");
+            Assert.That(string.IsNullOrWhiteSpace(chip.rareBonus), Is.False, $"Rare bonus của {chip.chipName} không được rỗng.");
+            Assert.That(string.IsNullOrWhiteSpace(chip.uniqueBonus), Is.False, $"Unique bonus của {chip.chipName} không được rỗng.");
+            Assert.That(string.IsNullOrWhiteSpace(chip.epicBonus), Is.False, $"Epic bonus của {chip.chipName} không được rỗng.");
+        }
+
+        Object.DestroyImmediate(go);
+    }
+
+    [Test]
+    public void Chipset_TierLevelCaps_FollowProgressionRules()
+    {
+        Assert.That(ChipItemData.GetMaxLevelForTier(ChipTier.Magic), Is.EqualTo(6), "Tier 1 (Magic) max level phải là 6.");
+        Assert.That(ChipItemData.GetMaxLevelForTier(ChipTier.Rare), Is.EqualTo(9), "Tier 2 (Rare) max level phải là 9.");
+        Assert.That(ChipItemData.GetMaxLevelForTier(ChipTier.Unique), Is.EqualTo(14), "Tier 3 (Unique) max level phải là 14.");
+        Assert.That(ChipItemData.GetMaxLevelForTier(ChipTier.Epic), Is.EqualTo(18), "Tier 4 (Epic) max level phải là 18.");
+        Assert.That(ChipItemData.GetMaxLevelForTier(ChipTier.Holographic), Is.EqualTo(24), "Advance Tier (Tier 5 / Holographic) max level phải là 24.");
+    }
+
+    [Test]
+    public void Chipset_AdvanceTier_Requires10Stones_ToReachAdvanceTier()
+    {
+        ChipItemData epicChip = new ChipItemData
+        {
+            id = 1,
+            chipName = "Standard Gun",
+            tier = ChipTier.Epic,
+            level = 18,
+            count = 10,
+            requiredCount = 0
+        };
+
+        Assert.That(epicChip.IsAtTierCap, Is.True);
+        Assert.That(epicChip.CanAdvanceTier, Is.True);
+        Assert.That(epicChip.NeedsAdvanceStones, Is.True);
+        Assert.That(epicChip.AdvanceStoneCost, Is.EqualTo(10));
+
+        // Test with 0 Advance Stones
+        ChipManager.AdvanceStones = 0;
+        bool advancedWithoutStones = epicChip.AdvanceTier();
+        Assert.That(advancedWithoutStones, Is.False, "Không thể đột phá lên Advance Tier nếu không đủ 10 Đá Tiến Bậc.");
+        Assert.That(epicChip.tier, Is.EqualTo(ChipTier.Epic));
+
+        // Test with 15 Advance Stones
+        ChipManager.AdvanceStones = 15;
+        bool advancedWithStones = epicChip.AdvanceTier();
+        Assert.That(advancedWithStones, Is.True, "Đột phá thành công khi có đủ 10 Đá Tiến Bậc.");
+        Assert.That(epicChip.tier, Is.EqualTo(ChipTier.Holographic));
+        Assert.That(epicChip.MaxLevel, Is.EqualTo(24));
+        Assert.That(ChipManager.AdvanceStones, Is.EqualTo(5), "Phải trừ đúng 10 Đá Tiến Bậc.");
+    }
+
+    [Test]
+    public void Chipset_Progression_FromTier1ToTier5()
+    {
+        ChipItemData chip = new ChipItemData
+        {
+            id = 24,
+            chipName = "Flamethrower",
+            tier = ChipTier.Magic,
+            level = 1,
+            count = 500,
+            requiredCount = 3
+        };
+
+        // Tier 1: upgrade to level 6
+        while (chip.level < 6)
+        {
+            Assert.That(chip.CanUpgrade, Is.True);
+            chip.Upgrade();
+        }
+        Assert.That(chip.level, Is.EqualTo(6));
+        Assert.That(chip.IsAtTierCap, Is.True);
+        Assert.That(chip.CanUpgrade, Is.False);
+        Assert.That(chip.CanAdvanceTier, Is.True);
+
+        // Advance to Tier 2 (Rare, max 9)
+        bool adv2 = chip.AdvanceTier();
+        Assert.That(adv2, Is.True);
+        Assert.That(chip.tier, Is.EqualTo(ChipTier.Rare));
+        Assert.That(chip.MaxLevel, Is.EqualTo(9));
+
+        // Tier 2: upgrade to level 9
+        while (chip.level < 9)
+        {
+            chip.Upgrade();
+        }
+        Assert.That(chip.level, Is.EqualTo(9));
+        Assert.That(chip.IsAtTierCap, Is.True);
+
+        // Advance to Tier 3 (Unique, max 14)
+        bool adv3 = chip.AdvanceTier();
+        Assert.That(adv3, Is.True);
+        Assert.That(chip.tier, Is.EqualTo(ChipTier.Unique));
+        Assert.That(chip.MaxLevel, Is.EqualTo(14));
+
+        // Tier 3: upgrade to level 14
+        while (chip.level < 14)
+        {
+            chip.Upgrade();
+        }
+        Assert.That(chip.level, Is.EqualTo(14));
+        Assert.That(chip.IsAtTierCap, Is.True);
+
+        // Advance to Tier 4 (Epic, max 18)
+        bool adv4 = chip.AdvanceTier();
+        Assert.That(adv4, Is.True);
+        Assert.That(chip.tier, Is.EqualTo(ChipTier.Epic));
+        Assert.That(chip.MaxLevel, Is.EqualTo(18));
+
+        // Tier 4: upgrade to level 18
+        while (chip.level < 18)
+        {
+            chip.Upgrade();
+        }
+        Assert.That(chip.level, Is.EqualTo(18));
+        Assert.That(chip.IsAtTierCap, Is.True);
+        Assert.That(chip.NeedsAdvanceStones, Is.True);
+
+        // Advance to Tier 5 (Holographic, max 24) with 10 stones
+        ChipManager.AdvanceStones = 20;
+        bool adv5 = chip.AdvanceTier();
+        Assert.That(adv5, Is.True);
+        Assert.That(chip.tier, Is.EqualTo(ChipTier.Holographic));
+        Assert.That(chip.MaxLevel, Is.EqualTo(24));
+
+        // Tier 5: upgrade to level 24
+        while (chip.level < 24)
+        {
+            chip.Upgrade();
+        }
+        Assert.That(chip.level, Is.EqualTo(24));
+        Assert.That(chip.IsMaxOverall, Is.True);
+        Assert.That(chip.CanUpgrade, Is.False);
+        Assert.That(chip.CanAdvanceTier, Is.False);
+    }
 }
+

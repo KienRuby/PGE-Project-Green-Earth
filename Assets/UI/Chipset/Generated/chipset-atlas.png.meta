@@ -127,7 +127,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 1024
+        y: 1280
         width: 256
         height: 256
       alignment: 0
@@ -148,7 +148,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 256
-        y: 1024
+        y: 1280
         width: 256
         height: 256
       alignment: 0
@@ -169,7 +169,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 512
-        y: 1024
+        y: 1280
         width: 256
         height: 256
       alignment: 0
@@ -190,7 +190,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 768
-        y: 1024
+        y: 1280
         width: 256
         height: 256
       alignment: 0
@@ -211,7 +211,7 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 1024
-        y: 1024
+        y: 1280
         width: 256
         height: 256
       alignment: 0
@@ -231,8 +231,8 @@ TextureImporter:
       name: gun-turret
       rect:
         serializedVersion: 2
-        x: 0
-        y: 768
+        x: 1280
+        y: 1280
         width: 256
         height: 256
       alignment: 0
@@ -252,8 +252,8 @@ TextureImporter:
       name: spiky-discus
       rect:
         serializedVersion: 2
-        x: 256
-        y: 768
+        x: 0
+        y: 1024
         width: 256
         height: 256
       alignment: 0
@@ -273,8 +273,8 @@ TextureImporter:
       name: shotgun
       rect:
         serializedVersion: 2
-        x: 512
-        y: 768
+        x: 256
+        y: 1024
         width: 256
         height: 256
       alignment: 0
@@ -294,8 +294,8 @@ TextureImporter:
       name: energy-jumper-cables
       rect:
         serializedVersion: 2
-        x: 768
-        y: 768
+        x: 512
+        y: 1024
         width: 256
         height: 256
       alignment: 0
@@ -315,8 +315,8 @@ TextureImporter:
       name: high-explosive-mine
       rect:
         serializedVersion: 2
-        x: 1024
-        y: 768
+        x: 768
+        y: 1024
         width: 256
         height: 256
       alignment: 0
@@ -336,8 +336,8 @@ TextureImporter:
       name: aiming-lens
       rect:
         serializedVersion: 2
-        x: 0
-        y: 512
+        x: 1024
+        y: 1024
         width: 256
         height: 256
       alignment: 0
@@ -357,8 +357,8 @@ TextureImporter:
       name: plasma-field
       rect:
         serializedVersion: 2
-        x: 256
-        y: 512
+        x: 1280
+        y: 1024
         width: 256
         height: 256
       alignment: 0
@@ -378,8 +378,8 @@ TextureImporter:
       name: laser-eye
       rect:
         serializedVersion: 2
-        x: 512
-        y: 512
+        x: 0
+        y: 768
         width: 256
         height: 256
       alignment: 0
@@ -399,8 +399,8 @@ TextureImporter:
       name: biochemical-mine
       rect:
         serializedVersion: 2
-        x: 768
-        y: 512
+        x: 256
+        y: 768
         width: 256
         height: 256
       alignment: 0
@@ -420,8 +420,8 @@ TextureImporter:
       name: tesla-coil
       rect:
         serializedVersion: 2
-        x: 1024
-        y: 512
+        x: 512
+        y: 768
         width: 256
         height: 256
       alignment: 0
@@ -433,6 +433,195 @@ TextureImporter:
       bones: []
       spriteID: 153f2d977a4b6c54f9f0e7f189fd8592
       internalID: 5093887549840003368
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: atk-module
+      rect:
+        serializedVersion: 2
+        x: 768
+        y: 768
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c138d9823ea00904d7dbc9fd995dd330
+      internalID: -5765666880900012642
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: black-hole-mine
+      rect:
+        serializedVersion: 2
+        x: 1024
+        y: 768
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 21ad1e37b75a57abfbc838ea7c971426
+      internalID: -851599979242763194
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: sonic-boom
+      rect:
+        serializedVersion: 2
+        x: 1280
+        y: 768
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e03cab78a2994a8edf7a09af50ed474a
+      internalID: 1262428918059865096
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: big-battery
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 512
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8909cd52e27ab469e4e7df72d149b3f9
+      internalID: 6711801839544134280
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: turret-module
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 512
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5347afb6cf88eb7f356fd8db0f5d002c
+      internalID: -8055625317757541844
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ice-turret
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 512
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 35294b668a6044b3179ce2ff1b9a5892
+      internalID: 4796231540701088060
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: invincible-shield
+      rect:
+        serializedVersion: 2
+        x: 768
+        y: 512
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8eddddfa71b591a838943fa45c63f820
+      internalID: 3117862897074124021
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: healing-turret
+      rect:
+        serializedVersion: 2
+        x: 1024
+        y: 512
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6dd226ee0c615c00704945f868a3f072
+      internalID: -7961009155277218613
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: flamethrower
+      rect:
+        serializedVersion: 2
+        x: 1280
+        y: 512
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d4392034ed8d72fed9740212af68a0c4
+      internalID: -6832392026648203243
       vertices: []
       indices: 
       edges: []
@@ -546,8 +735,8 @@ TextureImporter:
       name: icon-lock
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
+        x: 1280
+        y: 256
         width: 256
         height: 256
       alignment: 0
@@ -567,7 +756,7 @@ TextureImporter:
       name: wave-circuit
       rect:
         serializedVersion: 2
-        x: 256
+        x: 0
         y: 0
         width: 256
         height: 256
@@ -588,7 +777,7 @@ TextureImporter:
       name: icon-star
       rect:
         serializedVersion: 2
-        x: 512
+        x: 256
         y: 0
         width: 256
         height: 256
@@ -609,7 +798,7 @@ TextureImporter:
       name: furnace-border
       rect:
         serializedVersion: 2
-        x: 768
+        x: 512
         y: 0
         width: 256
         height: 256
@@ -630,7 +819,7 @@ TextureImporter:
       name: power-battery
       rect:
         serializedVersion: 2
-        x: 1024
+        x: 768
         y: 0
         width: 256
         height: 256
@@ -647,6 +836,48 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: advance-stone
+      rect:
+        serializedVersion: 2
+        x: 1024
+        y: 0
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5356f99e1235ea2279ff254c7269eaf6
+      internalID: -3338597234256829376
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: badge-advance
+      rect:
+        serializedVersion: 2
+        x: 1280
+        y: 0
+        width: 256
+        height: 256
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9fe3497753a508685f026bfc5c1c20d9
+      internalID: 3904648323264207135
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -658,19 +889,28 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
+      advance-stone: -3338597234256829376
       aiming-lens: -4796562146451971242
+      atk-module: -5765666880900012642
+      badge-advance: 3904648323264207135
       badge-upgrade: 8881422324888349463
+      big-battery: 6711801839544134280
       biochemical-mine: -6575425849463812547
+      black-hole-mine: -851599979242763194
       card-frame-common: -341851465085348862
       card-frame-epic: -2983306540345666763
       card-frame-holographic: -1469001518291150936
       card-frame-rare: 5820474228769164200
       energy-jumper-cables: 5170568551976924551
+      flamethrower: -6832392026648203243
       furnace-border: 6881827167196030516
       gun-turret: 6894241887267050856
+      healing-turret: -7961009155277218613
       high-explosive-mine: 7125556484904952107
+      ice-turret: 4796231540701088060
       icon-lock: -6707754332129007671
       icon-star: -5683019630868176096
+      invincible-shield: 3117862897074124021
       laser-eye: -2538379449282638240
       multigun: -5109444298764135915
       plasma-field: -5814445313220549694
@@ -678,10 +918,12 @@ TextureImporter:
       rifle: 8581563430471098634
       rocket-punch: 4231819220138351040
       shotgun: -6435363134993694004
+      sonic-boom: 1262428918059865096
       spiky-discus: -2785223181230108149
       spinning-blade: -2778998792480739766
       standard-gun: -6103525226337011396
       tesla-coil: 5093887549840003368
+      turret-module: -8055625317757541844
       wave-circuit: -6568416663731092074
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0

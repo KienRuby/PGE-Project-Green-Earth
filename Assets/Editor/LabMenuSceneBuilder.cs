@@ -901,7 +901,9 @@ public static class LabMenuSceneBuilder
         string[] iconKeys = {
             "standard-gun", "rifle", "rocket-punch", "spinning-blade", "multigun",
             "gun-turret", "spiky-discus", "shotgun", "energy-jumper-cables", "high-explosive-mine",
-            "aiming-lens", "plasma-field", "laser-eye", "biochemical-mine", "tesla-coil"
+            "aiming-lens", "plasma-field", "laser-eye", "biochemical-mine", "tesla-coil",
+            "atk-module", "black-hole-mine", "sonic-boom", "big-battery", "turret-module",
+            "ice-turret", "invincible-shield", "healing-turret", "flamethrower"
         };
         Sprite[] chipIcons = iconKeys.Select(k => allChipsetSprites.FirstOrDefault(s => s.name == k)).Where(s => s != null).ToArray();
         Sprite[] frameSprites = new[] {
@@ -921,6 +923,7 @@ public static class LabMenuSceneBuilder
 
         sController.FindProperty("starSprite").objectReferenceValue = allChipsetSprites.FirstOrDefault(s => s.name == "icon-star");
         sController.FindProperty("upgradeArrowSprite").objectReferenceValue = allChipsetSprites.FirstOrDefault(s => s.name == "badge-upgrade");
+        sController.FindProperty("advanceStoneSprite").objectReferenceValue = allChipsetSprites.FirstOrDefault(s => s.name == "advance-stone");
 
         sController.ApplyModifiedPropertiesWithoutUndo();
 
