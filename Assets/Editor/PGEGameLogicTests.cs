@@ -903,5 +903,82 @@ public class PGEGameLogicTests
         Assert.That(chip.CanUpgrade, Is.False);
         Assert.That(chip.CanAdvanceTier, Is.False);
     }
+
+    [Test]
+    public void Buddy_Database_InitializesWithAllDrones()
+    {
+        GameObject go = new GameObject("BuddyControllerTest");
+        BuddyController controller = go.AddComponent<BuddyController>();
+        controller.InitializeDatabase();
+
+        Assert.That(controller.AllBuddies.Count, Is.GreaterThanOrEqualTo(10), "Buddy database must have all 10+ drones initialized.");
+
+        BuddyItemData snowflake = null;
+        BuddyItemData spider = null;
+        foreach (var b in controller.AllBuddies)
+        {
+            if (b.iconKey == "drone-snowflake") snowflake = b;
+            if (b.iconKey == "drone-spider") spider = b;
+        }
+
+        Assert.That(snowflake, Is.Not.Null, "Snowflake Drone must exist in database.");
+        Assert.That(snowflake.count, Is.EqualTo(65), "Snowflake Drone count matches 65 in screenshot.");
+        Assert.That(spider, Is.Not.Null, "Spider Drone must exist in database.");
+        Assert.That(spider.count, Is.EqualTo(79), "Spider Drone count matches 79 in screenshot.");
+
+        Object.DestroyImmediate(go);
+    }
+
+    [Test]
+    public void Buddy_Upgrade_ConsumesCount_And_IncreasesLevel()
+    {
+        BuddyItemData drone = new BuddyItemData
+        {
+            id = 101,
+            buddyName = "Test Drone",
+            iconKey = "drone-spider",
+            tier = BuddyTier.Common,
+            level = 1,
+            count = 10,
+            requiredCount = 3,
+            atkBonus = 15f
+        };
+
+        Assert.That(drone.CanUpgrade, Is.True);
+        float initialAtk = drone.atkBonus;
+
+        drone.Upgrade();
+
+        Assert.That(drone.level, Is.EqualTo(2));
+        Assert.That(drone.count, Is.EqualTo(7));
+        Assert.That(drone.atkBonus, Is.GreaterThan(initialAtk));
+        Assert.That(drone.requiredCount, Is.GreaterThan(3));
+    }
+
+    [Test]
+    public void Buddy_CardUI_StateTransitions()
+    {
+        GameObject go = new GameObject("BuddyCardUITest");
+        BuddyCardUI card = go.AddComponent<BuddyCardUI>();
+
+        // Setup empty
+        card.SetupEmpty(null);
+        Assert.That(card.SlotState, Is.EqualTo(BuddySlotState.Empty));
+        Assert.That(card.BoundData, Is.Null);
+
+        // Setup locked
+        card.SetupLocked(null);
+        Assert.That(card.SlotState, Is.EqualTo(BuddySlotState.Locked));
+        Assert.That(card.BoundData, Is.Null);
+
+        // Setup normal
+        BuddyItemData drone = new BuddyItemData { id = 1, buddyName = "Snowflake", level = 1, count = 65, requiredCount = 3 };
+        card.Setup(drone, null, null);
+        Assert.That(card.SlotState, Is.EqualTo(BuddySlotState.Normal));
+        Assert.That(card.BoundData, Is.EqualTo(drone));
+
+        Object.DestroyImmediate(go);
+    }
 }
+
 
