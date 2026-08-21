@@ -15,6 +15,16 @@ public class PlayerMovement : MonoBehaviour
     [Tooltip("Tham chiếu tới VirtualJoystick trên UI điều khiển cho điện thoại/cảm ứng.")]
     [SerializeField] private VirtualJoystick joystick;
 
+    [Header("Crowd Escape / Anti-Trap")]
+    [Tooltip("Bán kính phát hiện quái vật xung quanh để rẽ đám đông khi Player di chuyển.")]
+    [SerializeField] private float crowdPushRadius = 1.1f;
+
+    [Tooltip("Lực đẩy quái vật dạt sang 2 bên mở đường thoát cho Player.")]
+    [SerializeField] private float crowdPushForce = 4.5f;
+
+    [Tooltip("LayerMask của quái vật (mặc định tự tìm 'Enemy').")]
+    [SerializeField] private LayerMask enemyLayer;
+
     [Header("Debug Info (Inspector)")]
     [SerializeField] private Vector2 debugInput;
     [SerializeField] private float debugEffectiveSpeed;
@@ -26,6 +36,8 @@ public class PlayerMovement : MonoBehaviour
 
     private Vector2 moveInput;
     private Vector2 keyboardInput;
+
+    private static readonly Collider2D[] nearbyEnemiesBuffer = new Collider2D[24];
 
     public Vector2 MoveDirection => moveInput;
     public float MoveSpeed => EffectiveSpeed;
@@ -40,6 +52,11 @@ public class PlayerMovement : MonoBehaviour
         {
             rb.gravityScale = 0f;
             rb.freezeRotation = true;
+        }
+
+        if (enemyLayer.value == 0)
+        {
+            enemyLayer = LayerMask.GetMask("Enemy");
         }
 
         if (joystick == null)
@@ -107,6 +124,11 @@ public class PlayerMovement : MonoBehaviour
 
         if (rb != null)
         {
+            if (moveInput.sqrMagnitude > 0.001f)
+            {
+                PushNearbyEnemies(moveInput);
+            }
+
             Vector2 targetPos = rb.position + movement * Time.fixedDeltaTime;
 
             if (MapBoundary.Instance != null)
@@ -127,8 +149,8 @@ public class PlayerMovement : MonoBehaviour
                 rb.velocity = movement;
             }
 
-            // Fallback nếu Rigidbody kinematic hoặc bị kẹt
-            if (rb.bodyType == RigidbodyType2D.Kinematic)
+            // Khi Player đang chủ động di chuyển, dùng MovePosition để thoát khỏi vòng vây của quái
+            if (moveInput.sqrMagnitude > 0.001f)
             {
                 rb.MovePosition(targetPos);
             }
@@ -141,6 +163,63 @@ public class PlayerMovement : MonoBehaviour
                 targetPos = MapBoundary.Instance.ClampPlayerPosition(targetPos);
             }
             transform.position = new Vector3(targetPos.x, targetPos.y, transform.position.z);
+        }
+    }
+
+    /// <summary>
+    /// Đẩy dạt các quái vật xung quanh sang hai bên hướng di chuyển để mở đường thoát khi bị vây.
+    /// </summary>
+    private void PushNearbyEnemies(Vector2 moveDir)
+    {
+        if (moveDir.sqrMagnitude < 0.001f) return;
+
+        ContactFilter2D filter = new ContactFilter2D
+        {
+            useTriggers = true,
+            layerMask = enemyLayer,
+            useLayerMask = enemyLayer.value != 0
+        };
+
+        int count = Physics2D.OverlapCircle(
+            rb.position,
+            crowdPushRadius,
+            filter,
+            nearbyEnemiesBuffer
+        );
+
+        Vector2 normMove = moveDir.normalized;
+        for (int i = 0; i < count; i++)
+        {
+            Collider2D col = nearbyEnemiesBuffer[i];
+            if (col == null || col.gameObject == gameObject) continue;
+
+            Rigidbody2D enemyRb = col.attachedRigidbody;
+            if (enemyRb == null || enemyRb.bodyType == RigidbodyType2D.Static) continue;
+
+            // Bỏ qua Boss nếu Boss có component riêng
+            if (col.GetComponent<BossMovement>() != null) continue;
+
+            Vector2 toEnemy = enemyRb.position - rb.position;
+            float dist = toEnemy.magnitude;
+            if (dist < 0.001f) toEnemy = Vector2.right;
+
+            // Kiểm tra quái có nằm ở hướng di chuyển hoặc đang ép sát Player không
+            float dot = Vector2.Dot(normMove, toEnemy.normalized);
+            if (dot > -0.4f)
+            {
+                // Hướng đẩy vuông góc với hướng Player di chuyển (sang trái hoặc phải)
+                Vector2 tangent = Vector2.Perpendicular(normMove);
+                if (Vector2.Dot(tangent, toEnemy) < 0f)
+                {
+                    tangent = -tangent;
+                }
+
+                // Kết hợp đẩy dạt sang bên (75%) và đẩy nhẹ ra ngoài (25%)
+                Vector2 pushDir = (tangent * 1.5f + toEnemy.normalized * 0.5f).normalized;
+                float pushStrength = Mathf.Max(0.2f, 1f - (dist / crowdPushRadius)) * crowdPushForce;
+                Vector2 enemyTarget = enemyRb.position + pushDir * (pushStrength * Time.fixedDeltaTime);
+                enemyRb.MovePosition(enemyTarget);
+            }
         }
     }
 

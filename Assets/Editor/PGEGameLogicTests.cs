@@ -425,6 +425,55 @@ public class PGEGameLogicTests
     }
 
     [Test]
+    public void BigCreep_Animations_HaveNoRootTransformLocks()
+    {
+        AnimationClip dieClip = AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/Animaton/Enemy/Creep/DieBig.anim");
+        Assert.That(dieClip, Is.Not.Null, "DieBig.anim must exist.");
+
+        EditorCurveBinding[] dieBindings = AnimationUtility.GetCurveBindings(dieClip);
+        foreach (var binding in dieBindings)
+        {
+            if (string.IsNullOrEmpty(binding.path) && binding.propertyName.StartsWith("m_LocalPosition"))
+            {
+                Assert.Fail($"DieBig.anim contains root position curve: {binding.propertyName}, which causes BigCreep teleport on death!");
+            }
+        }
+
+        AnimationClip runClip = AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/Animaton/Enemy/Creep/runbig.anim");
+        Assert.That(runClip, Is.Not.Null, "runbig.anim must exist.");
+
+        EditorCurveBinding[] runBindings = AnimationUtility.GetCurveBindings(runClip);
+        foreach (var binding in runBindings)
+        {
+            if (string.IsNullOrEmpty(binding.path) && binding.propertyName.StartsWith("m_LocalScale"))
+            {
+                Assert.Fail($"runbig.anim contains root scale curve: {binding.propertyName}, which overrides BigCreep sprite facing!");
+            }
+        }
+    }
+
+    [Test]
+    public void BigCreepPrefab_Configuration_MatchesStandardEnemyRequirements()
+    {
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/BigCreep.prefab");
+        Assert.That(prefab, Is.Not.Null, "BigCreep.prefab must exist in Assets/Prefabs.");
+
+        Rigidbody2D rb = prefab.GetComponent<Rigidbody2D>();
+        Assert.That(rb, Is.Not.Null, "BigCreep must have Rigidbody2D.");
+        Assert.That(rb.bodyType, Is.EqualTo(RigidbodyType2D.Dynamic), "BigCreep Rigidbody2D must be Dynamic.");
+
+        Collider2D col = prefab.GetComponent<Collider2D>();
+        Assert.That(col, Is.Not.Null, "BigCreep must have Collider2D.");
+        Assert.That(col.isTrigger, Is.False, "BigCreep Collider2D must be solid (isTrigger = false).");
+
+        EnemyHealth health = prefab.GetComponent<EnemyHealth>();
+        Assert.That(health, Is.Not.Null, "BigCreep must have EnemyHealth.");
+
+        EnemyMovement movement = prefab.GetComponent<EnemyMovement>();
+        Assert.That(movement, Is.Not.Null, "BigCreep must have EnemyMovement.");
+    }
+
+    [Test]
     public void TargetFrameRate_IsConfiguredForSmoothGameplay()
     {
         PlayerDataService.InitializeApplicationSettings();
