@@ -117,7 +117,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -0.046226, y: -1.9, z: 0}
-  m_LocalScale: {x: 0.16467151, y: 0.16467151, z: 0.16467151}
+  m_LocalScale: {x: 0.1161543, y: 0.1161543, z: 0.1161543}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3547857542987076544}
@@ -270,7 +270,7 @@ MonoBehaviour:
   dashDuration: 0.5
   dashSpeedMultiplier: 3.5
   dashRecoverDuration: 0.5
-  enableEnrage: 1
+  enableEnrage: 0
   enrageHealthPercent: 0.2
   enrageSpeedMultiplier: 1.35
   enrageCooldownMultiplier: 0.6

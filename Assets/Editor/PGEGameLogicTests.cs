@@ -437,6 +437,10 @@ public class PGEGameLogicTests
             {
                 Assert.Fail($"DieBig.anim contains root position curve: {binding.propertyName}, which causes BigCreep teleport on death!");
             }
+            if (string.IsNullOrEmpty(binding.path) && binding.propertyName.StartsWith("m_LocalScale"))
+            {
+                Assert.Fail($"DieBig.anim contains root scale curve: {binding.propertyName}, which overrides BigCreep death facing!");
+            }
         }
 
         AnimationClip runClip = AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/Animaton/Enemy/Creep/runbig.anim");

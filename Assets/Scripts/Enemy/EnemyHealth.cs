@@ -60,6 +60,7 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     private string defaultAnimationState = "run";
     private int defaultStateHash;
     private Coroutine deathRoutine;
+    private Vector3 initialRootScale;
 
     private struct ChildTransformSnapshot
     {
@@ -75,6 +76,7 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     {
         baseMaxHealth = maxHealth;
         baseExpReward = expReward;
+        initialRootScale = transform.localScale;
         colliders = GetComponentsInChildren<Collider2D>(true);
         animator = GetComponent<Animator>() ?? GetComponentInChildren<Animator>();
         enemyMovement = GetComponent<EnemyMovement>();
@@ -248,6 +250,13 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     private IEnumerator PlayDeathAnimationAndDespawn(Vector3 lockedPos, Quaternion lockedRot, Vector3 lockedScale)
     {
         float animDuration = cachedDeathDuration > 0f ? cachedDeathDuration : fallbackDeathDuration;
+        bool isSingleSprite = transform.childCount == 0;
+
+        // Nếu là quái single-sprite (như BigCreep), giới hạn thời gian diễn hoạt chết gọn gàng (0.4s)
+        if (isSingleSprite)
+        {
+            animDuration = Mathf.Min(0.4f, animDuration);
+        }
 
         if (animator == null)
         {
@@ -272,18 +281,35 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
         float animWait = Mathf.Max(0.05f, animDuration + destroyDelay);
         float elapsed = 0f;
 
-        // Giai đoạn 1: Giữ cố định 100% tọa độ tại chỗ và phát trọn vẹn animation Die
+        // Giai đoạn 1: Giữ cố định tọa độ tại chỗ và phát trọn vẹn animation Die
         while (elapsed < animWait)
         {
             transform.position = lockedPos;
             transform.rotation = lockedRot;
-            transform.localScale = lockedScale;
+
+            if (isSingleSprite)
+            {
+                // Hiệu ứng Squash mượt mà: co xẹp Y xuống 35% và giãn nhẹ X 15%, giữ nguyên 100% hướng mặt
+                float t = Mathf.Clamp01(elapsed / animWait);
+                float smoothT = Mathf.SmoothStep(0f, 1f, t);
+                float squashY = Mathf.Lerp(1f, 0.35f, smoothT);
+                float expandX = Mathf.Lerp(1f, 1.15f, smoothT);
+                transform.localScale = new Vector3(lockedScale.x * expandX, lockedScale.y * squashY, lockedScale.z);
+            }
+            else
+            {
+                transform.localScale = lockedScale;
+            }
 
             elapsed += Time.deltaTime;
             yield return null;
         }
 
         transform.position = lockedPos;
+        Vector3 finalDeathScale = isSingleSprite
+            ? new Vector3(lockedScale.x * 1.15f, lockedScale.y * 0.35f, lockedScale.z)
+            : lockedScale;
+        transform.localScale = finalDeathScale;
 
         // Khóa đúng pose cuối của Die trong suốt thời gian fade.
         if (animator != null && animator.gameObject.activeInHierarchy)
@@ -302,7 +328,7 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
             {
                 transform.position = lockedPos;
                 transform.rotation = lockedRot;
-                transform.localScale = lockedScale;
+                transform.localScale = finalDeathScale;
 
                 fadeElapsed += Time.deltaTime;
                 float t = Mathf.Clamp01(fadeElapsed / fadeOutDuration);
@@ -393,6 +419,10 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     private void ResetVisualState()
     {
         transform.rotation = Quaternion.identity;
+        if (initialRootScale != Vector3.zero)
+        {
+            transform.localScale = initialRootScale;
+        }
 
         if (cachedChildSnapshots != null)
         {
