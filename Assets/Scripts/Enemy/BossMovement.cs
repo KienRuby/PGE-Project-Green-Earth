@@ -312,22 +312,34 @@ public class BossMovement : MonoBehaviour, IPoolable
     }
 
     /// <summary>
-    /// Tự động lật mặt theo hướng Player (Trái/Phải).
+    private void LateUpdate()
+    {
+        if (currentState == BossState.Chase || currentState == BossState.Recover)
+        {
+            UpdateFacingDirection();
+        }
+    }
+
+    /// <summary>
+    /// Tự động lật mặt theo hướng Player (Trái/Phải), đảm bảo Boss luôn luôn quay mặt về phía Player.
     /// </summary>
     private void UpdateFacingDirection()
     {
-        if (!autoFlipFacing || player == null) return;
+        if (!autoFlipFacing || player == null || !player.gameObject.activeInHierarchy) return;
 
         float diffX = player.position.x - transform.position.x;
         if (Mathf.Abs(diffX) < flipDeadzone) return;
 
-        bool shouldFaceRight = diffX > 0;
-        if (shouldFaceRight != isFacingRight)
+        isFacingRight = diffX > 0;
+        float absScaleX = Mathf.Abs(initialScale.x > 0.0001f ? initialScale.x : transform.localScale.x);
+        float sign = (isFacingRight ^ initialFacingLeft) ? 1f : -1f;
+        float targetScaleX = absScaleX * sign;
+
+        if (Mathf.Abs(transform.localScale.x - targetScaleX) > 0.0001f)
         {
-            isFacingRight = shouldFaceRight;
-            float absScaleX = Mathf.Abs(initialScale.x);
-            float sign = (isFacingRight ^ initialFacingLeft) ? 1f : -1f;
-            transform.localScale = new Vector3(absScaleX * sign, initialScale.y, initialScale.z);
+            float targetScaleY = initialScale.y != 0f ? initialScale.y : transform.localScale.y;
+            float targetScaleZ = initialScale.z != 0f ? initialScale.z : transform.localScale.z;
+            transform.localScale = new Vector3(targetScaleX, targetScaleY, targetScaleZ);
         }
     }
 

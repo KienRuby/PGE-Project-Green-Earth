@@ -291,6 +291,7 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
             animator.Play(deathAnimationState, 0, 0.999f);
             animator.Update(0f);
             animator.speed = 0f;
+            animator.enabled = false;
         }
 
         // Giai đoạn 2: Hiệu ứng Mờ dần (Fade Out) từ màu hiện tại về Alpha = 0
@@ -453,6 +454,7 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     {
         if (animator == null) return;
 
+        animator.enabled = true;
         animator.applyRootMotion = false;
         animator.speed = 1f;
         if (hasDeathTriggerParam)

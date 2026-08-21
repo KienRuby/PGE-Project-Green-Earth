@@ -32,6 +32,7 @@ public class EnemyMovement : MonoBehaviour, IPoolable
 
     private Rigidbody2D rb;
     private Transform player;
+    private PlayerMovement playerMovement;
     private float nextPlayerSearchTime;
     private Vector3 initialScale;
     private bool isFacingRight = true;
@@ -84,6 +85,7 @@ public class EnemyMovement : MonoBehaviour, IPoolable
     public void SetTarget(Transform target)
     {
         player = target;
+        playerMovement = target != null ? target.GetComponent<PlayerMovement>() : null;
     }
 
     private void FindPlayer()
@@ -93,6 +95,7 @@ public class EnemyMovement : MonoBehaviour, IPoolable
         if (playerObject != null)
         {
             player = playerObject.transform;
+            playerMovement = playerObject.GetComponent<PlayerMovement>();
         }
     }
 
@@ -128,23 +131,31 @@ public class EnemyMovement : MonoBehaviour, IPoolable
         UpdateFacingDirection();
     }
 
+    private void LateUpdate()
+    {
+        UpdateFacingDirection();
+    }
+
     /// <summary>
-    /// Tự động lật mặt theo hướng Player (Trái/Phải).
+    /// Tự động lật mặt theo hướng Player (Trái/Phải), đảm bảo quái luôn luôn quay mặt về phía Player.
     /// </summary>
     private void UpdateFacingDirection()
     {
-        if (!autoFlipFacing || player == null) return;
+        if (!autoFlipFacing || player == null || !player.gameObject.activeInHierarchy) return;
 
         float diffX = player.position.x - transform.position.x;
         if (Mathf.Abs(diffX) < flipDeadzone) return;
 
-        bool shouldFaceRight = diffX > 0;
-        if (shouldFaceRight != isFacingRight)
+        isFacingRight = diffX > 0;
+        float absScaleX = Mathf.Abs(initialScale.x > 0.0001f ? initialScale.x : transform.localScale.x);
+        float sign = (isFacingRight ^ initialFacingLeft) ? 1f : -1f;
+        float targetScaleX = absScaleX * sign;
+
+        if (Mathf.Abs(transform.localScale.x - targetScaleX) > 0.0001f)
         {
-            isFacingRight = shouldFaceRight;
-            float absScaleX = Mathf.Abs(initialScale.x);
-            float sign = (isFacingRight ^ initialFacingLeft) ? 1f : -1f;
-            transform.localScale = new Vector3(absScaleX * sign, initialScale.y, initialScale.z);
+            float targetScaleY = initialScale.y != 0f ? initialScale.y : transform.localScale.y;
+            float targetScaleZ = initialScale.z != 0f ? initialScale.z : transform.localScale.z;
+            transform.localScale = new Vector3(targetScaleX, targetScaleY, targetScaleZ);
         }
     }
 
@@ -166,7 +177,31 @@ public class EnemyMovement : MonoBehaviour, IPoolable
             return new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
         }
 
-        // Nếu quái đã áp sát quá gần Player (< stoppingDistance), đẩy nhẹ ra để không đè vào lòng Player
+        // 1. Khi Player đang chủ động di chuyển về phía quái này, quái sẽ né dạt sang 2 bên để nhường đường
+        if (playerMovement == null && player != null)
+        {
+            playerMovement = player.GetComponent<PlayerMovement>();
+        }
+
+        if (playerMovement != null && playerMovement.MoveDirection.sqrMagnitude > 0.05f)
+        {
+            Vector2 playerMoveDir = playerMovement.MoveDirection.normalized;
+            Vector2 toThisEnemy = -toPlayer; // Vector từ tâm Player tới Quái
+            float dot = Vector2.Dot(playerMoveDir, toThisEnemy.normalized);
+
+            // Quái nằm ở phía trước hướng Player đang đi và ở cự ly gần
+            if (dot > 0.1f && distanceToPlayer < stoppingDistance * 2.2f)
+            {
+                Vector2 sideDir = Vector2.Perpendicular(playerMoveDir);
+                if (Vector2.Dot(sideDir, toThisEnemy) < 0f)
+                {
+                    sideDir = -sideDir;
+                }
+                return (sideDir * 1.6f + toThisEnemy.normalized * 0.4f).normalized;
+            }
+        }
+
+        // 2. Nếu quái đã áp sát quá gần Player (< stoppingDistance), đẩy nhẹ ra để không đè vào lòng Player
         if (distanceToPlayer < stoppingDistance)
         {
             float pushBack = 1f - (distanceToPlayer / stoppingDistance);

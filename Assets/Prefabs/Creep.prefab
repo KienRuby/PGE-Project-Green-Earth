@@ -408,6 +408,7 @@ MonoBehaviour:
   deathAnimationState: Die
   fallbackDeathDuration: 0.5
   destroyDelay: 0
+  fadeOutDuration: 0.5
 --- !u!114 &8303188544550396975
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -420,7 +421,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93ae56b847cdb024090f1c1bb1fbef61, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 1.3
+  moveSpeed: 0.8
   stoppingDistance: 0.5
   separationRadius: 0.6
   separationWeight: 2
