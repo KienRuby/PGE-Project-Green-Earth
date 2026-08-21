@@ -145,6 +145,78 @@ public static class LabMenuSceneBuilder
         Debug.Log("[LabMenuSceneBuilder] Functional BuddyPanel rebuilt in MainMenu.");
     }
 
+    [MenuItem("PGE/UI/Rebuild Chipset Panel")]
+    public static void RebuildChipsetPanel()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling || EditorApplication.isUpdating)
+        {
+            Debug.LogWarning("[LabMenuSceneBuilder] Stop Play Mode before rebuilding the Chipset panel.");
+            return;
+        }
+
+        ConfigureTextures();
+        ConfigureChipsetTextures();
+        ConfigureBuddyTextures();
+
+        font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath);
+        if (font == null)
+        {
+            throw new InvalidOperationException($"[LabMenuSceneBuilder] Font not found at {FontPath}.");
+        }
+
+        Scene scene = SceneManager.GetActiveScene();
+        if (!string.Equals(scene.path, ScenePath, StringComparison.OrdinalIgnoreCase))
+        {
+            scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+        }
+
+        Canvas canvas = UnityEngine.Object.FindObjectOfType<Canvas>();
+        RectTransform content = canvas != null ? canvas.transform.Find("Content") as RectTransform : null;
+        if (content == null)
+        {
+            throw new InvalidOperationException("[LabMenuSceneBuilder] Canvas/Content was not found in MainMenu.");
+        }
+
+        RemoveLegacyContentLayout(content);
+
+        Transform existingChipsetPanel = content.Find("ChipsetPanel");
+        if (existingChipsetPanel != null)
+        {
+            UnityEngine.Object.DestroyImmediate(existingChipsetPanel.gameObject);
+        }
+
+        TopBarCurrencyController topBar = UnityEngine.Object.FindObjectOfType<TopBarCurrencyController>();
+        TMP_Text energyText = null, chipText = null, redText = null;
+        if (topBar != null)
+        {
+            SerializedObject tbSO = new SerializedObject(topBar);
+            energyText = tbSO.FindProperty("energyText")?.objectReferenceValue as TMP_Text;
+            chipText = tbSO.FindProperty("dataChipText")?.objectReferenceValue as TMP_Text;
+            redText = tbSO.FindProperty("redGemText")?.objectReferenceValue as TMP_Text;
+        }
+
+        GameObject chipsetPanel = CreateChipsetPanel(content, canvas.GetComponent<RectTransform>(), energyText, chipText, redText);
+        chipsetPanel.name = "ChipsetPanel";
+        chipsetPanel.SetActive(true);
+
+        BottomNavigationController bottomNav = UnityEngine.Object.FindObjectOfType<BottomNavigationController>();
+        if (bottomNav != null)
+        {
+            SerializedObject navSO = new SerializedObject(bottomNav);
+            SerializedProperty items = GetRequiredProperty(navSO, "items");
+            if (items.arraySize > 3)
+            {
+                GetRequiredRelativeProperty(items.GetArrayElementAtIndex(3), "panel").objectReferenceValue = chipsetPanel;
+                navSO.ApplyModifiedPropertiesWithoutUndo();
+            }
+            bottomNav.Select(3);
+        }
+
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        Debug.Log("[LabMenuSceneBuilder] Functional ChipsetPanel rebuilt in MainMenu.");
+    }
+
     [MenuItem("PGE/UI/Rebuild Shop Panel")]
     public static void RebuildShopPanel()
     {
@@ -487,16 +559,17 @@ public static class LabMenuSceneBuilder
 
         string[,] iconNames =
         {
-            { "standard-gun", "rifle", "rocket-punch", "spinning-blade", "multigun" },
-            { "gun-turret", "spiky-discus", "shotgun", "energy-jumper-cables", "high-explosive-mine" },
-            { "aiming-lens", "plasma-field", "laser-eye", "biochemical-mine", "tesla-coil" },
-            { "card-frame-common", "card-frame-rare", "card-frame-epic", "card-frame-holographic", "badge-upgrade" },
-            { "icon-lock", "wave-circuit", "icon-star", "furnace-border", "power-battery" }
+            { "standard-gun", "rifle", "rocket-punch", "spinning-blade", "multigun", "gun-turret" },
+            { "spiky-discus", "shotgun", "energy-jumper-cables", "high-explosive-mine", "aiming-lens", "plasma-field" },
+            { "laser-eye", "biochemical-mine", "tesla-coil", "atk-module", "black-hole-mine", "sonic-boom" },
+            { "big-battery", "turret-module", "ice-turret", "invincible-shield", "healing-turret", "flamethrower" },
+            { "card-frame-common", "card-frame-rare", "card-frame-epic", "card-frame-holographic", "badge-upgrade", "icon-lock" },
+            { "wave-circuit", "icon-star", "furnace-border", "power-battery", "advance-stone", "badge-advance" }
         };
 
         float cellWidth = 256f;
         float cellHeight = 256f;
-        SpriteRect[] sprites = new SpriteRect[25];
+        SpriteRect[] sprites = new SpriteRect[36];
 
         SpriteDataProviderFactories factories = new SpriteDataProviderFactories();
         factories.Init();
@@ -507,11 +580,11 @@ public static class LabMenuSceneBuilder
             ? existingRects.Where(r => !string.IsNullOrEmpty(r.name)).ToDictionary(r => r.name, r => r.spriteID)
             : new Dictionary<string, GUID>();
 
-        for (int row = 0; row < 5; row++)
+        for (int row = 0; row < 6; row++)
         {
-            for (int column = 0; column < 5; column++)
+            for (int column = 0; column < 6; column++)
             {
-                int index = row * 5 + column;
+                int index = row * 6 + column;
                 string sName = iconNames[row, column];
                 GUID spGuid = existingGuids.TryGetValue(sName, out GUID existingId) ? existingId : GUID.Generate();
                 sprites[index] = new SpriteRect
@@ -522,7 +595,7 @@ public static class LabMenuSceneBuilder
                     spriteID = spGuid,
                     rect = new Rect(
                         column * cellWidth,
-                        (4 - row) * cellHeight,
+                        (5 - row) * cellHeight,
                         cellWidth,
                         cellHeight)
                 };
