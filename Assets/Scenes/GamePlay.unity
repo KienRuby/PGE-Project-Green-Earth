@@ -760,8 +760,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00695e4d8863ab346a4cebe97684556c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 1.5
+  moveSpeed: 1
   joystick: {fileID: 919325254}
+  crowdPushRadius: 1.1
+  crowdPushForce: 4.5
+  enemyLayer:
+    serializedVersion: 2
+    m_Bits: 0
   debugInput: {x: 0, y: 0}
   debugEffectiveSpeed: 0
   debugCurrentPosition: {x: 0, y: 0}
