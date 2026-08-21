@@ -122,7 +122,8 @@ public class PauseModalController : MonoBehaviour
 
     private void Start()
     {
-        if (modalRoot != null)
+        // Chỉ ẩn modal nếu game không ở trạng thái pause
+        if (!IsPaused && modalRoot != null)
         {
             modalRoot.SetActive(false);
         }
@@ -219,6 +220,12 @@ public class PauseModalController : MonoBehaviour
         IsPaused = true;
         Time.timeScale = 0f;
 
+        if (modalRoot != null)
+        {
+            modalRoot.SetActive(true);
+        }
+
+        BindButtons();
         LocatePlayerReferences();
         RefreshAllStats();
 
@@ -228,11 +235,6 @@ public class PauseModalController : MonoBehaviour
         if (quitConfirmPanel != null)
         {
             quitConfirmPanel.SetActive(false);
-        }
-
-        if (modalRoot != null)
-        {
-            modalRoot.SetActive(true);
         }
     }
 

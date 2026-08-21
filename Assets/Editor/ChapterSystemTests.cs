@@ -273,6 +273,47 @@ public class ChapterSystemTests
     }
 
     [Test]
+    public void ChapterScreenController_StartButton_HiddenWhenLocked_AndVisibleWhenUnlocked()
+    {
+        GameObject go = new GameObject("TestChapterScreenButton");
+        ChapterScreenController ctrl = go.AddComponent<ChapterScreenController>();
+
+        GameObject btnGo = new GameObject("StartButton");
+        Button btn = btnGo.AddComponent<Button>();
+        btnGo.AddComponent<Image>();
+
+        Sprite normal = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), Vector2.zero);
+        Sprite pressed = Sprite.Create(Texture2D.blackTexture, new Rect(0, 0, 4, 4), Vector2.zero);
+
+        ChapterData lockedChapter = ScriptableObject.CreateInstance<ChapterData>();
+        lockedChapter.chapterNumber = 2;
+        lockedChapter.isLocked = true;
+
+        ChapterDatabase db = ScriptableObject.CreateInstance<ChapterDatabase>();
+        db.SetChaptersForTesting(new System.Collections.Generic.List<ChapterData> { lockedChapter });
+
+        ctrl.SetStartButtonForTesting(btn, normal, pressed);
+        ctrl.SetDatabaseForTesting(db, 0);
+
+        // Khi Chapter bị khóa -> StartButton phải bị ẩn (!activeSelf)
+        Assert.That(btnGo.activeSelf, Is.False, "Nút Start phải ẩn khi chapter chưa mở khóa.");
+
+        // Khi Chapter mở khóa -> StartButton phải hiện (activeSelf)
+        lockedChapter.isLocked = false;
+        ctrl.RefreshChapterView();
+        Assert.That(btnGo.activeSelf, Is.True, "Nút Start phải hiển thị khi chapter đã mở khóa.");
+
+        // Kiểm tra cấu hình SpriteSwap
+        Assert.That(btn.transition, Is.EqualTo(Selectable.Transition.SpriteSwap), "Nút Start phải dùng Transition SpriteSwap.");
+        Assert.That(btn.spriteState.pressedSprite, Is.EqualTo(pressed), "PressedSprite phải là sprite nhấn.");
+
+        Object.DestroyImmediate(go);
+        Object.DestroyImmediate(btnGo);
+        ScriptableObject.DestroyImmediate(lockedChapter);
+        ScriptableObject.DestroyImmediate(db);
+        Object.DestroyImmediate(normal);
+        Object.DestroyImmediate(pressed);
+    }
     public void TopBarCurrencyController_UpdatesTextsOnChipManagerEvents()
     {
         bool originalTestMode = ChipManager.IsTestMode;
@@ -913,5 +954,364 @@ public class ChapterSystemTests
 
         Object.DestroyImmediate(enemyGo);
     }
+
+    [Test]
+    public void Chapter1_WaveConfig_Wave1IsNotBossWaveAndWave10IsBossWave()
+    {
+        ChapterData c1 = AssetDatabase.LoadAssetAtPath<ChapterData>("Assets/Data/Chapters/Chapter_01_Grassland.asset");
+        Assert.That(c1, Is.Not.Null, "Không tìm thấy Chapter_01_Grassland.asset");
+        Assert.That(c1.waves, Is.Not.Null);
+        Assert.That(c1.waves.Count, Is.GreaterThanOrEqualTo(10));
+
+        // Wave 1 must NOT be a boss wave
+        Assert.That(c1.waves[0].isBossWave, Is.False, "Wave 1 của Chapter 1 không được là Boss Wave.");
+        Assert.That(c1.waves[0].customBossPrefab, Is.Null, "Wave 1 của Chapter 1 không được gán customBossPrefab.");
+
+        // Wave 10 MUST be a boss wave
+        Assert.That(c1.waves[9].isBossWave, Is.True, "Wave 10 của Chapter 1 phải là Boss Wave.");
+        Assert.That(c1.waves[9].customBossPrefab, Is.Not.Null, "Wave 10 của Chapter 1 phải có customBossPrefab.");
+    }
+
+    [Test]
+    public void EnemyPooling_StatsDoNotCompoundAcrossSpawns()
+    {
+        GameObject enemyGo = new GameObject("PoolingCompoundingTest");
+        EnemyHealth health = enemyGo.AddComponent<EnemyHealth>();
+        EnemyMovement movement = enemyGo.AddComponent<EnemyMovement>();
+        EnemyContactDamage contact = enemyGo.AddComponent<EnemyContactDamage>();
+
+        int baseHp = health.BaseMaxHealth;
+        int baseExp = health.BaseExpReward;
+        float baseSpeed = movement.BaseMoveSpeed;
+        int baseDmg = contact.BaseDamage;
+
+        // Wave 1: 1.1x scaling
+        health.SetMaxHealth(Mathf.RoundToInt(health.BaseMaxHealth * 1.1f), true);
+        health.SetExpReward(Mathf.RoundToInt(health.BaseExpReward * 1.1f));
+        movement.MoveSpeed = movement.BaseMoveSpeed * 1.1f;
+        contact.SetDamage(Mathf.RoundToInt(contact.BaseDamage * 1.1f));
+
+        // Return to pool & spawn again for Wave 2: 1.2x scaling
+        health.OnReturnToPool();
+        movement.OnReturnToPool();
+        contact.OnReturnToPool();
+
+        health.OnSpawnFromPool();
+        movement.OnSpawnFromPool();
+        contact.OnSpawnFromPool();
+
+        health.SetMaxHealth(Mathf.RoundToInt(health.BaseMaxHealth * 1.2f), true);
+        health.SetExpReward(Mathf.RoundToInt(health.BaseExpReward * 1.2f));
+        movement.MoveSpeed = movement.BaseMoveSpeed * 1.2f;
+        contact.SetDamage(Mathf.RoundToInt(contact.BaseDamage * 1.2f));
+
+        Assert.That(health.MaxHealth, Is.EqualTo(Mathf.RoundToInt(baseHp * 1.2f)));
+        Assert.That(health.ExpReward, Is.EqualTo(Mathf.RoundToInt(baseExp * 1.2f)));
+        Assert.That(movement.MoveSpeed, Is.EqualTo(baseSpeed * 1.2f).Within(0.001f));
+        Assert.That(contact.Damage, Is.EqualTo(Mathf.RoundToInt(baseDmg * 1.2f)));
+
+        Object.DestroyImmediate(enemyGo);
+    }
+
+    [Test]
+    public void PlayerHealth_ExecutionOrder_BaseHealthNotCorrupted()
+    {
+        GameObject playerGo = new GameObject("PlayerHealthExecutionOrderTest");
+        PlayerHealth health = playerGo.AddComponent<PlayerHealth>();
+
+        // Simulate PlayerStatsManager setting max health before Awake
+        health.SetMaxHealth(150, true);
+
+        Assert.That(health.BaseMaxHealth, Is.EqualTo(100), "BaseMaxHealth phải giữ nguyên 100.");
+        Assert.That(health.MaxHealth, Is.EqualTo(150));
+
+        // Re-applying bonus (e.g. 50 bonus)
+        health.SetMaxHealth(health.BaseMaxHealth + 50, true);
+        Assert.That(health.MaxHealth, Is.EqualTo(150), "MaxHealth sau khi tính lại bonus từ BaseMaxHealth phải vẫn là 150 chứ không phải 200.");
+
+        Object.DestroyImmediate(playerGo);
+    }
+
+    [Test]
+    public void MapBoundary_ClampPlayerPosition_ClampsStrictlyWithinPadding()
+    {
+        GameObject mapGo = new GameObject("TestMapBoundary");
+        MapBoundary boundary = mapGo.AddComponent<MapBoundary>();
+        boundary.SetupBounds(Vector2.zero, new Vector2(40f, 40f), 0.5f);
+
+        // Player boundary min = -20 + 0.5 = -19.5, max = 20 - 0.5 = 19.5
+        Vector2 clampedCenter = boundary.ClampPlayerPosition(Vector2.zero);
+        Assert.That(clampedCenter, Is.EqualTo(Vector2.zero));
+
+        Vector2 clampedFarRight = boundary.ClampPlayerPosition(new Vector2(50f, 0f));
+        Assert.That(clampedFarRight.x, Is.EqualTo(19.5f).Within(0.001f));
+        Assert.That(clampedFarRight.y, Is.EqualTo(0f));
+
+        Vector2 clampedBottomLeft = boundary.ClampPlayerPosition(new Vector2(-100f, -100f));
+        Assert.That(clampedBottomLeft.x, Is.EqualTo(-19.5f).Within(0.001f));
+        Assert.That(clampedBottomLeft.y, Is.EqualTo(-19.5f).Within(0.001f));
+
+        Object.DestroyImmediate(mapGo);
+    }
+
+    [Test]
+    public void MapBoundary_ClampCameraPosition_CalculatesOrthographicAspect()
+    {
+        GameObject mapGo = new GameObject("TestMapBoundaryCamera");
+        MapBoundary boundary = mapGo.AddComponent<MapBoundary>();
+        boundary.SetupBounds(Vector2.zero, new Vector2(40f, 40f), 0.5f);
+
+        GameObject camGo = new GameObject("TestCamera");
+        Camera cam = camGo.AddComponent<Camera>();
+        cam.orthographic = true;
+        cam.orthographicSize = 5f;
+
+        // In Camera, aspect ratio
+        float camHalfHeight = 5f;
+        float camHalfWidth = 5f * cam.aspect;
+        float expectedMaxX = 20f - camHalfWidth;
+        float expectedMaxY = 20f - camHalfHeight;
+
+        Vector2 clampedPos = boundary.ClampCameraPosition(new Vector2(100f, 100f), cam);
+        Assert.That(clampedPos.x, Is.EqualTo(expectedMaxX).Within(0.01f));
+        Assert.That(clampedPos.y, Is.EqualTo(expectedMaxY).Within(0.01f));
+
+        Object.DestroyImmediate(camGo);
+        Object.DestroyImmediate(mapGo);
+    }
+
+    [Test]
+    public void ChapterMapManager_AppliesChapterDataCustomSize()
+    {
+        GameObject mapGo = new GameObject("TestChapterMapManager");
+        SpriteRenderer sr = mapGo.AddComponent<SpriteRenderer>();
+        ChapterMapManager mgr = mapGo.AddComponent<ChapterMapManager>();
+        MapBoundary boundary = mapGo.GetComponent<MapBoundary>();
+
+        ChapterData customChapter = ScriptableObject.CreateInstance<ChapterData>();
+        customChapter.chapterTitle = "Custom Jungle Map";
+        customChapter.mapSize = new Vector2(60f, 80f);
+        customChapter.playerBoundaryPadding = 1.0f;
+        customChapter.mapColor = Color.cyan;
+
+        ChapterDatabase db = ScriptableObject.CreateInstance<ChapterDatabase>();
+        db.SetChaptersForTesting(new List<ChapterData> { customChapter });
+        mgr.SetDatabaseForTesting(db);
+
+        int originalIndex = PlayerDataService.SelectedChapterIndex;
+        try
+        {
+            PlayerDataService.SelectedChapterIndex = 0;
+            mgr.ApplyCurrentChapterMap();
+
+            Assert.That(boundary.MapSize.x, Is.EqualTo(60f));
+            Assert.That(boundary.MapSize.y, Is.EqualTo(80f));
+            Assert.That(boundary.PlayerPadding, Is.EqualTo(1.0f));
+            Assert.That(sr.color, Is.EqualTo(Color.cyan));
+            Assert.That(sr.size.x, Is.EqualTo(60f));
+            Assert.That(sr.size.y, Is.EqualTo(80f));
+        }
+        finally
+        {
+            PlayerDataService.SelectedChapterIndex = originalIndex;
+            Object.DestroyImmediate(mapGo);
+            ScriptableObject.DestroyImmediate(customChapter);
+            ScriptableObject.DestroyImmediate(db);
+        }
+    }
+
+    [Test]
+    public void Currency_DefaultStartingBalances_Are1000ChipsAndFullEnergy()
+    {
+        // Xóa tạm thời các key PlayerPrefs để kiểm tra fallback tài khoản mới
+        PlayerPrefs.DeleteKey(PlayerDataService.DataChipsKey);
+        PlayerPrefs.DeleteKey(PlayerDataService.RedGemsKey);
+        PlayerPrefs.DeleteKey(PlayerDataService.EnergyKey);
+
+        Assert.That(PlayerDataService.DataChips, Is.EqualTo(1000), "Tài khoản mới phải có đúng 1000 Data Chips.");
+        Assert.That(PlayerDataService.RedGems, Is.EqualTo(1000), "Tài khoản mới phải có đúng 1000 Red Gems.");
+        Assert.That(PlayerDataService.Energy, Is.EqualTo(100), "Tài khoản mới phải có đúng Full 100 Năng Lượng.");
+    }
+
+    [Test]
+    public void Chapter_StartChapter_DeductsExactEnergy()
+    {
+        PlayerDataService.Energy = 100;
+
+        int chapterEnergyCost = 15;
+        bool spent = ChipManager.TrySpendEnergy(chapterEnergyCost);
+
+        Assert.That(spent, Is.True);
+        Assert.That(PlayerDataService.Energy, Is.EqualTo(85), "Sau khi bắt đầu chapter tốn 15 Energy, Energy phải còn 85.");
+    }
+
+    [Test]
+    public void ChapterScreen_LockedChapter_HidesStartButton_AndUnlockedShows()
+    {
+        GameObject screenGo = new GameObject("TestChapterScreen");
+        ChapterScreenController ctrl = screenGo.AddComponent<ChapterScreenController>();
+
+        GameObject btnGo = new GameObject("StartButton");
+        btnGo.transform.SetParent(screenGo.transform);
+        Image btnImg = btnGo.AddComponent<Image>();
+        Button btn = btnGo.AddComponent<Button>();
+
+        ChapterData unlockedChapter = ScriptableObject.CreateInstance<ChapterData>();
+        unlockedChapter.chapterTitle = "Chapter 1";
+        unlockedChapter.energyCost = 10;
+        unlockedChapter.isLocked = false;
+
+        ChapterData lockedChapter = ScriptableObject.CreateInstance<ChapterData>();
+        lockedChapter.chapterTitle = "Chapter 2";
+        lockedChapter.energyCost = 10;
+        lockedChapter.isLocked = true;
+
+        ChapterDatabase db = ScriptableObject.CreateInstance<ChapterDatabase>();
+        db.SetChaptersForTesting(new List<ChapterData> { unlockedChapter, lockedChapter });
+
+        SerializedObject so = new SerializedObject(ctrl);
+        so.FindProperty("chapterDatabase").objectReferenceValue = db;
+        so.FindProperty("startButton").objectReferenceValue = btn;
+        so.ApplyModifiedProperties();
+
+        int originalSelected = PlayerDataService.SelectedChapterIndex;
+        int originalUnlocked = PlayerDataService.UnlockedChapterIndex;
+        try
+        {
+            PlayerDataService.UnlockedChapterIndex = 0;
+
+            // Xem Chapter 1 (Mở khóa) -> Nút Start phải hiện
+            PlayerDataService.SelectedChapterIndex = 0;
+            ctrl.RefreshChapterView();
+            Assert.That(btnGo.activeSelf, Is.True, "Chapter đã mở khóa thì nút Start phải HIỆN (activeSelf == true).");
+
+            // Xem Chapter 2 (Bị khóa) -> Nút Start phải ẩn
+            PlayerDataService.SelectedChapterIndex = 1;
+            ctrl.RefreshChapterView();
+            Assert.That(btnGo.activeSelf, Is.False, "Chapter bị khóa thì nút Start phải ẨN (activeSelf == false).");
+        }
+        finally
+        {
+            PlayerDataService.SelectedChapterIndex = originalSelected;
+            PlayerDataService.UnlockedChapterIndex = originalUnlocked;
+            Object.DestroyImmediate(screenGo);
+            ScriptableObject.DestroyImmediate(unlockedChapter);
+            ScriptableObject.DestroyImmediate(lockedChapter);
+            ScriptableObject.DestroyImmediate(db);
+        }
+    }
+
+    [Test]
+    public void ChapterScreen_StartButton_UsesSpriteSwapTransition()
+    {
+        GameObject screenGo = new GameObject("TestChapterScreen");
+        ChapterScreenController ctrl = screenGo.AddComponent<ChapterScreenController>();
+
+        GameObject btnGo = new GameObject("StartButton");
+        btnGo.transform.SetParent(screenGo.transform);
+        Image btnImg = btnGo.AddComponent<Image>();
+        Button btn = btnGo.AddComponent<Button>();
+
+        Sprite sprite1 = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), Vector2.zero);
+        Sprite sprite2 = Sprite.Create(Texture2D.blackTexture, new Rect(0, 0, 4, 4), Vector2.zero);
+
+        SerializedObject so = new SerializedObject(ctrl);
+        so.FindProperty("startButton").objectReferenceValue = btn;
+        so.FindProperty("normalStartSprite").objectReferenceValue = sprite1;
+        so.FindProperty("pressedStartSprite").objectReferenceValue = sprite2;
+        so.ApplyModifiedProperties();
+
+        try
+        {
+            ctrl.SetupStartButtonTransition();
+
+            Assert.That(btn.transition, Is.EqualTo(Selectable.Transition.SpriteSwap), "Nút Start phải sử dụng chế độ Transition SpriteSwap.");
+            Assert.That(btn.spriteState.pressedSprite, Is.EqualTo(sprite2), "PressedSprite phải là sprite 2 (nút start_1).");
+            Assert.That(btnImg.sprite, Is.EqualTo(sprite1), "Sprite mặc định phải là sprite 1 (nút start_0).");
+            Assert.That(btnImg.raycastTarget, Is.True, "Image của nút Start phải có raycastTarget = true.");
+        }
+        finally
+        {
+            Object.DestroyImmediate(screenGo);
+            Object.DestroyImmediate(sprite1);
+            Object.DestroyImmediate(sprite2);
+        }
+    }
+
+    [Test]
+    public void PauseModalController_OpensOnFirstClick_AndResumesCorrectly()
+    {
+        GameObject modalGo = new GameObject("PauseModal");
+        modalGo.SetActive(false); // Ban đầu Inactive trong scene
+
+        PauseModalController pauseCtrl = modalGo.AddComponent<PauseModalController>();
+
+        SerializedObject so = new SerializedObject(pauseCtrl);
+        so.FindProperty("modalRoot").objectReferenceValue = modalGo;
+        so.ApplyModifiedProperties();
+
+        try
+        {
+            // Lần bấm 1: Nút Pause được bấm
+            pauseCtrl.TogglePause();
+
+            Assert.That(pauseCtrl.IsPaused, Is.True, "Lần bấm 1: IsPaused phải là true.");
+            Assert.That(modalGo.activeSelf, Is.True, "Lần bấm 1: modalRoot phải HIỆN (activeSelf == true) ngay lập tức!");
+            Assert.That(Time.timeScale, Is.EqualTo(0f), "Lần bấm 1: Time.timeScale phải là 0.");
+
+            // Bấm Resume
+            pauseCtrl.ResumeGame();
+
+            Assert.That(pauseCtrl.IsPaused, Is.False, "Sau Resume: IsPaused phải là false.");
+            Assert.That(modalGo.activeSelf, Is.False, "Sau Resume: modalRoot phải ẨN (activeSelf == false).");
+            Assert.That(Time.timeScale, Is.EqualTo(1f), "Sau Resume: Time.timeScale phải là 1.");
+
+            // Lần bấm 2: Nút Pause được bấm lại
+            pauseCtrl.TogglePause();
+
+            Assert.That(pauseCtrl.IsPaused, Is.True, "Lần bấm 2: IsPaused phải là true.");
+            Assert.That(modalGo.activeSelf, Is.True, "Lần bấm 2: modalRoot phải HIỆN (activeSelf == true).");
+            Assert.That(Time.timeScale, Is.EqualTo(0f), "Lần bấm 2: Time.timeScale phải là 0.");
+        }
+        finally
+        {
+            Time.timeScale = 1f;
+            Object.DestroyImmediate(modalGo);
+        }
+    }
+
+    [Test]
+    public void EnemyHealth_DeathFadeOut_AndPoolReset_RestoresAlpha()
+    {
+        GameObject enemyGo = new GameObject("TestEnemy");
+        SpriteRenderer sr = enemyGo.AddComponent<SpriteRenderer>();
+        sr.color = new Color(1f, 1f, 1f, 1f);
+
+        EnemyHealth health = enemyGo.AddComponent<EnemyHealth>();
+        health.CacheSpriteRenderers();
+
+        try
+        {
+            // Kiểm tra màu ban đầu
+            Assert.That(sr.color.a, Is.EqualTo(1f), "Alpha ban đầu của SpriteRenderer phải là 1.0.");
+
+            // Mô phỏng hiệu ứng fade out (giảm alpha xuống 0 khi chết)
+            sr.color = new Color(1f, 1f, 1f, 0f);
+            Assert.That(sr.color.a, Is.EqualTo(0f), "Sau khi fade out, alpha phải về 0.0.");
+
+            // Khi được tái sinh từ Pool (ResetForSpawn)
+            health.ResetForSpawn();
+
+            Assert.That(sr.color.a, Is.EqualTo(1f), "Sau khi ResetForSpawn, alpha của SpriteRenderer phải được phục hồi về 1.0 đầy đủ.");
+            Assert.That(health.IsDead, Is.False, "Sau khi ResetForSpawn, IsDead phải là false.");
+            Assert.That(health.CurrentHealth, Is.EqualTo(health.MaxHealth), "Sau khi ResetForSpawn, máu phải đầy.");
+        }
+        finally
+        {
+            Object.DestroyImmediate(enemyGo);
+        }
+    }
 }
+
+
 

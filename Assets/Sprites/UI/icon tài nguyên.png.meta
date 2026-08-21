@@ -1,0 +1,831 @@
+fileFormatVersion: 2
+guid: ab18fc2b21b7aa642b2da655b9cac26c
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 0
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: data
+      rect:
+        serializedVersion: 2
+        x: 808
+        y: 2327
+        width: 576
+        height: 534
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8b24f8d1f57df75449c5c4a4c3ea7fe1
+      internalID: 1007670975
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon t\xE0i nguy\xEAn_1"
+      rect:
+        serializedVersion: 2
+        x: 1069
+        y: 2858
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 82fb62d6e748f3e4eb7878f0091ee3b5
+      internalID: 1626268368
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon t\xE0i nguy\xEAn_2"
+      rect:
+        serializedVersion: 2
+        x: 1164
+        y: 2858
+        width: 6
+        height: 5
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2a80ab8c3ba4d1f448c637b8da0bb0b0
+      internalID: 37062160
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: engry
+      rect:
+        serializedVersion: 2
+        x: 178
+        y: 2316
+        width: 386
+        height: 509
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3c8655dd15ff30c44a832b4dc672eb42
+      internalID: 747405118
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon t\xE0i nguy\xEAn_4"
+      rect:
+        serializedVersion: 2
+        x: 1361
+        y: 2700
+        width: 40
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7fdf512df19c470449d2981ac2ee38b5
+      internalID: 1214288508
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: red
+      rect:
+        serializedVersion: 2
+        x: 1621
+        y: 2326
+        width: 379
+        height: 506
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2245dd780d4029b4f80b3fa36fffddeb
+      internalID: 646926463
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon t\xE0i nguy\xEAn_6"
+      rect:
+        serializedVersion: 2
+        x: 805
+        y: 2666
+        width: 16
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 710cc90a9bd8c2a4ca59ae8df9408808
+      internalID: -1311685615
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon t\xE0i nguy\xEAn_7"
+      rect:
+        serializedVersion: 2
+        x: 1384
+        y: 2678
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 60f9429f73dd6984caeb842f174c59ad
+      internalID: -288551036
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon t\xE0i nguy\xEAn_8"
+      rect:
+        serializedVersion: 2
+        x: 1395
+        y: 2644
+        width: 4
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f5c8a52d79d417a46bdb9e09ab697510
+      internalID: -1463747360
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon t\xE0i nguy\xEAn_9"
+      rect:
+        serializedVersion: 2
+        x: 806
+        y: 2640
+        width: 4
+        height: 4
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 17baa3661b9882a43abd71c0cd643b67
+      internalID: -1175093777
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon t\xE0i nguy\xEAn_10"
+      rect:
+        serializedVersion: 2
+        x: 1384
+        y: 2610
+        width: 17
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2b4c93b704a5a68469bb90dfbe04706d
+      internalID: 512867759
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon t\xE0i nguy\xEAn_11"
+      rect:
+        serializedVersion: 2
+        x: 804
+        y: 2554
+        width: 17
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e340eb8fbdee7b64cb792611788184e0
+      internalID: -856542042
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon t\xE0i nguy\xEAn_12"
+      rect:
+        serializedVersion: 2
+        x: 1395
+        y: 2565
+        width: 6
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b9ec1b6b46edb7a41b247888ae9049b0
+      internalID: 1621554588
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon t\xE0i nguy\xEAn_13"
+      rect:
+        serializedVersion: 2
+        x: 804
+        y: 2543
+        width: 6
+        height: 5
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 621ac2988beed3d4ab10c407ab275d59
+      internalID: -2140712402
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon t\xE0i nguy\xEAn_14"
+      rect:
+        serializedVersion: 2
+        x: 1395
+        y: 2543
+        width: 6
+        height: 5
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a9e5be02bbb24f94e9afafd2eca41440
+      internalID: -764789375
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon t\xE0i nguy\xEAn_15"
+      rect:
+        serializedVersion: 2
+        x: 810
+        y: 2498
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7d0dfae912cf09b43a7cab163a62825f
+      internalID: 149956814
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon t\xE0i nguy\xEAn_16"
+      rect:
+        serializedVersion: 2
+        x: 1384
+        y: 2498
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1fedc5efacce2f543af96325c904bc9a
+      internalID: 1534724756
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon t\xE0i nguy\xEAn_17"
+      rect:
+        serializedVersion: 2
+        x: 804
+        y: 2486
+        width: 6
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e35ab870c3d574347b6404f03d79da15
+      internalID: -1575773454
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon t\xE0i nguy\xEAn_18"
+      rect:
+        serializedVersion: 2
+        x: 1395
+        y: 2473
+        width: 4
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: af79a6c983059b44b9845f343d68b37c
+      internalID: 694278038
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon t\xE0i nguy\xEAn_19"
+      rect:
+        serializedVersion: 2
+        x: 810
+        y: 2453
+        width: 22
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 93a529e0c8356d141bae7e302bea4128
+      internalID: 2020285222
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon t\xE0i nguy\xEAn_20"
+      rect:
+        serializedVersion: 2
+        x: 1384
+        y: 2453
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f206dd69b4d10274eb5873b5022105f8
+      internalID: 1929859486
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon t\xE0i nguy\xEAn_21"
+      rect:
+        serializedVersion: 2
+        x: 1395
+        y: 2441
+        width: 4
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f98e9c4a76748fa4ca1d66e86257b952
+      internalID: 1338988814
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon t\xE0i nguy\xEAn_22"
+      rect:
+        serializedVersion: 2
+        x: 808
+        y: 2408
+        width: 24
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e6a3a8706869d614083521555a15f3d3
+      internalID: -108961611
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon t\xE0i nguy\xEAn_23"
+      rect:
+        serializedVersion: 2
+        x: 1373
+        y: 2408
+        width: 24
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d138acff094ca1345b1db1cd23abc70c
+      internalID: 1243527890
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon t\xE0i nguy\xEAn_24"
+      rect:
+        serializedVersion: 2
+        x: 934
+        y: 2312
+        width: 11
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d88a0452eba02f74ba3166f01650c829
+      internalID: 1739595105
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon t\xE0i nguy\xEAn_25"
+      rect:
+        serializedVersion: 2
+        x: 968
+        y: 2318
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e566c740aeb0e7c4f99b828fe71f67e1
+      internalID: 984279225
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon t\xE0i nguy\xEAn_26"
+      rect:
+        serializedVersion: 2
+        x: 1059
+        y: 2304
+        width: 32
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 724ef57904655bd43b7d05f0ef9af6f8
+      internalID: 1943767970
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon t\xE0i nguy\xEAn_27"
+      rect:
+        serializedVersion: 2
+        x: 979
+        y: 2304
+        width: 20
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c456bb1aad7654e4cbaee7ef729f95e1
+      internalID: -1919432083
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon t\xE0i nguy\xEAn_28"
+      rect:
+        serializedVersion: 2
+        x: 1024
+        y: 2306
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0e7cb1a100a5db24cae7090d5ba3511c
+      internalID: -1306332823
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon t\xE0i nguy\xEAn_29"
+      rect:
+        serializedVersion: 2
+        x: 1125
+        y: 2304
+        width: 34
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 20201a08bfd6d544daadedc184ed685c
+      internalID: 863805192
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon t\xE0i nguy\xEAn_30"
+      rect:
+        serializedVersion: 2
+        x: 1170
+        y: 2303
+        width: 45
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d5419680e75a97941888394f3faa31dd
+      internalID: 228417313
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon t\xE0i nguy\xEAn_31"
+      rect:
+        serializedVersion: 2
+        x: 1260
+        y: 2304
+        width: 22
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1d66d1d6c2846eb42ab01cf38e8cb390
+      internalID: -1042638405
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      data: 1007670975
+      engry: 747405118
+      "icon t\xE0i nguy\xEAn_1": 1626268368
+      "icon t\xE0i nguy\xEAn_10": 512867759
+      "icon t\xE0i nguy\xEAn_11": -856542042
+      "icon t\xE0i nguy\xEAn_12": 1621554588
+      "icon t\xE0i nguy\xEAn_13": -2140712402
+      "icon t\xE0i nguy\xEAn_14": -764789375
+      "icon t\xE0i nguy\xEAn_15": 149956814
+      "icon t\xE0i nguy\xEAn_16": 1534724756
+      "icon t\xE0i nguy\xEAn_17": -1575773454
+      "icon t\xE0i nguy\xEAn_18": 694278038
+      "icon t\xE0i nguy\xEAn_19": 2020285222
+      "icon t\xE0i nguy\xEAn_2": 37062160
+      "icon t\xE0i nguy\xEAn_20": 1929859486
+      "icon t\xE0i nguy\xEAn_21": 1338988814
+      "icon t\xE0i nguy\xEAn_22": -108961611
+      "icon t\xE0i nguy\xEAn_23": 1243527890
+      "icon t\xE0i nguy\xEAn_24": 1739595105
+      "icon t\xE0i nguy\xEAn_25": 984279225
+      "icon t\xE0i nguy\xEAn_26": 1943767970
+      "icon t\xE0i nguy\xEAn_27": -1919432083
+      "icon t\xE0i nguy\xEAn_28": -1306332823
+      "icon t\xE0i nguy\xEAn_29": 863805192
+      "icon t\xE0i nguy\xEAn_30": 228417313
+      "icon t\xE0i nguy\xEAn_31": -1042638405
+      "icon t\xE0i nguy\xEAn_4": 1214288508
+      "icon t\xE0i nguy\xEAn_6": -1311685615
+      "icon t\xE0i nguy\xEAn_7": -288551036
+      "icon t\xE0i nguy\xEAn_8": -1463747360
+      "icon t\xE0i nguy\xEAn_9": -1175093777
+      red: 646926463
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

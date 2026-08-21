@@ -58,6 +58,21 @@ public class CameraFollow : MonoBehaviour
         set => offset = value;
     }
 
+    private Camera cachedCamera;
+
+    private Camera GetCameraComponent()
+    {
+        if (cachedCamera == null)
+        {
+            cachedCamera = GetComponent<Camera>();
+            if (cachedCamera == null)
+            {
+                cachedCamera = Camera.main;
+            }
+        }
+        return cachedCamera;
+    }
+
     public void UpdateFollow(float deltaTime)
     {
         if (target == null)
@@ -68,9 +83,20 @@ public class CameraFollow : MonoBehaviour
             InitializeCameraZ();
         }
 
-        Vector3 desiredPosition = new Vector3(
+        Vector2 rawTarget2D = new Vector2(
             target.position.x + offset.x,
-            target.position.y + offset.y,
+            target.position.y + offset.y
+        );
+
+        // 🔒 Clamp khung nhìn Camera không để lộ khoảng đen ngoài map
+        if (MapBoundary.Instance != null)
+        {
+            rawTarget2D = MapBoundary.Instance.ClampCameraPosition(rawTarget2D, GetCameraComponent());
+        }
+
+        Vector3 desiredPosition = new Vector3(
+            rawTarget2D.x,
+            rawTarget2D.y,
             cameraZ
         );
 
@@ -90,6 +116,14 @@ public class CameraFollow : MonoBehaviour
             desiredPosition,
             t
         );
+
+        // Đảm bảo sau khi Lerp vẫn nằm trọn trong Map
+        if (MapBoundary.Instance != null)
+        {
+            Vector2 clampedNew2D = MapBoundary.Instance.ClampCameraPosition(new Vector2(newPosition.x, newPosition.y), GetCameraComponent());
+            newPosition.x = clampedNew2D.x;
+            newPosition.y = clampedNew2D.y;
+        }
 
         // Luôn cố định Z
         newPosition.z = cameraZ;
@@ -116,9 +150,19 @@ public class CameraFollow : MonoBehaviour
             InitializeCameraZ();
         }
 
-        transform.position = new Vector3(
+        Vector2 target2D = new Vector2(
             target.position.x + offset.x,
-            target.position.y + offset.y,
+            target.position.y + offset.y
+        );
+
+        if (MapBoundary.Instance != null)
+        {
+            target2D = MapBoundary.Instance.ClampCameraPosition(target2D, GetCameraComponent());
+        }
+
+        transform.position = new Vector3(
+            target2D.x,
+            target2D.y,
             cameraZ
         );
     }

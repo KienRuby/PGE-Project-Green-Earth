@@ -49,6 +49,10 @@ public class InfiniteTiledGround : MonoBehaviour
 
     private void LateUpdate()
     {
+        // Khi sử dụng hệ thống Fixed Map Boundary, không di chuyển sàn theo Camera nữa
+        if (MapBoundary.Instance != null || GetComponent<ChapterMapManager>() != null)
+            return;
+
         if (followTarget == null)
             return;
 

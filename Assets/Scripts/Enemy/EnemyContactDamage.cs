@@ -1,16 +1,36 @@
 using UnityEngine;
 
-public class EnemyContactDamage : MonoBehaviour
+public class EnemyContactDamage : MonoBehaviour, IPoolable
 {
     [Header("Damage")]
     [Tooltip("Lượng sát thương gây ra khi quái vật va chạm vào Player.")]
     [SerializeField] private int damage = 10;
 
+    private int baseDamage;
+
     public int Damage => damage;
+    public int BaseDamage => baseDamage > 0 ? baseDamage : damage;
+
+    private void Awake()
+    {
+        baseDamage = damage;
+    }
 
     public void SetDamage(int newDamage)
     {
         damage = Mathf.Max(1, newDamage);
+    }
+
+    public void OnSpawnFromPool()
+    {
+        damage = BaseDamage;
+        nextDamageTime = 0f;
+    }
+
+    public void OnReturnToPool()
+    {
+        damage = BaseDamage;
+        nextDamageTime = 0f;
     }
 
     [Header("Attack Cooldown")]
@@ -31,11 +51,14 @@ public class EnemyContactDamage : MonoBehaviour
 
     private void TryDamage(Collider2D targetCollider)
     {
-        if (Time.time < nextDamageTime)
+        if (targetCollider == null || Time.time < nextDamageTime)
             return;
 
-        PlayerHealth playerHealth =
-            targetCollider.GetComponentInParent<PlayerHealth>();
+        // Fast path: Nếu không phải Player thì bỏ qua ngay lập tức
+        if (!targetCollider.CompareTag("Player"))
+            return;
+
+        PlayerHealth playerHealth = targetCollider.GetComponentInParent<PlayerHealth>();
 
         if (playerHealth == null)
             return;
@@ -45,7 +68,6 @@ public class EnemyContactDamage : MonoBehaviour
 
         playerHealth.TakeDamage(damage);
 
-        nextDamageTime =
-            Time.time + damageInterval;
+        nextDamageTime = Time.time + damageInterval;
     }
 }

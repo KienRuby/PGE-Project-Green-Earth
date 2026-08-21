@@ -1070,6 +1070,43 @@ public class PGEGameLogicTests
 
         Object.DestroyImmediate(go);
     }
+
+    [Test]
+    public void Chipset_RealtimeCurrencySync_UpdatesTopBarOnEvents()
+    {
+        GameObject go = new GameObject("ChipsetTopBarTest");
+        ChipsetController ctrl = go.AddComponent<ChipsetController>();
+
+        TMP_Text energyText = new GameObject("Energy").AddComponent<TextMeshProUGUI>();
+        TMP_Text chipText = new GameObject("Chip").AddComponent<TextMeshProUGUI>();
+        TMP_Text redText = new GameObject("Red").AddComponent<TextMeshProUGUI>();
+        TMP_Text stonesText = new GameObject("Stones").AddComponent<TextMeshProUGUI>();
+
+        var type = typeof(ChipsetController);
+        type.GetField("energyText", BindingFlags.NonPublic | BindingFlags.Instance)?.SetValue(ctrl, energyText);
+        type.GetField("chipCurrencyText", BindingFlags.NonPublic | BindingFlags.Instance)?.SetValue(ctrl, chipText);
+        type.GetField("redCurrencyText", BindingFlags.NonPublic | BindingFlags.Instance)?.SetValue(ctrl, redText);
+        type.GetField("advanceStonesText", BindingFlags.NonPublic | BindingFlags.Instance)?.SetValue(ctrl, stonesText);
+
+        ctrl.InitializeDatabase();
+        ctrl.enabled = true;
+
+        ChipManager.DataChips = 54321;
+        ChipManager.RedGems = 12345;
+        ChipManager.Energy = 42;
+        ChipManager.AdvanceStones = 99;
+
+        Assert.That(chipText.text, Is.EqualTo("54,321"));
+        Assert.That(redText.text, Is.EqualTo("12,345"));
+        Assert.That(energyText.text, Is.EqualTo($"42/{ChipManager.MaxEnergy}"));
+        Assert.That(stonesText.text, Is.EqualTo("99"));
+
+        Object.DestroyImmediate(energyText.gameObject);
+        Object.DestroyImmediate(chipText.gameObject);
+        Object.DestroyImmediate(redText.gameObject);
+        Object.DestroyImmediate(stonesText.gameObject);
+        Object.DestroyImmediate(go);
+    }
 }
 
 

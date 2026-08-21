@@ -1,0 +1,875 @@
+fileFormatVersion: 2
+guid: 3503407315d25654fb98905c5904884f
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 0
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_0"
+      rect:
+        serializedVersion: 2
+        x: 1744
+        y: 3375
+        width: 45
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2d28d626ad8439e4db08a37b831d4e67
+      internalID: -574857967
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_1"
+      rect:
+        serializedVersion: 2
+        x: 1811
+        y: 3375
+        width: 11
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b6933664b4e52524ca67c2ed4ee90ec2
+      internalID: -1004553604
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: nhiem vu
+      rect:
+        serializedVersion: 2
+        x: 819
+        y: 2766
+        width: 504
+        height: 599
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a28c7e60c0ec1114fbc50583f92d0054
+      internalID: 667303370
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_3"
+      rect:
+        serializedVersion: 2
+        x: 1699
+        y: 3364
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a5751f5e68acb474f9b2a7072208ba87
+      internalID: 1553526909
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: thong bao
+      rect:
+        serializedVersion: 2
+        x: 1582
+        y: 2980
+        width: 389
+        height: 377
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e40453749ff97604d80fd521ae818d46
+      internalID: -313056868
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_5"
+      rect:
+        serializedVersion: 2
+        x: 1676
+        y: 3353
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7f989d2bccc9a51459b57dc7a3501d31
+      internalID: 410817932
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_6"
+      rect:
+        serializedVersion: 2
+        x: 1845
+        y: 3353
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2a24cdd03d15cf94a97ec0ba57284610
+      internalID: -423038602
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_7"
+      rect:
+        serializedVersion: 2
+        x: 1575
+        y: 3251
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9fedea2a5c0c74e4586ded7e98e0de27
+      internalID: 1147009704
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_8"
+      rect:
+        serializedVersion: 2
+        x: 1562
+        y: 3229
+        width: 13
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 715b5fe8cd5e4f748a41f6b2d6f13675
+      internalID: -2108097494
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_9"
+      rect:
+        serializedVersion: 2
+        x: 1551
+        y: 3158
+        width: 13
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 48a423fee4a10c940a76d3a67cbc82ed
+      internalID: -1517998035
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_10"
+      rect:
+        serializedVersion: 2
+        x: 1969
+        y: 3161
+        width: 9
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 343c8ebdbcad0f44ebb8afd412bb9f14
+      internalID: 1168346043
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_11"
+      rect:
+        serializedVersion: 2
+        x: 1554
+        y: 3128
+        width: 10
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 87ba309e92794834dab51bff35a3485c
+      internalID: 1741513795
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_12"
+      rect:
+        serializedVersion: 2
+        x: 1958
+        y: 3116
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f887ad8bdea20ea4e8fb84dc79867bb1
+      internalID: -1158658193
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_13"
+      rect:
+        serializedVersion: 2
+        x: 1958
+        y: 3094
+        width: 7
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: abfc2b439f88f1a409347ef851895fbc
+      internalID: 1840032006
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_14"
+      rect:
+        serializedVersion: 2
+        x: 1708
+        y: 2966
+        width: 13
+        height: 4
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0bf5612bf8291224aa0778678402c941
+      internalID: -2117834931
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_15"
+      rect:
+        serializedVersion: 2
+        x: 1755
+        y: 2961
+        width: 22
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 240918a4647dcfa40bb61277eb64fe4f
+      internalID: -1317377390
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_16"
+      rect:
+        serializedVersion: 2
+        x: 1811
+        y: 2966
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dfbdb2056d6fa4d489004d31399376bd
+      internalID: 1979516556
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_17"
+      rect:
+        serializedVersion: 2
+        x: 1731
+        y: 2936
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 60a9af8ca3d11da4f9980cc0f99cae63
+      internalID: 227192608
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_18"
+      rect:
+        serializedVersion: 2
+        x: 1789
+        y: 2936
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1ed559656abae854e9e9c5df7ecf3801
+      internalID: 507806970
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_19"
+      rect:
+        serializedVersion: 2
+        x: 1823
+        y: 2936
+        width: 12
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cbf4f5b5264eb3a45a5862d75a9d5ea5
+      internalID: -1039805902
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: thong ba
+      rect:
+        serializedVersion: 2
+        x: 1562
+        y: 2529
+        width: 397
+        height: 398
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3a7df922e4f5ea640abd44669fc2ac43
+      internalID: -931792472
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_21"
+      rect:
+        serializedVersion: 2
+        x: 1688
+        y: 2925
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6d080a89e555b7b4797e4adf4cd0204b
+      internalID: 1933696879
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_22"
+      rect:
+        serializedVersion: 2
+        x: 1573
+        y: 2824
+        width: 24
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9e2163a5bfbebd34ab5419b649e511f8
+      internalID: -1629218328
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_23"
+      rect:
+        serializedVersion: 2
+        x: 1946
+        y: 2813
+        width: 17
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8ece9a2518d42a74da9bf1d056926ac6
+      internalID: -1992263459
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_24"
+      rect:
+        serializedVersion: 2
+        x: 1562
+        y: 2790
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b23ee5996f139984a88896a7ae6dbc72
+      internalID: -1052890839
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_25"
+      rect:
+        serializedVersion: 2
+        x: 1958
+        y: 2790
+        width: 13
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9a74970e20e483845ada5983f8f27d98
+      internalID: 982690617
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_26"
+      rect:
+        serializedVersion: 2
+        x: 1553
+        y: 2756
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ad558e95ccf8f254fbff73b126e794c0
+      internalID: -1289515193
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_27"
+      rect:
+        serializedVersion: 2
+        x: 1969
+        y: 2756
+        width: 7
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 82ab7e3ae58094641a27cfdbd46bef93
+      internalID: 1202804798
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_28"
+      rect:
+        serializedVersion: 2
+        x: 1551
+        y: 2721
+        width: 13
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 73d894b130c5e4e49909ebc7cf8949a6
+      internalID: -2117982207
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_29"
+      rect:
+        serializedVersion: 2
+        x: 1969
+        y: 2723
+        width: 9
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0e9f11dc96e525949b86c1cd21316f8c
+      internalID: 892856270
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_30"
+      rect:
+        serializedVersion: 2
+        x: 1958
+        y: 2678
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5602206a7e9c5684d846a253fa67866b
+      internalID: -457236728
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_31"
+      rect:
+        serializedVersion: 2
+        x: 1755
+        y: 2526
+        width: 22
+        height: 5
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 04ed32acb3a731f4ca161db090e0aed8
+      internalID: -2046447746
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_32"
+      rect:
+        serializedVersion: 2
+        x: 1800
+        y: 2530
+        width: 13
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 741c10316d5f1d0499144660915c00e9
+      internalID: 1734390441
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Setting
+      rect:
+        serializedVersion: 2
+        x: 739
+        y: 1697
+        width: 653
+        height: 678
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ec2fc40d1817e4749bcaf55347397cac
+      internalID: 1316323454
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      Setting: 1316323454
+      "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_0": -574857967
+      "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_1": -1004553604
+      "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_10": 1168346043
+      "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_11": 1741513795
+      "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_12": -1158658193
+      "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_13": 1840032006
+      "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_14": -2117834931
+      "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_15": -1317377390
+      "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_16": 1979516556
+      "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_17": 227192608
+      "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_18": 507806970
+      "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_19": -1039805902
+      "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_21": 1933696879
+      "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_22": -1629218328
+      "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_23": -1992263459
+      "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_24": -1052890839
+      "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_25": 982690617
+      "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_26": -1289515193
+      "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_27": 1202804798
+      "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_28": -2117982207
+      "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_29": 892856270
+      "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_3": 1553526909
+      "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_30": -457236728
+      "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_31": -2046447746
+      "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_32": 1734390441
+      "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_5": 410817932
+      "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_6": -423038602
+      "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_7": 1147009704
+      "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_8": -2108097494
+      "icon book, setting, d\u1EA5u th\xF4ng b\xE1o_9": -1517998035
+      nhiem vu: 667303370
+      thong ba: -931792472
+      thong bao: -313056868
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

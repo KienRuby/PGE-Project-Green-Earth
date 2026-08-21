@@ -126,9 +126,21 @@ public class PoolManager : MonoBehaviour
         StartCoroutine(ReturnAfterDelayCoroutine(instance, delay));
     }
 
+    private static readonly Dictionary<float, WaitForSeconds> timeIntervalCache = new Dictionary<float, WaitForSeconds>();
+
+    public static WaitForSeconds GetWaitForSeconds(float seconds)
+    {
+        if (!timeIntervalCache.TryGetValue(seconds, out WaitForSeconds wfs))
+        {
+            wfs = new WaitForSeconds(seconds);
+            timeIntervalCache[seconds] = wfs;
+        }
+        return wfs;
+    }
+
     private IEnumerator ReturnAfterDelayCoroutine(GameObject instance, float delay)
     {
-        yield return new WaitForSeconds(delay);
+        yield return GetWaitForSeconds(delay);
         if (instance != null && instance.activeInHierarchy)
         {
             ReturnToPool(instance);

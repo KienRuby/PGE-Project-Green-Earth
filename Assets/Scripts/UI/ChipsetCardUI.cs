@@ -124,6 +124,7 @@ public class ChipsetCardUI : MonoBehaviour
     public void SetupEmpty(Sprite frameSprite, Action onEmptyClick = null)
     {
         boundData = null;
+        slotState = ChipSlotState.Empty;
         onEmptySlotClicked = onEmptyClick;
 
         if (normalContentGroup != null) normalContentGroup.SetActive(false);

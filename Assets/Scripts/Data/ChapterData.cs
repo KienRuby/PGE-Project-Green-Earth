@@ -30,6 +30,23 @@ public class ChapterData : ScriptableObject
     [Tooltip("Bóng đen quái vật trùm (Boss Silhouette) hiển thị ở trung tâm khung xem trước. Dễ dàng thay thế sprite mới.")]
     public Sprite bossSilhouette;
 
+    [Header("Map & Environment Configuration")]
+    [Tooltip("Sprite sàn/bản đồ hiển thị trong màn chơi của Chapter này (nếu để trống sẽ dùng sprite nền mặc định).")]
+    public Sprite mapGroundSprite;
+
+    [Tooltip("Kích thước bản đồ (Rộng X, Cao Y theo đơn vị Unity).")]
+    public Vector2 mapSize = new Vector2(40f, 40f);
+
+    [Tooltip("Màu sắc / Tông màu chiếu sáng môi trường cho mặt sàn Chapter này.")]
+    public Color mapColor = Color.white;
+
+    [Tooltip("Chế độ vẽ Sprite sàn: Tiled (lặp lại texture gạch sàn) hoặc Simple (ảnh vẽ tay 1 tấm).")]
+    public SpriteDrawMode groundDrawMode = SpriteDrawMode.Tiled;
+
+    [Tooltip("Khoảng cách đệm an toàn từ mép bản đồ để nhân vật không bị lòi ra ngoài viền.")]
+    [Range(0.1f, 3.0f)]
+    public float playerBoundaryPadding = 0.6f;
+
     [Header("Story & Flavor")]
     [TextArea(2, 4)]
     [Tooltip("Câu thoại dẫn truyện / gợi mở xuất hiện phía dưới quái vật trùm.")]
@@ -95,7 +112,7 @@ public class ChapterData : ScriptableObject
                 maxConcurrentEnemies = Mathf.Clamp(Mathf.RoundToInt((isLast ? 8 : 4 + i / 2) * Mathf.Sqrt(chapterDifficultyMultiplier)), 4, 15),
                 spawnInterval = Mathf.Max(0.5f, 1.6f - i * 0.08f),
                 enemiesPerSpawn = i >= 4 ? 2 : 1,
-                enemyPool = (chapterEnemyPool != null && chapterEnemyPool.Count > 0) ? new List<EnemySpawner.EnemySpawnEntry>(chapterEnemyPool) : new List<EnemySpawner.EnemySpawnEntry>(),
+                enemyPool = BuildWaveEnemyPool(i, totalWaves),
                 healthMultiplier = isLast ? wavePower * 1.25f : wavePower,
                 damageMultiplier = isLast ? (1.0f + i * (wavePowerGrowthRate * 0.75f)) * chapterDifficultyMultiplier * 1.2f : (1.0f + i * (wavePowerGrowthRate * 0.75f)) * chapterDifficultyMultiplier,
                 speedMultiplier = 1.0f + i * 0.03f,
@@ -112,6 +129,87 @@ public class ChapterData : ScriptableObject
         }
 
         Debug.Log($"[ChapterData] ✅ Đã tự động tạo {totalWaves} Wave cho Chapter '{chapterTitle}' (Độ khó Chapter: x{chapterDifficultyMultiplier:F2}, Tăng sức mạnh mỗi wave: +{wavePowerGrowthRate * 100:F1}%).");
+    }
+
+    /// <summary>
+    /// Phân bổ tỷ trọng xuất hiện giữa các loại quái vật (Creep thường, BigCreep to,...) vào từng Wave.
+    /// </summary>
+    private List<EnemySpawner.EnemySpawnEntry> BuildWaveEnemyPool(int waveIndex, int totalWavesCount)
+    {
+        if (chapterEnemyPool == null || chapterEnemyPool.Count == 0)
+        {
+            return new List<EnemySpawner.EnemySpawnEntry>();
+        }
+
+        if (chapterEnemyPool.Count == 1)
+        {
+            return new List<EnemySpawner.EnemySpawnEntry>(chapterEnemyPool);
+        }
+
+        List<EnemySpawner.EnemySpawnEntry> wavePool = new List<EnemySpawner.EnemySpawnEntry>();
+        var creepEntry = chapterEnemyPool[0];
+        var bigCreepEntry = chapterEnemyPool[1];
+
+        int creepWeight;
+        int bigCreepWeight;
+
+        if (waveIndex == 0 || waveIndex == 1) // Wave 1-2: 100% quái nhỏ
+        {
+            creepWeight = 100;
+            bigCreepWeight = 0;
+        }
+        else if (waveIndex < 4) // Wave 3-4: 70% nhỏ, 30% to
+        {
+            creepWeight = 70;
+            bigCreepWeight = 30;
+        }
+        else if (waveIndex < 7) // Wave 5-7: 50% nhỏ, 50% to (Chia đều)
+        {
+            creepWeight = 50;
+            bigCreepWeight = 50;
+        }
+        else // Wave 8 trở đi: 40% nhỏ, 60% to
+        {
+            creepWeight = 40;
+            bigCreepWeight = 60;
+        }
+
+        if (creepEntry != null && creepEntry.enemyPrefab != null)
+        {
+            wavePool.Add(new EnemySpawner.EnemySpawnEntry
+            {
+                enemyPrefab = creepEntry.enemyPrefab,
+                spawnWeight = creepWeight,
+                unlockTime = 0f
+            });
+        }
+
+        if (bigCreepEntry != null && bigCreepEntry.enemyPrefab != null && bigCreepWeight > 0)
+        {
+            wavePool.Add(new EnemySpawner.EnemySpawnEntry
+            {
+                enemyPrefab = bigCreepEntry.enemyPrefab,
+                spawnWeight = bigCreepWeight,
+                unlockTime = 0f
+            });
+        }
+
+        // Bổ sung các loại quái khác nếu có trong danh sách
+        for (int k = 2; k < chapterEnemyPool.Count; k++)
+        {
+            var extraEntry = chapterEnemyPool[k];
+            if (extraEntry != null && extraEntry.enemyPrefab != null)
+            {
+                wavePool.Add(new EnemySpawner.EnemySpawnEntry
+                {
+                    enemyPrefab = extraEntry.enemyPrefab,
+                    spawnWeight = extraEntry.spawnWeight,
+                    unlockTime = extraEntry.unlockTime
+                });
+            }
+        }
+
+        return wavePool;
     }
 
     [ContextMenu("Regenerate Waves From Settings")]

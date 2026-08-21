@@ -20,6 +20,7 @@ public static class ChapterMenuSceneBuilder
     private const string BuildRequestPath = "Assets/Editor/PGE_ChapterUI_BuildRequest.txt";
     private const string IconAtlasPath = "Assets/UI/Lab/Generated/lab-icon-atlas.png";
     private const string BackgroundPath = "Assets/UI/Lab/Generated/lab-background.png";
+    private const string StartButtonSpritePath = "Assets/Sprites/UI/nút start.png";
     private const string ChapterDatabasePath = "Assets/Data/Chapters/ChapterDatabase.asset";
     private const string QuestDataPath = "Assets/Data/Quests/Quest_01_LabUpgrade.asset";
     private const string FontPath = "Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset";
@@ -266,46 +267,91 @@ public static class ChapterMenuSceneBuilder
         flavorText.rectTransform.sizeDelta = new Vector2(880f, 80f);
 
         // 4. Start Action Button
-        GameObject startBtnObj = CreateFrame("StartButton", chapterPanelTr, Green, TealBorder, out Image startBtnBg);
-        startBtnBg.raycastTarget = true;
-        Image startBorder = startBtnObj.GetComponent<Image>();
-        if (startBorder != null)
+        Sprite startSprite0 = LoadStartSprite("nút start_0");
+        Sprite startSprite1 = LoadStartSprite("nút start_1");
+
+        GameObject startBtnObj;
+        Button startBtn;
+        Image startBtnBg;
+        TMP_Text startLabel = null;
+        GameObject costBoxObj = null;
+        TMP_Text costText = null;
+        Image costIconImg = null;
+
+        if (startSprite0 != null && startSprite1 != null)
         {
-            startBorder.raycastTarget = true;
+            startBtnObj = CreateRect("StartButton", chapterPanelTr).gameObject;
+            RectTransform startBtnRect = startBtnObj.GetComponent<RectTransform>();
+            startBtnRect.anchorMin = new Vector2(0.5f, 0f);
+            startBtnRect.anchorMax = new Vector2(0.5f, 0f);
+            startBtnRect.pivot = new Vector2(0.5f, 0f);
+            startBtnRect.anchoredPosition = new Vector2(0f, 35f);
+            startBtnRect.sizeDelta = new Vector2(500f, 145f);
+
+            startBtnBg = startBtnObj.AddComponent<Image>();
+            startBtnBg.sprite = startSprite0;
+            startBtnBg.color = Color.white;
+            startBtnBg.raycastTarget = true;
+
+            Shadow shadow = startBtnObj.AddComponent<Shadow>();
+            shadow.effectColor = new Color32(0, 14, 24, 210);
+            shadow.effectDistance = new Vector2(5f, -6f);
+            shadow.useGraphicAlpha = true;
+
+            startBtn = startBtnObj.AddComponent<Button>();
+            startBtn.targetGraphic = startBtnBg;
+            startBtn.transition = Selectable.Transition.SpriteSwap;
+
+            SpriteState ss = startBtn.spriteState;
+            ss.highlightedSprite = startSprite0;
+            ss.pressedSprite = startSprite1;
+            ss.selectedSprite = startSprite0;
+            ss.disabledSprite = startSprite0;
+            startBtn.spriteState = ss;
         }
+        else
+        {
+            startBtnObj = CreateFrame("StartButton", chapterPanelTr, Green, TealBorder, out startBtnBg);
+            startBtnBg.raycastTarget = true;
+            Image startBorder = startBtnObj.GetComponent<Image>();
+            if (startBorder != null)
+            {
+                startBorder.raycastTarget = true;
+            }
 
-        RectTransform startBtnRect = startBtnObj.GetComponent<RectTransform>();
-        startBtnRect.anchorMin = new Vector2(0.5f, 0f);
-        startBtnRect.anchorMax = new Vector2(0.5f, 0f);
-        startBtnRect.pivot = new Vector2(0.5f, 0f);
-        startBtnRect.anchoredPosition = new Vector2(0f, 35f);
-        startBtnRect.sizeDelta = new Vector2(500f, 145f);
+            RectTransform startBtnRect = startBtnObj.GetComponent<RectTransform>();
+            startBtnRect.anchorMin = new Vector2(0.5f, 0f);
+            startBtnRect.anchorMax = new Vector2(0.5f, 0f);
+            startBtnRect.pivot = new Vector2(0.5f, 0f);
+            startBtnRect.anchoredPosition = new Vector2(0f, 35f);
+            startBtnRect.sizeDelta = new Vector2(500f, 145f);
 
-        Button startBtn = startBtnObj.AddComponent<Button>();
-        startBtn.targetGraphic = startBtnBg;
+            startBtn = startBtnObj.AddComponent<Button>();
+            startBtn.targetGraphic = startBtnBg;
 
-        // Label Start
-        TMP_Text startLabel = CreateText("StartLabel", startBtnObj.transform, "Start", 50f, Cream, TextAlignmentOptions.Center);
-        startLabel.rectTransform.anchoredPosition = new Vector2(0f, 22f);
-        startLabel.rectTransform.sizeDelta = new Vector2(300f, 60f);
+            // Label Start
+            startLabel = CreateText("StartLabel", startBtnObj.transform, "Start", 50f, Cream, TextAlignmentOptions.Center);
+            startLabel.rectTransform.anchoredPosition = new Vector2(0f, 22f);
+            startLabel.rectTransform.sizeDelta = new Vector2(300f, 60f);
 
-        // Cost sub-box
-        GameObject costBoxObj = CreateFrame("CostBox", startBtnObj.transform, new Color32(11, 55, 72, 220), Border, out _);
-        RectTransform costBoxRect = costBoxObj.GetComponent<RectTransform>();
-        costBoxRect.anchorMin = new Vector2(0.5f, 0.5f);
-        costBoxRect.anchorMax = new Vector2(0.5f, 0.5f);
-        costBoxRect.pivot = new Vector2(0.5f, 0.5f);
-        costBoxRect.anchoredPosition = new Vector2(0f, -30f);
-        costBoxRect.sizeDelta = new Vector2(220f, 48f);
+            // Cost sub-box
+            costBoxObj = CreateFrame("CostBox", startBtnObj.transform, new Color32(11, 55, 72, 220), Border, out _);
+            RectTransform costBoxRect = costBoxObj.GetComponent<RectTransform>();
+            costBoxRect.anchorMin = new Vector2(0.5f, 0.5f);
+            costBoxRect.anchorMax = new Vector2(0.5f, 0.5f);
+            costBoxRect.pivot = new Vector2(0.5f, 0.5f);
+            costBoxRect.anchoredPosition = new Vector2(0f, -30f);
+            costBoxRect.sizeDelta = new Vector2(220f, 48f);
 
-        // Energy Icon
-        Image costIconImg = CreateIcon("CostIcon", costBoxObj.transform, "energy", 40f);
-        costIconImg.rectTransform.anchoredPosition = new Vector2(-45f, 0f);
+            // Energy Icon
+            costIconImg = CreateIcon("CostIcon", costBoxObj.transform, "energy", 40f);
+            costIconImg.rectTransform.anchoredPosition = new Vector2(-45f, 0f);
 
-        // Cost Text (X 10)
-        TMP_Text costText = CreateText("CostText", costBoxObj.transform, "X 10", 32f, Cream, TextAlignmentOptions.Left);
-        costText.rectTransform.anchoredPosition = new Vector2(15f, 0f);
-        costText.rectTransform.sizeDelta = new Vector2(120f, 40f);
+            // Cost Text (X 10)
+            costText = CreateText("CostText", costBoxObj.transform, "X 10", 32f, Cream, TextAlignmentOptions.Left);
+            costText.rectTransform.anchoredPosition = new Vector2(15f, 0f);
+            costText.rectTransform.sizeDelta = new Vector2(120f, 40f);
+        }
 
         // 5. Attach ChapterScreenController to ChapterPanel
         ChapterScreenController chapterCtrl = chapterPanelObj.GetComponent<ChapterScreenController>();
@@ -328,6 +374,8 @@ public static class ChapterMenuSceneBuilder
         ctrlSO.FindProperty("waveBadgeText").objectReferenceValue = waveText;
         ctrlSO.FindProperty("flavorText").objectReferenceValue = flavorText;
         ctrlSO.FindProperty("startButton").objectReferenceValue = startBtn;
+        ctrlSO.FindProperty("normalStartSprite").objectReferenceValue = startSprite0;
+        ctrlSO.FindProperty("pressedStartSprite").objectReferenceValue = startSprite1;
         ctrlSO.FindProperty("startButtonLabel").objectReferenceValue = startLabel;
         ctrlSO.FindProperty("costBox").objectReferenceValue = costBoxObj;
         ctrlSO.FindProperty("energyCostText").objectReferenceValue = costText;
@@ -556,6 +604,20 @@ public static class ChapterMenuSceneBuilder
     private static Sprite LoadBackground()
     {
         return AssetDatabase.LoadAssetAtPath<Sprite>(BackgroundPath);
+    }
+
+    private static Sprite LoadStartSprite(string spriteName)
+    {
+        Sprite[] sprites = AssetDatabase.LoadAllAssetRepresentationsAtPath(StartButtonSpritePath)
+            .OfType<Sprite>()
+            .ToArray();
+        if (sprites.Length == 0)
+        {
+            sprites = AssetDatabase.LoadAllAssetsAtPath(StartButtonSpritePath)
+                .OfType<Sprite>()
+                .ToArray();
+        }
+        return sprites.FirstOrDefault(s => s.name == spriteName);
     }
 
     private static void Stretch(

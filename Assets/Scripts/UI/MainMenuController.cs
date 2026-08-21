@@ -25,6 +25,34 @@ public class MainMenuController : MonoBehaviour
 
     public void StartGame()
     {
-        SceneManager.LoadScene(gameplaySceneName);
+        int selectedIndex = PlayerDataService.SelectedChapterIndex;
+        ChapterDatabase db = null;
+#if UNITY_EDITOR
+        db = UnityEditor.AssetDatabase.LoadAssetAtPath<ChapterDatabase>("Assets/Data/Chapters/ChapterDatabase.asset");
+#endif
+        if (db == null)
+        {
+            db = Resources.Load<ChapterDatabase>("ChapterDatabase");
+        }
+
+        int cost = 10;
+        if (db != null)
+        {
+            ChapterData chapter = db.GetChapter(selectedIndex);
+            if (chapter != null)
+            {
+                cost = chapter.energyCost;
+            }
+        }
+
+        if (ChipManager.TrySpendEnergy(cost))
+        {
+            Debug.Log($"[MainMenuController] ⚡ Đã trừ {cost} Energy để bắt đầu Chapter {selectedIndex + 1}. Số dư còn lại: {ChipManager.Energy}");
+            SceneManager.LoadScene(gameplaySceneName);
+        }
+        else
+        {
+            Debug.LogWarning($"[MainMenuController] ⚠️ Không đủ Energy ({ChipManager.Energy}/{cost}) để vào trận!");
+        }
     }
 }

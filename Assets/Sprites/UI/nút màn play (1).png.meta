@@ -1,0 +1,2063 @@
+fileFormatVersion: 2
+guid: f70775b4373cdc64ba1cbe8e8bd22ee4
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_0"
+      rect:
+        serializedVersion: 2
+        x: 1879
+        y: 3735
+        width: 22
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a1f716362b888db44ab83a3994d5315e
+      internalID: 444000701
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_1"
+      rect:
+        serializedVersion: 2
+        x: 1924
+        y: 3724
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ab734039242eb144b817ea8da1037969
+      internalID: 566545189
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BrWave
+      rect:
+        serializedVersion: 2
+        x: 130
+        y: 3288
+        width: 412
+        height: 420
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7b94bf87a9d256948a337b835f8f860f
+      internalID: -1913582652
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: brExp
+      rect:
+        serializedVersion: 2
+        x: 617
+        y: 3570
+        width: 992
+        height: 106
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4037f36661f9d48418bc9817ccea7586
+      internalID: -622169421
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_4"
+      rect:
+        serializedVersion: 2
+        x: 1731
+        y: 3600
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 25f91a9966c84b74f8253de3f9e8d5ab
+      internalID: -553411800
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pause
+      rect:
+        serializedVersion: 2
+        x: 1742
+        y: 3430
+        width: 285
+        height: 284
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d5aa51026f538524097a972e1729ad11
+      internalID: 857239686
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_6"
+      rect:
+        serializedVersion: 2
+        x: 2025
+        y: 3611
+        width: 24
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fd89b76eb02532d4fa0c31bcfc1164ce
+      internalID: -127310300
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_7"
+      rect:
+        serializedVersion: 2
+        x: 1729
+        y: 3533
+        width: 15
+        height: 56
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5303764e930358747b134e8d15770503
+      internalID: 474506114
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_8"
+      rect:
+        serializedVersion: 2
+        x: 2036
+        y: 3544
+        width: 15
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8427f7ec9e5f55247896ca8e750168aa
+      internalID: -246311019
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_9"
+      rect:
+        serializedVersion: 2
+        x: 608
+        y: 3403
+        width: 1036
+        height: 120
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 857d87f1860f98e46a6d096e87766a34
+      internalID: 72739974
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_10"
+      rect:
+        serializedVersion: 2
+        x: 1755
+        y: 3499
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4f455f0766108e3488f82489c06c23d6
+      internalID: -783351450
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_11"
+      rect:
+        serializedVersion: 2
+        x: 606
+        y: 3366
+        width: 1033
+        height: 110
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 656ab3406ca54b44e8cdc9e63011009b
+      internalID: -1398772035
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BrExp
+      rect:
+        serializedVersion: 2
+        x: 635
+        y: 3395
+        width: 978
+        height: 104
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 684133e0ece8a8e49b01148ff0de1b0b
+      internalID: -1345822998
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_13"
+      rect:
+        serializedVersion: 2
+        x: 1864
+        y: 3416
+        width: 48
+        height: 4
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1e5d2eee67d82cb47a33521ad140ab23
+      internalID: -1111735419
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_14"
+      rect:
+        serializedVersion: 2
+        x: 259
+        y: 3218
+        width: 22
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 817db8632f91d734eacb15b76c804889
+      internalID: 802185018
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_15"
+      rect:
+        serializedVersion: 2
+        x: 315
+        y: 3229
+        width: 11
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1fac00f5b2cad3d4dbb06269046819dd
+      internalID: 403837959
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BrWave1
+      rect:
+        serializedVersion: 2
+        x: 100
+        y: 2798
+        width: 432
+        height: 409
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f932898a9f89de14c82b73ce315ecf65
+      internalID: 383998213
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_17"
+      rect:
+        serializedVersion: 2
+        x: 236
+        y: 3206
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2ea950d116ef5ad4e9c9f1bbc586e1f3
+      internalID: -1766890607
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_18"
+      rect:
+        serializedVersion: 2
+        x: 394
+        y: 3195
+        width: 33
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0f6d6fc057fd34047a85a9108827cf4c
+      internalID: 1518841830
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_19"
+      rect:
+        serializedVersion: 2
+        x: 113
+        y: 3083
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 42bef7e332898154b82990e5b5853268
+      internalID: -387692069
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_20"
+      rect:
+        serializedVersion: 2
+        x: 529
+        y: 3060
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 00e44e1fe7475eb4a90677daf456e410
+      internalID: 1239841411
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_21"
+      rect:
+        serializedVersion: 2
+        x: 540
+        y: 3038
+        width: 7
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 88ae0759ff2d1d444a565ab7af3a92d1
+      internalID: 343414969
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_22"
+      rect:
+        serializedVersion: 2
+        x: 94
+        y: 2993
+        width: 7
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5598a224f85b4db4fbae76a43c700e01
+      internalID: 1486326886
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_23"
+      rect:
+        serializedVersion: 2
+        x: 540
+        y: 2981
+        width: 11
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b9ea5d6346e733b47bffad793b811a38
+      internalID: -83948901
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_24"
+      rect:
+        serializedVersion: 2
+        x: 540
+        y: 2959
+        width: 6
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 00d7d5882eb31634fbdda045e5773f54
+      internalID: -1361082913
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_25"
+      rect:
+        serializedVersion: 2
+        x: 101
+        y: 2948
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7b386fd090e66a642a167ca1d5923293
+      internalID: -1509980603
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_26"
+      rect:
+        serializedVersion: 2
+        x: 529
+        y: 2936
+        width: 13
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7c3081b97fa34f546b859f6f8f86165d
+      internalID: -926024262
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_27"
+      rect:
+        serializedVersion: 2
+        x: 248
+        y: 2788
+        width: 22
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 30750bd8d0fd14f4cba50f8dc0f421de
+      internalID: 1231141002
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_28"
+      rect:
+        serializedVersion: 2
+        x: 293
+        y: 2781
+        width: 22
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2d836ab5526579b42920ec15eaa204c2
+      internalID: 1295251763
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_29"
+      rect:
+        serializedVersion: 2
+        x: 317
+        y: 2777
+        width: 20
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 316556a897feb6844bdbfff5e8cfe52a
+      internalID: 1021979540
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_30"
+      rect:
+        serializedVersion: 2
+        x: 383
+        y: 2788
+        width: 11
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 88969a82a5b03414bb6345622b6074c2
+      internalID: 1051510479
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Boss
+      rect:
+        serializedVersion: 2
+        x: 133
+        y: 2181
+        width: 344
+        height: 363
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 391f81198b4e1b345b53e1726c0ed925
+      internalID: -691006856
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_32"
+      rect:
+        serializedVersion: 2
+        x: 248
+        y: 2531
+        width: 33
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cfd2ef815f63e8d49bef7802ab13ce4b
+      internalID: -752169578
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_33"
+      rect:
+        serializedVersion: 2
+        x: 293
+        y: 2543
+        width: 33
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5d2a0033e6d6c7e48a19479ee44d1de0
+      internalID: 1516531857
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_34"
+      rect:
+        serializedVersion: 2
+        x: 473
+        y: 2430
+        width: 12
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ce6cb71332fb5ac4da809890c275f7a8
+      internalID: -1228500150
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: HpBoss
+      rect:
+        serializedVersion: 2
+        x: 1068
+        y: 2362
+        width: 968
+        height: 91
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 982914ba5660c334fa91a86d35dbfd38
+      internalID: 1876796576
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_36"
+      rect:
+        serializedVersion: 2
+        x: 135
+        y: 2419
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9304bf5397bc9cf4095e870042c1a07a
+      internalID: 1438481896
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_37"
+      rect:
+        serializedVersion: 2
+        x: 484
+        y: 2408
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6d2bf08f2e751e049bd8e1ea24dd774c
+      internalID: 460658675
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_38"
+      rect:
+        serializedVersion: 2
+        x: 495
+        y: 2396
+        width: 6
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 18d9268d1f1e8e54193508af03d00950
+      internalID: -427324407
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_39"
+      rect:
+        serializedVersion: 2
+        x: 122
+        y: 2340
+        width: 13
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7934aed9d11ef1f459b5325f463437d9
+      internalID: 2024847819
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_40"
+      rect:
+        serializedVersion: 2
+        x: 495
+        y: 2351
+        width: 9
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 716390a31262bf44fb26a7ba105a3728
+      internalID: -986760936
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_41"
+      rect:
+        serializedVersion: 2
+        x: 484
+        y: 2306
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4973f015a26ba03468574d54553f05dc
+      internalID: 232104261
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_42"
+      rect:
+        serializedVersion: 2
+        x: 473
+        y: 2284
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a50296351ff2116418de92cb0178a6a6
+      internalID: -198168994
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_43"
+      rect:
+        serializedVersion: 2
+        x: 1035
+        y: 2239
+        width: 1003
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dd09f903357200147878194ca9e1e34d
+      internalID: 1624232507
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_44"
+      rect:
+        serializedVersion: 2
+        x: 2036
+        y: 2261
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a2eb25e44ff5299448103633f358ecca
+      internalID: -2070658899
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_45"
+      rect:
+        serializedVersion: 2
+        x: 2048
+        y: 2239
+        width: 24
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f15eb8380241d42439d1b34e40f5dfae
+      internalID: 195324592
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_46"
+      rect:
+        serializedVersion: 2
+        x: 225
+        y: 2192
+        width: 11
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3ffd16d77252a3547977df1c0ac9dd18
+      internalID: 1728857947
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_47"
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 2183
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3176a6d7d7de89b4c8560e611fe90534
+      internalID: 1670703175
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_48"
+      rect:
+        serializedVersion: 2
+        x: 383
+        y: 2188
+        width: 12
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 10def566835487f4aa0314c229bbe5ce
+      internalID: -965909683
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_49"
+      rect:
+        serializedVersion: 2
+        x: 840
+        y: 2171
+        width: 39
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d0d2a662e902ef145bfa8e86fc15711e
+      internalID: -1600834647
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_50"
+      rect:
+        serializedVersion: 2
+        x: 878
+        y: 2183
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1c794ef5df8449e438e39a3895e73d59
+      internalID: -880589810
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_51"
+      rect:
+        serializedVersion: 2
+        x: 1033
+        y: 2157
+        width: 13
+        height: 80
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2b46df30b85a5944d819579a222bf3e8
+      internalID: -2014473054
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BrHpBoss
+      rect:
+        serializedVersion: 2
+        x: 1064
+        y: 2123
+        width: 1010
+        height: 124
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5c93cf30c249166489093a17bd84ef54
+      internalID: 1363462854
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_53"
+      rect:
+        serializedVersion: 2
+        x: 863
+        y: 2151
+        width: 14
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0de870a7797457f42ac8ea2586444a41
+      internalID: -414909235
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_54"
+      rect:
+        serializedVersion: 2
+        x: 889
+        y: 2160
+        width: 15
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1b80f480526b2754daf778d1434b9c21
+      internalID: 1965497701
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_55"
+      rect:
+        serializedVersion: 2
+        x: 831
+        y: 2119
+        width: 65
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 063afef01d7b08d4189cd369d2e41b1c
+      internalID: 574797921
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_56"
+      rect:
+        serializedVersion: 2
+        x: 1041
+        y: 2121
+        width: 28
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c911dc43d2ee54d4fa7f56e4c7ef4e86
+      internalID: -1559292922
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_57"
+      rect:
+        serializedVersion: 2
+        x: 1080
+        y: 2119
+        width: 945
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7a2bde21461ed1f4f9e26e718d75c056
+      internalID: 347535428
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_58"
+      rect:
+        serializedVersion: 2
+        x: 282
+        y: 1980
+        width: 10
+        height: 4
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a9a2df6254f0a6241ab2adb5250bfcb2
+      internalID: -1688730544
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_59"
+      rect:
+        serializedVersion: 2
+        x: 338
+        y: 1980
+        width: 12
+        height: 4
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3c16e36cbb055894a9c248821b2733c3
+      internalID: 577695887
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item
+      rect:
+        serializedVersion: 2
+        x: 133
+        y: 1618
+        width: 351
+        height: 353
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 93e0ca539b02f4e46bf957074b622e9f
+      internalID: -493374362
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_61"
+      rect:
+        serializedVersion: 2
+        x: 225
+        y: 1946
+        width: 11
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2005bf1d1f8d83a419d312968e55ac75
+      internalID: -391216626
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_62"
+      rect:
+        serializedVersion: 2
+        x: 133
+        y: 1845
+        width: 13
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7987c11bd8ea7874ca5e8b5082992dac
+      internalID: -1403896334
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_63"
+      rect:
+        serializedVersion: 2
+        x: 484
+        y: 1834
+        width: 17
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1d0dc5f530ad3df4b881a87010ef4fd1
+      internalID: -1438573016
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BrHpPlayer
+      rect:
+        serializedVersion: 2
+        x: 1596
+        y: 1767
+        width: 325
+        height: 58
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3f00cdd762709b94cb18497deab735ff
+      internalID: -1459868381
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_65"
+      rect:
+        serializedVersion: 2
+        x: 1766
+        y: 1845
+        width: 135
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3d1807d73093ea54ab82dbdfcd2831f2
+      internalID: 2027415898
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_66"
+      rect:
+        serializedVersion: 2
+        x: 1913
+        y: 1834
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cf259460c4781de418672dc34dfd9b5e
+      internalID: -733060263
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_67"
+      rect:
+        serializedVersion: 2
+        x: 1924
+        y: 1823
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 95fce771c30b5ad448f7da6af44b9f9c
+      internalID: -472439134
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_68"
+      rect:
+        serializedVersion: 2
+        x: 124
+        y: 1778
+        width: 11
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c86223167d73a9f4caeaac922b9ecbbe
+      internalID: 737567797
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_69"
+      rect:
+        serializedVersion: 2
+        x: 495
+        y: 1766
+        width: 13
+        height: 56
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3d225f9b0873a8d4e97742fb73146b73
+      internalID: 491067622
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_70"
+      rect:
+        serializedVersion: 2
+        x: 1924
+        y: 1764
+        width: 15
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e1bb3f16b6b0d7a4d9196bff1654f7db
+      internalID: 1169505893
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_71"
+      rect:
+        serializedVersion: 2
+        x: 484
+        y: 1733
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 508a232e731949649aab61ef503c5e85
+      internalID: 1581379950
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_72"
+      rect:
+        serializedVersion: 2
+        x: 473
+        y: 1710
+        width: 14
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 590190838f7549946abfff362ff0c274
+      internalID: -213906139
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_73"
+      rect:
+        serializedVersion: 2
+        x: 383
+        y: 1620
+        width: 24
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7835462bd82fff04394c39f5e63f8586
+      internalID: 871280391
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_74"
+      rect:
+        serializedVersion: 2
+        x: 1599
+        y: 1654
+        width: 325
+        height: 58
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3fb975df5a9ba8b43aa18ff1e0581dd0
+      internalID: 362662875
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_75"
+      rect:
+        serializedVersion: 2
+        x: 326
+        y: 1603
+        width: 11
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dbdb4622c5dcbf544835f91cd4fd67c2
+      internalID: -1470696436
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bongdo
+      rect:
+        serializedVersion: 2
+        x: 1245
+        y: 1153
+        width: 253
+        height: 261
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bae8388d769612d4688483b4fbd123b2
+      internalID: 1361483241
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bongxanh
+      rect:
+        serializedVersion: 2
+        x: 1663
+        y: 1192
+        width: 240
+        height: 216
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f7ee9b580d31d204baed65330c74ffa1
+      internalID: -779298500
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_78"
+      rect:
+        serializedVersion: 2
+        x: 1791
+        y: 1384
+        width: 22
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c4fb2a3ede4683b418b687c84c36e93f
+      internalID: -2132443256
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_79"
+      rect:
+        serializedVersion: 2
+        x: 1236
+        y: 1294
+        width: 24
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 50419e05384edff43807d5a996828681
+      internalID: 369483244
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_80"
+      rect:
+        serializedVersion: 2
+        x: 1665
+        y: 1275
+        width: 22
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 521cc32655a89344d8845be8792308b9
+      internalID: -1638424318
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_81"
+      rect:
+        serializedVersion: 2
+        x: 1879
+        y: 1260
+        width: 24
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d5f1d9940dc423e4ba57392a6e2aebc7
+      internalID: 4426752
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_82"
+      rect:
+        serializedVersion: 2
+        x: 1474
+        y: 1238
+        width: 20
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d7d3c79b10fd0d44aa278d5cf3db185a
+      internalID: -26778347
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_83"
+      rect:
+        serializedVersion: 2
+        x: 1868
+        y: 1238
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 112bf8b0aa64cea47807a41d0caad0c8
+      internalID: -1053465380
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_84"
+      rect:
+        serializedVersion: 2
+        x: 1733
+        y: 1176
+        width: 11
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 92ac8dc96f76eb3448aeefffd0e7acd5
+      internalID: 1210069930
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_85"
+      rect:
+        serializedVersion: 2
+        x: 1763
+        y: 1168
+        width: 26
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 57d974b5ad945fd4eb8ae65c51ce4e49
+      internalID: 659599560
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_86"
+      rect:
+        serializedVersion: 2
+        x: 1834
+        y: 1191
+        width: 35
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 90cc2c1556e1dc548b1f3a200fde3818
+      internalID: -273470664
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n play (1)_87"
+      rect:
+        serializedVersion: 2
+        x: 1350
+        y: 1149
+        width: 11
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8697594cfbce8564690ba5fb7d3028c8
+      internalID: 648270766
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      Boss: -691006856
+      BrExp: -1345822998
+      BrHpBoss: 1363462854
+      BrHpPlayer: -1459868381
+      BrWave: -1913582652
+      BrWave1: 383998213
+      HpBoss: 1876796576
+      Item: -493374362
+      Pause: 857239686
+      bongdo: 1361483241
+      bongxanh: -779298500
+      brExp: -622169421
+      "n\xFAt m\xE0n play (1)_0": 444000701
+      "n\xFAt m\xE0n play (1)_1": 566545189
+      "n\xFAt m\xE0n play (1)_10": -783351450
+      "n\xFAt m\xE0n play (1)_11": -1398772035
+      "n\xFAt m\xE0n play (1)_13": -1111735419
+      "n\xFAt m\xE0n play (1)_14": 802185018
+      "n\xFAt m\xE0n play (1)_15": 403837959
+      "n\xFAt m\xE0n play (1)_17": -1766890607
+      "n\xFAt m\xE0n play (1)_18": 1518841830
+      "n\xFAt m\xE0n play (1)_19": -387692069
+      "n\xFAt m\xE0n play (1)_20": 1239841411
+      "n\xFAt m\xE0n play (1)_21": 343414969
+      "n\xFAt m\xE0n play (1)_22": 1486326886
+      "n\xFAt m\xE0n play (1)_23": -83948901
+      "n\xFAt m\xE0n play (1)_24": -1361082913
+      "n\xFAt m\xE0n play (1)_25": -1509980603
+      "n\xFAt m\xE0n play (1)_26": -926024262
+      "n\xFAt m\xE0n play (1)_27": 1231141002
+      "n\xFAt m\xE0n play (1)_28": 1295251763
+      "n\xFAt m\xE0n play (1)_29": 1021979540
+      "n\xFAt m\xE0n play (1)_30": 1051510479
+      "n\xFAt m\xE0n play (1)_32": -752169578
+      "n\xFAt m\xE0n play (1)_33": 1516531857
+      "n\xFAt m\xE0n play (1)_34": -1228500150
+      "n\xFAt m\xE0n play (1)_36": 1438481896
+      "n\xFAt m\xE0n play (1)_37": 460658675
+      "n\xFAt m\xE0n play (1)_38": -427324407
+      "n\xFAt m\xE0n play (1)_39": 2024847819
+      "n\xFAt m\xE0n play (1)_4": -553411800
+      "n\xFAt m\xE0n play (1)_40": -986760936
+      "n\xFAt m\xE0n play (1)_41": 232104261
+      "n\xFAt m\xE0n play (1)_42": -198168994
+      "n\xFAt m\xE0n play (1)_43": 1624232507
+      "n\xFAt m\xE0n play (1)_44": -2070658899
+      "n\xFAt m\xE0n play (1)_45": 195324592
+      "n\xFAt m\xE0n play (1)_46": 1728857947
+      "n\xFAt m\xE0n play (1)_47": 1670703175
+      "n\xFAt m\xE0n play (1)_48": -965909683
+      "n\xFAt m\xE0n play (1)_49": -1600834647
+      "n\xFAt m\xE0n play (1)_50": -880589810
+      "n\xFAt m\xE0n play (1)_51": -2014473054
+      "n\xFAt m\xE0n play (1)_53": -414909235
+      "n\xFAt m\xE0n play (1)_54": 1965497701
+      "n\xFAt m\xE0n play (1)_55": 574797921
+      "n\xFAt m\xE0n play (1)_56": -1559292922
+      "n\xFAt m\xE0n play (1)_57": 347535428
+      "n\xFAt m\xE0n play (1)_58": -1688730544
+      "n\xFAt m\xE0n play (1)_59": 577695887
+      "n\xFAt m\xE0n play (1)_6": -127310300
+      "n\xFAt m\xE0n play (1)_61": -391216626
+      "n\xFAt m\xE0n play (1)_62": -1403896334
+      "n\xFAt m\xE0n play (1)_63": -1438573016
+      "n\xFAt m\xE0n play (1)_65": 2027415898
+      "n\xFAt m\xE0n play (1)_66": -733060263
+      "n\xFAt m\xE0n play (1)_67": -472439134
+      "n\xFAt m\xE0n play (1)_68": 737567797
+      "n\xFAt m\xE0n play (1)_69": 491067622
+      "n\xFAt m\xE0n play (1)_7": 474506114
+      "n\xFAt m\xE0n play (1)_70": 1169505893
+      "n\xFAt m\xE0n play (1)_71": 1581379950
+      "n\xFAt m\xE0n play (1)_72": -213906139
+      "n\xFAt m\xE0n play (1)_73": 871280391
+      "n\xFAt m\xE0n play (1)_74": 362662875
+      "n\xFAt m\xE0n play (1)_75": -1470696436
+      "n\xFAt m\xE0n play (1)_78": -2132443256
+      "n\xFAt m\xE0n play (1)_79": 369483244
+      "n\xFAt m\xE0n play (1)_8": -246311019
+      "n\xFAt m\xE0n play (1)_80": -1638424318
+      "n\xFAt m\xE0n play (1)_81": 4426752
+      "n\xFAt m\xE0n play (1)_82": -26778347
+      "n\xFAt m\xE0n play (1)_83": -1053465380
+      "n\xFAt m\xE0n play (1)_84": 1210069930
+      "n\xFAt m\xE0n play (1)_85": 659599560
+      "n\xFAt m\xE0n play (1)_86": -273470664
+      "n\xFAt m\xE0n play (1)_87": 648270766
+      "n\xFAt m\xE0n play (1)_9": 72739974
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

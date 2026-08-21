@@ -58,9 +58,15 @@ public class PlayerHealth : MonoBehaviour, IDamageable
 
     private void Awake()
     {
-        baseMaxHealth = maxHealth;
-        currentHealth = maxHealth;
-        isInitialized = true;
+        if (baseMaxHealth <= 0)
+        {
+            baseMaxHealth = maxHealth;
+        }
+        if (!isInitialized)
+        {
+            currentHealth = maxHealth;
+            isInitialized = true;
+        }
     }
 
     private void Start()
@@ -70,6 +76,10 @@ public class PlayerHealth : MonoBehaviour, IDamageable
 
     public void SetMaxHealth(int newMaxHealth, bool resetCurrentHealth = false)
     {
+        if (baseMaxHealth <= 0)
+        {
+            baseMaxHealth = maxHealth;
+        }
         maxHealth = Mathf.Max(1, newMaxHealth);
         if (resetCurrentHealth)
         {

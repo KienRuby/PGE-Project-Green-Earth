@@ -64,20 +64,25 @@ public sealed class ChipManager : MonoBehaviour
     [Tooltip("Số Đá Tiến Bậc (Advance Stones) hiển thị trong chế độ Test.")]
     [SerializeField] private int testAdvanceStones = 9999;
 
-    [Header("=== DEFAULT BALANCES (CHẾ ĐỘ THƯỜNG) ===")]
+    [Header("=== DEFAULT BALANCES (CHẾ ĐỘ THƯỜNG / TÀI KHOẢN MỚI) ===")]
     [Min(0)]
-    [SerializeField] private int defaultStartingDataChips = 134936;
+    [Tooltip("Số Data Chip (Chip xanh) khởi đầu cho tài khoản mới.")]
+    [SerializeField] private int defaultStartingDataChips = 1000;
 
     [Min(0)]
-    [SerializeField] private int defaultStartingRedGems = 15516;
+    [Tooltip("Số Red Gem (Gem đỏ) khởi đầu cho tài khoản mới.")]
+    [SerializeField] private int defaultStartingRedGems = 1000;
 
     [Min(0)]
-    [SerializeField] private int defaultStartingEnergy = 50;
+    [Tooltip("Số Năng Lượng (Energy) khởi đầu cho tài khoản mới (Full 100/100).")]
+    [SerializeField] private int defaultStartingEnergy = 100;
 
     [Min(0)]
-    [SerializeField] private int defaultStartingAdvanceStones = 50;
+    [Tooltip("Số Đá Tiến Bậc khởi đầu cho tài khoản mới.")]
+    [SerializeField] private int defaultStartingAdvanceStones = 0;
 
     [Min(1)]
+    [Tooltip("Giới hạn Năng Lượng tối đa (mặc định 100).")]
     [SerializeField] private int maximumEnergy = 100;
 
     // =========================================================================

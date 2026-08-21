@@ -27,8 +27,14 @@ MonoBehaviour:
   wavePowerGrowthRate: 0.08
   defaultWaveDuration: 30
   finalBossWaveDuration: 60
-  chapterEnemyPool: []
-  chapterBossPrefab: {fileID: 249402678474551263, guid: e9b7463808b4ee340950a632a574d9fa, type: 3}
+  chapterEnemyPool:
+  - enemyPrefab: {fileID: 6558628254369202594, guid: cae7dc80e82b3b14bade28b18c3b19ff, type: 3}
+    spawnWeight: 10
+    unlockTime: 0
+  - enemyPrefab: {fileID: 249402678474551263, guid: e9b7463808b4ee340950a632a574d9fa, type: 3}
+    spawnWeight: 10
+    unlockTime: 0
+  chapterBossPrefab: {fileID: 1010797112834101214, guid: 616d9ac7cedf5eb46b9e23335d25aa30, type: 3}
   waves:
   - waveName: Wave 1
     totalEnemiesToSpawn: 25

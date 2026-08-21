@@ -119,7 +119,7 @@ public class FPSDisplay : MonoBehaviour
             style.normal.textColor = new Color(1f, 0.25f, 0.2f, 0.95f); // Đỏ
         }
 
-        rect = new Rect(0, 0, Screen.width, Screen.height);
+        rect = new Rect(Screen.width - 320, 10, 310, 80);
         
         // Vẽ bóng viền đen để nhìn rõ trên mọi nền
         Color prevColor = style.normal.textColor;

@@ -20,25 +20,45 @@ public class EnemyMovement : MonoBehaviour, IPoolable
     [Tooltip("LayerMask của quái vật để quét va chạm tách đàn (tự động gán Layer 'Enemy' nếu để trống).")]
     [SerializeField] private LayerMask enemyLayer;
 
+    [Header("Facing / Flipping")]
+    [Tooltip("Tự động lật hướng mặt (quay trái/phải) về phía Player.")]
+    [SerializeField] private bool autoFlipFacing = true;
+
+    [Tooltip("Hướng mặt mặc định của sprite gốc trong prefab (chọn true nếu sprite gốc vẽ hướng sang trái).")]
+    [SerializeField] private bool initialFacingLeft = false;
+
+    [Tooltip("Vùng đệm khoảng cách X để chống rung lắc khi đứng thẳng hàng dọc với Player.")]
+    [SerializeField] private float flipDeadzone = 0.05f;
+
     private Rigidbody2D rb;
     private Transform player;
     private float nextPlayerSearchTime;
+    private Vector3 initialScale;
+    private bool isFacingRight = true;
 
-    // Buffer cố định để quét quái xung quanh không tạo rác GC
-    private readonly Collider2D[] nearbyCollidersBuffer = new Collider2D[16];
+    // Shared static buffer để quét quái xung quanh không tạo rác GC
+    private static readonly Collider2D[] sharedCollidersBuffer = new Collider2D[16];
     private ContactFilter2D contactFilter;
+    private float baseMoveSpeed;
+    private Vector2 cachedSeparationForce;
+    private int instanceId;
 
     public float MoveSpeed
     {
         get => moveSpeed;
         set => moveSpeed = value;
     }
+    public float BaseMoveSpeed => baseMoveSpeed > 0 ? baseMoveSpeed : moveSpeed;
 
     private void Awake()
     {
+        baseMoveSpeed = moveSpeed;
+        instanceId = GetInstanceID();
         rb = GetComponent<Rigidbody2D>();
         rb.gravityScale = 0f;
         rb.freezeRotation = true;
+        initialScale = transform.localScale;
+        isFacingRight = !initialFacingLeft;
 
         if (enemyLayer.value == 0)
         {
@@ -104,6 +124,28 @@ public class EnemyMovement : MonoBehaviour, IPoolable
 
         Vector2 newPosition = rb.position + finalDirection * moveSpeed * Time.fixedDeltaTime;
         rb.MovePosition(newPosition);
+
+        UpdateFacingDirection();
+    }
+
+    /// <summary>
+    /// Tự động lật mặt theo hướng Player (Trái/Phải).
+    /// </summary>
+    private void UpdateFacingDirection()
+    {
+        if (!autoFlipFacing || player == null) return;
+
+        float diffX = player.position.x - transform.position.x;
+        if (Mathf.Abs(diffX) < flipDeadzone) return;
+
+        bool shouldFaceRight = diffX > 0;
+        if (shouldFaceRight != isFacingRight)
+        {
+            isFacingRight = shouldFaceRight;
+            float absScaleX = Mathf.Abs(initialScale.x);
+            float sign = (isFacingRight ^ initialFacingLeft) ? 1f : -1f;
+            transform.localScale = new Vector3(absScaleX * sign, initialScale.y, initialScale.z);
+        }
     }
 
     /// <summary>
@@ -119,7 +161,7 @@ public class EnemyMovement : MonoBehaviour, IPoolable
         if (distanceToPlayer <= 0.001f)
         {
             // Trùng vị trí 100% với player -> đẩy ra theo hướng ổn định dựa trên InstanceID
-            int id = GetInstanceID();
+            int id = instanceId != 0 ? instanceId : GetInstanceID();
             float angle = (id & 0xFFFF) * (Mathf.PI * 2f / 65536f);
             return new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
         }
@@ -136,14 +178,32 @@ public class EnemyMovement : MonoBehaviour, IPoolable
 
     /// <summary>
     /// Quét các quái vật xung quanh và tính toán lực đẩy ra xa nhau (Flocking Separation).
+    /// Áp dụng Staggered Interleaving & Viewport Culling để giảm 66% số lần quét vật lý.
     /// </summary>
     private Vector2 CalculateSeparationForce()
     {
+        // 1. Viewport Culling: Nếu quái ở quá xa ngoài rìa màn hình (> 13m), không cần tính tách đàn
+        if (player != null)
+        {
+            Vector2 toPlayer = (Vector2)player.position - rb.position;
+            if (toPlayer.sqrMagnitude > 169f) // 13 * 13
+            {
+                cachedSeparationForce = Vector2.zero;
+                return Vector2.zero;
+            }
+        }
+
+        // 2. Staggered update: Chỉ tính toán lại 1 lần mỗi 3 frames theo instanceId
+        if (((Time.frameCount + instanceId) % 3) != 0)
+        {
+            return cachedSeparationForce;
+        }
+
         int hitCount = Physics2D.OverlapCircle(
             rb.position,
             separationRadius,
             contactFilter,
-            nearbyCollidersBuffer
+            sharedCollidersBuffer
         );
 
         // Fallback nếu LayerMask chưa trúng
@@ -154,7 +214,7 @@ public class EnemyMovement : MonoBehaviour, IPoolable
                 rb.position,
                 separationRadius,
                 fallbackFilter,
-                nearbyCollidersBuffer
+                sharedCollidersBuffer
             );
         }
 
@@ -163,7 +223,7 @@ public class EnemyMovement : MonoBehaviour, IPoolable
 
         for (int i = 0; i < hitCount; i++)
         {
-            Collider2D otherCollider = nearbyCollidersBuffer[i];
+            Collider2D otherCollider = sharedCollidersBuffer[i];
             if (otherCollider == null || otherCollider.gameObject == gameObject)
                 continue;
 
@@ -178,7 +238,7 @@ public class EnemyMovement : MonoBehaviour, IPoolable
             if (distance < 0.001f)
             {
                 // Nếu 2 quái trùng khít tọa độ, tạo lực đẩy đối xứng ổn định giữa 2 quái
-                int myId = GetInstanceID();
+                int myId = instanceId != 0 ? instanceId : GetInstanceID();
                 int otherId = otherCollider.gameObject.GetInstanceID();
                 float sign = myId > otherId ? 1f : -1f;
                 int combinedId = myId ^ otherId;
@@ -198,11 +258,20 @@ public class EnemyMovement : MonoBehaviour, IPoolable
             }
         }
 
+        cachedSeparationForce = separation;
         return separation;
     }
 
     public void OnSpawnFromPool()
     {
+        moveSpeed = BaseMoveSpeed;
+        cachedSeparationForce = Vector2.zero;
+        if (initialScale != Vector3.zero)
+        {
+            transform.localScale = initialScale;
+        }
+        isFacingRight = !initialFacingLeft;
+
         if (rb != null)
         {
             rb.velocity = Vector2.zero;
@@ -211,6 +280,8 @@ public class EnemyMovement : MonoBehaviour, IPoolable
 
     public void OnReturnToPool()
     {
+        moveSpeed = BaseMoveSpeed;
+        cachedSeparationForce = Vector2.zero;
         if (rb != null)
         {
             rb.velocity = Vector2.zero;
