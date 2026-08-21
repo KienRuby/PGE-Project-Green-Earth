@@ -80,6 +80,213 @@ public class PGEGameLogicTests
     }
 
     [Test]
+    public void PlayerWorldHealthBar_ShrinksOnlyFillFromLeftEdge()
+    {
+        GameObject player = new GameObject("PlayerWorldHealthBarTest");
+        player.AddComponent<PlayerHealth>();
+        PlayerWorldHealthBar healthBar = player.AddComponent<PlayerWorldHealthBar>();
+
+        GameObject backgroundObject = new GameObject("Background");
+        backgroundObject.transform.SetParent(player.transform, false);
+        SpriteRenderer background = backgroundObject.AddComponent<SpriteRenderer>();
+
+        GameObject fillObject = new GameObject("Fill");
+        fillObject.transform.SetParent(player.transform, false);
+        SpriteRenderer fill = fillObject.AddComponent<SpriteRenderer>();
+
+        typeof(PlayerWorldHealthBar).GetField("backgroundRenderer", BindingFlags.Instance | BindingFlags.NonPublic)
+            ?.SetValue(healthBar, background);
+        typeof(PlayerWorldHealthBar).GetField("fillRenderer", BindingFlags.Instance | BindingFlags.NonPublic)
+            ?.SetValue(healthBar, fill);
+
+        Vector3 backgroundScale = background.transform.localScale;
+        healthBar.SetNormalizedHealth(0.5f);
+
+        Assert.That(background.transform.localScale, Is.EqualTo(backgroundScale), "Nền tối không được giảm theo HP.");
+        Assert.That(fill.transform.localScale.x, Is.EqualTo(0.5f).Within(0.001f));
+        Assert.That(fill.transform.localPosition.x, Is.EqualTo(-0.25f).Within(0.001f),
+            "Fill phải giữ cạnh trái và co dần từ phải sang trái.");
+
+        Object.DestroyImmediate(player);
+    }
+
+    [Test]
+    public void GamePlay_PlayerWorldHealthBar_UsesProvidedSprites()
+    {
+        string sceneYaml = File.ReadAllText("Assets/Scenes/GamePlay.unity");
+        string healthBarScript = File.ReadAllText("Assets/Scripts/Player/PlayerWorldHealthBar.cs");
+        Assert.That(sceneYaml, Does.Contain("guid: 25b79f251ebc4d51b761051e9940d0cc"));
+        Assert.That(sceneYaml, Does.Contain("fileID: -1459868381, guid: f70775b4373cdc64ba1cbe8e8bd22ee4"),
+            "Thanh máu Player phải dùng BrHpPlayer làm nền.");
+        Assert.That(sceneYaml, Does.Contain("fileID: 362662875, guid: f70775b4373cdc64ba1cbe8e8bd22ee4"),
+            "Thanh máu Player phải dùng HpPlayer làm Fill.");
+        Assert.That(healthBarScript, Does.Not.Contain("barRoot.localPosition ="),
+            "Script không được ghi đè vị trí Transform mà người dùng đã chỉnh.");
+        Assert.That(healthBarScript, Does.Not.Contain("barRoot.localScale ="),
+            "Script không được ghi đè kích thước Transform mà người dùng đã chỉnh.");
+    }
+
+    [Test]
+    public void BossRangedAttack_DirectionPatterns_AreCenteredAndEvenlySpaced()
+    {
+        Vector2[] fan = BossRangedAttack.CalculateFanDirections(Vector2.right, 3, 60f);
+        Assert.That(fan, Has.Length.EqualTo(3));
+        Assert.That(Vector2.Angle(fan[1], Vector2.right), Is.LessThan(0.01f));
+        Assert.That(Vector2.Angle(fan[0], fan[1]), Is.EqualTo(30f).Within(0.01f));
+        Assert.That(Vector2.Angle(fan[1], fan[2]), Is.EqualTo(30f).Within(0.01f));
+
+        Vector2[] radial = BossRangedAttack.CalculateRadialDirections(Vector2.right, 4);
+        Assert.That(radial, Has.Length.EqualTo(4));
+        Assert.That(Vector2.Angle(radial[0], radial[1]), Is.EqualTo(90f).Within(0.01f));
+        Assert.That(Vector2.Angle(radial[1], radial[2]), Is.EqualTo(90f).Within(0.01f));
+    }
+
+    [Test]
+    public void BossPrefab_HasConfiguredRangedSkillsAndEnemyProjectile()
+    {
+        GameObject bossPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Boss.prefab");
+        GameObject projectilePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/BossProjectile.prefab");
+
+        Assert.That(bossPrefab, Is.Not.Null);
+        Assert.That(projectilePrefab, Is.Not.Null);
+
+        BossRangedAttack rangedAttack = bossPrefab.GetComponent<BossRangedAttack>();
+        EnemyProjectile enemyProjectile = projectilePrefab.GetComponent<EnemyProjectile>();
+        Assert.That(rangedAttack, Is.Not.Null, "Boss.prefab phải có BossRangedAttack.");
+        Assert.That(rangedAttack.ProjectilePrefab, Is.EqualTo(enemyProjectile));
+        Assert.That(rangedAttack.SkillCount, Is.EqualTo(3));
+        Assert.That(rangedAttack.AttackRange, Is.GreaterThan(0f));
+        Assert.That(enemyProjectile, Is.Not.Null, "BossProjectile.prefab phải có EnemyProjectile.");
+
+        AnimationClip bossDie = AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/Animaton/Enemy/Boss/Die.anim");
+        Assert.That(bossDie, Is.Not.Null);
+        Assert.That(bossDie.isLooping, Is.False, "Animation Die của Boss phải chạy một lần rồi giữ frame cuối.");
+    }
+
+    [Test]
+    public void BossRangedAttack_RangeCheck_UsesConfiguredRadius()
+    {
+        GameObject boss = new GameObject("BossRangeTest");
+        boss.AddComponent<EnemyHealth>();
+        BossRangedAttack rangedAttack = boss.AddComponent<BossRangedAttack>();
+        GameObject player = new GameObject("PlayerRangeTest");
+        player.AddComponent<PlayerHealth>();
+
+        rangedAttack.SetTarget(player.transform);
+        player.transform.position = boss.transform.position;
+        Assert.That(rangedAttack.GetTargetRangeState(), Is.EqualTo(BossRangedAttack.TargetRangeState.InRange));
+        Assert.That(rangedAttack.IsTargetInRange(), Is.True,
+            "Boss phải đứng yên và vẫn bắn khi Player tiến sát.");
+
+        player.transform.position = Vector3.right * (rangedAttack.AttackRange - 0.1f);
+        Assert.That(rangedAttack.GetTargetRangeState(), Is.EqualTo(BossRangedAttack.TargetRangeState.InRange));
+        Assert.That(rangedAttack.IsTargetInRange(), Is.True);
+
+        player.transform.position = Vector3.right * (rangedAttack.AttackRange + 0.1f);
+        Assert.That(rangedAttack.GetTargetRangeState(), Is.EqualTo(BossRangedAttack.TargetRangeState.TooFar));
+        Assert.That(rangedAttack.IsTargetInRange(), Is.False);
+
+        Object.DestroyImmediate(player);
+        Object.DestroyImmediate(boss);
+    }
+
+    [Test]
+    public void BlasterWeapon_UsesCurrentGunVisualConfiguration()
+    {
+        WeaponData blaster = AssetDatabase.LoadAssetAtPath<WeaponData>("Assets/Data/Weapons/BlasterGun.asset");
+        Sprite expectedSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Character/khẩu súng.png");
+
+        Assert.That(blaster, Is.Not.Null, "Không tìm thấy dữ liệu súng Blaster.");
+        Assert.That(expectedSprite, Is.Not.Null, "Không tìm thấy sprite khẩu súng mới.");
+        Assert.That(blaster.gunSprite, Is.EqualTo(expectedSprite),
+            "Sprite trong BlasterGun.asset phải khớp sprite mới vì PlayerAutoShooter sẽ dùng dữ liệu này khi Play.");
+        Assert.That(blaster.firePointOffset, Is.EqualTo(new Vector2(3.59f, -0.99f)),
+            "FirePoint trong BlasterGun.asset phải khớp vị trí đã căn theo sprite mới.");
+    }
+
+    [Test]
+    public void PlayerHealth_Revive_RestoresHalfHealthOnlyAfterDeath()
+    {
+        GameObject go = new GameObject("PlayerReviveTest");
+        PlayerHealth health = go.AddComponent<PlayerHealth>();
+
+        Assert.That(health.Revive(), Is.False, "Player còn sống không được gọi Revive.");
+        health.TakeDamage(health.MaxHealth);
+
+        bool revived = health.Revive(0.5f, 2f);
+
+        Assert.That(revived, Is.True);
+        Assert.That(health.IsDead, Is.False);
+        Assert.That(health.CurrentHealth, Is.EqualTo(Mathf.CeilToInt(health.MaxHealth * 0.5f)));
+        Object.DestroyImmediate(go);
+    }
+
+    [Test]
+    public void PlayerDataService_VipOwnership_DefaultsLockedAndPersists()
+    {
+        bool hadValue = PlayerPrefs.HasKey(PlayerDataService.VipOwnedKey);
+        int originalValue = PlayerPrefs.GetInt(PlayerDataService.VipOwnedKey, 0);
+
+        try
+        {
+            PlayerPrefs.DeleteKey(PlayerDataService.VipOwnedKey);
+            Assert.That(PlayerDataService.IsVipOwned, Is.False);
+
+            PlayerDataService.IsVipOwned = true;
+            Assert.That(PlayerDataService.IsVipOwned, Is.True);
+        }
+        finally
+        {
+            if (hadValue) PlayerPrefs.SetInt(PlayerDataService.VipOwnedKey, originalValue);
+            else PlayerPrefs.DeleteKey(PlayerDataService.VipOwnedKey);
+            PlayerPrefs.Save();
+        }
+    }
+
+    [Test]
+    public void PlayerRunEndController_StageProgress_UsesWaveAndTimerProgress()
+    {
+        Assert.That(PlayerRunEndController.CalculateStageProgress(1, 0.5f, 10), Is.EqualTo(0.15f).Within(0.001f));
+        Assert.That(PlayerRunEndController.CalculateStageProgress(99, 1f, 10), Is.EqualTo(1f));
+        Assert.That(PlayerRunEndController.CalculateStageProgress(0, 0f, 0), Is.EqualTo(0f));
+    }
+
+    [Test]
+    public void WaveHUD_BossIndicator_ShowsOnlyOffscreenAndClampsToCanvasEdge()
+    {
+        Assert.That(WaveHUDController.IsViewportPositionVisible(new Vector3(0.5f, 0.5f, 1f), 0.02f), Is.True);
+        Assert.That(WaveHUDController.IsViewportPositionVisible(new Vector3(-0.1f, 0.5f, 1f), 0.02f), Is.False);
+        Assert.That(WaveHUDController.IsViewportPositionVisible(new Vector3(0.5f, 0.5f, -1f), 0.02f), Is.False);
+
+        Vector2 left = WaveHUDController.CalculateBossIndicatorPosition(
+            new Vector3(-0.2f, 0.5f, 1f),
+            new Vector2(1080f, 1920f),
+            new Vector2(150f, 150f),
+            30f);
+        Assert.That(left.x, Is.EqualTo(-435f).Within(0.01f));
+        Assert.That(left.y, Is.EqualTo(0f).Within(0.01f));
+
+        Vector2 topRight = WaveHUDController.CalculateBossIndicatorPosition(
+            new Vector3(1.2f, 1.2f, 1f),
+            new Vector2(1080f, 1920f),
+            new Vector2(150f, 150f),
+            30f);
+        Assert.That(Mathf.Abs(topRight.x), Is.LessThanOrEqualTo(435.01f));
+        Assert.That(Mathf.Abs(topRight.y), Is.LessThanOrEqualTo(855.01f));
+    }
+
+    [Test]
+    public void BossHealthBar_NameSanitizer_RemovesUnsupportedWarningEmojiGlyphs()
+    {
+        string result = BossHealthBarUI.SanitizeBossDisplayName("⚠️ Boss Fight ⚠️");
+
+        Assert.That(result, Is.EqualTo("BOSS FIGHT"));
+        Assert.That(result.Contains("\u26A0"), Is.False);
+        Assert.That(result.Contains("\uFE0F"), Is.False);
+        Assert.That(BossHealthBarUI.SanitizeBossDisplayName(null), Is.EqualTo("BOSS"));
+    }
+
+    [Test]
     public void ObjectPool_DoubleReturn_DoesNotDuplicateInQueue()
     {
         GameObject prefab = new GameObject("PoolTestPrefab");
@@ -125,6 +332,78 @@ public class PGEGameLogicTests
         Assert.That(deathCtrl.IsDeathSequenceActive, Is.True);
         Assert.That(deathStartedInvoked, Is.True);
         Assert.That(movement.enabled, Is.False);
+
+        Object.DestroyImmediate(playerGo);
+    }
+
+    [Test]
+    public void VFXBoomPrefab_ExistsAndHasRequiredComponents()
+    {
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/VFX Boom.prefab");
+        Assert.That(prefab, Is.Not.Null, "VFX Boom.prefab phải tồn tại trong thư mục Assets/Prefabs.");
+
+        SpriteRenderer sr = prefab.GetComponent<SpriteRenderer>();
+        Assert.That(sr, Is.Not.Null, "VFX Boom.prefab phải có SpriteRenderer.");
+        Assert.That(sr.sortingOrder, Is.GreaterThanOrEqualTo(20), "VFX Boom SpriteRenderer sorting order phải >= 20 để hiển thị trên cùng.");
+
+        Animator anim = prefab.GetComponent<Animator>();
+        Assert.That(anim, Is.Not.Null, "VFX Boom.prefab phải có Animator.");
+
+        AutoDestroyVFX autoDestroy = prefab.GetComponent<AutoDestroyVFX>();
+        Assert.That(autoDestroy, Is.Not.Null, "VFX Boom.prefab phải có AutoDestroyVFX để tự hủy sau khi nổ xong.");
+        Assert.That(autoDestroy.UseUnscaledTime, Is.True, "VFX Boom phải dùng unscaled time để vẫn chạy khi gameplay tạm dừng.");
+
+        Assert.That(anim.updateMode, Is.EqualTo(AnimatorUpdateMode.UnscaledTime), "Animator VFX Boom phải chạy bằng unscaled time.");
+
+        AnimationClip boomClip = AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/Animaton/VFX/PlayerBoom.anim");
+        Assert.That(boomClip, Is.Not.Null, "PlayerBoom.anim phải tồn tại.");
+        Assert.That(boomClip.isLooping, Is.False, "PlayerBoom.anim không được loop (isLooping = false).");
+    }
+
+    [Test]
+    public void PlayerDeathController_ExplosionVfx_KeepsPlayerVisibleUntilSequenceCompletes()
+    {
+        GameObject playerGo = new GameObject("PlayerExplosionDeathTest");
+        PlayerHealth health = playerGo.AddComponent<PlayerHealth>();
+        PlayerMovement movement = playerGo.AddComponent<PlayerMovement>();
+        SpriteRenderer playerSr = playerGo.AddComponent<SpriteRenderer>();
+        PlayerDeathController deathCtrl = playerGo.AddComponent<PlayerDeathController>();
+
+        Assert.That(deathCtrl.UseExplosionVfx, Is.True, "UseExplosionVfx mặc định phải là true.");
+        Assert.That(deathCtrl.ExplosionDuration, Is.GreaterThan(0f), "ExplosionDuration phải > 0.");
+
+        deathCtrl.TriggerDeath();
+
+        Assert.That(deathCtrl.IsDeathSequenceActive, Is.True);
+        Assert.That(movement.enabled, Is.False);
+        Assert.That(playerSr.enabled, Is.True, "Player phải còn hiển thị trong animation Die và chỉ được ẩn sau khi VFX Boom hoàn tất.");
+
+        Object.DestroyImmediate(playerGo);
+    }
+
+    [Test]
+    public void PlayerDeathController_ResetForRevive_RestoresPlayerComponents()
+    {
+        GameObject playerGo = new GameObject("PlayerReviveRestoreTest");
+        playerGo.AddComponent<PlayerHealth>();
+        PlayerMovement movement = playerGo.AddComponent<PlayerMovement>();
+        SpriteRenderer renderer = playerGo.AddComponent<SpriteRenderer>();
+        BoxCollider2D collider = playerGo.AddComponent<BoxCollider2D>();
+        Rigidbody2D rigidbody = playerGo.AddComponent<Rigidbody2D>();
+        PlayerDeathController deathCtrl = playerGo.AddComponent<PlayerDeathController>();
+
+        movement.enabled = false;
+        renderer.enabled = false;
+        collider.enabled = false;
+        rigidbody.simulated = false;
+
+        deathCtrl.ResetForRevive();
+
+        Assert.That(movement.enabled, Is.True);
+        Assert.That(renderer.enabled, Is.True);
+        Assert.That(collider.enabled, Is.True);
+        Assert.That(rigidbody.simulated, Is.True);
+        Assert.That(deathCtrl.IsDeathSequenceActive, Is.False);
 
         Object.DestroyImmediate(playerGo);
     }
@@ -1107,6 +1386,112 @@ public class PGEGameLogicTests
         Object.DestroyImmediate(stonesText.gameObject);
         Object.DestroyImmediate(go);
     }
+
+    [Test]
+    public void Chipset_InventoryCards_CanBeClickedAndOpenModal()
+    {
+        GameObject controllerGo = new GameObject("ChipsetControllerTest");
+        ChipsetController ctrl = controllerGo.AddComponent<ChipsetController>();
+
+        GameObject invContentGo = new GameObject("InventoryContent");
+        GameObject detailModalGo = new GameObject("DetailModal");
+        detailModalGo.SetActive(false);
+
+        GameObject cardPrefabGo = new GameObject("CardTemplate");
+        cardPrefabGo.AddComponent<Image>();
+        cardPrefabGo.AddComponent<Button>();
+        cardPrefabGo.AddComponent<ChipsetCardUI>();
+        cardPrefabGo.transform.SetParent(invContentGo.transform, false);
+        cardPrefabGo.SetActive(false);
+
+        // Pre-create 3 existing cards in scene (like InvCard_00 .. InvCard_02)
+        ChipsetCardUI[] existingCards = new ChipsetCardUI[3];
+        for (int i = 0; i < 3; i++)
+        {
+            GameObject cardGo = new GameObject($"InvCard_{i:00}");
+            cardGo.AddComponent<Image>();
+            cardGo.AddComponent<Button>();
+            existingCards[i] = cardGo.AddComponent<ChipsetCardUI>();
+            cardGo.transform.SetParent(invContentGo.transform, false);
+        }
+
+        var type = typeof(ChipsetController);
+        type.GetField("inventoryContent", BindingFlags.NonPublic | BindingFlags.Instance)?.SetValue(ctrl, invContentGo.transform);
+        type.GetField("cardPrefab", BindingFlags.NonPublic | BindingFlags.Instance)?.SetValue(ctrl, cardPrefabGo);
+        type.GetField("detailModal", BindingFlags.NonPublic | BindingFlags.Instance)?.SetValue(ctrl, detailModalGo);
+
+        ctrl.InitializeDatabase();
+        ctrl.RefreshInventory();
+
+        // Check that existing card 0 has bound data and button click listener
+        Assert.That(existingCards[0].BoundData, Is.Not.Null, "Existing inventory card 0 must have bound chip data.");
+        Assert.That(existingCards[0].BoundData.id, Is.GreaterThan(0));
+
+        // Trigger button click on existing card 0
+        Button btn = existingCards[0].GetComponent<Button>();
+        Assert.That(btn, Is.Not.Null);
+        btn.onClick.Invoke();
+
+        // Check that detailModal is now opened
+        Assert.That(detailModalGo.activeSelf, Is.True, "Clicking an inventory chip card must open the DetailModal.");
+
+        Object.DestroyImmediate(invContentGo);
+        Object.DestroyImmediate(detailModalGo);
+        Object.DestroyImmediate(controllerGo);
+    }
+
+    [Test]
+    public void Buddy_InventoryCards_CanBeClickedAndOpenModal()
+    {
+        GameObject controllerGo = new GameObject("BuddyControllerTest");
+        BuddyController ctrl = controllerGo.AddComponent<BuddyController>();
+
+        GameObject invContentGo = new GameObject("BuddyInventoryContent");
+        GameObject detailModalGo = new GameObject("BuddyDetailModal");
+        detailModalGo.SetActive(false);
+
+        GameObject cardPrefabGo = new GameObject("BuddyCardTemplate");
+        cardPrefabGo.AddComponent<Image>();
+        cardPrefabGo.AddComponent<Button>();
+        cardPrefabGo.AddComponent<BuddyCardUI>();
+        cardPrefabGo.transform.SetParent(invContentGo.transform, false);
+        cardPrefabGo.SetActive(false);
+
+        // Pre-create 3 existing cards in scene
+        BuddyCardUI[] existingCards = new BuddyCardUI[3];
+        for (int i = 0; i < 3; i++)
+        {
+            GameObject cardGo = new GameObject($"InvCard_{i:00}");
+            cardGo.AddComponent<Image>();
+            cardGo.AddComponent<Button>();
+            existingCards[i] = cardGo.AddComponent<BuddyCardUI>();
+            cardGo.transform.SetParent(invContentGo.transform, false);
+        }
+
+        var type = typeof(BuddyController);
+        type.GetField("inventoryContent", BindingFlags.NonPublic | BindingFlags.Instance)?.SetValue(ctrl, invContentGo.transform);
+        type.GetField("cardPrefab", BindingFlags.NonPublic | BindingFlags.Instance)?.SetValue(ctrl, cardPrefabGo);
+        type.GetField("detailModal", BindingFlags.NonPublic | BindingFlags.Instance)?.SetValue(ctrl, detailModalGo);
+
+        ctrl.InitializeDatabase();
+        ctrl.RefreshInventory();
+
+        // Check that existing card 0 has bound data and button click listener
+        Assert.That(existingCards[0].BoundData, Is.Not.Null, "Existing buddy inventory card 0 must have bound data.");
+
+        // Trigger button click on existing card 0
+        Button btn = existingCards[0].GetComponent<Button>();
+        Assert.That(btn, Is.Not.Null);
+        btn.onClick.Invoke();
+
+        // Check that detailModal is now opened
+        Assert.That(detailModalGo.activeSelf, Is.True, "Clicking an inventory buddy card must open the DetailModal.");
+
+        Object.DestroyImmediate(invContentGo);
+        Object.DestroyImmediate(detailModalGo);
+        Object.DestroyImmediate(controllerGo);
+    }
 }
+
 
 

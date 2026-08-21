@@ -155,6 +155,18 @@ public class PlayerHealth : MonoBehaviour, IDamageable
         OnHealthChanged?.Invoke(CurrentHealth, maxHealth);
     }
 
+    public bool Revive(float healthPercent = 0.5f, float invincibilityDuration = 2f)
+    {
+        if (!IsDead)
+            return false;
+
+        IsDead = false;
+        CurrentHealth = Mathf.Clamp(Mathf.CeilToInt(maxHealth * Mathf.Clamp01(healthPercent)), 1, maxHealth);
+        invincibleTimer = Mathf.Max(invincibleTimer, invincibilityDuration);
+        OnHealthChanged?.Invoke(CurrentHealth, maxHealth);
+        return true;
+    }
+
     private void Die()
     {
         if (IsDead)

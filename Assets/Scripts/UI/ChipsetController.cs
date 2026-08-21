@@ -812,9 +812,32 @@ public class ChipsetController : MonoBehaviour
         }
     }
 
+    private void EnsureInventoryCardsInitialized()
+    {
+        if (spawnedInventoryCards.Count > 0) return;
+        if (inventoryContent == null) return;
+
+        foreach (Transform child in inventoryContent)
+        {
+            if (cardPrefab != null && child.gameObject == cardPrefab)
+            {
+                child.gameObject.SetActive(false);
+                continue;
+            }
+
+            ChipsetCardUI card = child.GetComponent<ChipsetCardUI>();
+            if (card != null)
+            {
+                spawnedInventoryCards.Add(card);
+            }
+        }
+    }
+
     public void RefreshInventory()
     {
-        if (inventoryContent == null || cardPrefab == null) return;
+        if (inventoryContent == null) return;
+
+        EnsureInventoryCardsInitialized();
 
         // Sort items
         List<ChipItemData> sortedList = new List<ChipItemData>(allChips);
@@ -837,6 +860,7 @@ public class ChipsetController : MonoBehaviour
             }
             else
             {
+                if (cardPrefab == null) break;
                 GameObject obj = Instantiate(cardPrefab, inventoryContent);
                 card = obj.GetComponent<ChipsetCardUI>();
                 spawnedInventoryCards.Add(card);

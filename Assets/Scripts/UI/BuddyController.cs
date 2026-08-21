@@ -527,9 +527,32 @@ public class BuddyController : MonoBehaviour
         }
     }
 
+    private void EnsureInventoryCardsInitialized()
+    {
+        if (spawnedInventoryCards.Count > 0) return;
+        if (inventoryContent == null) return;
+
+        foreach (Transform child in inventoryContent)
+        {
+            if (cardPrefab != null && child.gameObject == cardPrefab)
+            {
+                child.gameObject.SetActive(false);
+                continue;
+            }
+
+            BuddyCardUI card = child.GetComponent<BuddyCardUI>();
+            if (card != null)
+            {
+                spawnedInventoryCards.Add(card);
+            }
+        }
+    }
+
     public void RefreshInventory()
     {
-        if (inventoryContent == null || cardPrefab == null) return;
+        if (inventoryContent == null) return;
+
+        EnsureInventoryCardsInitialized();
 
         List<BuddyItemData> sortedList = new List<BuddyItemData>(allBuddies);
         if (sortByQuantity)
@@ -550,6 +573,7 @@ public class BuddyController : MonoBehaviour
             }
             else
             {
+                if (cardPrefab == null) break;
                 GameObject obj = Instantiate(cardPrefab, inventoryContent);
                 card = obj.GetComponent<BuddyCardUI>();
                 spawnedInventoryCards.Add(card);

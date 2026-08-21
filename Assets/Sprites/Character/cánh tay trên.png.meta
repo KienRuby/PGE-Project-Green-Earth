@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a
+guid: 5025098a24122604ebebf8cec4e70041
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -37,15 +37,15 @@ TextureImporter:
     filterMode: 1
     aniso: 1
     mipBias: 0
-    wrapU: 0
-    wrapV: 0
-    wrapW: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
-  spriteMeshType: 0
+  spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 100
@@ -108,7 +108,112 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
-    sprites: []
+    sprites:
+    - serializedVersion: 2
+      name: Tay
+      rect:
+        serializedVersion: 2
+        x: 831
+        y: 2036
+        width: 350
+        height: 375
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 51ab8126e10872f4083982e3d2ad58c3
+      internalID: 645427658
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "c\xE1nh tay tr\xEAn_1"
+      rect:
+        serializedVersion: 2
+        x: 945
+        y: 2408
+        width: 56
+        height: 5
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: aa2cb5d7b783f07488aa1d110a6873f3
+      internalID: -1657962103
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "c\xE1nh tay tr\xEAn_2"
+      rect:
+        serializedVersion: 2
+        x: 1091
+        y: 2408
+        width: 11
+        height: 5
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2f9361bc908b41c4ba0cb0c95733b816
+      internalID: 1111246761
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "c\xE1nh tay tr\xEAn_3"
+      rect:
+        serializedVersion: 2
+        x: 1114
+        y: 2378
+        width: 24
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3866b7542b8cd2a44a3000a0c6c4deb9
+      internalID: -220323875
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "c\xE1nh tay tr\xEAn_4"
+      rect:
+        serializedVersion: 2
+        x: 1013
+        y: 2034
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d0255de1abad5584dbc0d8c949b3e1b7
+      internalID: 1544227414
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -119,7 +224,12 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Tay: 645427658
+      "c\xE1nh tay tr\xEAn_1": -1657962103
+      "c\xE1nh tay tr\xEAn_2": 1111246761
+      "c\xE1nh tay tr\xEAn_3": -220323875
+      "c\xE1nh tay tr\xEAn_4": 1544227414
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -35,6 +35,56 @@ public class ChipsetCardUI : MonoBehaviour
     public ChipItemData BoundData => boundData;
     public ChipSlotState SlotState => slotState;
 
+    private void Awake()
+    {
+        ResolveReferences();
+    }
+
+    private void ResolveReferences()
+    {
+        if (cardButton == null) cardButton = GetComponent<Button>();
+        if (cardFrameImage == null) cardFrameImage = GetComponent<Image>();
+        if (normalContentGroup == null)
+        {
+            Transform t = transform.Find("NormalContentGroup");
+            if (t != null) normalContentGroup = t.gameObject;
+        }
+        if (emptySlotGroup == null)
+        {
+            Transform t = transform.Find("EmptySlotGroup");
+            if (t != null) emptySlotGroup = t.gameObject;
+        }
+        if (iconImage == null)
+        {
+            Transform t = transform.Find("NormalContentGroup/Icon") ?? transform.Find("Icon");
+            if (t != null) iconImage = t.GetComponent<Image>();
+        }
+        if (levelText == null)
+        {
+            Transform t = transform.Find("NormalContentGroup/LevelText") ?? transform.Find("LevelText");
+            if (t != null) levelText = t.GetComponent<TMP_Text>();
+        }
+        if (progressText == null)
+        {
+            Transform t = transform.Find("NormalContentGroup/BottomBar/ProgressText") ?? transform.Find("BottomBar/ProgressText") ?? transform.Find("ProgressText");
+            if (t != null) progressText = t.GetComponent<TMP_Text>();
+        }
+        if (upgradeArrowGroup == null)
+        {
+            Transform t = transform.Find("NormalContentGroup/UpgradeArrowGroup") ?? transform.Find("UpgradeArrowGroup");
+            if (t != null) upgradeArrowGroup = t.gameObject;
+        }
+        if (upgradeButton == null && upgradeArrowGroup != null)
+        {
+            upgradeButton = upgradeArrowGroup.GetComponent<Button>();
+        }
+        if (starObject == null)
+        {
+            Transform t = transform.Find("NormalContentGroup/Star") ?? transform.Find("Star");
+            if (t != null) starObject = t.gameObject;
+        }
+    }
+
     public void Setup(
         ChipItemData data,
         Sprite iconSprite,
@@ -42,6 +92,7 @@ public class ChipsetCardUI : MonoBehaviour
         Action<ChipItemData> onCardClick = null,
         Action<ChipItemData> onUpgradeClick = null)
     {
+        ResolveReferences();
         boundData = data;
         slotState = ChipSlotState.Normal;
         onCardClicked = onCardClick;
@@ -50,18 +101,26 @@ public class ChipsetCardUI : MonoBehaviour
         if (normalContentGroup != null) normalContentGroup.SetActive(true);
         if (emptySlotGroup != null) emptySlotGroup.SetActive(false);
 
-        if (cardFrameImage != null && frameSprite != null)
+        if (cardFrameImage != null)
         {
-            cardFrameImage.sprite = frameSprite;
+            cardFrameImage.raycastTarget = true;
+            if (frameSprite != null) cardFrameImage.sprite = frameSprite;
         }
 
-        if (iconImage != null && iconSprite != null)
+        if (iconImage != null)
         {
-            iconImage.sprite = iconSprite;
-            iconImage.gameObject.SetActive(true);
+            if (iconSprite != null)
+            {
+                iconImage.sprite = iconSprite;
+                iconImage.gameObject.SetActive(true);
+            }
+            else
+            {
+                iconImage.gameObject.SetActive(false);
+            }
         }
 
-        if (levelText != null)
+        if (levelText != null && data != null)
         {
             if (data.IsMaxOverall)
             {
@@ -77,7 +136,7 @@ public class ChipsetCardUI : MonoBehaviour
             }
         }
 
-        if (progressText != null)
+        if (progressText != null && data != null)
         {
             if (data.IsMaxOverall)
             {
@@ -97,25 +156,27 @@ public class ChipsetCardUI : MonoBehaviour
             }
         }
 
-        bool hasAction = data.CanUpgrade || data.CanAdvanceTier;
+        bool hasAction = data != null && (data.CanUpgrade || data.CanAdvanceTier);
         if (upgradeArrowGroup != null)
         {
             upgradeArrowGroup.SetActive(hasAction);
         }
 
-        if (starObject != null)
+        if (starObject != null && data != null)
         {
             starObject.SetActive(data.hasStar);
         }
 
         if (cardButton != null)
         {
+            cardButton.interactable = true;
             cardButton.onClick.RemoveAllListeners();
             cardButton.onClick.AddListener(() => onCardClicked?.Invoke(boundData));
         }
 
         if (upgradeButton != null)
         {
+            upgradeButton.interactable = true;
             upgradeButton.onClick.RemoveAllListeners();
             upgradeButton.onClick.AddListener(() => onUpgradeClicked?.Invoke(boundData));
         }
@@ -123,6 +184,7 @@ public class ChipsetCardUI : MonoBehaviour
 
     public void SetupEmpty(Sprite frameSprite, Action onEmptyClick = null)
     {
+        ResolveReferences();
         boundData = null;
         slotState = ChipSlotState.Empty;
         onEmptySlotClicked = onEmptyClick;
@@ -130,13 +192,15 @@ public class ChipsetCardUI : MonoBehaviour
         if (normalContentGroup != null) normalContentGroup.SetActive(false);
         if (emptySlotGroup != null) emptySlotGroup.SetActive(true);
 
-        if (cardFrameImage != null && frameSprite != null)
+        if (cardFrameImage != null)
         {
-            cardFrameImage.sprite = frameSprite;
+            cardFrameImage.raycastTarget = true;
+            if (frameSprite != null) cardFrameImage.sprite = frameSprite;
         }
 
         if (cardButton != null)
         {
+            cardButton.interactable = true;
             cardButton.onClick.RemoveAllListeners();
             cardButton.onClick.AddListener(() => onEmptySlotClicked?.Invoke());
         }

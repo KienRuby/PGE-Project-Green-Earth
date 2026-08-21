@@ -67,7 +67,7 @@ public class WaveHUDController : MonoBehaviour
     [Tooltip("Khung cảnh báo màu đỏ chớp nháy khi Boss xuất hiện.")]
     [SerializeField] private GameObject bossWarningPanel;
 
-    [Tooltip("Text cảnh báo Boss (ví dụ: '⚠️ BOSS APPROACHING! ⚠️').")]
+    [Tooltip("Text cảnh báo Boss (ví dụ: 'WARNING: BOSS APPROACHING!').")]
     [SerializeField] private TMP_Text bossWarningText;
 
     [Header("6. Stage Clear / Victory Panel")]
@@ -83,9 +83,40 @@ public class WaveHUDController : MonoBehaviour
     [Tooltip("Tên Scene Main Menu cần nạp.")]
     [SerializeField] private string mainMenuSceneName = "MainMenu";
 
+    [Header("7. Chỉ báo Boss ngoài màn hình")]
+    [Tooltip("Sprite hình tròn có chữ BOSS dùng để chỉ vị trí Boss ngoài màn hình.")]
+    [SerializeField] private Sprite bossOffscreenSprite;
+
+    [Tooltip("Kích thước hình tròn chỉ báo Boss trên Canvas.")]
+    [SerializeField] private Vector2 bossIndicatorSize = new Vector2(150f, 150f);
+
+    [Tooltip("Tự động tính kích thước chỉ báo theo tỉ lệ cạnh ngắn của màn hình để hiển thị đồng đều trên mọi độ phân giải.")]
+    [SerializeField] private bool useResponsiveBossIndicatorSize = true;
+
+    [Tooltip("Đường kính chỉ báo so với cạnh ngắn màn hình. Ví dụ 0.12 tương đương 12% chiều rộng ở màn hình dọc.")]
+    [Range(0.06f, 0.25f)] [SerializeField] private float bossIndicatorScreenRatio = 0.12f;
+
+    [Tooltip("Khoảng cách giữa chỉ báo Boss và mép màn hình, tính theo tỉ lệ cạnh ngắn. Giá trị 0.008 giữ vòng tròn gần sát mép.")]
+    [Range(0f, 0.1f)] [SerializeField] private float bossIndicatorEdgePaddingRatio = 0.008f;
+
+    [Tooltip("Vùng phía trên dành cho Wave, thanh Boss, EXP và Pause; chỉ báo Boss không đi vào vùng này.")]
+    [Min(0f)] [SerializeField] private float bossIndicatorTopSafePadding = 0f;
+
+    [Tooltip("Vùng phía dưới dành cho joystick; chỉ báo Boss không đi vào vùng này.")]
+    [Min(0f)] [SerializeField] private float bossIndicatorBottomSafePadding = 0f;
+
+    [Tooltip("Vùng đệm trong viewport để chỉ báo không nhấp nháy khi Boss đứng sát mép camera.")]
+    [Range(0f, 0.15f)] [SerializeField] private float bossViewportMargin = 0.02f;
+
+    [Tooltip("Tốc độ nhịp phóng to nhẹ của chỉ báo Boss. Đặt 0 để tắt nhịp.")]
+    [Min(0f)] [SerializeField] private float bossIndicatorPulseSpeed = 4f;
+
     private Coroutine bannerCoroutine;
     private Coroutine bossWarningCoroutine;
     private bool isPaused;
+    private RectTransform bossIndicatorRect;
+    private Image bossIndicatorImage;
+    private Camera worldCamera;
 
     private void Awake()
     {
@@ -103,6 +134,8 @@ public class WaveHUDController : MonoBehaviour
         {
             pauseModalController = FindObjectOfType<PauseModalController>(true);
         }
+
+        CreateBossOffscreenIndicator();
 
         if (pauseButton != null)
         {
@@ -250,6 +283,169 @@ public class WaveHUDController : MonoBehaviour
         bossWarningCoroutine = StartCoroutine(PlayBossWarningRoutine(bossObj != null ? bossObj.name : "BOSS"));
     }
 
+    private void LateUpdate()
+    {
+        UpdateBossOffscreenIndicator();
+    }
+
+    private void CreateBossOffscreenIndicator()
+    {
+        if (bossIndicatorRect != null || bossOffscreenSprite == null)
+        {
+            return;
+        }
+
+        GameObject indicator = new GameObject(
+            "BossOffscreenIndicator",
+            typeof(RectTransform),
+            typeof(CanvasRenderer),
+            typeof(Image));
+        indicator.transform.SetParent(transform, false);
+
+        bossIndicatorRect = indicator.GetComponent<RectTransform>();
+        bossIndicatorRect.anchorMin = bossIndicatorRect.anchorMax = new Vector2(0.5f, 0.5f);
+        bossIndicatorRect.pivot = new Vector2(0.5f, 0.5f);
+        bossIndicatorRect.sizeDelta = bossIndicatorSize;
+
+        bossIndicatorImage = indicator.GetComponent<Image>();
+        bossIndicatorImage.sprite = bossOffscreenSprite;
+        bossIndicatorImage.preserveAspect = true;
+        bossIndicatorImage.raycastTarget = false;
+        indicator.SetActive(false);
+    }
+
+    private void UpdateBossOffscreenIndicator()
+    {
+        if (bossIndicatorRect == null || enemySpawner == null || enemySpawner.IsStageCompleted)
+        {
+            SetBossIndicatorVisible(false);
+            return;
+        }
+
+        if (worldCamera == null) worldCamera = Camera.main;
+        if (worldCamera == null)
+        {
+            SetBossIndicatorVisible(false);
+            return;
+        }
+
+        EnemyHealth offscreenBoss = null;
+        Vector3 selectedViewportPosition = Vector3.zero;
+        float nearestViewportDistance = float.MaxValue;
+
+        for (int i = 0; i < enemySpawner.ActiveBosses.Count; i++)
+        {
+            EnemyHealth boss = enemySpawner.ActiveBosses[i];
+            if (boss == null || boss.IsDead || !boss.gameObject.activeInHierarchy)
+            {
+                continue;
+            }
+
+            Vector3 viewportPosition = worldCamera.WorldToViewportPoint(boss.transform.position);
+            if (IsViewportPositionVisible(viewportPosition, bossViewportMargin))
+            {
+                continue;
+            }
+
+            float viewportDistance = ((Vector2)viewportPosition - new Vector2(0.5f, 0.5f)).sqrMagnitude;
+            if (viewportDistance < nearestViewportDistance)
+            {
+                nearestViewportDistance = viewportDistance;
+                offscreenBoss = boss;
+                selectedViewportPosition = viewportPosition;
+            }
+        }
+
+        if (offscreenBoss == null)
+        {
+            SetBossIndicatorVisible(false);
+            return;
+        }
+
+        RectTransform canvasRect = transform as RectTransform;
+        if (canvasRect == null)
+        {
+            SetBossIndicatorVisible(false);
+            return;
+        }
+
+        float shortestCanvasSide = Mathf.Min(canvasRect.rect.width, canvasRect.rect.height);
+        float responsiveDiameter = shortestCanvasSide * bossIndicatorScreenRatio;
+        Vector2 currentIndicatorSize = useResponsiveBossIndicatorSize
+            ? Vector2.one * responsiveDiameter
+            : new Vector2(Mathf.Abs(bossIndicatorSize.x), Mathf.Abs(bossIndicatorSize.y));
+        float currentEdgePadding = shortestCanvasSide * bossIndicatorEdgePaddingRatio;
+        bossIndicatorRect.sizeDelta = currentIndicatorSize;
+
+        Vector2 indicatorPosition = CalculateBossIndicatorPosition(
+            selectedViewportPosition,
+            canvasRect.rect.size,
+            currentIndicatorSize,
+            currentEdgePadding);
+
+        float minimumY = -canvasRect.rect.height * 0.5f
+            + currentIndicatorSize.y * 0.5f
+            + bossIndicatorBottomSafePadding;
+        float maximumY = canvasRect.rect.height * 0.5f
+            - currentIndicatorSize.y * 0.5f
+            - bossIndicatorTopSafePadding;
+        indicatorPosition.y = minimumY <= maximumY
+            ? Mathf.Clamp(indicatorPosition.y, minimumY, maximumY)
+            : 0f;
+        bossIndicatorRect.anchoredPosition = indicatorPosition;
+
+        float pulse = bossIndicatorPulseSpeed > 0f
+            ? 1f + Mathf.Sin(Time.unscaledTime * bossIndicatorPulseSpeed) * 0.04f
+            : 1f;
+        bossIndicatorRect.localScale = Vector3.one * pulse;
+        SetBossIndicatorVisible(true);
+    }
+
+    private void SetBossIndicatorVisible(bool visible)
+    {
+        if (bossIndicatorRect != null && bossIndicatorRect.gameObject.activeSelf != visible)
+        {
+            bossIndicatorRect.gameObject.SetActive(visible);
+        }
+    }
+
+    public static bool IsViewportPositionVisible(Vector3 viewportPosition, float margin)
+    {
+        float safeMargin = Mathf.Clamp(margin, 0f, 0.49f);
+        return viewportPosition.z > 0f
+            && viewportPosition.x >= safeMargin
+            && viewportPosition.x <= 1f - safeMargin
+            && viewportPosition.y >= safeMargin
+            && viewportPosition.y <= 1f - safeMargin;
+    }
+
+    public static Vector2 CalculateBossIndicatorPosition(
+        Vector3 viewportPosition,
+        Vector2 canvasSize,
+        Vector2 indicatorSize,
+        float edgePadding)
+    {
+        Vector2 direction = new Vector2(
+            (viewportPosition.x - 0.5f) * canvasSize.x,
+            (viewportPosition.y - 0.5f) * canvasSize.y);
+
+        if (viewportPosition.z <= 0f)
+        {
+            direction = -direction;
+        }
+
+        if (direction.sqrMagnitude <= 0.000001f)
+        {
+            direction = Vector2.up;
+        }
+
+        float halfWidth = Mathf.Max(0f, canvasSize.x * 0.5f - indicatorSize.x * 0.5f - edgePadding);
+        float halfHeight = Mathf.Max(0f, canvasSize.y * 0.5f - indicatorSize.y * 0.5f - edgePadding);
+        float horizontalScale = Mathf.Abs(direction.x) > 0.0001f ? halfWidth / Mathf.Abs(direction.x) : float.MaxValue;
+        float verticalScale = Mathf.Abs(direction.y) > 0.0001f ? halfHeight / Mathf.Abs(direction.y) : float.MaxValue;
+        return direction * Mathf.Min(horizontalScale, verticalScale);
+    }
+
     private void HandleStageVictory()
     {
         if (stageVictoryPanel != null)
@@ -384,7 +580,7 @@ public class WaveHUDController : MonoBehaviour
 
         if (bossWarningText != null)
         {
-            bossWarningText.text = "⚠️ WARNING: BOSS APPROACHING! ⚠️";
+            bossWarningText.text = "WARNING: BOSS APPROACHING!";
         }
 
         for (int i = 0; i < 3; i++)

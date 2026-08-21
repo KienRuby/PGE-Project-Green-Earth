@@ -607,11 +607,15 @@ public class ChapterSystemTests
     {
         int originalUnlocked = PlayerDataService.UnlockedChapterIndex;
         int originalSelected = PlayerDataService.SelectedChapterIndex;
+        int originalDataChips = ChipManager.DataChips;
+        int originalRedGems = ChipManager.RedGems;
 
         try
         {
             PlayerDataService.UnlockedChapterIndex = 0; // Chapter 1 unlocked
             PlayerDataService.SelectedChapterIndex = 0; // Playing Chapter 1
+            ChipManager.DataChips = 100;
+            ChipManager.RedGems = 100;
 
             GameObject spawnerGo = new GameObject("TestBossVictorySpawner");
             EnemySpawner spawner = spawnerGo.AddComponent<EnemySpawner>();
@@ -642,6 +646,13 @@ public class ChapterSystemTests
             Assert.That(spawner.IsStageCompleted, Is.True);
             Assert.That(spawner.CurrentState, Is.EqualTo(EnemySpawner.WaveState.StageVictory));
             Assert.That(PlayerDataService.UnlockedChapterIndex, Is.EqualTo(1), "Hoàn thành Chapter 1 phải mở khóa Chapter 2.");
+            Assert.That(ChipManager.DataChips, Is.EqualTo(100 + spawner.StageVictoryDataChipReward));
+            Assert.That(ChipManager.RedGems, Is.EqualTo(100 + spawner.StageVictoryRedGemReward));
+
+            spawner.TriggerStageVictory();
+            Assert.That(ChipManager.DataChips, Is.EqualTo(100 + spawner.StageVictoryDataChipReward),
+                "Sự kiện Victory lặp lại không được cộng thưởng lần hai.");
+            Assert.That(ChipManager.RedGems, Is.EqualTo(100 + spawner.StageVictoryRedGemReward));
 
             GameObject.DestroyImmediate(playerGo);
             GameObject.DestroyImmediate(spawnerGo);
@@ -650,6 +661,8 @@ public class ChapterSystemTests
         {
             PlayerDataService.UnlockedChapterIndex = originalUnlocked;
             PlayerDataService.SelectedChapterIndex = originalSelected;
+            ChipManager.DataChips = originalDataChips;
+            ChipManager.RedGems = originalRedGems;
         }
     }
 

@@ -17,7 +17,7 @@ public class WeaponData : ScriptableObject
     [Tooltip("Sprite hình ảnh của khẩu súng hiển thị trên tay người chơi.")]
     public Sprite gunSprite;
 
-    [Tooltip("Tọa độ của nòng súng (FirePoint) tính từ tâm khẩu súng để đạn xuất hiện chính xác.")]
+    [Tooltip("Vị trí local của FirePoint. Giá trị này sẽ ghi đè vị trí FirePoint trong Scene khi vào Play.")]
     public Vector2 firePointOffset = new Vector2(1.5f, 0.1f);
 
     [Header("Core 4 Weapon Stats (4 Chỉ số cốt lõi)")]

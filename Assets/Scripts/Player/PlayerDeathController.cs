@@ -53,7 +53,26 @@ public class PlayerDeathController : MonoBehaviour
         Custom        // Màu sắc tự chọn
     }
 
-    [Header("=== AAA VFX PRESET SELECTOR ===")]
+    [Header("=== EXPLOSION VFX (VFX BOOM) ===")]
+    [Tooltip("Prefab hiệu ứng nổ (VFX Boom) khi Player tử trận.")]
+    [SerializeField] private GameObject explosionVfxPrefab;
+
+    [Tooltip("Sử dụng hiệu ứng nổ VFX Boom khi HP về 0 (Mặc định: true).")]
+    [SerializeField] private bool useExplosionVfx = true;
+
+    [Tooltip("Ẩn Sprite của Player sau khi VFX Boom đã chạy hoàn tất.")]
+    [SerializeField] private bool hidePlayerOnExplode = true;
+
+    [Tooltip("Thời gian tồn tại của hiệu ứng nổ (giây).")]
+    [SerializeField, Min(0.1f)] private float explosionDuration = 1.0f;
+
+    [Tooltip("Độ lệch vị trí xuất hiện hiệu ứng nổ so với Player.")]
+    [SerializeField] private Vector3 explosionOffset = Vector3.zero;
+
+    [Tooltip("Sorting Order cho hiệu ứng nổ (đảm bảo luôn vẽ đè lên trên nhân vật và quái).")]
+    [SerializeField] private int vfxSortingOrder = 20;
+
+    [Header("=== AAA VFX PRESET SELECTOR (DISSOLVE FALLBACK) ===")]
     [Tooltip("Chọn nhanh phong cách hiệu ứng tử trận mẫu hoặc Custom để tự tinh chỉnh.")]
     [SerializeField] private DeathVFXPreset vfxPreset = DeathVFXPreset.GoldenStarDisintegration;
 
@@ -155,7 +174,7 @@ public class PlayerDeathController : MonoBehaviour
     [SerializeField] private bool disableColliders = true;
     [SerializeField] private bool disablePhysics = true;
     [SerializeField] private Behaviour[] additionalBehavioursToDisable;
-    [SerializeField] private bool destroyOnComplete = true;
+    [SerializeField] private bool destroyOnComplete = false;
     [SerializeField] private bool disableOnComplete = false;
     [SerializeField, Min(0f)] private float completionDelay = 0.05f;
 
@@ -201,11 +220,60 @@ public class PlayerDeathController : MonoBehaviour
     private SpriteRenderer[] cachedRenderers;
     private MaterialPropertyBlock propertyBlock;
     private Material runtimeDissolveMaterial;
+    private AnimatorUpdateMode animatorUpdateModeBeforeDeath;
+    private bool animatorUpdateModeCached;
 
     public bool IsDeathSequenceActive => isDeathSequenceActive;
 
+    public GameObject ExplosionVfxPrefab
+    {
+        get => explosionVfxPrefab;
+        set => explosionVfxPrefab = value;
+    }
+
+    public bool UseExplosionVfx
+    {
+        get => useExplosionVfx;
+        set => useExplosionVfx = value;
+    }
+
+    public bool HidePlayerOnExplode
+    {
+        get => hidePlayerOnExplode;
+        set => hidePlayerOnExplode = value;
+    }
+
+    public float ExplosionDuration
+    {
+        get => explosionDuration;
+        set => explosionDuration = value;
+    }
+
+    public Vector3 ExplosionOffset
+    {
+        get => explosionOffset;
+        set => explosionOffset = value;
+    }
+
+    public int VfxSortingOrder
+    {
+        get => vfxSortingOrder;
+        set => vfxSortingOrder = value;
+    }
+
     private void Awake()
     {
+        if (explosionVfxPrefab == null)
+        {
+            explosionVfxPrefab = Resources.Load<GameObject>("Prefabs/VFX Boom");
+#if UNITY_EDITOR
+            if (explosionVfxPrefab == null)
+            {
+                explosionVfxPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/VFX Boom.prefab");
+            }
+#endif
+        }
+
         if (animator == null)
         {
             animator = GetComponent<Animator>();
@@ -452,6 +520,214 @@ public class PlayerDeathController : MonoBehaviour
     }
 
     private IEnumerator DeathSequenceCoroutine()
+    {
+        if (useExplosionVfx)
+        {
+            yield return StartCoroutine(PlayDeathAnimationCoroutine());
+
+            if (delayBeforeDissolve > 0f)
+            {
+                yield return new WaitForSecondsRealtime(delayBeforeDissolve);
+            }
+
+            yield return StartCoroutine(ExplosionVfxSequenceCoroutine());
+        }
+        else
+        {
+            yield return StartCoroutine(DissolveShaderSequenceCoroutine());
+        }
+    }
+
+    private IEnumerator ExplosionVfxSequenceCoroutine()
+    {
+        Vector3 spawnPos = transform.position + explosionOffset;
+
+        if (explosionVfxPrefab != null)
+        {
+            GameObject vfxInstance = null;
+            if (PoolManager.Instance != null)
+            {
+                vfxInstance = PoolManager.Instance.Spawn(explosionVfxPrefab, spawnPos, Quaternion.identity);
+            }
+            else
+            {
+                vfxInstance = Instantiate(explosionVfxPrefab, spawnPos, Quaternion.identity);
+            }
+
+            if (vfxInstance != null)
+            {
+                Animator vfxAnimator = vfxInstance.GetComponent<Animator>();
+                if (vfxAnimator != null)
+                {
+                    vfxAnimator.updateMode = AnimatorUpdateMode.UnscaledTime;
+                }
+
+                SpriteRenderer vfxSr = vfxInstance.GetComponent<SpriteRenderer>();
+                if (vfxSr != null)
+                {
+                    vfxSr.sortingOrder = vfxSortingOrder;
+                    if (cachedRenderers != null && cachedRenderers.Length > 0 && cachedRenderers[0] != null)
+                    {
+                        vfxSr.sortingLayerID = cachedRenderers[0].sortingLayerID;
+                    }
+                }
+            }
+        }
+
+        onDissolveStarted?.Invoke();
+        OnDissolveStarted?.Invoke();
+
+        float safeDuration = Mathf.Max(0.1f, explosionDuration);
+        yield return new WaitForSecondsRealtime(safeDuration);
+
+        if (hidePlayerOnExplode)
+        {
+            SetPlayerRenderersVisible(false);
+        }
+
+        if (completionDelay > 0f)
+        {
+            yield return new WaitForSecondsRealtime(completionDelay);
+        }
+
+        Debug.Log("[PlayerDeathController] Hiệu ứng nổ Player VFX Boom hoàn tất.");
+
+        onDeathComplete?.Invoke();
+        OnDeathCompleted?.Invoke();
+
+        if (destroyOnComplete)
+        {
+            Destroy(gameObject);
+        }
+        else if (disableOnComplete)
+        {
+            gameObject.SetActive(false);
+        }
+    }
+
+    private IEnumerator PlayDeathAnimationCoroutine()
+    {
+        float clipDuration = GetDeathAnimationDuration();
+
+        if (animator == null || !animator.gameObject.activeInHierarchy)
+        {
+            yield return new WaitForSecondsRealtime(clipDuration);
+            yield break;
+        }
+
+        if (!animatorUpdateModeCached)
+        {
+            animatorUpdateModeBeforeDeath = animator.updateMode;
+            animatorUpdateModeCached = true;
+        }
+
+        animator.updateMode = AnimatorUpdateMode.UnscaledTime;
+        animator.speed = 1f;
+
+        if (HasParameter(animator, deathTriggerName, AnimatorControllerParameterType.Trigger))
+        {
+            animator.SetTrigger(deathTriggerName);
+        }
+        else if (HasParameter(animator, deathStateName, AnimatorControllerParameterType.Bool))
+        {
+            animator.SetBool(deathStateName, true);
+        }
+        else
+        {
+            animator.Play(deathStateName, 0, 0f);
+        }
+
+        yield return null;
+
+        float elapsed = 0f;
+        while (elapsed < clipDuration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
+            if (stateInfo.IsName(deathStateName) && stateInfo.normalizedTime >= 1f)
+            {
+                break;
+            }
+            yield return null;
+        }
+
+        animator.speed = 0f;
+    }
+
+    private float GetDeathAnimationDuration()
+    {
+        if (useCustomAnimationDuration)
+        {
+            return Mathf.Max(0.05f, customAnimationDuration);
+        }
+
+        if (animator != null && animator.runtimeAnimatorController != null)
+        {
+            foreach (AnimationClip clip in animator.runtimeAnimatorController.animationClips)
+            {
+                if (clip != null && string.Equals(clip.name, deathStateName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return Mathf.Max(0.05f, clip.length);
+                }
+            }
+        }
+
+        return Mathf.Max(0.05f, fallbackAnimationDuration);
+    }
+
+    private void SetPlayerRenderersVisible(bool visible)
+    {
+        CacheAllRenderers();
+        if (cachedRenderers == null)
+            return;
+
+        foreach (SpriteRenderer sr in cachedRenderers)
+        {
+            if (sr != null)
+            {
+                sr.enabled = visible;
+            }
+        }
+    }
+
+    public void ResetForRevive()
+    {
+        StopAllCoroutines();
+        isDeathSequenceActive = false;
+        SetPlayerRenderersVisible(true);
+        SetDissolveAndEdgeIntensity(0f, 1f);
+
+        PlayerMovement movement = GetComponent<PlayerMovement>();
+        if (movement != null) movement.enabled = true;
+
+        PlayerAutoShooter shooter = GetComponent<PlayerAutoShooter>();
+        if (shooter != null) shooter.enabled = true;
+
+        PlayerAnimatorController animCtrl = GetComponent<PlayerAnimatorController>();
+        if (animCtrl != null) animCtrl.enabled = true;
+
+        Collider2D[] colliders = GetComponentsInChildren<Collider2D>(true);
+        foreach (Collider2D col in colliders)
+        {
+            if (col != null) col.enabled = true;
+        }
+
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        if (rb != null) rb.simulated = true;
+
+        if (animator != null)
+        {
+            animator.speed = 1f;
+            if (animatorUpdateModeCached)
+            {
+                animator.updateMode = animatorUpdateModeBeforeDeath;
+            }
+            animator.Rebind();
+            animator.Update(0f);
+        }
+    }
+
+    private IEnumerator DissolveShaderSequenceCoroutine()
     {
         // =========================================================================
         // BƯỚC 1: ANIMATION DIE - CHỜ CHẠY ĐẾN ĐÚNG FRAME CUỐI CÙNG
