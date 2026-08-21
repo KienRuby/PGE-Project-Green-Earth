@@ -73,6 +73,21 @@ public class BottomNavigationController : MonoBehaviour
     [Range(1f, 1.2f)]
     [SerializeField] private float popScale = 1.06f;
 
+    [Header("Hiệu ứng chuyển cảnh Panel (Screen Transition)")]
+    [Tooltip("Bật hiệu ứng chuyển cảnh mượt mà giữa các panel nội dung (Shop, Lab, Chapter, Chipset, Buddy).")]
+    [SerializeField] private bool animatePanelTransitions = true;
+
+    [Tooltip("Kiểu chuyển cảnh cho panel: DirectionalSlide (Trượt ngang theo thứ tự), Crossfade, ScaleFade, PopIn.")]
+    [SerializeField] private UIPanelTransition.TransitionType panelTransitionType = UIPanelTransition.TransitionType.DirectionalSlide;
+
+    [Tooltip("Thời gian chuyển cảnh panel (tính bằng giây). Khuyên dùng 0.18s - 0.22s cho mobile.")]
+    [Min(0.01f)]
+    [SerializeField] private float panelTransitionDuration = 0.2f;
+
+    [Tooltip("Khoảng cách trượt khi sử dụng kiểu DirectionalSlide.")]
+    [Min(0f)]
+    [SerializeField] private float slideDistance = 140f;
+
     [Tooltip("Thời gian nút hạ xuống sau khi bấm, tính bằng giây.")]
     [Min(0f)]
     [SerializeField] private float pressDuration = 0.05f;
@@ -93,6 +108,7 @@ public class BottomNavigationController : MonoBehaviour
     private Vector2[] baseAnchoredPositions;
     private Vector3[] baseScales;
     private Color[] baseImageColors;
+    private UIPanelTransition[] panelTransitions;
     private Coroutine selectionRoutine;
 
     public int CurrentIndex => currentIndex;
@@ -122,9 +138,10 @@ public class BottomNavigationController : MonoBehaviour
         }
 
         CacheVisualState();
+        InitializePanelTransitions();
 
         int initialIndex = Mathf.Clamp(defaultSelectedIndex, 0, items.Length - 1);
-        ApplySelectionState(initialIndex);
+        ApplySelectionState(initialIndex, animated: false);
         ApplyRestingVisualState(initialIndex);
     }
 
@@ -172,7 +189,7 @@ public class BottomNavigationController : MonoBehaviour
 
         if (!animateSelection || !isActiveAndEnabled || itemRects == null || itemRects[selectedIndex] == null)
         {
-            ApplySelectionState(selectedIndex);
+            ApplySelectionState(selectedIndex, animated: animatePanelTransitions);
             ApplyRestingVisualState(selectedIndex);
             return;
         }
@@ -184,6 +201,26 @@ public class BottomNavigationController : MonoBehaviour
         }
 
         selectionRoutine = StartCoroutine(AnimateSelection(selectedIndex));
+    }
+
+    private void InitializePanelTransitions()
+    {
+        if (items == null) return;
+
+        panelTransitions = new UIPanelTransition[items.Length];
+        for (int i = 0; i < items.Length; i++)
+        {
+            if (items[i] != null && items[i].panel != null)
+            {
+                UIPanelTransition transition = items[i].panel.GetComponent<UIPanelTransition>();
+                if (transition == null)
+                {
+                    transition = items[i].panel.AddComponent<UIPanelTransition>();
+                }
+                transition.Initialize();
+                panelTransitions[i] = transition;
+            }
+        }
     }
 
     private void CacheVisualState()
@@ -234,7 +271,7 @@ public class BottomNavigationController : MonoBehaviour
             pressedColor,
             pressDuration);
 
-        ApplySelectionState(selectedIndex);
+        ApplySelectionState(selectedIndex, animated: animatePanelTransitions);
 
         // Những nút không tham gia chuyển tiếp luôn trở về đúng vị trí gốc.
         for (int i = 0; i < itemRects.Length; i++)
@@ -350,10 +387,12 @@ public class BottomNavigationController : MonoBehaviour
         if (image != null) image.color = toColor;
     }
 
-    private void ApplySelectionState(int selectedIndex)
+    private void ApplySelectionState(int selectedIndex, bool animated = false)
     {
+        int previousIndex = currentIndex;
         currentIndex = selectedIndex;
 
+        // 1. Cập nhật nút bấm, icon, label & sprite
         for (int i = 0; i < items.Length; i++)
         {
             NavigationItem item = items[i];
@@ -361,23 +400,17 @@ public class BottomNavigationController : MonoBehaviour
 
             bool isSelected = (i == selectedIndex);
 
-            // 1. Bật/Tắt Panel nội dung tương ứng
-            if (item.panel != null)
-            {
-                item.panel.SetActive(isSelected);
-            }
-
-            // 2. Tìm Image hiển thị của Button
+            // Tìm Image hiển thị của Button
             Image targetImage = item.buttonImage;
             if (targetImage == null && item.button != null)
             {
                 targetImage = item.button.GetComponent<Image>();
             }
 
-            // 3. Đổi Sprite giữa Thanh 1 (Sáng) và Thanh 2 (Tối)
+            // Đổi Sprite giữa Thanh 1 (Sáng) và Thanh 2 (Tối)
             if (targetImage != null)
             {
-                targetImage.raycastTarget = true; // Đảm bảo luôn nhận click 100%
+                targetImage.raycastTarget = true;
 
                 Sprite targetSprite = isSelected ? item.activeSprite : item.inactiveSprite;
                 if (targetSprite != null)
@@ -391,7 +424,7 @@ public class BottomNavigationController : MonoBehaviour
                 }
             }
 
-            // 4. Nếu có icon hoặc label tách riêng
+            // Icon hoặc label tách riêng
             if (item.icon != null)
             {
                 item.icon.color = isSelected ? Color.white : new Color(0.6f, 0.8f, 0.85f, 0.8f);
@@ -400,6 +433,96 @@ public class BottomNavigationController : MonoBehaviour
             if (item.label != null)
             {
                 item.label.color = isSelected ? Color.white : new Color(0.6f, 0.8f, 0.85f, 0.8f);
+            }
+        }
+
+        // 2. Chuyển cảnh Panel nội dung (Shop, Lab, Chapter, Chipset, Buddy)
+        if (panelTransitions == null || panelTransitions.Length != items.Length)
+        {
+            InitializePanelTransitions();
+        }
+
+        if (!animated || previousIndex < 0 || previousIndex == selectedIndex)
+        {
+            // Chuyển ngay lập tức (không hoạt họa)
+            for (int i = 0; i < items.Length; i++)
+            {
+                if (panelTransitions != null && panelTransitions[i] != null)
+                {
+                    if (i == selectedIndex)
+                    {
+                        panelTransitions[i].InstantShow();
+                    }
+                    else
+                    {
+                        panelTransitions[i].InstantHide();
+                    }
+                }
+                else if (items[i] != null && items[i].panel != null)
+                {
+                    items[i].panel.SetActive(i == selectedIndex);
+                }
+            }
+        }
+        else
+        {
+            // Chuyển cảnh mượt mà giữa Previous Panel và Selected Panel
+            bool movingForward = selectedIndex > previousIndex;
+            UIPanelTransition.SlideDirection enterDirection = movingForward 
+                ? UIPanelTransition.SlideDirection.FromRight 
+                : UIPanelTransition.SlideDirection.FromLeft;
+            UIPanelTransition.SlideDirection exitDirection = movingForward 
+                ? UIPanelTransition.SlideDirection.FromLeft 
+                : UIPanelTransition.SlideDirection.FromRight;
+
+            // Ẩn panel trước đó
+            if (IsValidCachedIndex(previousIndex))
+            {
+                if (panelTransitions != null && panelTransitions[previousIndex] != null)
+                {
+                    panelTransitions[previousIndex].PlayHide(
+                        panelTransitionType,
+                        exitDirection,
+                        panelTransitionDuration,
+                        slideDistance);
+                }
+                else if (items[previousIndex]?.panel != null)
+                {
+                    items[previousIndex].panel.SetActive(false);
+                }
+            }
+
+            // Hiện panel mới
+            if (IsValidCachedIndex(selectedIndex))
+            {
+                if (panelTransitions != null && panelTransitions[selectedIndex] != null)
+                {
+                    panelTransitions[selectedIndex].PlayShow(
+                        panelTransitionType,
+                        enterDirection,
+                        panelTransitionDuration,
+                        slideDistance);
+                }
+                else if (items[selectedIndex]?.panel != null)
+                {
+                    items[selectedIndex].panel.SetActive(true);
+                }
+            }
+
+            // Tắt ngay các panel còn lại để tránh trường hợp click nhanh
+            for (int i = 0; i < items.Length; i++)
+            {
+                if (i != selectedIndex && i != previousIndex)
+                {
+                    if (panelTransitions != null && panelTransitions[i] != null)
+                    {
+                        panelTransitions[i].InstantHide();
+                    }
+                    else if (items[i]?.panel != null)
+                    {
+                        items[i].panel.SetActive(false);
+                    }
+                }
             }
         }
     }

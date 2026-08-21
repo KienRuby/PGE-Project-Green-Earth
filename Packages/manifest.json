@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.harumak.unityscreennavigator": "https://github.com/Haruma-K/UnityScreenNavigator.git?path=/Assets/UnityScreenNavigator",
     "com.unity.collab-proxy": "2.12.4",
     "com.unity.device-simulator.devices": "1.0.1",
     "com.unity.feature.2d": "2.0.1",
