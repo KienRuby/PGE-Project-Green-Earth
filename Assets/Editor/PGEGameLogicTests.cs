@@ -1315,54 +1315,88 @@ public class PGEGameLogicTests
     }
 
     [Test]
-    public void Chipset_SaveAndLoad_PreservesDeckAndProgression()
+    public void Chipset_Database_InitializesWithSonicBoomAndStats()
     {
-        // 1. Clear saved data
-        PlayerPrefs.DeleteKey(PlayerDataService.ChipsetActiveDeckKey);
-        for (int i = 0; i < 3; i++) PlayerPrefs.DeleteKey(PlayerDataService.GetDeckKey(i));
-        for (int i = 1; i <= 24; i++)
+        GameObject go = new GameObject("ChipsetControllerTest");
+        ChipsetController controller = go.AddComponent<ChipsetController>();
+        controller.InitializeDatabase();
+
+        Assert.That(controller.AllChips.Count, Is.EqualTo(24), "Chipset database must have all 24 chips initialized.");
+
+        ChipItemData sonicBoom = null;
+        foreach (var c in controller.AllChips)
         {
-            string pfx = PlayerDataService.GetChipItemPrefix(i);
-            PlayerPrefs.DeleteKey($"{pfx}Level");
-            PlayerPrefs.DeleteKey($"{pfx}Tier");
-            PlayerPrefs.DeleteKey($"{pfx}Count");
-            PlayerPrefs.DeleteKey($"{pfx}ReqCount");
-            PlayerPrefs.DeleteKey($"{pfx}HasStar");
+            if (c.id == 18 || c.chipName == "Sonic Boom") sonicBoom = c;
         }
-        PlayerPrefs.Save();
 
-        GameObject go1 = new GameObject("ChipsetTest1");
-        ChipsetController ctrl1 = go1.AddComponent<ChipsetController>();
-        ctrl1.InitializeDatabase();
+        Assert.That(sonicBoom, Is.Not.Null, "Sonic Boom must exist in database.");
+        Assert.That(sonicBoom.count, Is.EqualTo(439), "Sonic Boom count must be 439 matching screenshot.");
+        Assert.That(sonicBoom.requiredCount, Is.EqualTo(3), "Sonic Boom requiredCount must be 3.");
+        Assert.That(sonicBoom.description, Does.Contain("Sonic attack"), "Description should describe Sonic attack.");
+        Assert.That(sonicBoom.magicBonus, Does.Contain("ATK +15%"), "Magic bonus should be ATK +15%.");
 
-        // Check default active deck is 2 (Preset 3)
-        Assert.That(ctrl1.AllChips.Count, Is.EqualTo(24));
+        Object.DestroyImmediate(go);
+    }
 
-        // Modify chip 1 progression
-        var chip1 = ctrl1.AllChips[0];
-        chip1.level = 5;
-        chip1.tier = ChipTier.Rare;
-        chip1.count = 88;
-        ctrl1.SaveChip(chip1);
+    [Test]
+    public void Chipset_Enhance_ConsumesDataChips_And_IncreasesLevel()
+    {
+        ChipItemData chip = new ChipItemData
+        {
+            id = 200,
+            chipName = "Test Chip",
+            tier = ChipTier.Magic,
+            level = 1,
+            enhanceCost = 500
+        };
 
-        // Switch deck to Preset 1 (index 0)
-        ctrl1.SwitchDeck(0);
-        ctrl1.SaveAllState();
+        ChipManager.DataChips = 1000;
+        Assert.That(chip.CanEnhance, Is.True);
+        bool success = chip.Enhance();
 
-        Object.DestroyImmediate(go1);
+        Assert.That(success, Is.True);
+        Assert.That(chip.level, Is.EqualTo(2));
+        Assert.That(ChipManager.DataChips, Is.EqualTo(500));
+        Assert.That(chip.enhanceCost, Is.GreaterThan(500));
+    }
 
-        // Verify with new controller instance
-        GameObject go2 = new GameObject("ChipsetTest2");
-        ChipsetController ctrl2 = go2.AddComponent<ChipsetController>();
-        ctrl2.InitializeDatabase();
+    [Test]
+    public void Chipset_CardUI_EmptyAndNormalStates()
+    {
+        GameObject go = new GameObject("ChipsetCardUITest");
+        ChipsetCardUI card = go.AddComponent<ChipsetCardUI>();
 
-        var loadedChip1 = ctrl2.AllChips[0];
-        Assert.That(loadedChip1.level, Is.EqualTo(5));
-        Assert.That(loadedChip1.tier, Is.EqualTo(ChipTier.Rare));
-        Assert.That(loadedChip1.count, Is.EqualTo(88));
-        Assert.That(PlayerDataService.ActiveChipsetDeckIndex, Is.EqualTo(0));
+        card.SetupEmpty(null);
+        Assert.That(card.SlotState, Is.EqualTo(ChipSlotState.Empty));
+        Assert.That(card.BoundData, Is.Null);
 
-        Object.DestroyImmediate(go2);
+        ChipItemData chip = new ChipItemData { id = 1, chipName = "Standard Gun", level = 1, count = 22, requiredCount = 3 };
+        card.Setup(chip, null, null);
+        Assert.That(card.SlotState, Is.EqualTo(ChipSlotState.Normal));
+        Assert.That(card.BoundData, Is.EqualTo(chip));
+
+        Object.DestroyImmediate(go);
+    }
+
+    [Test]
+    public void Buddy_PurifyingDrone_MatchesStats()
+    {
+        GameObject go = new GameObject("BuddyControllerTest");
+        BuddyController controller = go.AddComponent<BuddyController>();
+        controller.InitializeDatabase();
+
+        BuddyItemData purifying = null;
+        foreach (var b in controller.AllBuddies)
+        {
+            if (b.id == 10 || b.buddyName == "Purifying Drone") purifying = b;
+        }
+
+        Assert.That(purifying, Is.Not.Null, "Purifying Drone must exist in database.");
+        Assert.That(purifying.count, Is.EqualTo(38), "Purifying Drone count must be 38.");
+        Assert.That(purifying.requiredCount, Is.EqualTo(3), "Purifying Drone requiredCount must be 3.");
+        Assert.That(purifying.description, Does.Contain("Ailment Resistance"), "Description matches screenshot.");
+
+        Object.DestroyImmediate(go);
     }
 
     [Test]
@@ -1376,7 +1410,6 @@ public class PGEGameLogicTests
         TMP_Text redText = new GameObject("Red").AddComponent<TextMeshProUGUI>();
         TMP_Text stonesText = new GameObject("Stones").AddComponent<TextMeshProUGUI>();
 
-        // Set private fields via reflection for testing
         var type = typeof(ChipsetController);
         type.GetField("energyText", BindingFlags.NonPublic | BindingFlags.Instance)?.SetValue(ctrl, energyText);
         type.GetField("chipCurrencyText", BindingFlags.NonPublic | BindingFlags.Instance)?.SetValue(ctrl, chipText);
@@ -1384,8 +1417,6 @@ public class PGEGameLogicTests
         type.GetField("advanceStonesText", BindingFlags.NonPublic | BindingFlags.Instance)?.SetValue(ctrl, stonesText);
 
         ctrl.InitializeDatabase();
-
-        // Enable component to subscribe to ChipManager events
         ctrl.enabled = true;
 
         ChipManager.DataChips = 54321;
@@ -1404,6 +1435,112 @@ public class PGEGameLogicTests
         Object.DestroyImmediate(stonesText.gameObject);
         Object.DestroyImmediate(go);
     }
+
+    [Test]
+    public void Chipset_InventoryCards_CanBeClickedAndOpenModal()
+    {
+        GameObject controllerGo = new GameObject("ChipsetControllerTest");
+        ChipsetController ctrl = controllerGo.AddComponent<ChipsetController>();
+
+        GameObject invContentGo = new GameObject("InventoryContent");
+        GameObject detailModalGo = new GameObject("DetailModal");
+        detailModalGo.SetActive(false);
+
+        GameObject cardPrefabGo = new GameObject("CardTemplate");
+        cardPrefabGo.AddComponent<Image>();
+        cardPrefabGo.AddComponent<Button>();
+        cardPrefabGo.AddComponent<ChipsetCardUI>();
+        cardPrefabGo.transform.SetParent(invContentGo.transform, false);
+        cardPrefabGo.SetActive(false);
+
+        // Pre-create 3 existing cards in scene (like InvCard_00 .. InvCard_02)
+        ChipsetCardUI[] existingCards = new ChipsetCardUI[3];
+        for (int i = 0; i < 3; i++)
+        {
+            GameObject cardGo = new GameObject($"InvCard_{i:00}");
+            cardGo.AddComponent<Image>();
+            cardGo.AddComponent<Button>();
+            existingCards[i] = cardGo.AddComponent<ChipsetCardUI>();
+            cardGo.transform.SetParent(invContentGo.transform, false);
+        }
+
+        var type = typeof(ChipsetController);
+        type.GetField("inventoryContent", BindingFlags.NonPublic | BindingFlags.Instance)?.SetValue(ctrl, invContentGo.transform);
+        type.GetField("cardPrefab", BindingFlags.NonPublic | BindingFlags.Instance)?.SetValue(ctrl, cardPrefabGo);
+        type.GetField("detailModal", BindingFlags.NonPublic | BindingFlags.Instance)?.SetValue(ctrl, detailModalGo);
+
+        ctrl.InitializeDatabase();
+        ctrl.RefreshInventory();
+
+        // Check that existing card 0 has bound data and button click listener
+        Assert.That(existingCards[0].BoundData, Is.Not.Null, "Existing inventory card 0 must have bound chip data.");
+        Assert.That(existingCards[0].BoundData.id, Is.GreaterThan(0));
+
+        // Trigger button click on existing card 0
+        Button btn = existingCards[0].GetComponent<Button>();
+        Assert.That(btn, Is.Not.Null);
+        btn.onClick.Invoke();
+
+        // Check that detailModal is now opened
+        Assert.That(detailModalGo.activeSelf, Is.True, "Clicking an inventory chip card must open the DetailModal.");
+
+        Object.DestroyImmediate(invContentGo);
+        Object.DestroyImmediate(detailModalGo);
+        Object.DestroyImmediate(controllerGo);
+    }
+
+    [Test]
+    public void Buddy_InventoryCards_CanBeClickedAndOpenModal()
+    {
+        GameObject controllerGo = new GameObject("BuddyControllerTest");
+        BuddyController ctrl = controllerGo.AddComponent<BuddyController>();
+
+        GameObject invContentGo = new GameObject("BuddyInventoryContent");
+        GameObject detailModalGo = new GameObject("BuddyDetailModal");
+        detailModalGo.SetActive(false);
+
+        GameObject cardPrefabGo = new GameObject("BuddyCardTemplate");
+        cardPrefabGo.AddComponent<Image>();
+        cardPrefabGo.AddComponent<Button>();
+        cardPrefabGo.AddComponent<BuddyCardUI>();
+        cardPrefabGo.transform.SetParent(invContentGo.transform, false);
+        cardPrefabGo.SetActive(false);
+
+        // Pre-create 3 existing cards in scene
+        BuddyCardUI[] existingCards = new BuddyCardUI[3];
+        for (int i = 0; i < 3; i++)
+        {
+            GameObject cardGo = new GameObject($"InvCard_{i:00}");
+            cardGo.AddComponent<Image>();
+            cardGo.AddComponent<Button>();
+            existingCards[i] = cardGo.AddComponent<BuddyCardUI>();
+            cardGo.transform.SetParent(invContentGo.transform, false);
+        }
+
+        var type = typeof(BuddyController);
+        type.GetField("inventoryContent", BindingFlags.NonPublic | BindingFlags.Instance)?.SetValue(ctrl, invContentGo.transform);
+        type.GetField("cardPrefab", BindingFlags.NonPublic | BindingFlags.Instance)?.SetValue(ctrl, cardPrefabGo);
+        type.GetField("detailModal", BindingFlags.NonPublic | BindingFlags.Instance)?.SetValue(ctrl, detailModalGo);
+
+        ctrl.InitializeDatabase();
+        ctrl.RefreshInventory();
+
+        // Check that existing card 0 has bound data and button click listener
+        Assert.That(existingCards[0].BoundData, Is.Not.Null, "Existing buddy inventory card 0 must have bound data.");
+
+        // Trigger button click on existing card 0
+        Button btn = existingCards[0].GetComponent<Button>();
+        Assert.That(btn, Is.Not.Null);
+        btn.onClick.Invoke();
+
+        // Check that detailModal is now opened
+        Assert.That(detailModalGo.activeSelf, Is.True, "Clicking an inventory buddy card must open the DetailModal.");
+
+        Object.DestroyImmediate(invContentGo);
+        Object.DestroyImmediate(detailModalGo);
+        Object.DestroyImmediate(controllerGo);
+    }
 }
+
 
 

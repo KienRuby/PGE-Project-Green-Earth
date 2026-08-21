@@ -34,6 +34,56 @@ public class BuddyCardUI : MonoBehaviour
     public BuddyItemData BoundData => boundData;
     public BuddySlotState SlotState => slotState;
 
+    private void Awake()
+    {
+        ResolveReferences();
+    }
+
+    private void ResolveReferences()
+    {
+        if (cardButton == null) cardButton = GetComponent<Button>();
+        if (cardFrameImage == null) cardFrameImage = GetComponent<Image>();
+        if (normalContentGroup == null)
+        {
+            Transform t = transform.Find("NormalContentGroup");
+            if (t != null) normalContentGroup = t.gameObject;
+        }
+        if (emptySlotGroup == null)
+        {
+            Transform t = transform.Find("EmptySlotGroup");
+            if (t != null) emptySlotGroup = t.gameObject;
+        }
+        if (lockedSlotGroup == null)
+        {
+            Transform t = transform.Find("LockedSlotGroup");
+            if (t != null) lockedSlotGroup = t.gameObject;
+        }
+        if (droneIconImage == null)
+        {
+            Transform t = transform.Find("NormalContentGroup/DroneIcon") ?? transform.Find("DroneIcon");
+            if (t != null) droneIconImage = t.GetComponent<Image>();
+        }
+        if (levelText == null)
+        {
+            Transform t = transform.Find("NormalContentGroup/LevelText") ?? transform.Find("LevelText");
+            if (t != null) levelText = t.GetComponent<TMP_Text>();
+        }
+        if (progressText == null)
+        {
+            Transform t = transform.Find("NormalContentGroup/BottomBar/ProgressText") ?? transform.Find("BottomBar/ProgressText") ?? transform.Find("ProgressText");
+            if (t != null) progressText = t.GetComponent<TMP_Text>();
+        }
+        if (upgradeArrowGroup == null)
+        {
+            Transform t = transform.Find("NormalContentGroup/UpgradeArrowGroup") ?? transform.Find("UpgradeArrowGroup");
+            if (t != null) upgradeArrowGroup = t.gameObject;
+        }
+        if (upgradeButton == null && upgradeArrowGroup != null)
+        {
+            upgradeButton = upgradeArrowGroup.GetComponent<Button>();
+        }
+    }
+
     public void Setup(
         BuddyItemData data,
         Sprite iconSprite,
@@ -41,6 +91,7 @@ public class BuddyCardUI : MonoBehaviour
         Action<BuddyItemData> onCardClick = null,
         Action<BuddyItemData> onUpgradeClick = null)
     {
+        ResolveReferences();
         boundData = data;
         slotState = BuddySlotState.Normal;
         onCardClicked = onCardClick;
@@ -50,23 +101,31 @@ public class BuddyCardUI : MonoBehaviour
         if (emptySlotGroup != null) emptySlotGroup.SetActive(false);
         if (lockedSlotGroup != null) lockedSlotGroup.SetActive(false);
 
-        if (cardFrameImage != null && frameSprite != null)
+        if (cardFrameImage != null)
         {
-            cardFrameImage.sprite = frameSprite;
+            cardFrameImage.raycastTarget = true;
+            if (frameSprite != null) cardFrameImage.sprite = frameSprite;
         }
 
-        if (droneIconImage != null && iconSprite != null)
+        if (droneIconImage != null)
         {
-            droneIconImage.sprite = iconSprite;
-            droneIconImage.gameObject.SetActive(true);
+            if (iconSprite != null)
+            {
+                droneIconImage.sprite = iconSprite;
+                droneIconImage.gameObject.SetActive(true);
+            }
+            else
+            {
+                droneIconImage.gameObject.SetActive(false);
+            }
         }
 
-        if (levelText != null)
+        if (levelText != null && data != null)
         {
             levelText.text = $"LV.{data.level:00}";
         }
 
-        if (progressText != null)
+        if (progressText != null && data != null)
         {
             if (data.requiredCount > 0)
             {
@@ -80,17 +139,19 @@ public class BuddyCardUI : MonoBehaviour
 
         if (upgradeArrowGroup != null)
         {
-            upgradeArrowGroup.SetActive(data.CanUpgrade);
+            upgradeArrowGroup.SetActive(data != null && data.CanUpgrade);
         }
 
         if (cardButton != null)
         {
+            cardButton.interactable = true;
             cardButton.onClick.RemoveAllListeners();
             cardButton.onClick.AddListener(() => onCardClicked?.Invoke(boundData));
         }
 
         if (upgradeButton != null)
         {
+            upgradeButton.interactable = true;
             upgradeButton.onClick.RemoveAllListeners();
             upgradeButton.onClick.AddListener(() => onUpgradeClicked?.Invoke(boundData));
         }
@@ -98,6 +159,7 @@ public class BuddyCardUI : MonoBehaviour
 
     public void SetupEmpty(Sprite frameSprite, Action onEmptyClick = null)
     {
+        ResolveReferences();
         boundData = null;
         slotState = BuddySlotState.Empty;
         onEmptySlotClicked = onEmptyClick;
@@ -106,13 +168,15 @@ public class BuddyCardUI : MonoBehaviour
         if (emptySlotGroup != null) emptySlotGroup.SetActive(true);
         if (lockedSlotGroup != null) lockedSlotGroup.SetActive(false);
 
-        if (cardFrameImage != null && frameSprite != null)
+        if (cardFrameImage != null)
         {
-            cardFrameImage.sprite = frameSprite;
+            cardFrameImage.raycastTarget = true;
+            if (frameSprite != null) cardFrameImage.sprite = frameSprite;
         }
 
         if (cardButton != null)
         {
+            cardButton.interactable = true;
             cardButton.onClick.RemoveAllListeners();
             cardButton.onClick.AddListener(() => onEmptySlotClicked?.Invoke());
         }
@@ -120,6 +184,7 @@ public class BuddyCardUI : MonoBehaviour
 
     public void SetupLocked(Sprite frameSprite, Action onLockedClick = null)
     {
+        ResolveReferences();
         boundData = null;
         slotState = BuddySlotState.Locked;
         onLockedSlotClicked = onLockedClick;
@@ -128,13 +193,15 @@ public class BuddyCardUI : MonoBehaviour
         if (emptySlotGroup != null) emptySlotGroup.SetActive(false);
         if (lockedSlotGroup != null) lockedSlotGroup.SetActive(true);
 
-        if (cardFrameImage != null && frameSprite != null)
+        if (cardFrameImage != null)
         {
-            cardFrameImage.sprite = frameSprite;
+            cardFrameImage.raycastTarget = true;
+            if (frameSprite != null) cardFrameImage.sprite = frameSprite;
         }
 
         if (cardButton != null)
         {
+            cardButton.interactable = true;
             cardButton.onClick.RemoveAllListeners();
             cardButton.onClick.AddListener(() => onLockedSlotClicked?.Invoke());
         }

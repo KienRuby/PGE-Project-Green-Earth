@@ -371,23 +371,23 @@ public class BuddyController : MonoBehaviour
                 uniquePerkText = "Bomb Radius +30%",
                 epicPerkText = "Napalm Burn +30%"
             },
-            // 10. Drone Stealth Wing (Armor Piercer)
+            // 10. Purifying Drone (Matches User Screenshot 2)
             new BuddyItemData
             {
                 id = 10,
-                buddyName = "Armor Piercer",
+                buddyName = "Purifying Drone",
                 iconKey = "drone-stealth-wing",
                 tier = BuddyTier.Common,
                 level = 1,
                 count = 38,
                 requiredCount = 3,
                 enhanceCost = 500,
-                description = "Fires high-velocity darts piercing armored threats.",
-                baseStatText = "Armor Penetration <color=#FFCB49>+25%</color>",
-                magicPerkText = "Dart Speed +20%",
-                rarePerkText = "Critical Strike +30%",
-                uniquePerkText = "Bleed Damage +30%",
-                epicPerkText = "Stealth Strike +30%"
+                description = "Increase the ratio of\nAilment Resistance",
+                baseStatText = "Ailment Resistance 5%",
+                magicPerkText = "Ailment Resistance +5%",
+                rarePerkText = "Ailment Resistance +7%",
+                uniquePerkText = "Ailment Resistance +9%",
+                epicPerkText = "Remove Ailment Instantly (cooldown 30s)"
             },
             // 11. Drone Laser Sentry (Beam Sentry)
             new BuddyItemData
@@ -527,9 +527,32 @@ public class BuddyController : MonoBehaviour
         }
     }
 
+    private void EnsureInventoryCardsInitialized()
+    {
+        if (spawnedInventoryCards.Count > 0) return;
+        if (inventoryContent == null) return;
+
+        foreach (Transform child in inventoryContent)
+        {
+            if (cardPrefab != null && child.gameObject == cardPrefab)
+            {
+                child.gameObject.SetActive(false);
+                continue;
+            }
+
+            BuddyCardUI card = child.GetComponent<BuddyCardUI>();
+            if (card != null)
+            {
+                spawnedInventoryCards.Add(card);
+            }
+        }
+    }
+
     public void RefreshInventory()
     {
-        if (inventoryContent == null || cardPrefab == null) return;
+        if (inventoryContent == null) return;
+
+        EnsureInventoryCardsInitialized();
 
         List<BuddyItemData> sortedList = new List<BuddyItemData>(allBuddies);
         if (sortByQuantity)
@@ -550,6 +573,7 @@ public class BuddyController : MonoBehaviour
             }
             else
             {
+                if (cardPrefab == null) break;
                 GameObject obj = Instantiate(cardPrefab, inventoryContent);
                 card = obj.GetComponent<BuddyCardUI>();
                 spawnedInventoryCards.Add(card);
@@ -745,6 +769,7 @@ public class BuddyController : MonoBehaviour
 
         RefreshEquippedGrid();
         RefreshDetailModal();
+        RefreshInventory();
     }
 
     private Sprite GetIconSprite(string key)
