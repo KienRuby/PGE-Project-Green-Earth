@@ -985,6 +985,91 @@ public class PGEGameLogicTests
 
         Object.DestroyImmediate(go);
     }
+
+    [Test]
+    public void Chipset_Database_InitializesWithSonicBoomAndStats()
+    {
+        GameObject go = new GameObject("ChipsetControllerTest");
+        ChipsetController controller = go.AddComponent<ChipsetController>();
+        controller.InitializeDatabase();
+
+        Assert.That(controller.AllChips.Count, Is.EqualTo(24), "Chipset database must have all 24 chips initialized.");
+
+        ChipItemData sonicBoom = null;
+        foreach (var c in controller.AllChips)
+        {
+            if (c.id == 18 || c.chipName == "Sonic Boom") sonicBoom = c;
+        }
+
+        Assert.That(sonicBoom, Is.Not.Null, "Sonic Boom must exist in database.");
+        Assert.That(sonicBoom.count, Is.EqualTo(439), "Sonic Boom count must be 439 matching screenshot.");
+        Assert.That(sonicBoom.requiredCount, Is.EqualTo(3), "Sonic Boom requiredCount must be 3.");
+        Assert.That(sonicBoom.description, Does.Contain("Sonic attack"), "Description should describe Sonic attack.");
+        Assert.That(sonicBoom.magicBonus, Does.Contain("ATK +15%"), "Magic bonus should be ATK +15%.");
+
+        Object.DestroyImmediate(go);
+    }
+
+    [Test]
+    public void Chipset_Enhance_ConsumesDataChips_And_IncreasesLevel()
+    {
+        ChipItemData chip = new ChipItemData
+        {
+            id = 200,
+            chipName = "Test Chip",
+            tier = ChipTier.Magic,
+            level = 1,
+            enhanceCost = 500
+        };
+
+        ChipManager.DataChips = 1000;
+        Assert.That(chip.CanEnhance, Is.True);
+        bool success = chip.Enhance();
+
+        Assert.That(success, Is.True);
+        Assert.That(chip.level, Is.EqualTo(2));
+        Assert.That(ChipManager.DataChips, Is.EqualTo(500));
+        Assert.That(chip.enhanceCost, Is.GreaterThan(500));
+    }
+
+    [Test]
+    public void Chipset_CardUI_EmptyAndNormalStates()
+    {
+        GameObject go = new GameObject("ChipsetCardUITest");
+        ChipsetCardUI card = go.AddComponent<ChipsetCardUI>();
+
+        card.SetupEmpty(null);
+        Assert.That(card.SlotState, Is.EqualTo(ChipSlotState.Empty));
+        Assert.That(card.BoundData, Is.Null);
+
+        ChipItemData chip = new ChipItemData { id = 1, chipName = "Standard Gun", level = 1, count = 22, requiredCount = 3 };
+        card.Setup(chip, null, null);
+        Assert.That(card.SlotState, Is.EqualTo(ChipSlotState.Normal));
+        Assert.That(card.BoundData, Is.EqualTo(chip));
+
+        Object.DestroyImmediate(go);
+    }
+
+    [Test]
+    public void Buddy_PurifyingDrone_MatchesStats()
+    {
+        GameObject go = new GameObject("BuddyControllerTest");
+        BuddyController controller = go.AddComponent<BuddyController>();
+        controller.InitializeDatabase();
+
+        BuddyItemData purifying = null;
+        foreach (var b in controller.AllBuddies)
+        {
+            if (b.id == 10 || b.buddyName == "Purifying Drone") purifying = b;
+        }
+
+        Assert.That(purifying, Is.Not.Null, "Purifying Drone must exist in database.");
+        Assert.That(purifying.count, Is.EqualTo(38), "Purifying Drone count must be 38.");
+        Assert.That(purifying.requiredCount, Is.EqualTo(3), "Purifying Drone requiredCount must be 3.");
+        Assert.That(purifying.description, Does.Contain("Ailment Resistance"), "Description matches screenshot.");
+
+        Object.DestroyImmediate(go);
+    }
 }
 
 

@@ -24,10 +24,12 @@ public class ChipItemData
     public int level = 1;
     public int count = 0;
     public int requiredCount = 3;
+    public int enhanceCost = 500;
     public bool hasStar;
 
     [Header("Stats Description")]
     [TextArea(2, 4)]
+    public string description;
     public string baseStatsSummary;
     public string magicBonus;
     public string rareBonus;
@@ -53,8 +55,18 @@ public class ChipItemData
     public bool NeedsAdvanceStones => tier == ChipTier.Epic && IsAtTierCap;
     public int AdvanceStoneCost => NeedsAdvanceStones ? 10 : 0;
 
+    public bool CanEnhance => ChipManager.DataChips >= enhanceCost && !IsAtTierCap && !IsMaxOverall;
     public bool CanUpgrade => !IsAtTierCap && count >= requiredCount && requiredCount > 0;
     public bool CanAdvanceTier => IsAtTierCap && tier < ChipTier.Holographic;
+
+    public bool Enhance()
+    {
+        if (ChipManager.DataChips < enhanceCost) return false;
+        if (!ChipManager.TrySpendDataChips(enhanceCost)) return false;
+        level++;
+        enhanceCost = Mathf.RoundToInt(enhanceCost * 1.35f);
+        return true;
+    }
 
     public void Upgrade()
     {
@@ -63,7 +75,6 @@ public class ChipItemData
         level++;
         if (level >= MaxLevel)
         {
-            // Reached tier cap
             requiredCount = 0;
         }
         else
@@ -100,7 +111,9 @@ public class ChipItemData
             level = this.level,
             count = this.count,
             requiredCount = this.requiredCount,
+            enhanceCost = this.enhanceCost,
             hasStar = this.hasStar,
+            description = this.description,
             baseStatsSummary = this.baseStatsSummary,
             magicBonus = this.magicBonus,
             rareBonus = this.rareBonus,
@@ -151,19 +164,24 @@ public class ChipsetController : MonoBehaviour
     [SerializeField] private Transform inventoryContent;
     [SerializeField] private GameObject cardPrefab;
 
-    [Header("Detail Modal")]
+    [Header("Detail Modal (Exact UI)")]
     [SerializeField] private GameObject detailModal;
-    [SerializeField] private Image detailIcon;
+    [SerializeField] private TMP_Text detailModBadgeText;
+    [SerializeField] private ChipsetCardUI detailTopCard;
     [SerializeField] private TMP_Text detailNameText;
-    [SerializeField] private TMP_Text detailLevelText;
     [SerializeField] private TMP_Text detailTierText;
+    [SerializeField] private TMP_Text detailDescText;
     [SerializeField] private TMP_Text detailBaseStatsText;
-    [SerializeField] private TMP_Text detailMagicText;
-    [SerializeField] private TMP_Text detailRareText;
-    [SerializeField] private TMP_Text detailUniqueText;
-    [SerializeField] private TMP_Text detailEpicText;
-    [SerializeField] private Button detailUpgradeBtn;
-    [SerializeField] private TMP_Text detailUpgradeBtnText;
+
+    // 4 Tier Perk Rows
+    [SerializeField] private Image[] perkRowIcons = new Image[4];
+    [SerializeField] private TMP_Text[] perkRowTexts = new TMP_Text[4];
+
+    [Header("Detail Action Buttons")]
+    [SerializeField] private Button detailEnhanceBtn;
+    [SerializeField] private TMP_Text detailEnhanceCostText;
+    [SerializeField] private Button detailAdvanceTierBtn;
+    [SerializeField] private TMP_Text detailAdvanceTierText;
     [SerializeField] private Button detailEquipBtn;
     [SerializeField] private TMP_Text detailEquipBtnText;
     [SerializeField] private Button detailCloseBtn;
@@ -184,6 +202,8 @@ public class ChipsetController : MonoBehaviour
     [SerializeField] private Sprite starSprite;
     [SerializeField] private Sprite upgradeArrowSprite;
     [SerializeField] private Sprite advanceStoneSprite;
+    [SerializeField] private Sprite[] lockTierSprites = new Sprite[4]; // 0: Magic, 1: Rare, 2: Unique, 3: Epic
+    [SerializeField] private Sprite unlockedCheckSprite;
 
     private int activeDeckIndex = 2; // Default to Preset 3 (index 2)
     private bool sortByQuantity = true;
@@ -258,11 +278,13 @@ public class ChipsetController : MonoBehaviour
                 level = 1,
                 count = 22,
                 requiredCount = 3,
-                baseStatsSummary = "ATK 42 | Tốc độ đánh: Fast",
-                magicBonus = "Magic: ATK +15%",
-                rareBonus = "Rare: ATK Speed +15%",
-                uniqueBonus = "Unique: +5% Life Steal (Hút máu)",
-                epicBonus = "Epic: Adds Penetration Skill (Bắn xuyên mục tiêu)"
+                enhanceCost = 500,
+                description = "Standard kinetic firearm with consistent rate of fire.",
+                baseStatsSummary = "ATK <color=#FFCB49>42</color>\n<color=#FFCB49>Fast</color> ATK Speed",
+                magicBonus = "ATK +15%",
+                rareBonus = "ATK Speed +15%",
+                uniqueBonus = "+5% Life Steal",
+                epicBonus = "Adds Penetration Skill"
             },
             // 2. Rifle
             new ChipItemData
@@ -274,11 +296,13 @@ public class ChipsetController : MonoBehaviour
                 level = 24,
                 count = 20,
                 requiredCount = 0,
-                baseStatsSummary = "ATK 47.36 | Tốc độ đánh: Very fast",
-                magicBonus = "Magic: ATK +25%",
-                rareBonus = "Rare: ATK Speed +20%",
-                uniqueBonus = "Unique: ATK +80%",
-                epicBonus = "Epic: ATK Speed +35%"
+                enhanceCost = 500,
+                description = "High-caliber precision rifle dealing devastating critical damage.",
+                baseStatsSummary = "ATK <color=#FFCB49>47.36</color>\n<color=#FFCB49>Very fast</color> ATK Speed",
+                magicBonus = "ATK +25%",
+                rareBonus = "ATK Speed +20%",
+                uniqueBonus = "ATK +80%",
+                epicBonus = "ATK Speed +35%"
             },
             // 3. Rocket Punch
             new ChipItemData
@@ -290,11 +314,13 @@ public class ChipsetController : MonoBehaviour
                 level = 1,
                 count = 50,
                 requiredCount = 3,
-                baseStatsSummary = "ATK 50 / AoE ATK 27 | Tốc độ đánh: Slow",
-                magicBonus = "Magic: ATK +40%",
-                rareBonus = "Rare: ATK Speed +40%",
-                uniqueBonus = "Unique: AoE ATK Range +40% (Tăng phạm vi nổ)",
-                epicBonus = "Epic: ATK +180%"
+                enhanceCost = 500,
+                description = "Launches heavy mechanical fists inflicting area blast shockwaves.",
+                baseStatsSummary = "ATK <color=#FFCB49>50</color> / AoE ATK <color=#FFCB49>27</color>\n<color=#FFCB49>Slow</color> ATK Speed",
+                magicBonus = "ATK +40%",
+                rareBonus = "ATK Speed +40%",
+                uniqueBonus = "AoE ATK Range +40%",
+                epicBonus = "ATK +180%"
             },
             // 4. Spinning Blade
             new ChipItemData
@@ -306,11 +332,13 @@ public class ChipsetController : MonoBehaviour
                 level = 14,
                 count = 31,
                 requiredCount = 9,
-                baseStatsSummary = "ATK 82.8 | Tốc độ đánh: Fast",
-                magicBonus = "Magic: ATK Speed +9%",
-                rareBonus = "Rare: ATK Speed +18%",
-                uniqueBonus = "Unique: Spin Speed +36% (Tăng tốc độ quay)",
-                epicBonus = "Epic: ATK Speed +36%"
+                enhanceCost = 750,
+                description = "Whirling razor disc cleaving nearby enemies continuously.",
+                baseStatsSummary = "ATK <color=#FFCB49>82.8</color>\n<color=#FFCB49>Fast</color> ATK Speed",
+                magicBonus = "ATK Speed +9%",
+                rareBonus = "ATK Speed +18%",
+                uniqueBonus = "Spin Speed +36%",
+                epicBonus = "ATK Speed +36%"
             },
             // 5. Multigun
             new ChipItemData
@@ -322,11 +350,13 @@ public class ChipsetController : MonoBehaviour
                 level = 6,
                 count = 37,
                 requiredCount = 3,
-                baseStatsSummary = "ATK 28.5 | Tốc độ đánh: Slow | Số lượng đạn: 3 shells",
-                magicBonus = "Magic: Adds +1 shells (+1 viên đạn)",
-                rareBonus = "Rare: Adds +1 shells (+1 viên đạn)",
-                uniqueBonus = "Unique: Adds +3 shells (+3 viên đạn)",
-                epicBonus = "Epic: Adds +4 shells (+4 viên đạn)"
+                enhanceCost = 500,
+                description = "Multi-barrel shotgun scattering projectiles across wide cones.",
+                baseStatsSummary = "ATK <color=#FFCB49>28.5</color> | 3 shells\n<color=#FFCB49>Slow</color> ATK Speed",
+                magicBonus = "Adds +1 shells",
+                rareBonus = "Adds +1 shells",
+                uniqueBonus = "Adds +3 shells",
+                epicBonus = "Adds +4 shells"
             },
             // 6. Gun Turret
             new ChipItemData
@@ -338,11 +368,13 @@ public class ChipsetController : MonoBehaviour
                 level = 1,
                 count = 49,
                 requiredCount = 3,
-                baseStatsSummary = "ATK 27 | Tốc độ đánh: Fast | Thời gian tồn tại: 12s | Hồi chiêu: 8.4s",
-                magicBonus = "Magic: Turret Duration +20% (Tăng thời gian tồn tại)",
-                rareBonus = "Rare: Turret Cooldown -30% (Giảm hồi chiêu)",
-                uniqueBonus = "Unique: Turret Duration +20%",
-                epicBonus = "Epic: Turret Duration +30%"
+                enhanceCost = 500,
+                description = "Automated deployable turret firing at closest hostiles.",
+                baseStatsSummary = "ATK <color=#FFCB49>27</color> | Duration 12s | CD 8.4s\n<color=#FFCB49>Fast</color> ATK Speed",
+                magicBonus = "Turret Duration +20%",
+                rareBonus = "Turret Cooldown -30%",
+                uniqueBonus = "Turret Duration +20%",
+                epicBonus = "Turret Duration +30%"
             },
             // 7. Spiky Discus
             new ChipItemData
@@ -354,11 +386,13 @@ public class ChipsetController : MonoBehaviour
                 level = 1,
                 count = 30,
                 requiredCount = 3,
-                baseStatsSummary = "ATK 30 | Tốc độ quay: Normal Spin Speed",
-                magicBonus = "Magic: +1 Discus (+1 đĩa quay)",
-                rareBonus = "Rare: Spin Speed +30% (Tăng tốc độ xoay)",
-                uniqueBonus = "Unique: +1 Discus (+1 đĩa quay)",
-                epicBonus = "Epic: Spin Speed +35%"
+                enhanceCost = 500,
+                description = "Rebounding serrated blade ricocheting off dungeon walls.",
+                baseStatsSummary = "ATK <color=#FFCB49>30</color>\n<color=#FFCB49>Normal</color> Spin Speed",
+                magicBonus = "+1 Discus",
+                rareBonus = "Spin Speed +30%",
+                uniqueBonus = "+1 Discus",
+                epicBonus = "Spin Speed +35%"
             },
             // 8. Shotgun
             new ChipItemData
@@ -370,11 +404,13 @@ public class ChipsetController : MonoBehaviour
                 level = 9,
                 count = 49,
                 requiredCount = 7,
-                baseStatsSummary = "ATK 178.02 | Tốc độ đánh: Slow",
-                magicBonus = "Magic: ATK +15%",
-                rareBonus = "Rare: ATK +15%",
-                uniqueBonus = "Unique: Adds Penetration Skill (Bắn xuyên mục tiêu)",
-                epicBonus = "Epic: Fires two times in a row (Bắn liên tiếp 2 lần)"
+                enhanceCost = 650,
+                description = "Heavy pump-action shotgun delivering point-blank destruction.",
+                baseStatsSummary = "ATK <color=#FFCB49>178.02</color>\n<color=#FFCB49>Slow</color> ATK Speed",
+                magicBonus = "ATK +15%",
+                rareBonus = "ATK +15%",
+                uniqueBonus = "Adds Penetration Skill",
+                epicBonus = "Fires two times in a row"
             },
             // 9. Energy Jumper Cables
             new ChipItemData
@@ -386,12 +422,14 @@ public class ChipsetController : MonoBehaviour
                 level = 1,
                 count = 38,
                 requiredCount = 3,
+                enhanceCost = 500,
                 hasStar = true,
-                baseStatsSummary = "Life Steal 2.3%",
-                magicBonus = "Magic: All Weapons' +1% Life Steal (Mọi vũ khí +1% hút máu)",
-                rareBonus = "Rare: All Weapons' +1% Life Steal",
-                uniqueBonus = "Unique: All Weapons' +1% Life Steal",
-                epicBonus = "Epic: All Weapons' +2% Life Steal"
+                description = "Siphons biological essence from wounded enemies to heal player.",
+                baseStatsSummary = "Life Steal <color=#FFCB49>2.3%</color>",
+                magicBonus = "All Weapons' +1% Life Steal",
+                rareBonus = "All Weapons' +1% Life Steal",
+                uniqueBonus = "All Weapons' +1% Life Steal",
+                epicBonus = "All Weapons' +2% Life Steal"
             },
             // 10. High-Explosive Mine
             new ChipItemData
@@ -403,11 +441,13 @@ public class ChipsetController : MonoBehaviour
                 level = 1,
                 count = 24,
                 requiredCount = 3,
-                baseStatsSummary = "Mine AoE ATK 27 | Hồi chiêu: 5.55s",
-                magicBonus = "Magic: ATK +20%",
-                rareBonus = "Rare: Cooldown -20% (Giảm hồi chiêu)",
-                uniqueBonus = "Unique: ATK +55%",
-                epicBonus = "Epic: ATK +144%"
+                enhanceCost = 500,
+                description = "Drops high-yield proximity charges detonating upon enemy contact.",
+                baseStatsSummary = "Mine AoE ATK <color=#FFCB49>27</color>\nCooldown: 5.55s",
+                magicBonus = "ATK +20%",
+                rareBonus = "Cooldown -20%",
+                uniqueBonus = "ATK +55%",
+                epicBonus = "ATK +144%"
             },
             // 11. Aiming Lens
             new ChipItemData
@@ -419,12 +459,14 @@ public class ChipsetController : MonoBehaviour
                 level = 1,
                 count = 63,
                 requiredCount = 3,
+                enhanceCost = 500,
                 hasStar = true,
-                baseStatsSummary = "CRIT Rate +4% (Tỷ lệ chí mạng)",
-                magicBonus = "Magic: All Weapons' CRIT Rate +3% (Mọi vũ khí +3% tỷ lệ chí mạng)",
-                rareBonus = "Rare: All Weapons' CRIT Rate +3%",
-                uniqueBonus = "Unique: All Weapons' CRIT Rate +4%",
-                epicBonus = "Epic: All Weapons' CRIT Rate +5%"
+                description = "Precision optical matrix augmenting firearm critical hit rate.",
+                baseStatsSummary = "CRIT Rate <color=#FFCB49>+4%</color>",
+                magicBonus = "All Weapons' CRIT Rate +3%",
+                rareBonus = "All Weapons' CRIT Rate +3%",
+                uniqueBonus = "All Weapons' CRIT Rate +4%",
+                epicBonus = "All Weapons' CRIT Rate +5%"
             },
             // 12. Plasma Field
             new ChipItemData
@@ -436,11 +478,13 @@ public class ChipsetController : MonoBehaviour
                 level = 1,
                 count = 52,
                 requiredCount = 3,
-                baseStatsSummary = "ATK 40/giây (kéo dài 3s) | Hồi chiêu: 7.5s | Thời gian tồn tại: 4.2s",
-                magicBonus = "Magic: AoE ATK Range +25% (Tăng phạm vi ảnh hưởng)",
-                rareBonus = "Rare: ATK Speed +10% (Tốc độ đánh)",
-                uniqueBonus = "Unique: AoE ATK Range +35%",
-                epicBonus = "Epic: ATK Speed +20%"
+                enhanceCost = 500,
+                description = "Creates persistent electrified barriers zapping encroaching swarms.",
+                baseStatsSummary = "ATK <color=#FFCB49>40/s</color> (3s duration) | CD 7.5s",
+                magicBonus = "AoE ATK Range +25%",
+                rareBonus = "ATK Speed +10%",
+                uniqueBonus = "AoE ATK Range +35%",
+                epicBonus = "ATK Speed +20%"
             },
             // 13. Laser Eye
             new ChipItemData
@@ -452,11 +496,13 @@ public class ChipsetController : MonoBehaviour
                 level = 1,
                 count = 58,
                 requiredCount = 3,
-                baseStatsSummary = "ATK 5 | Tốc độ đánh: Very fast",
-                magicBonus = "Magic: ATK +15%",
-                rareBonus = "Rare: CRIT Rate +10% (Tỷ lệ chí mạng)",
-                uniqueBonus = "Unique: ATK +15%",
-                epicBonus = "Epic: ATK +100%"
+                enhanceCost = 500,
+                description = "Direct thermal emitter burning holes through monster flesh.",
+                baseStatsSummary = "ATK <color=#FFCB49>5</color>\n<color=#FFCB49>Very fast</color> ATK Speed",
+                magicBonus = "ATK +15%",
+                rareBonus = "CRIT Rate +10%",
+                uniqueBonus = "ATK +15%",
+                epicBonus = "ATK +100%"
             },
             // 14. Biochemical Mine
             new ChipItemData
@@ -468,11 +514,13 @@ public class ChipsetController : MonoBehaviour
                 level = 1,
                 count = 48,
                 requiredCount = 3,
-                baseStatsSummary = "Khí độc ATK 14/giây | Thời gian tồn tại khí: 3s | Hồi chiêu: 7.7s",
-                magicBonus = "Magic: AoE ATK Range +40% (Tăng phạm vi nổ)",
-                rareBonus = "Rare: Cooldown -30% (Giảm thời gian hồi chiêu)",
-                uniqueBonus = "Unique: ATK +77%",
-                epicBonus = "Epic: ATK +144%"
+                enhanceCost = 500,
+                description = "Disperses corrosive toxin clouds poisoning large areas.",
+                baseStatsSummary = "Poison ATK <color=#FFCB49>14/s</color> (3s duration) | CD 7.7s",
+                magicBonus = "AoE ATK Range +40%",
+                rareBonus = "Cooldown -30%",
+                uniqueBonus = "ATK +77%",
+                epicBonus = "ATK +144%"
             },
             // 15. Tesla Coil
             new ChipItemData
@@ -484,11 +532,13 @@ public class ChipsetController : MonoBehaviour
                 level = 14,
                 count = 19,
                 requiredCount = 15,
-                baseStatsSummary = "ATK 86 | Tốc độ đánh: Slow | Số mục tiêu tấn công: 1",
-                magicBonus = "Magic: Enemies Attacked: +1 (+1 mục tiêu bị giật điện)",
-                rareBonus = "Rare: ATK Speed +20%",
-                uniqueBonus = "Unique: Enemies Attacked: +1",
-                epicBonus = "Epic: ATK +100%"
+                enhanceCost = 800,
+                description = "High-voltage tower chaining arc lightning between targets.",
+                baseStatsSummary = "ATK <color=#FFCB49>86</color> | 1 Target\n<color=#FFCB49>Slow</color> ATK Speed",
+                magicBonus = "Enemies Attacked: +1",
+                rareBonus = "ATK Speed +20%",
+                uniqueBonus = "Enemies Attacked: +1",
+                epicBonus = "ATK +100%"
             },
             // 16. ATK Module
             new ChipItemData
@@ -500,11 +550,13 @@ public class ChipsetController : MonoBehaviour
                 level = 1,
                 count = 35,
                 requiredCount = 3,
-                baseStatsSummary = "All Weapon ATK +19.6% (Tăng ATK toàn bộ vũ khí)",
-                magicBonus = "Magic: All Weapons' ATK +7%",
-                rareBonus = "Rare: All Weapons' ATK +8%",
-                uniqueBonus = "Unique: All Weapons' ATK +9%",
-                epicBonus = "Epic: All Weapons' ATK +10%"
+                enhanceCost = 500,
+                description = "Overclocks weapon core amplifiers across all arsenal.",
+                baseStatsSummary = "All Weapon ATK <color=#FFCB49>+19.6%</color>",
+                magicBonus = "All Weapons' ATK +7%",
+                rareBonus = "All Weapons' ATK +8%",
+                uniqueBonus = "All Weapons' ATK +9%",
+                epicBonus = "All Weapons' ATK +10%"
             },
             // 17. Black Hole Mine
             new ChipItemData
@@ -516,13 +568,15 @@ public class ChipsetController : MonoBehaviour
                 level = 1,
                 count = 42,
                 requiredCount = 3,
-                baseStatsSummary = "Mine AoE ATK 15 | Thời gian hút của hố đen: 1.5s | Hồi chiêu: 9.7s",
-                magicBonus = "Magic: AoE ATK Range +10% (Tăng phạm vi hút)",
-                rareBonus = "Rare: Cooldown -10% (Giảm hồi chiêu)",
-                uniqueBonus = "Unique: Black Hole Duration +20% (Tăng thời gian hố đen tồn tại)",
-                epicBonus = "Epic: Black Hole Duration +30%"
+                enhanceCost = 500,
+                description = "Spawns gravitational singularities dragging surrounding foes inward.",
+                baseStatsSummary = "Mine AoE ATK <color=#FFCB49>15</color> | Vortex: 1.5s | CD 9.7s",
+                magicBonus = "AoE ATK Range +10%",
+                rareBonus = "Cooldown -10%",
+                uniqueBonus = "Black Hole Duration +20%",
+                epicBonus = "Black Hole Duration +30%"
             },
-            // 18. Sonic Boom
+            // 18. Sonic Boom (Matches User Screenshot 1)
             new ChipItemData
             {
                 id = 18,
@@ -530,13 +584,15 @@ public class ChipsetController : MonoBehaviour
                 iconKey = "sonic-boom",
                 tier = ChipTier.Magic,
                 level = 1,
-                count = 28,
+                count = 439,
                 requiredCount = 3,
-                baseStatsSummary = "ATK 33 | Tốc độ đánh: Very slow",
-                magicBonus = "Magic: ATK +15%",
-                rareBonus = "Rare: AoE ATK Range +15% (Tăng phạm vi sóng âm)",
-                uniqueBonus = "Unique: ATK +30%",
-                epicBonus = "Epic: AoE ATK Range +35%"
+                enhanceCost = 500,
+                description = "Inflicts a Sonic attack on enemies in a large area.",
+                baseStatsSummary = "ATK <color=#FFCB49>33</color>\n<color=#FFCB49>Very slow</color> ATK Speed",
+                magicBonus = "ATK +15%",
+                rareBonus = "AoE ATK Range +15%",
+                uniqueBonus = "ATK +30%",
+                epicBonus = "AoE ATK Range +35%"
             },
             // 19. Big Battery
             new ChipItemData
@@ -548,11 +604,13 @@ public class ChipsetController : MonoBehaviour
                 level = 1,
                 count = 34,
                 requiredCount = 3,
-                baseStatsSummary = "HP +10% (Máu tối đa)",
-                magicBonus = "Magic: HP +15%",
-                rareBonus = "Rare: HP +20%",
-                uniqueBonus = "Unique: HP +25%",
-                epicBonus = "Epic: HP +40%"
+                enhanceCost = 500,
+                description = "High-density capacitor module raising player max health.",
+                baseStatsSummary = "HP <color=#FFCB49>+10%</color>",
+                magicBonus = "HP +15%",
+                rareBonus = "HP +20%",
+                uniqueBonus = "HP +25%",
+                epicBonus = "HP +40%"
             },
             // 20. Turret Module
             new ChipItemData
@@ -564,11 +622,13 @@ public class ChipsetController : MonoBehaviour
                 level = 1,
                 count = 29,
                 requiredCount = 3,
-                baseStatsSummary = "All Turret Cooldown -7% (Giảm hồi chiêu toàn bộ trụ súng)",
-                magicBonus = "Magic: Turret ATK Speed +5% (Tăng tốc bắn của trụ)",
-                rareBonus = "Rare: Turret ATK Speed +10%",
-                uniqueBonus = "Unique: Turret ATK Speed +10%",
-                epicBonus = "Epic: Turret ATK Speed +25%"
+                enhanceCost = 500,
+                description = "Synchronizes firing algorithms across all automated turrets.",
+                baseStatsSummary = "All Turret Cooldown <color=#FFCB49>-7%</color>",
+                magicBonus = "Turret ATK Speed +5%",
+                rareBonus = "Turret ATK Speed +10%",
+                uniqueBonus = "Turret ATK Speed +10%",
+                epicBonus = "Turret ATK Speed +25%"
             },
             // 21. Ice Turret
             new ChipItemData
@@ -580,11 +640,13 @@ public class ChipsetController : MonoBehaviour
                 level = 1,
                 count = 31,
                 requiredCount = 3,
-                baseStatsSummary = "Thời gian sóng lạnh: 1s | Tốc độ đánh: Slow | Thời gian tồn tại: 11s | Hồi chiêu: 11s",
-                magicBonus = "Magic: AoE ATK Range +10% (Tăng phạm vi ảnh hưởng)",
-                rareBonus = "Rare: Cold Wave Duration +15% (Tăng thời gian làm chậm)",
-                uniqueBonus = "Unique: AoE ATK Range +10%",
-                epicBonus = "Epic: Cold Wave Duration +30%"
+                enhanceCost = 500,
+                description = "Projects cryogenic bursts freezing and slowing monsters.",
+                baseStatsSummary = "Freeze: 1s | Duration: 11s | CD: 11s\n<color=#FFCB49>Slow</color> ATK Speed",
+                magicBonus = "AoE ATK Range +10%",
+                rareBonus = "Cold Wave Duration +15%",
+                uniqueBonus = "AoE ATK Range +10%",
+                epicBonus = "Cold Wave Duration +30%"
             },
             // 22. Invincible Shield
             new ChipItemData
@@ -596,11 +658,13 @@ public class ChipsetController : MonoBehaviour
                 level = 1,
                 count = 26,
                 requiredCount = 3,
-                baseStatsSummary = "Thời gian bất tử: 2.3s | Hồi chiêu: 35s (Xóa toàn bộ hiệu ứng bất lợi khi kích hoạt)",
-                magicBonus = "Magic: Duration +10% (Tăng thời gian bất tử)",
-                rareBonus = "Rare: Cooldown -10% (Giảm hồi chiêu)",
-                uniqueBonus = "Unique: Duration +9%",
-                epicBonus = "Epic: Cooldown -9%"
+                enhanceCost = 500,
+                description = "Triggers temporary impenetrable invulnerability bubble.",
+                baseStatsSummary = "Invincibility: <color=#FFCB49>2.3s</color> | CD: 35s\nRemoves all status debuffs",
+                magicBonus = "Duration +10%",
+                rareBonus = "Cooldown -10%",
+                uniqueBonus = "Duration +9%",
+                epicBonus = "Cooldown -9%"
             },
             // 23. Healing Turret
             new ChipItemData
@@ -612,11 +676,13 @@ public class ChipsetController : MonoBehaviour
                 level = 1,
                 count = 33,
                 requiredCount = 3,
-                baseStatsSummary = "Hồi phục: 2 HP/giây | Thời gian tồn tại: 12s | Hồi chiêu: 11s",
-                magicBonus = "Magic: Turret Duration +20% (Tăng thời gian tồn tại)",
-                rareBonus = "Rare: Turret Range +37% (Tăng phạm vi hồi máu)",
-                uniqueBonus = "Unique: Turret Range +60%",
-                epicBonus = "Epic: Turret Duration +30%"
+                enhanceCost = 500,
+                description = "Medical beacon emitting regenerative restorative pulses.",
+                baseStatsSummary = "Heal: <color=#FFCB49>2 HP/s</color> | Duration 12s | CD 11s",
+                magicBonus = "Turret Duration +20%",
+                rareBonus = "Turret Range +37%",
+                uniqueBonus = "Turret Range +60%",
+                epicBonus = "Turret Duration +30%"
             },
             // 24. Flamethrower
             new ChipItemData
@@ -628,11 +694,13 @@ public class ChipsetController : MonoBehaviour
                 level = 1,
                 count = 45,
                 requiredCount = 3,
-                baseStatsSummary = "ATK 102.46/giây (kéo dài 3s) | Tốc độ đánh: Normal",
-                magicBonus = "Magic: AoE ATK Range +25% (Tăng tầm phun lửa)",
-                rareBonus = "Rare: ATK +15%",
-                uniqueBonus = "Unique: AoE ATK Range +25%",
-                epicBonus = "Epic: ATK +100%"
+                enhanceCost = 500,
+                description = "Continuous napalm jet incinerating monsters in a forward stream.",
+                baseStatsSummary = "ATK <color=#FFCB49>102.46/s</color> (3s duration)\n<color=#FFCB49>Normal</color> ATK Speed",
+                magicBonus = "AoE ATK Range +25%",
+                rareBonus = "ATK +15%",
+                uniqueBonus = "AoE ATK Range +25%",
+                epicBonus = "ATK +100%"
             }
         };
 
@@ -660,7 +728,8 @@ public class ChipsetController : MonoBehaviour
         if (highTechModeBtn != null) highTechModeBtn.onClick.AddListener(() => ShowToast("High-Tech Chipset unlocks at Chapter 10!"));
 
         if (detailCloseBtn != null) detailCloseBtn.onClick.AddListener(() => detailModal.SetActive(false));
-        if (detailUpgradeBtn != null) detailUpgradeBtn.onClick.AddListener(OnDetailActionButtonClicked);
+        if (detailEnhanceBtn != null) detailEnhanceBtn.onClick.AddListener(EnhanceSelectedChip);
+        if (detailAdvanceTierBtn != null) detailAdvanceTierBtn.onClick.AddListener(AdvanceTierSelectedChip);
         if (detailEquipBtn != null) detailEquipBtn.onClick.AddListener(ToggleEquipSelectedChip);
     }
 
@@ -710,22 +779,35 @@ public class ChipsetController : MonoBehaviour
     public void RefreshEquippedGrid()
     {
         int[] currentDeck = deckEquippedIds[activeDeckIndex];
+        Sprite defaultFrame = GetFrameSprite(ChipTier.Magic);
+
         for (int i = 0; i < 10; i++)
         {
             if (i >= equippedSlots.Length || equippedSlots[i] == null) continue;
 
             int chipId = (currentDeck != null && i < currentDeck.Length) ? currentDeck[i] : -1;
-            ChipItemData chip = allChips.FirstOrDefault(c => c.id == chipId);
-            if (chip != null)
+            if (chipId == -1)
             {
-                Sprite icon = GetIconSprite(chip.iconKey);
-                Sprite frame = GetFrameSprite(chip.tier);
-                equippedSlots[i].Setup(chip, icon, frame, OpenDetailModal, HandleCardAction);
+                int slotIndex = i;
+                equippedSlots[i].SetupEmpty(defaultFrame, () => ShowToast($"Slot {slotIndex + 1} is empty. Select a chip below to equip."));
                 equippedSlots[i].gameObject.SetActive(true);
             }
             else
             {
-                equippedSlots[i].gameObject.SetActive(false);
+                ChipItemData chip = allChips.FirstOrDefault(c => c.id == chipId);
+                if (chip != null)
+                {
+                    Sprite icon = GetIconSprite(chip.iconKey);
+                    Sprite frame = GetFrameSprite(chip.tier);
+                    equippedSlots[i].Setup(chip, icon, frame, OpenDetailModal, QuickUpgradeChip);
+                    equippedSlots[i].gameObject.SetActive(true);
+                }
+                else
+                {
+                    int slotIndex = i;
+                    equippedSlots[i].SetupEmpty(defaultFrame, () => ShowToast($"Slot {slotIndex + 1} is empty. Select a chip below to equip."));
+                    equippedSlots[i].gameObject.SetActive(true);
+                }
             }
         }
     }
@@ -763,7 +845,7 @@ public class ChipsetController : MonoBehaviour
             ChipItemData data = sortedList[i];
             Sprite icon = GetIconSprite(data.iconKey);
             Sprite frame = GetFrameSprite(data.tier);
-            card.Setup(data, icon, frame, OpenDetailModal, HandleCardAction);
+            card.Setup(data, icon, frame, OpenDetailModal, QuickUpgradeChip);
             card.gameObject.SetActive(true);
         }
 
@@ -773,60 +855,28 @@ public class ChipsetController : MonoBehaviour
         }
     }
 
+    public void QuickUpgradeChip(ChipItemData chip)
+    {
+        OpenDetailModal(chip);
+    }
+
     public void HandleCardAction(ChipItemData chip)
     {
         if (chip == null) return;
 
         if (chip.CanAdvanceTier)
         {
-            if (chip.NeedsAdvanceStones && !ChipManager.HasEnoughAdvanceStones(10))
-            {
-                ShowToast("Need 10 Advance Stones to Breakthrough Tier 5 (LV.24)!");
-                return;
-            }
-
-            bool success = chip.AdvanceTier();
-            if (success)
-            {
-                RefreshTopBar();
-                RefreshEquippedGrid();
-                RefreshInventory();
-                if (detailModal != null && detailModal.activeSelf && selectedDetailChip == chip)
-                {
-                    RefreshDetailModal();
-                }
-                ShowToast($"ADVANCED {chip.chipName} to {chip.tier.ToString().ToUpper()} (Max LV.{chip.MaxLevel:00})!");
-            }
+            AdvanceTierSelectedChip();
             return;
         }
 
-        if (chip.CanUpgrade)
+        if (chip.CanEnhance)
         {
-            chip.Upgrade();
-            ChipManager.AddDataChips(100);
-            RefreshTopBar();
-            RefreshEquippedGrid();
-            RefreshInventory();
-            if (detailModal != null && detailModal.activeSelf && selectedDetailChip == chip)
-            {
-                RefreshDetailModal();
-            }
-            ShowToast($"Upgraded {chip.chipName} to LV.{chip.level:00}!");
+            EnhanceSelectedChip();
             return;
         }
 
-        if (chip.IsMaxOverall)
-        {
-            ShowToast($"{chip.chipName} is already MAX LEVEL & TIER!");
-        }
-        else if (chip.IsAtTierCap)
-        {
-            ShowToast($"{chip.chipName} has reached Tier Cap (LV.{chip.MaxLevel:00})! Advance Tier to continue.");
-        }
-        else
-        {
-            ShowToast("Not enough chip fragments to upgrade!");
-        }
+        OpenDetailModal(chip);
     }
 
     public void OpenDetailModal(ChipItemData chip)
@@ -837,99 +887,96 @@ public class ChipsetController : MonoBehaviour
         detailModal.SetActive(true);
     }
 
-    private void RefreshDetailModal()
+    public void RefreshDetailModal()
     {
         if (selectedDetailChip == null) return;
 
-        if (detailIcon != null) detailIcon.sprite = GetIconSprite(selectedDetailChip.iconKey);
+        // 1. Mod Badge
+        if (detailModBadgeText != null)
+        {
+            detailModBadgeText.text = $"🔧 Mod able (up to LV{selectedDetailChip.MaxLevel:00}) 🔧";
+        }
+
+        // 2. Top Card
+        if (detailTopCard != null)
+        {
+            Sprite icon = GetIconSprite(selectedDetailChip.iconKey);
+            Sprite frame = GetFrameSprite(selectedDetailChip.tier);
+            detailTopCard.Setup(selectedDetailChip, icon, frame);
+        }
+
+        // 3. Name & Tier Subtitle
         if (detailNameText != null) detailNameText.text = selectedDetailChip.chipName;
-
-        string levelInfo = selectedDetailChip.IsMaxOverall
-            ? $"LEVEL {selectedDetailChip.level:00} [MAX LEVEL]"
-            : (selectedDetailChip.IsAtTierCap
-                ? $"LEVEL {selectedDetailChip.level:00}/{selectedDetailChip.MaxLevel:00} [TIER CAP]"
-                : $"LEVEL {selectedDetailChip.level:00}/{selectedDetailChip.MaxLevel:00}");
-
-        if (detailLevelText != null) detailLevelText.text = levelInfo;
-        if (detailTierText != null) detailTierText.text = $"TIER {(int)selectedDetailChip.tier} ({selectedDetailChip.tier.ToString().ToUpper()})";
-        if (detailBaseStatsText != null) detailBaseStatsText.text = $"• {selectedDetailChip.baseStatsSummary}";
-
-        // Formatting Perks: Active perks colored bright cyan/gold, Locked perks greyed out with unlock conditions
-        bool hasMagic = selectedDetailChip.tier >= ChipTier.Magic;
-        bool hasRare = selectedDetailChip.tier >= ChipTier.Rare;
-        bool hasUnique = selectedDetailChip.tier >= ChipTier.Unique;
-        bool hasEpic = selectedDetailChip.tier >= ChipTier.Epic;
-
-        if (detailMagicText != null)
+        if (detailTierText != null)
         {
-            detailMagicText.text = hasMagic
-                ? $"<color=#40DAD2>• {selectedDetailChip.magicBonus} <color=#22C55E>[ACTIVE]</color></color>"
-                : $"<color=#88A0A8>• {selectedDetailChip.magicBonus} [Unlock at Tier 1 - Magic]</color>";
+            detailTierText.text = selectedDetailChip.tier == ChipTier.Magic ? "Common" : selectedDetailChip.tier.ToString();
         }
 
-        if (detailRareText != null)
-        {
-            detailRareText.text = hasRare
-                ? $"<color=#40DAD2>• {selectedDetailChip.rareBonus} <color=#22C55E>[ACTIVE]</color></color>"
-                : $"<color=#88A0A8>• {selectedDetailChip.rareBonus} [Unlock at Tier 2 - Rare (LV.09)]</color>";
-        }
+        // 4. Description & Base Stats
+        if (detailDescText != null) detailDescText.text = selectedDetailChip.description;
+        if (detailBaseStatsText != null) detailBaseStatsText.text = selectedDetailChip.baseStatsSummary;
 
-        if (detailUniqueText != null)
-        {
-            detailUniqueText.text = hasUnique
-                ? $"<color=#40DAD2>• {selectedDetailChip.uniqueBonus} <color=#22C55E>[ACTIVE]</color></color>"
-                : $"<color=#88A0A8>• {selectedDetailChip.uniqueBonus} [Unlock at Tier 3 - Unique (LV.14)]</color>";
-        }
+        // 5. 4 Tier Perk Rows with color tags
+        string[] tierNames = { "Magic", "Rare", "Unique", "Epic" };
+        string[] tierColors = { "#38BDF8", "#C084FC", "#FACC15", "#FB7185" };
+        string[] perkTexts = {
+            selectedDetailChip.magicBonus,
+            selectedDetailChip.rareBonus,
+            selectedDetailChip.uniqueBonus,
+            selectedDetailChip.epicBonus
+        };
 
-        if (detailEpicText != null)
+        for (int i = 0; i < 4; i++)
         {
-            detailEpicText.text = hasEpic
-                ? $"<color=#40DAD2>• {selectedDetailChip.epicBonus} <color=#22C55E>[ACTIVE]</color></color>"
-                : $"<color=#88A0A8>• {selectedDetailChip.epicBonus} [Unlock at Tier 4 - Epic (LV.18)]</color>";
-        }
-
-        if (detailUpgradeBtn != null)
-        {
-            if (selectedDetailChip.IsMaxOverall)
+            bool isUnlocked = (int)selectedDetailChip.tier > i;
+            if (i < perkRowIcons.Length && perkRowIcons[i] != null)
             {
-                detailUpgradeBtn.interactable = false;
-                if (detailUpgradeBtnText != null) detailUpgradeBtnText.text = "MAX LEVEL (LV.24)";
-            }
-            else if (selectedDetailChip.CanAdvanceTier)
-            {
-                if (selectedDetailChip.NeedsAdvanceStones)
+                if (isUnlocked && unlockedCheckSprite != null)
                 {
-                    bool hasStones = ChipManager.HasEnoughAdvanceStones(10);
-                    detailUpgradeBtn.interactable = hasStones;
-                    if (detailUpgradeBtnText != null)
-                    {
-                        detailUpgradeBtnText.text = hasStones
-                            ? "ADVANCE TIER (10 STONES) -> LV.24"
-                            : $"NEED 10 STONES ({ChipManager.AdvanceStones}/10)";
-                    }
+                    perkRowIcons[i].sprite = unlockedCheckSprite;
+                }
+                else if (i < lockTierSprites.Length && lockTierSprites[i] != null)
+                {
+                    perkRowIcons[i].sprite = lockTierSprites[i];
+                }
+            }
+
+            if (i < perkRowTexts.Length && perkRowTexts[i] != null)
+            {
+                if (isUnlocked)
+                {
+                    perkRowTexts[i].text = $"<color=#40DAD2>{perkTexts[i]}</color> <color=#22C55E>[ACTIVE]</color>";
                 }
                 else
                 {
-                    detailUpgradeBtn.interactable = true;
-                    int nextTierLevel = ChipItemData.GetMaxLevelForTier((ChipTier)((int)selectedDetailChip.tier + 1));
-                    if (detailUpgradeBtnText != null)
-                    {
-                        detailUpgradeBtnText.text = $"ADVANCE TIER -> MAX LV.{nextTierLevel:00}";
-                    }
-                }
-            }
-            else
-            {
-                detailUpgradeBtn.interactable = selectedDetailChip.CanUpgrade;
-                if (detailUpgradeBtnText != null)
-                {
-                    detailUpgradeBtnText.text = selectedDetailChip.requiredCount > 0
-                        ? $"UPGRADE ({selectedDetailChip.count}/{selectedDetailChip.requiredCount})"
-                        : "UPGRADE";
+                    perkRowTexts[i].text = $"{perkTexts[i]}(<color={tierColors[i]}>{tierNames[i]}</color>Unlock)";
                 }
             }
         }
 
+        // 6. Enhance Button
+        if (detailEnhanceCostText != null)
+        {
+            detailEnhanceCostText.text = $"{selectedDetailChip.enhanceCost}";
+        }
+        if (detailEnhanceBtn != null)
+        {
+            detailEnhanceBtn.interactable = selectedDetailChip.CanEnhance;
+        }
+
+        // 7. Advance Tier Button
+        if (detailAdvanceTierText != null)
+        {
+            detailAdvanceTierText.text = selectedDetailChip.requiredCount > 0
+                ? $"Advance Tier ({selectedDetailChip.count}/{selectedDetailChip.requiredCount})"
+                : "MAX TIER";
+        }
+        if (detailAdvanceTierBtn != null)
+        {
+            detailAdvanceTierBtn.interactable = selectedDetailChip.CanAdvanceTier;
+        }
+
+        // 8. Equip / Unequip Button
         bool isEquipped = deckEquippedIds[activeDeckIndex].Contains(selectedDetailChip.id);
         if (detailEquipBtnText != null)
         {
@@ -937,11 +984,46 @@ public class ChipsetController : MonoBehaviour
         }
     }
 
-    private void OnDetailActionButtonClicked()
+    private void EnhanceSelectedChip()
     {
-        if (selectedDetailChip != null)
+        if (selectedDetailChip == null) return;
+        if (!selectedDetailChip.CanEnhance)
         {
-            HandleCardAction(selectedDetailChip);
+            ShowToast("Not enough Data Chips to enhance!");
+            return;
+        }
+
+        if (selectedDetailChip.Enhance())
+        {
+            RefreshTopBar();
+            RefreshEquippedGrid();
+            RefreshInventory();
+            RefreshDetailModal();
+            ShowToast($"Enhanced {selectedDetailChip.chipName} to LV.{selectedDetailChip.level:00}!");
+        }
+    }
+
+    private void AdvanceTierSelectedChip()
+    {
+        if (selectedDetailChip == null) return;
+        if (selectedDetailChip.NeedsAdvanceStones && !ChipManager.HasEnoughAdvanceStones(10))
+        {
+            ShowToast("Need 10 Advance Stones to Breakthrough Tier 5 (LV.24)!");
+            return;
+        }
+        if (!selectedDetailChip.CanAdvanceTier)
+        {
+            ShowToast("Not enough fragments to advance tier!");
+            return;
+        }
+
+        if (selectedDetailChip.AdvanceTier())
+        {
+            RefreshTopBar();
+            RefreshEquippedGrid();
+            RefreshInventory();
+            RefreshDetailModal();
+            ShowToast($"Advanced {selectedDetailChip.chipName} to {selectedDetailChip.tier.ToString().ToUpper()} Tier!");
         }
     }
 
@@ -962,13 +1044,21 @@ public class ChipsetController : MonoBehaviour
         {
             // Find empty slot or replace slot 0
             int emptyIndex = Array.IndexOf(currentDeck, -1);
-            if (emptyIndex < 0) emptyIndex = 0;
-            currentDeck[emptyIndex] = selectedDetailChip.id;
-            ShowToast($"Equipped {selectedDetailChip.chipName} to Slot {emptyIndex + 1}");
+            if (emptyIndex >= 0)
+            {
+                currentDeck[emptyIndex] = selectedDetailChip.id;
+                ShowToast($"Equipped {selectedDetailChip.chipName} to Slot {emptyIndex + 1}");
+            }
+            else
+            {
+                currentDeck[0] = selectedDetailChip.id;
+                ShowToast($"Replaced Slot 1 with {selectedDetailChip.chipName}");
+            }
         }
 
         RefreshEquippedGrid();
         RefreshDetailModal();
+        RefreshInventory();
     }
 
     public void OpenFurnaceModal()

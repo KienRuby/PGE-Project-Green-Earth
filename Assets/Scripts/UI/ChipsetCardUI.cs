@@ -3,6 +3,12 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+public enum ChipSlotState
+{
+    Normal = 0,
+    Empty = 1
+}
+
 public class ChipsetCardUI : MonoBehaviour
 {
     [Header("UI Elements")]
@@ -16,11 +22,18 @@ public class ChipsetCardUI : MonoBehaviour
     [SerializeField] private GameObject starObject;
     [SerializeField] private Image bottomProgressBar;
 
+    [Header("UI Groups")]
+    [SerializeField] private GameObject normalContentGroup;
+    [SerializeField] private GameObject emptySlotGroup;
+
     private ChipItemData boundData;
+    private ChipSlotState slotState = ChipSlotState.Normal;
     private Action<ChipItemData> onCardClicked;
     private Action<ChipItemData> onUpgradeClicked;
+    private Action onEmptySlotClicked;
 
     public ChipItemData BoundData => boundData;
+    public ChipSlotState SlotState => slotState;
 
     public void Setup(
         ChipItemData data,
@@ -30,8 +43,12 @@ public class ChipsetCardUI : MonoBehaviour
         Action<ChipItemData> onUpgradeClick = null)
     {
         boundData = data;
+        slotState = ChipSlotState.Normal;
         onCardClicked = onCardClick;
         onUpgradeClicked = onUpgradeClick;
+
+        if (normalContentGroup != null) normalContentGroup.SetActive(true);
+        if (emptySlotGroup != null) emptySlotGroup.SetActive(false);
 
         if (cardFrameImage != null && frameSprite != null)
         {
@@ -104,6 +121,26 @@ public class ChipsetCardUI : MonoBehaviour
         }
     }
 
+    public void SetupEmpty(Sprite frameSprite, Action onEmptyClick = null)
+    {
+        boundData = null;
+        onEmptySlotClicked = onEmptyClick;
+
+        if (normalContentGroup != null) normalContentGroup.SetActive(false);
+        if (emptySlotGroup != null) emptySlotGroup.SetActive(true);
+
+        if (cardFrameImage != null && frameSprite != null)
+        {
+            cardFrameImage.sprite = frameSprite;
+        }
+
+        if (cardButton != null)
+        {
+            cardButton.onClick.RemoveAllListeners();
+            cardButton.onClick.AddListener(() => onEmptySlotClicked?.Invoke());
+        }
+    }
+
     public void Refresh()
     {
         if (boundData == null) return;
@@ -165,7 +202,9 @@ public class ChipsetCardUI : MonoBehaviour
         Button upgBtn,
         GameObject upgArrow,
         GameObject starObj,
-        Image bottomBar)
+        Image bottomBar,
+        GameObject normalGroup = null,
+        GameObject emptyGroup = null)
     {
         this.cardFrameImage = frameImg;
         this.iconImage = iconImg;
@@ -176,10 +215,15 @@ public class ChipsetCardUI : MonoBehaviour
         this.upgradeArrowGroup = upgArrow;
         this.starObject = starObj;
         this.bottomProgressBar = bottomBar;
+        this.normalContentGroup = normalGroup;
+        this.emptySlotGroup = emptyGroup;
     }
 
     public void SetDirectVisual(Sprite frame, Sprite icon, string level, string progress, bool star, bool arrow)
     {
+        if (normalContentGroup != null) normalContentGroup.SetActive(true);
+        if (emptySlotGroup != null) emptySlotGroup.SetActive(false);
+
         if (cardFrameImage != null && frame != null) cardFrameImage.sprite = frame;
         if (iconImage != null && icon != null)
         {
