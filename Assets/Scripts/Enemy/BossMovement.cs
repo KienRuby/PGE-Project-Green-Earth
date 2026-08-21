@@ -72,6 +72,8 @@ public class BossMovement : MonoBehaviour, IPoolable
     private Rigidbody2D rb;
     private Transform player;
     private EnemyHealth health;
+    private BossRangedAttack rangedAttack;
+    private Animator animator;
     private SpriteRenderer[] spriteRenderers;
     private Color[] originalColors;
 
@@ -84,6 +86,10 @@ public class BossMovement : MonoBehaviour, IPoolable
     private bool isFacingRight = true;
     private bool isEnraged = false;
     private float baseMoveSpeed;
+    private int currentAnimationHash;
+
+    private static readonly int RunAnimationHash = Animator.StringToHash("Run");
+    private static readonly int IdleAnimationHash = Animator.StringToHash("Idle");
 
     public float MoveSpeed
     {
@@ -103,6 +109,8 @@ public class BossMovement : MonoBehaviour, IPoolable
         rb.freezeRotation = true;
 
         health = GetComponent<EnemyHealth>();
+        rangedAttack = GetComponent<BossRangedAttack>();
+        animator = GetComponent<Animator>() ?? GetComponentInChildren<Animator>();
         spriteRenderers = GetComponentsInChildren<SpriteRenderer>(true);
 
         if (spriteRenderers != null && spriteRenderers.Length > 0)
@@ -146,7 +154,7 @@ public class BossMovement : MonoBehaviour, IPoolable
     {
         CheckEnrageStatus();
 
-        if (currentState == BossState.Chase && enableDashAttack)
+        if (currentState == BossState.Chase && enableDashAttack && CanStartDashFromCurrentRange())
         {
             float currentCooldown = isEnraged ? (dashCooldown * enrageCooldownMultiplier) : dashCooldown;
             dashTimer -= Time.deltaTime;
@@ -173,6 +181,7 @@ public class BossMovement : MonoBehaviour, IPoolable
             if (player == null || !player.gameObject.activeInHierarchy)
             {
                 if (rb != null) rb.velocity = Vector2.zero;
+                PlayAnimation(IdleAnimationHash);
                 return;
             }
         }
@@ -186,6 +195,7 @@ public class BossMovement : MonoBehaviour, IPoolable
 
             case BossState.Windup:
                 rb.velocity = Vector2.zero;
+                PlayAnimation(IdleAnimationHash);
                 stateTimer -= Time.fixedDeltaTime;
                 // Khóa hướng ngắm vào Player trong lúc tích lực
                 if (player != null)
@@ -200,6 +210,7 @@ public class BossMovement : MonoBehaviour, IPoolable
                 break;
 
             case BossState.Dash:
+                PlayAnimation(RunAnimationHash);
                 float currentDashSpeed = (moveSpeed * (isEnraged ? enrageSpeedMultiplier : 1f)) * dashSpeedMultiplier;
                 rb.MovePosition(rb.position + dashDirection * currentDashSpeed * Time.fixedDeltaTime);
                 stateTimer -= Time.fixedDeltaTime;
@@ -211,6 +222,7 @@ public class BossMovement : MonoBehaviour, IPoolable
 
             case BossState.Recover:
                 rb.velocity = Vector2.zero;
+                PlayAnimation(IdleAnimationHash);
                 stateTimer -= Time.fixedDeltaTime;
                 if (stateTimer <= 0f)
                 {
@@ -222,21 +234,54 @@ public class BossMovement : MonoBehaviour, IPoolable
 
     private void UpdateChaseMovement()
     {
-        if (player == null) return;
+        if (player == null)
+        {
+            PlayAnimation(IdleAnimationHash);
+            return;
+        }
 
         Vector2 toPlayer = (Vector2)player.position - rb.position;
         float distance = toPlayer.magnitude;
 
-        if (distance <= stoppingDistance)
+        BossRangedAttack.TargetRangeState rangeState = rangedAttack != null
+            ? rangedAttack.GetTargetRangeState()
+            : BossRangedAttack.TargetRangeState.NoTarget;
+
+        if (rangeState == BossRangedAttack.TargetRangeState.InRange)
         {
             rb.velocity = Vector2.zero;
+            PlayAnimation(IdleAnimationHash);
             return;
         }
 
-        Vector2 moveDir = toPlayer.normalized;
+        if (rangedAttack == null && distance <= stoppingDistance)
+        {
+            rb.velocity = Vector2.zero;
+            PlayAnimation(IdleAnimationHash);
+            return;
+        }
+
+        Vector2 moveDir = rangeState == BossRangedAttack.TargetRangeState.TooClose
+            ? -toPlayer.normalized
+            : toPlayer.normalized;
         float effectiveSpeed = moveSpeed * (isEnraged ? enrageSpeedMultiplier : 1f);
         Vector2 targetPos = rb.position + moveDir * effectiveSpeed * Time.fixedDeltaTime;
         rb.MovePosition(targetPos);
+        PlayAnimation(RunAnimationHash);
+    }
+
+    private bool CanStartDashFromCurrentRange()
+    {
+        if (rangedAttack == null) return true;
+        return rangedAttack.GetTargetRangeState() == BossRangedAttack.TargetRangeState.TooFar;
+    }
+
+    private void PlayAnimation(int stateHash)
+    {
+        if (animator == null || currentAnimationHash == stateHash) return;
+
+        currentAnimationHash = stateHash;
+        animator.Play(stateHash, 0, 0f);
     }
 
     /// <summary>
@@ -339,6 +384,8 @@ public class BossMovement : MonoBehaviour, IPoolable
         isFacingRight = !initialFacingLeft;
         dashTimer = Random.Range(dashCooldown * 0.5f, dashCooldown);
         RestoreSpritesColor();
+        currentAnimationHash = 0;
+        PlayAnimation(RunAnimationHash);
     }
 
     public void OnReturnToPool()
@@ -348,6 +395,7 @@ public class BossMovement : MonoBehaviour, IPoolable
         isEnraged = false;
         if (rb != null) rb.velocity = Vector2.zero;
         RestoreSpritesColor();
+        currentAnimationHash = 0;
     }
 
     private void OnDrawGizmosSelected()

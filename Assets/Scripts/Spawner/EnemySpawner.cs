@@ -504,6 +504,14 @@ public class EnemySpawner : MonoBehaviour
             bossMovement.MoveSpeed = bossMovement.BaseMoveSpeed * Mathf.Max(0.1f, speedMul);
         }
 
+        BossRangedAttack rangedAttack = enemyObj.GetComponent<BossRangedAttack>();
+        if (rangedAttack != null)
+        {
+            rangedAttack.SetTarget(playerTransform);
+            int scaledProjectileDamage = Mathf.RoundToInt(rangedAttack.BaseProjectileDamage * Mathf.Max(0.5f, damageMul));
+            rangedAttack.SetProjectileDamage(scaledProjectileDamage);
+        }
+
         // Máu quái & EXP
         EnemyHealth health = enemyObj.GetComponent<EnemyHealth>();
         if (health != null)

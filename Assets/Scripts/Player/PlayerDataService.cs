@@ -20,6 +20,7 @@ public static class PlayerDataService
     public const string CompletedRollsKey = "PGE.Lab.CompletedRolls";
     public const string ItemLevelKeyPrefix = "PGE.Lab.ItemLevel.";
     public const string SelectedWeaponIdKey = "SelectedWeaponId";
+    public const string VipOwnedKey = "PGE.Account.VipOwned";
 
     // =========================================================================
     // INITIALIZATION: TARGET FRAMERATE
@@ -191,6 +192,19 @@ public static class PlayerDataService
             PlayerPrefs.SetString(SelectedWeaponIdKey, normalized);
             PlayerPrefs.Save();
             OnSelectedWeaponChanged?.Invoke(normalized);
+        }
+    }
+
+    /// <summary>
+    /// Trạng thái VIP do luồng IAP/shop hợp lệ cập nhật. Mặc định luôn khóa.
+    /// </summary>
+    public static bool IsVipOwned
+    {
+        get => PlayerPrefs.GetInt(VipOwnedKey, 0) == 1;
+        set
+        {
+            PlayerPrefs.SetInt(VipOwnedKey, value ? 1 : 0);
+            PlayerPrefs.Save();
         }
     }
 

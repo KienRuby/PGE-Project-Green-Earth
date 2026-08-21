@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -50,11 +51,49 @@ public class BottomNavigationController : MonoBehaviour
     [Tooltip("Vị trí mục được chọn khi khởi động (0: Shop, 1: Lab, 2: Chapter, 3: Chipset, 4: Buddy).")]
     [SerializeField] private int defaultSelectedIndex = 2;
 
-    [Header("Visual Feedback")]
+    [Header("Hiển thị")]
     [Tooltip("Tự động đặt màu Image thành trắng khi đổi sprite để sprite hiển thị đúng màu gốc 100%.")]
     [SerializeField] private bool resetImageColorToWhite = true;
 
+    [Header("Hiệu ứng khi bấm")]
+    [Tooltip("Bật hiệu ứng nhấn xuống rồi bật lên cho 5 nút điều hướng.")]
+    [SerializeField] private bool animateSelection = true;
+
+    [Tooltip("Độ cao của nút đang được chọn so với vị trí gốc.")]
+    [SerializeField] private float selectedYOffset = 14f;
+
+    [Tooltip("Độ hạ xuống của nút trong khoảnh khắc vừa bấm. Giá trị âm làm nút đi xuống.")]
+    [SerializeField] private float pressedYOffset = -4f;
+
+    [Tooltip("Tỉ lệ thu nhỏ của nút trong khoảnh khắc vừa bấm.")]
+    [Range(0.75f, 1f)]
+    [SerializeField] private float pressedScale = 0.94f;
+
+    [Tooltip("Tỉ lệ phóng lớn nhẹ khi nút bật lên.")]
+    [Range(1f, 1.2f)]
+    [SerializeField] private float popScale = 1.06f;
+
+    [Tooltip("Thời gian nút hạ xuống sau khi bấm, tính bằng giây.")]
+    [Min(0f)]
+    [SerializeField] private float pressDuration = 0.05f;
+
+    [Tooltip("Thời gian nút bật lên, tính bằng giây.")]
+    [Min(0f)]
+    [SerializeField] private float popDuration = 0.10f;
+
+    [Tooltip("Thời gian nút ổn định lại sau khi bật lên, tính bằng giây.")]
+    [Min(0f)]
+    [SerializeField] private float settleDuration = 0.08f;
+
+    [Tooltip("Màu của nút trong khoảnh khắc đang được nhấn.")]
+    [SerializeField] private Color pressedColor = new Color(0.65f, 0.82f, 0.85f, 0.8f);
+
     private int currentIndex = -1;
+    private RectTransform[] itemRects;
+    private Vector2[] baseAnchoredPositions;
+    private Vector3[] baseScales;
+    private Color[] baseImageColors;
+    private Coroutine selectionRoutine;
 
     public int CurrentIndex => currentIndex;
     public NavigationItem[] Items => items;
@@ -82,7 +121,25 @@ public class BottomNavigationController : MonoBehaviour
             }
         }
 
-        Select(defaultSelectedIndex);
+        CacheVisualState();
+
+        int initialIndex = Mathf.Clamp(defaultSelectedIndex, 0, items.Length - 1);
+        ApplySelectionState(initialIndex);
+        ApplyRestingVisualState(initialIndex);
+    }
+
+    private void OnDisable()
+    {
+        if (selectionRoutine != null)
+        {
+            StopCoroutine(selectionRoutine);
+            selectionRoutine = null;
+        }
+
+        if (itemRects != null && currentIndex >= 0)
+        {
+            ApplyRestingVisualState(currentIndex);
+        }
     }
 
     private void OnDestroy()
@@ -108,6 +165,193 @@ public class BottomNavigationController : MonoBehaviour
             return;
         }
 
+        if (selectedIndex == currentIndex)
+        {
+            return;
+        }
+
+        if (!animateSelection || !isActiveAndEnabled || itemRects == null || itemRects[selectedIndex] == null)
+        {
+            ApplySelectionState(selectedIndex);
+            ApplyRestingVisualState(selectedIndex);
+            return;
+        }
+
+        if (selectionRoutine != null)
+        {
+            StopCoroutine(selectionRoutine);
+            ApplyRestingVisualState(currentIndex);
+        }
+
+        selectionRoutine = StartCoroutine(AnimateSelection(selectedIndex));
+    }
+
+    private void CacheVisualState()
+    {
+        itemRects = new RectTransform[items.Length];
+        baseAnchoredPositions = new Vector2[items.Length];
+        baseScales = new Vector3[items.Length];
+        baseImageColors = new Color[items.Length];
+
+        for (int i = 0; i < items.Length; i++)
+        {
+            NavigationItem item = items[i];
+            if (item == null || item.button == null)
+            {
+                continue;
+            }
+
+            RectTransform rect = item.button.transform as RectTransform;
+            itemRects[i] = rect;
+            if (rect != null)
+            {
+                baseAnchoredPositions[i] = rect.anchoredPosition;
+                baseScales[i] = rect.localScale;
+            }
+
+            Image image = GetButtonImage(item);
+            baseImageColors[i] = image != null ? image.color : Color.white;
+        }
+    }
+
+    private IEnumerator AnimateSelection(int selectedIndex)
+    {
+        int previousIndex = currentIndex;
+        RectTransform selectedRect = itemRects[selectedIndex];
+        Image selectedImage = GetButtonImage(items[selectedIndex]);
+
+        Vector2 pressedPosition = baseAnchoredPositions[selectedIndex] + Vector2.up * pressedYOffset;
+        Vector3 pressedLocalScale = baseScales[selectedIndex] * pressedScale;
+
+        yield return TweenButton(
+            selectedRect,
+            selectedImage,
+            selectedRect.anchoredPosition,
+            pressedPosition,
+            selectedRect.localScale,
+            pressedLocalScale,
+            GetCurrentColor(selectedIndex),
+            pressedColor,
+            pressDuration);
+
+        ApplySelectionState(selectedIndex);
+
+        // Những nút không tham gia chuyển tiếp luôn trở về đúng vị trí gốc.
+        for (int i = 0; i < itemRects.Length; i++)
+        {
+            if (i != selectedIndex && i != previousIndex)
+            {
+                ApplyRestingVisualToItem(i, false);
+            }
+        }
+
+        selectedRect.anchoredPosition = pressedPosition;
+        selectedRect.localScale = pressedLocalScale;
+        if (selectedImage != null)
+        {
+            selectedImage.color = pressedColor;
+        }
+
+        RectTransform previousRect = IsValidCachedIndex(previousIndex) ? itemRects[previousIndex] : null;
+        Vector2 previousStartPosition = previousRect != null
+            ? previousRect.anchoredPosition
+            : Vector2.zero;
+        Vector3 previousStartScale = previousRect != null
+            ? previousRect.localScale
+            : Vector3.one;
+
+        Vector2 popPosition = baseAnchoredPositions[selectedIndex] + Vector2.up * (selectedYOffset + 3f);
+        Vector3 popLocalScale = baseScales[selectedIndex] * popScale;
+        float elapsed = 0f;
+
+        while (elapsed < popDuration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = EaseOutCubic(NormalizedTime(elapsed, popDuration));
+
+            selectedRect.anchoredPosition = Vector2.LerpUnclamped(pressedPosition, popPosition, t);
+            selectedRect.localScale = Vector3.LerpUnclamped(pressedLocalScale, popLocalScale, t);
+            if (selectedImage != null)
+            {
+                selectedImage.color = Color.LerpUnclamped(pressedColor, GetRestingColor(selectedIndex), t);
+            }
+
+            if (previousRect != null)
+            {
+                previousRect.anchoredPosition = Vector2.LerpUnclamped(
+                    previousStartPosition,
+                    baseAnchoredPositions[previousIndex],
+                    t);
+                previousRect.localScale = Vector3.LerpUnclamped(
+                    previousStartScale,
+                    baseScales[previousIndex],
+                    t);
+            }
+
+            yield return null;
+        }
+
+        if (previousRect != null)
+        {
+            ApplyRestingVisualToItem(previousIndex, false);
+        }
+
+        Vector2 selectedPosition = baseAnchoredPositions[selectedIndex] + Vector2.up * selectedYOffset;
+        yield return TweenButton(
+            selectedRect,
+            selectedImage,
+            popPosition,
+            selectedPosition,
+            popLocalScale,
+            baseScales[selectedIndex],
+            GetRestingColor(selectedIndex),
+            GetRestingColor(selectedIndex),
+            settleDuration);
+
+        ApplyRestingVisualState(selectedIndex);
+        selectionRoutine = null;
+    }
+
+    private IEnumerator TweenButton(
+        RectTransform rect,
+        Image image,
+        Vector2 fromPosition,
+        Vector2 toPosition,
+        Vector3 fromScale,
+        Vector3 toScale,
+        Color fromColor,
+        Color toColor,
+        float duration)
+    {
+        if (duration <= 0f)
+        {
+            rect.anchoredPosition = toPosition;
+            rect.localScale = toScale;
+            if (image != null) image.color = toColor;
+            yield break;
+        }
+
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = EaseOutCubic(NormalizedTime(elapsed, duration));
+            rect.anchoredPosition = Vector2.LerpUnclamped(fromPosition, toPosition, t);
+            rect.localScale = Vector3.LerpUnclamped(fromScale, toScale, t);
+            if (image != null)
+            {
+                image.color = Color.LerpUnclamped(fromColor, toColor, t);
+            }
+            yield return null;
+        }
+
+        rect.anchoredPosition = toPosition;
+        rect.localScale = toScale;
+        if (image != null) image.color = toColor;
+    }
+
+    private void ApplySelectionState(int selectedIndex)
+    {
         currentIndex = selectedIndex;
 
         for (int i = 0; i < items.Length; i++)
@@ -158,6 +402,78 @@ public class BottomNavigationController : MonoBehaviour
                 item.label.color = isSelected ? Color.white : new Color(0.6f, 0.8f, 0.85f, 0.8f);
             }
         }
+    }
+
+    private void ApplyRestingVisualState(int selectedIndex)
+    {
+        if (itemRects == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < itemRects.Length; i++)
+        {
+            ApplyRestingVisualToItem(i, i == selectedIndex);
+        }
+    }
+
+    private void ApplyRestingVisualToItem(int index, bool isSelected)
+    {
+        if (!IsValidCachedIndex(index) || itemRects[index] == null)
+        {
+            return;
+        }
+
+        itemRects[index].anchoredPosition = baseAnchoredPositions[index]
+            + (isSelected ? Vector2.up * selectedYOffset : Vector2.zero);
+        itemRects[index].localScale = baseScales[index];
+
+        Image image = GetButtonImage(items[index]);
+        if (image != null)
+        {
+            image.color = GetRestingColor(index);
+        }
+    }
+
+    private Image GetButtonImage(NavigationItem item)
+    {
+        if (item == null)
+        {
+            return null;
+        }
+
+        return item.buttonImage != null
+            ? item.buttonImage
+            : item.button != null ? item.button.GetComponent<Image>() : null;
+    }
+
+    private Color GetCurrentColor(int index)
+    {
+        Image image = IsValidCachedIndex(index) ? GetButtonImage(items[index]) : null;
+        return image != null ? image.color : Color.white;
+    }
+
+    private Color GetRestingColor(int index)
+    {
+        return resetImageColorToWhite || baseImageColors == null || !IsValidCachedIndex(index)
+            ? Color.white
+            : baseImageColors[index];
+    }
+
+    private bool IsValidCachedIndex(int index)
+    {
+        return items != null && index >= 0 && index < items.Length;
+    }
+
+    private static float NormalizedTime(float elapsed, float duration)
+    {
+        return duration <= 0f ? 1f : Mathf.Clamp01(elapsed / duration);
+    }
+
+    private static float EaseOutCubic(float value)
+    {
+        float inverse = 1f - value;
+        return 1f - inverse * inverse * inverse;
     }
 
 #if UNITY_EDITOR

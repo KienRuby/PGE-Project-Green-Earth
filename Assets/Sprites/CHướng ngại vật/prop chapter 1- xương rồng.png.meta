@@ -1,0 +1,1095 @@
+fileFormatVersion: 2
+guid: 01bee6d738075c647aa1e30af9b48835
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: xuong rong
+      rect:
+        serializedVersion: 2
+        x: 1887
+        y: 1556
+        width: 731
+        height: 1188
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: de5cb1c76e3ba3c4dbda35f67ce7274d
+      internalID: 1722246593
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_1"
+      rect:
+        serializedVersion: 2
+        x: 2197
+        y: 2742
+        width: 18
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 90df96aa27c0b5f40a204c175a141011
+      internalID: 161072026
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_2"
+      rect:
+        serializedVersion: 2
+        x: 2619
+        y: 2399
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5035d346e2a4e2a42ba91fccdb516439
+      internalID: 1938220000
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_3"
+      rect:
+        serializedVersion: 2
+        x: 2628
+        y: 2391
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2cc4d359e76cca9488ffdc8fb6d742fa
+      internalID: -1874749113
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_4"
+      rect:
+        serializedVersion: 2
+        x: 2637
+        y: 2382
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 084e797a4744e4e49bc85e7753ce4502
+      internalID: -554656116
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_5"
+      rect:
+        serializedVersion: 2
+        x: 2628
+        y: 2355
+        width: 18
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 60e07a7239b7a754c882e390568339a2
+      internalID: -9276332
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_6"
+      rect:
+        serializedVersion: 2
+        x: 694
+        y: 2303
+        width: 27
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6c3856077da248043a6da2dec0db72db
+      internalID: 327525858
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_7"
+      rect:
+        serializedVersion: 2
+        x: 729
+        y: 2303
+        width: 71
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5e60cef001956904d98fcba90dd39dfe
+      internalID: 225984048
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_8"
+      rect:
+        serializedVersion: 2
+        x: 818
+        y: 2294
+        width: 40
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 321a2cd64383bc24ab09035ae64551ab
+      internalID: 1034807527
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_9"
+      rect:
+        serializedVersion: 2
+        x: 2619
+        y: 2268
+        width: 31
+        height: 70
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cc07a5f04e1587d43a19340a44807ff7
+      internalID: -1125480325
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: xuong r
+      rect:
+        serializedVersion: 2
+        x: 466
+        y: 1862
+        width: 529
+        height: 439
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c3aecf100a15ded48842aaefe0062750
+      internalID: -854956886
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_11"
+      rect:
+        serializedVersion: 2
+        x: 2593
+        y: 2193
+        width: 32
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cb895da1f22296442bd94cac869141f3
+      internalID: -522233831
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_12"
+      rect:
+        serializedVersion: 2
+        x: 465
+        y: 2127
+        width: 45
+        height: 56
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fab85fea64cbb0d409f1d57a82d2d12a
+      internalID: 523984021
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_13"
+      rect:
+        serializedVersion: 2
+        x: 949
+        y: 2130
+        width: 45
+        height: 58
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 77ece3d90c8bd5443beb33abcc71ab6d
+      internalID: 1351701760
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_14"
+      rect:
+        serializedVersion: 2
+        x: 1859
+        y: 2126
+        width: 39
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5ea20af4ff168bc439a07200301ff5eb
+      internalID: 910362962
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_15"
+      rect:
+        serializedVersion: 2
+        x: 1872
+        y: 2109
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 22fe7ff6395516540a704dde33b340be
+      internalID: 1111597826
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_16"
+      rect:
+        serializedVersion: 2
+        x: 460
+        y: 2074
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 181825fb76c7af64d9433a24a04a6a1b
+      internalID: -463236999
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_17"
+      rect:
+        serializedVersion: 2
+        x: 976
+        y: 2060
+        width: 35
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2c28adf3449fb9047b54fbd0c3e07741
+      internalID: 1010668865
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_18"
+      rect:
+        serializedVersion: 2
+        x: 1872
+        y: 2057
+        width: 18
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cd280e5ae0f556c41adbbcb7c9495a0c
+      internalID: 1004927555
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_19"
+      rect:
+        serializedVersion: 2
+        x: 438
+        y: 2019
+        width: 28
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7a9ec8795bdcce34f96814a8c18c7eb8
+      internalID: 1961572041
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_20"
+      rect:
+        serializedVersion: 2
+        x: 976
+        y: 1969
+        width: 10
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 48e03fd89b3f87a46bcbf2f2e9e3c5b9
+      internalID: 38748429
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_21"
+      rect:
+        serializedVersion: 2
+        x: 853
+        y: 1854
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 97a541c8028c3e94ca266bb70292d38c
+      internalID: -439922263
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_22"
+      rect:
+        serializedVersion: 2
+        x: 674
+        y: 1844
+        width: 12
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 081fd51377748014f91558582efca6d7
+      internalID: -585084826
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_23"
+      rect:
+        serializedVersion: 2
+        x: 817
+        y: 1846
+        width: 9
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: aab088c95e36ed04ea559a314b73586a
+      internalID: -34460411
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_24"
+      rect:
+        serializedVersion: 2
+        x: 703
+        y: 1841
+        width: 9
+        height: 5
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 30c3639214346f146abff12ed61d68b4
+      internalID: 970571013
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_25"
+      rect:
+        serializedVersion: 2
+        x: 721
+        y: 1840
+        width: 8
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 02883b6cc4c31f04ab98681631c32b08
+      internalID: 1362344861
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_26"
+      rect:
+        serializedVersion: 2
+        x: 738
+        y: 1838
+        width: 35
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ff34b0d421448cd40ad80a5c4029b424
+      internalID: -441560851
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_27"
+      rect:
+        serializedVersion: 2
+        x: 782
+        y: 1840
+        width: 18
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 51e41ceaa333955438e3e8be84e2ae62
+      internalID: 1400922356
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_28"
+      rect:
+        serializedVersion: 2
+        x: 2417
+        y: 1537
+        width: 45
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 63492f9270c4a12408b96d79437123cc
+      internalID: -2063901291
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: xuong rong nhiu canh
+      rect:
+        serializedVersion: 2
+        x: 1833
+        y: 253
+        width: 740
+        height: 1014
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1c6fc7e3abf304e4c8d225d115ec8a0b
+      internalID: 341413642
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_30"
+      rect:
+        serializedVersion: 2
+        x: 2505
+        y: 1266
+        width: 9
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3ddf3c8f15841da4f8bb96c9aed013f4
+      internalID: 437436231
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_31"
+      rect:
+        serializedVersion: 2
+        x: 2540
+        y: 1222
+        width: 35
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c969fdcfbba79dd4686ca12c64ac1d15
+      internalID: -549458865
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_32"
+      rect:
+        serializedVersion: 2
+        x: 2584
+        y: 1187
+        width: 12
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 54334f89b3ddde54eb02a6803ca3ef4a
+      internalID: 1141811999
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "x\u01B0\u01A1ng r do"
+      rect:
+        serializedVersion: 2
+        x: 429
+        y: 456
+        width: 585
+        height: 711
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fb7b9351cad469e49b2b7bb19ded4b42
+      internalID: 123488763
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_34"
+      rect:
+        serializedVersion: 2
+        x: 2584
+        y: 1148
+        width: 10
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c4c4e988d42c9304880a6e5e0b41a096
+      internalID: -76932511
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_35"
+      rect:
+        serializedVersion: 2
+        x: 2514
+        y: 1063
+        width: 61
+        height: 62
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2b3f5d7e93b9b654fa5d54d0f37edfa4
+      internalID: -425142169
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_36"
+      rect:
+        serializedVersion: 2
+        x: 1821
+        y: 835
+        width: 7
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 21b058b1c11f79d4da0640a40dd15ae2
+      internalID: 281972455
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_37"
+      rect:
+        serializedVersion: 2
+        x: 1828
+        y: 800
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7eb2e9801a08d2f459dfa990a31ea456
+      internalID: 412182817
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_38"
+      rect:
+        serializedVersion: 2
+        x: 1822
+        y: 721
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5640a26ab7a0c4d47a9b00bb05a73a4d
+      internalID: 1051831265
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_39"
+      rect:
+        serializedVersion: 2
+        x: 1816
+        y: 677
+        width: 12
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 07b02d40c2ce6c5478ac05e16ae90abd
+      internalID: 1093265993
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_40"
+      rect:
+        serializedVersion: 2
+        x: 1828
+        y: 642
+        width: 9
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a039e56d90badef498f961db28c7e0ad
+      internalID: 775962828
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_41"
+      rect:
+        serializedVersion: 2
+        x: 984
+        y: 563
+        width: 37
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 778406da0476a734eaed9630c7e62805
+      internalID: 81005329
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_42"
+      rect:
+        serializedVersion: 2
+        x: 456
+        y: 545
+        width: 10
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d7398ea4c327e1046917e3160d0afe5e
+      internalID: 966033179
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_43"
+      rect:
+        serializedVersion: 2
+        x: 1028
+        y: 530
+        width: 19
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2f3eae1b95cdef043934fdf5237b5fbf
+      internalID: -1256533338
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_1": 161072026
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_11": -522233831
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_12": 523984021
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_13": 1351701760
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_14": 910362962
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_15": 1111597826
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_16": -463236999
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_17": 1010668865
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_18": 1004927555
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_19": 1961572041
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_2": 1938220000
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_20": 38748429
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_21": -439922263
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_22": -585084826
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_23": -34460411
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_24": 970571013
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_25": 1362344861
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_26": -441560851
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_27": 1400922356
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_28": -2063901291
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_3": -1874749113
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_30": 437436231
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_31": -549458865
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_32": 1141811999
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_34": -76932511
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_35": -425142169
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_36": 281972455
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_37": 412182817
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_38": 1051831265
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_39": 1093265993
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_4": -554656116
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_40": 775962828
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_41": 81005329
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_42": 966033179
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_43": -1256533338
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_5": -9276332
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_6": 327525858
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_7": 225984048
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_8": 1034807527
+      "prop chapter 1- x\u01B0\u01A1ng r\u1ED3ng_9": -1125480325
+      xuong r: -854956886
+      xuong rong: 1722246593
+      xuong rong nhiu canh: 341413642
+      "x\u01B0\u01A1ng r do": 123488763
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

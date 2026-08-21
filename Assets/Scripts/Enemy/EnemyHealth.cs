@@ -285,6 +285,14 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
 
         transform.position = lockedPos;
 
+        // Khóa đúng pose cuối của Die trong suốt thời gian fade.
+        if (animator != null && animator.gameObject.activeInHierarchy)
+        {
+            animator.Play(deathAnimationState, 0, 0.999f);
+            animator.Update(0f);
+            animator.speed = 0f;
+        }
+
         // Giai đoạn 2: Hiệu ứng Mờ dần (Fade Out) từ màu hiện tại về Alpha = 0
         if (fadeOutDuration > 0f && spriteRenderers != null && spriteRenderers.Length > 0)
         {
@@ -359,7 +367,7 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     }
 
     /// <summary>
-    /// Hợp đồng Reset duy nhất: Đảm bảo mọi Runtime State, Visual Pose, Physics và Animator 
+    /// Hợp đồng Reset duy nhất: Đảm bảo mọi Runtime State, Visual Pose, Physics và Animator
     /// được khôi phục 100% về trạng thái sống ngay tại Frame 0 khi lấy từ Pool.
     /// </summary>
     public void ResetForSpawn()
@@ -446,6 +454,7 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
         if (animator == null) return;
 
         animator.applyRootMotion = false;
+        animator.speed = 1f;
         if (hasDeathTriggerParam)
         {
             animator.ResetTrigger(deathAnimationTrigger);
@@ -496,4 +505,4 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
         OnEnemyDeath = null;
         OnHealthChanged = null;
     }
-}
+}

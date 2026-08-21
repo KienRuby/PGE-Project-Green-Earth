@@ -43,7 +43,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -108,7 +108,1015 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
-    sprites: []
+    sprites:
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_0"
+      rect:
+        serializedVersion: 2
+        x: 396
+        y: 2550
+        width: 444
+        height: 238
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d5f420abd0df0d84f9cc67bdff19c63a
+      internalID: -296260480
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_1"
+      rect:
+        serializedVersion: 2
+        x: 1836
+        y: 2632
+        width: 688
+        height: 234
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d31a040429e9bf54685e7eb7cba7bdfb
+      internalID: -38332983
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_2"
+      rect:
+        serializedVersion: 2
+        x: 2547
+        y: 2698
+        width: 284
+        height: 125
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b917877d88a76fb4e8a228513ad6e1db
+      internalID: -163110782
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_3"
+      rect:
+        serializedVersion: 2
+        x: 158
+        y: 2507
+        width: 329
+        height: 113
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f6e1f198021462142b1d384362a36457
+      internalID: 1066473655
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_4"
+      rect:
+        serializedVersion: 2
+        x: 662
+        y: 2328
+        width: 463
+        height: 226
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 97f70b77d2f099545ad39f71b16d8686
+      internalID: -1845426318
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_5"
+      rect:
+        serializedVersion: 2
+        x: 861
+        y: 2487
+        width: 468
+        height: 187
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 520150ec89b997a4294db1e79c9f9568
+      internalID: 1452083714
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_6"
+      rect:
+        serializedVersion: 2
+        x: 1871
+        y: 2398
+        width: 658
+        height: 223
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6ff5ea02117b6444bb201baee67253aa
+      internalID: -1349276714
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_7"
+      rect:
+        serializedVersion: 2
+        x: 2493
+        y: 2539
+        width: 407
+        height: 150
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ce88fd08396baf247b6a84be220d5f98
+      internalID: -137648474
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_8"
+      rect:
+        serializedVersion: 2
+        x: 408
+        y: 2443
+        width: 236
+        height: 92
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d944f28994b4b88439ab98dfd312afc0
+      internalID: 1745308986
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_9"
+      rect:
+        serializedVersion: 2
+        x: 586
+        y: 2362
+        width: 143
+        height: 86
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: aad2bdb7d21e1784bade350580f38159
+      internalID: -748367040
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_10"
+      rect:
+        serializedVersion: 2
+        x: 1183
+        y: 2410
+        width: 303
+        height: 122
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b0e732619cd408642a7d832c962e225f
+      internalID: -1808025899
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_11"
+      rect:
+        serializedVersion: 2
+        x: 2446
+        y: 2354
+        width: 372
+        height: 177
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5c7e31fedbbaf9b4fae4d6a568710e09
+      internalID: -1569247935
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_12"
+      rect:
+        serializedVersion: 2
+        x: 1023
+        y: 2257
+        width: 422
+        height: 142
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5f427693bcae9e54b81becb8ff42dbce
+      internalID: 2141089370
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_13"
+      rect:
+        serializedVersion: 2
+        x: 1892
+        y: 2178
+        width: 297
+        height: 144
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 17b50bd2a214a79419d5cbbb29d499e6
+      internalID: -2100357792
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_14"
+      rect:
+        serializedVersion: 2
+        x: 1994
+        y: 2317
+        width: 196
+        height: 82
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 18db7b6de349d7843a7ac1a6285fef59
+      internalID: -1140578394
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_15"
+      rect:
+        serializedVersion: 2
+        x: 2211
+        y: 2170
+        width: 325
+        height: 229
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 75b6cc361d8d95848bbf1ee86b553ee6
+      internalID: 1664033396
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_16"
+      rect:
+        serializedVersion: 2
+        x: 2364
+        y: 2192
+        width: 24
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 97e9d0e0270d28f48bfcbe967ddcf78b
+      internalID: -907663904
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_17"
+      rect:
+        serializedVersion: 2
+        x: 122
+        y: 1582
+        width: 457
+        height: 171
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f2abe65b149e83741ad2910d5ab2aaa0
+      internalID: -144201478
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_18"
+      rect:
+        serializedVersion: 2
+        x: 522
+        y: 1640
+        width: 511
+        height: 284
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 627e9f132ee76794298fe4fb001f5d26
+      internalID: -1309578314
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_19"
+      rect:
+        serializedVersion: 2
+        x: 998
+        y: 1723
+        width: 268
+        height: 282
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 56ba595fe45a65547bfbb739e93ac8f9
+      internalID: -1451341414
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_20"
+      rect:
+        serializedVersion: 2
+        x: 1134
+        y: 1650
+        width: 447
+        height: 197
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e92df6d614a2c3142b62b310cf71ccb2
+      internalID: 1371176169
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_21"
+      rect:
+        serializedVersion: 2
+        x: 1912
+        y: 1740
+        width: 348
+        height: 142
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9455b721963fdd442914d70aba926ef6
+      internalID: 23137165
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_22"
+      rect:
+        serializedVersion: 2
+        x: 2148
+        y: 1643
+        width: 214
+        height: 124
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0453b4333fa73d944902d81ece77d1e2
+      internalID: 898851915
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_23"
+      rect:
+        serializedVersion: 2
+        x: 2302
+        y: 1729
+        width: 303
+        height: 153
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 54f0b69cfbba2004b8215996c435c71e
+      internalID: -1024629371
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_24"
+      rect:
+        serializedVersion: 2
+        x: 2579
+        y: 1703
+        width: 250
+        height: 144
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d88a0238697873b479b3c99c0f8a79eb
+      internalID: 204190756
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_25"
+      rect:
+        serializedVersion: 2
+        x: 781
+        y: 1431
+        width: 418
+        height: 285
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 89568c56bcda46d499abb63b6f216ecd
+      internalID: 751497856
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_26"
+      rect:
+        serializedVersion: 2
+        x: 2115
+        y: 1591
+        width: 159
+        height: 69
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e783872a888bab547aa687347e8f8351
+      internalID: 1011762330
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_27"
+      rect:
+        serializedVersion: 2
+        x: 2266
+        y: 1501
+        width: 538
+        height: 204
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: eebc6e2416841c241bdc01fe7b58d6be
+      internalID: 457598789
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_28"
+      rect:
+        serializedVersion: 2
+        x: 2752
+        y: 1643
+        width: 143
+        height: 73
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: be05e4bb74593114c8743e9007293534
+      internalID: 297272004
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_29"
+      rect:
+        serializedVersion: 2
+        x: 506
+        y: 1510
+        width: 242
+        height: 107
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 57807758d5faafd4992b407bd4b44af8
+      internalID: 481132716
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_30"
+      rect:
+        serializedVersion: 2
+        x: 1247
+        y: 1449
+        width: 330
+        height: 168
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cdeb9d9acc590c94e8e4efe662983b9b
+      internalID: -887280336
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_31"
+      rect:
+        serializedVersion: 2
+        x: 1897
+        y: 1484
+        width: 149
+        height: 91
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 648dfe3366b10c748a54f8bd448b2248
+      internalID: -769581148
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_32"
+      rect:
+        serializedVersion: 2
+        x: 1986
+        y: 1543
+        width: 174
+        height: 74
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: df11cadab848dac4d8fef0d4b344f311
+      internalID: -1113509568
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_33"
+      rect:
+        serializedVersion: 2
+        x: 772
+        y: 596
+        width: 479
+        height: 258
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e0b4282ea93f9674c80ec23cd89270f3
+      internalID: -1235944835
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_34"
+      rect:
+        serializedVersion: 2
+        x: 1033
+        y: 784
+        width: 359
+        height: 193
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7f39414604915bc4ab7a8ff6f3fb902d
+      internalID: 1398953166
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_35"
+      rect:
+        serializedVersion: 2
+        x: 1294
+        y: 676
+        width: 315
+        height: 194
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: da0c2e8684f991940a26a8161f6079d2
+      internalID: -1654763208
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_36"
+      rect:
+        serializedVersion: 2
+        x: 1449
+        y: 638
+        width: 576
+        height: 334
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 15f211ae9afc3e244a223b2fa90cd3d3
+      internalID: 1620712858
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_37"
+      rect:
+        serializedVersion: 2
+        x: 1327
+        y: 412
+        width: 563
+        height: 317
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e05e28746f07e8d4eaa7e704c5025f63
+      internalID: 1627856970
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_38"
+      rect:
+        serializedVersion: 2
+        x: 1907
+        y: 458
+        width: 344
+        height: 177
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1dfed0e2e42304b4883f0e7af8795e3b
+      internalID: 909544508
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_39"
+      rect:
+        serializedVersion: 2
+        x: 2039
+        y: 625
+        width: 329
+        height: 159
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fd1095f82cc015446961327cf366a033
+      internalID: -892241168
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_40"
+      rect:
+        serializedVersion: 2
+        x: 2366
+        y: 587
+        width: 134
+        height: 118
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c28a8f7593a02484faa4b6ce5efdd897
+      internalID: 284172915
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_41"
+      rect:
+        serializedVersion: 2
+        x: 1728
+        y: 338
+        width: 180
+        height: 95
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: eca9a4f43ba2c814da56346c030724cc
+      internalID: 2044060940
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "h\u1ECDa ti\u1EBFt_42"
+      rect:
+        serializedVersion: 2
+        x: 1882
+        y: 334
+        width: 70
+        height: 61
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ee8dd78cf10f875429999388e28cb8b4
+      internalID: 156870293
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hoa tiet 1
+      rect:
+        serializedVersion: 2
+        x: 85
+        y: 2117
+        width: 1480
+        height: 807
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 920cd866474127b48b57946526066a8d
+      internalID: 717048243
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: hoa tiet 2
+      rect:
+        serializedVersion: 2
+        x: 1707
+        y: 2072
+        width: 1253
+        height: 846
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f8741636f3df67747b7b60b5c256f1de
+      internalID: -374895725
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: hoa tiet 3
+      rect:
+        serializedVersion: 2
+        x: 53
+        y: 1380
+        width: 1589
+        height: 640
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e64ba5612cbaec947851c4f11a8b7d5b
+      internalID: -1030794042
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: hoa tiet 4
+      rect:
+        serializedVersion: 2
+        x: 1817
+        y: 1413
+        width: 1098
+        height: 549
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2a53fc76ac1e17143870d2ce465e2a9d
+      internalID: -2062204173
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: hoa tiet 5
+      rect:
+        serializedVersion: 2
+        x: 686
+        y: 249
+        width: 1880
+        height: 814
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bda8640133e9ae94b85245d538def23f
+      internalID: 1862716616
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -119,7 +1127,55 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Hoa tiet 1: 717048243
+      hoa tiet 2: -374895725
+      hoa tiet 3: -1030794042
+      hoa tiet 4: -2062204173
+      hoa tiet 5: 1862716616
+      "h\u1ECDa ti\u1EBFt_0": -296260480
+      "h\u1ECDa ti\u1EBFt_1": -38332983
+      "h\u1ECDa ti\u1EBFt_10": -1808025899
+      "h\u1ECDa ti\u1EBFt_11": -1569247935
+      "h\u1ECDa ti\u1EBFt_12": 2141089370
+      "h\u1ECDa ti\u1EBFt_13": -2100357792
+      "h\u1ECDa ti\u1EBFt_14": -1140578394
+      "h\u1ECDa ti\u1EBFt_15": 1664033396
+      "h\u1ECDa ti\u1EBFt_16": -907663904
+      "h\u1ECDa ti\u1EBFt_17": -144201478
+      "h\u1ECDa ti\u1EBFt_18": -1309578314
+      "h\u1ECDa ti\u1EBFt_19": -1451341414
+      "h\u1ECDa ti\u1EBFt_2": -163110782
+      "h\u1ECDa ti\u1EBFt_20": 1371176169
+      "h\u1ECDa ti\u1EBFt_21": 23137165
+      "h\u1ECDa ti\u1EBFt_22": 898851915
+      "h\u1ECDa ti\u1EBFt_23": -1024629371
+      "h\u1ECDa ti\u1EBFt_24": 204190756
+      "h\u1ECDa ti\u1EBFt_25": 751497856
+      "h\u1ECDa ti\u1EBFt_26": 1011762330
+      "h\u1ECDa ti\u1EBFt_27": 457598789
+      "h\u1ECDa ti\u1EBFt_28": 297272004
+      "h\u1ECDa ti\u1EBFt_29": 481132716
+      "h\u1ECDa ti\u1EBFt_3": 1066473655
+      "h\u1ECDa ti\u1EBFt_30": -887280336
+      "h\u1ECDa ti\u1EBFt_31": -769581148
+      "h\u1ECDa ti\u1EBFt_32": -1113509568
+      "h\u1ECDa ti\u1EBFt_33": -1235944835
+      "h\u1ECDa ti\u1EBFt_34": 1398953166
+      "h\u1ECDa ti\u1EBFt_35": -1654763208
+      "h\u1ECDa ti\u1EBFt_36": 1620712858
+      "h\u1ECDa ti\u1EBFt_37": 1627856970
+      "h\u1ECDa ti\u1EBFt_38": 909544508
+      "h\u1ECDa ti\u1EBFt_39": -892241168
+      "h\u1ECDa ti\u1EBFt_4": -1845426318
+      "h\u1ECDa ti\u1EBFt_40": 284172915
+      "h\u1ECDa ti\u1EBFt_41": 2044060940
+      "h\u1ECDa ti\u1EBFt_42": 156870293
+      "h\u1ECDa ti\u1EBFt_5": 1452083714
+      "h\u1ECDa ti\u1EBFt_6": -1349276714
+      "h\u1ECDa ti\u1EBFt_7": -137648474
+      "h\u1ECDa ti\u1EBFt_8": 1745308986
+      "h\u1ECDa ti\u1EBFt_9": -748367040
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
