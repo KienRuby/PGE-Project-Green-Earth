@@ -5,10 +5,11 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Điều khiển thanh điều hướng dưới cùng (Bottom Navigation):
-/// - Khi bấm vào 1 tab: Tab đó sáng lên (chuyển sang Sprite của 'thanh điều hướng 1').
-/// - 4 tab còn lại chuyển về trạng thái tối (chuyển sang Sprite của 'thanh điều hướng 2').
-/// - Bật/Tắt panel nội dung tương ứng của từng tab (Shop, Lab, Chapter, Chipset, Buddy).
+/// Điều khiển thanh điều hướng dưới cùng (Bottom Navigation) chuẩn AAA Mobile:
+/// - Layer 1 (Touch feedback ~0.05s): Phản hồi nén nút tức thì (ScaleX: 1.04, ScaleY: 0.94, Y: -3px).
+/// - Layer 2 (Tab Settle ~0.14-0.18s): Pop nhẹ qua vị trí đỉnh rồi settle mượt mà về selectedYOffset.
+/// - Đổi sprite sáng/tối giữa 'thanh điều hướng 1' và 'thanh điều hướng 2'.
+/// - Điều phối song song chuyển cảnh panel với UIPanelTransition (Directional Slide, Zero GC, Fast Interruption).
 /// </summary>
 public class BottomNavigationController : MonoBehaviour
 {
@@ -55,23 +56,41 @@ public class BottomNavigationController : MonoBehaviour
     [Tooltip("Tự động đặt màu Image thành trắng khi đổi sprite để sprite hiển thị đúng màu gốc 100%.")]
     [SerializeField] private bool resetImageColorToWhite = true;
 
-    [Header("Hiệu ứng khi bấm")]
-    [Tooltip("Bật hiệu ứng nhấn xuống rồi bật lên cho 5 nút điều hướng.")]
+    [Header("Layer 1 & 2 - Touch & Tab Motion (Nút điều hướng)")]
+    [Tooltip("Bật hiệu ứng phản hồi nút khi bấm.")]
     [SerializeField] private bool animateSelection = true;
 
-    [Tooltip("Độ cao của nút đang được chọn so với vị trí gốc.")]
+    [Tooltip("Độ cao nhô lên của Tab được chọn so với vị trí gốc (12px - 16px).")]
     [SerializeField] private float selectedYOffset = 14f;
 
-    [Tooltip("Độ hạ xuống của nút trong khoảnh khắc vừa bấm. Giá trị âm làm nút đi xuống.")]
-    [SerializeField] private float pressedYOffset = -4f;
+    [Tooltip("Overshoot nảy nhẹ khi nút được chọn ổn định vị trí (2px - 4px).")]
+    [SerializeField] private float selectedPopOvershoot = 3f;
 
-    [Tooltip("Tỉ lệ thu nhỏ của nút trong khoảnh khắc vừa bấm.")]
-    [Range(0.75f, 1f)]
-    [SerializeField] private float pressedScale = 0.94f;
+    [Tooltip("Độ hạ xuống khi ngón tay vừa ấn vào nút (-2px đến -4px).")]
+    [SerializeField] private float pressedYOffset = -3f;
 
-    [Tooltip("Tỉ lệ phóng lớn nhẹ khi nút bật lên.")]
-    [Range(1f, 1.2f)]
-    [SerializeField] private float popScale = 1.06f;
+    [Tooltip("Scale X khi ấn nút (1.04).")]
+    [Range(1.0f, 1.15f)]
+    [SerializeField] private float buttonPressScaleX = 1.04f;
+
+    [Tooltip("Scale Y khi ấn nút (0.94).")]
+    [Range(0.85f, 1.0f)]
+    [SerializeField] private float buttonPressScaleY = 0.94f;
+
+    [Tooltip("Thời gian nén nút (Layer 1 Touch feedback: 0.045s - 0.06s).")]
+    [Range(0.03f, 0.10f)]
+    [SerializeField] private float buttonPressDuration = 0.05f;
+
+    [Tooltip("Thời gian nút nảy lên (0.10s - 0.14s).")]
+    [Range(0.06f, 0.20f)]
+    [SerializeField] private float buttonPopDuration = 0.11f;
+
+    [Tooltip("Thời gian nút ổn định (Layer 2 Settle: 0.06s - 0.09s).")]
+    [Range(0.04f, 0.15f)]
+    [SerializeField] private float buttonSettleDuration = 0.07f;
+
+    [Tooltip("Màu của nút trong khoảnh khắc đang được nhấn.")]
+    [SerializeField] private Color pressedColor = new Color(0.70f, 0.88f, 0.92f, 0.9f);
 
     [Header("Hiệu ứng chuyển cảnh Panel (Screen Transition)")]
     [Tooltip("Bật hiệu ứng chuyển cảnh mượt mà giữa các panel nội dung (Shop, Lab, Chapter, Chipset, Buddy).")]
@@ -80,28 +99,9 @@ public class BottomNavigationController : MonoBehaviour
     [Tooltip("Kiểu chuyển cảnh cho panel: DirectionalSlide (Trượt ngang theo thứ tự), Crossfade, ScaleFade, PopIn.")]
     [SerializeField] private UIPanelTransition.TransitionType panelTransitionType = UIPanelTransition.TransitionType.DirectionalSlide;
 
-    [Tooltip("Thời gian chuyển cảnh panel (tính bằng giây). Khuyên dùng 0.18s - 0.22s cho mobile.")]
-    [Min(0.01f)]
-    [SerializeField] private float panelTransitionDuration = 0.2f;
-
-    [Tooltip("Khoảng cách trượt khi sử dụng kiểu DirectionalSlide.")]
-    [Min(0f)]
-    [SerializeField] private float slideDistance = 140f;
-
-    [Tooltip("Thời gian nút hạ xuống sau khi bấm, tính bằng giây.")]
-    [Min(0f)]
-    [SerializeField] private float pressDuration = 0.05f;
-
-    [Tooltip("Thời gian nút bật lên, tính bằng giây.")]
-    [Min(0f)]
-    [SerializeField] private float popDuration = 0.10f;
-
-    [Tooltip("Thời gian nút ổn định lại sau khi bật lên, tính bằng giây.")]
-    [Min(0f)]
-    [SerializeField] private float settleDuration = 0.08f;
-
-    [Tooltip("Màu của nút trong khoảnh khắc đang được nhấn.")]
-    [SerializeField] private Color pressedColor = new Color(0.65f, 0.82f, 0.85f, 0.8f);
+    // Optional Event Hooks cho SoundManager / Haptic Feedback
+    public event Action<int> OnTabPressed;
+    public event Action<int, int> OnTabChanged; // (previousIndex, newIndex)
 
     private int currentIndex = -1;
     private RectTransform[] itemRects;
@@ -173,7 +173,7 @@ public class BottomNavigationController : MonoBehaviour
     }
 
     /// <summary>
-    /// Chuyển đổi tab đang chọn: Nút chọn sẽ dùng activeSprite (thanh 1), các nút khác dùng inactiveSprite (thanh 2).
+    /// Chuyển đổi tab đang chọn: Xử lý gián đoạn mượt mà, phản hồi tức thì và tính toán hướng trượt tự động.
     /// </summary>
     public void Select(int selectedIndex)
     {
@@ -187,6 +187,9 @@ public class BottomNavigationController : MonoBehaviour
             return;
         }
 
+        // Kích hoạt Event hook ngay tức thì (Layer 1)
+        OnTabPressed?.Invoke(selectedIndex);
+
         if (!animateSelection || !isActiveAndEnabled || itemRects == null || itemRects[selectedIndex] == null)
         {
             ApplySelectionState(selectedIndex, animated: animatePanelTransitions);
@@ -197,7 +200,7 @@ public class BottomNavigationController : MonoBehaviour
         if (selectionRoutine != null)
         {
             StopCoroutine(selectionRoutine);
-            ApplyRestingVisualState(currentIndex);
+            selectionRoutine = null;
         }
 
         selectionRoutine = StartCoroutine(AnimateSelection(selectedIndex));
@@ -243,7 +246,7 @@ public class BottomNavigationController : MonoBehaviour
             if (rect != null)
             {
                 baseAnchoredPositions[i] = rect.anchoredPosition;
-                baseScales[i] = rect.localScale;
+                baseScales[i] = rect.localScale == Vector3.zero ? Vector3.one : rect.localScale;
             }
 
             Image image = GetButtonImage(item);
@@ -257,23 +260,32 @@ public class BottomNavigationController : MonoBehaviour
         RectTransform selectedRect = itemRects[selectedIndex];
         Image selectedImage = GetButtonImage(items[selectedIndex]);
 
+        // Sample current state để không bị snap khi người dùng spam nút
+        Vector2 startPos = selectedRect != null ? selectedRect.anchoredPosition : baseAnchoredPositions[selectedIndex];
+        Vector3 startScale = selectedRect != null ? selectedRect.localScale : baseScales[selectedIndex];
+
+        // Layer 1 - Touch Feedback (Squash & Down)
         Vector2 pressedPosition = baseAnchoredPositions[selectedIndex] + Vector2.up * pressedYOffset;
-        Vector3 pressedLocalScale = baseScales[selectedIndex] * pressedScale;
+        Vector3 pressedLocalScale = new Vector3(
+            baseScales[selectedIndex].x * buttonPressScaleX,
+            baseScales[selectedIndex].y * buttonPressScaleY,
+            1f);
 
         yield return TweenButton(
             selectedRect,
             selectedImage,
-            selectedRect.anchoredPosition,
+            startPos,
             pressedPosition,
-            selectedRect.localScale,
+            startScale,
             pressedLocalScale,
             GetCurrentColor(selectedIndex),
             pressedColor,
-            pressDuration);
+            buttonPressDuration);
 
+        // Kích hoạt chuyển cảnh Panel đồng thời
         ApplySelectionState(selectedIndex, animated: animatePanelTransitions);
 
-        // Những nút không tham gia chuyển tiếp luôn trở về đúng vị trí gốc.
+        // Đưa các nút không tham gia chuyển tiếp về trạng thái nghỉ
         for (int i = 0; i < itemRects.Length; i++)
         {
             if (i != selectedIndex && i != previousIndex)
@@ -282,47 +294,42 @@ public class BottomNavigationController : MonoBehaviour
             }
         }
 
-        selectedRect.anchoredPosition = pressedPosition;
-        selectedRect.localScale = pressedLocalScale;
-        if (selectedImage != null)
-        {
-            selectedImage.color = pressedColor;
-        }
-
+        // Layer 2 - Tab Pop & Overshoot
         RectTransform previousRect = IsValidCachedIndex(previousIndex) ? itemRects[previousIndex] : null;
-        Vector2 previousStartPosition = previousRect != null
-            ? previousRect.anchoredPosition
-            : Vector2.zero;
-        Vector3 previousStartScale = previousRect != null
-            ? previousRect.localScale
-            : Vector3.one;
+        Vector2 previousStartPosition = previousRect != null ? previousRect.anchoredPosition : Vector2.zero;
+        Vector3 previousStartScale = previousRect != null ? previousRect.localScale : Vector3.one;
 
-        Vector2 popPosition = baseAnchoredPositions[selectedIndex] + Vector2.up * (selectedYOffset + 3f);
-        Vector3 popLocalScale = baseScales[selectedIndex] * popScale;
+        Vector2 popPosition = baseAnchoredPositions[selectedIndex] + Vector2.up * (selectedYOffset + selectedPopOvershoot);
+        Vector3 popLocalScale = new Vector3(
+            baseScales[selectedIndex].x * 0.96f,
+            baseScales[selectedIndex].y * 1.05f,
+            1f);
+
         float elapsed = 0f;
-
-        while (elapsed < popDuration)
+        while (elapsed < buttonPopDuration)
         {
             elapsed += Time.unscaledDeltaTime;
-            float t = EaseOutCubic(NormalizedTime(elapsed, popDuration));
+            float normalized = NormalizedTime(elapsed, buttonPopDuration);
+            float t = EaseOutQuad(normalized);
 
             selectedRect.anchoredPosition = Vector2.LerpUnclamped(pressedPosition, popPosition, t);
             selectedRect.localScale = Vector3.LerpUnclamped(pressedLocalScale, popLocalScale, t);
             if (selectedImage != null)
             {
-                selectedImage.color = Color.LerpUnclamped(pressedColor, GetRestingColor(selectedIndex), t);
+                selectedImage.color = Color.LerpUnclamped(pressedColor, GetRestingColor(selectedIndex), normalized);
             }
 
+            // Tab cũ trôi êm về vị trí gốc
             if (previousRect != null)
             {
                 previousRect.anchoredPosition = Vector2.LerpUnclamped(
                     previousStartPosition,
                     baseAnchoredPositions[previousIndex],
-                    t);
+                    normalized);
                 previousRect.localScale = Vector3.LerpUnclamped(
                     previousStartScale,
                     baseScales[previousIndex],
-                    t);
+                    normalized);
             }
 
             yield return null;
@@ -333,17 +340,18 @@ public class BottomNavigationController : MonoBehaviour
             ApplyRestingVisualToItem(previousIndex, false);
         }
 
-        Vector2 selectedPosition = baseAnchoredPositions[selectedIndex] + Vector2.up * selectedYOffset;
+        // Layer 2 - Settle về vị trí selected chuẩn
+        Vector2 finalSelectedPosition = baseAnchoredPositions[selectedIndex] + Vector2.up * selectedYOffset;
         yield return TweenButton(
             selectedRect,
             selectedImage,
             popPosition,
-            selectedPosition,
+            finalSelectedPosition,
             popLocalScale,
             baseScales[selectedIndex],
             GetRestingColor(selectedIndex),
             GetRestingColor(selectedIndex),
-            settleDuration);
+            buttonSettleDuration);
 
         ApplyRestingVisualState(selectedIndex);
         selectionRoutine = null;
@@ -360,6 +368,8 @@ public class BottomNavigationController : MonoBehaviour
         Color toColor,
         float duration)
     {
+        if (rect == null) yield break;
+
         if (duration <= 0f)
         {
             rect.anchoredPosition = toPosition;
@@ -372,7 +382,7 @@ public class BottomNavigationController : MonoBehaviour
         while (elapsed < duration)
         {
             elapsed += Time.unscaledDeltaTime;
-            float t = EaseOutCubic(NormalizedTime(elapsed, duration));
+            float t = EaseOutQuad(NormalizedTime(elapsed, duration));
             rect.anchoredPosition = Vector2.LerpUnclamped(fromPosition, toPosition, t);
             rect.localScale = Vector3.LerpUnclamped(fromScale, toScale, t);
             if (image != null)
@@ -424,7 +434,6 @@ public class BottomNavigationController : MonoBehaviour
                 }
             }
 
-            // Icon hoặc label tách riêng
             if (item.icon != null)
             {
                 item.icon.color = isSelected ? Color.white : new Color(0.6f, 0.8f, 0.85f, 0.8f);
@@ -434,6 +443,12 @@ public class BottomNavigationController : MonoBehaviour
             {
                 item.label.color = isSelected ? Color.white : new Color(0.6f, 0.8f, 0.85f, 0.8f);
             }
+        }
+
+        // Báo event thay đổi tab
+        if (previousIndex != selectedIndex)
+        {
+            OnTabChanged?.Invoke(previousIndex, selectedIndex);
         }
 
         // 2. Chuyển cảnh Panel nội dung (Shop, Lab, Chapter, Chipset, Buddy)
@@ -466,7 +481,9 @@ public class BottomNavigationController : MonoBehaviour
         }
         else
         {
-            // Chuyển cảnh mượt mà giữa Previous Panel và Selected Panel
+            // Spatial Directionality: Tính toán hướng dựa trên thứ tự index
+            // currentIndex < targetIndex (ví dụ Shop 0 -> Chapter 2) => Slide Left
+            // currentIndex > targetIndex (ví dụ Chapter 2 -> Shop 0) => Slide Right
             bool movingForward = selectedIndex > previousIndex;
             UIPanelTransition.SlideDirection enterDirection = movingForward 
                 ? UIPanelTransition.SlideDirection.FromRight 
@@ -475,16 +492,12 @@ public class BottomNavigationController : MonoBehaviour
                 ? UIPanelTransition.SlideDirection.FromLeft 
                 : UIPanelTransition.SlideDirection.FromRight;
 
-            // Ẩn panel trước đó
+            // Ẩn panel trước đó (Exit)
             if (IsValidCachedIndex(previousIndex))
             {
                 if (panelTransitions != null && panelTransitions[previousIndex] != null)
                 {
-                    panelTransitions[previousIndex].PlayHide(
-                        panelTransitionType,
-                        exitDirection,
-                        panelTransitionDuration,
-                        slideDistance);
+                    panelTransitions[previousIndex].PlayHide(panelTransitionType, exitDirection);
                 }
                 else if (items[previousIndex]?.panel != null)
                 {
@@ -492,16 +505,12 @@ public class BottomNavigationController : MonoBehaviour
                 }
             }
 
-            // Hiện panel mới
+            // Hiện panel mới (Enter)
             if (IsValidCachedIndex(selectedIndex))
             {
                 if (panelTransitions != null && panelTransitions[selectedIndex] != null)
                 {
-                    panelTransitions[selectedIndex].PlayShow(
-                        panelTransitionType,
-                        enterDirection,
-                        panelTransitionDuration,
-                        slideDistance);
+                    panelTransitions[selectedIndex].PlayShow(panelTransitionType, enterDirection);
                 }
                 else if (items[selectedIndex]?.panel != null)
                 {
@@ -509,7 +518,7 @@ public class BottomNavigationController : MonoBehaviour
                 }
             }
 
-            // Tắt ngay các panel còn lại để tránh trường hợp click nhanh
+            // Tắt các panel còn lại để tránh trường hợp spam click
             for (int i = 0; i < items.Length; i++)
             {
                 if (i != selectedIndex && i != previousIndex)
@@ -593,10 +602,9 @@ public class BottomNavigationController : MonoBehaviour
         return duration <= 0f ? 1f : Mathf.Clamp01(elapsed / duration);
     }
 
-    private static float EaseOutCubic(float value)
+    private static float EaseOutQuad(float t)
     {
-        float inverse = 1f - value;
-        return 1f - inverse * inverse * inverse;
+        return 1f - (1f - t) * (1f - t);
     }
 
 #if UNITY_EDITOR
