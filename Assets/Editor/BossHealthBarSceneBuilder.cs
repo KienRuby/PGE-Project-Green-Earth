@@ -109,7 +109,7 @@ public static class BossHealthBarSceneBuilder
         nameObj.transform.SetParent(bossContainerObj.transform, false);
         TextMeshProUGUI nameText = nameObj.GetComponent<TextMeshProUGUI>();
         if (font != null) nameText.font = font;
-        nameText.text = "⚠️ BOSS FIGHT ⚠️";
+        nameText.text = "BOSS FIGHT";
         nameText.fontSize = 22f;
         nameText.fontStyle = FontStyles.Bold;
         nameText.color = new Color32(255, 90, 90, 255);

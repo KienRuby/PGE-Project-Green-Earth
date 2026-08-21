@@ -260,6 +260,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 1.4
   stoppingDistance: 1.2
+  mapBoundaryPadding: 1
   autoFlipFacing: 1
   initialFacingLeft: 1
   flipDeadzone: 0.1
@@ -288,12 +289,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 0}
-  attackRange: 11
-  minimumDistance: 4.5
+  attackRange: 8
   projectileSpawnDistance: 0.8
   projectilePrefab: {fileID: 4869308302692197069, guid: 83e399f033884d0cad6218623886ac7c, type: 3}
-  projectileDamage: 15
-  projectileSpeed: 4
+  projectileDamage: 16
+  projectileSpeed: 2
   skills:
   - skillName: Lien xa nham Player
     pattern: 0

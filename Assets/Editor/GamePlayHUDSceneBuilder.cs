@@ -191,7 +191,7 @@ public static class GamePlayHUDSceneBuilder
         bossCanvasGroup.alpha = 0f;
 
         // Tên Boss
-        TMP_Text bossNameTxt = CreateText("BossNameText", bossHealthContainerObj.transform, "⚠️ BOSS FIGHT ⚠️", 22f, new Color32(255, 90, 90, 255), TextAlignmentOptions.Center);
+        TMP_Text bossNameTxt = CreateText("BossNameText", bossHealthContainerObj.transform, "BOSS FIGHT", 22f, new Color32(255, 90, 90, 255), TextAlignmentOptions.Center);
         bossNameTxt.rectTransform.anchoredPosition = new Vector2(0f, 20f);
         bossNameTxt.fontStyle = FontStyles.Bold;
 

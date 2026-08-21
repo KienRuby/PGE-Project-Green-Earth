@@ -52,6 +52,10 @@ public class BossHealthBarUI : MonoBehaviour
 
     private void Awake()
     {
+        if (bossNameText != null)
+        {
+            bossNameText.text = SanitizeBossDisplayName(bossNameText.text);
+        }
         EnsureReferences();
         SetAlphaImmediate(0f);
     }
@@ -232,7 +236,7 @@ public class BossHealthBarUI : MonoBehaviour
 
         if (bossNameText != null)
         {
-            bossNameText.text = $"⚠️ {bossName.ToUpper()} ⚠️";
+            bossNameText.text = SanitizeBossDisplayName(bossName);
         }
 
         targetFill = currentBossHealth.MaxHealth > 0 ? Mathf.Clamp01((float)currentBossHealth.CurrentHealth / currentBossHealth.MaxHealth) : 1f;
@@ -246,6 +250,15 @@ public class BossHealthBarUI : MonoBehaviour
         FadeVisible(true, 0.35f);
 
         Debug.Log($"[BossHealthBarUI] 🎯 Đã kết nối thanh máu với Boss: {bossObj.name} (HP: {currentBossHealth.CurrentHealth}/{currentBossHealth.MaxHealth})");
+    }
+
+    public static string SanitizeBossDisplayName(string value)
+    {
+        string safeName = (value ?? string.Empty)
+            .Replace("\u26A0", string.Empty)
+            .Replace("\uFE0F", string.Empty)
+            .Trim();
+        return string.IsNullOrEmpty(safeName) ? "BOSS" : safeName.ToUpperInvariant();
     }
 
     private void HandleBossHealthChanged(int currentHp, int maxHp)

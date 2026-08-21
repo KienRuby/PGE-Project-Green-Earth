@@ -16,8 +16,12 @@ public class BossMovement : MonoBehaviour, IPoolable
     [Tooltip("Tốc độ di chuyển cơ bản của Boss khi đuổi theo Player.")]
     [SerializeField] private float moveSpeed = 1.8f;
 
-    [Tooltip("Khoảng cách tối thiểu với Player (Boss kích thước lớn nên giữ cự ly phù hợp).")]
+    [Tooltip("Khoảng cách dừng dự phòng khi Boss không có component BossRangedAttack.")]
     [SerializeField] private float stoppingDistance = 1.0f;
+
+    [Tooltip("Khoảng đệm giữ thân Boss nằm trọn bên trong mép bản đồ.")]
+    [Min(0f)]
+    [SerializeField] private float mapBoundaryPadding = 1f;
 
     [Header("Facing / Flipping")]
     [Tooltip("Tự động lật hướng mặt (quay trái/phải) về phía Player.")]
@@ -172,6 +176,8 @@ public class BossMovement : MonoBehaviour, IPoolable
 
     private void FixedUpdate()
     {
+        KeepBossInsideMap();
+
         if (player == null || !player.gameObject.activeInHierarchy)
         {
             if (Time.time >= nextPlayerSearchTime)
@@ -212,7 +218,7 @@ public class BossMovement : MonoBehaviour, IPoolable
             case BossState.Dash:
                 PlayAnimation(RunAnimationHash);
                 float currentDashSpeed = (moveSpeed * (isEnraged ? enrageSpeedMultiplier : 1f)) * dashSpeedMultiplier;
-                rb.MovePosition(rb.position + dashDirection * currentDashSpeed * Time.fixedDeltaTime);
+                MoveInsideMap(rb.position + dashDirection * currentDashSpeed * Time.fixedDeltaTime);
                 stateTimer -= Time.fixedDeltaTime;
                 if (stateTimer <= 0f)
                 {
@@ -261,13 +267,34 @@ public class BossMovement : MonoBehaviour, IPoolable
             return;
         }
 
-        Vector2 moveDir = rangeState == BossRangedAttack.TargetRangeState.TooClose
-            ? -toPlayer.normalized
-            : toPlayer.normalized;
+        Vector2 moveDir = toPlayer.normalized;
         float effectiveSpeed = moveSpeed * (isEnraged ? enrageSpeedMultiplier : 1f);
         Vector2 targetPos = rb.position + moveDir * effectiveSpeed * Time.fixedDeltaTime;
-        rb.MovePosition(targetPos);
+        MoveInsideMap(targetPos);
         PlayAnimation(RunAnimationHash);
+    }
+
+    private void MoveInsideMap(Vector2 targetPosition)
+    {
+        Vector2 clampedPosition = MapBoundary.Instance != null
+            ? MapBoundary.Instance.ClampSpawnPosition(targetPosition, mapBoundaryPadding)
+            : targetPosition;
+        rb.MovePosition(clampedPosition);
+    }
+
+    private void KeepBossInsideMap()
+    {
+        if (rb == null || MapBoundary.Instance == null)
+        {
+            return;
+        }
+
+        Vector2 clampedPosition = MapBoundary.Instance.ClampSpawnPosition(rb.position, mapBoundaryPadding);
+        if ((clampedPosition - rb.position).sqrMagnitude > 0.000001f)
+        {
+            rb.position = clampedPosition;
+            rb.velocity = Vector2.zero;
+        }
     }
 
     private bool CanStartDashFromCurrentRange()

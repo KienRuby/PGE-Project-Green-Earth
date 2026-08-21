@@ -42,8 +42,8 @@ MonoBehaviour:
   chapterBossPrefab: {fileID: 1010797112834101214, guid: 616d9ac7cedf5eb46b9e23335d25aa30, type: 3}
   waves:
   - waveName: Wave 1
-    totalEnemiesToSpawn: 20
-    maxConcurrentEnemies: 20
+    totalEnemiesToSpawn: 10
+    maxConcurrentEnemies: 10
     spawnInterval: 1
     enemiesPerSpawn: 2
     enemyPool:
@@ -54,12 +54,12 @@ MonoBehaviour:
     damageMultiplier: 1
     speedMultiplier: 1
     expMultiplier: 1
-    isBossWave: 1
+    isBossWave: 0
     customBossPrefab: {fileID: 1010797112834101214, guid: 616d9ac7cedf5eb46b9e23335d25aa30, type: 3}
     bossCount: 1
     bossSpawnDelay: 0
     breakDurationAfterWave: 1
-    waveDuration: 20
+    waveDuration: 10
   - waveName: Wave 2
     totalEnemiesToSpawn: 24
     maxConcurrentEnemies: 20
@@ -78,7 +78,7 @@ MonoBehaviour:
     bossCount: 1
     bossSpawnDelay: 0
     breakDurationAfterWave: 1
-    waveDuration: 22
+    waveDuration: 10
   - waveName: Wave 3
     totalEnemiesToSpawn: 28
     maxConcurrentEnemies: 22
@@ -100,7 +100,7 @@ MonoBehaviour:
     bossCount: 1
     bossSpawnDelay: 0
     breakDurationAfterWave: 1
-    waveDuration: 24
+    waveDuration: 10
   - waveName: Wave 4
     totalEnemiesToSpawn: 32
     maxConcurrentEnemies: 24
@@ -122,7 +122,7 @@ MonoBehaviour:
     bossCount: 1
     bossSpawnDelay: 0
     breakDurationAfterWave: 1
-    waveDuration: 26
+    waveDuration: 10
   - waveName: Wave 5
     totalEnemiesToSpawn: 38
     maxConcurrentEnemies: 26
@@ -144,7 +144,7 @@ MonoBehaviour:
     bossCount: 1
     bossSpawnDelay: 0
     breakDurationAfterWave: 1
-    waveDuration: 28
+    waveDuration: 10
   - waveName: Wave 6
     totalEnemiesToSpawn: 44
     maxConcurrentEnemies: 28
@@ -166,7 +166,7 @@ MonoBehaviour:
     bossCount: 1
     bossSpawnDelay: 0
     breakDurationAfterWave: 1
-    waveDuration: 30
+    waveDuration: 10
   - waveName: Wave 7
     totalEnemiesToSpawn: 50
     maxConcurrentEnemies: 30
@@ -188,7 +188,7 @@ MonoBehaviour:
     bossCount: 1
     bossSpawnDelay: 0
     breakDurationAfterWave: 1
-    waveDuration: 30
+    waveDuration: 10
   - waveName: Wave 8
     totalEnemiesToSpawn: 56
     maxConcurrentEnemies: 32
@@ -210,7 +210,7 @@ MonoBehaviour:
     bossCount: 1
     bossSpawnDelay: 0
     breakDurationAfterWave: 1
-    waveDuration: 30
+    waveDuration: 10
   - waveName: Wave 9
     totalEnemiesToSpawn: 64
     maxConcurrentEnemies: 35
@@ -232,7 +232,7 @@ MonoBehaviour:
     bossCount: 1
     bossSpawnDelay: 0
     breakDurationAfterWave: 1
-    waveDuration: 32
+    waveDuration: 10
   - waveName: Wave 10 - FINAL BOSS
     totalEnemiesToSpawn: 75
     maxConcurrentEnemies: 40
@@ -254,4 +254,4 @@ MonoBehaviour:
     bossCount: 1
     bossSpawnDelay: 2
     breakDurationAfterWave: 2
-    waveDuration: 60
+    waveDuration: 10

@@ -15,7 +15,6 @@ public class BossRangedAttack : MonoBehaviour, IPoolable
     public enum TargetRangeState
     {
         NoTarget,
-        TooClose,
         InRange,
         TooFar
     }
@@ -49,9 +48,6 @@ public class BossRangedAttack : MonoBehaviour, IPoolable
     [Tooltip("Boss chỉ bắt đầu kỹ năng khi Player nằm trong bán kính này.")]
     [Min(0.1f)] [SerializeField] private float attackRange = 11f;
 
-    [Tooltip("Nếu Player gần hơn khoảng cách này, Boss sẽ lùi ra xa và tạm ngừng bắn.")]
-    [Min(0f)] [SerializeField] private float minimumDistance = 4.5f;
-
     [Tooltip("Khoảng cách sinh đạn tính từ tâm Boss để đạn không chạm collider của Boss.")]
     [Min(0f)] [SerializeField] private float projectileSpawnDistance = 0.8f;
 
@@ -81,7 +77,6 @@ public class BossRangedAttack : MonoBehaviour, IPoolable
     private int baseProjectileDamage;
 
     public float AttackRange => attackRange;
-    public float MinimumDistance => minimumDistance;
     public int SkillCount => skills != null ? skills.Count : 0;
     public EnemyProjectile ProjectilePrefab => projectilePrefab;
     public int BaseProjectileDamage => baseProjectileDamage > 0 ? baseProjectileDamage : projectileDamage;
@@ -139,8 +134,6 @@ public class BossRangedAttack : MonoBehaviour, IPoolable
         if (!HasValidTarget()) return TargetRangeState.NoTarget;
 
         float distanceSquared = ((Vector2)target.position - (Vector2)transform.position).sqrMagnitude;
-        float clampedMinimum = Mathf.Min(minimumDistance, attackRange);
-        if (distanceSquared < clampedMinimum * clampedMinimum) return TargetRangeState.TooClose;
         if (distanceSquared <= attackRange * attackRange) return TargetRangeState.InRange;
         return TargetRangeState.TooFar;
     }
@@ -186,7 +179,12 @@ public class BossRangedAttack : MonoBehaviour, IPoolable
             int count = Mathf.Max(1, skill.projectileCount);
             for (int i = 0; i < count; i++)
             {
-                if (!HasValidTarget() || (health != null && health.IsDead)) break;
+                if (!HasValidTarget()
+                    || GetTargetRangeState() != TargetRangeState.InRange
+                    || (health != null && health.IsDead))
+                {
+                    break;
+                }
                 SpawnProjectile(((Vector2)target.position - (Vector2)transform.position).normalized);
                 if (i < count - 1 && skill.shotInterval > 0f)
                 {
@@ -329,7 +327,5 @@ public class BossRangedAttack : MonoBehaviour, IPoolable
     {
         Gizmos.color = new Color(1f, 0.35f, 0.1f, 0.8f);
         Gizmos.DrawWireSphere(transform.position, attackRange);
-        Gizmos.color = new Color(1f, 0.85f, 0.1f, 0.8f);
-        Gizmos.DrawWireSphere(transform.position, Mathf.Min(minimumDistance, attackRange));
     }
 }

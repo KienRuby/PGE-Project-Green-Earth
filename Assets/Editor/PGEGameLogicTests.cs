@@ -156,7 +156,6 @@ public class PGEGameLogicTests
         Assert.That(rangedAttack.ProjectilePrefab, Is.EqualTo(enemyProjectile));
         Assert.That(rangedAttack.SkillCount, Is.EqualTo(3));
         Assert.That(rangedAttack.AttackRange, Is.GreaterThan(0f));
-        Assert.That(rangedAttack.MinimumDistance, Is.GreaterThan(0f).And.LessThan(rangedAttack.AttackRange));
         Assert.That(enemyProjectile, Is.Not.Null, "BossProjectile.prefab phải có EnemyProjectile.");
 
         AnimationClip bossDie = AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/Animaton/Enemy/Boss/Die.anim");
@@ -174,9 +173,10 @@ public class PGEGameLogicTests
         player.AddComponent<PlayerHealth>();
 
         rangedAttack.SetTarget(player.transform);
-        player.transform.position = Vector3.right * (rangedAttack.MinimumDistance - 0.1f);
-        Assert.That(rangedAttack.GetTargetRangeState(), Is.EqualTo(BossRangedAttack.TargetRangeState.TooClose));
-        Assert.That(rangedAttack.IsTargetInRange(), Is.False);
+        player.transform.position = boss.transform.position;
+        Assert.That(rangedAttack.GetTargetRangeState(), Is.EqualTo(BossRangedAttack.TargetRangeState.InRange));
+        Assert.That(rangedAttack.IsTargetInRange(), Is.True,
+            "Boss phải đứng yên và vẫn bắn khi Player tiến sát.");
 
         player.transform.position = Vector3.right * (rangedAttack.AttackRange - 0.1f);
         Assert.That(rangedAttack.GetTargetRangeState(), Is.EqualTo(BossRangedAttack.TargetRangeState.InRange));
@@ -249,6 +249,41 @@ public class PGEGameLogicTests
         Assert.That(PlayerRunEndController.CalculateStageProgress(1, 0.5f, 10), Is.EqualTo(0.15f).Within(0.001f));
         Assert.That(PlayerRunEndController.CalculateStageProgress(99, 1f, 10), Is.EqualTo(1f));
         Assert.That(PlayerRunEndController.CalculateStageProgress(0, 0f, 0), Is.EqualTo(0f));
+    }
+
+    [Test]
+    public void WaveHUD_BossIndicator_ShowsOnlyOffscreenAndClampsToCanvasEdge()
+    {
+        Assert.That(WaveHUDController.IsViewportPositionVisible(new Vector3(0.5f, 0.5f, 1f), 0.02f), Is.True);
+        Assert.That(WaveHUDController.IsViewportPositionVisible(new Vector3(-0.1f, 0.5f, 1f), 0.02f), Is.False);
+        Assert.That(WaveHUDController.IsViewportPositionVisible(new Vector3(0.5f, 0.5f, -1f), 0.02f), Is.False);
+
+        Vector2 left = WaveHUDController.CalculateBossIndicatorPosition(
+            new Vector3(-0.2f, 0.5f, 1f),
+            new Vector2(1080f, 1920f),
+            new Vector2(150f, 150f),
+            30f);
+        Assert.That(left.x, Is.EqualTo(-435f).Within(0.01f));
+        Assert.That(left.y, Is.EqualTo(0f).Within(0.01f));
+
+        Vector2 topRight = WaveHUDController.CalculateBossIndicatorPosition(
+            new Vector3(1.2f, 1.2f, 1f),
+            new Vector2(1080f, 1920f),
+            new Vector2(150f, 150f),
+            30f);
+        Assert.That(Mathf.Abs(topRight.x), Is.LessThanOrEqualTo(435.01f));
+        Assert.That(Mathf.Abs(topRight.y), Is.LessThanOrEqualTo(855.01f));
+    }
+
+    [Test]
+    public void BossHealthBar_NameSanitizer_RemovesUnsupportedWarningEmojiGlyphs()
+    {
+        string result = BossHealthBarUI.SanitizeBossDisplayName("⚠️ Boss Fight ⚠️");
+
+        Assert.That(result, Is.EqualTo("BOSS FIGHT"));
+        Assert.That(result.Contains("\u26A0"), Is.False);
+        Assert.That(result.Contains("\uFE0F"), Is.False);
+        Assert.That(BossHealthBarUI.SanitizeBossDisplayName(null), Is.EqualTo("BOSS"));
     }
 
     [Test]

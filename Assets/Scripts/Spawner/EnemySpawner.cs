@@ -125,6 +125,13 @@ public class EnemySpawner : MonoBehaviour
     [Tooltip("Bật in log tọa độ tính toán và tọa độ thực tế khi spawn quái vật để kiểm tra lỗi dồn quái.")]
     [SerializeField] private bool enableSpawnDebugLogs = false;
 
+    [Header("Stage Victory Reward")]
+    [Tooltip("Data Chips nhận được khi hoàn thành chapter.")]
+    [Min(0)] [SerializeField] private int stageVictoryDataChipReward = 50;
+
+    [Tooltip("Red Gems nhận được khi hoàn thành chapter.")]
+    [Min(0)] [SerializeField] private int stageVictoryRedGemReward = 10;
+
     // Runtime tracking
     private int currentWaveIndex = 0;
     private int enemiesSpawnedInWave = 0;
@@ -173,6 +180,8 @@ public class EnemySpawner : MonoBehaviour
     public float CurrentWaveTimeProgress => CurrentWaveDuration > 0f ? Mathf.Clamp01(waveElapsedTime / CurrentWaveDuration) : 0f;
     public float BreakTimeRemaining => Mathf.Max(0f, breakTimer);
     public bool IsStageCompleted => isStageCompleted;
+    public int StageVictoryDataChipReward => stageVictoryDataChipReward;
+    public int StageVictoryRedGemReward => stageVictoryRedGemReward;
     public IReadOnlyList<WaveConfig> Waves => waves;
 
     private void Awake()
@@ -617,8 +626,8 @@ public class EnemySpawner : MonoBehaviour
         }
 
         // Tặng thưởng vượt ải
-        ChipManager.AddDataChips(50);
-        ChipManager.AddRedGems(10);
+        ChipManager.AddDataChips(stageVictoryDataChipReward);
+        ChipManager.AddRedGems(stageVictoryRedGemReward);
 
         OnStageVictory?.Invoke();
     }

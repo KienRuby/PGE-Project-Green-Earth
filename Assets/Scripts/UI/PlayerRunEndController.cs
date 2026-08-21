@@ -251,6 +251,14 @@ public sealed class PlayerRunEndController : MonoBehaviour
         }
     }
 
+    public void ResolveWithVictory()
+    {
+        resultResolved = true;
+        ownsGameplayPause = false;
+        SetPanelActive(revivePanel, false);
+        SetPanelActive(gameOverPanel, false);
+    }
+
     private static void SetPanelActive(GameObject panel, bool active)
     {
         if (panel != null) panel.SetActive(active);
