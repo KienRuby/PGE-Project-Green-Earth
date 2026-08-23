@@ -203,6 +203,12 @@ public class PlayerAutoShooter : MonoBehaviour
             }
         }
 
+        PlayerHealth playerHealth = GetComponent<PlayerHealth>() ?? GetComponentInParent<PlayerHealth>();
+        if (playerHealth != null)
+        {
+            playerHealth.CacheSpriteRenderers(true);
+        }
+
         // 2. Cập nhật vị trí nòng súng (FirePoint)
         if (attackPoint != null && weapon.firePointOffset != Vector2.zero)
         {

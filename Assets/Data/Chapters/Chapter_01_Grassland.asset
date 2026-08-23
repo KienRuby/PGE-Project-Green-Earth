@@ -20,7 +20,7 @@ MonoBehaviour:
   bossSilhouette: {fileID: 21300000, guid: f69b6363b6220a24faa3bb42da143ecd, type: 3}
   mapGroundSprite: {fileID: 21300000, guid: e92326fa91624344e844f543e748a31e, type: 3}
   mapSize: {x: 40, y: 40}
-  mapColor: {r: 1, g: 1, b: 1, a: 1}
+  mapColor: {r: 0.9685534, g: 0.86858594, b: 0.70966333, a: 1}
   groundDrawMode: 2
   playerBoundaryPadding: 0.6
   flavorText: Mutant spores have been detected on the outskirts.

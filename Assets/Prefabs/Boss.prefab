@@ -232,6 +232,10 @@ MonoBehaviour:
   fallbackDeathDuration: 0.5
   destroyDelay: 0
   fadeOutDuration: 0.5
+  enableDamageFlash: 1
+  damageFlashColor: {r: 0.7294118, g: 0, b: 0.023529412, a: 1}
+  damageFlashDuration: 0.12
+  hitFlashMaterial: {fileID: 2100000, guid: 2822f1187a894884da86fd7a411b301f, type: 2}
 --- !u!114 &1010797112834101223
 MonoBehaviour:
   m_ObjectHideFlags: 0

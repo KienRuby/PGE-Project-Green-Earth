@@ -6,11 +6,11 @@ using UnityEngine.UI;
 
 /// <summary>
 /// Component quản lý chuyển cảnh Panel UI chuẩn AAA Mobile:
-/// 1. Tầng Motion rõ ràng: Exit (0.16-0.20s), Enter (0.20-0.24s), Content Stagger (Row/Chunk).
-/// 2. Hỗ trợ DirectionalSlide (Tab Bar), ScaleFade / PopIn (Dialog / Popup).
-/// 3. Zero GC runtime: Không GetComponent, không LINQ, không new List trong animation loop.
-/// 4. An toàn gián đoạn (Fast Interruption): Lấy current visual state để nội suy mượt mà, không bị giật/snap.
-/// 5. Tự động tương thích LayoutGroup và Sub-Canvas isolation.
+/// 1. Pop / Bounce 3-Phase (Pop -> Recoil -> Settle) dành cho Popup / Modal.
+/// 2. Directional Slide 5-Layer Motion (Exit, Enter, Row Stagger) dành cho Bottom Nav / Tabs.
+/// 3. Zero GC Runtime: Không GetComponent, không LINQ, không new List trong animation loop.
+/// 4. An toàn gián đoạn (Fast Reopen / Hide During Show): Lấy current visual state để nội suy mượt mà.
+/// 5. Tự động tương thích LayoutGroup, Sub-Canvas isolation và Unscaled Time.
 /// </summary>
 [DisallowMultipleComponent]
 [RequireComponent(typeof(RectTransform))]
@@ -43,15 +43,59 @@ public class UIPanelTransition : MonoBehaviour
         Custom
     }
 
-    [Header("Preset & Transition Mode")]
-    [Tooltip("Bộ preset cấu hình chuyển cảnh tối ưu sẵn.")]
-    [SerializeField] private TransitionPreset preset = TransitionPreset.Premium;
+    public enum PopPreset
+    {
+        Premium,
+        Subtle,
+        Punchy,
+        Custom
+    }
 
-    [Tooltip("Kiểu chuyển cảnh mặc định cho panel.")]
+    [Header("Preset & Mode")]
+    [Tooltip("Bộ preset cấu hình chuyển cảnh trượt tab (Directional Slide).")]
+    [SerializeField] private TransitionPreset tabPreset = TransitionPreset.Premium;
+
+    [Tooltip("Bộ preset cấu hình hiệu ứng Pop / Bounce cho Popup/Modal.")]
+    [SerializeField] private PopPreset popPreset = PopPreset.Premium;
+
+    [Tooltip("Kiểu chuyển cảnh mặc định khi gọi PlayShow().")]
     [SerializeField] private TransitionType defaultTransitionType = TransitionType.DirectionalSlide;
 
-    [Header("Layer 4 - Panel Enter (Vào màn hình)")]
-    [Tooltip("Thời gian xuất hiện của panel mới (0.20s - 0.24s).")]
+    [Header("Pop / Modal 3-Phase Settings (Hiệu ứng Nảy Popup)")]
+    [Tooltip("Tỉ lệ scale bắt đầu xuất hiện (tương đối theo baseScale, mặc định 0.80).")]
+    [Range(0.50f, 0.95f)]
+    [SerializeField] private float popStartScale = 0.80f;
+
+    [Tooltip("Tỉ lệ scale đỉnh overshoot ở cuối Phase 1 (mặc định 1.08).")]
+    [Range(1.01f, 1.25f)]
+    [SerializeField] private float popOvershootScale = 1.08f;
+
+    [Tooltip("Tỉ lệ scale co lại ở cuối Phase 2 (mặc định 0.97).")]
+    [Range(0.90f, 1.00f)]
+    [SerializeField] private float popRecoilScale = 0.97f;
+
+    [Tooltip("Thời gian Phase 1: Pop (0.80 -> 1.08, Alpha 0 -> 1).")]
+    [Range(0.05f, 0.30f)]
+    [SerializeField] private float phase1PopDuration = 0.14f;
+
+    [Tooltip("Thời gian Phase 2: Recoil (1.08 -> 0.97, Alpha = 1).")]
+    [Range(0.04f, 0.20f)]
+    [SerializeField] private float phase2RecoilDuration = 0.09f;
+
+    [Tooltip("Thời gian Phase 3: Settle (0.97 -> 1.00, Alpha = 1).")]
+    [Range(0.04f, 0.20f)]
+    [SerializeField] private float phase3SettleDuration = 0.09f;
+
+    [Tooltip("Thời gian ẩn Popup khi Hide (mặc định 0.18s).")]
+    [Range(0.10f, 0.30f)]
+    [SerializeField] private float popHideDuration = 0.18f;
+
+    [Tooltip("Scale thu nhỏ khi ẩn Popup (mặc định 0.94).")]
+    [Range(0.85f, 0.99f)]
+    [SerializeField] private float popHideScale = 0.94f;
+
+    [Header("Layer 4 - Panel Enter (Dành cho Slide Tab)")]
+    [Tooltip("Thời gian xuất hiện của panel mới khi trượt (0.20s - 0.24s).")]
     [Range(0.10f, 0.40f)]
     [SerializeField] private float enterDuration = 0.22f;
 
@@ -59,7 +103,7 @@ public class UIPanelTransition : MonoBehaviour
     [Range(40f, 200f)]
     [SerializeField] private float enterDistance = 100f;
 
-    [Tooltip("Tỉ lệ scale ban đầu khi bắt đầu xuất hiện (0.975 - 0.985).")]
+    [Tooltip("Tỉ lệ scale ban đầu khi trượt vào (0.98).")]
     [Range(0.90f, 1.0f)]
     [SerializeField] private float enterScale = 0.98f;
 
@@ -67,8 +111,8 @@ public class UIPanelTransition : MonoBehaviour
     [Range(0.0f, 0.5f)]
     [SerializeField] private float enterOvershoot = 0.08f;
 
-    [Header("Layer 3 - Panel Exit (Rời màn hình)")]
-    [Tooltip("Thời gian thoát của panel cũ (0.16s - 0.20s).")]
+    [Header("Layer 3 - Panel Exit (Dành cho Slide Tab)")]
+    [Tooltip("Thời gian thoát của panel cũ khi trượt (0.16s - 0.20s).")]
     [Range(0.10f, 0.35f)]
     [SerializeField] private float exitDuration = 0.18f;
 
@@ -81,7 +125,7 @@ public class UIPanelTransition : MonoBehaviour
     [SerializeField] private float exitScale = 0.97f;
 
     [Header("Layer 5 - Content Stagger (Thác đổ theo Row/Chunk)")]
-    [Tooltip("Kích hoạt hiệu ứng các phần tử con/nhóm thẻ bay lên nối tiếp.")]
+    [Tooltip("Kích hoạt hiệu ứng các phần tử con/nhóm thẻ bay lên nối tiếp khi mở panel.")]
     [SerializeField] private bool animateChildren = true;
 
     [Tooltip("Tự động nhóm các phần tử con cùng độ cao Y thành từng Row (tối đa 3-4 bước).")]
@@ -122,6 +166,10 @@ public class UIPanelTransition : MonoBehaviour
     [Tooltip("Tự động cách ly Sub-Canvas để tránh dirty toàn bộ Canvas chính khi panel chuyển động.")]
     [SerializeField] private bool isolateSubCanvas = false;
 
+    // Optional Event Hooks cho SoundManager / Haptic Feedback
+    public event Action OnTransitionStart;
+    public event Action OnTransitionComplete;
+
     // Cache components & visuals
     private RectTransform rectTransform;
     private CanvasGroup canvasGroup;
@@ -151,6 +199,8 @@ public class UIPanelTransition : MonoBehaviour
 
     public bool IsAnimating => activeTransitionRoutine != null;
     public RectTransform Rect => rectTransform != null ? rectTransform : (rectTransform = GetComponent<RectTransform>());
+    public Vector3 BaseScale => baseScale;
+    public Vector2 BasePosition => baseAnchoredPosition;
 
     private void Awake()
     {
@@ -161,16 +211,17 @@ public class UIPanelTransition : MonoBehaviour
 #if UNITY_EDITOR
     private void OnValidate()
     {
-        if (preset != TransitionPreset.Custom)
+        if (tabPreset != TransitionPreset.Custom || popPreset != PopPreset.Custom)
         {
             ApplyPresetValues();
         }
     }
 #endif
 
-    private void ApplyPresetValues()
+    public void ApplyPresetValues()
     {
-        switch (preset)
+        // 1. Áp dụng preset cho Tab Transition
+        switch (tabPreset)
         {
             case TransitionPreset.Premium:
                 enterDuration = 0.22f;
@@ -224,6 +275,43 @@ public class UIPanelTransition : MonoBehaviour
             case TransitionPreset.Custom:
                 break;
         }
+
+        // 2. Áp dụng preset cho Pop / Modal Transition
+        switch (popPreset)
+        {
+            case PopPreset.Premium:
+                popStartScale = 0.80f;
+                popOvershootScale = 1.08f;
+                popRecoilScale = 0.97f;
+                phase1PopDuration = 0.14f;
+                phase2RecoilDuration = 0.09f;
+                phase3SettleDuration = 0.09f;
+                popHideDuration = 0.18f;
+                popHideScale = 0.94f;
+                break;
+            case PopPreset.Subtle:
+                popStartScale = 0.90f;
+                popOvershootScale = 1.04f;
+                popRecoilScale = 0.985f;
+                phase1PopDuration = 0.12f;
+                phase2RecoilDuration = 0.07f;
+                phase3SettleDuration = 0.07f;
+                popHideDuration = 0.16f;
+                popHideScale = 0.96f;
+                break;
+            case PopPreset.Punchy:
+                popStartScale = 0.75f;
+                popOvershootScale = 1.12f;
+                popRecoilScale = 0.95f;
+                phase1PopDuration = 0.15f;
+                phase2RecoilDuration = 0.10f;
+                phase3SettleDuration = 0.10f;
+                popHideDuration = 0.20f;
+                popHideScale = 0.92f;
+                break;
+            case PopPreset.Custom:
+                break;
+        }
     }
 
     public void Initialize()
@@ -261,10 +349,6 @@ public class UIPanelTransition : MonoBehaviour
         isInitialized = true;
     }
 
-    /// <summary>
-    /// Xây dựng cấu trúc hàng/chunk cho Stagger một lần duy nhất tại Initialize (Zero GC).
-    /// Bỏ qua backgrounds, scroll viewports và các element ẩn.
-    /// </summary>
     private void CacheStaggerStructure()
     {
         if (!animateChildren)
@@ -274,7 +358,6 @@ public class UIPanelTransition : MonoBehaviour
             return;
         }
 
-        // Đảm bảo layout được tính toán chính xác trước khi cache position
         LayoutRebuilder.ForceRebuildLayoutImmediate(rectTransform);
 
         List<RectTransform> validTargets = new List<RectTransform>();
@@ -292,7 +375,6 @@ public class UIPanelTransition : MonoBehaviour
         }
         else
         {
-            // Tự động tìm kiếm các con trực tiếp hợp lệ (bỏ qua BG, Decor, Viewport)
             int childCount = transform.childCount;
             for (int i = 0; i < childCount; i++)
             {
@@ -310,7 +392,7 @@ public class UIPanelTransition : MonoBehaviour
                 if (child is RectTransform childRect)
                 {
                     validTargets.Add(childRect);
-                    if (validTargets.Count >= 12) break; // Giới hạn tối đa 12 target
+                    if (validTargets.Count >= 12) break;
                 }
             }
         }
@@ -324,7 +406,6 @@ public class UIPanelTransition : MonoBehaviour
 
         if (!groupChildrenByRow)
         {
-            // Mỗi target là một bước riêng
             cachedRows = new StaggerRow[Mathf.Min(validTargets.Count, 4)];
             for (int i = 0; i < cachedRows.Length; i++)
             {
@@ -342,7 +423,6 @@ public class UIPanelTransition : MonoBehaviour
         }
         else
         {
-            // Nhóm các phần tử cùng Y (cùng hàng) lại với nhau
             List<List<StaggerItem>> rowBuckets = new List<List<StaggerItem>>();
             List<float> rowYValues = new List<float>();
 
@@ -375,7 +455,7 @@ public class UIPanelTransition : MonoBehaviour
                 }
                 else
                 {
-                    if (rowBuckets.Count < 4) // Tối đa 4 Rows
+                    if (rowBuckets.Count < 4)
                     {
                         rowYValues.Add(itemY);
                         rowBuckets.Add(new List<StaggerItem> { item });
@@ -402,7 +482,7 @@ public class UIPanelTransition : MonoBehaviour
     }
 
     /// <summary>
-    /// Hiển thị ngay lập tức (không có animation).
+    /// Hiển thị ngay lập tức (không hoạt họa).
     /// </summary>
     public void InstantShow()
     {
@@ -433,7 +513,7 @@ public class UIPanelTransition : MonoBehaviour
     }
 
     /// <summary>
-    /// Ẩn ngay lập tức (không có animation).
+    /// Ẩn ngay lập tức (không hoạt họa).
     /// </summary>
     public void InstantHide()
     {
@@ -464,8 +544,7 @@ public class UIPanelTransition : MonoBehaviour
     }
 
     /// <summary>
-    /// Bắt đầu hiệu ứng HIỆN Panel (Layer 4 - Enter).
-    /// Tự động nội suy từ trạng thái hiển thị hiện tại nếu bị gián đoạn (Proportional Duration).
+    /// Bắt đầu hiệu ứng HIỆN Panel (Tự động chuyển tiếp theo kiểu chỉ định).
     /// </summary>
     public void PlayShow(
         TransitionType? type = null,
@@ -477,17 +556,31 @@ public class UIPanelTransition : MonoBehaviour
         Initialize();
 
         TransitionType actualType = type ?? defaultTransitionType;
-        float targetDuration = duration ?? enterDuration;
-        float actualSlide = slideDist ?? enterDistance;
 
-        if (actualType == TransitionType.Instant || targetDuration <= 0f)
+        if (actualType == TransitionType.Instant)
         {
             InstantShow();
             onComplete?.Invoke();
             return;
         }
 
-        // Input Safety
+        if (actualType == TransitionType.PopIn)
+        {
+            PlayPopShow(onComplete);
+            return;
+        }
+
+        // Xử lý Slide / Fade
+        float targetDuration = duration ?? enterDuration;
+        float actualSlide = slideDist ?? enterDistance;
+
+        if (targetDuration <= 0f)
+        {
+            InstantShow();
+            onComplete?.Invoke();
+            return;
+        }
+
         gameObject.SetActive(true);
         if (canvasGroup != null)
         {
@@ -495,7 +588,6 @@ public class UIPanelTransition : MonoBehaviour
             canvasGroup.interactable = false;
         }
 
-        // Sample current state để không bị snap khi người dùng spam tab
         Vector2 currentPos = rectTransform.anchoredPosition;
         Vector3 currentScale = rectTransform.localScale;
         float currentAlpha = canvasGroup != null ? canvasGroup.alpha : 0f;
@@ -511,16 +603,12 @@ public class UIPanelTransition : MonoBehaviour
             case TransitionType.ScaleFade:
                 startScale = baseScale * enterScale;
                 break;
-            case TransitionType.PopIn:
-                startScale = baseScale * 0.92f;
-                break;
             case TransitionType.Crossfade:
                 startPos = baseAnchoredPosition;
                 startScale = baseScale;
                 break;
         }
 
-        // Nếu vừa chuyển hướng và đang lơ lửng, tiếp tục từ vị trí hiện tại
         if (activeTransitionRoutine != null)
         {
             startPos = currentPos;
@@ -528,14 +616,13 @@ public class UIPanelTransition : MonoBehaviour
         }
 
         StopAllActiveAnimations();
+        OnTransitionStart?.Invoke();
 
-        // Xử lý Dim Overlay nếu có
         if (dimOverlay != null)
         {
             activeDimRoutine = StartCoroutine(AnimateDimOverlay(dimOverlay.alpha, dimTargetAlpha, dimDuration, true));
         }
 
-        // Kích hoạt Stagger Rows cho các phần tử con
         if (animateChildren && cachedRows != null && cachedRows.Length > 0)
         {
             TriggerStaggerRows();
@@ -551,7 +638,47 @@ public class UIPanelTransition : MonoBehaviour
     }
 
     /// <summary>
-    /// Bắt đầu hiệu ứng ẨN Panel (Layer 3 - Exit).
+    /// Bắt đầu hiệu ứng Pop / Bounce 3-Phase (Pop -> Recoil -> Settle) chuẩn AAA Mobile cho Popup/Modal.
+    /// Timeline:
+    /// - Phase 1: 0.80 -> 1.08 (0.14s, EaseOutCubic, Alpha 0 -> 1)
+    /// - Phase 2: 1.08 -> 0.97 (0.09s, EaseInOutQuad, Alpha = 1)
+    /// - Phase 3: 0.97 -> 1.00 (0.09s, EaseOutCubic, Alpha = 1)
+    /// Tổng thời gian: ~0.32s
+    /// </summary>
+    public void PlayPopShow(Action onComplete = null)
+    {
+        Initialize();
+
+        gameObject.SetActive(true);
+        if (canvasGroup != null)
+        {
+            canvasGroup.blocksRaycasts = true;
+            canvasGroup.interactable = false;
+        }
+
+        Vector3 currentScale = rectTransform.localScale;
+        float currentAlpha = canvasGroup != null ? canvasGroup.alpha : 0f;
+
+        // Nếu đang trong transition trước đó, lấy trạng thái hiện tại để tiếp tục mượt mà
+        Vector3 startScale = baseScale * popStartScale;
+        if (activeTransitionRoutine != null)
+        {
+            startScale = currentScale;
+        }
+
+        StopAllActiveAnimations();
+        OnTransitionStart?.Invoke();
+
+        if (dimOverlay != null)
+        {
+            activeDimRoutine = StartCoroutine(AnimateDimOverlay(dimOverlay.alpha, dimTargetAlpha, dimDuration, true));
+        }
+
+        activeTransitionRoutine = StartCoroutine(PopIn3PhaseRoutine(startScale, currentAlpha, onComplete));
+    }
+
+    /// <summary>
+    /// Bắt đầu hiệu ứng ẨN Panel (Tự động nhận diện Pop hoặc Slide).
     /// </summary>
     public void PlayHide(
         TransitionType? type = null,
@@ -563,17 +690,30 @@ public class UIPanelTransition : MonoBehaviour
         Initialize();
 
         TransitionType actualType = type ?? defaultTransitionType;
-        float targetDuration = duration ?? exitDuration;
-        float actualSlide = slideDist ?? exitDistance;
 
-        if (actualType == TransitionType.Instant || targetDuration <= 0f || !gameObject.activeSelf)
+        if (actualType == TransitionType.Instant || !gameObject.activeSelf)
         {
             InstantHide();
             onComplete?.Invoke();
             return;
         }
 
-        // Input Safety: Khóa tương tác ngay lập tức
+        if (actualType == TransitionType.PopIn)
+        {
+            PlayPopHide(onComplete);
+            return;
+        }
+
+        float targetDuration = duration ?? exitDuration;
+        float actualSlide = slideDist ?? exitDistance;
+
+        if (targetDuration <= 0f)
+        {
+            InstantHide();
+            onComplete?.Invoke();
+            return;
+        }
+
         if (canvasGroup != null)
         {
             canvasGroup.interactable = false;
@@ -590,18 +730,15 @@ public class UIPanelTransition : MonoBehaviour
         switch (actualType)
         {
             case TransitionType.DirectionalSlide:
-                // Trôi về phía đối diện để tạo cảm giác lùi lại
                 targetPos = baseAnchoredPosition + GetSlideOffset(direction, actualSlide);
                 break;
             case TransitionType.ScaleFade:
                 targetScale = baseScale * exitScale;
                 break;
-            case TransitionType.PopIn:
-                targetScale = baseScale * 0.94f;
-                break;
         }
 
         StopAllActiveAnimations();
+        OnTransitionStart?.Invoke();
 
         if (dimOverlay != null)
         {
@@ -617,6 +754,41 @@ public class UIPanelTransition : MonoBehaviour
             currentAlpha,
             targetDuration,
             onComplete));
+    }
+
+    /// <summary>
+    /// Bắt đầu hiệu ứng ẨN cho Popup / Modal: Thu nhỏ nhẹ (0.94x) + Fade Out sạch (0.18s, EaseInQuad).
+    /// </summary>
+    public void PlayPopHide(Action onComplete = null)
+    {
+        Initialize();
+
+        if (!gameObject.activeSelf)
+        {
+            InstantHide();
+            onComplete?.Invoke();
+            return;
+        }
+
+        if (canvasGroup != null)
+        {
+            canvasGroup.interactable = false;
+            canvasGroup.blocksRaycasts = false;
+        }
+
+        Vector3 currentScale = rectTransform.localScale;
+        float currentAlpha = canvasGroup != null ? canvasGroup.alpha : 1f;
+        Vector3 targetScale = baseScale * popHideScale;
+
+        StopAllActiveAnimations();
+        OnTransitionStart?.Invoke();
+
+        if (dimOverlay != null)
+        {
+            activeDimRoutine = StartCoroutine(AnimateDimOverlay(dimOverlay.alpha, 0f, dimDuration, false));
+        }
+
+        activeTransitionRoutine = StartCoroutine(PopHideRoutine(currentScale, targetScale, currentAlpha, popHideDuration, onComplete));
     }
 
     public void StopAllActiveAnimations()
@@ -646,6 +818,114 @@ public class UIPanelTransition : MonoBehaviour
         }
     }
 
+    #region Coroutines
+    private IEnumerator PopIn3PhaseRoutine(Vector3 startScale, float startAlpha, Action onComplete)
+    {
+        Vector3 targetOvershootScale = baseScale * popOvershootScale;
+        Vector3 targetRecoilScale = baseScale * popRecoilScale;
+
+        rectTransform.localScale = startScale;
+        rectTransform.anchoredPosition = baseAnchoredPosition;
+        if (canvasGroup != null) canvasGroup.alpha = startAlpha;
+
+        // PHASE 1 — POP (0.00s -> 0.14s): Scale: 0.80 -> 1.08, Alpha: 0 -> 1 (EaseOutCubic)
+        float elapsed1 = 0f;
+        while (elapsed1 < phase1PopDuration)
+        {
+            elapsed1 += Time.unscaledDeltaTime;
+            float t = NormalizedTime(elapsed1, phase1PopDuration);
+            float easeScale = EaseOutCubic(t);
+            float easeAlpha = EaseOutQuad(t);
+
+            rectTransform.localScale = Vector3.LerpUnclamped(startScale, targetOvershootScale, easeScale);
+            if (canvasGroup != null)
+            {
+                canvasGroup.alpha = Mathf.LerpUnclamped(startAlpha, 1f, easeAlpha);
+            }
+
+            yield return null;
+        }
+
+        rectTransform.localScale = targetOvershootScale;
+        if (canvasGroup != null) canvasGroup.alpha = 1f;
+
+        // PHASE 2 — RECOIL (0.14s -> 0.23s, 0.09s): Scale: 1.08 -> 0.97, Alpha = 1 (EaseInOutQuad / SmoothStep)
+        float elapsed2 = 0f;
+        while (elapsed2 < phase2RecoilDuration)
+        {
+            elapsed2 += Time.unscaledDeltaTime;
+            float t = NormalizedTime(elapsed2, phase2RecoilDuration);
+            float easeScale = EaseInOutQuad(t);
+
+            rectTransform.localScale = Vector3.LerpUnclamped(targetOvershootScale, targetRecoilScale, easeScale);
+            yield return null;
+        }
+
+        rectTransform.localScale = targetRecoilScale;
+
+        // PHASE 3 — SETTLE (0.23s -> 0.32s, 0.09s): Scale: 0.97 -> 1.00, Alpha = 1 (EaseOutCubic)
+        float elapsed3 = 0f;
+        while (elapsed3 < phase3SettleDuration)
+        {
+            elapsed3 += Time.unscaledDeltaTime;
+            float t = NormalizedTime(elapsed3, phase3SettleDuration);
+            float easeScale = EaseOutCubic(t);
+
+            rectTransform.localScale = Vector3.LerpUnclamped(targetRecoilScale, baseScale, easeScale);
+            yield return null;
+        }
+
+        // STEP 14 — FINAL STATE LOCK: Đảm bảo chính xác 100% không lệch floating-point
+        rectTransform.localScale = baseScale;
+        rectTransform.anchoredPosition = baseAnchoredPosition;
+        if (canvasGroup != null)
+        {
+            canvasGroup.alpha = 1f;
+            canvasGroup.interactable = true;
+            canvasGroup.blocksRaycasts = true;
+        }
+
+        activeTransitionRoutine = null;
+
+        // STEP 13 — CALLBACK: Fired đúng 1 lần sau khi final state đã lock
+        OnTransitionComplete?.Invoke();
+        onComplete?.Invoke();
+    }
+
+    private IEnumerator PopHideRoutine(Vector3 startScale, Vector3 targetScale, float startAlpha, float duration, Action onComplete)
+    {
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = NormalizedTime(elapsed, duration);
+            float ease = EaseInQuad(t);
+
+            rectTransform.localScale = Vector3.LerpUnclamped(startScale, targetScale, ease);
+            if (canvasGroup != null)
+            {
+                canvasGroup.alpha = Mathf.LerpUnclamped(startAlpha, 0f, ease);
+            }
+
+            yield return null;
+        }
+
+        rectTransform.localScale = baseScale;
+        rectTransform.anchoredPosition = baseAnchoredPosition;
+        if (canvasGroup != null)
+        {
+            canvasGroup.alpha = 0f;
+            canvasGroup.interactable = false;
+            canvasGroup.blocksRaycasts = false;
+        }
+
+        gameObject.SetActive(false);
+        activeTransitionRoutine = null;
+
+        OnTransitionComplete?.Invoke();
+        onComplete?.Invoke();
+    }
+
     private IEnumerator EnterRoutine(
         TransitionType type,
         Vector2 startPos,
@@ -664,7 +944,6 @@ public class UIPanelTransition : MonoBehaviour
             elapsed += Time.unscaledDeltaTime;
             float t = NormalizedTime(elapsed, duration);
 
-            // Easing: EaseOutCubic kết hợp micro-overshoot nếu có
             float easePos = enterOvershoot > 0f ? EaseOutBackMicro(t, enterOvershoot) : EaseOutCubic(t);
             float easeScale = EaseOutCubic(t);
             float easeAlpha = EaseOutQuad(t);
@@ -690,6 +969,7 @@ public class UIPanelTransition : MonoBehaviour
         }
 
         activeTransitionRoutine = null;
+        OnTransitionComplete?.Invoke();
         onComplete?.Invoke();
     }
 
@@ -708,8 +988,6 @@ public class UIPanelTransition : MonoBehaviour
         {
             elapsed += Time.unscaledDeltaTime;
             float t = NormalizedTime(elapsed, duration);
-
-            // Easing: Exit dứt khoát và sạch với EaseInQuad
             float ease = EaseInQuad(t);
 
             rectTransform.anchoredPosition = Vector2.LerpUnclamped(startPos, targetPos, ease);
@@ -735,6 +1013,7 @@ public class UIPanelTransition : MonoBehaviour
         RestoreStaggerChildren();
         gameObject.SetActive(false);
         activeTransitionRoutine = null;
+        OnTransitionComplete?.Invoke();
         onComplete?.Invoke();
     }
 
@@ -756,6 +1035,7 @@ public class UIPanelTransition : MonoBehaviour
         dimOverlay.blocksRaycasts = enableRaycasts;
         activeDimRoutine = null;
     }
+    #endregion
 
     #region Stagger Execution (Row / Chunk)
     private void TriggerStaggerRows()
@@ -775,7 +1055,6 @@ public class UIPanelTransition : MonoBehaviour
 
     private IEnumerator AnimateSingleRow(StaggerRow row, int rowIndex)
     {
-        // Khởi tạo vị trí bắt đầu cho các item trong row
         for (int i = 0; i < row.items.Length; i++)
         {
             StaggerItem item = row.items[i];
@@ -898,6 +1177,11 @@ public class UIPanelTransition : MonoBehaviour
     private static float EaseInQuad(float t)
     {
         return t * t;
+    }
+
+    private static float EaseInOutQuad(float t)
+    {
+        return t < 0.5f ? 2f * t * t : 1f - Mathf.Pow(-2f * t + 2f, 2f) / 2f;
     }
 
     private static float EaseOutBackMicro(float t, float overshoot)

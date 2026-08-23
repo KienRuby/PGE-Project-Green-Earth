@@ -37,11 +37,11 @@ public sealed class ChipManager : MonoBehaviour
     // =========================================================================
     // INSPECTOR CONFIGURATION: TEST MODE & BALANCES
     // =========================================================================
-    [Header("=== TEST MODE CONFIGURATION (VÔ HẠN CHIP TRONG EDITOR) ===")]
-    [Tooltip("Bật chế độ Test để có vô hạn chip thử nghiệm toàn bộ Lab, Shop, Chipset, Buddy, Chapter.")]
-    [SerializeField] private bool enableTestMode = false;
+    [Header("=== TEST MODE CONFIGURATION (VÔ HẠN CHIP & NĂNG LƯỢNG TRONG EDITOR) ===")]
+    [Tooltip("Bật chế độ Test để có vô hạn chip & năng lượng thử nghiệm toàn bộ Lab, Shop, Chipset, Buddy, Chapter.")]
+    [SerializeField] private bool enableTestMode = true;
 
-    [Tooltip("Khi bật Test Mode, số chip sẽ không bị trừ khi mua/nâng cấp (luôn luôn thành công).")]
+    [Tooltip("Khi bật Test Mode, số chip và năng lượng sẽ không bị trừ khi tiêu/nâng cấp (luôn luôn thành công).")]
     [SerializeField] private bool infiniteChipsInTestMode = true;
 
     [Tooltip("Tự động cưỡng chế TẮT Test Mode và Vô Hạn Chip khi build ra APK / Mobile Release (ngăn chặn hoàn toàn rủi ro quên tắt trước khi build).")]
@@ -50,19 +50,19 @@ public sealed class ChipManager : MonoBehaviour
     [Header("=== TEST MODE BALANCES (SỐ DƯ DÙNG THỬ TRONG EDITOR) ===")]
     [Min(0)]
     [Tooltip("Số Data Chip (Chipset xanh) hiển thị trong chế độ Test.")]
-    [SerializeField] private int testDataChips = 9999999;
+    [SerializeField] private int testDataChips = 99999999;
 
     [Min(0)]
     [Tooltip("Số Red Gem (Gem đỏ) hiển thị trong chế độ Test.")]
-    [SerializeField] private int testRedGems = 9999999;
+    [SerializeField] private int testRedGems = 99999999;
 
     [Min(0)]
-    [Tooltip("Số Năng Lượng (Energy) hiển thị trong chế độ Test.")]
+    [Tooltip("Số Năng Lượng (Energy) hiển thị trong chế độ Test (luôn full 100/100).")]
     [SerializeField] private int testEnergy = 100;
 
     [Min(0)]
     [Tooltip("Số Đá Tiến Bậc (Advance Stones) hiển thị trong chế độ Test.")]
-    [SerializeField] private int testAdvanceStones = 9999;
+    [SerializeField] private int testAdvanceStones = 99999;
 
     [Header("=== DEFAULT BALANCES (CHẾ ĐỘ THƯỜNG / TÀI KHOẢN MỚI) ===")]
     [Min(0)]
@@ -137,14 +137,16 @@ public sealed class ChipManager : MonoBehaviour
             DontDestroyOnLoad(gameObject);
         }
 
-#if !UNITY_EDITOR
-        // TỰ ĐỘNG TẮT VÔ HẠN CHIP VÀ TEST MODE TRÊN BẢN BUILD APK THỰC TẾ
-        if (autoDisableInNonEditorBuilds)
-        {
-            enableTestMode = false;
-            infiniteChipsInTestMode = false;
-            Debug.Log("[ChipManager] Đã tự động TẮT Test Mode & Vô Hạn Chip cho bản Build APK.");
-        }
+#if UNITY_EDITOR
+        // TỰ ĐỘNG BẬT VÔ HẠN TIỀN TỆ & NĂNG LƯỢNG KHI TEST TRONG UNITY EDITOR
+        enableTestMode = true;
+        infiniteChipsInTestMode = true;
+#else
+        // TỰ ĐỘNG CƯỠNG CHẾ TẮT TEST MODE & VÔ HẠN KHI BUILD RA APK / NỀN TẢNG THỰC TẾ
+        enableTestMode = false;
+        infiniteChipsInTestMode = false;
+        autoDisableInNonEditorBuilds = true;
+        Debug.Log("[ChipManager] Đã tự động TẮT Test Mode & Vô Hạn Chip/Năng Lượng cho bản Build Release.");
 #endif
 
         InitializeDefaultBalances();
@@ -200,28 +202,24 @@ public sealed class ChipManager : MonoBehaviour
         get
         {
 #if !UNITY_EDITOR
-            if (Instance != null && Instance.autoDisableInNonEditorBuilds)
-            {
-                return false;
-            }
-#endif
+            return false;
+#else
             return Instance != null && Instance.enableTestMode;
+#endif
         }
         set
         {
 #if !UNITY_EDITOR
-            if (Instance != null && Instance.autoDisableInNonEditorBuilds)
-            {
-                Instance.enableTestMode = false;
-                return;
-            }
-#endif
+            if (Instance != null) Instance.enableTestMode = false;
+            return;
+#else
             if (Instance != null)
             {
                 Instance.enableTestMode = value;
                 Instance.NotifyAllBalancesChanged();
                 OnTestModeChanged?.Invoke(value);
             }
+#endif
         }
     }
 
@@ -230,12 +228,10 @@ public sealed class ChipManager : MonoBehaviour
         get
         {
 #if !UNITY_EDITOR
-            if (Instance != null && Instance.autoDisableInNonEditorBuilds)
-            {
-                return false;
-            }
-#endif
+            return false;
+#else
             return Instance != null && Instance.enableTestMode && Instance.infiniteChipsInTestMode;
+#endif
         }
     }
 

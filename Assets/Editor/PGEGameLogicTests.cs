@@ -80,6 +80,142 @@ public class PGEGameLogicTests
     }
 
     [Test]
+    public void EnemyHealth_TakeDamage_FlashesRedImmediately()
+    {
+        GameObject go = new GameObject("EnemyFlashTest");
+        EnemyHealth health = go.AddComponent<EnemyHealth>();
+
+        GameObject childSprite = new GameObject("SpriteChild");
+        childSprite.transform.SetParent(go.transform, false);
+        SpriteRenderer sr = childSprite.AddComponent<SpriteRenderer>();
+        sr.color = Color.white;
+
+        health.CacheSpriteRenderers();
+
+        // Ban đầu màu trắng
+        Assert.That(sr.color, Is.EqualTo(Color.white));
+
+        // Nhận damage -> Phải nháy đỏ ngay lập tức
+        health.TakeDamage(10);
+        Assert.That(sr.color, Is.EqualTo(Color.red), "Sprite quái vật phải chuyển sang màu đỏ ngay khi nhận sát thương.");
+
+        MaterialPropertyBlock mpb = new MaterialPropertyBlock();
+        sr.GetPropertyBlock(mpb);
+        Assert.That(mpb.GetFloat("_FlashAmount"), Is.EqualTo(1f), "Shader FlashAmount phải bằng 1 khi nhận damage.");
+
+        // Phục hồi lại màu ban đầu
+        health.RestoreSpriteColors();
+        Assert.That(sr.color, Is.EqualTo(Color.white), "Sprite quái vật phải khôi phục lại màu ban đầu.");
+
+        sr.GetPropertyBlock(mpb);
+        Assert.That(mpb.GetFloat("_FlashAmount"), Is.EqualTo(0f), "Shader FlashAmount phải trở về 0 khi phục hồi.");
+
+        // Nhận đòn kết liễu khiến máu về 0 (50 máu -> trừ 50) -> Vẫn phải nháy đỏ
+        health.TakeDamage(health.MaxHealth);
+        Assert.That(health.CurrentHealth, Is.EqualTo(0));
+        Assert.That(health.IsDead, Is.True);
+        Assert.That(sr.color, Is.EqualTo(Color.red), "Phát bắn kết liễu (máu về 0) VẪN PHẢI nháy đỏ.");
+        sr.GetPropertyBlock(mpb);
+        Assert.That(mpb.GetFloat("_FlashAmount"), Is.EqualTo(1f), "Shader FlashAmount vẫn phải bằng 1 khi nhận đòn kết liễu.");
+
+        Object.DestroyImmediate(go);
+    }
+
+    [Test]
+    public void PlayerHealth_TakeDamage_FlashesRedImmediately_AndExcludesHealthBar()
+    {
+        GameObject go = new GameObject("PlayerFlashTest");
+        PlayerHealth health = go.AddComponent<PlayerHealth>();
+
+        // Body Sprite
+        GameObject bodyObject = new GameObject("Body");
+        bodyObject.transform.SetParent(go.transform, false);
+        SpriteRenderer bodySr = bodyObject.AddComponent<SpriteRenderer>();
+        bodySr.color = Color.white;
+
+        // Health Bar (Không được bị đổi màu đỏ)
+        GameObject healthBarObj = new GameObject("PlayerWorldHealthBar");
+        healthBarObj.transform.SetParent(go.transform, false);
+        healthBarObj.AddComponent<PlayerWorldHealthBar>();
+        SpriteRenderer barSr = healthBarObj.AddComponent<SpriteRenderer>();
+        barSr.color = Color.green;
+
+        health.CacheSpriteRenderers();
+
+        // Ban đầu
+        Assert.That(bodySr.color, Is.EqualTo(Color.white));
+        Assert.That(barSr.color, Is.EqualTo(Color.green));
+
+        // Nhận damage -> Body phải nháy đỏ, thanh máu vẫn giữ nguyên màu xanh lá
+        health.TakeDamage(10);
+        Assert.That(bodySr.color, Is.EqualTo(Color.red), "Body của Player phải chuyển sang màu đỏ ngay khi nhận damage.");
+        Assert.That(barSr.color, Is.EqualTo(Color.green), "Thanh máu không được bị đổi màu đỏ khi Player nhận damage.");
+
+        MaterialPropertyBlock mpb = new MaterialPropertyBlock();
+        bodySr.GetPropertyBlock(mpb);
+        Assert.That(mpb.GetFloat("_FlashAmount"), Is.EqualTo(1f), "Shader FlashAmount của Player phải bằng 1 khi nhận damage.");
+
+        // Phục hồi lại màu ban đầu
+        health.RestoreSpriteColors();
+        Assert.That(bodySr.color, Is.EqualTo(Color.white), "Body của Player phải khôi phục lại màu ban đầu.");
+
+        bodySr.GetPropertyBlock(mpb);
+        Assert.That(mpb.GetFloat("_FlashAmount"), Is.EqualTo(0f), "Shader FlashAmount phải trở về 0 khi phục hồi.");
+
+        // Nhận damage lần 2 -> Tiếp tục chớp đỏ riêng biệt cho lần 2
+        typeof(PlayerHealth).GetField("invincibleTimer", BindingFlags.Instance | BindingFlags.NonPublic)
+            ?.SetValue(health, 0f);
+        health.TakeDamage(10);
+        Assert.That(bodySr.color, Is.EqualTo(Color.red), "Body của Player phải chớp đỏ lần 2 tương ứng với đòn đánh thứ 2.");
+
+        // Nhận đòn chí tử khiến máu về 0 -> Vẫn phải nháy đỏ
+        typeof(PlayerHealth).GetField("invincibleTimer", BindingFlags.Instance | BindingFlags.NonPublic)
+            ?.SetValue(health, 0f);
+        health.TakeDamage(health.MaxHealth * 2);
+        Assert.That(health.CurrentHealth, Is.EqualTo(0));
+        Assert.That(health.IsDead, Is.True);
+        Assert.That(bodySr.color, Is.EqualTo(Color.red), "Đòn đánh chí tử (máu về 0) VẪN PHẢI nháy đỏ.");
+
+        Object.DestroyImmediate(go);
+    }
+
+    [Test]
+    public void PlayerHealth_HitFlashMaterial_AppliedToAllPlayerRenderers()
+    {
+        GameObject go = new GameObject("PlayerFlashMaterialTest");
+        PlayerHealth health = go.AddComponent<PlayerHealth>();
+
+        Shader shader = Shader.Find("Custom/2D/SpriteHitFlash");
+        if (shader != null)
+        {
+            Material testMat = new Material(shader);
+            health.HitFlashMaterial = testMat;
+
+            GameObject body = new GameObject("Body");
+            body.transform.SetParent(go.transform, false);
+            SpriteRenderer bodySr = body.AddComponent<SpriteRenderer>();
+
+            GameObject gun = new GameObject("Gun");
+            gun.transform.SetParent(go.transform, false);
+            SpriteRenderer gunSr = gun.AddComponent<SpriteRenderer>();
+
+            health.CacheSpriteRenderers();
+
+            Assert.That(bodySr.sharedMaterial, Is.EqualTo(testMat), "Body renderer phải được gán HitFlashMaterial.");
+            Assert.That(gunSr.sharedMaterial, Is.EqualTo(testMat), "Gun renderer phải được gán HitFlashMaterial.");
+
+            health.TakeDamage(10);
+            MaterialPropertyBlock mpb = new MaterialPropertyBlock();
+            bodySr.GetPropertyBlock(mpb);
+            Assert.That(mpb.GetFloat("_FlashAmount"), Is.EqualTo(1f));
+            gunSr.GetPropertyBlock(mpb);
+            Assert.That(mpb.GetFloat("_FlashAmount"), Is.EqualTo(1f));
+        }
+
+        Object.DestroyImmediate(go);
+    }
+
+    [Test]
     public void PlayerWorldHealthBar_ShrinksOnlyFillFromLeftEdge()
     {
         GameObject player = new GameObject("PlayerWorldHealthBarTest");
@@ -532,7 +668,7 @@ public class PGEGameLogicTests
     }
 
     [Test]
-    public void ChipManager_TestMode_ProvidesUnlimitedChips()
+    public void ChipManager_TestMode_ProvidesUnlimitedChipsAndEnergy()
     {
         ChipManager.IsTestMode = false;
         ChipManager.DataChips = 100;
@@ -541,8 +677,15 @@ public class PGEGameLogicTests
         // Turn on Test Mode
         ChipManager.IsTestMode = true;
         Assert.That(ChipManager.IsTestMode, Is.True);
+        Assert.That(ChipManager.IsInfiniteInTest, Is.True);
         Assert.That(ChipManager.HasEnoughDataChips(999999), Is.True);
         Assert.That(ChipManager.TrySpendDataChips(500000), Is.True);
+        Assert.That(ChipManager.HasEnoughRedGems(999999), Is.True);
+        Assert.That(ChipManager.TrySpendRedGems(500000), Is.True);
+        Assert.That(ChipManager.HasEnoughEnergy(9999), Is.True);
+        Assert.That(ChipManager.TrySpendEnergy(500), Is.True);
+        Assert.That(ChipManager.HasEnoughAdvanceStones(9999), Is.True);
+        Assert.That(ChipManager.TrySpendAdvanceStones(500), Is.True);
 
         // Turn off Test Mode
         ChipManager.IsTestMode = false;

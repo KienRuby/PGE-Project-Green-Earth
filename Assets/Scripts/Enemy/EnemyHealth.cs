@@ -28,10 +28,41 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     [Tooltip("Thời gian hiệu ứng mờ dần (Fade-out) trước khi biến mất và thu hồi về Pool (giây).")]
     [SerializeField] private float fadeOutDuration = 0.5f;
 
+    [Header("Damage Flash Effect")]
+    [Tooltip("Bật hiệu ứng nhấp nháy đỏ khi nhận sát thương.")]
+    [SerializeField] private bool enableDamageFlash = true;
+
+    [Tooltip("Màu chuyển đổi khi nhận sát thương (Mặc định: Đỏ).")]
+    [SerializeField] private Color damageFlashColor = Color.red;
+
+    [Tooltip("Thời gian nhấp nháy màu đỏ khi nhận sát thương (giây). 0.15s cho mỗi lần nhận dame.")]
+    [SerializeField] private float damageFlashDuration = 0.15f;
+
+    [Tooltip("Material dùng shader Custom/2D/SpriteHitFlash. Nếu để trống sẽ tự động tìm hoặc nạp từ Shader/Assets.")]
+    [SerializeField] private Material hitFlashMaterial;
+
     public float FadeOutDuration
     {
         get => fadeOutDuration;
         set => fadeOutDuration = Mathf.Max(0f, value);
+    }
+
+    public bool EnableDamageFlash
+    {
+        get => enableDamageFlash;
+        set => enableDamageFlash = value;
+    }
+
+    public Color DamageFlashColor
+    {
+        get => damageFlashColor;
+        set => damageFlashColor = value;
+    }
+
+    public float DamageFlashDuration
+    {
+        get => damageFlashDuration;
+        set => damageFlashDuration = Mathf.Max(0f, value);
     }
 
     private int baseMaxHealth;
@@ -48,6 +79,11 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     public event Action OnEnemyDeath;
     public event Action<EnemyHealth> OnDeath;
 
+    private static Material sharedHitFlashMaterial;
+    private static readonly int FlashAmountPropId = Shader.PropertyToID("_FlashAmount");
+    private static readonly int FlashColorPropId = Shader.PropertyToID("_FlashColor");
+    private MaterialPropertyBlock flashPropBlock;
+
     private Collider2D[] colliders;
     private Animator animator;
     private EnemyMovement enemyMovement;
@@ -55,6 +91,7 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     private Rigidbody2D rb;
     private SpriteRenderer[] spriteRenderers;
     private Color[] initialSpriteColors;
+    private Coroutine flashRoutine;
     private float cachedDeathDuration;
     private bool hasDeathTriggerParam;
     private string defaultAnimationState = "run";
@@ -106,8 +143,45 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
         CacheDeathAnimationSettings();
     }
 
-    public void CacheSpriteRenderers()
+    public Material HitFlashMaterial
     {
+        get => hitFlashMaterial;
+        set
+        {
+            hitFlashMaterial = value;
+            if (hitFlashMaterial != null)
+            {
+                sharedHitFlashMaterial = hitFlashMaterial;
+            }
+        }
+    }
+
+    public void CacheSpriteRenderers(bool forceRecache = false)
+    {
+        if (!forceRecache && spriteRenderers != null && initialSpriteColors != null && initialSpriteColors.Length == spriteRenderers.Length)
+        {
+            return;
+        }
+
+        if (flashPropBlock == null)
+        {
+            flashPropBlock = new MaterialPropertyBlock();
+        }
+
+        if (hitFlashMaterial != null)
+        {
+            sharedHitFlashMaterial = hitFlashMaterial;
+        }
+        else if (sharedHitFlashMaterial == null)
+        {
+            Shader hitShader = Shader.Find("Custom/2D/SpriteHitFlash");
+            if (hitShader != null)
+            {
+                sharedHitFlashMaterial = new Material(hitShader);
+                sharedHitFlashMaterial.name = "Runtime_SpriteHitFlash_Shared";
+            }
+        }
+
         spriteRenderers = GetComponentsInChildren<SpriteRenderer>(true);
         if (spriteRenderers != null && spriteRenderers.Length > 0)
         {
@@ -117,6 +191,13 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
                 if (spriteRenderers[i] != null)
                 {
                     initialSpriteColors[i] = spriteRenderers[i].color;
+
+                    if (sharedHitFlashMaterial != null && (spriteRenderers[i].sharedMaterial == null ||
+                        spriteRenderers[i].sharedMaterial.shader == null ||
+                        !spriteRenderers[i].sharedMaterial.HasProperty(FlashAmountPropId)))
+                    {
+                        spriteRenderers[i].sharedMaterial = sharedHitFlashMaterial;
+                    }
                 }
             }
         }
@@ -191,6 +272,9 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
         CurrentHealth = Mathf.Clamp(CurrentHealth, 0, maxHealth);
 
         OnHealthChanged?.Invoke(CurrentHealth, maxHealth);
+
+        // Luôn kích hoạt hiệu ứng đỏ cho MỌI phát bắn trúng (kể cả phát bắn kết liễu khiến máu về 0)
+        TriggerDamageFlash();
 
         if (CurrentHealth <= 0)
         {
@@ -399,6 +483,12 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     /// </summary>
     public void ResetForSpawn()
     {
+        if (flashRoutine != null)
+        {
+            StopCoroutine(flashRoutine);
+            flashRoutine = null;
+        }
+
         if (deathRoutine != null)
         {
             StopCoroutine(deathRoutine);
@@ -438,22 +528,13 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
             }
         }
 
-        // Khôi phục lại toàn bộ màu sắc và alpha = 1.0 ban đầu cho các SpriteRenderer
+        // Khôi phục lại toàn bộ màu sắc và FlashAmount = 0 ban đầu cho các SpriteRenderer
         if (spriteRenderers == null || spriteRenderers.Length == 0)
         {
             CacheSpriteRenderers();
         }
 
-        if (spriteRenderers != null && initialSpriteColors != null)
-        {
-            for (int i = 0; i < spriteRenderers.Length; i++)
-            {
-                if (spriteRenderers[i] != null && i < initialSpriteColors.Length)
-                {
-                    spriteRenderers[i].color = initialSpriteColors[i];
-                }
-            }
-        }
+        RestoreSpriteColors();
     }
 
     private void ResetPhysicsState()
@@ -509,9 +590,108 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
         animator.Update(0f);
     }
 
+    /// <summary>
+    /// Kích hoạt hiệu ứng chớp đỏ đúng 1 lần duy nhất cho mỗi lần nhận sát thương.
+    /// Nhận bao nhiêu lần sát thương sẽ chớp bấy nhiêu lần riêng biệt.
+    /// </summary>
+    public void TriggerDamageFlash()
+    {
+        if (!enableDamageFlash || !gameObject.activeInHierarchy)
+            return;
+
+        if (flashRoutine != null)
+        {
+            StopCoroutine(flashRoutine);
+            RestoreSpriteColors();
+        }
+        flashRoutine = StartCoroutine(DamageFlashRoutine());
+    }
+
+    private IEnumerator DamageFlashRoutine()
+    {
+        if (spriteRenderers == null || spriteRenderers.Length == 0)
+        {
+            CacheSpriteRenderers();
+        }
+
+        if (flashPropBlock == null)
+        {
+            flashPropBlock = new MaterialPropertyBlock();
+        }
+
+        if (spriteRenderers != null)
+        {
+            for (int i = 0; i < spriteRenderers.Length; i++)
+            {
+                if (spriteRenderers[i] != null)
+                {
+                    if (sharedHitFlashMaterial != null && (spriteRenderers[i].sharedMaterial == null || !spriteRenderers[i].sharedMaterial.HasProperty(FlashAmountPropId)))
+                    {
+                        spriteRenderers[i].sharedMaterial = sharedHitFlashMaterial;
+                    }
+
+                    spriteRenderers[i].GetPropertyBlock(flashPropBlock);
+                    flashPropBlock.SetFloat(FlashAmountPropId, 1f);
+                    flashPropBlock.SetColor(FlashColorPropId, damageFlashColor);
+                    spriteRenderers[i].SetPropertyBlock(flashPropBlock);
+
+                    Color orig = (initialSpriteColors != null && i < initialSpriteColors.Length)
+                        ? initialSpriteColors[i]
+                        : Color.white;
+                    spriteRenderers[i].color = new Color(damageFlashColor.r, damageFlashColor.g, damageFlashColor.b, orig.a);
+                }
+            }
+        }
+
+        yield return new WaitForSeconds(damageFlashDuration);
+
+        RestoreSpriteColors();
+        flashRoutine = null;
+    }
+
+    /// <summary>
+    /// Khôi phục lại màu sắc ban đầu của các SpriteRenderer.
+    /// </summary>
+    public void RestoreSpriteColors()
+    {
+        if (bossMovement != null && bossMovement.IsEnraged)
+        {
+            // Boss đang trong trạng thái Enrage, không ghi đè màu cuồng nộ
+            return;
+        }
+
+        if (flashPropBlock == null)
+        {
+            flashPropBlock = new MaterialPropertyBlock();
+        }
+
+        if (spriteRenderers != null && initialSpriteColors != null)
+        {
+            for (int i = 0; i < spriteRenderers.Length; i++)
+            {
+                if (spriteRenderers[i] != null)
+                {
+                    spriteRenderers[i].GetPropertyBlock(flashPropBlock);
+                    flashPropBlock.SetFloat(FlashAmountPropId, 0f);
+                    spriteRenderers[i].SetPropertyBlock(flashPropBlock);
+
+                    if (i < initialSpriteColors.Length)
+                    {
+                        spriteRenderers[i].color = initialSpriteColors[i];
+                    }
+                }
+            }
+        }
+    }
+
     public void OnReturnToPool()
     {
         IsDead = true;
+        if (flashRoutine != null)
+        {
+            StopCoroutine(flashRoutine);
+            flashRoutine = null;
+        }
         if (deathRoutine != null)
         {
             StopCoroutine(deathRoutine);
@@ -528,6 +708,11 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
 
     private void OnDestroy()
     {
+        if (flashRoutine != null)
+        {
+            StopCoroutine(flashRoutine);
+            flashRoutine = null;
+        }
         if (deathRoutine != null)
         {
             StopCoroutine(deathRoutine);

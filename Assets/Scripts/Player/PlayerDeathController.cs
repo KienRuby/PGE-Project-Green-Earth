@@ -775,7 +775,7 @@ public class PlayerDeathController : MonoBehaviour
             float animTimer = 0f;
             while (animTimer < clipDuration)
             {
-                animTimer += Time.deltaTime;
+                animTimer += Time.unscaledDeltaTime;
                 AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
                 if (stateInfo.IsName(deathStateName) && stateInfo.normalizedTime >= 1.0f)
                 {
@@ -789,7 +789,7 @@ public class PlayerDeathController : MonoBehaviour
         }
         else
         {
-            yield return new WaitForSeconds(clipDuration);
+            yield return new WaitForSecondsRealtime(clipDuration);
         }
 
         // =========================================================================
@@ -797,7 +797,7 @@ public class PlayerDeathController : MonoBehaviour
         // =========================================================================
         if (delayBeforeDissolve > 0f)
         {
-            yield return new WaitForSeconds(delayBeforeDissolve);
+            yield return new WaitForSecondsRealtime(delayBeforeDissolve);
         }
 
         // =========================================================================
@@ -828,7 +828,7 @@ public class PlayerDeathController : MonoBehaviour
 
             while (igniteElapsed < edgeIgniteDuration)
             {
-                igniteElapsed += Time.deltaTime;
+                igniteElapsed += Time.unscaledDeltaTime;
                 float t = Mathf.Clamp01(igniteElapsed / edgeIgniteDuration);
                 float intensity = Mathf.Lerp(0f, edgeIntensity, t);
 
@@ -853,7 +853,7 @@ public class PlayerDeathController : MonoBehaviour
 
         while (dissolveElapsed < safeDuration)
         {
-            dissolveElapsed += Time.deltaTime;
+            dissolveElapsed += Time.unscaledDeltaTime;
             float normalized = Mathf.Clamp01(dissolveElapsed / safeDuration);
             float evaluatedValue = dissolveCurve != null ? dissolveCurve.Evaluate(normalized) : normalized;
 
@@ -865,7 +865,7 @@ public class PlayerDeathController : MonoBehaviour
 
         if (completionDelay > 0f)
         {
-            yield return new WaitForSeconds(completionDelay);
+            yield return new WaitForSecondsRealtime(completionDelay);
         }
 
         // =========================================================================

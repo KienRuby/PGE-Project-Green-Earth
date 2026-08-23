@@ -39,9 +39,19 @@ public class EnemyContactDamage : MonoBehaviour, IPoolable
 
     private float nextDamageTime;
 
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        TryDamage(collision.collider);
+    }
+
     private void OnCollisionStay2D(Collision2D collision)
     {
         TryDamage(collision.collider);
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        TryDamage(other);
     }
 
     private void OnTriggerStay2D(Collider2D other)

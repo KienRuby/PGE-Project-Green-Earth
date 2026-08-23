@@ -784,6 +784,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxHealth: 100
   invincibleTime: 0.1
+  enableDamageFlash: 1
+  damageFlashColor: {r: 1, g: 0, b: 0, a: 1}
+  damageFlashDuration: 0.15
+  hitFlashMaterial: {fileID: 2100000, guid: 2822f1187a894884da86fd7a411b301f, type: 2}
   currentHealth: 100
 --- !u!114 &78188133
 MonoBehaviour:
