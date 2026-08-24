@@ -211,6 +211,9 @@ public sealed class VictoryPanelController : MonoBehaviour
         SetPanelActive(detailsPanel, false);
         SetPanelActive(victoryPanel, true);
 
+        int chapterNumber = PlayerDataService.SelectedChapterIndex + 1;
+        GameEvents.RaiseChapterCleared(chapterNumber);
+
         if (vipTripleButton != null) vipTripleButton.interactable = true;
         if (vipButtonText != null) vipButtonText.text = "VIP  GET 3X REWARD";
         if (feedbackText != null) feedbackText.text = "CHAPTER UNLOCKED!";

@@ -727,6 +727,7 @@ public class BuddyController : MonoBehaviour
             RefreshEquippedGrid();
             RefreshInventory();
             RefreshDetailModal();
+            GameEvents.RaiseDroneTierAdvanced();
             ShowToast($"Advanced {selectedDetailBuddy.buddyName} to {selectedDetailBuddy.tier} Tier!");
         }
     }

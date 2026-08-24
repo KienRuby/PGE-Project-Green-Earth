@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -28,11 +29,10 @@ public class TopBarCurrencyController : MonoBehaviour
 
     [Header("Top Right Action Buttons")]
     [SerializeField] private Button questBookButton;
-    [SerializeField] private Button settingsButton;
     [SerializeField] private GameObject questNotificationBadge;
+    [SerializeField] private Button settingsButton;
 
-    [Header("Bottom Navigation Quick Link")]
-    [Tooltip("Tham chiếu tới BottomNavigationController để chuyển tab khi bấm nút nạp (mở Shop).")]
+    [Header("Navigation Controller")]
     [SerializeField] private BottomNavigationController bottomNavController;
 
     private void Awake()
@@ -66,11 +66,14 @@ public class TopBarCurrencyController : MonoBehaviour
         {
             settingsButton.onClick.AddListener(OnSettingsClicked);
         }
+
+        EnsureNotificationBadgeFound();
     }
 
     private void Start()
     {
         RefreshAllBalances();
+        RefreshNotificationBadge();
     }
 
     private void OnEnable()
@@ -80,7 +83,13 @@ public class TopBarCurrencyController : MonoBehaviour
         ChipManager.OnEnergyChanged += HandleEnergyChanged;
         ChipManager.OnTestModeChanged += HandleTestModeChanged;
 
+        DailyLoginManager.OnDailyLoginStateChanged += RefreshNotificationBadge;
+        DailyLoginManager.OnDailyRewardClaimed += HandleDailyRewardClaimed;
+        AchievementManager.OnAchievementUpdated += RefreshNotificationBadge;
+        AchievementManager.OnAchievementClaimed += HandleAchievementClaimed;
+
         RefreshAllBalances();
+        RefreshNotificationBadge();
     }
 
     private void OnDisable()
@@ -89,6 +98,28 @@ public class TopBarCurrencyController : MonoBehaviour
         ChipManager.OnRedGemsChanged -= HandleRedGemsChanged;
         ChipManager.OnEnergyChanged -= HandleEnergyChanged;
         ChipManager.OnTestModeChanged -= HandleTestModeChanged;
+
+        DailyLoginManager.OnDailyLoginStateChanged -= RefreshNotificationBadge;
+        DailyLoginManager.OnDailyRewardClaimed -= HandleDailyRewardClaimed;
+        AchievementManager.OnAchievementUpdated -= RefreshNotificationBadge;
+        AchievementManager.OnAchievementClaimed -= HandleAchievementClaimed;
+    }
+
+    private void HandleDailyRewardClaimed(int dayIndex, RewardData[] rewards)
+    {
+        RefreshNotificationBadge();
+    }
+
+    private void HandleAchievementClaimed(AchievementDefinition def)
+    {
+        RefreshNotificationBadge();
+    }
+
+    public void RefreshNotificationBadge()
+    {
+        bool hasDaily = DailyLoginManager.Instance != null && DailyLoginManager.Instance.HasAnyClaimableReward();
+        bool hasAch = AchievementManager.Instance != null && AchievementManager.Instance.HasAnyClaimableAchievement();
+        SetNotificationBadgeVisible(hasDaily || hasAch);
     }
 
     private void HandleDataChipsChanged(int amount)
@@ -138,24 +169,17 @@ public class TopBarCurrencyController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Định dạng số tiền theo phong cách ảnh mẫu (ví dụ: 49.181 hoặc 1.25M nếu số quá lớn).
-    /// </summary>
     private string FormatCurrency(int amount)
     {
-        if (amount >= 10_000_000)
+        if (amount >= 1000)
         {
-            return (amount / 1_000_000d).ToString("0.#", CultureInfo.InvariantCulture) + "M";
+            return amount.ToString("N0", new CultureInfo("vi-VN")).Replace(',', '.');
         }
-
-        // Sử dụng dấu chấm phân cách hàng nghìn như ảnh mẫu (49.181)
-        var nfi = new NumberFormatInfo { NumberGroupSeparator = ".", NumberDecimalDigits = 0 };
-        return amount.ToString("N0", nfi);
+        return amount.ToString();
     }
 
     private void OnAddEnergyClicked()
     {
-        // Chuyển sang tab Shop nếu có
         if (bottomNavController != null) bottomNavController.Select(0);
     }
 
@@ -171,7 +195,65 @@ public class TopBarCurrencyController : MonoBehaviour
 
     private void OnQuestBookClicked()
     {
-        Debug.Log("[TopBar] Đã bấm nút Quest Book.");
+        RewardPopupController popup = RewardPopupController.Instance;
+        if (popup == null)
+        {
+            popup = FindObjectOfType<RewardPopupController>(true);
+        }
+
+        if (popup == null)
+        {
+            Canvas canvas = GetComponentInParent<Canvas>() ?? FindObjectOfType<Canvas>();
+            if (canvas != null)
+            {
+                popup = RewardPopupController.CreateRuntimePopup(canvas.transform as RectTransform);
+            }
+        }
+
+        if (popup != null)
+        {
+            popup.TogglePopup();
+        }
+        else
+        {
+            Debug.LogWarning("[TopBar] Không tìm thấy Canvas để hiển thị RewardPopup.");
+        }
+    }
+
+    private void EnsureNotificationBadgeFound()
+    {
+        if (questNotificationBadge != null) return;
+        if (questBookButton == null) return;
+
+        Transform dotTr = questBookButton.transform.Find("Icon/NotifDot")
+            ?? questBookButton.transform.Find("NotifDot")
+            ?? questBookButton.transform.Find("NotificationDot")
+            ?? questBookButton.transform.Find("Badge")
+            ?? questBookButton.transform.Find("RedDot");
+
+        if (dotTr == null)
+        {
+            dotTr = questBookButton.GetComponentsInChildren<Transform>(true)
+                .FirstOrDefault(t => t != questBookButton.transform && 
+                                    (t.name.IndexOf("notif", StringComparison.OrdinalIgnoreCase) >= 0 || 
+                                     t.name.IndexOf("dot", StringComparison.OrdinalIgnoreCase) >= 0 || 
+                                     t.name.IndexOf("badge", StringComparison.OrdinalIgnoreCase) >= 0));
+        }
+
+        if (dotTr != null)
+        {
+            questNotificationBadge = dotTr.gameObject;
+        }
+    }
+
+    public void SetNotificationBadgeVisible(bool visible)
+    {
+        EnsureNotificationBadgeFound();
+
+        if (questNotificationBadge != null)
+        {
+            questNotificationBadge.SetActive(visible);
+        }
     }
 
     private void OnSettingsClicked()

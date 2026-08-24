@@ -48,6 +48,7 @@ public class MainMenuController : MonoBehaviour
         if (ChipManager.TrySpendEnergy(cost))
         {
             Debug.Log($"[MainMenuController] ⚡ Đã trừ {cost} Energy để bắt đầu Chapter {selectedIndex + 1}. Số dư còn lại: {ChipManager.Energy}");
+            GameEvents.RaiseChapterPlayed(selectedIndex);
             SceneManager.LoadScene(gameplaySceneName);
         }
         else
