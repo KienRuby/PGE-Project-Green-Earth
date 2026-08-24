@@ -40,7 +40,16 @@ public class WeaponData : ScriptableObject
     [Tooltip("Độ tỏa góc bắn nếu bắn nhiều viên (độ).")]
     [Range(0f, 60f)] public float spreadAngle = 15f;
 
-    [Header("Projectile Prefab")]
+    [Header("Projectile & Visual Effects")]
     [Tooltip("Prefab viên đạn riêng biệt của khẩu súng này.")]
     public GameObject projectilePrefab;
+
+    [Tooltip("Prefab hiệu ứng bắn tại nòng súng (Muzzle Flash VFX, ví dụ: VFX shoote).")]
+    public GameObject muzzleFlashPrefab;
+
+    [Tooltip("Độ lệch vị trí riêng của hiệu ứng nòng súng (Offset X, Y) so với đầu nòng súng.")]
+    public Vector2 muzzleFlashOffset = Vector2.zero;
+
+    [Tooltip("Tỷ lệ phóng to/thu nhỏ kích thước của hiệu ứng (mặc định = 1.0).")]
+    public float muzzleFlashScale = 1.0f;
 }

@@ -108,6 +108,25 @@ public class LabUpgradeController : MonoBehaviour
     [Tooltip("Màu nền vàng của toàn bộ item Legend ở hàng 4, kể cả khi item còn khóa.")]
     [SerializeField] private Color legendBackgroundColor = new Color32(170, 128, 35, 255);
 
+    [Header("Pity Guarantees (Bảo Hiểm Số Lượt Quay Theo Bậc Màu)")]
+    [Tooltip("Bật/Tắt toàn bộ hệ thống bảo hiểm roll.")]
+    [SerializeField] private bool enablePitySystem = true;
+
+    [InspectorName("Elite Pity (Rolls)")]
+    [Min(0)]
+    [Tooltip("Số lượt quay tối đa chắc chắn trúng Elite (Xanh) hoặc cao hơn. Mặc định 10. Đặt 0 để tắt.")]
+    [SerializeField] private int elitePityThreshold = 10;
+
+    [InspectorName("Epic Pity (Rolls)")]
+    [Min(0)]
+    [Tooltip("Số lượt quay tối đa chắc chắn trúng Epic (Tím) hoặc Legend. Mặc định 25. Đặt 0 để tắt.")]
+    [SerializeField] private int epicPityThreshold = 25;
+
+    [InspectorName("Legend Pity (Rolls)")]
+    [Min(0)]
+    [Tooltip("Số lượt quay tối đa chắc chắn 100% trúng Legend (Vàng kim). Mặc định 50. Đặt 0 để tắt.")]
+    [SerializeField] private int legendPityThreshold = 50;
+
     [Header("UI References")]
     [Tooltip("Nút UPGRADE dùng để bắt đầu một lượt quay ngẫu nhiên.")]
     [SerializeField] private Button upgradeButton;
@@ -129,6 +148,12 @@ public class LabUpgradeController : MonoBehaviour
 
     [Tooltip("Ảnh nền của nút UPGRADE, dùng để đổi màu khi đủ hoặc thiếu chip.")]
     [SerializeField] private Image upgradeBackground;
+
+    [Tooltip("Text hiển thị thông tin / tiến trình bảo hiểm (ví dụ: 'Guaranteed in: 5 rolls'). Tùy chọn.")]
+    [SerializeField] private TMP_Text pityCounterText;
+
+    [Tooltip("Slider hiển thị tiến trình tích lũy bảo hiểm (tùy chọn).")]
+    [SerializeField] private Slider pityProgressSlider;
 
     [Header("Upgrade Cost")]
     [Tooltip("Giá chip xanh của lượt UPGRADE đầu tiên.")]
@@ -158,6 +183,10 @@ public class LabUpgradeController : MonoBehaviour
     private int currentEnergy;
     private int currentPrice;
     private int completedRolls;
+    private int elitePityCounter;
+    private int epicPityCounter;
+    private int legendPityCounter;
+    private ItemRarity? activeGuaranteedRarity;
     private int pendingItemIndex = -1;
     private bool isRolling;
     private bool hasInitialized;
@@ -217,6 +246,9 @@ public class LabUpgradeController : MonoBehaviour
         currentChips = ChipManager.DataChips;
         currentRedChips = ChipManager.RedGems;
         completedRolls = PlayerDataService.CompletedRolls;
+        elitePityCounter = PlayerDataService.LabElitePityCounter;
+        epicPityCounter = PlayerDataService.LabEpicPityCounter;
+        legendPityCounter = PlayerDataService.LabLegendPityCounter;
         currentPrice = basePrice + completedRolls * priceStep;
 
         string savedUtcStr = PlayerPrefs.GetString(NextEnergyUtcKey, string.Empty);
@@ -252,6 +284,7 @@ public class LabUpgradeController : MonoBehaviour
 
         RecoverEnergyFromClock();
         RefreshMainView();
+        RefreshPityUI();
         StartEnergyRecovery();
     }
 
@@ -270,9 +303,13 @@ public class LabUpgradeController : MonoBehaviour
         currentChips = ChipManager.DataChips;
         currentRedChips = ChipManager.RedGems;
         currentEnergy = Mathf.Clamp(ChipManager.Energy, 0, MaxEnergy);
+        elitePityCounter = PlayerDataService.LabElitePityCounter;
+        epicPityCounter = PlayerDataService.LabEpicPityCounter;
+        legendPityCounter = PlayerDataService.LabLegendPityCounter;
 
         RecoverEnergyFromClock();
         RefreshMainView();
+        RefreshPityUI();
         StartEnergyRecovery();
     }
 
@@ -309,7 +346,24 @@ public class LabUpgradeController : MonoBehaviour
             return;
         }
 
-        pendingItemIndex = ChooseWeightedItemIndex();
+        activeGuaranteedRarity = null;
+        if (enablePitySystem)
+        {
+            if (legendPityThreshold > 0 && (legendPityCounter + 1 >= legendPityThreshold))
+            {
+                activeGuaranteedRarity = ItemRarity.Legend;
+            }
+            else if (epicPityThreshold > 0 && (epicPityCounter + 1 >= epicPityThreshold))
+            {
+                activeGuaranteedRarity = ItemRarity.Epic;
+            }
+            else if (elitePityThreshold > 0 && (elitePityCounter + 1 >= elitePityThreshold))
+            {
+                activeGuaranteedRarity = ItemRarity.Elite;
+            }
+        }
+
+        pendingItemIndex = ChooseWeightedItemIndex(activeGuaranteedRarity);
         if (pendingItemIndex < 0)
         {
             return;
@@ -347,9 +401,9 @@ public class LabUpgradeController : MonoBehaviour
         ResolvePendingItem();
     }
 
-    private int ChooseWeightedItemIndex()
+    private int ChooseWeightedItemIndex(ItemRarity? minGuaranteedRarity = null)
     {
-        int selectedRarityIndex = ChooseWeightedRarityIndex();
+        int selectedRarityIndex = ChooseWeightedRarityIndex(minGuaranteedRarity);
         if (selectedRarityIndex < 0)
         {
             return -1;
@@ -384,19 +438,42 @@ public class LabUpgradeController : MonoBehaviour
         return fallbackIndex;
     }
 
-    private int ChooseWeightedRarityIndex()
+    private int ChooseWeightedRarityIndex(ItemRarity? minGuaranteedRarity = null)
     {
-        float totalWeight = GetTotalRarityWeight();
+        int minRarity = 0;
+        int maxRarity = 3;
+
+        if (minGuaranteedRarity.HasValue)
+        {
+            minRarity = (int)minGuaranteedRarity.Value;
+            maxRarity = 3;
+        }
+
+        float totalWeight = 0f;
+        for (int r = minRarity; r <= maxRarity; r++)
+        {
+            ItemRarity rarity = (ItemRarity)r;
+            if (GetItemWeightForRarity(rarity) > 0f)
+            {
+                totalWeight += GetRarityWeight(rarity);
+            }
+        }
+
         if (totalWeight <= 0f)
         {
-            return -1;
+            for (int r = minRarity; r <= maxRarity; r++)
+            {
+                ItemRarity rarity = (ItemRarity)r;
+                if (GetItemWeightForRarity(rarity) > 0f) return r;
+            }
+            return minRarity;
         }
 
         float roll = UnityEngine.Random.value * totalWeight;
-        int fallbackRarityIndex = -1;
-        for (int rarityIndex = 0; rarityIndex < 4; rarityIndex++)
+        int fallbackRarityIndex = minRarity;
+        for (int r = minRarity; r <= maxRarity; r++)
         {
-            ItemRarity rarity = (ItemRarity)rarityIndex;
+            ItemRarity rarity = (ItemRarity)r;
             float rarityWeight = GetItemWeightForRarity(rarity) > 0f
                 ? GetRarityWeight(rarity)
                 : 0f;
@@ -406,10 +483,10 @@ public class LabUpgradeController : MonoBehaviour
                 continue;
             }
 
-            fallbackRarityIndex = rarityIndex;
+            fallbackRarityIndex = r;
             if (roll < rarityWeight)
             {
-                return rarityIndex;
+                return r;
             }
 
             roll -= rarityWeight;
@@ -431,28 +508,127 @@ public class LabUpgradeController : MonoBehaviour
         item.level = wasLocked ? 1 : item.level + 1;
         RefreshItemView(item);
 
-        if (resultText != null)
+        if (activeGuaranteedRarity.HasValue)
         {
-            resultText.text = wasLocked
-                ? $"UNLOCKED  {item.itemName}"
-                : $"{item.itemName}  LEVEL {item.level:00}";
+            if (resultText != null)
+            {
+                string rName = item.rarity.ToString().ToUpperInvariant();
+                resultText.text = wasLocked
+                    ? $"★ GUARANTEED {rName}: UNLOCKED {item.itemName} ★"
+                    : $"★ GUARANTEED {rName}: {item.itemName} LV.{item.level:00} ★";
+            }
+        }
+        else
+        {
+            if (resultText != null)
+            {
+                resultText.text = wasLocked
+                    ? $"UNLOCKED  {item.itemName}"
+                    : $"{item.itemName}  LEVEL {item.level:00}";
+            }
+        }
+
+        // Cập nhật bộ đếm Pity cho từng bậc
+        if (item.rarity == ItemRarity.Legend)
+        {
+            legendPityCounter = 0;
+            epicPityCounter = 0;
+            elitePityCounter = 0;
+        }
+        else if (item.rarity == ItemRarity.Epic)
+        {
+            epicPityCounter = 0;
+            elitePityCounter = 0;
+            legendPityCounter++;
+        }
+        else if (item.rarity == ItemRarity.Elite)
+        {
+            elitePityCounter = 0;
+            epicPityCounter++;
+            legendPityCounter++;
+        }
+        else // Common
+        {
+            elitePityCounter++;
+            epicPityCounter++;
+            legendPityCounter++;
         }
 
         completedRolls++;
         currentPrice = basePrice + completedRolls * priceStep;
 
         SaveState(item, pendingItemIndex);
+        RefreshPityUI();
+        activeGuaranteedRarity = null;
         FinishRoll();
     }
 
     private void SaveState(ItemEntry item, int itemIndex)
     {
         PlayerPrefs.SetInt(CompletedRollsKey, completedRolls);
+        PlayerDataService.LabPityCounter = elitePityCounter;
+        PlayerDataService.LabElitePityCounter = elitePityCounter;
+        PlayerDataService.LabEpicPityCounter = epicPityCounter;
+        PlayerDataService.LabLegendPityCounter = legendPityCounter;
         if (item != null)
         {
             PlayerPrefs.SetInt(GetItemLevelKey(item.itemName, itemIndex), item.level);
         }
         PlayerPrefs.Save();
+    }
+
+    private void RefreshPityUI()
+    {
+        if (!enablePitySystem)
+        {
+            if (pityCounterText != null) pityCounterText.gameObject.SetActive(false);
+            if (pityProgressSlider != null) pityProgressSlider.gameObject.SetActive(false);
+            return;
+        }
+
+        int remLegend = legendPityThreshold > 0 ? Mathf.Max(0, legendPityThreshold - legendPityCounter) : -1;
+        int remEpic = epicPityThreshold > 0 ? Mathf.Max(0, epicPityThreshold - epicPityCounter) : -1;
+        int remElite = elitePityThreshold > 0 ? Mathf.Max(0, elitePityThreshold - elitePityCounter) : -1;
+
+        if (pityCounterText != null)
+        {
+            pityCounterText.gameObject.SetActive(true);
+            if (remLegend == 1)
+            {
+                pityCounterText.text = "<color=#FFCB49>★ NEXT: GUARANTEED LEGEND (GOLD)! ★</color>";
+            }
+            else if (remEpic == 1)
+            {
+                pityCounterText.text = "<color=#C05BF5>★ NEXT: GUARANTEED EPIC (PURPLE)! ★</color>";
+            }
+            else if (remElite == 1)
+            {
+                pityCounterText.text = "<color=#50E1DC>★ NEXT: GUARANTEED COLORED STAT! ★</color>";
+            }
+            else if (remElite > 1 && remLegend > 1)
+            {
+                pityCounterText.text = $"Guaranteed Colored: <color=#50E1DC>{remElite}</color> | Legend: <color=#FFCB49>{remLegend}</color>";
+            }
+            else if (remElite > 1)
+            {
+                pityCounterText.text = $"Guaranteed Colored in: <color=#50E1DC>{remElite}</color> rolls";
+            }
+            else if (remLegend > 1)
+            {
+                pityCounterText.text = $"Guaranteed Legend in: <color=#FFCB49>{remLegend}</color> rolls";
+            }
+            else
+            {
+                pityCounterText.text = "Guaranteed Roll Active";
+            }
+        }
+
+        if (pityProgressSlider != null && elitePityThreshold > 0)
+        {
+            pityProgressSlider.gameObject.SetActive(true);
+            pityProgressSlider.maxValue = elitePityThreshold;
+            pityProgressSlider.value = elitePityCounter;
+        }
     }
 
     private void FinishRoll()

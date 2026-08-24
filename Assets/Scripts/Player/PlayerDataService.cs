@@ -18,6 +18,10 @@ public static class PlayerDataService
     public const string AdvanceStonesKey = "PGE.Chipset.Balance.AdvanceStones";
     public const string NextEnergyUtcKey = "PGE.Lab.NextEnergyUtc";
     public const string CompletedRollsKey = "PGE.Lab.CompletedRolls";
+    public const string LabPityCounterKey = "PGE.Lab.PityCounter";
+    public const string LabElitePityCounterKey = "PGE.Lab.Pity.Elite";
+    public const string LabEpicPityCounterKey = "PGE.Lab.Pity.Epic";
+    public const string LabLegendPityCounterKey = "PGE.Lab.Pity.Legend";
     public const string ItemLevelKeyPrefix = "PGE.Lab.ItemLevel.";
     public const string SelectedWeaponIdKey = "SelectedWeaponId";
     public const string VipOwnedKey = "PGE.Account.VipOwned";
@@ -143,6 +147,58 @@ public static class PlayerDataService
         set
         {
             PlayerPrefs.SetInt(CompletedRollsKey, Mathf.Max(0, value));
+            PlayerPrefs.Save();
+        }
+    }
+
+    /// <summary>
+    /// Số lượt quay tích lũy chưa trúng chỉ số màu trong Lab (dùng cho hệ thống Bảo hiểm Roll / Pity).
+    /// </summary>
+    public static int LabPityCounter
+    {
+        get => PlayerPrefs.GetInt(LabPityCounterKey, 0);
+        set
+        {
+            PlayerPrefs.SetInt(LabPityCounterKey, Mathf.Max(0, value));
+            PlayerPrefs.Save();
+        }
+    }
+
+    /// <summary>
+    /// Số lượt quay tích lũy chưa trúng Elite (hoặc cao hơn).
+    /// </summary>
+    public static int LabElitePityCounter
+    {
+        get => PlayerPrefs.GetInt(LabElitePityCounterKey, LabPityCounter);
+        set
+        {
+            PlayerPrefs.SetInt(LabElitePityCounterKey, Mathf.Max(0, value));
+            PlayerPrefs.Save();
+        }
+    }
+
+    /// <summary>
+    /// Số lượt quay tích lũy chưa trúng Epic (hoặc cao hơn).
+    /// </summary>
+    public static int LabEpicPityCounter
+    {
+        get => PlayerPrefs.GetInt(LabEpicPityCounterKey, 0);
+        set
+        {
+            PlayerPrefs.SetInt(LabEpicPityCounterKey, Mathf.Max(0, value));
+            PlayerPrefs.Save();
+        }
+    }
+
+    /// <summary>
+    /// Số lượt quay tích lũy chưa trúng Legend.
+    /// </summary>
+    public static int LabLegendPityCounter
+    {
+        get => PlayerPrefs.GetInt(LabLegendPityCounterKey, 0);
+        set
+        {
+            PlayerPrefs.SetInt(LabLegendPityCounterKey, Mathf.Max(0, value));
             PlayerPrefs.Save();
         }
     }

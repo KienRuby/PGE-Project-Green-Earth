@@ -824,6 +824,11 @@ MonoBehaviour:
   - {fileID: 1771361872}
   attackPointDistance: 0.6
   aimMoveDirectionWhenIdle: 1
+  muzzleFlashPrefab: {fileID: 0}
+  muzzleFlashOffset: {x: 0, y: 0}
+  muzzleFlashScale: 1
+  muzzleFlashDuration: 0.12
+  rotateMuzzleFlashWithAim: 1
   projectilePrefab: {fileID: 9176291970807468248, guid: 7a360c9f713fe5b4ebd236256f3bb53b, type: 3}
   fireRate: 5
   currentDamage: 25
@@ -1462,7 +1467,7 @@ Transform:
   m_GameObject: {fileID: 190367608}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0.1498392, w: 0.9887104}
-  m_LocalPosition: {x: 3.59, y: -0.99, z: 0}
+  m_LocalPosition: {x: 4.22, y: -1.19, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -12515,7 +12520,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uFE0F BOSS"
+  m_text: BOSS FIGHT
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 88378fd6127ec3345802e6c374507f19, type: 2}
   m_sharedMaterial: {fileID: 2100000, guid: 686cfa7cdb111f748aa18d4495b8bbea, type: 2}
