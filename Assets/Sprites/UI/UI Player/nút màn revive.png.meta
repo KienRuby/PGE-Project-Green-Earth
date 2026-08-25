@@ -1,0 +1,746 @@
+fileFormatVersion: 2
+guid: d04a791bdd4004e468af9ebb52847bc3
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n revive_3"
+      rect:
+        serializedVersion: 2
+        x: 981
+        y: 2783
+        width: 26
+        height: 31
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0d3b74129ef891e4e876b06b77c05735
+      internalID: -965630760
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n revive_4"
+      rect:
+        serializedVersion: 2
+        x: 1005
+        y: 2790
+        width: 7
+        height: 11
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6f7f8e34bc7c92c47aa2689ebf32efd7
+      internalID: 1733737701
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n revive_5"
+      rect:
+        serializedVersion: 2
+        x: 1020
+        y: 2779
+        width: 37
+        height: 37
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 86707dc57e8358e428561b32779f8ab8
+      internalID: -1153502310
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n revive_7"
+      rect:
+        serializedVersion: 2
+        x: 975
+        y: 2783
+        width: 4
+        height: 5
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6a994f8adc228834399d59b3c2b4ee0c
+      internalID: -1319535512
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n revive_8"
+      rect:
+        serializedVersion: 2
+        x: 1598
+        y: 2160
+        width: 13
+        height: 45
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9559a2696adaa104ca49eebe46ceadd2
+      internalID: 980555659
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n revive_9"
+      rect:
+        serializedVersion: 2
+        x: 1598
+        y: 2025
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2f2763d6c2dd6134fb7315d7317bcd60
+      internalID: 784223950
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n revive_10"
+      rect:
+        serializedVersion: 2
+        x: 1586
+        y: 2008
+        width: 23
+        height: 6
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d4da1d8185b090944aaa033322fdac64
+      internalID: -934632153
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n revive_11"
+      rect:
+        serializedVersion: 2
+        x: 1586
+        y: 1980
+        width: 23
+        height: 22
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a5490a579115d1d4c99a0c776b336361
+      internalID: -1426328895
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n revive_12"
+      rect:
+        serializedVersion: 2
+        x: 1598
+        y: 1721
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fbb5a921e13320a4f8ff0703e12b936c
+      internalID: 1252784272
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n revive_13"
+      rect:
+        serializedVersion: 2
+        x: 628
+        y: 1618
+        width: 24
+        height: 20
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c26f8571a8e5bff40ab8f77405eb8d1a
+      internalID: 392241238
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n revive_14"
+      rect:
+        serializedVersion: 2
+        x: 655
+        y: 1562
+        width: 149
+        height: 114
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0cbd46d7544a8344fa736ff6f2c438a4
+      internalID: -583399879
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n revive_15"
+      rect:
+        serializedVersion: 2
+        x: 1056
+        y: 1613
+        width: 35
+        height: 29
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4fc3888ce994b55429e493eae7d68b50
+      internalID: 870855902
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n revive_16"
+      rect:
+        serializedVersion: 2
+        x: 1103
+        y: 1618
+        width: 24
+        height: 24
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fd616c5fdcfbec9418885c7fab0b5e21
+      internalID: -1338908575
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n revive_17"
+      rect:
+        serializedVersion: 2
+        x: 1456
+        y: 1583
+        width: 96
+        height: 83
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7af793bd0dd54624680829b190c5ebd3
+      internalID: -335192676
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n revive_18"
+      rect:
+        serializedVersion: 2
+        x: 630
+        y: 1573
+        width: 34
+        height: 43
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6c6a7eaaf46f56b418b0af87cab0bba5
+      internalID: -2137922960
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n revive_19"
+      rect:
+        serializedVersion: 2
+        x: 951
+        y: 1495
+        width: 90
+        height: 114
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4a6331f5f93d2dd4980bcb049392607d
+      internalID: 400809143
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n revive_20"
+      rect:
+        serializedVersion: 2
+        x: 1428
+        y: 1538
+        width: 45
+        height: 62
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8da65f3112a4d2e49a61d13545dfd8e1
+      internalID: 250197352
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n revive_21"
+      rect:
+        serializedVersion: 2
+        x: 1519
+        y: 1596
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1db716a0d83efb047a6a7206590135ae
+      internalID: -1349987170
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n revive_22"
+      rect:
+        serializedVersion: 2
+        x: 707
+        y: 1551
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 12bbed6a58889f044b084058338d5ad1
+      internalID: 2005533503
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n revive_23"
+      rect:
+        serializedVersion: 2
+        x: 731
+        y: 1551
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9c892c91a471a1b4fbd5dbafe4aee497
+      internalID: 309676050
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n revive_24"
+      rect:
+        serializedVersion: 2
+        x: 1046
+        y: 1528
+        width: 13
+        height: 24
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1d5a75fe92c55aa4a813dc26850fd083
+      internalID: 1321519886
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n revive_25"
+      rect:
+        serializedVersion: 2
+        x: 923
+        y: 1487
+        width: 33
+        height: 41
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7d7d1047e9fa38440bdfd5fa336c6ec5
+      internalID: 1760740862
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n revive_26"
+      rect:
+        serializedVersion: 2
+        x: 975
+        y: 1496
+        width: 4
+        height: 11
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 57f8c58d80df21a45bb26cecb2c7d969
+      internalID: -720306181
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: no
+      rect:
+        serializedVersion: 2
+        x: 652
+        y: 1047
+        width: 935
+        height: 292
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7674a31a1edea414097b032a7050d8e1
+      internalID: -369273571
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Use gems
+      rect:
+        serializedVersion: 2
+        x: 652
+        y: 732
+        width: 935
+        height: 292
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: da883d687ce2d9d45bd2062993491d2b
+      internalID: 1425647134
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Watch ads
+      rect:
+        serializedVersion: 2
+        x: 652
+        y: 402
+        width: 935
+        height: 292
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e961bd75a7e6ff241aca19c12ee5440a
+      internalID: -1529741717
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Revire
+      rect:
+        serializedVersion: 2
+        x: 470
+        y: 2956
+        width: 1282
+        height: 319
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 856bc2f45191be3429de241360e2c139
+      internalID: -1815944359
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: player
+      rect:
+        serializedVersion: 2
+        x: 475
+        y: 1472
+        width: 1266
+        height: 1394
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7f880aed582ac8c4bbfa5d6d4c8ab0fc
+      internalID: 1610648685
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      Revire: -1815944359
+      Use gems: 1425647134
+      Watch ads: -1529741717
+      no: -369273571
+      "n\xFAt m\xE0n revive_1": -671908980
+      "n\xFAt m\xE0n revive_10": -934632153
+      "n\xFAt m\xE0n revive_11": -1426328895
+      "n\xFAt m\xE0n revive_12": 1252784272
+      "n\xFAt m\xE0n revive_13": 392241238
+      "n\xFAt m\xE0n revive_14": -583399879
+      "n\xFAt m\xE0n revive_15": 870855902
+      "n\xFAt m\xE0n revive_16": -1338908575
+      "n\xFAt m\xE0n revive_17": -335192676
+      "n\xFAt m\xE0n revive_18": -2137922960
+      "n\xFAt m\xE0n revive_19": 400809143
+      "n\xFAt m\xE0n revive_2": 1934601627
+      "n\xFAt m\xE0n revive_20": 250197352
+      "n\xFAt m\xE0n revive_21": -1349987170
+      "n\xFAt m\xE0n revive_22": 2005533503
+      "n\xFAt m\xE0n revive_23": 309676050
+      "n\xFAt m\xE0n revive_24": 1321519886
+      "n\xFAt m\xE0n revive_25": 1760740862
+      "n\xFAt m\xE0n revive_26": -720306181
+      "n\xFAt m\xE0n revive_3": -965630760
+      "n\xFAt m\xE0n revive_4": 1733737701
+      "n\xFAt m\xE0n revive_5": -1153502310
+      "n\xFAt m\xE0n revive_6": -1981941418
+      "n\xFAt m\xE0n revive_7": -1319535512
+      "n\xFAt m\xE0n revive_8": 980555659
+      "n\xFAt m\xE0n revive_9": 784223950
+      player: 1610648685
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

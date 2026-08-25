@@ -22,6 +22,7 @@ public static class GamePlayHUDSceneBuilder
     private const string ScenePath = "Assets/Scenes/GamePlay.unity";
     private const string FontPath = "Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset";
     private const string ChipsetAtlasPath = "Assets/UI/Chipset/Generated/chipset-atlas.png";
+    private const string LevelUpUiPath = "Assets/Sprites/UI/UI Player/nút màn level up.png";
 
     private static readonly Color DarkBg = new Color32(22, 29, 36, 255);
     private static readonly Color InnerBg = new Color32(28, 40, 48, 255);
@@ -393,11 +394,11 @@ public static class GamePlayHUDSceneBuilder
         rootGroup.interactable = true;
         rootGroup.blocksRaycasts = true;
 
-        // Gameplay vẫn thấy phía sau qua lớp phủ xanh-đen như video.
+        // Gameplay vẫn đọc được rõ phía sau như reference, nhưng input bị khóa bởi dimmer.
         UnityEngine.UI.Image dimmer = CreateImage(
             "Dimmer",
             root.transform,
-            new Color32(0, 20, 8, 218),
+            new Color32(0, 0, 0, 128),
             rectSprite);
         Stretch(dimmer.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
         dimmer.raycastTarget = true;
@@ -426,39 +427,38 @@ public static class GamePlayHUDSceneBuilder
         headerRect.anchorMax = new Vector2(1f, 1f);
         headerRect.pivot = new Vector2(0.5f, 1f);
         headerRect.anchoredPosition = Vector2.zero;
-        headerRect.sizeDelta = new Vector2(0f, 500f);
+        headerRect.sizeDelta = new Vector2(0f, 560f);
 
-        TMP_Text levelUpTitle = CreateText(
+        Sprite[] levelUpUiSprites = AssetDatabase.LoadAllAssetRepresentationsAtPath(LevelUpUiPath)
+            .OfType<Sprite>()
+            .ToArray();
+        Sprite levelUpTitleSprite = FindSprite(levelUpUiSprites, "Lever up");
+        Sprite selectChipsetSprite = FindSprite(levelUpUiSprites, "Select chipset");
+        Sprite drawAgainSprite = FindSprite(levelUpUiSprites, "Draw again");
+
+        UnityEngine.UI.Image levelUpTitle = CreateImage(
             "LevelUpTitle",
             header.transform,
-            "LEVEL UP!",
-            104f,
-            new Color32(255, 174, 28, 255),
-            TextAlignmentOptions.Center);
-        levelUpTitle.fontStyle = FontStyles.Bold;
-        levelUpTitle.outlineColor = new Color32(0, 0, 0, 255);
-        levelUpTitle.outlineWidth = 0.28f;
-        levelUpTitle.rectTransform.anchorMin = new Vector2(0f, 1f);
-        levelUpTitle.rectTransform.anchorMax = new Vector2(1f, 1f);
+            Color.white,
+            levelUpTitleSprite);
+        levelUpTitle.preserveAspect = true;
+        levelUpTitle.raycastTarget = false;
+        levelUpTitle.rectTransform.anchorMin = levelUpTitle.rectTransform.anchorMax = new Vector2(0.5f, 1f);
         levelUpTitle.rectTransform.pivot = new Vector2(0.5f, 1f);
-        levelUpTitle.rectTransform.anchoredPosition = new Vector2(0f, -135f);
-        levelUpTitle.rectTransform.sizeDelta = new Vector2(0f, 145f);
+        levelUpTitle.rectTransform.anchoredPosition = new Vector2(0f, -265f);
+        levelUpTitle.rectTransform.sizeDelta = new Vector2(700f, 137f);
 
-        TMP_Text selectLabel = CreateText(
+        UnityEngine.UI.Image selectLabel = CreateImage(
             "SelectChipsetLabel",
             header.transform,
-            "Select Chipset",
-            54f,
             Color.white,
-            TextAlignmentOptions.Center);
-        selectLabel.fontStyle = FontStyles.Bold;
-        selectLabel.outlineColor = Color.black;
-        selectLabel.outlineWidth = 0.22f;
-        selectLabel.rectTransform.anchorMin = new Vector2(0f, 1f);
-        selectLabel.rectTransform.anchorMax = new Vector2(1f, 1f);
+            selectChipsetSprite);
+        selectLabel.preserveAspect = true;
+        selectLabel.raycastTarget = false;
+        selectLabel.rectTransform.anchorMin = selectLabel.rectTransform.anchorMax = new Vector2(0.5f, 1f);
         selectLabel.rectTransform.pivot = new Vector2(0.5f, 1f);
-        selectLabel.rectTransform.anchoredPosition = new Vector2(0f, -285f);
-        selectLabel.rectTransform.sizeDelta = new Vector2(0f, 80f);
+        selectLabel.rectTransform.anchoredPosition = new Vector2(0f, -412f);
+        selectLabel.rectTransform.sizeDelta = new Vector2(510f, 100f);
 
         // ScrollView theo hierarchy chuẩn: ScrollRect > Viewport/Content + Scrollbar.
         GameObject scrollObject = new GameObject(
@@ -468,10 +468,10 @@ public static class GamePlayHUDSceneBuilder
             typeof(UnityEngine.UI.ScrollRect));
         scrollObject.transform.SetParent(safeArea.transform, false);
         RectTransform scrollRectTransform = scrollObject.GetComponent<RectTransform>();
-        scrollRectTransform.anchorMin = new Vector2(0.025f, 0.205f);
-        scrollRectTransform.anchorMax = new Vector2(0.975f, 0.735f);
-        scrollRectTransform.offsetMin = Vector2.zero;
-        scrollRectTransform.offsetMax = Vector2.zero;
+        scrollRectTransform.anchorMin = scrollRectTransform.anchorMax = new Vector2(0.5f, 1f);
+        scrollRectTransform.pivot = new Vector2(0.5f, 1f);
+        scrollRectTransform.anchoredPosition = new Vector2(0f, -600f);
+        scrollRectTransform.sizeDelta = new Vector2(760f, 850f);
         UnityEngine.UI.Image scrollBackground = scrollObject.GetComponent<UnityEngine.UI.Image>();
         scrollBackground.color = Color.clear;
         scrollBackground.raycastTarget = false;
@@ -503,8 +503,8 @@ public static class GamePlayHUDSceneBuilder
         contentRect.sizeDelta = Vector2.zero;
 
         UnityEngine.UI.VerticalLayoutGroup layout = contentObject.GetComponent<UnityEngine.UI.VerticalLayoutGroup>();
-        layout.padding = new RectOffset(8, 8, 8, 8);
-        layout.spacing = 24f;
+        layout.padding = new RectOffset(4, 4, 4, 4);
+        layout.spacing = 18f;
         layout.childAlignment = TextAnchor.UpperCenter;
         layout.childControlWidth = true;
         layout.childControlHeight = true;
@@ -538,7 +538,7 @@ public static class GamePlayHUDSceneBuilder
         scrollbarRect.pivot = new Vector2(1f, 0.5f);
         scrollbarRect.offsetMin = new Vector2(-14f, 8f);
         scrollbarRect.offsetMax = new Vector2(-2f, -8f);
-        scrollbarObject.GetComponent<UnityEngine.UI.Image>().color = new Color32(255, 255, 255, 28);
+        scrollbarObject.GetComponent<UnityEngine.UI.Image>().color = Color.clear;
 
         GameObject slidingArea = new GameObject("SlidingArea", typeof(RectTransform));
         slidingArea.transform.SetParent(scrollbarObject.transform, false);
@@ -549,7 +549,7 @@ public static class GamePlayHUDSceneBuilder
         RectTransform handleRect = handleObject.GetComponent<RectTransform>();
         Stretch(handleRect, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
         UnityEngine.UI.Image handleImage = handleObject.GetComponent<UnityEngine.UI.Image>();
-        handleImage.color = new Color32(245, 255, 240, 230);
+        handleImage.color = Color.clear;
 
         UnityEngine.UI.Scrollbar scrollbar = scrollbarObject.GetComponent<UnityEngine.UI.Scrollbar>();
         scrollbar.handleRect = handleRect;
@@ -565,54 +565,34 @@ public static class GamePlayHUDSceneBuilder
         scrollRect.movementType = UnityEngine.UI.ScrollRect.MovementType.Clamped;
         scrollRect.scrollSensitivity = 35f;
         scrollRect.verticalScrollbar = scrollbar;
-        scrollRect.verticalScrollbarVisibility = UnityEngine.UI.ScrollRect.ScrollbarVisibility.Permanent;
+        scrollRect.verticalScrollbarVisibility = UnityEngine.UI.ScrollRect.ScrollbarVisibility.AutoHide;
         scrollRect.verticalScrollbarSpacing = 8f;
 
-        // Nút Draw again màu xanh, có placeholder tiền đỏ để thay sprite sau.
-        GameObject rerollObject = CreateFrame(
+        GameObject rerollObject = new GameObject(
             "DrawAgainButton",
-            safeArea.transform,
-            new Color32(69, 190, 112, 255),
-            new Color32(159, 255, 184, 255),
-            out UnityEngine.UI.Image rerollFill);
+            typeof(RectTransform),
+            typeof(UnityEngine.UI.Image),
+            typeof(UnityEngine.UI.Button),
+            typeof(CanvasGroup));
+        rerollObject.transform.SetParent(safeArea.transform, false);
         RectTransform rerollRect = rerollObject.GetComponent<RectTransform>();
         rerollRect.anchorMin = rerollRect.anchorMax = new Vector2(0.5f, 0f);
         rerollRect.pivot = new Vector2(0.5f, 0f);
-        rerollRect.anchoredPosition = new Vector2(0f, 92f);
-        rerollRect.sizeDelta = new Vector2(540f, 118f);
-        UnityEngine.UI.Button rerollButton = rerollObject.AddComponent<UnityEngine.UI.Button>();
-        rerollButton.targetGraphic = rerollFill;
-
-        UnityEngine.UI.Image currencyIcon = CreateImage(
-            "RedGemAssetSlot",
-            rerollObject.transform,
-            new Color32(210, 48, 55, 255),
-            rectSprite);
-        currencyIcon.rectTransform.anchorMin = currencyIcon.rectTransform.anchorMax = new Vector2(0f, 0.5f);
-        currencyIcon.rectTransform.pivot = new Vector2(0f, 0.5f);
-        currencyIcon.rectTransform.anchoredPosition = new Vector2(75f, 0f);
-        currencyIcon.rectTransform.sizeDelta = new Vector2(58f, 58f);
-        currencyIcon.raycastTarget = false;
-
-        UnityEngine.UI.Image currencyInset = CreateImage("Inset", currencyIcon.transform, Color.white, rectSprite);
-        currencyInset.rectTransform.sizeDelta = new Vector2(25f, 25f);
-        currencyInset.raycastTarget = false;
-
-        TMP_Text rerollText = CreateText(
-            "Label",
-            rerollObject.transform,
-            "x20  Draw again",
-            38f,
-            Color.white,
-            TextAlignmentOptions.Center);
-        rerollText.fontStyle = FontStyles.Bold;
-        rerollText.outlineColor = Color.black;
-        rerollText.outlineWidth = 0.18f;
-        rerollText.rectTransform.anchorMin = new Vector2(0f, 0f);
-        rerollText.rectTransform.anchorMax = new Vector2(1f, 1f);
-        rerollText.rectTransform.offsetMin = new Vector2(120f, 0f);
-        rerollText.rectTransform.offsetMax = new Vector2(-20f, 0f);
-        rerollText.raycastTarget = false;
+        rerollRect.anchoredPosition = new Vector2(0f, 225f);
+        rerollRect.sizeDelta = new Vector2(470f, 151f);
+        UnityEngine.UI.Image rerollImage = rerollObject.GetComponent<UnityEngine.UI.Image>();
+        rerollImage.sprite = drawAgainSprite;
+        rerollImage.color = Color.white;
+        rerollImage.preserveAspect = true;
+        UnityEngine.UI.Button rerollButton = rerollObject.GetComponent<UnityEngine.UI.Button>();
+        rerollButton.targetGraphic = rerollImage;
+        ColorBlock rerollColors = rerollButton.colors;
+        rerollColors.normalColor = Color.white;
+        rerollColors.highlightedColor = Color.white;
+        rerollColors.pressedColor = new Color(0.76f, 0.9f, 0.82f, 1f);
+        rerollColors.disabledColor = new Color(0.42f, 0.48f, 0.44f, 0.75f);
+        rerollColors.fadeDuration = 0.08f;
+        rerollButton.colors = rerollColors;
 
         ChipsetLevelUpPopup controller = canvasTransform.GetComponent<ChipsetLevelUpPopup>();
         if (controller == null)
@@ -643,8 +623,8 @@ public static class GamePlayHUDSceneBuilder
             levelUpTitle.rectTransform,
             cards,
             rerollButton,
-            rerollText,
-            currencyIcon,
+            null,
+            null,
             icons,
             frames,
             Array.Empty<Sprite>());
@@ -670,8 +650,8 @@ public static class GamePlayHUDSceneBuilder
         root.transform.SetParent(parent, false);
 
         UnityEngine.UI.LayoutElement layoutElement = root.GetComponent<UnityEngine.UI.LayoutElement>();
-        layoutElement.preferredHeight = 205f;
-        layoutElement.minHeight = 205f;
+        layoutElement.preferredHeight = 190f;
+        layoutElement.minHeight = 190f;
 
         UnityEngine.UI.Image border = root.GetComponent<UnityEngine.UI.Image>();
         border.color = new Color32(116, 244, 239, 255);

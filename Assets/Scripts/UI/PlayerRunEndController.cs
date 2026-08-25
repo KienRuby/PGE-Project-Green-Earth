@@ -1,6 +1,9 @@
+using System;
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 [DefaultExecutionOrder(1000)]
@@ -13,9 +16,14 @@ public sealed class PlayerRunEndController : MonoBehaviour
 
     [Header("Revive Panel")]
     [SerializeField] private GameObject revivePanel;
+    [SerializeField] private CanvasGroup reviveCanvasGroup;
+    [SerializeField] private RectTransform reviveContent;
     [SerializeField] private Button noButton;
-    [SerializeField] private Button vipReviveButton;
+    [FormerlySerializedAs("vipReviveButton")]
+    [SerializeField] private Button gemReviveButton;
+    [SerializeField] private Button adReviveButton;
     [SerializeField] private TMP_Text reviveFeedbackText;
+    [SerializeField, Min(0)] private int reviveGemCost = 200;
 
     [Header("Game Over Panel")]
     [SerializeField] private GameObject gameOverPanel;
@@ -24,7 +32,10 @@ public sealed class PlayerRunEndController : MonoBehaviour
     [SerializeField] private TMP_Text progressText;
     [SerializeField] private TMP_Text dataChipRewardText;
     [SerializeField] private TMP_Text redGemRewardText;
-    [SerializeField] private Button homeButton;
+    [FormerlySerializedAs("homeButton")]
+    [SerializeField] private Button getRewardButton;
+    [SerializeField] private Button vipTripleButton;
+    [SerializeField] private TMP_Text gameOverFeedbackText;
 
     [Header("Reward Settings")]
     [SerializeField, Min(0)] private int baseDataChipReward = 25;
@@ -38,7 +49,17 @@ public sealed class PlayerRunEndController : MonoBehaviour
     private bool resultResolved;
     private bool rewardsGranted;
     private bool ownsGameplayPause;
+    private bool waitingForRewardedAd;
     private float timeScaleBeforePrompt = 1f;
+    private Coroutine reviveRevealRoutine;
+    private int pendingDataChipReward;
+    private int pendingRedGemReward;
+
+    /// <summary>
+    /// Adapter quảng cáo đăng ký callback này, hiển thị rewarded ad rồi gọi completion(true)
+    /// chỉ khi người chơi đã xem đủ và nhận reward.
+    /// </summary>
+    public static event Action<Action<bool>> OnRewardedReviveRequested;
 
     public bool IsRevivePromptVisible => revivePanel != null && revivePanel.activeSelf;
     public bool IsGameOverVisible => gameOverPanel != null && gameOverPanel.activeSelf;
@@ -105,24 +126,38 @@ public sealed class PlayerRunEndController : MonoBehaviour
             noButton.onClick.AddListener(ChooseNo);
         }
 
-        if (vipReviveButton != null)
+        if (gemReviveButton != null)
         {
-            vipReviveButton.onClick.RemoveListener(OnVipReviveClicked);
-            vipReviveButton.onClick.AddListener(OnVipReviveClicked);
+            gemReviveButton.onClick.RemoveListener(OnGemReviveClicked);
+            gemReviveButton.onClick.AddListener(OnGemReviveClicked);
         }
 
-        if (homeButton != null)
+        if (adReviveButton != null)
         {
-            homeButton.onClick.RemoveListener(ReturnHome);
-            homeButton.onClick.AddListener(ReturnHome);
+            adReviveButton.onClick.RemoveListener(OnAdReviveClicked);
+            adReviveButton.onClick.AddListener(OnAdReviveClicked);
+        }
+
+        if (getRewardButton != null)
+        {
+            getRewardButton.onClick.RemoveListener(ClaimRewardAndReturnHome);
+            getRewardButton.onClick.AddListener(ClaimRewardAndReturnHome);
+        }
+
+        if (vipTripleButton != null)
+        {
+            vipTripleButton.onClick.RemoveListener(ClaimTripleRewardAndReturnHome);
+            vipTripleButton.onClick.AddListener(ClaimTripleRewardAndReturnHome);
         }
     }
 
     private void UnbindButtons()
     {
         if (noButton != null) noButton.onClick.RemoveListener(ChooseNo);
-        if (vipReviveButton != null) vipReviveButton.onClick.RemoveListener(OnVipReviveClicked);
-        if (homeButton != null) homeButton.onClick.RemoveListener(ReturnHome);
+        if (gemReviveButton != null) gemReviveButton.onClick.RemoveListener(OnGemReviveClicked);
+        if (adReviveButton != null) adReviveButton.onClick.RemoveListener(OnAdReviveClicked);
+        if (getRewardButton != null) getRewardButton.onClick.RemoveListener(ClaimRewardAndReturnHome);
+        if (vipTripleButton != null) vipTripleButton.onClick.RemoveListener(ClaimTripleRewardAndReturnHome);
     }
 
     private void HandlePlayerDeath()
@@ -154,28 +189,49 @@ public sealed class PlayerRunEndController : MonoBehaviour
     {
         SetPanelActive(gameOverPanel, false);
         SetPanelActive(revivePanel, true);
+        waitingForRewardedAd = false;
+        RefreshReviveButtons();
 
         if (reviveFeedbackText != null)
         {
-            reviveFeedbackText.text = PlayerDataService.IsVipOwned
-                ? "VIP REVIVE READY"
-                : "VIP REQUIRED - BUY VIP IN SHOP";
+            reviveFeedbackText.text = string.Empty;
         }
+
+        if (reviveRevealRoutine != null) StopCoroutine(reviveRevealRoutine);
+        reviveRevealRoutine = StartCoroutine(PlayReviveReveal());
     }
 
-    public bool TryVipRevive()
+    public bool TryGemRevive()
     {
         if (resultResolved || playerHealth == null)
             return false;
 
-        if (!PlayerDataService.IsVipOwned)
+        if (!ChipManager.TrySpendRedGems(reviveGemCost))
         {
             if (reviveFeedbackText != null)
-                reviveFeedbackText.text = "VIP REQUIRED - BUY VIP IN SHOP";
+                reviveFeedbackText.text = $"NOT ENOUGH GEMS ({ChipManager.RedGems:N0}/{reviveGemCost:N0})";
+            RefreshReviveButtons();
             return false;
         }
 
-        if (!playerHealth.Revive(0.5f, 2f))
+        if (!CompleteRevive())
+        {
+            ChipManager.AddRedGems(reviveGemCost);
+            return false;
+        }
+
+        return true;
+    }
+
+    [Obsolete("Use TryGemRevive().")]
+    public bool TryVipRevive()
+    {
+        return TryGemRevive();
+    }
+
+    private bool CompleteRevive()
+    {
+        if (resultResolved || playerHealth == null || !playerHealth.Revive(0.5f, 2f))
             return false;
 
         if (playerDeathController != null)
@@ -189,9 +245,75 @@ public sealed class PlayerRunEndController : MonoBehaviour
         return true;
     }
 
-    private void OnVipReviveClicked()
+    private void OnGemReviveClicked()
     {
-        TryVipRevive();
+        TryGemRevive();
+    }
+
+    private void OnAdReviveClicked()
+    {
+        if (resultResolved || waitingForRewardedAd)
+            return;
+
+        Action<Action<bool>> request = OnRewardedReviveRequested;
+        if (request == null)
+        {
+            if (reviveFeedbackText != null)
+                reviveFeedbackText.text = "REWARDED ADS NOT CONFIGURED";
+            return;
+        }
+
+        waitingForRewardedAd = true;
+        RefreshReviveButtons();
+        if (reviveFeedbackText != null) reviveFeedbackText.text = "LOADING AD...";
+        request.Invoke(CompleteRewardedAd);
+    }
+
+    public void CompleteRewardedAd(bool rewardEarned)
+    {
+        if (!waitingForRewardedAd || resultResolved)
+            return;
+
+        waitingForRewardedAd = false;
+        if (rewardEarned && CompleteRevive())
+            return;
+
+        if (reviveFeedbackText != null)
+            reviveFeedbackText.text = rewardEarned ? "REVIVE FAILED" : "AD NOT COMPLETED";
+        RefreshReviveButtons();
+    }
+
+    private void RefreshReviveButtons()
+    {
+        if (gemReviveButton != null)
+            gemReviveButton.interactable = !waitingForRewardedAd && ChipManager.HasEnoughRedGems(reviveGemCost);
+        if (adReviveButton != null)
+            adReviveButton.interactable = !waitingForRewardedAd;
+        if (noButton != null)
+            noButton.interactable = !waitingForRewardedAd;
+    }
+
+    private IEnumerator PlayReviveReveal()
+    {
+        if (reviveCanvasGroup != null) reviveCanvasGroup.alpha = 0f;
+        if (reviveContent != null) reviveContent.localScale = Vector3.one * 0.78f;
+
+        const float duration = 0.34f;
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            float eased = 1f - Mathf.Pow(1f - t, 3f);
+            float overshoot = Mathf.Sin(t * Mathf.PI) * (1f - t) * 0.12f;
+            if (reviveCanvasGroup != null) reviveCanvasGroup.alpha = eased;
+            if (reviveContent != null) reviveContent.localScale = Vector3.one * (Mathf.Lerp(0.78f, 1f, eased) + overshoot);
+            yield return null;
+        }
+
+        if (reviveCanvasGroup != null) reviveCanvasGroup.alpha = 1f;
+        if (reviveContent != null) reviveContent.localScale = Vector3.one;
+        reviveRevealRoutine = null;
     }
 
     public void ChooseNo()
@@ -201,11 +323,11 @@ public sealed class PlayerRunEndController : MonoBehaviour
 
         resultResolved = true;
         SetPanelActive(revivePanel, false);
-        PopulateAndGrantGameOverResult();
+        PopulateGameOverResult();
         SetPanelActive(gameOverPanel, true);
     }
 
-    private void PopulateAndGrantGameOverResult()
+    private void PopulateGameOverResult()
     {
         int chapterNumber = PlayerDataService.SelectedChapterIndex + 1;
         int totalWaves = enemySpawner != null ? enemySpawner.TotalWavesCount : 1;
@@ -218,21 +340,54 @@ public sealed class PlayerRunEndController : MonoBehaviour
         float currentWaveProgress = enemySpawner != null ? enemySpawner.CurrentWaveTimeProgress : 0f;
         float stageProgress = CalculateStageProgress(currentWaveIndex, currentWaveProgress, totalWaves);
         int kills = enemySpawner != null ? enemySpawner.EnemiesKilledInWave : 0;
-        int dataChipReward = baseDataChipReward + completedWaves * dataChipsPerCompletedWave + kills * dataChipsPerKill;
-        int redGemReward = completedWaves * redGemsPerCompletedWave;
-
-        if (!rewardsGranted)
-        {
-            rewardsGranted = true;
-            ChipManager.AddDataChips(dataChipReward);
-            ChipManager.AddRedGems(redGemReward);
-        }
+        pendingDataChipReward = baseDataChipReward + completedWaves * dataChipsPerCompletedWave + kills * dataChipsPerKill;
+        pendingRedGemReward = completedWaves * redGemsPerCompletedWave;
+        rewardsGranted = false;
 
         if (chapterText != null) chapterText.text = $"CHAPTER. {chapterNumber:00}";
         if (wavesText != null) wavesText.text = $"{Mathf.Clamp(currentWaveIndex + 1, 1, totalWaves):00} / {totalWaves:00} WAVES";
         if (progressText != null) progressText.text = $"STAGE PROGRESS  {Mathf.RoundToInt(stageProgress * 100f)}%";
-        if (dataChipRewardText != null) dataChipRewardText.text = $"GET {dataChipReward:N0}";
-        if (redGemRewardText != null) redGemRewardText.text = $"GET {redGemReward:N0}";
+        if (dataChipRewardText != null) dataChipRewardText.text = $"Get {pendingDataChipReward:N0}";
+        if (redGemRewardText != null) redGemRewardText.text = $"Get {pendingRedGemReward:N0}";
+        if (gameOverFeedbackText != null) gameOverFeedbackText.text = string.Empty;
+        if (getRewardButton != null) getRewardButton.interactable = true;
+        if (vipTripleButton != null) vipTripleButton.interactable = true;
+    }
+
+    public void ClaimRewardAndReturnHome()
+    {
+        if (!TryGrantGameOverReward(1))
+            return;
+
+        ReturnHome();
+    }
+
+    public void ClaimTripleRewardAndReturnHome()
+    {
+        if (!PlayerDataService.IsVipOwned)
+        {
+            if (gameOverFeedbackText != null) gameOverFeedbackText.text = "VIP REQUIRED - BUY VIP IN SHOP";
+            return;
+        }
+
+        if (!TryGrantGameOverReward(3))
+            return;
+
+        ReturnHome();
+    }
+
+    private bool TryGrantGameOverReward(int multiplier)
+    {
+        if (!resultResolved || rewardsGranted)
+            return false;
+
+        rewardsGranted = true;
+        int safeMultiplier = Mathf.Max(1, multiplier);
+        ChipManager.AddDataChips(pendingDataChipReward * safeMultiplier);
+        ChipManager.AddRedGems(pendingRedGemReward * safeMultiplier);
+        if (getRewardButton != null) getRewardButton.interactable = false;
+        if (vipTripleButton != null) vipTripleButton.interactable = false;
+        return true;
     }
 
     public static float CalculateStageProgress(int currentWaveIndex, float currentWaveProgress, int totalWaves)

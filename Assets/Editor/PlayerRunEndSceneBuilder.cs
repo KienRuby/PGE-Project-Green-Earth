@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System.Linq;
 using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -9,7 +10,12 @@ using UnityEngine.UI;
 public static class PlayerRunEndSceneBuilder
 {
     private const string ScenePath = "Assets/Scenes/GamePlay.unity";
-    private const string FontPath = "Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset";
+    private const string FontPath = "Assets/Fonts/Nunito/Nunito SDF.asset";
+    private const string FontMaterialPath = "Assets/Fonts/Nunito/Nunito SDF - Stroke.mat";
+    private const string ReviveUiPath = "Assets/Sprites/UI/UI Player/nút màn revive.png";
+    private const string CurrencyAtlasPath = "Assets/Sprites/UI/icon tài nguyên.png";
+    private const string GameOverPanelPath = "Assets/Sprites/UI/UI Player/popup game over.png";
+    private const string RewardButtonsPath = "Assets/Sprites/UI/UI Player/nút màn chapter complete_game over.png";
 
     private static readonly Color Dim = new Color32(5, 12, 10, 220);
     private static readonly Color Dark = new Color32(18, 28, 34, 255);
@@ -22,11 +28,129 @@ public static class PlayerRunEndSceneBuilder
     private static readonly Color Cyan = new Color32(78, 206, 196, 255);
 
     private static TMP_FontAsset font;
+    private static Material fontMaterial;
 
     [MenuItem("PGE/UI/Build Revive & Game Over")]
     public static void BuildFromMenu()
     {
         Build();
+    }
+
+    [MenuItem("PGE/UI/Build Revive Panel Only")]
+    public static void BuildReviveOnly()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+        {
+            Debug.LogWarning("[PlayerRunEndSceneBuilder] Không thể build khi đang Play Mode.");
+            return;
+        }
+
+        Scene scene = SceneManager.GetSceneByPath(ScenePath);
+        bool wasAlreadyLoaded = scene.IsValid() && scene.isLoaded;
+        if (!wasAlreadyLoaded) scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Additive);
+
+        GameObject canvas = scene.GetRootGameObjects().FirstOrDefault(root => root.name == "Canvas");
+        PlayerRunEndController controller = canvas != null ? canvas.GetComponent<PlayerRunEndController>() : null;
+        if (canvas == null || controller == null)
+        {
+            Debug.LogError("[PlayerRunEndSceneBuilder] Không tìm thấy Canvas hoặc PlayerRunEndController.");
+            if (!wasAlreadyLoaded && scene.IsValid()) EditorSceneManager.CloseScene(scene, true);
+            return;
+        }
+
+        font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath);
+        fontMaterial = AssetDatabase.LoadAssetAtPath<Material>(FontMaterialPath);
+        RemoveExisting(canvas.transform, "RevivePanel");
+        GameObject revivePanel = BuildRevivePanel(
+            canvas.transform,
+            out CanvasGroup reviveCanvasGroup,
+            out RectTransform reviveContent,
+            out Button noButton,
+            out Button gemButton,
+            out Button adButton,
+            out TMP_Text feedback);
+
+        SerializedObject serialized = new SerializedObject(controller);
+        serialized.FindProperty("revivePanel").objectReferenceValue = revivePanel;
+        serialized.FindProperty("reviveCanvasGroup").objectReferenceValue = reviveCanvasGroup;
+        serialized.FindProperty("reviveContent").objectReferenceValue = reviveContent;
+        serialized.FindProperty("noButton").objectReferenceValue = noButton;
+        serialized.FindProperty("gemReviveButton").objectReferenceValue = gemButton;
+        serialized.FindProperty("adReviveButton").objectReferenceValue = adButton;
+        serialized.FindProperty("reviveFeedbackText").objectReferenceValue = feedback;
+        serialized.FindProperty("reviveGemCost").intValue = 200;
+        serialized.ApplyModifiedPropertiesWithoutUndo();
+
+        revivePanel.SetActive(false);
+        revivePanel.transform.SetAsLastSibling();
+        EditorUtility.SetDirty(canvas);
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        AssetDatabase.SaveAssets();
+        if (!wasAlreadyLoaded) EditorSceneManager.CloseScene(scene, true);
+        Debug.Log("[PlayerRunEndSceneBuilder] Đã setup riêng Revive Panel theo sprite reference.");
+    }
+
+    [MenuItem("PGE/UI/Build Game Over Panel Only")]
+    public static void BuildGameOverOnly()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+        {
+            Debug.LogWarning("[PlayerRunEndSceneBuilder] Không thể build khi đang Play Mode.");
+            return;
+        }
+
+        Scene scene = SceneManager.GetSceneByPath(ScenePath);
+        bool wasAlreadyLoaded = scene.IsValid() && scene.isLoaded;
+        if (!wasAlreadyLoaded) scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Additive);
+
+        GameObject canvas = scene.GetRootGameObjects().FirstOrDefault(root => root.name == "Canvas");
+        PlayerRunEndController controller = canvas != null ? canvas.GetComponent<PlayerRunEndController>() : null;
+        if (canvas == null || controller == null)
+        {
+            Debug.LogError("[PlayerRunEndSceneBuilder] Không tìm thấy Canvas hoặc PlayerRunEndController.");
+            if (!wasAlreadyLoaded && scene.IsValid()) EditorSceneManager.CloseScene(scene, true);
+            return;
+        }
+
+        font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath);
+        fontMaterial = AssetDatabase.LoadAssetAtPath<Material>(FontMaterialPath);
+        RemoveExisting(canvas.transform, "GameOverPanel");
+        GameObject gameOverPanel = BuildGameOverPanel(
+            canvas.transform,
+            out TMP_Text chipRewardText,
+            out TMP_Text gemRewardText,
+            out Button getRewardButton,
+            out Button tripleButton,
+            out TMP_Text feedbackText);
+
+        if (gameOverPanel == null)
+        {
+            Debug.LogError("[PlayerRunEndSceneBuilder] Thiếu sprite Game Over hoặc reward button.");
+            if (!wasAlreadyLoaded && scene.IsValid()) EditorSceneManager.CloseScene(scene, true);
+            return;
+        }
+
+        SerializedObject serialized = new SerializedObject(controller);
+        serialized.FindProperty("gameOverPanel").objectReferenceValue = gameOverPanel;
+        serialized.FindProperty("chapterText").objectReferenceValue = null;
+        serialized.FindProperty("wavesText").objectReferenceValue = null;
+        serialized.FindProperty("progressText").objectReferenceValue = null;
+        serialized.FindProperty("dataChipRewardText").objectReferenceValue = chipRewardText;
+        serialized.FindProperty("redGemRewardText").objectReferenceValue = gemRewardText;
+        serialized.FindProperty("getRewardButton").objectReferenceValue = getRewardButton;
+        serialized.FindProperty("vipTripleButton").objectReferenceValue = tripleButton;
+        serialized.FindProperty("gameOverFeedbackText").objectReferenceValue = feedbackText;
+        serialized.ApplyModifiedPropertiesWithoutUndo();
+
+        gameOverPanel.SetActive(false);
+        gameOverPanel.transform.SetAsLastSibling();
+        EditorUtility.SetDirty(canvas);
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        AssetDatabase.SaveAssets();
+        if (!wasAlreadyLoaded) EditorSceneManager.CloseScene(scene, true);
+        Debug.Log("[PlayerRunEndSceneBuilder] Đã setup Game Over đồng bộ với popup Complete.");
     }
 
     public static void Build()
@@ -46,21 +170,28 @@ public static class PlayerRunEndSceneBuilder
         }
 
         font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath);
+        fontMaterial = AssetDatabase.LoadAssetAtPath<Material>(FontMaterialPath);
         RemoveExisting(canvas.transform, "RevivePanel");
         RemoveExisting(canvas.transform, "GameOverPanel");
 
         PlayerRunEndController oldController = canvas.GetComponent<PlayerRunEndController>();
         if (oldController != null) Object.DestroyImmediate(oldController);
 
-        GameObject revivePanel = BuildRevivePanel(canvas.transform, out Button noButton, out Button reviveButton, out TMP_Text reviveFeedback);
+        GameObject revivePanel = BuildRevivePanel(
+            canvas.transform,
+            out CanvasGroup reviveCanvasGroup,
+            out RectTransform reviveContent,
+            out Button noButton,
+            out Button gemButton,
+            out Button adButton,
+            out TMP_Text reviveFeedback);
         GameObject gameOverPanel = BuildGameOverPanel(
             canvas.transform,
-            out TMP_Text chapterText,
-            out TMP_Text wavesText,
-            out TMP_Text progressText,
             out TMP_Text chipRewardText,
             out TMP_Text gemRewardText,
-            out Button homeButton);
+            out Button getRewardButton,
+            out Button tripleButton,
+            out TMP_Text gameOverFeedback);
 
         PlayerRunEndController controller = canvas.AddComponent<PlayerRunEndController>();
         GameObject player = GameObject.FindGameObjectWithTag("Player");
@@ -69,16 +200,22 @@ public static class PlayerRunEndSceneBuilder
         serialized.FindProperty("playerDeathController").objectReferenceValue = player != null ? player.GetComponent<PlayerDeathController>() : null;
         serialized.FindProperty("enemySpawner").objectReferenceValue = Object.FindObjectOfType<EnemySpawner>();
         serialized.FindProperty("revivePanel").objectReferenceValue = revivePanel;
+        serialized.FindProperty("reviveCanvasGroup").objectReferenceValue = reviveCanvasGroup;
+        serialized.FindProperty("reviveContent").objectReferenceValue = reviveContent;
         serialized.FindProperty("noButton").objectReferenceValue = noButton;
-        serialized.FindProperty("vipReviveButton").objectReferenceValue = reviveButton;
+        serialized.FindProperty("gemReviveButton").objectReferenceValue = gemButton;
+        serialized.FindProperty("adReviveButton").objectReferenceValue = adButton;
         serialized.FindProperty("reviveFeedbackText").objectReferenceValue = reviveFeedback;
+        serialized.FindProperty("reviveGemCost").intValue = 200;
         serialized.FindProperty("gameOverPanel").objectReferenceValue = gameOverPanel;
-        serialized.FindProperty("chapterText").objectReferenceValue = chapterText;
-        serialized.FindProperty("wavesText").objectReferenceValue = wavesText;
-        serialized.FindProperty("progressText").objectReferenceValue = progressText;
+        serialized.FindProperty("chapterText").objectReferenceValue = null;
+        serialized.FindProperty("wavesText").objectReferenceValue = null;
+        serialized.FindProperty("progressText").objectReferenceValue = null;
         serialized.FindProperty("dataChipRewardText").objectReferenceValue = chipRewardText;
         serialized.FindProperty("redGemRewardText").objectReferenceValue = gemRewardText;
-        serialized.FindProperty("homeButton").objectReferenceValue = homeButton;
+        serialized.FindProperty("getRewardButton").objectReferenceValue = getRewardButton;
+        serialized.FindProperty("vipTripleButton").objectReferenceValue = tripleButton;
+        serialized.FindProperty("gameOverFeedbackText").objectReferenceValue = gameOverFeedback;
         serialized.ApplyModifiedPropertiesWithoutUndo();
 
         revivePanel.SetActive(false);
@@ -89,68 +226,161 @@ public static class PlayerRunEndSceneBuilder
         Debug.Log("[PlayerRunEndSceneBuilder] Đã tạo Revive Panel và Game Over Panel.");
     }
 
-    private static GameObject BuildRevivePanel(Transform parent, out Button noButton, out Button reviveButton, out TMP_Text feedback)
+    private static GameObject BuildRevivePanel(
+        Transform parent,
+        out CanvasGroup canvasGroup,
+        out RectTransform content,
+        out Button noButton,
+        out Button gemButton,
+        out Button adButton,
+        out TMP_Text feedback)
     {
         GameObject root = CreateOverlay("RevivePanel", parent);
+        root.GetComponent<Image>().color = new Color32(0, 0, 0, 128);
+        canvasGroup = root.AddComponent<CanvasGroup>();
 
-        TMP_Text title = CreateText("Title", root.transform, "REVIVE?", 112f, Gold);
-        SetRect(title.rectTransform, new Vector2(0f, 610f), new Vector2(850f, 160f));
-        AddOutline(title, Border, 0.28f);
+        GameObject contentObject = new GameObject("ReviveContent", typeof(RectTransform));
+        contentObject.transform.SetParent(root.transform, false);
+        content = contentObject.GetComponent<RectTransform>();
+        Stretch(content);
 
-        TMP_Text heart = CreateText("Heart", root.transform, "HP", 260f, Coral);
-        SetRect(heart.rectTransform, new Vector2(0f, 120f), new Vector2(700f, 650f));
-        AddOutline(heart, Border, 0.18f);
+        Sprite[] sprites = AssetDatabase.LoadAllAssetRepresentationsAtPath(ReviveUiPath).OfType<Sprite>().ToArray();
+        Image title = CreateSpriteImage("Title", content, FindSprite(sprites, "Revire"));
+        SetRect(title.rectTransform, new Vector2(0f, 650f), new Vector2(640f, 160f));
 
-        TMP_Text face = CreateText("HeartFace", root.transform, "X   X", 92f, Dark);
-        SetRect(face.rectTransform, new Vector2(0f, 190f), new Vector2(430f, 140f));
+        Image player = CreateSpriteImage("BrokenPlayer", content, FindSprite(sprites, "player"));
+        SetRect(player.rectTransform, new Vector2(0f, 120f), new Vector2(640f, 705f));
 
-        noButton = CreateButton("NoButton", root.transform, "NO", Slate, new Vector2(0f, -470f));
-        reviveButton = CreateButton("VipReviveButton", root.transform, "VIP REVIVE", Navy, new Vector2(0f, -660f));
+        noButton = CreateSpriteButton("NoButton", content, FindSprite(sprites, "no"), new Vector2(0f, -470f));
+        gemButton = CreateSpriteButton("GemReviveButton", content, FindSprite(sprites, "Use gems"), new Vector2(0f, -635f));
+        adButton = CreateSpriteButton("AdReviveButton", content, FindSprite(sprites, "Watch ads"), new Vector2(0f, -800f));
 
-        feedback = CreateText("Feedback", root.transform, "VIP REQUIRED - BUY VIP IN SHOP", 28f, Gold);
-        SetRect(feedback.rectTransform, new Vector2(0f, -800f), new Vector2(850f, 70f));
+        feedback = CreateText("Feedback", content, string.Empty, 25f, Gold);
+        SetRect(feedback.rectTransform, new Vector2(0f, -915f), new Vector2(850f, 58f));
         return root;
+    }
+
+    private static Image CreateSpriteImage(string name, Transform parent, Sprite sprite)
+    {
+        GameObject go = new GameObject(name, typeof(RectTransform), typeof(Image));
+        go.transform.SetParent(parent, false);
+        Image image = go.GetComponent<Image>();
+        image.sprite = sprite;
+        image.color = Color.white;
+        image.preserveAspect = true;
+        image.raycastTarget = false;
+        return image;
+    }
+
+    private static Button CreateSpriteButton(string name, Transform parent, Sprite sprite, Vector2 position)
+    {
+        Image image = CreateSpriteImage(name, parent, sprite);
+        image.raycastTarget = true;
+        SetRect(image.rectTransform, position, new Vector2(470f, 147f));
+        Button button = image.gameObject.AddComponent<Button>();
+        button.targetGraphic = image;
+        ColorBlock colors = button.colors;
+        colors.normalColor = Color.white;
+        colors.highlightedColor = Color.white;
+        colors.pressedColor = new Color(0.76f, 0.9f, 0.86f, 1f);
+        colors.disabledColor = new Color(0.42f, 0.48f, 0.46f, 0.72f);
+        colors.fadeDuration = 0.08f;
+        button.colors = colors;
+        return button;
+    }
+
+    private static Button CreateSpriteButton(string name, Transform parent, Sprite sprite, Vector2 position, Vector2 size)
+    {
+        Image image = CreateSpriteImage(name, parent, sprite);
+        image.raycastTarget = true;
+        SetRect(image.rectTransform, position, size);
+        Button button = image.gameObject.AddComponent<Button>();
+        button.targetGraphic = image;
+        ColorBlock colors = button.colors;
+        colors.normalColor = Color.white;
+        colors.highlightedColor = Color.white;
+        colors.pressedColor = new Color(0.78f, 0.9f, 0.9f, 1f);
+        colors.disabledColor = new Color(0.45f, 0.52f, 0.52f, 0.75f);
+        colors.fadeDuration = 0.08f;
+        button.colors = colors;
+        return button;
+    }
+
+    private static RectTransform BuildRewardRow(Transform parent, string name, Vector2 position, Sprite iconSprite, out TMP_Text rewardText)
+    {
+        GameObject row = new GameObject(name, typeof(RectTransform));
+        row.transform.SetParent(parent, false);
+        RectTransform rowRect = row.GetComponent<RectTransform>();
+        SetRect(rowRect, position, new Vector2(610f, 118f));
+
+        Image icon = CreateSpriteImage("Icon", row.transform, iconSprite);
+        SetRect(icon.rectTransform, new Vector2(-148f, 0f), new Vector2(92f, 92f));
+
+        rewardText = CreateText("Value", row.transform, "Get 0", 46f, Color.white);
+        rewardText.alignment = TextAlignmentOptions.Left;
+        SetRect(rewardText.rectTransform, new Vector2(98f, 0f), new Vector2(380f, 95f));
+        return rowRect;
+    }
+
+    private static Sprite FindSprite(Sprite[] sprites, string spriteName)
+    {
+        return sprites.FirstOrDefault(sprite =>
+            sprite != null && string.Equals(sprite.name, spriteName, System.StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static Sprite LoadSprite(string path, string spriteName)
+    {
+        return AssetDatabase.LoadAllAssetsAtPath(path)
+            .OfType<Sprite>()
+            .FirstOrDefault(sprite => string.Equals(sprite.name, spriteName, System.StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static Sprite LoadSpriteBySuffix(string path, string suffix)
+    {
+        return AssetDatabase.LoadAllAssetsAtPath(path)
+            .OfType<Sprite>()
+            .FirstOrDefault(sprite => sprite.name.EndsWith(suffix, System.StringComparison.Ordinal));
     }
 
     private static GameObject BuildGameOverPanel(
         Transform parent,
-        out TMP_Text chapterText,
-        out TMP_Text wavesText,
-        out TMP_Text progressText,
         out TMP_Text chipRewardText,
         out TMP_Text gemRewardText,
-        out Button homeButton)
+        out Button getRewardButton,
+        out Button tripleButton,
+        out TMP_Text feedbackText)
     {
+        Sprite panelSprite = LoadSprite(GameOverPanelPath, "Game over");
+        Sprite normalButtonSprite = LoadSpriteBySuffix(RewardButtonsPath, "_0");
+        Sprite tripleButtonSprite = LoadSpriteBySuffix(RewardButtonsPath, "_1");
+        Sprite dataIcon = LoadSprite(CurrencyAtlasPath, "data");
+        Sprite gemIcon = LoadSprite(CurrencyAtlasPath, "red");
+        if (panelSprite == null || normalButtonSprite == null || tripleButtonSprite == null)
+        {
+            chipRewardText = null;
+            gemRewardText = null;
+            getRewardButton = null;
+            tripleButton = null;
+            feedbackText = null;
+            return null;
+        }
+
         GameObject root = CreateOverlay("GameOverPanel", parent);
+        root.GetComponent<Image>().color = new Color32(4, 9, 13, 176);
 
-        TMP_Text title = CreateText("Title", root.transform, "GAME OVER", 108f, Gold);
-        SetRect(title.rectTransform, new Vector2(0f, 650f), new Vector2(950f, 160f));
-        AddOutline(title, Border, 0.28f);
+        Image panel = CreateSpriteImage("GameOverContent", root.transform, panelSprite);
+        SetRect(panel.rectTransform, new Vector2(0f, -8f), new Vector2(780f, 1218f));
 
-        GameObject card = CreateFrame("ProgressCard", root.transform, new Vector2(0f, 170f), new Vector2(620f, 590f), Slate);
-        chapterText = CreateText("ChapterText", card.transform, "CHAPTER. 01", 46f, Cream);
-        SetRect(chapterText.rectTransform, new Vector2(0f, 195f), new Vector2(560f, 75f));
+        BuildRewardRow(panel.transform, "DataChipReward", new Vector2(0f, 145f), dataIcon, out chipRewardText);
+        BuildRewardRow(panel.transform, "RedGemReward", new Vector2(0f, 2f), gemIcon, out gemRewardText);
 
-        wavesText = CreateText("WavesText", card.transform, "01 / 10 WAVES", 80f, Gold);
-        SetRect(wavesText.rectTransform, new Vector2(0f, 40f), new Vector2(570f, 145f));
-        AddOutline(wavesText, Border, 0.2f);
+        getRewardButton = CreateSpriteButton(
+            "GetRewardButton", panel.transform, normalButtonSprite, new Vector2(0f, -230f), new Vector2(320f, 158f));
+        tripleButton = CreateSpriteButton(
+            "VipTripleButton", panel.transform, tripleButtonSprite, new Vector2(0f, -405f), new Vector2(320f, 158f));
 
-        progressText = CreateText("ProgressText", card.transform, "STAGE PROGRESS  0%", 38f, Cream);
-        SetRect(progressText.rectTransform, new Vector2(0f, -155f), new Vector2(570f, 90f));
-
-        GameObject chipRow = CreateFrame("DataChipReward", root.transform, new Vector2(0f, -250f), new Vector2(650f, 110f), Dark);
-        TMP_Text chipIcon = CreateText("Icon", chipRow.transform, "[ ]", 60f, Cyan);
-        SetRect(chipIcon.rectTransform, new Vector2(-220f, 0f), new Vector2(100f, 90f));
-        chipRewardText = CreateText("Value", chipRow.transform, "GET 0", 46f, Cream);
-        SetRect(chipRewardText.rectTransform, new Vector2(65f, 0f), new Vector2(420f, 90f));
-
-        GameObject gemRow = CreateFrame("RedGemReward", root.transform, new Vector2(0f, -385f), new Vector2(650f, 110f), Dark);
-        TMP_Text gemIcon = CreateText("Icon", gemRow.transform, "<>", 58f, new Color32(226, 72, 76, 255));
-        SetRect(gemIcon.rectTransform, new Vector2(-220f, 0f), new Vector2(100f, 90f));
-        gemRewardText = CreateText("Value", gemRow.transform, "GET 0", 46f, Cream);
-        SetRect(gemRewardText.rectTransform, new Vector2(65f, 0f), new Vector2(420f, 90f));
-
-        homeButton = CreateButton("HomeButton", root.transform, "HOME", Navy, new Vector2(0f, -650f));
+        feedbackText = CreateText("FeedbackText", panel.transform, string.Empty, 24f, new Color32(255, 240, 116, 255));
+        SetRect(feedbackText.rectTransform, new Vector2(0f, -535f), new Vector2(600f, 52f));
         return root;
     }
 
@@ -200,6 +430,7 @@ public static class PlayerRunEndSceneBuilder
         go.transform.SetParent(parent, false);
         TMP_Text text = go.GetComponent<TMP_Text>();
         text.font = font;
+        if (fontMaterial != null) text.fontSharedMaterial = fontMaterial;
         text.text = value;
         text.fontSize = size;
         text.fontStyle = FontStyles.Bold;

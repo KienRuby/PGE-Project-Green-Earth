@@ -25,6 +25,8 @@ public class ChipsetLevelUpPopup : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Button rerollButton;
     [SerializeField] private TMP_Text rerollCostText;
     [SerializeField] private UnityEngine.UI.Image rerollCurrencyIcon;
+    [SerializeField] private RectTransform rerollTransform;
+    [SerializeField] private CanvasGroup rerollCanvasGroup;
 
     [Header("MainMenu Chipset Assets")]
     [SerializeField] private Sprite[] chipIcons;
@@ -176,6 +178,8 @@ public class ChipsetLevelUpPopup : MonoBehaviour
             popupCanvasGroup.interactable = true;
         }
         if (titleTransform != null) titleTransform.localScale = Vector3.one * 0.78f;
+        if (rerollTransform != null) rerollTransform.localScale = Vector3.one * 0.82f;
+        if (rerollCanvasGroup != null) rerollCanvasGroup.alpha = 0f;
 
         for (int i = 0; i < (choiceCards?.Length ?? 0); i++)
         {
@@ -184,14 +188,15 @@ public class ChipsetLevelUpPopup : MonoBehaviour
             if (choiceCards[i].RootCanvasGroup != null) choiceCards[i].RootCanvasGroup.alpha = 0f;
         }
 
-        const float duration = 0.28f;
+        const float duration = 0.46f;
         float elapsed = 0f;
         while (elapsed < duration)
         {
             elapsed += Time.unscaledDeltaTime;
             float t = Mathf.Clamp01(elapsed / duration);
             if (popupCanvasGroup != null) popupCanvasGroup.alpha = Mathf.Clamp01(t / 0.45f);
-            if (titleTransform != null) titleTransform.localScale = Vector3.one * BackOut(t);
+            float titleT = Mathf.Clamp01(elapsed / 0.28f);
+            if (titleTransform != null) titleTransform.localScale = Vector3.one * BackOut(titleT);
 
             for (int i = 0; i < (choiceCards?.Length ?? 0); i++)
             {
@@ -201,10 +206,19 @@ public class ChipsetLevelUpPopup : MonoBehaviour
                 card.transform.localScale = Vector3.one * Mathf.LerpUnclamped(0.92f, 1f, EaseOutCubic(cardT));
                 if (card.RootCanvasGroup != null) card.RootCanvasGroup.alpha = cardT;
             }
+
+            float rerollT = Mathf.Clamp01((elapsed - 0.25f) / 0.18f);
+            if (rerollTransform != null)
+            {
+                rerollTransform.localScale = Vector3.one * Mathf.LerpUnclamped(0.82f, 1f, BackOut(rerollT));
+            }
+            if (rerollCanvasGroup != null) rerollCanvasGroup.alpha = rerollT;
             yield return null;
         }
 
         if (titleTransform != null) titleTransform.localScale = Vector3.one;
+        if (rerollTransform != null) rerollTransform.localScale = Vector3.one;
+        if (rerollCanvasGroup != null) rerollCanvasGroup.alpha = 1f;
         if (popupCanvasGroup != null) popupCanvasGroup.alpha = 1f;
         SetCardInteraction(true);
         acceptingInput = true;
@@ -417,6 +431,8 @@ public class ChipsetLevelUpPopup : MonoBehaviour
         rerollButton = drawAgainButton;
         rerollCostText = drawAgainText;
         rerollCurrencyIcon = currencyIcon;
+        rerollTransform = drawAgainButton != null ? drawAgainButton.transform as RectTransform : null;
+        rerollCanvasGroup = drawAgainButton != null ? drawAgainButton.GetComponent<CanvasGroup>() : null;
         chipIcons = icons;
         frameSprites = frames;
         mechanicalParticleSprites = particleSprites;
