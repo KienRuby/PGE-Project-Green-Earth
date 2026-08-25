@@ -266,7 +266,17 @@ public class ChipsetController : MonoBehaviour
     {
         if (allChips.Count > 0) return;
 
-        allChips = new List<ChipItemData>
+        allChips = CreateDefaultDatabase();
+        InitializeDefaultDecks();
+    }
+
+    /// <summary>
+    /// Nguồn catalog dùng chung cho MainMenu và lựa chọn Chipset khi lên cấp trong Gameplay.
+    /// Mỗi lần gọi trả về một danh sách mới để tiến trình trong run không sửa dữ liệu menu.
+    /// </summary>
+    public static List<ChipItemData> CreateDefaultDatabase()
+    {
+        return new List<ChipItemData>
         {
             // 1. Standard Gun
             new ChipItemData
@@ -704,6 +714,10 @@ public class ChipsetController : MonoBehaviour
             }
         };
 
+    }
+
+    private void InitializeDefaultDecks()
+    {
         // Preset 3 equipped chips (Slots 1 to 10)
         deckEquippedIds[2] = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
         // Preset 1 & 2
