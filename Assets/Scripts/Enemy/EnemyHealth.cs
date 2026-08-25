@@ -12,6 +12,15 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     [Tooltip("Lượng điểm kinh nghiệm (EXP) thưởng cho người chơi khi tiêu diệt quái này.")]
     [SerializeField] private int expReward = 10;
 
+    [Tooltip("Số Chip Xanh (Data Chips) thưởng cho người chơi khi tiêu diệt quái này.")]
+    [Min(0)] [SerializeField] private int dataChipReward = 1;
+
+    [Tooltip("Số Ngọc Đỏ (Red Gems) thưởng cho người chơi khi tiêu diệt quái này (thích hợp cho Boss hoặc quái hiếm).")]
+    [Min(0)] [SerializeField] private int redGemReward = 0;
+
+    [Tooltip("Tỷ lệ rơi tiền khi quái chết (1 = 100% luôn rơi, 0.5 = 50% cơ hội).")]
+    [Range(0f, 1f)] [SerializeField] private float currencyDropChance = 1f;
+
     [Header("Death & Animation")]
     [Tooltip("Tên Trigger kích hoạt animation Die trong Animator.")]
     [SerializeField] private string deathAnimationTrigger = "Die";
@@ -67,13 +76,24 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
 
     private int baseMaxHealth;
     private int baseExpReward;
+    private int baseDataChipReward;
+    private int baseRedGemReward;
 
     public int CurrentHealth { get; private set; }
     public int MaxHealth => maxHealth;
     public int BaseMaxHealth => baseMaxHealth > 0 ? baseMaxHealth : maxHealth;
     public int ExpReward => expReward;
     public int BaseExpReward => baseExpReward > 0 ? baseExpReward : expReward;
+    public int DataChipReward => dataChipReward;
+    public int BaseDataChipReward => baseDataChipReward > 0 ? baseDataChipReward : dataChipReward;
+    public int RedGemReward => redGemReward;
+    public int BaseRedGemReward => baseRedGemReward > 0 ? baseRedGemReward : redGemReward;
+    public float CurrencyDropChance => currencyDropChance;
     public bool IsDead { get; private set; }
+
+    public void SetDataChipReward(int amount) => dataChipReward = Mathf.Max(0, amount);
+    public void SetRedGemReward(int amount) => redGemReward = Mathf.Max(0, amount);
+    public void SetCurrencyDropChance(float chance) => currencyDropChance = Mathf.Clamp01(chance);
 
     public event Action<int, int> OnHealthChanged;
     public event Action OnEnemyDeath;
@@ -113,6 +133,8 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     {
         baseMaxHealth = maxHealth;
         baseExpReward = expReward;
+        baseDataChipReward = dataChipReward;
+        baseRedGemReward = redGemReward;
         initialRootScale = transform.localScale;
         colliders = GetComponentsInChildren<Collider2D>(true);
         animator = GetComponent<Animator>() ?? GetComponentInChildren<Animator>();
@@ -319,7 +341,20 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
             PlayerLevelController.Instance.AddEXP(expReward);
         }
 
-        // 4. Phát sự kiện để Spawner và hệ thống Achievements ghi nhận tiêu diệt
+        // 4. Cấp tiền tệ (Data Chips / Red Gems) cho Player
+        if (currencyDropChance >= 1f || UnityEngine.Random.value <= currencyDropChance)
+        {
+            if (dataChipReward > 0)
+            {
+                ChipManager.AddDataChips(dataChipReward);
+            }
+            if (redGemReward > 0)
+            {
+                ChipManager.AddRedGems(redGemReward);
+            }
+        }
+
+        // 5. Phát sự kiện để Spawner và hệ thống Achievements ghi nhận tiêu diệt
         OnEnemyDeath?.Invoke();
         OnDeath?.Invoke(this);
         GameEvents.RaiseEnemyKilled();

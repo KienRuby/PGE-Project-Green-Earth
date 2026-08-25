@@ -18,10 +18,15 @@ MonoBehaviour:
   energyCost: 10
   previewBackground: {fileID: 21300000, guid: 0377c92faaf76cc4d97b14ef7cfeeb09, type: 3}
   bossSilhouette: {fileID: 1261875730, guid: 5424adb2f9ebec9459ec5817bc67a31c, type: 3}
+  mapGroundSprite: {fileID: 0}
+  mapSize: {x: 40, y: 40}
+  mapColor: {r: 1, g: 1, b: 1, a: 1}
+  groundDrawMode: 2
+  playerBoundaryPadding: 0.6
   flavorText: Deep in the canopy, aggressive roots block the way.
   gameplaySceneName: GamePlay
   levelConfigId: mutant_forest_1
-  isLocked: 1
+  isLocked: 0
   autoGenerateWaves: 1
   chapterDifficultyMultiplier: 1.25
   wavePowerGrowthRate: 0.08
@@ -38,8 +43,8 @@ MonoBehaviour:
   waves:
   - waveName: Wave 1
     totalEnemiesToSpawn: 25
-    maxConcurrentEnemies: 22
-    spawnInterval: 0.9
+    maxConcurrentEnemies: 20
+    spawnInterval: 1
     enemiesPerSpawn: 2
     enemyPool: []
     healthMultiplier: 1.25
@@ -55,7 +60,7 @@ MonoBehaviour:
   - waveName: Wave 2
     totalEnemiesToSpawn: 30
     maxConcurrentEnemies: 24
-    spawnInterval: 0.85
+    spawnInterval: 1
     enemiesPerSpawn: 2
     enemyPool: []
     healthMultiplier: 1.35
@@ -71,7 +76,7 @@ MonoBehaviour:
   - waveName: Wave 3
     totalEnemiesToSpawn: 35
     maxConcurrentEnemies: 26
-    spawnInterval: 0.8
+    spawnInterval: 1
     enemiesPerSpawn: 2
     enemyPool: []
     healthMultiplier: 1.45
@@ -87,7 +92,7 @@ MonoBehaviour:
   - waveName: Wave 4
     totalEnemiesToSpawn: 40
     maxConcurrentEnemies: 28
-    spawnInterval: 0.75
+    spawnInterval: 1
     enemiesPerSpawn: 2
     enemyPool: []
     healthMultiplier: 1.55
@@ -103,7 +108,7 @@ MonoBehaviour:
   - waveName: Wave 5
     totalEnemiesToSpawn: 48
     maxConcurrentEnemies: 30
-    spawnInterval: 0.7
+    spawnInterval: 1
     enemiesPerSpawn: 3
     enemyPool: []
     healthMultiplier: 1.65
@@ -119,7 +124,7 @@ MonoBehaviour:
   - waveName: Wave 6
     totalEnemiesToSpawn: 55
     maxConcurrentEnemies: 32
-    spawnInterval: 0.65
+    spawnInterval: 1
     enemiesPerSpawn: 3
     enemyPool: []
     healthMultiplier: 1.75
@@ -135,7 +140,7 @@ MonoBehaviour:
   - waveName: Wave 7
     totalEnemiesToSpawn: 62
     maxConcurrentEnemies: 35
-    spawnInterval: 0.6
+    spawnInterval: 1
     enemiesPerSpawn: 3
     enemyPool: []
     healthMultiplier: 1.85
@@ -151,7 +156,7 @@ MonoBehaviour:
   - waveName: Wave 8
     totalEnemiesToSpawn: 70
     maxConcurrentEnemies: 38
-    spawnInterval: 0.55
+    spawnInterval: 1
     enemiesPerSpawn: 3
     enemyPool: []
     healthMultiplier: 1.95
@@ -167,7 +172,7 @@ MonoBehaviour:
   - waveName: Wave 9
     totalEnemiesToSpawn: 80
     maxConcurrentEnemies: 40
-    spawnInterval: 0.5
+    spawnInterval: 1
     enemiesPerSpawn: 4
     enemyPool: []
     healthMultiplier: 2.05
@@ -180,10 +185,10 @@ MonoBehaviour:
     bossSpawnDelay: 0
     breakDurationAfterWave: 1
     waveDuration: 35
-  - waveName: Wave 10 - FINAL BOSS
+  - waveName: BOSS
     totalEnemiesToSpawn: 95
     maxConcurrentEnemies: 45
-    spawnInterval: 0.45
+    spawnInterval: 1
     enemiesPerSpawn: 4
     enemyPool: []
     healthMultiplier: 2.7

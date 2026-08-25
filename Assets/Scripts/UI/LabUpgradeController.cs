@@ -155,6 +155,27 @@ public class LabUpgradeController : MonoBehaviour
     [Tooltip("Slider hiển thị tiến trình tích lũy bảo hiểm (tùy chọn).")]
     [SerializeField] private Slider pityProgressSlider;
 
+    [Tooltip("Nút mở bảng xem chi tiết bảo hiểm lượt roll (PityInfoButton).")]
+    [SerializeField] private Button pityInfoButton;
+
+    [Tooltip("Panel giao diện hiển thị chi tiết tiến độ bảo hiểm lượt roll (PityGuaranteePanel).")]
+    [SerializeField] private PityGuaranteePanel pityGuaranteePanel;
+
+    // Public Read-Only Properties for Pity Guarantee Panel
+    public bool IsPitySystemEnabled => enablePitySystem;
+    public int ElitePityThreshold => elitePityThreshold;
+    public int EpicPityThreshold => epicPityThreshold;
+    public int LegendPityThreshold => legendPityThreshold;
+    public int ElitePityCounter => elitePityCounter;
+    public int EpicPityCounter => epicPityCounter;
+    public int LegendPityCounter => legendPityCounter;
+    public Color CommonRarityColor => commonBackgroundColor;
+    public Color EliteRarityColor => eliteBackgroundColor;
+    public Color EpicRarityColor => epicBackgroundColor;
+    public Color LegendRarityColor => legendBackgroundColor;
+
+    public event Action OnPityDataChanged;
+
     [Header("Upgrade Cost")]
     [Tooltip("Giá chip xanh của lượt UPGRADE đầu tiên.")]
     [SerializeField] private int basePrice = 300;
@@ -277,6 +298,12 @@ public class LabUpgradeController : MonoBehaviour
             upgradeButton.onClick.AddListener(StartRoll);
         }
 
+        if (pityInfoButton != null)
+        {
+            pityInfoButton.onClick.RemoveListener(OpenPityPanel);
+            pityInfoButton.onClick.AddListener(OpenPityPanel);
+        }
+
         if (resultText != null)
         {
             resultText.text = "ROLL FOR A RANDOM UPGRADE";
@@ -286,6 +313,14 @@ public class LabUpgradeController : MonoBehaviour
         RefreshMainView();
         RefreshPityUI();
         StartEnergyRecovery();
+    }
+
+    public void OpenPityPanel()
+    {
+        if (pityGuaranteePanel != null)
+        {
+            pityGuaranteePanel.Open();
+        }
     }
 
     private void OnEnable()
@@ -303,6 +338,8 @@ public class LabUpgradeController : MonoBehaviour
         currentChips = ChipManager.DataChips;
         currentRedChips = ChipManager.RedGems;
         currentEnergy = Mathf.Clamp(ChipManager.Energy, 0, MaxEnergy);
+        completedRolls = PlayerDataService.CompletedRolls;
+        currentPrice = basePrice + completedRolls * priceStep;
         elitePityCounter = PlayerDataService.LabElitePityCounter;
         epicPityCounter = PlayerDataService.LabEpicPityCounter;
         legendPityCounter = PlayerDataService.LabLegendPityCounter;
@@ -336,6 +373,11 @@ public class LabUpgradeController : MonoBehaviour
         if (upgradeButton != null)
         {
             upgradeButton.onClick.RemoveListener(StartRoll);
+        }
+
+        if (pityInfoButton != null)
+        {
+            pityInfoButton.onClick.RemoveListener(OpenPityPanel);
         }
     }
 
@@ -528,27 +570,31 @@ public class LabUpgradeController : MonoBehaviour
             }
         }
 
-        // Cập nhật bộ đếm Pity cho từng bậc
+        // Cập nhật bộ đếm Pity độc lập cho từng bậc (Lam / Tím / Vàng)
         if (item.rarity == ItemRarity.Legend)
         {
+            // Chỉ reset bảo hiểm chỉ số Vàng (Legend), không động đến Lam và Tím (vẫn tăng tiến độ bình thường)
             legendPityCounter = 0;
-            epicPityCounter = 0;
-            elitePityCounter = 0;
+            elitePityCounter++;
+            epicPityCounter++;
         }
         else if (item.rarity == ItemRarity.Epic)
         {
+            // Chỉ reset bảo hiểm chỉ số Tím (Epic), không động đến Lam và Vàng (vẫn tăng tiến độ bình thường)
             epicPityCounter = 0;
-            elitePityCounter = 0;
+            elitePityCounter++;
             legendPityCounter++;
         }
         else if (item.rarity == ItemRarity.Elite)
         {
+            // Chỉ reset bảo hiểm chỉ số Lam (Elite), không động đến Tím và Vàng (vẫn tăng tiến độ bình thường)
             elitePityCounter = 0;
             epicPityCounter++;
             legendPityCounter++;
         }
         else // Common
         {
+            // Không trúng bậc nào trong 3 bậc có bảo hiểm -> Tăng cả 3 bộ đếm
             elitePityCounter++;
             epicPityCounter++;
             legendPityCounter++;
@@ -565,7 +611,7 @@ public class LabUpgradeController : MonoBehaviour
 
     private void SaveState(ItemEntry item, int itemIndex)
     {
-        PlayerPrefs.SetInt(CompletedRollsKey, completedRolls);
+        PlayerDataService.CompletedRolls = completedRolls;
         PlayerDataService.LabPityCounter = elitePityCounter;
         PlayerDataService.LabElitePityCounter = elitePityCounter;
         PlayerDataService.LabEpicPityCounter = epicPityCounter;
@@ -629,6 +675,8 @@ public class LabUpgradeController : MonoBehaviour
             pityProgressSlider.maxValue = elitePityThreshold;
             pityProgressSlider.value = elitePityCounter;
         }
+
+        OnPityDataChanged?.Invoke();
     }
 
     private void FinishRoll()

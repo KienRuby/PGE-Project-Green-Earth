@@ -63,6 +63,13 @@ public class ChapterData : ScriptableObject
     [Tooltip("Đánh dấu Chapter này đang bị khóa.")]
     public bool isLocked = false;
 
+    [Header("Chapter Victory Rewards (Phần thưởng khi vượt ải Chapter)")]
+    [Tooltip("Số Chip Xanh (Data Chips) thưởng khi hoàn thành toàn bộ Chapter này.")]
+    [Min(0)] public int victoryDataChipReward = 100;
+
+    [Tooltip("Số Ngọc Đỏ (Red Gems) thưởng khi hoàn thành toàn bộ Chapter này.")]
+    [Min(0)] public int victoryRedGemReward = 10;
+
     [Header("Wave Progression & Auto-Generation")]
     [Tooltip("Tự động tạo và cập nhật danh sách Wave dựa trên totalWaves khi thay đổi trong Inspector.")]
     public bool autoGenerateWaves = true;

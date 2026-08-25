@@ -216,6 +216,58 @@ public class PGEGameLogicTests
     }
 
     [Test]
+    public void PlayerAutoShooter_FindNearestEnemy_UsesClosestColliderPoint()
+    {
+        GameObject player = new GameObject("NearestEnemyPlayer");
+        PlayerAutoShooter shooter = player.AddComponent<PlayerAutoShooter>();
+
+        int enemyLayer = LayerMask.NameToLayer("Enemy");
+        Assert.That(enemyLayer, Is.GreaterThanOrEqualTo(0), "Project must define the Enemy layer.");
+
+        // Pivot is farther away, but this large enemy's collider reaches x = 1.
+        GameObject largeEnemy = new GameObject("LargeEnemy");
+        largeEnemy.layer = enemyLayer;
+        largeEnemy.transform.position = new Vector3(8f, 0f, 0f);
+        largeEnemy.AddComponent<EnemyHealth>();
+        BoxCollider2D largeCollider = largeEnemy.AddComponent<BoxCollider2D>();
+        largeCollider.size = new Vector2(14f, 2f);
+
+        // Pivot and collider are both at x = 3.
+        GameObject smallEnemy = new GameObject("SmallEnemy");
+        smallEnemy.layer = enemyLayer;
+        smallEnemy.transform.position = new Vector3(3f, 0f, 0f);
+        smallEnemy.AddComponent<EnemyHealth>();
+        smallEnemy.AddComponent<BoxCollider2D>();
+
+        typeof(PlayerAutoShooter).GetField("detectionShape", BindingFlags.Instance | BindingFlags.NonPublic)
+            ?.SetValue(shooter, PlayerAutoShooter.DetectionShape.Circle);
+        typeof(PlayerAutoShooter).GetField("detectionRadius", BindingFlags.Instance | BindingFlags.NonPublic)
+            ?.SetValue(shooter, 20f);
+        typeof(PlayerAutoShooter).GetField("currentAttackRange", BindingFlags.Instance | BindingFlags.NonPublic)
+            ?.SetValue(shooter, 20f);
+
+        Physics2D.SyncTransforms();
+
+        MethodInfo findNearest = typeof(PlayerAutoShooter).GetMethod(
+            "FindNearestEnemy",
+            BindingFlags.Instance | BindingFlags.NonPublic
+        );
+        Assert.That(findNearest, Is.Not.Null);
+        findNearest.Invoke(shooter, null);
+
+        Transform selected = typeof(PlayerAutoShooter)
+            .GetField("currentTarget", BindingFlags.Instance | BindingFlags.NonPublic)
+            ?.GetValue(shooter) as Transform;
+
+        Assert.That(selected, Is.EqualTo(largeEnemy.transform),
+            "Nearest enemy must be selected by its closest collider point, not by a distant root pivot.");
+
+        Object.DestroyImmediate(smallEnemy);
+        Object.DestroyImmediate(largeEnemy);
+        Object.DestroyImmediate(player);
+    }
+
+    [Test]
     public void PlayerWorldHealthBar_ShrinksOnlyFillFromLeftEdge()
     {
         GameObject player = new GameObject("PlayerWorldHealthBarTest");
