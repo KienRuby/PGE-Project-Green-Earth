@@ -273,6 +273,10 @@ public class PlayerHealth : MonoBehaviour, IDamageable
 
         OnHealthChanged?.Invoke(CurrentHealth, maxHealth);
 
+        // Hiển thị số sát thương đỏ trên đầu Player
+        Vector3 spawnPos = transform.position + Vector3.up * 0.6f;
+        DamageNumberManager.ShowDamage(spawnPos, effectiveDamage, DamageType.PlayerDamage);
+
         // Luôn kích hoạt hiệu ứng đỏ cho MỌI đòn nhận sát thương (kể cả đòn chí tử khiến máu về 0)
         TriggerDamageFlash();
 
@@ -378,7 +382,15 @@ public class PlayerHealth : MonoBehaviour, IDamageable
         if (amount <= 0)
             return;
 
+        int prevHp = CurrentHealth;
         CurrentHealth = Mathf.Clamp(CurrentHealth + amount, 0, maxHealth);
+        int healedAmount = CurrentHealth - prevHp;
+
+        if (healedAmount > 0)
+        {
+            Vector3 spawnPos = transform.position + Vector3.up * 0.6f;
+            DamageNumberManager.ShowDamage(spawnPos, healedAmount, DamageType.Heal);
+        }
 
         OnHealthChanged?.Invoke(CurrentHealth, maxHealth);
     }

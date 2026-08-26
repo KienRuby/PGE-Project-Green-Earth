@@ -262,6 +262,11 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
 
     public void TakeDamage(int damage)
     {
+        TakeDamage(damage, false);
+    }
+
+    public void TakeDamage(int damage, bool isCritical)
+    {
         if (IsDead)
             return;
 
@@ -272,6 +277,11 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
         CurrentHealth = Mathf.Clamp(CurrentHealth, 0, maxHealth);
 
         OnHealthChanged?.Invoke(CurrentHealth, maxHealth);
+
+        // Hiển thị số sát thương nhảy lên tương tự game gốc
+        DamageType type = isCritical ? DamageType.Critical : DamageType.Normal;
+        Vector3 spawnPos = transform.position + Vector3.up * 0.4f;
+        DamageNumberManager.ShowDamage(spawnPos, damage, type);
 
         // Luôn kích hoạt hiệu ứng đỏ cho MỌI phát bắn trúng (kể cả phát bắn kết liễu khiến máu về 0)
         TriggerDamageFlash();
