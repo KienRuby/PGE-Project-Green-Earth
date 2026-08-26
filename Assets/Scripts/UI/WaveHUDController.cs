@@ -271,7 +271,6 @@ public class WaveHUDController : MonoBehaviour
     private void HandleLevelUp(int newLevel)
     {
         UpdateLevelDisplay(newLevel);
-        ShowAnnouncement($"LEVEL UP!\nLv {newLevel:00}", 1.5f, new Color(1f, 0.85f, 0.2f, 1f));
     }
 
     private void HandleBossSpawned(GameObject bossObj)

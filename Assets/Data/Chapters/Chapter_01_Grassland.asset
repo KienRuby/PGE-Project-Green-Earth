@@ -27,6 +27,8 @@ MonoBehaviour:
   gameplaySceneName: GamePlay
   levelConfigId: grassland_1
   isLocked: 0
+  victoryDataChipReward: 1000
+  victoryRedGemReward: 200
   autoGenerateWaves: 1
   chapterDifficultyMultiplier: 1
   wavePowerGrowthRate: 0.08
@@ -42,8 +44,8 @@ MonoBehaviour:
   chapterBossPrefab: {fileID: 1010797112834101214, guid: 616d9ac7cedf5eb46b9e23335d25aa30, type: 3}
   waves:
   - waveName: Wave 1
-    totalEnemiesToSpawn: 10
-    maxConcurrentEnemies: 10
+    totalEnemiesToSpawn: 15
+    maxConcurrentEnemies: 15
     spawnInterval: 1
     enemiesPerSpawn: 2
     enemyPool:
@@ -61,9 +63,9 @@ MonoBehaviour:
     breakDurationAfterWave: 1
     waveDuration: 10
   - waveName: Wave 2
-    totalEnemiesToSpawn: 24
+    totalEnemiesToSpawn: 20
     maxConcurrentEnemies: 20
-    spawnInterval: 0.95
+    spawnInterval: 1
     enemiesPerSpawn: 2
     enemyPool:
     - enemyPrefab: {fileID: 6558628254369202594, guid: cae7dc80e82b3b14bade28b18c3b19ff, type: 3}
@@ -80,9 +82,9 @@ MonoBehaviour:
     breakDurationAfterWave: 1
     waveDuration: 10
   - waveName: Wave 3
-    totalEnemiesToSpawn: 28
+    totalEnemiesToSpawn: 25
     maxConcurrentEnemies: 22
-    spawnInterval: 0.9
+    spawnInterval: 1
     enemiesPerSpawn: 2
     enemyPool:
     - enemyPrefab: {fileID: 6558628254369202594, guid: cae7dc80e82b3b14bade28b18c3b19ff, type: 3}
@@ -102,9 +104,9 @@ MonoBehaviour:
     breakDurationAfterWave: 1
     waveDuration: 10
   - waveName: Wave 4
-    totalEnemiesToSpawn: 32
+    totalEnemiesToSpawn: 30
     maxConcurrentEnemies: 24
-    spawnInterval: 0.85
+    spawnInterval: 1
     enemiesPerSpawn: 2
     enemyPool:
     - enemyPrefab: {fileID: 6558628254369202594, guid: cae7dc80e82b3b14bade28b18c3b19ff, type: 3}
@@ -124,9 +126,9 @@ MonoBehaviour:
     breakDurationAfterWave: 1
     waveDuration: 10
   - waveName: Wave 5
-    totalEnemiesToSpawn: 38
+    totalEnemiesToSpawn: 35
     maxConcurrentEnemies: 26
-    spawnInterval: 0.8
+    spawnInterval: 1
     enemiesPerSpawn: 2
     enemyPool:
     - enemyPrefab: {fileID: 6558628254369202594, guid: cae7dc80e82b3b14bade28b18c3b19ff, type: 3}
@@ -146,9 +148,9 @@ MonoBehaviour:
     breakDurationAfterWave: 1
     waveDuration: 10
   - waveName: Wave 6
-    totalEnemiesToSpawn: 44
+    totalEnemiesToSpawn: 40
     maxConcurrentEnemies: 28
-    spawnInterval: 0.75
+    spawnInterval: 1
     enemiesPerSpawn: 2
     enemyPool:
     - enemyPrefab: {fileID: 6558628254369202594, guid: cae7dc80e82b3b14bade28b18c3b19ff, type: 3}
@@ -168,9 +170,9 @@ MonoBehaviour:
     breakDurationAfterWave: 1
     waveDuration: 10
   - waveName: Wave 7
-    totalEnemiesToSpawn: 50
+    totalEnemiesToSpawn: 45
     maxConcurrentEnemies: 30
-    spawnInterval: 0.7
+    spawnInterval: 1
     enemiesPerSpawn: 3
     enemyPool:
     - enemyPrefab: {fileID: 6558628254369202594, guid: cae7dc80e82b3b14bade28b18c3b19ff, type: 3}
@@ -190,9 +192,9 @@ MonoBehaviour:
     breakDurationAfterWave: 1
     waveDuration: 10
   - waveName: Wave 8
-    totalEnemiesToSpawn: 56
+    totalEnemiesToSpawn: 50
     maxConcurrentEnemies: 32
-    spawnInterval: 0.65
+    spawnInterval: 1
     enemiesPerSpawn: 3
     enemyPool:
     - enemyPrefab: {fileID: 6558628254369202594, guid: cae7dc80e82b3b14bade28b18c3b19ff, type: 3}
@@ -212,9 +214,9 @@ MonoBehaviour:
     breakDurationAfterWave: 1
     waveDuration: 10
   - waveName: Wave 9
-    totalEnemiesToSpawn: 64
+    totalEnemiesToSpawn: 55
     maxConcurrentEnemies: 35
-    spawnInterval: 0.6
+    spawnInterval: 1
     enemiesPerSpawn: 3
     enemyPool:
     - enemyPrefab: {fileID: 6558628254369202594, guid: cae7dc80e82b3b14bade28b18c3b19ff, type: 3}
@@ -233,10 +235,10 @@ MonoBehaviour:
     bossSpawnDelay: 0
     breakDurationAfterWave: 1
     waveDuration: 10
-  - waveName: Wave 10 - FINAL BOSS
-    totalEnemiesToSpawn: 75
+  - waveName: BOSS
+    totalEnemiesToSpawn: 60
     maxConcurrentEnemies: 40
-    spawnInterval: 0.55
+    spawnInterval: 1
     enemiesPerSpawn: 3
     enemyPool:
     - enemyPrefab: {fileID: 6558628254369202594, guid: cae7dc80e82b3b14bade28b18c3b19ff, type: 3}

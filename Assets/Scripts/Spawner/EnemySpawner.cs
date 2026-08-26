@@ -125,7 +125,7 @@ public class EnemySpawner : MonoBehaviour
     [Tooltip("Bật in log tọa độ tính toán và tọa độ thực tế khi spawn quái vật để kiểm tra lỗi dồn quái.")]
     [SerializeField] private bool enableSpawnDebugLogs = false;
 
-    [Header("Stage Victory Reward")]
+    [Header("Stage Victory Default Rewards")]
     [Tooltip("Data Chips nhận được khi hoàn thành chapter.")]
     [Min(0)] [SerializeField] private int stageVictoryDataChipReward = 50;
 
@@ -238,7 +238,16 @@ public class EnemySpawner : MonoBehaviour
                     waves[waves.Count - 1].customBossPrefab = currentChapter.chapterBossPrefab;
                 }
 
-                Debug.Log($"[EnemySpawner] 🎮 Đã nạp thành công bộ Wave riêng của Chapter {currentChapter.chapterNumber}: '{currentChapter.chapterTitle}' ({waves.Count} waves, Độ khó Chapter: x{currentChapter.chapterDifficultyMultiplier:F2})!");
+                if (currentChapter.victoryDataChipReward > 0)
+                {
+                    stageVictoryDataChipReward = currentChapter.victoryDataChipReward;
+                }
+                if (currentChapter.victoryRedGemReward > 0)
+                {
+                    stageVictoryRedGemReward = currentChapter.victoryRedGemReward;
+                }
+
+                Debug.Log($"[EnemySpawner] 🎮 Đã nạp thành công bộ Wave riêng của Chapter {currentChapter.chapterNumber}: '{currentChapter.chapterTitle}' ({waves.Count} waves, Thưởng vượt ải: +{stageVictoryDataChipReward} Chips, +{stageVictoryRedGemReward} Gems)!");
             }
             else if (waves == null || waves.Count == 0)
             {
@@ -251,6 +260,12 @@ public class EnemySpawner : MonoBehaviour
     {
         chapterDatabase = db;
         LoadSelectedChapterWaves();
+    }
+
+    public void SetStageVictoryRewards(int dataChips, int redGems)
+    {
+        stageVictoryDataChipReward = Mathf.Max(0, dataChips);
+        stageVictoryRedGemReward = Mathf.Max(0, redGems);
     }
 
     private void Start()

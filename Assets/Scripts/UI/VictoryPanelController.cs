@@ -61,6 +61,12 @@ public sealed class VictoryPanelController : MonoBehaviour
     [Tooltip("Số mảnh giấy chúc mừng xuất hiện trên màn hình.")]
     [Range(0, 80)] [SerializeField] private int confettiCount = 36;
 
+    [Tooltip("Các dòng thưởng và nút lần lượt pop-in sau khi khung COMPLETE xuất hiện.")]
+    [SerializeField] private RectTransform[] stagedRevealItems;
+
+    [Min(0.05f)] [SerializeField] private float stagedItemDuration = 0.18f;
+    [Min(0f)] [SerializeField] private float stagedItemDelay = 0.06f;
+
     [Header("Điều hướng")]
     [Tooltip("Scene được mở khi nhấn nút Home.")]
     [SerializeField] private string homeSceneName = "MainMenu";
@@ -215,8 +221,8 @@ public sealed class VictoryPanelController : MonoBehaviour
         GameEvents.RaiseChapterCleared(chapterNumber);
 
         if (vipTripleButton != null) vipTripleButton.interactable = true;
-        if (vipButtonText != null) vipButtonText.text = "VIP  GET 3X REWARD";
-        if (feedbackText != null) feedbackText.text = "CHAPTER UNLOCKED!";
+        if (vipButtonText != null) vipButtonText.text = "Get x3 reward";
+        if (feedbackText != null) feedbackText.text = string.Empty;
 
         StopVisualCoroutines();
         revealRoutine = StartCoroutine(PlayReveal());
@@ -273,7 +279,10 @@ public sealed class VictoryPanelController : MonoBehaviour
 
     private void OnVipTripleClicked()
     {
-        TryClaimVipTripleReward();
+        if (TryClaimVipTripleReward())
+        {
+            ReturnHome();
+        }
     }
 
     public void ToggleDetails()
@@ -300,6 +309,7 @@ public sealed class VictoryPanelController : MonoBehaviour
     {
         if (panelCanvasGroup != null) panelCanvasGroup.alpha = 0f;
         if (resultCard != null) resultCard.localScale = Vector3.one * 0.78f;
+        SetStagedItemsScale(Vector3.zero);
 
         float elapsed = 0f;
         while (elapsed < revealDuration)
@@ -314,7 +324,44 @@ public sealed class VictoryPanelController : MonoBehaviour
 
         if (panelCanvasGroup != null) panelCanvasGroup.alpha = 1f;
         if (resultCard != null) resultCard.localScale = Vector3.one;
+
+        if (stagedRevealItems != null)
+        {
+            for (int i = 0; i < stagedRevealItems.Length; i++)
+            {
+                RectTransform item = stagedRevealItems[i];
+                if (item == null) continue;
+
+                float itemElapsed = 0f;
+                while (itemElapsed < stagedItemDuration)
+                {
+                    itemElapsed += Time.unscaledDeltaTime;
+                    float t = Mathf.Clamp01(itemElapsed / Mathf.Max(0.05f, stagedItemDuration));
+                    float overshoot = Mathf.Sin(t * Mathf.PI) * (1f - t) * 0.22f;
+                    float scale = Mathf.Lerp(0.72f, 1f, 1f - Mathf.Pow(1f - t, 3f)) + overshoot;
+                    item.localScale = Vector3.one * scale;
+                    yield return null;
+                }
+                item.localScale = Vector3.one;
+
+                float delayElapsed = 0f;
+                while (delayElapsed < stagedItemDelay)
+                {
+                    delayElapsed += Time.unscaledDeltaTime;
+                    yield return null;
+                }
+            }
+        }
         revealRoutine = null;
+    }
+
+    private void SetStagedItemsScale(Vector3 scale)
+    {
+        if (stagedRevealItems == null) return;
+        for (int i = 0; i < stagedRevealItems.Length; i++)
+        {
+            if (stagedRevealItems[i] != null) stagedRevealItems[i].localScale = scale;
+        }
     }
 
     private IEnumerator PlayConfetti()
@@ -402,8 +449,8 @@ public sealed class VictoryPanelController : MonoBehaviour
 
     private void UpdateRewardTexts(int dataReward, int gemReward)
     {
-        if (dataChipRewardText != null) dataChipRewardText.text = $"GET {dataReward:N0}";
-        if (redGemRewardText != null) redGemRewardText.text = $"GET {gemReward:N0}";
+        if (dataChipRewardText != null) dataChipRewardText.text = $"Get {dataReward:N0}";
+        if (redGemRewardText != null) redGemRewardText.text = $"Get {gemReward:N0}";
     }
 
     private static void SetPanelActive(GameObject panel, bool active)

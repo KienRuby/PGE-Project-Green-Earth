@@ -1,0 +1,1205 @@
+fileFormatVersion: 2
+guid: 500f6ce2efd177a4994730632b0838b8
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: popup chapter complete_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 3758
+        width: 241
+        height: 82
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2a0fe372127a4b044898aabe777f8f0e
+      internalID: -1985864088
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_1
+      rect:
+        serializedVersion: 2
+        x: 572
+        y: 3758
+        width: 1588
+        height: 82
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8f0b038b84fab65409f85e590aa77551
+      internalID: 954771616
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_2
+      rect:
+        serializedVersion: 2
+        x: 78
+        y: 3586
+        width: 8
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 530735b9cd1b54c4b9c282ee8ed81b75
+      internalID: -1587171326
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_3
+      rect:
+        serializedVersion: 2
+        x: 26
+        y: 3442
+        width: 60
+        height: 136
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 12f59c343db54404f866bb7c55135cab
+      internalID: -1652668544
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_4
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 3060
+        width: 86
+        height: 214
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1630e9e01aeb6c24a94a8b41db0aa11e
+      internalID: -1857786189
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_5
+      rect:
+        serializedVersion: 2
+        x: 279
+        y: 3128
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f9c23680f69a5b34a938b6405f7793a2
+      internalID: 1489945771
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_6
+      rect:
+        serializedVersion: 2
+        x: 304
+        y: 3128
+        width: 45
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e4bb672698c4207499710430a31f4a3f
+      internalID: 356784472
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_7
+      rect:
+        serializedVersion: 2
+        x: 1809
+        y: 3128
+        width: 47
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bb0a3c0937dc9ff4f8b753fd55aea6e9
+      internalID: -823725150
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_8
+      rect:
+        serializedVersion: 2
+        x: 1879
+        y: 3128
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 19cf2f5c4a243ed4cb65e358467055ed
+      internalID: -486046047
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_9
+      rect:
+        serializedVersion: 2
+        x: 1894
+        y: 3094
+        width: 43
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c432b9b236c4a5b44abfb7daecd65fe7
+      internalID: 1246878949
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_10
+      rect:
+        serializedVersion: 2
+        x: 2070
+        y: 3060
+        width: 90
+        height: 226
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c6c1988dea4d0d34892b862bcfdc8ec2
+      internalID: 1496955510
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_11
+      rect:
+        serializedVersion: 2
+        x: 225
+        y: 3083
+        width: 34
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 48c117c045726c547b190abf78264098
+      internalID: -248208660
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Complete!
+      rect:
+        serializedVersion: 2
+        x: 244
+        y: 499
+        width: 1682
+        height: 2628
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b6e873d12dd3fe042af2c8544b2d1c5c
+      internalID: 1895985355
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_13
+      rect:
+        serializedVersion: 2
+        x: 272
+        y: 3116
+        width: 9
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2ce77065bef34a641a3f68f9b2d16983
+      internalID: 207574151
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_14
+      rect:
+        serializedVersion: 2
+        x: 360
+        y: 3116
+        width: 34
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6cdf4af12104808408f764ad58e4fd28
+      internalID: -1785836679
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_15
+      rect:
+        serializedVersion: 2
+        x: 574
+        y: 3116
+        width: 78
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9419af1bcb7169d47a4f9275bb85cdf4
+      internalID: 1620923921
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_16
+      rect:
+        serializedVersion: 2
+        x: 810
+        y: 3116
+        width: 22
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2d163915bf4aca6408e3f929f8378176
+      internalID: -956334474
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_17
+      rect:
+        serializedVersion: 2
+        x: 1091
+        y: 3116
+        width: 23
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bf552e856d0acdf49aecdfbd56b865c6
+      internalID: 1045401769
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_18
+      rect:
+        serializedVersion: 2
+        x: 1350
+        y: 3116
+        width: 22
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2439b7bb09f66a64e8144e45297dce70
+      internalID: -690683442
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_19
+      rect:
+        serializedVersion: 2
+        x: 219
+        y: 3071
+        width: 6
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e7a85ff2cbee63f4a9e1e0b6290592ca
+      internalID: 1281013114
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_20
+      rect:
+        serializedVersion: 2
+        x: 1935
+        y: 3060
+        width: 13
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6aa49cb8fe723d1498f66281731895d7
+      internalID: -789355901
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_21
+      rect:
+        serializedVersion: 2
+        x: 218
+        y: 3024
+        width: 29
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f7ab98ca7a1902c488f9d0c8b34d0bf3
+      internalID: -796171673
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_22
+      rect:
+        serializedVersion: 2
+        x: 1946
+        y: 3047
+        width: 4
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8a09f3a9ac18e0a43b9dec5f857e09f7
+      internalID: 138680333
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_23
+      rect:
+        serializedVersion: 2
+        x: 1939
+        y: 3038
+        width: 9
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2f1e231a09c1455458e04d78f8502dc4
+      internalID: 21035940
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_24
+      rect:
+        serializedVersion: 2
+        x: 1928
+        y: 3026
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0de3a29fda0d5a543a4f1e215abcacc6
+      internalID: 612530263
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_25
+      rect:
+        serializedVersion: 2
+        x: 78
+        y: 2893
+        width: 12
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 951afceb3fec17442803ca3b39c3c2d6
+      internalID: 1423363167
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_26
+      rect:
+        serializedVersion: 2
+        x: 26
+        y: 2756
+        width: 60
+        height: 128
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a73d2831fad0dbd419494b92af0545ad
+      internalID: 1752027954
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_27
+      rect:
+        serializedVersion: 2
+        x: 67
+        y: 2748
+        width: 20
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1ed5cedb38006bd408fb2b0cf2e0a5f4
+      internalID: 1099978801
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_28
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 2381
+        width: 86
+        height: 207
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 495bee041e0440d4c9644e8393c709c7
+      internalID: 450893472
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_29
+      rect:
+        serializedVersion: 2
+        x: 2070
+        y: 2381
+        width: 90
+        height: 221
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d1c06e2e5094e7f45be71fe65fe97faf
+      internalID: -1568548272
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_30
+      rect:
+        serializedVersion: 2
+        x: 78
+        y: 2210
+        width: 8
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 55ebabb4a1e109c439349a47eb1db590
+      internalID: -50967278
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_31
+      rect:
+        serializedVersion: 2
+        x: 26
+        y: 2066
+        width: 60
+        height: 134
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 66b86af46b4cc5c4580b4c66bd34e66f
+      internalID: -438121150
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_32
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1709
+        width: 86
+        height: 226
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8aa213f84913ccf488cdd96d4d11cdae
+      internalID: -552078784
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_33
+      rect:
+        serializedVersion: 2
+        x: 238
+        y: 574
+        width: 9
+        height: 1338
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 888c5b83b3ca3c5409ff73a92e3556f1
+      internalID: -1460615399
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_34
+      rect:
+        serializedVersion: 2
+        x: 2072
+        y: 1716
+        width: 88
+        height: 231
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 292dd8c55ddaafb4ab5b234444d9258b
+      internalID: -533354191
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_35
+      rect:
+        serializedVersion: 2
+        x: 71
+        y: 1420
+        width: 15
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 48e3c0700f8964c4994be440a0ffc9cf
+      internalID: 933404035
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_36
+      rect:
+        serializedVersion: 2
+        x: 2071
+        y: 1402
+        width: 33
+        height: 125
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 72bc487870001fb4492cd1f25df438b5
+      internalID: -208390099
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_37
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1016
+        width: 86
+        height: 220
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fe92674ca5292c84ea30d6ee65155219
+      internalID: 976844505
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_38
+      rect:
+        serializedVersion: 2
+        x: 2072
+        y: 1022
+        width: 88
+        height: 231
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 37d82a7b126c60d4fb48c75e62fbb778
+      internalID: 584002795
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_39
+      rect:
+        serializedVersion: 2
+        x: 68
+        y: 727
+        width: 18
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a72eab4294870a94cb26b127bdd98152
+      internalID: 350606972
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_40
+      rect:
+        serializedVersion: 2
+        x: 2072
+        y: 707
+        width: 32
+        height: 127
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4c0094ac1b4f77c419dd8ad9281461e9
+      internalID: -673903662
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_41
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 326
+        width: 86
+        height: 228
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 79ef668df7a20b74785fe51fd1078911
+      internalID: -2136077446
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_42
+      rect:
+        serializedVersion: 2
+        x: 2070
+        y: 339
+        width: 90
+        height: 235
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fb1be38124e17f74592ae506e025fafa
+      internalID: 1317991046
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_43
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 298
+        height: 247
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f0927cecac165d343b9d8a82614a5fa3
+      internalID: 2076500760
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_44
+      rect:
+        serializedVersion: 2
+        x: 437
+        y: 0
+        width: 270
+        height: 231
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b514c99ae1d9f6f4fa5b7fc46d944078
+      internalID: -1970503572
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_45
+      rect:
+        serializedVersion: 2
+        x: 765
+        y: 0
+        width: 259
+        height: 216
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 66369599012dab7449a37dc0d24926b5
+      internalID: -257219289
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_46
+      rect:
+        serializedVersion: 2
+        x: 1158
+        y: 0
+        width: 225
+        height: 241
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c8bad6df3f9a2d8458f65e55b26fe7e1
+      internalID: 2089295045
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_47
+      rect:
+        serializedVersion: 2
+        x: 1522
+        y: 0
+        width: 272
+        height: 231
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6cd09f3dd9b1c4d48a814620ba01c3f7
+      internalID: -1376693768
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: popup chapter complete_48
+      rect:
+        serializedVersion: 2
+        x: 1859
+        y: 0
+        width: 301
+        height: 216
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 414f46d66f8030847997e80b130cc2f8
+      internalID: 1481542024
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      Complete!: 1895985355
+      popup chapter complete_0: -1985864088
+      popup chapter complete_1: 954771616
+      popup chapter complete_10: 1496955510
+      popup chapter complete_11: -248208660
+      popup chapter complete_13: 207574151
+      popup chapter complete_14: -1785836679
+      popup chapter complete_15: 1620923921
+      popup chapter complete_16: -956334474
+      popup chapter complete_17: 1045401769
+      popup chapter complete_18: -690683442
+      popup chapter complete_19: 1281013114
+      popup chapter complete_2: -1587171326
+      popup chapter complete_20: -789355901
+      popup chapter complete_21: -796171673
+      popup chapter complete_22: 138680333
+      popup chapter complete_23: 21035940
+      popup chapter complete_24: 612530263
+      popup chapter complete_25: 1423363167
+      popup chapter complete_26: 1752027954
+      popup chapter complete_27: 1099978801
+      popup chapter complete_28: 450893472
+      popup chapter complete_29: -1568548272
+      popup chapter complete_3: -1652668544
+      popup chapter complete_30: -50967278
+      popup chapter complete_31: -438121150
+      popup chapter complete_32: -552078784
+      popup chapter complete_33: -1460615399
+      popup chapter complete_34: -533354191
+      popup chapter complete_35: 933404035
+      popup chapter complete_36: -208390099
+      popup chapter complete_37: 976844505
+      popup chapter complete_38: 584002795
+      popup chapter complete_39: 350606972
+      popup chapter complete_4: -1857786189
+      popup chapter complete_40: -673903662
+      popup chapter complete_41: -2136077446
+      popup chapter complete_42: 1317991046
+      popup chapter complete_43: 2076500760
+      popup chapter complete_44: -1970503572
+      popup chapter complete_45: -257219289
+      popup chapter complete_46: 2089295045
+      popup chapter complete_47: -1376693768
+      popup chapter complete_48: 1481542024
+      popup chapter complete_5: 1489945771
+      popup chapter complete_6: 356784472
+      popup chapter complete_7: -823725150
+      popup chapter complete_8: -486046047
+      popup chapter complete_9: 1246878949
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

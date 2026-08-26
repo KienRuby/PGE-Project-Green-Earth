@@ -25,3 +25,4 @@ MonoBehaviour:
   bulletsPerShot: 1
   spreadAngle: 10
   projectilePrefab: {fileID: 9176291970807468248, guid: 7a360c9f713fe5b4ebd236256f3bb53b, type: 3}
+  muzzleFlashPrefab: {fileID: 8869413639510425902, guid: 9b996e0d56a944b4bb2340e5a068acf1, type: 3}

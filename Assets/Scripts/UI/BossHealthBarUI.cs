@@ -254,10 +254,10 @@ public class BossHealthBarUI : MonoBehaviour
 
     public static string SanitizeBossDisplayName(string value)
     {
-        string safeName = (value ?? string.Empty)
-            .Replace("\u26A0", string.Empty)
-            .Replace("\uFE0F", string.Empty)
-            .Trim();
+        if (string.IsNullOrEmpty(value)) return "BOSS";
+
+        // Loại bỏ ký tự cảnh báo, variation selectors (\uFE00-\uFE0F), zero-width characters
+        string safeName = System.Text.RegularExpressions.Regex.Replace(value, @"[\uFE00-\uFE0F\u200B-\u200D\u26A0]", string.Empty).Trim();
         return string.IsNullOrEmpty(safeName) ? "BOSS" : safeName.ToUpperInvariant();
     }
 

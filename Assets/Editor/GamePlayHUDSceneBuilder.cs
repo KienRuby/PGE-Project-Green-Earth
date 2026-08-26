@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System;
 using System.IO;
+using System.Linq;
 using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -20,6 +21,8 @@ public static class GamePlayHUDSceneBuilder
 {
     private const string ScenePath = "Assets/Scenes/GamePlay.unity";
     private const string FontPath = "Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset";
+    private const string ChipsetAtlasPath = "Assets/UI/Chipset/Generated/chipset-atlas.png";
+    private const string LevelUpUiPath = "Assets/Sprites/UI/UI Player/nút màn level up.png";
 
     private static readonly Color DarkBg = new Color32(22, 29, 36, 255);
     private static readonly Color InnerBg = new Color32(28, 40, 48, 255);
@@ -37,6 +40,59 @@ public static class GamePlayHUDSceneBuilder
     public static void BuildFromMenu()
     {
         BuildGamePlayHUD();
+    }
+
+    [MenuItem("PGE/UI/Build Chipset Level Up Popup Only")]
+    public static void BuildChipsetLevelUpPopupOnly()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+        {
+            Debug.LogWarning("[GamePlayHUDSceneBuilder] Không thể build khi đang Play Mode.");
+            return;
+        }
+
+        Scene scene = SceneManager.GetSceneByPath(ScenePath);
+        bool wasAlreadyLoaded = scene.IsValid() && scene.isLoaded;
+        if (!wasAlreadyLoaded)
+        {
+            scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Additive);
+        }
+
+        if (!scene.IsValid())
+        {
+            Debug.LogError($"[GamePlayHUDSceneBuilder] Không tìm thấy scene tại {ScenePath}");
+            return;
+        }
+
+        font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath);
+        CreateProceduralSprites();
+
+        GameObject canvasObject = scene.GetRootGameObjects()
+            .SelectMany(root => root.GetComponentsInChildren<Canvas>(true))
+            .Select(canvas => canvas.gameObject)
+            .FirstOrDefault(gameObject => gameObject.name == "Canvas");
+        PlayerLevelController levelController = scene.GetRootGameObjects()
+            .SelectMany(root => root.GetComponentsInChildren<PlayerLevelController>(true))
+            .FirstOrDefault();
+
+        if (canvasObject == null)
+        {
+            Debug.LogError("[GamePlayHUDSceneBuilder] GamePlay scene không có Canvas.");
+            if (!wasAlreadyLoaded) EditorSceneManager.CloseScene(scene, true);
+            return;
+        }
+
+        BuildChipsetLevelUpPopup(canvasObject.transform, levelController, font);
+        EditorUtility.SetDirty(canvasObject);
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+
+        if (!wasAlreadyLoaded)
+        {
+            EditorSceneManager.CloseScene(scene, true);
+        }
+
+        Debug.Log("[GamePlayHUDSceneBuilder] ✅ Đã build riêng Chipset Level Up Popup vào GamePlay scene.");
     }
 
     public static void BuildGamePlayHUD()
@@ -268,6 +324,9 @@ public static class GamePlayHUDSceneBuilder
         EnemySpawner spawner = GameObject.FindObjectOfType<EnemySpawner>();
         PlayerLevelController levelCtrl = playerObj != null ? playerObj.GetComponent<PlayerLevelController>() : GameObject.FindObjectOfType<PlayerLevelController>();
 
+        // Popup Level Up / Select Chipset (visual theo video tham chiếu)
+        BuildChipsetLevelUpPopup(canvasObj.transform, levelCtrl, font);
+
         // 1. BossHealthBarUI linking
         BossHealthBarUI bossUiCtrl = bossHealthContainerObj.GetComponent<BossHealthBarUI>();
         if (bossUiCtrl == null)
@@ -309,6 +368,367 @@ public static class GamePlayHUDSceneBuilder
         EditorSceneManager.SaveScene(scene);
 
         Debug.Log("[GamePlayHUDSceneBuilder] ✅ Đã khởi tạo thành công HUD, Boss Health Bar & Pause Menu chuẩn pixel cho GamePlay!");
+    }
+
+    private static GameObject BuildChipsetLevelUpPopup(
+        Transform canvasTransform,
+        PlayerLevelController levelController,
+        TMP_FontAsset fontAsset)
+    {
+        Transform existingRoot = canvasTransform.Find("ChipsetLevelUpPopup");
+        if (existingRoot != null)
+        {
+            GameObject.DestroyImmediate(existingRoot.gameObject);
+        }
+
+        GameObject root = new GameObject(
+            "ChipsetLevelUpPopup",
+            typeof(RectTransform),
+            typeof(CanvasGroup));
+        root.transform.SetParent(canvasTransform, false);
+        RectTransform rootRect = root.GetComponent<RectTransform>();
+        Stretch(rootRect, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+
+        CanvasGroup rootGroup = root.GetComponent<CanvasGroup>();
+        rootGroup.alpha = 1f;
+        rootGroup.interactable = true;
+        rootGroup.blocksRaycasts = true;
+
+        // Gameplay vẫn đọc được rõ phía sau như reference, nhưng input bị khóa bởi dimmer.
+        UnityEngine.UI.Image dimmer = CreateImage(
+            "Dimmer",
+            root.transform,
+            new Color32(0, 0, 0, 128),
+            rectSprite);
+        Stretch(dimmer.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        dimmer.raycastTarget = true;
+
+        // Lớp particle cơ khí: dùng glyph placeholder cho tới khi user gắn asset thật.
+        GameObject particleLayerObject = new GameObject("MechanicalParticleLayer", typeof(RectTransform));
+        particleLayerObject.transform.SetParent(root.transform, false);
+        RectTransform particleRect = particleLayerObject.GetComponent<RectTransform>();
+        particleRect.anchorMin = new Vector2(0f, 1f);
+        particleRect.anchorMax = new Vector2(1f, 1f);
+        particleRect.pivot = new Vector2(0.5f, 1f);
+        particleRect.anchoredPosition = Vector2.zero;
+        particleRect.sizeDelta = new Vector2(0f, 680f);
+        ChipsetLevelUpParticleField particleField = particleLayerObject.AddComponent<ChipsetLevelUpParticleField>();
+        particleField.SetParticleAssets(fontAsset, Array.Empty<Sprite>());
+
+        GameObject safeArea = new GameObject("SafeArea", typeof(RectTransform));
+        safeArea.transform.SetParent(root.transform, false);
+        RectTransform safeRect = safeArea.GetComponent<RectTransform>();
+        Stretch(safeRect, Vector2.zero, Vector2.one, new Vector2(42f, 35f), new Vector2(-42f, -35f));
+
+        GameObject header = new GameObject("Header", typeof(RectTransform));
+        header.transform.SetParent(safeArea.transform, false);
+        RectTransform headerRect = header.GetComponent<RectTransform>();
+        headerRect.anchorMin = new Vector2(0f, 1f);
+        headerRect.anchorMax = new Vector2(1f, 1f);
+        headerRect.pivot = new Vector2(0.5f, 1f);
+        headerRect.anchoredPosition = Vector2.zero;
+        headerRect.sizeDelta = new Vector2(0f, 560f);
+
+        Sprite[] levelUpUiSprites = AssetDatabase.LoadAllAssetRepresentationsAtPath(LevelUpUiPath)
+            .OfType<Sprite>()
+            .ToArray();
+        Sprite levelUpTitleSprite = FindSprite(levelUpUiSprites, "Lever up");
+        Sprite selectChipsetSprite = FindSprite(levelUpUiSprites, "Select chipset");
+        Sprite drawAgainSprite = FindSprite(levelUpUiSprites, "Draw again");
+
+        UnityEngine.UI.Image levelUpTitle = CreateImage(
+            "LevelUpTitle",
+            header.transform,
+            Color.white,
+            levelUpTitleSprite);
+        levelUpTitle.preserveAspect = true;
+        levelUpTitle.raycastTarget = false;
+        levelUpTitle.rectTransform.anchorMin = levelUpTitle.rectTransform.anchorMax = new Vector2(0.5f, 1f);
+        levelUpTitle.rectTransform.pivot = new Vector2(0.5f, 1f);
+        levelUpTitle.rectTransform.anchoredPosition = new Vector2(0f, -265f);
+        levelUpTitle.rectTransform.sizeDelta = new Vector2(700f, 137f);
+
+        UnityEngine.UI.Image selectLabel = CreateImage(
+            "SelectChipsetLabel",
+            header.transform,
+            Color.white,
+            selectChipsetSprite);
+        selectLabel.preserveAspect = true;
+        selectLabel.raycastTarget = false;
+        selectLabel.rectTransform.anchorMin = selectLabel.rectTransform.anchorMax = new Vector2(0.5f, 1f);
+        selectLabel.rectTransform.pivot = new Vector2(0.5f, 1f);
+        selectLabel.rectTransform.anchoredPosition = new Vector2(0f, -412f);
+        selectLabel.rectTransform.sizeDelta = new Vector2(510f, 100f);
+
+        // ScrollView theo hierarchy chuẩn: ScrollRect > Viewport/Content + Scrollbar.
+        GameObject scrollObject = new GameObject(
+            "ChoicesScrollRect",
+            typeof(RectTransform),
+            typeof(UnityEngine.UI.Image),
+            typeof(UnityEngine.UI.ScrollRect));
+        scrollObject.transform.SetParent(safeArea.transform, false);
+        RectTransform scrollRectTransform = scrollObject.GetComponent<RectTransform>();
+        scrollRectTransform.anchorMin = scrollRectTransform.anchorMax = new Vector2(0.5f, 1f);
+        scrollRectTransform.pivot = new Vector2(0.5f, 1f);
+        scrollRectTransform.anchoredPosition = new Vector2(0f, -600f);
+        scrollRectTransform.sizeDelta = new Vector2(760f, 850f);
+        UnityEngine.UI.Image scrollBackground = scrollObject.GetComponent<UnityEngine.UI.Image>();
+        scrollBackground.color = Color.clear;
+        scrollBackground.raycastTarget = false;
+
+        GameObject viewportObject = new GameObject(
+            "Viewport",
+            typeof(RectTransform),
+            typeof(UnityEngine.UI.Image),
+            typeof(UnityEngine.UI.Mask));
+        viewportObject.transform.SetParent(scrollObject.transform, false);
+        RectTransform viewportRect = viewportObject.GetComponent<RectTransform>();
+        Stretch(viewportRect, Vector2.zero, Vector2.one, Vector2.zero, new Vector2(-24f, 0f));
+        UnityEngine.UI.Image viewportImage = viewportObject.GetComponent<UnityEngine.UI.Image>();
+        viewportImage.color = new Color32(255, 255, 255, 1);
+        viewportImage.raycastTarget = true;
+        viewportObject.GetComponent<UnityEngine.UI.Mask>().showMaskGraphic = false;
+
+        GameObject contentObject = new GameObject(
+            "Content",
+            typeof(RectTransform),
+            typeof(UnityEngine.UI.VerticalLayoutGroup),
+            typeof(UnityEngine.UI.ContentSizeFitter));
+        contentObject.transform.SetParent(viewportObject.transform, false);
+        RectTransform contentRect = contentObject.GetComponent<RectTransform>();
+        contentRect.anchorMin = new Vector2(0f, 1f);
+        contentRect.anchorMax = new Vector2(1f, 1f);
+        contentRect.pivot = new Vector2(0.5f, 1f);
+        contentRect.anchoredPosition = Vector2.zero;
+        contentRect.sizeDelta = Vector2.zero;
+
+        UnityEngine.UI.VerticalLayoutGroup layout = contentObject.GetComponent<UnityEngine.UI.VerticalLayoutGroup>();
+        layout.padding = new RectOffset(4, 4, 4, 4);
+        layout.spacing = 18f;
+        layout.childAlignment = TextAnchor.UpperCenter;
+        layout.childControlWidth = true;
+        layout.childControlHeight = true;
+        layout.childForceExpandWidth = true;
+        layout.childForceExpandHeight = false;
+
+        UnityEngine.UI.ContentSizeFitter fitter = contentObject.GetComponent<UnityEngine.UI.ContentSizeFitter>();
+        fitter.horizontalFit = UnityEngine.UI.ContentSizeFitter.FitMode.Unconstrained;
+        fitter.verticalFit = UnityEngine.UI.ContentSizeFitter.FitMode.PreferredSize;
+
+        Sprite[] allAtlasSprites = AssetDatabase.LoadAllAssetRepresentationsAtPath(ChipsetAtlasPath)
+            .OfType<Sprite>()
+            .ToArray();
+        Sprite commonFrame = FindSprite(allAtlasSprites, "card-frame-common");
+
+        ChipsetChoiceCardUI[] cards = new ChipsetChoiceCardUI[4];
+        for (int i = 0; i < cards.Length; i++)
+        {
+            cards[i] = CreateLevelUpChoiceCard(contentObject.transform, i + 1, commonFrame, fontAsset);
+        }
+
+        GameObject scrollbarObject = new GameObject(
+            "Scrollbar",
+            typeof(RectTransform),
+            typeof(UnityEngine.UI.Image),
+            typeof(UnityEngine.UI.Scrollbar));
+        scrollbarObject.transform.SetParent(scrollObject.transform, false);
+        RectTransform scrollbarRect = scrollbarObject.GetComponent<RectTransform>();
+        scrollbarRect.anchorMin = new Vector2(1f, 0f);
+        scrollbarRect.anchorMax = new Vector2(1f, 1f);
+        scrollbarRect.pivot = new Vector2(1f, 0.5f);
+        scrollbarRect.offsetMin = new Vector2(-14f, 8f);
+        scrollbarRect.offsetMax = new Vector2(-2f, -8f);
+        scrollbarObject.GetComponent<UnityEngine.UI.Image>().color = Color.clear;
+
+        GameObject slidingArea = new GameObject("SlidingArea", typeof(RectTransform));
+        slidingArea.transform.SetParent(scrollbarObject.transform, false);
+        Stretch(slidingArea.GetComponent<RectTransform>(), Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+
+        GameObject handleObject = new GameObject("Handle", typeof(RectTransform), typeof(UnityEngine.UI.Image));
+        handleObject.transform.SetParent(slidingArea.transform, false);
+        RectTransform handleRect = handleObject.GetComponent<RectTransform>();
+        Stretch(handleRect, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        UnityEngine.UI.Image handleImage = handleObject.GetComponent<UnityEngine.UI.Image>();
+        handleImage.color = Color.clear;
+
+        UnityEngine.UI.Scrollbar scrollbar = scrollbarObject.GetComponent<UnityEngine.UI.Scrollbar>();
+        scrollbar.handleRect = handleRect;
+        scrollbar.targetGraphic = handleImage;
+        scrollbar.direction = UnityEngine.UI.Scrollbar.Direction.BottomToTop;
+        scrollbar.size = 0.42f;
+
+        UnityEngine.UI.ScrollRect scrollRect = scrollObject.GetComponent<UnityEngine.UI.ScrollRect>();
+        scrollRect.content = contentRect;
+        scrollRect.viewport = viewportRect;
+        scrollRect.horizontal = false;
+        scrollRect.vertical = true;
+        scrollRect.movementType = UnityEngine.UI.ScrollRect.MovementType.Clamped;
+        scrollRect.scrollSensitivity = 35f;
+        scrollRect.verticalScrollbar = scrollbar;
+        scrollRect.verticalScrollbarVisibility = UnityEngine.UI.ScrollRect.ScrollbarVisibility.AutoHide;
+        scrollRect.verticalScrollbarSpacing = 8f;
+
+        GameObject rerollObject = new GameObject(
+            "DrawAgainButton",
+            typeof(RectTransform),
+            typeof(UnityEngine.UI.Image),
+            typeof(UnityEngine.UI.Button),
+            typeof(CanvasGroup));
+        rerollObject.transform.SetParent(safeArea.transform, false);
+        RectTransform rerollRect = rerollObject.GetComponent<RectTransform>();
+        rerollRect.anchorMin = rerollRect.anchorMax = new Vector2(0.5f, 0f);
+        rerollRect.pivot = new Vector2(0.5f, 0f);
+        rerollRect.anchoredPosition = new Vector2(0f, 225f);
+        rerollRect.sizeDelta = new Vector2(470f, 151f);
+        UnityEngine.UI.Image rerollImage = rerollObject.GetComponent<UnityEngine.UI.Image>();
+        rerollImage.sprite = drawAgainSprite;
+        rerollImage.color = Color.white;
+        rerollImage.preserveAspect = true;
+        UnityEngine.UI.Button rerollButton = rerollObject.GetComponent<UnityEngine.UI.Button>();
+        rerollButton.targetGraphic = rerollImage;
+        ColorBlock rerollColors = rerollButton.colors;
+        rerollColors.normalColor = Color.white;
+        rerollColors.highlightedColor = Color.white;
+        rerollColors.pressedColor = new Color(0.76f, 0.9f, 0.82f, 1f);
+        rerollColors.disabledColor = new Color(0.42f, 0.48f, 0.44f, 0.75f);
+        rerollColors.fadeDuration = 0.08f;
+        rerollButton.colors = rerollColors;
+
+        ChipsetLevelUpPopup controller = canvasTransform.GetComponent<ChipsetLevelUpPopup>();
+        if (controller == null)
+        {
+            controller = canvasTransform.gameObject.AddComponent<ChipsetLevelUpPopup>();
+        }
+
+        string[] iconKeys =
+        {
+            "standard-gun", "rifle", "rocket-punch", "spinning-blade", "multigun", "gun-turret",
+            "spiky-discus", "shotgun", "energy-jumper-cables", "high-explosive-mine", "aiming-lens", "plasma-field",
+            "laser-eye", "biochemical-mine", "tesla-coil", "atk-module", "black-hole-mine", "sonic-boom",
+            "big-battery", "turret-module", "ice-turret", "invincible-shield", "healing-turret", "flamethrower"
+        };
+        Sprite[] icons = iconKeys.Select(key => FindSprite(allAtlasSprites, key)).Where(sprite => sprite != null).ToArray();
+        Sprite[] frames =
+        {
+            FindSprite(allAtlasSprites, "card-frame-common"),
+            FindSprite(allAtlasSprites, "card-frame-rare"),
+            FindSprite(allAtlasSprites, "card-frame-epic"),
+            FindSprite(allAtlasSprites, "card-frame-holographic")
+        };
+
+        controller.InitializeReferences(
+            levelController,
+            root,
+            rootGroup,
+            levelUpTitle.rectTransform,
+            cards,
+            rerollButton,
+            null,
+            null,
+            icons,
+            frames,
+            Array.Empty<Sprite>());
+
+        root.SetActive(false);
+        EditorUtility.SetDirty(controller);
+        return root;
+    }
+
+    private static ChipsetChoiceCardUI CreateLevelUpChoiceCard(
+        Transform parent,
+        int index,
+        Sprite defaultFrame,
+        TMP_FontAsset fontAsset)
+    {
+        GameObject root = new GameObject(
+            $"ChipsetChoiceCard_{index:00}",
+            typeof(RectTransform),
+            typeof(UnityEngine.UI.Image),
+            typeof(CanvasGroup),
+            typeof(UnityEngine.UI.Button),
+            typeof(UnityEngine.UI.LayoutElement));
+        root.transform.SetParent(parent, false);
+
+        UnityEngine.UI.LayoutElement layoutElement = root.GetComponent<UnityEngine.UI.LayoutElement>();
+        layoutElement.preferredHeight = 190f;
+        layoutElement.minHeight = 190f;
+
+        UnityEngine.UI.Image border = root.GetComponent<UnityEngine.UI.Image>();
+        border.color = new Color32(116, 244, 239, 255);
+
+        UnityEngine.UI.Image background = CreateImage(
+            "Background",
+            root.transform,
+            new Color32(10, 58, 83, 245),
+            rectSprite);
+        Stretch(background.rectTransform, Vector2.zero, Vector2.one, new Vector2(4f, 4f), new Vector2(-4f, -4f));
+
+        UnityEngine.UI.Button button = root.GetComponent<UnityEngine.UI.Button>();
+        button.targetGraphic = background;
+
+        UnityEngine.UI.Image iconFrame = CreateImage("IconFrameAssetSlot", root.transform, Color.white, defaultFrame);
+        iconFrame.rectTransform.anchorMin = iconFrame.rectTransform.anchorMax = new Vector2(0f, 0.5f);
+        iconFrame.rectTransform.pivot = new Vector2(0f, 0.5f);
+        iconFrame.rectTransform.anchoredPosition = new Vector2(22f, 0f);
+        iconFrame.rectTransform.sizeDelta = new Vector2(172f, 172f);
+        iconFrame.preserveAspect = true;
+        iconFrame.raycastTarget = false;
+
+        UnityEngine.UI.Image icon = CreateImage("ChipIcon", iconFrame.transform, Color.white, null);
+        Stretch(icon.rectTransform, Vector2.zero, Vector2.one, new Vector2(22f, 22f), new Vector2(-22f, -22f));
+        icon.preserveAspect = true;
+        icon.raycastTarget = false;
+
+        TMP_Text title = CreateText(
+            "Title",
+            root.transform,
+            "Chipset LV.01",
+            31f,
+            new Color32(255, 177, 31, 255),
+            TextAlignmentOptions.Left);
+        if (fontAsset != null) title.font = fontAsset;
+        title.fontStyle = FontStyles.Bold;
+        title.outlineColor = Color.black;
+        title.outlineWidth = 0.14f;
+        title.rectTransform.anchorMin = new Vector2(0f, 0.53f);
+        title.rectTransform.anchorMax = new Vector2(1f, 1f);
+        title.rectTransform.offsetMin = new Vector2(215f, 0f);
+        title.rectTransform.offsetMax = new Vector2(-18f, -12f);
+        title.raycastTarget = false;
+
+        TMP_Text description = CreateText(
+            "Description",
+            root.transform,
+            "Chipset description.",
+            27f,
+            Color.white,
+            TextAlignmentOptions.TopLeft);
+        if (fontAsset != null) description.font = fontAsset;
+        description.fontStyle = FontStyles.Bold;
+        description.enableWordWrapping = true;
+        description.rectTransform.anchorMin = new Vector2(0f, 0f);
+        description.rectTransform.anchorMax = new Vector2(1f, 0.62f);
+        description.rectTransform.offsetMin = new Vector2(215f, 14f);
+        description.rectTransform.offsetMax = new Vector2(-18f, -7f);
+        description.raycastTarget = false;
+
+        ChipsetChoiceCardUI card = root.AddComponent<ChipsetChoiceCardUI>();
+        card.InitializeReferences(
+            border,
+            background,
+            iconFrame,
+            icon,
+            title,
+            description,
+            button,
+            root.GetComponent<CanvasGroup>());
+        return card;
+    }
+
+    private static Sprite FindSprite(Sprite[] sprites, string spriteName)
+    {
+        return sprites?.FirstOrDefault(sprite =>
+            sprite != null && string.Equals(sprite.name, spriteName, StringComparison.OrdinalIgnoreCase));
     }
 
     private static GameObject BuildPauseModal(Transform canvasTr, TMP_FontAsset fontAsset)

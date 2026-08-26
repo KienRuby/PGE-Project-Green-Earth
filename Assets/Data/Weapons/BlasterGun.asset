@@ -16,7 +16,6 @@ MonoBehaviour:
   weaponName: Blaster Gun
   weaponIcon: {fileID: 0}
   gunSprite: {fileID: 1950697415, guid: 53980148e8e4f83429126e94325722e2, type: 3}
-  gunScale: {x: 0.65, y: 0.65, z: 1}
   firePointOffset: {x: 3.59, y: -0.99}
   fireRate: 2.5
   attackRange: 12
@@ -25,3 +24,6 @@ MonoBehaviour:
   bulletsPerShot: 1
   spreadAngle: 15
   projectilePrefab: {fileID: 9176291970807468248, guid: 7a360c9f713fe5b4ebd236256f3bb53b, type: 3}
+  muzzleFlashPrefab: {fileID: 8869413639510425902, guid: 9b996e0d56a944b4bb2340e5a068acf1, type: 3}
+  muzzleFlashOffset: {x: 0, y: 0}
+  muzzleFlashScale: 1

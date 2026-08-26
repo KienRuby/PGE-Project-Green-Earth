@@ -18,10 +18,15 @@ MonoBehaviour:
   energyCost: 10
   previewBackground: {fileID: 21300000, guid: 0377c92faaf76cc4d97b14ef7cfeeb09, type: 3}
   bossSilhouette: {fileID: -803355726, guid: 5424adb2f9ebec9459ec5817bc67a31c, type: 3}
+  mapGroundSprite: {fileID: 0}
+  mapSize: {x: 40, y: 40}
+  mapColor: {r: 1, g: 1, b: 1, a: 1}
+  groundDrawMode: 2
+  playerBoundaryPadding: 0.6
   flavorText: Going through the vines to look for you, mutants.
   gameplaySceneName: GamePlay
   levelConfigId: dense_jungle_1
-  isLocked: 1
+  isLocked: 0
   autoGenerateWaves: 1
   chapterDifficultyMultiplier: 1.75
   wavePowerGrowthRate: 0.08
@@ -39,7 +44,7 @@ MonoBehaviour:
   - waveName: Wave 1
     totalEnemiesToSpawn: 35
     maxConcurrentEnemies: 28
-    spawnInterval: 0.8
+    spawnInterval: 1
     enemiesPerSpawn: 2
     enemyPool: []
     healthMultiplier: 1.75
@@ -55,7 +60,7 @@ MonoBehaviour:
   - waveName: Wave 2
     totalEnemiesToSpawn: 42
     maxConcurrentEnemies: 30
-    spawnInterval: 0.75
+    spawnInterval: 1
     enemiesPerSpawn: 3
     enemyPool: []
     healthMultiplier: 1.85
@@ -71,7 +76,7 @@ MonoBehaviour:
   - waveName: Wave 3
     totalEnemiesToSpawn: 50
     maxConcurrentEnemies: 32
-    spawnInterval: 0.7
+    spawnInterval: 1
     enemiesPerSpawn: 3
     enemyPool: []
     healthMultiplier: 1.95
@@ -87,7 +92,7 @@ MonoBehaviour:
   - waveName: Wave 4
     totalEnemiesToSpawn: 60
     maxConcurrentEnemies: 35
-    spawnInterval: 0.65
+    spawnInterval: 1
     enemiesPerSpawn: 3
     enemyPool: []
     healthMultiplier: 2.05
@@ -103,7 +108,7 @@ MonoBehaviour:
   - waveName: Wave 5
     totalEnemiesToSpawn: 70
     maxConcurrentEnemies: 38
-    spawnInterval: 0.6
+    spawnInterval: 1
     enemiesPerSpawn: 4
     enemyPool: []
     healthMultiplier: 2.15
@@ -119,11 +124,11 @@ MonoBehaviour:
   - waveName: Wave 6
     totalEnemiesToSpawn: 80
     maxConcurrentEnemies: 40
-    spawnInterval: 0.55
+    spawnInterval: 1
     enemiesPerSpawn: 4
     enemyPool: []
     healthMultiplier: 2.25
-    damageMultiplier: 2.0
+    damageMultiplier: 2
     speedMultiplier: 1.28
     expMultiplier: 1.55
     isBossWave: 0
@@ -135,7 +140,7 @@ MonoBehaviour:
   - waveName: Wave 7
     totalEnemiesToSpawn: 92
     maxConcurrentEnemies: 45
-    spawnInterval: 0.5
+    spawnInterval: 1
     enemiesPerSpawn: 4
     enemyPool: []
     healthMultiplier: 2.35
@@ -151,7 +156,7 @@ MonoBehaviour:
   - waveName: Wave 8
     totalEnemiesToSpawn: 105
     maxConcurrentEnemies: 48
-    spawnInterval: 0.45
+    spawnInterval: 1
     enemiesPerSpawn: 4
     enemyPool: []
     healthMultiplier: 2.45
@@ -167,7 +172,7 @@ MonoBehaviour:
   - waveName: Wave 9
     totalEnemiesToSpawn: 120
     maxConcurrentEnemies: 50
-    spawnInterval: 0.4
+    spawnInterval: 1
     enemiesPerSpawn: 5
     enemyPool: []
     healthMultiplier: 2.55
@@ -180,16 +185,16 @@ MonoBehaviour:
     bossSpawnDelay: 0
     breakDurationAfterWave: 1
     waveDuration: 35
-  - waveName: Wave 10 - FINAL BOSS
+  - waveName: BOSS
     totalEnemiesToSpawn: 140
     maxConcurrentEnemies: 55
-    spawnInterval: 0.35
+    spawnInterval: 1
     enemiesPerSpawn: 5
     enemyPool: []
     healthMultiplier: 3.5
-    damageMultiplier: 3.0
+    damageMultiplier: 3
     speedMultiplier: 1.45
-    expMultiplier: 2.0
+    expMultiplier: 2
     isBossWave: 1
     customBossPrefab: {fileID: 0}
     bossCount: 1

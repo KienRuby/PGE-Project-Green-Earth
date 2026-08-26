@@ -62,6 +62,22 @@ public class PlayerAutoShooter : MonoBehaviour
     [Tooltip("Tự động xoay súng theo hướng di chuyển khi không có quái vật xung quanh.")]
     [SerializeField] private bool aimMoveDirectionWhenIdle = true;
 
+    [Header("Muzzle Flash VFX (Hiệu ứng nòng súng)")]
+    [Tooltip("Prefab hiệu ứng bắn xuất hiện tại nòng súng (ví dụ: VFX shoote).")]
+    [SerializeField] private GameObject muzzleFlashPrefab;
+
+    [Tooltip("Độ lệch vị trí riêng của hiệu ứng nòng súng (Offset X, Y) so với đầu nòng súng.")]
+    [SerializeField] private Vector2 muzzleFlashOffset = Vector2.zero;
+
+    [Tooltip("Tỷ lệ kích thước của hiệu ứng nòng súng (Scale, mặc định = 1.0).")]
+    [SerializeField] private float muzzleFlashScale = 1.0f;
+
+    [Tooltip("Thời gian tồn tại của hiệu ứng nòng súng (giây) trước khi tự hủy / trả về pool.")]
+    [SerializeField] private float muzzleFlashDuration = 0.12f;
+
+    [Tooltip("Tự động xoay hiệu ứng theo hướng ngắm bắn.")]
+    [SerializeField] private bool rotateMuzzleFlashWithAim = true;
+
     [Header("Shooting Settings")]
     [Tooltip("Prefab viên đạn được bắn ra từ đầu nòng súng.")]
     [SerializeField] private GameObject projectilePrefab;
@@ -145,6 +161,13 @@ public class PlayerAutoShooter : MonoBehaviour
         {
             bodyTransformBaseScale = bodyTransform.localScale;
         }
+
+#if UNITY_EDITOR
+        if (muzzleFlashPrefab == null)
+        {
+            muzzleFlashPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/VFX shoote.prefab");
+        }
+#endif
     }
 
     private void Start()
@@ -215,10 +238,25 @@ public class PlayerAutoShooter : MonoBehaviour
             attackPoint.localPosition = new Vector3(weapon.firePointOffset.x, weapon.firePointOffset.y, 0f);
         }
 
-        // 3. Cập nhật Prefab đạn
+        // 3. Cập nhật Prefab đạn & Hiệu ứng nòng súng
         if (weapon.projectilePrefab != null)
         {
             projectilePrefab = weapon.projectilePrefab;
+        }
+
+        if (weapon.muzzleFlashPrefab != null)
+        {
+            muzzleFlashPrefab = weapon.muzzleFlashPrefab;
+        }
+
+        if (weapon.muzzleFlashOffset != Vector2.zero)
+        {
+            muzzleFlashOffset = weapon.muzzleFlashOffset;
+        }
+
+        if (weapon.muzzleFlashScale > 0.01f)
+        {
+            muzzleFlashScale = weapon.muzzleFlashScale;
         }
 
         // 4. Cập nhật 4 Chỉ số cốt lõi: Tốc độ bắn, Khoảng cách bắn, Sát thương, Tốc độ ra đạn
@@ -570,6 +608,9 @@ public class PlayerAutoShooter : MonoBehaviour
         Vector2 baseDirection = ((Vector2)currentTarget.position - (Vector2)spawnPosition).normalized;
         float baseAngle = Mathf.Atan2(baseDirection.y, baseDirection.x) * Mathf.Rad2Deg;
 
+        // Kích hoạt hiệu ứng tóe lửa / khói tại nòng súng (Muzzle Flash VFX)
+        SpawnMuzzleFlash(spawnPosition, baseAngle);
+
         if (currentBulletsPerShot <= 1)
         {
             SpawnSingleBullet(spawnPosition, baseDirection, baseAngle);
@@ -587,6 +628,49 @@ public class PlayerAutoShooter : MonoBehaviour
                 Vector2 dir = new Vector2(Mathf.Cos(rad), Mathf.Sin(rad)).normalized;
 
                 SpawnSingleBullet(spawnPosition, dir, angle);
+            }
+        }
+    }
+
+    private void SpawnMuzzleFlash(Vector3 position, float angle)
+    {
+        if (muzzleFlashPrefab == null) return;
+
+        Quaternion rotation = rotateMuzzleFlashWithAim ? Quaternion.Euler(0f, 0f, angle) : Quaternion.identity;
+        Transform parentTransform = attackPoint != null ? attackPoint : transform;
+
+        // Tính vị trí có cộng thêm offset theo hướng nòng súng
+        Vector3 finalPos = position + (rotation * (Vector3)muzzleFlashOffset);
+
+        GameObject flashObj;
+        if (PoolManager.Instance != null)
+        {
+            flashObj = PoolManager.Instance.Spawn(muzzleFlashPrefab, finalPos, rotation, parentTransform);
+            if (flashObj != null && flashObj.GetComponent<AutoDestroyVFX>() == null)
+            {
+                PoolManager.Instance.ReturnToPool(flashObj, muzzleFlashDuration);
+            }
+        }
+        else
+        {
+            flashObj = Instantiate(muzzleFlashPrefab, finalPos, rotation, parentTransform);
+            if (flashObj != null && flashObj.GetComponent<AutoDestroyVFX>() == null)
+            {
+                Destroy(flashObj, muzzleFlashDuration);
+            }
+        }
+
+        if (flashObj != null)
+        {
+            if (muzzleFlashScale > 0.01f && Mathf.Abs(muzzleFlashScale - 1f) > 0.001f)
+            {
+                flashObj.transform.localScale = muzzleFlashPrefab.transform.localScale * muzzleFlashScale;
+            }
+
+            Animator animator = flashObj.GetComponent<Animator>();
+            if (animator != null)
+            {
+                animator.Play(0, -1, 0f);
             }
         }
     }

@@ -1,0 +1,1164 @@
+fileFormatVersion: 2
+guid: 484cfa5c7e7d3fb4097c596b6efc0d52
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_3"
+      rect:
+        serializedVersion: 2
+        x: 664
+        y: 2936
+        width: 11
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cd5a974c46d354545b943f07321d88d8
+      internalID: 340567770
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_4"
+      rect:
+        serializedVersion: 2
+        x: 698
+        y: 2925
+        width: 20
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f3b1202453cb61f489a783ab56bfbb08
+      internalID: -446068421
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_5"
+      rect:
+        serializedVersion: 2
+        x: 773
+        y: 2914
+        width: 26
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 430990b0f597b2240a060b251cbf316b
+      internalID: -385506478
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_6"
+      rect:
+        serializedVersion: 2
+        x: 821
+        y: 2925
+        width: 11
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6a7be1bff37d490498ce4ee4a5543249
+      internalID: -628209058
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_7"
+      rect:
+        serializedVersion: 2
+        x: 1091
+        y: 2925
+        width: 23
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d0c86aafb22436144a660fd6c62a3f76
+      internalID: 1327364042
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_8"
+      rect:
+        serializedVersion: 2
+        x: 1125
+        y: 2936
+        width: 11
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 54185c846d675dd4a8000b72242a1a26
+      internalID: 1698472367
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_9"
+      rect:
+        serializedVersion: 2
+        x: 1159
+        y: 2925
+        width: 22
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 674e92b108c4fc140befe518347534ca
+      internalID: 834451869
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_10"
+      rect:
+        serializedVersion: 2
+        x: 1271
+        y: 2936
+        width: 11
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e25a34d784df41447830f35251c731c2
+      internalID: -1722469992
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_11"
+      rect:
+        serializedVersion: 2
+        x: 608
+        y: 2891
+        width: 33
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b00123c6dfc27fa45980b5c51846d72b
+      internalID: 378324306
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_12"
+      rect:
+        serializedVersion: 2
+        x: 720
+        y: 2914
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2199054eb4887fb4a972269ff5a6d141
+      internalID: -1504679660
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_13"
+      rect:
+        serializedVersion: 2
+        x: 833
+        y: 2914
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f915d1b8ec333114d80d720db4c79ef1
+      internalID: -1146254481
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_14"
+      rect:
+        serializedVersion: 2
+        x: 979
+        y: 2914
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2a1e341036bb4884bbb6a52bb035bcac
+      internalID: -286647379
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_15"
+      rect:
+        serializedVersion: 2
+        x: 1018
+        y: 2918
+        width: 9
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1f3969ae87b1bbd4693eb8c069101210
+      internalID: -1127975107
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_16"
+      rect:
+        serializedVersion: 2
+        x: 1193
+        y: 2903
+        width: 33
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e0a45d04b348b334eadefccffcf67a20
+      internalID: -1942406892
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_17"
+      rect:
+        serializedVersion: 2
+        x: 1232
+        y: 2914
+        width: 28
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b35320a6db9c47143ab7416989cca0b9
+      internalID: -1350773443
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_18"
+      rect:
+        serializedVersion: 2
+        x: 1508
+        y: 2903
+        width: 22
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 212168d0df5cdad4ca177afd662f070f
+      internalID: 597264061
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_19"
+      rect:
+        serializedVersion: 2
+        x: 1558
+        y: 2918
+        width: 9
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 22c017e2c3629a24d9a00a68f3ef6c57
+      internalID: -1051957880
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_21"
+      rect:
+        serializedVersion: 2
+        x: 1028
+        y: 2908
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5336d97b87632764f8c0c37567ce7dda
+      internalID: 94286852
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_23"
+      rect:
+        serializedVersion: 2
+        x: 1568
+        y: 2908
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fcc336a2b30996147911398236dd11ae
+      internalID: 1168039392
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_24"
+      rect:
+        serializedVersion: 2
+        x: 596
+        y: 2880
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7f9d15acdecaa7a408852ea3377515e1
+      internalID: 355089445
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_25"
+      rect:
+        serializedVersion: 2
+        x: 1575
+        y: 2869
+        width: 34
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a3d594e664583a245821950fdf938745
+      internalID: 1630187600
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_26"
+      rect:
+        serializedVersion: 2
+        x: 596
+        y: 2846
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6c9664dfe1fcb0d47950d12158088c34
+      internalID: 1007037598
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_27"
+      rect:
+        serializedVersion: 2
+        x: 1598
+        y: 2824
+        width: 18
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1158203c43fd45a409ebf71aa17cb383
+      internalID: -445778917
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_28"
+      rect:
+        serializedVersion: 2
+        x: 591
+        y: 2824
+        width: 16
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1c51922c89ec4fa489d91ffe1e3474a7
+      internalID: 1013575508
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_29"
+      rect:
+        serializedVersion: 2
+        x: 589
+        y: 2764
+        width: 41
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fe6bee43a8e503e4b9b1cfc8cfa3da18
+      internalID: 4075850
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_30"
+      rect:
+        serializedVersion: 2
+        x: 1609
+        y: 2788
+        width: 9
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 82bbf09129a60e945bfa591b91381c4b
+      internalID: 590421666
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_31"
+      rect:
+        serializedVersion: 2
+        x: 720
+        y: 2768
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 016cc50bf8c50ab4d9b16ce356f81218
+      internalID: 578161171
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_32"
+      rect:
+        serializedVersion: 2
+        x: 911
+        y: 2768
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: db5122cbc2a78034aaf1a591022f721e
+      internalID: -544235649
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_33"
+      rect:
+        serializedVersion: 2
+        x: 979
+        y: 2768
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3c1d628493c2a5c4c8da465f660a95d7
+      internalID: 484704164
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_34"
+      rect:
+        serializedVersion: 2
+        x: 754
+        y: 2754
+        width: 22
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 13caf87c78cbd9d49aa9610580cd2593
+      internalID: -1955855785
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_35"
+      rect:
+        serializedVersion: 2
+        x: 808
+        y: 2754
+        width: 24
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9382ee758437239438eef7dc0ef099d0
+      internalID: -960851166
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_36"
+      rect:
+        serializedVersion: 2
+        x: 833
+        y: 2756
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8b66c6d067ea6e844bf8ec2d4c39cf22
+      internalID: 1020070590
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_37"
+      rect:
+        serializedVersion: 2
+        x: 889
+        y: 2756
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4a9027aefd3899e44b3e1cfbac72e466
+      internalID: 289622197
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_38"
+      rect:
+        serializedVersion: 2
+        x: 934
+        y: 2754
+        width: 22
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f9ba3938737d05b4ca59f2521fa44807
+      internalID: -20024471
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_39"
+      rect:
+        serializedVersion: 2
+        x: 1001
+        y: 2756
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dcf5c432b11412445af0304e6bcd33a5
+      internalID: 585960725
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_40"
+      rect:
+        serializedVersion: 2
+        x: 1013
+        y: 2754
+        width: 24
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 42bb706480ff0f6498272d0d41ec9be4
+      internalID: -1491936779
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_41"
+      rect:
+        serializedVersion: 2
+        x: 1103
+        y: 2754
+        width: 33
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 13c32ab5a4aef814ba96186562589af6
+      internalID: -1094039354
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_42"
+      rect:
+        serializedVersion: 2
+        x: 1258
+        y: 2743
+        width: 24
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7dbe6d7a246c63d4fbb9446c8915cc8f
+      internalID: -1327926598
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_43"
+      rect:
+        serializedVersion: 2
+        x: 1418
+        y: 2756
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 68f5fed996433a74aa42dfb690897dcb
+      internalID: -1034999404
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_44"
+      rect:
+        serializedVersion: 2
+        x: 1496
+        y: 2754
+        width: 11
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ff185148a750835478dd2e544f01ce81
+      internalID: 2017255230
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_45"
+      rect:
+        serializedVersion: 2
+        x: 1541
+        y: 2756
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8a39228ea633e104ea9838fb9b289770
+      internalID: -1530590851
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_46"
+      rect:
+        serializedVersion: 2
+        x: 1553
+        y: 2754
+        width: 24
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 59a9cf987ea3cee44bf7da39375efcd4
+      internalID: 241777969
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_47"
+      rect:
+        serializedVersion: 2
+        x: 1283
+        y: 2732
+        width: 11
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b8d6a16491fad5546bc048494b1286e6
+      internalID: -339683140
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n level up_48"
+      rect:
+        serializedVersion: 2
+        x: 1316
+        y: 2734
+        width: 23
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 48cb819f291b82a43bc48949bd5b7ffd
+      internalID: -158842142
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Draw again
+      rect:
+        serializedVersion: 2
+        x: 633
+        y: 480
+        width: 934
+        height: 300
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c60995b48e7441e4abb3658ac9e50a6c
+      internalID: 1270622394
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Lever up
+      rect:
+        serializedVersion: 2
+        x: 367
+        y: 2967
+        width: 1427
+        height: 279
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 036ad57b210b9c24896ef71e772b52ba
+      internalID: -1372131699
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Select chipset
+      rect:
+        serializedVersion: 2
+        x: 560
+        y: 2734
+        width: 1112
+        height: 218
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0c5ae6ae000c08143accdb7b46132400
+      internalID: -734419485
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      Draw again: 1270622394
+      Lever up: -1372131699
+      Select chipset: -734419485
+      "n\xFAt m\xE0n level up_10": -1722469992
+      "n\xFAt m\xE0n level up_11": 378324306
+      "n\xFAt m\xE0n level up_12": -1504679660
+      "n\xFAt m\xE0n level up_13": -1146254481
+      "n\xFAt m\xE0n level up_14": -286647379
+      "n\xFAt m\xE0n level up_15": -1127975107
+      "n\xFAt m\xE0n level up_16": -1942406892
+      "n\xFAt m\xE0n level up_17": -1350773443
+      "n\xFAt m\xE0n level up_18": 597264061
+      "n\xFAt m\xE0n level up_19": -1051957880
+      "n\xFAt m\xE0n level up_2": -534825474
+      "n\xFAt m\xE0n level up_20": 1134633773
+      "n\xFAt m\xE0n level up_21": 94286852
+      "n\xFAt m\xE0n level up_22": 760121053
+      "n\xFAt m\xE0n level up_23": 1168039392
+      "n\xFAt m\xE0n level up_24": 355089445
+      "n\xFAt m\xE0n level up_25": 1630187600
+      "n\xFAt m\xE0n level up_26": 1007037598
+      "n\xFAt m\xE0n level up_27": -445778917
+      "n\xFAt m\xE0n level up_28": 1013575508
+      "n\xFAt m\xE0n level up_29": 4075850
+      "n\xFAt m\xE0n level up_3": 340567770
+      "n\xFAt m\xE0n level up_30": 590421666
+      "n\xFAt m\xE0n level up_31": 578161171
+      "n\xFAt m\xE0n level up_32": -544235649
+      "n\xFAt m\xE0n level up_33": 484704164
+      "n\xFAt m\xE0n level up_34": -1955855785
+      "n\xFAt m\xE0n level up_35": -960851166
+      "n\xFAt m\xE0n level up_36": 1020070590
+      "n\xFAt m\xE0n level up_37": 289622197
+      "n\xFAt m\xE0n level up_38": -20024471
+      "n\xFAt m\xE0n level up_39": 585960725
+      "n\xFAt m\xE0n level up_4": -446068421
+      "n\xFAt m\xE0n level up_40": -1491936779
+      "n\xFAt m\xE0n level up_41": -1094039354
+      "n\xFAt m\xE0n level up_42": -1327926598
+      "n\xFAt m\xE0n level up_43": -1034999404
+      "n\xFAt m\xE0n level up_44": 2017255230
+      "n\xFAt m\xE0n level up_45": -1530590851
+      "n\xFAt m\xE0n level up_46": 241777969
+      "n\xFAt m\xE0n level up_47": -339683140
+      "n\xFAt m\xE0n level up_48": -158842142
+      "n\xFAt m\xE0n level up_5": -385506478
+      "n\xFAt m\xE0n level up_6": -628209058
+      "n\xFAt m\xE0n level up_7": 1327364042
+      "n\xFAt m\xE0n level up_8": 1698472367
+      "n\xFAt m\xE0n level up_9": 834451869
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
