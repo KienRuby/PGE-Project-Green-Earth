@@ -8,8 +8,8 @@ using UnityEngine;
 public class PlayerStatsManager : MonoBehaviour
 {
     [Header("Base Scaling Multipliers")]
-    [Tooltip("Lượng máu tối đa cộng thêm mỗi cấp HP (+10 HP/cấp).")]
-    [SerializeField] private int hpBonusPerLevel = 10;
+    [Tooltip("Lượng máu tối đa cộng thêm mỗi cấp HP (+15 HP/cấp).")]
+    [SerializeField] private int hpBonusPerLevel = 15;
 
     [Tooltip("Lượng sát thương cộng thêm mỗi cấp ATK (+3 Sát thương/cấp).")]
     [SerializeField] private int damageBonusPerLevel = 3;
@@ -23,8 +23,8 @@ public class PlayerStatsManager : MonoBehaviour
     [Tooltip("Khoảng cách tầm bắn cộng thêm mỗi cấp RANGE (+0.5m/cấp).")]
     [SerializeField] private float rangeBonusPerLevel = 0.5f;
 
-    [Tooltip("Lượng máu tự hồi phục mỗi giây theo cấp REGEN (+0.5 HP/giây/cấp).")]
-    [SerializeField] private float regenPerSecondPerLevel = 0.5f;
+    [Tooltip("Lượng máu tự hồi phục mỗi giây theo cấp AUTO RECOVERY (+0.2 HP/giây/cấp).")]
+    [SerializeField] private float regenPerSecondPerLevel = 0.2f;
 
     [Tooltip("Sát thương giảm trừ theo cấp DEF / ARMOR (+1 giảm sát thương/cấp).")]
     [SerializeField] private int damageReductionPerLevel = 1;
@@ -32,8 +32,8 @@ public class PlayerStatsManager : MonoBehaviour
     [Tooltip("Tốc độ bay của đạn cộng thêm mỗi cấp TECH (+0.5m/s/cấp).")]
     [SerializeField] private float bulletSpeedBonusPerLevel = 0.5f;
 
-    [Tooltip("Tỷ lệ chí mạng mỗi cấp CRIT (+2% mỗi cấp).")]
-    [SerializeField] private float critChancePerLevel = 0.02f;
+    [Tooltip("Tỷ lệ chí mạng mỗi cấp CRIT RATE (+1% mỗi cấp).")]
+    [SerializeField] private float critChancePerLevel = 0.01f;
 
     private PlayerHealth playerHealth;
     private PlayerMovement playerMovement;
@@ -62,27 +62,22 @@ public class PlayerStatsManager : MonoBehaviour
 
     public void LoadAndApplyStats()
     {
-        int defLevel = GetStatLevel("DEF");
-        int atkLevel = GetStatLevel("ATK");
-        int hpLevel = GetStatLevel("HP");
-        int spdLevel = GetStatLevel("SPD");
-        int critLevel = GetStatLevel("CRIT");
-        int rangeLevel = GetStatLevel("RANGE");
-        int fireLevel = GetStatLevel("FIRE");
-        int regenLevel = GetStatLevel("REGEN");
-        int armorLevel = GetStatLevel("ARMOR");
-        int powerLevel = GetStatLevel("POWER");
-        int techLevel = GetStatLevel("TECH");
+        int hpLevel = GetStatLevel("HP") + GetStatLevel("VITALITY");
+        int atkLevel = GetStatLevel("ATK") + GetStatLevel("POWER");
+        int moveSpeedLevel = GetStatLevel("MOVE SPEED") + GetStatLevel("SWIFTNESS") + GetStatLevel("SPD");
+        int defLevel = GetStatLevel("DEF") + GetStatLevel("ARMOR");
+        int autoRecoveryLevel = GetStatLevel("AUTO RECOVERY") + GetStatLevel("REGEN");
+        int critRateLevel = GetStatLevel("CRIT RATE") + GetStatLevel("CRITICAL") + GetStatLevel("CRIT");
 
         BonusMaxHealth = hpLevel * hpBonusPerLevel;
-        BonusDamage = (atkLevel * damageBonusPerLevel) + (powerLevel * 2);
-        BonusSpeed = spdLevel * speedBonusPerLevel;
-        BonusFireRate = fireLevel * fireRateBonusPerLevel;
-        BonusRange = rangeLevel * rangeBonusPerLevel;
-        HealthRegenPerSecond = regenLevel * regenPerSecondPerLevel;
-        DamageReduction = (defLevel * damageReductionPerLevel) + (armorLevel * damageReductionPerLevel);
-        BonusBulletSpeed = techLevel * bulletSpeedBonusPerLevel;
-        CritChance = Mathf.Clamp01(critLevel * critChancePerLevel);
+        BonusDamage = atkLevel * damageBonusPerLevel;
+        BonusSpeed = moveSpeedLevel * speedBonusPerLevel;
+        BonusFireRate = 0f;
+        BonusRange = 0f;
+        HealthRegenPerSecond = autoRecoveryLevel * regenPerSecondPerLevel;
+        DamageReduction = defLevel * damageReductionPerLevel;
+        BonusBulletSpeed = 0f;
+        CritChance = Mathf.Clamp01(critRateLevel * critChancePerLevel);
 
         if (playerHealth != null && BonusMaxHealth > 0)
         {

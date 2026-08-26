@@ -176,7 +176,13 @@ public class LabUpgradeController : MonoBehaviour
 
     public event Action OnPityDataChanged;
 
-    [Header("Upgrade Cost")]
+    [Header("Upgrade Cost & Level Cap")]
+    [Tooltip("Cấp độ tối đa của từng chỉ số trong Lab (mặc định: 10).")]
+    [SerializeField] private int maxStatLevel = 10;
+
+    public const int DefaultMaxLevel = 10;
+    public int MaxStatLevel => maxStatLevel > 0 ? maxStatLevel : DefaultMaxLevel;
+
     [Tooltip("Giá chip xanh của lượt UPGRADE đầu tiên.")]
     [SerializeField] private int basePrice = 300;
 
@@ -288,8 +294,8 @@ public class LabUpgradeController : MonoBehaviour
         for (int i = 0; i < items.Length; i++)
         {
             ItemEntry item = items[i];
-            int defaultLevel = item.startsUnlocked ? Mathf.Max(1, item.startingLevel) : 0;
-            item.level = PlayerPrefs.GetInt(GetItemLevelKey(item.itemName, i), defaultLevel);
+            int defaultLevel = item.startsUnlocked ? Mathf.Clamp(item.startingLevel, 1, MaxStatLevel) : 0;
+            item.level = Mathf.Clamp(PlayerPrefs.GetInt(GetItemLevelKey(item.itemName, i), defaultLevel), 0, MaxStatLevel);
             RefreshItemView(item);
         }
 
@@ -383,7 +389,7 @@ public class LabUpgradeController : MonoBehaviour
 
     private void StartRoll()
     {
-        if (isRolling || !ChipManager.HasEnoughDataChips(currentPrice))
+        if (isRolling || IsAllItemsMaxed() || !ChipManager.HasEnoughDataChips(currentPrice))
         {
             return;
         }
@@ -457,7 +463,7 @@ public class LabUpgradeController : MonoBehaviour
         int fallbackIndex = -1;
         for (int i = 0; i < items.Length; i++)
         {
-            if (items[i].rarity != selectedRarity)
+            if (items[i].rarity != selectedRarity || items[i].level >= MaxStatLevel)
             {
                 continue;
             }
@@ -501,14 +507,24 @@ public class LabUpgradeController : MonoBehaviour
             }
         }
 
+        // Nếu bậc bảo hiểm đã max hết toàn bộ 4 chỉ số, fallback sang các bậc còn lại có thể nâng cấp
         if (totalWeight <= 0f)
         {
+            minRarity = 0;
+            maxRarity = 3;
             for (int r = minRarity; r <= maxRarity; r++)
             {
                 ItemRarity rarity = (ItemRarity)r;
-                if (GetItemWeightForRarity(rarity) > 0f) return r;
+                if (GetItemWeightForRarity(rarity) > 0f)
+                {
+                    totalWeight += GetRarityWeight(rarity);
+                }
             }
-            return minRarity;
+        }
+
+        if (totalWeight <= 0f)
+        {
+            return -1;
         }
 
         float roll = UnityEngine.Random.value * totalWeight;
@@ -547,9 +563,10 @@ public class LabUpgradeController : MonoBehaviour
 
         ItemEntry item = items[pendingItemIndex];
         bool wasLocked = item.level <= 0;
-        item.level = wasLocked ? 1 : item.level + 1;
+        item.level = Mathf.Min(MaxStatLevel, wasLocked ? 1 : item.level + 1);
         RefreshItemView(item);
 
+        bool isMaxed = item.level >= MaxStatLevel;
         if (activeGuaranteedRarity.HasValue)
         {
             if (resultText != null)
@@ -557,7 +574,9 @@ public class LabUpgradeController : MonoBehaviour
                 string rName = item.rarity.ToString().ToUpperInvariant();
                 resultText.text = wasLocked
                     ? $"★ GUARANTEED {rName}: UNLOCKED {item.itemName} ★"
-                    : $"★ GUARANTEED {rName}: {item.itemName} LV.{item.level:00} ★";
+                    : (isMaxed
+                        ? $"★ GUARANTEED {rName}: {item.itemName} LV.{item.level:00} (MAX) ★"
+                        : $"★ GUARANTEED {rName}: {item.itemName} LV.{item.level:00} ★");
             }
         }
         else
@@ -566,7 +585,9 @@ public class LabUpgradeController : MonoBehaviour
             {
                 resultText.text = wasLocked
                     ? $"UNLOCKED  {item.itemName}"
-                    : $"{item.itemName}  LEVEL {item.level:00}";
+                    : (isMaxed
+                        ? $"{item.itemName}  LEVEL {item.level:00} (MAX)"
+                        : $"{item.itemName}  LEVEL {item.level:00}");
             }
         }
 
@@ -687,6 +708,33 @@ public class LabUpgradeController : MonoBehaviour
         RefreshMainView();
     }
 
+    public bool IsItemMaxed(int index)
+    {
+        if (items == null || index < 0 || index >= items.Length || items[index] == null)
+        {
+            return false;
+        }
+        return items[index].level >= MaxStatLevel;
+    }
+
+    public bool IsAllItemsMaxed()
+    {
+        if (items == null || items.Length == 0)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < items.Length; i++)
+        {
+            if (items[i] != null && items[i].level < MaxStatLevel)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private void RefreshItemView(ItemEntry item)
     {
         bool unlocked = item.level > 0;
@@ -708,7 +756,14 @@ public class LabUpgradeController : MonoBehaviour
 
         if (item.levelText != null)
         {
-            item.levelText.text = $"LV.{Mathf.Max(1, item.level):00}";
+            if (item.level >= MaxStatLevel)
+            {
+                item.levelText.text = $"LV.{MaxStatLevel:00}";
+            }
+            else
+            {
+                item.levelText.text = $"LV.{Mathf.Max(1, item.level):00}";
+            }
         }
 
         if (item.nameText != null)
@@ -739,12 +794,19 @@ public class LabUpgradeController : MonoBehaviour
             redChipBalanceText.text = FormatChipAmount(currentRedChips);
         }
 
+        bool allMaxed = IsAllItemsMaxed();
+
         if (priceText != null)
         {
-            priceText.text = currentPrice.ToString();
+            priceText.text = allMaxed ? "MAX" : currentPrice.ToString();
         }
 
-        bool canRoll = !isRolling && ChipManager.HasEnoughDataChips(currentPrice) && GetTotalRarityWeight() > 0f;
+        if (allMaxed && resultText != null && !isRolling)
+        {
+            resultText.text = "ALL STATS MAXED OUT (LV.10)";
+        }
+
+        bool canRoll = !isRolling && !allMaxed && ChipManager.HasEnoughDataChips(currentPrice) && GetTotalRarityWeight() > 0f;
         if (upgradeButton != null)
         {
             upgradeButton.interactable = canRoll;
@@ -839,7 +901,7 @@ public class LabUpgradeController : MonoBehaviour
         float totalWeight = 0f;
         for (int i = 0; i < items.Length; i++)
         {
-            if (items[i].rarity == rarity)
+            if (items[i].rarity == rarity && items[i].level < MaxStatLevel)
             {
                 totalWeight += Mathf.Max(0f, items[i].dropWeight);
             }

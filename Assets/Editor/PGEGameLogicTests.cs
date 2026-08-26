@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -35,6 +35,28 @@ public class PGEGameLogicTests
 
         Assert.That(hpLevel, Is.EqualTo(5));
         Assert.That(spdLevel, Is.EqualTo(3));
+    }
+
+    [Test]
+    public void LabUpgrade_PlayerDataService_CapsLevelAt10()
+    {
+        PlayerDataService.SetItemLevel("ATK", 15);
+        Assert.That(PlayerDataService.GetItemLevel("ATK"), Is.EqualTo(10), "Level must be capped at MaxLabItemLevel (10).");
+
+        PlayerDataService.SetItemLevel("ATK", 9);
+        PlayerDataService.IncrementItemLevel("ATK", 5);
+        Assert.That(PlayerDataService.GetItemLevel("ATK"), Is.EqualTo(10), "Incrementing past 10 must clamp to 10.");
+
+        PlayerPrefs.SetInt("PGE.Lab.ItemLevel.OVERFLOW_TEST", 99);
+        PlayerPrefs.Save();
+        Assert.That(PlayerStatsManager.GetStatLevel("OVERFLOW_TEST"), Is.EqualTo(10), "PlayerStatsManager must read capped value of 10.");
+    }
+
+    [Test]
+    public void LabUpgradeController_DefaultMaxLevel_IsTen()
+    {
+        Assert.That(LabUpgradeController.DefaultMaxLevel, Is.EqualTo(10));
+        Assert.That(PlayerDataService.MaxLabItemLevel, Is.EqualTo(10));
     }
 
     [Test]

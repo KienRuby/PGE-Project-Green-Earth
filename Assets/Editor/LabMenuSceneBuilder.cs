@@ -20,6 +20,7 @@ public static class LabMenuSceneBuilder
         EditorApplication.update += TryBuildRequestedScene;
         EditorApplication.update += TryBuildRequestedShopPanel;
         EditorApplication.update += TryBuildRequestedBuddyPanel;
+        EditorApplication.update += TryUpdateRequestedLabStats;
     }
 
     private sealed class SlotView
@@ -42,6 +43,7 @@ public static class LabMenuSceneBuilder
     private const string BackupScenePath = "Assets/Scenes/MainMenu.before-lab-ui.unity";
     private const string BackgroundPath = "Assets/UI/Lab/Generated/lab-background.png";
     private const string IconAtlasPath = "Assets/UI/Lab/Generated/lab-icon-atlas.png";
+    private const string StatSpriteSheetPath = "Assets/Sprites/UI/Chiso_NewStats.png";
     private const string ChipsetAtlasPath = "Assets/UI/Chipset/Generated/chipset-atlas.png";
     private const string BuddyAtlasPath = "Assets/UI/Buddy/Generated/buddy-atlas.png";
     private const string PreviewPath = "Assets/UI/Lab/Generated/lab-menu-preview.png";
@@ -50,6 +52,7 @@ public static class LabMenuSceneBuilder
     private const string BuildRequestPath = "Assets/Editor/PGE_LabUI_BuildRequest.txt";
     private const string ShopBuildRequestPath = "Assets/Editor/PGE_ShopUI_BuildRequest.txt";
     private const string BuddyBuildRequestPath = "Assets/Editor/PGE_BuddyUI_BuildRequest.txt";
+    private const string LabStatsBuildRequestPath = "Assets/Editor/PGE_LabStats_BuildRequest.txt";
     private const string FontPath = "Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset";
 
     private static readonly Color Navy = new Color32(8, 39, 69, 255);
@@ -65,6 +68,27 @@ public static class LabMenuSceneBuilder
     private static readonly Color Yellow = new Color32(255, 203, 73, 255);
     private static readonly Color FieryRed = new Color32(130, 20, 20, 255);
     private static readonly Color FieryOrange = new Color32(255, 120, 30, 255);
+    private static readonly string[] LabStatNames =
+    {
+        "HP", "RECOVERY", "AUTO RECOVERY", "DEF",
+        "ATK", "CRIT RATE", "CRIT DAMAGE", "OBTAINED CHIPS",
+        "RANGED DEFENSE", "DRONE ATK", "TURRET ATK", "TURRET DURATION",
+        "EVADE", "LIFE STEAL", "MOVE SPEED", "CHIPSET SELECTION"
+    };
+    private static readonly string[] LabStatSpriteNames =
+    {
+        "hp", "recovery", "auto-recovery", "def",
+        "atk", "crit-rate", "crit-damage", "obtained-chips",
+        "ranged-defense", "drone-atk", "turret-atk", "turret-duration",
+        "evade", "life-steal", "move-speed", "chipset-selection"
+    };
+    private static readonly Color[] LabRarityColors =
+    {
+        new Color32(48, 94, 111, 255),
+        new Color32(38, 82, 145, 255),
+        new Color32(94, 55, 142, 255),
+        new Color32(170, 128, 35, 255)
+    };
 
     private static TMP_FontAsset font;
 
@@ -155,6 +179,7 @@ public static class LabMenuSceneBuilder
         }
 
         ConfigureTextures();
+        ConfigureStatTexture();
         ConfigureChipsetTextures();
         ConfigureBuddyTextures();
 
@@ -365,6 +390,104 @@ public static class LabMenuSceneBuilder
         BuildLabMenuScene();
     }
 
+    private static void TryUpdateRequestedLabStats()
+    {
+        if (!File.Exists(LabStatsBuildRequestPath) ||
+            EditorApplication.isPlayingOrWillChangePlaymode ||
+            EditorApplication.isCompiling ||
+            EditorApplication.isUpdating)
+        {
+            return;
+        }
+
+        try
+        {
+            File.Delete(LabStatsBuildRequestPath);
+        }
+        catch {}
+
+        ConfigureStatTexture();
+
+        Scene previousScene = SceneManager.GetActiveScene();
+        bool mainMenuWasActive = string.Equals(previousScene.path, ScenePath, StringComparison.OrdinalIgnoreCase);
+        Scene mainMenuScene = mainMenuWasActive
+            ? previousScene
+            : EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Additive);
+
+        LabUpgradeController controller = mainMenuScene.GetRootGameObjects()
+            .SelectMany(root => root.GetComponentsInChildren<LabUpgradeController>(true))
+            .FirstOrDefault();
+        if (controller == null)
+        {
+            throw new InvalidOperationException("[LabMenuSceneBuilder] LabUpgradeController not found in MainMenu.");
+        }
+
+        SerializedObject serializedController = new SerializedObject(controller);
+        SerializedProperty items = GetRequiredProperty(serializedController, "items");
+        if (items.arraySize != LabStatNames.Length)
+        {
+            throw new InvalidOperationException(
+                $"[LabMenuSceneBuilder] Expected {LabStatNames.Length} Lab stat slots, found {items.arraySize}.");
+        }
+
+        for (int i = 0; i < items.arraySize; i++)
+        {
+            SerializedProperty item = items.GetArrayElementAtIndex(i);
+            Sprite statSprite = LoadStatSprite(LabStatSpriteNames[i]);
+            GetRequiredRelativeProperty(item, "itemName").stringValue = LabStatNames[i];
+            GetRequiredRelativeProperty(item, "itemIcon").objectReferenceValue = statSprite;
+            GetRequiredRelativeProperty(item, "rarity").enumValueIndex = i / 4;
+
+            GameObject lockedGroup = GetRequiredRelativeProperty(item, "lockedGroup").objectReferenceValue as GameObject;
+            Image lockedCard = lockedGroup != null ? lockedGroup.transform.Find("LockIcon")?.GetComponent<Image>() : null;
+            if (lockedCard != null)
+            {
+                lockedCard.sprite = statSprite;
+                lockedCard.color = Color.white;
+                lockedCard.preserveAspect = true;
+                Anchor(lockedCard.rectTransform, new Vector2(0.5f, 0.49f), Vector2.zero, new Vector2(194f, 194f));
+                EditorUtility.SetDirty(lockedCard);
+            }
+
+            Image iconImage = GetRequiredRelativeProperty(item, "iconImage").objectReferenceValue as Image;
+            if (iconImage != null)
+            {
+                iconImage.sprite = statSprite;
+                iconImage.preserveAspect = true;
+                Anchor(iconImage.rectTransform, new Vector2(0.5f, 0.49f), Vector2.zero, new Vector2(194f, 194f));
+                EditorUtility.SetDirty(iconImage);
+            }
+
+            TMP_Text nameText = GetRequiredRelativeProperty(item, "nameText").objectReferenceValue as TMP_Text;
+            if (nameText != null)
+            {
+                nameText.text = LabStatNames[i];
+                nameText.gameObject.SetActive(false);
+                EditorUtility.SetDirty(nameText);
+            }
+
+            Image slotBackground = GetRequiredRelativeProperty(item, "slotBackground").objectReferenceValue as Image;
+            if (slotBackground != null)
+            {
+                slotBackground.color = LabRarityColors[i / 4];
+                EditorUtility.SetDirty(slotBackground);
+            }
+        }
+
+        serializedController.ApplyModifiedPropertiesWithoutUndo();
+        EditorUtility.SetDirty(controller);
+        EditorSceneManager.SaveScene(mainMenuScene);
+
+        if (!mainMenuWasActive)
+        {
+            SceneManager.SetActiveScene(previousScene);
+            EditorSceneManager.CloseScene(mainMenuScene, true);
+        }
+
+        AssetDatabase.SaveAssets();
+        Debug.Log("[LabMenuSceneBuilder] Updated 16 Lab stats from Chiso.png without rebuilding MainMenu.");
+    }
+
     private static void BuildLabMenuScene()
     {
         if (EditorApplication.isCompiling || EditorApplication.isUpdating)
@@ -383,6 +506,7 @@ public static class LabMenuSceneBuilder
         Scene previousScene = SceneManager.GetActiveScene();
         string previousPath = previousScene.path;
         bool replaceActiveMainMenu = string.Equals(previousPath, ScenePath, StringComparison.OrdinalIgnoreCase);
+        bool replaceUntitledScene = string.IsNullOrEmpty(previousPath);
 
         if (replaceActiveMainMenu && !File.Exists(BackupScenePath))
         {
@@ -391,7 +515,7 @@ public static class LabMenuSceneBuilder
 
         Scene scene = EditorSceneManager.NewScene(
             NewSceneSetup.EmptyScene,
-            replaceActiveMainMenu ? NewSceneMode.Single : NewSceneMode.Additive);
+            replaceActiveMainMenu || replaceUntitledScene ? NewSceneMode.Single : NewSceneMode.Additive);
         SceneManager.SetActiveScene(scene);
 
         Camera camera = CreateCamera();
@@ -545,6 +669,74 @@ public static class LabMenuSceneBuilder
         dataProvider.SetSpriteRects(sprites);
         dataProvider.Apply();
         atlasImporter.SaveAndReimport();
+    }
+
+    private static void ConfigureStatTexture()
+    {
+        AssetDatabase.ImportAsset(StatSpriteSheetPath, ImportAssetOptions.ForceSynchronousImport);
+        Texture2D sheet = AssetDatabase.LoadAssetAtPath<Texture2D>(StatSpriteSheetPath);
+        TextureImporter importer = AssetImporter.GetAtPath(StatSpriteSheetPath) as TextureImporter;
+        if (sheet == null || importer == null)
+        {
+            throw new InvalidOperationException($"[LabMenuSceneBuilder] Stat sheet not found: {StatSpriteSheetPath}");
+        }
+
+        const int columns = 4;
+        const int rows = 4;
+        float cellWidth = sheet.width / (float)columns;
+        float cellHeight = sheet.height / (float)rows;
+
+        SpriteDataProviderFactories factories = new SpriteDataProviderFactories();
+        factories.Init();
+        ISpriteEditorDataProvider dataProvider = factories.GetSpriteEditorDataProviderFromObject(importer);
+        dataProvider.InitSpriteEditorDataProvider();
+        SpriteRect[] existingRects = dataProvider.GetSpriteRects();
+        Dictionary<string, GUID> existingGuids = existingRects != null
+            ? existingRects.Where(rect => !string.IsNullOrEmpty(rect.name))
+                .ToDictionary(rect => rect.name, rect => rect.spriteID)
+            : new Dictionary<string, GUID>();
+
+        SpriteRect[] sprites = new SpriteRect[LabStatSpriteNames.Length];
+        for (int row = 0; row < rows; row++)
+        {
+            for (int column = 0; column < columns; column++)
+            {
+                int index = row * columns + column;
+                string spriteName = LabStatSpriteNames[index];
+                GUID spriteGuid = existingGuids.TryGetValue(spriteName, out GUID existingGuid)
+                    ? existingGuid
+                    : GUID.Generate();
+
+                sprites[index] = new SpriteRect
+                {
+                    name = spriteName,
+                    alignment = SpriteAlignment.Center,
+                    pivot = new Vector2(0.5f, 0.5f),
+                    spriteID = spriteGuid,
+                    rect = new Rect(
+                        column * cellWidth,
+                        (rows - 1 - row) * cellHeight,
+                        cellWidth,
+                        cellHeight)
+                };
+            }
+        }
+
+        importer.textureType = TextureImporterType.Sprite;
+        importer.spriteImportMode = SpriteImportMode.Multiple;
+        importer.spritePixelsPerUnit = 100f;
+        importer.mipmapEnabled = false;
+        importer.alphaIsTransparency = true;
+        importer.wrapMode = TextureWrapMode.Clamp;
+        importer.filterMode = FilterMode.Bilinear;
+        importer.maxTextureSize = 2048;
+        importer.SaveAndReimport();
+
+        dataProvider = factories.GetSpriteEditorDataProviderFromObject(importer);
+        dataProvider.InitSpriteEditorDataProvider();
+        dataProvider.SetSpriteRects(sprites);
+        dataProvider.Apply();
+        importer.SaveAndReimport();
     }
 
     private static void ConfigureChipsetTextures()
@@ -2368,20 +2560,8 @@ public static class LabMenuSceneBuilder
         gridLayout.padding = new RectOffset(24, 24, 12, 14);
         gridLayout.childAlignment = TextAnchor.UpperCenter;
 
-        string[] itemNames =
-        {
-            "DEF", "ATK", "HP", "SPD",
-            "CRIT", "RANGE", "FIRE", "REGEN",
-            "DODGE", "ARMOR", "POWER", "TECH",
-            "LUCK", "GROWTH", "SHIELD", "DRONE"
-        };
-        string[] itemIconNames =
-        {
-            "armor", "shield", "plus", "energy",
-            "red-currency", "chapter", "lab", "leaf",
-            "buddy", "armor", "chip-currency", "chipset",
-            "mail", "shop", "shield", "buddy"
-        };
+        string[] itemNames = LabStatNames;
+        string[] itemIconNames = LabStatSpriteNames;
         float[] itemWeights =
         {
             14f, 12f, 12f, 10f,
@@ -2389,13 +2569,7 @@ public static class LabMenuSceneBuilder
             7f, 7f, 6f, 6f,
             5f, 5f, 4f, 4f
         };
-        Color[] rarityBackgroundColors =
-        {
-            new Color32(48, 94, 111, 255),
-            new Color32(38, 82, 145, 255),
-            new Color32(94, 55, 142, 255),
-            new Color32(170, 128, 35, 255)
-        };
+        Color[] rarityBackgroundColors = LabRarityColors;
         SlotView[] slotViews = new SlotView[16];
 
         for (int i = 0; i < slotViews.Length; i++)
@@ -2524,8 +2698,10 @@ public static class LabMenuSceneBuilder
 
         RectTransform lockedGroup = CreateRect("LockedGroup", slotRect);
         Stretch(lockedGroup, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-        Image lockIcon = CreateIcon("LockIcon", lockedGroup, "lock", 88f);
-        Anchor(lockIcon.rectTransform, new Vector2(0.5f, 0.57f), Vector2.zero, new Vector2(84f, 84f));
+        Image lockIcon = CreateImage("LockIcon", lockedGroup, Color.white, false);
+        lockIcon.sprite = LoadStatSprite(itemIconName);
+        lockIcon.preserveAspect = true;
+        Anchor(lockIcon.rectTransform, new Vector2(0.5f, 0.49f), Vector2.zero, new Vector2(194f, 194f));
         TMP_Text lockedText = CreateText("LockedText", lockedGroup, "LOCKED", 27f, Cream, TextAlignmentOptions.Center);
         Anchor(lockedText.rectTransform, new Vector2(0.5f, 0.28f), Vector2.zero, new Vector2(190f, 44f));
 
@@ -2533,10 +2709,15 @@ public static class LabMenuSceneBuilder
         Stretch(unlockedGroup, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
         TMP_Text levelText = CreateText("LevelText", unlockedGroup, "LV.01", 29f, Yellow, TextAlignmentOptions.Center);
         Anchor(levelText.rectTransform, new Vector2(0.5f, 0.81f), Vector2.zero, new Vector2(180f, 44f));
-        Image itemIcon = CreateIcon("ItemIcon", unlockedGroup, itemIconName, 104f);
-        Anchor(itemIcon.rectTransform, new Vector2(0.5f, 0.53f), Vector2.zero, new Vector2(104f, 104f));
-        TMP_Text statName = CreateText("ItemName", unlockedGroup, itemName, 34f, Cream, TextAlignmentOptions.Center);
-        Anchor(statName.rectTransform, new Vector2(0.5f, 0.18f), Vector2.zero, new Vector2(180f, 50f));
+        Image itemIcon = CreateImage("ItemIcon", unlockedGroup, Color.white, false);
+        itemIcon.sprite = LoadStatSprite(itemIconName);
+        itemIcon.preserveAspect = true;
+        Anchor(itemIcon.rectTransform, new Vector2(0.5f, 0.49f), Vector2.zero, new Vector2(194f, 194f));
+
+        // Tên đã được vẽ sẵn trong từng card của Chiso.png. Vẫn giữ TMP_Text làm
+        // reference dữ liệu cho LabUpgradeController, nhưng không vẽ đè tên lần hai.
+        TMP_Text statName = CreateText("ItemName", unlockedGroup, itemName, 1f, Color.clear, TextAlignmentOptions.Center);
+        statName.gameObject.SetActive(false);
 
         lockedGroup.gameObject.SetActive(!unlocked);
         unlockedGroup.gameObject.SetActive(unlocked);
@@ -2616,10 +2797,11 @@ public static class LabMenuSceneBuilder
         for (int i = 0; i < 5; i++)
         {
             SerializedProperty item = items.GetArrayElementAtIndex(i);
+            GetRequiredRelativeProperty(item, "name").stringValue = labels[i];
             GetRequiredRelativeProperty(item, "button").objectReferenceValue = buttons[i];
             GetRequiredRelativeProperty(item, "panel").objectReferenceValue = panels[i];
+            GetRequiredRelativeProperty(item, "buttonImage").objectReferenceValue = backgrounds[i];
             GetRequiredRelativeProperty(item, "background").objectReferenceValue = backgrounds[i];
-            GetRequiredRelativeProperty(item, "border").objectReferenceValue = borderImages[i];
             GetRequiredRelativeProperty(item, "icon").objectReferenceValue = iconImages[i];
             GetRequiredRelativeProperty(item, "label").objectReferenceValue = labelTexts[i];
         }
@@ -2720,6 +2902,21 @@ public static class LabMenuSceneBuilder
         return AssetDatabase.LoadAllAssetRepresentationsAtPath(IconAtlasPath)
             .OfType<Sprite>()
             .FirstOrDefault(sprite => sprite.name == spriteName);
+    }
+
+    private static Sprite LoadStatSprite(string spriteName)
+    {
+        Sprite sprite = AssetDatabase.LoadAllAssetRepresentationsAtPath(StatSpriteSheetPath)
+            .OfType<Sprite>()
+            .FirstOrDefault(candidate => candidate.name == spriteName);
+
+        if (sprite == null)
+        {
+            throw new InvalidOperationException(
+                $"[LabMenuSceneBuilder] Stat sprite '{spriteName}' not found in {StatSpriteSheetPath}.");
+        }
+
+        return sprite;
     }
 
     private static Sprite LoadChipsetSprite(string spriteName)

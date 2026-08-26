@@ -264,7 +264,6 @@ public static class PlayerDataService
         }
     }
 
-
     // =========================================================================
     // TIỆN ÍCH QUẢN LÝ TIỀN TỆ (HELPER METHODS)
     // =========================================================================
@@ -323,8 +322,10 @@ public static class PlayerDataService
     }
 
     // =========================================================================
-    // LAB UPGRADE ITEM LEVELS
+    // LAB UPGRADE ITEM LEVELS (MAX LEVEL = 10)
     // =========================================================================
+
+    public const int MaxLabItemLevel = 10;
 
     public static string FormatItemLevelKey(string itemName)
     {
@@ -335,20 +336,20 @@ public static class PlayerDataService
     public static int GetItemLevel(string itemName)
     {
         string key = FormatItemLevelKey(itemName);
-        return Mathf.Max(0, PlayerPrefs.GetInt(key, 0));
+        return Mathf.Clamp(PlayerPrefs.GetInt(key, 0), 0, MaxLabItemLevel);
     }
 
     public static void SetItemLevel(string itemName, int level)
     {
         string key = FormatItemLevelKey(itemName);
-        PlayerPrefs.SetInt(key, Mathf.Max(0, level));
+        PlayerPrefs.SetInt(key, Mathf.Clamp(level, 0, MaxLabItemLevel));
         PlayerPrefs.Save();
     }
 
     public static void IncrementItemLevel(string itemName, int amount = 1)
     {
         int current = GetItemLevel(itemName);
-        SetItemLevel(itemName, current + amount);
+        SetItemLevel(itemName, Mathf.Min(MaxLabItemLevel, current + amount));
     }
 
     // =========================================================================
