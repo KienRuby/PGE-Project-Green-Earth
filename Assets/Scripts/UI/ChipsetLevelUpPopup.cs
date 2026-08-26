@@ -16,6 +16,7 @@ public class ChipsetLevelUpPopup : MonoBehaviour
     [SerializeField] private PlayerLevelController playerLevelController;
     [SerializeField, Min(1)] private int choicesPerLevel = 4;
     [SerializeField, Min(0)] private int rerollRedGemCost = 20;
+    [SerializeField, Min(0)] private int maxRerollsPerLevel = 2;
 
     [Header("Popup References")]
     [SerializeField] private GameObject popupRoot;
@@ -40,6 +41,7 @@ public class ChipsetLevelUpPopup : MonoBehaviour
     private List<ChipItemData> catalog;
     private System.Random random;
     private Coroutine transitionRoutine;
+    private int currentRerollCount;
     private bool isShowing;
     private bool acceptingInput;
     private bool ownsTimeScale;
@@ -50,6 +52,13 @@ public class ChipsetLevelUpPopup : MonoBehaviour
     public bool IsShowing => isShowing;
     public IReadOnlyDictionary<int, int> RuntimeChipLevels => runtimeChipLevels;
     public IReadOnlyList<ChipItemData> CurrentOffers => currentOffers;
+    public int MaxRerollsPerLevel
+    {
+        get => maxRerollsPerLevel;
+        set => maxRerollsPerLevel = Mathf.Max(0, value);
+    }
+    public int CurrentRerollCount => currentRerollCount;
+    public int RemainingRerolls => Mathf.Max(0, maxRerollsPerLevel - currentRerollCount);
 
     private void Awake()
     {
@@ -122,6 +131,7 @@ public class ChipsetLevelUpPopup : MonoBehaviour
         if (pendingLevels.Count == 0 || popupRoot == null) return;
 
         pendingLevels.Dequeue();
+        currentRerollCount = 0;
         isShowing = true;
         acceptingInput = false;
 
@@ -269,15 +279,36 @@ public class ChipsetLevelUpPopup : MonoBehaviour
         RestoreTimeScale();
     }
 
+    public bool TryReroll()
+    {
+        if (currentRerollCount >= maxRerollsPerLevel) return false;
+        if (rerollRedGemCost > 0 && !ChipManager.TrySpendRedGems(rerollRedGemCost))
+        {
+            RefreshRerollState();
+            return false;
+        }
+
+        currentRerollCount++;
+        GenerateOffers();
+        RefreshRerollState();
+        return true;
+    }
+
     private void HandleRerollClicked()
     {
         if (!acceptingInput || rerollRedGemCost < 0) return;
+        if (currentRerollCount >= maxRerollsPerLevel)
+        {
+            RefreshRerollState();
+            return;
+        }
         if (!ChipManager.TrySpendRedGems(rerollRedGemCost))
         {
             RefreshRerollState();
             return;
         }
 
+        currentRerollCount++;
         acceptingInput = false;
         SetCardInteraction(false);
         GenerateOffers();
@@ -287,14 +318,21 @@ public class ChipsetLevelUpPopup : MonoBehaviour
 
     private void RefreshRerollState()
     {
-        if (rerollCostText != null) rerollCostText.text = $"x{rerollRedGemCost}  Draw again";
+        bool hasRerollsLeft = currentRerollCount < maxRerollsPerLevel;
+        bool hasGems = ChipManager.HasEnoughRedGems(rerollRedGemCost);
+        bool canReroll = acceptingInput && hasRerollsLeft && hasGems;
+
+        if (rerollCostText != null)
+        {
+            rerollCostText.text = $"x{rerollRedGemCost}  Draw again";
+        }
         if (rerollButton != null)
         {
-            rerollButton.interactable = acceptingInput && ChipManager.HasEnoughRedGems(rerollRedGemCost);
+            rerollButton.interactable = canReroll;
         }
         if (rerollCurrencyIcon != null)
         {
-            rerollCurrencyIcon.color = ChipManager.HasEnoughRedGems(rerollRedGemCost)
+            rerollCurrencyIcon.color = (hasRerollsLeft && hasGems)
                 ? new Color32(210, 48, 55, 255)
                 : new Color32(95, 95, 95, 255);
         }
