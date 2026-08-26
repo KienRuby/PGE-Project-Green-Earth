@@ -50,4 +50,44 @@ public class ChipsetLevelUpPopupTests
 
         CollectionAssert.AreEqual(originalLevels, catalog.Select(item => item.level).ToArray());
     }
+
+    [Test]
+    public void Reroll_MaxRerollsPerLevel_IsCappedAtTwo()
+    {
+        UnityEngine.GameObject go = new UnityEngine.GameObject("TestLevelUpPopup");
+        ChipsetLevelUpPopup popup = go.AddComponent<ChipsetLevelUpPopup>();
+
+        try
+        {
+            ChipManager.IsTestMode = true;
+            PlayerDataService.RedGems = 1000;
+
+            Assert.That(popup.MaxRerollsPerLevel, Is.EqualTo(2));
+            Assert.That(popup.CurrentRerollCount, Is.EqualTo(0));
+            Assert.That(popup.RemainingRerolls, Is.EqualTo(2));
+
+            // Reroll 1st time -> Thành công
+            bool firstReroll = popup.TryReroll();
+            Assert.That(firstReroll, Is.True);
+            Assert.That(popup.CurrentRerollCount, Is.EqualTo(1));
+            Assert.That(popup.RemainingRerolls, Is.EqualTo(1));
+
+            // Reroll 2nd time -> Thành công
+            bool secondReroll = popup.TryReroll();
+            Assert.That(secondReroll, Is.True);
+            Assert.That(popup.CurrentRerollCount, Is.EqualTo(2));
+            Assert.That(popup.RemainingRerolls, Is.EqualTo(0));
+
+            // Reroll 3rd time -> Phải thất bại do đã chạm tối đa 2 lần
+            bool thirdReroll = popup.TryReroll();
+            Assert.That(thirdReroll, Is.False, "Draw again lần thứ 3 phải bị chặn vì tối đa chỉ được 2 lần.");
+            Assert.That(popup.CurrentRerollCount, Is.EqualTo(2));
+            Assert.That(popup.RemainingRerolls, Is.EqualTo(0));
+        }
+        finally
+        {
+            ChipManager.IsTestMode = false;
+            UnityEngine.Object.DestroyImmediate(go);
+        }
+    }
 }
