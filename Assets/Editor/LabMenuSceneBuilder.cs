@@ -22,6 +22,7 @@ public static class LabMenuSceneBuilder
         EditorApplication.update += TryBuildRequestedChipsetPanel;
         EditorApplication.update += TryApplyRequestedGreenChipsetFrames;
         EditorApplication.update += TryApplyRequestedSelectedBottomBarLayout;
+        EditorApplication.update += TryApplyRequestedUpgradeArrowLayout;
         EditorApplication.update += TryBuildRequestedBuddyPanel;
         EditorApplication.update += TryUpdateRequestedLabStats;
     }
@@ -58,6 +59,7 @@ public static class LabMenuSceneBuilder
     private const string ChipsetBuildRequestPath = "Assets/Editor/PGE_ChipsetUI_BuildRequest.txt";
     private const string ChipsetGreenFramesRequestPath = "Assets/Editor/PGE_ChipsetGreenFrames_Request.txt";
     private const string ChipsetBottomBarLayoutRequestPath = "Assets/Editor/PGE_ChipsetBottomBarLayout_Request.txt";
+    private const string ChipsetUpgradeArrowLayoutRequestPath = "Assets/Editor/PGE_ChipsetUpgradeArrowLayout_Request.txt";
     private const string BuddyBuildRequestPath = "Assets/Editor/PGE_BuddyUI_BuildRequest.txt";
     private const string LabStatsBuildRequestPath = "Assets/Editor/PGE_LabStats_BuildRequest.txt";
     private const string FontPath = "Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset";
@@ -382,6 +384,63 @@ public static class LabMenuSceneBuilder
         Debug.Log($"[LabMenuSceneBuilder] Copied selected BottomBar RectTransform to {updatedCount} Chipset cards.");
     }
 
+    [MenuItem("PGE/UI/Apply UpgradeArrow Layout To All Chipset Cards")]
+    public static void ApplyUpgradeArrowLayoutToAllChipsetCards()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling || EditorApplication.isUpdating)
+        {
+            Debug.LogWarning("[LabMenuSceneBuilder] Stop Play Mode before copying the UpgradeArrow layout.");
+            return;
+        }
+
+        Scene scene = SceneManager.GetActiveScene();
+        if (!string.Equals(scene.path, ScenePath, StringComparison.OrdinalIgnoreCase))
+        {
+            scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+        }
+
+        Canvas canvas = UnityEngine.Object.FindObjectOfType<Canvas>();
+        RectTransform chipsetPanel = canvas != null ? canvas.transform.Find("Content/ChipsetPanel") as RectTransform : null;
+        if (chipsetPanel == null)
+        {
+            throw new InvalidOperationException("[LabMenuSceneBuilder] Canvas/Content/ChipsetPanel was not found in the scene.");
+        }
+
+        RectTransform source = Selection.activeTransform as RectTransform;
+        bool hasSource = source != null && string.Equals(source.name, "UpgradeArrowGroup", StringComparison.Ordinal);
+
+        Vector2 targetAnchor = hasSource ? source.anchorMin : new Vector2(0.88f, 0.17f);
+        Vector2 targetPivot = hasSource ? source.pivot : new Vector2(0.5f, 0.5f);
+        Vector2 targetPos = hasSource ? source.anchoredPosition : new Vector2(0f, 23.8f);
+        Vector2 targetSize = hasSource ? source.sizeDelta : new Vector2(44f, 44f);
+        Vector3 targetScale = hasSource ? source.localScale : Vector3.one;
+        Quaternion targetRot = hasSource ? source.localRotation : Quaternion.identity;
+
+        ChipsetCardUI[] cards = chipsetPanel.GetComponentsInChildren<ChipsetCardUI>(true);
+        int updatedCount = 0;
+        foreach (ChipsetCardUI card in cards)
+        {
+            RectTransform target = card.GetComponentsInChildren<RectTransform>(true)
+                .FirstOrDefault(rect => rect.name == "UpgradeArrowGroup");
+            if (target == null) continue;
+
+            Undo.RecordObject(target, "Apply UpgradeArrow Layout");
+            target.anchorMin = targetAnchor;
+            target.anchorMax = targetAnchor;
+            target.pivot = targetPivot;
+            target.anchoredPosition = targetPos;
+            target.sizeDelta = targetSize;
+            target.localRotation = targetRot;
+            target.localScale = targetScale;
+            EditorUtility.SetDirty(target);
+            updatedCount++;
+        }
+
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        Debug.Log($"[LabMenuSceneBuilder] Applied UpgradeArrowGroup layout (Pos: {targetPos}, Size: {targetSize}) to {updatedCount} Chipset cards.");
+    }
+
     [MenuItem("PGE/UI/Rebuild Shop Panel")]
     public static void RebuildShopPanel()
     {
@@ -527,6 +586,25 @@ public static class LabMenuSceneBuilder
         try
         {
             File.Delete(ChipsetBottomBarLayoutRequestPath);
+        }
+        catch {}
+        AssetDatabase.Refresh();
+    }
+
+    private static void TryApplyRequestedUpgradeArrowLayout()
+    {
+        if (!File.Exists(ChipsetUpgradeArrowLayoutRequestPath) ||
+            EditorApplication.isPlayingOrWillChangePlaymode ||
+            EditorApplication.isCompiling ||
+            EditorApplication.isUpdating)
+        {
+            return;
+        }
+
+        ApplyUpgradeArrowLayoutToAllChipsetCards();
+        try
+        {
+            File.Delete(ChipsetUpgradeArrowLayoutRequestPath);
         }
         catch {}
         AssetDatabase.Refresh();
@@ -2299,7 +2377,7 @@ public static class LabMenuSceneBuilder
         GameObject upgradeArrowObj = new GameObject("UpgradeArrowGroup", typeof(RectTransform));
         RectTransform arrowRect = upgradeArrowObj.GetComponent<RectTransform>();
         arrowRect.SetParent(normalGroup, false);
-        Anchor(arrowRect, new Vector2(0.88f, 0.17f), Vector2.zero, new Vector2(44f, 44f));
+        Anchor(arrowRect, new Vector2(0.88f, 0.17f), new Vector2(0f, 23.8f), new Vector2(44f, 44f));
 
         Image arrowIcon = upgradeArrowObj.AddComponent<Image>();
         arrowIcon.sprite = LoadChipsetSprite("badge-upgrade");

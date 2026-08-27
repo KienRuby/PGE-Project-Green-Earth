@@ -22,6 +22,7 @@ public static class GamePlayHUDSceneBuilder
     private const string ScenePath = "Assets/Scenes/GamePlay.unity";
     private const string FontPath = "Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset";
     private const string ChipsetAtlasPath = "Assets/UI/Chipset/Generated/chipset-atlas.png";
+    private const string ChipsetLevelVisualLibraryPath = "Assets/Resources/ChipsetLevelVisualLibrary.asset";
     private const string LevelUpUiPath = "Assets/Sprites/UI/UI Player/nút màn level up.png";
 
     private static readonly Color DarkBg = new Color32(22, 29, 36, 255);
@@ -518,7 +519,10 @@ public static class GamePlayHUDSceneBuilder
         Sprite[] allAtlasSprites = AssetDatabase.LoadAllAssetRepresentationsAtPath(ChipsetAtlasPath)
             .OfType<Sprite>()
             .ToArray();
-        Sprite commonFrame = FindSprite(allAtlasSprites, "card-frame-common");
+        ChipsetLevelVisualLibrary levelVisualLibrary = AssetDatabase.LoadAssetAtPath<ChipsetLevelVisualLibrary>(ChipsetLevelVisualLibraryPath);
+        Sprite commonFrame = levelVisualLibrary != null && levelVisualLibrary.tierLeverFrames.Length > 0
+            ? levelVisualLibrary.tierLeverFrames[0]
+            : FindSprite(allAtlasSprites, "card-frame-common");
 
         ChipsetChoiceCardUI[] cards = new ChipsetChoiceCardUI[4];
         for (int i = 0; i < cards.Length; i++)
@@ -607,15 +611,15 @@ public static class GamePlayHUDSceneBuilder
             "laser-eye", "biochemical-mine", "tesla-coil", "atk-module", "black-hole-mine", "sonic-boom",
             "big-battery", "turret-module", "ice-turret", "invincible-shield", "healing-turret", "flamethrower"
         };
-        Sprite[] icons = iconKeys.Select(key => FindSprite(allAtlasSprites, key)).Where(sprite => sprite != null).ToArray();
-        Sprite[] frames =
-        {
-            FindSprite(allAtlasSprites, "Green") ?? FindSprite(allAtlasSprites, "card-frame-tier1-green") ?? FindSprite(allAtlasSprites, "card-frame-common"),
-            FindSprite(allAtlasSprites, "Blu") ?? FindSprite(allAtlasSprites, "card-frame-tier2-blue") ?? FindSprite(allAtlasSprites, "card-frame-rare"),
-            FindSprite(allAtlasSprites, "Tím") ?? FindSprite(allAtlasSprites, "card-frame-tier3-purple") ?? FindSprite(allAtlasSprites, "card-frame-epic"),
-            FindSprite(allAtlasSprites, "Yello") ?? FindSprite(allAtlasSprites, "card-frame-tier4-yellow") ?? FindSprite(allAtlasSprites, "card-frame-epic"),
-            FindSprite(allAtlasSprites, "card-frame-tier5-holographic") ?? FindSprite(allAtlasSprites, "Red") ?? FindSprite(allAtlasSprites, "card-frame-tier5-red")
-        };
+        Sprite[] icons = levelVisualLibrary != null
+            ? levelVisualLibrary.primaryChipIcons
+            : iconKeys.Select(key => FindSprite(allAtlasSprites, key)).Where(sprite => sprite != null).ToArray();
+        Sprite[] frames = levelVisualLibrary != null
+            ? levelVisualLibrary.tierLeverFrames
+            : Array.Empty<Sprite>();
+        Sprite[] levelPips = levelVisualLibrary != null
+            ? levelVisualLibrary.levelPipSprites
+            : Array.Empty<Sprite>();
 
         controller.InitializeReferences(
             levelController,
@@ -628,6 +632,7 @@ public static class GamePlayHUDSceneBuilder
             null,
             icons,
             frames,
+            levelPips,
             Array.Empty<Sprite>());
 
         root.SetActive(false);

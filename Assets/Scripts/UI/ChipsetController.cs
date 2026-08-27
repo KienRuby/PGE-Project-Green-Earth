@@ -25,7 +25,15 @@ public class ChipItemData
     public int count = 0;
     public int requiredCount = 3;
     public int enhanceCost = 500;
+    public int tierEnhanceCount;
     public bool hasStar;
+
+    [NonSerialized] private bool tierUnlockRulesEnabled;
+    [NonSerialized] private int requiredTierEnhances = 10;
+    [NonSerialized] private int greenToBlueFragmentCost = 3;
+    [NonSerialized] private int blueToPurpleFragmentCost = 5;
+    [NonSerialized] private int purpleToYellowFragmentCost = 10;
+    [NonSerialized] private int yellowToRedDataChipCost = 10;
 
     [Header("Stats Description")]
     [TextArea(2, 4)]
@@ -55,15 +63,76 @@ public class ChipItemData
     public bool NeedsAdvanceStones => tier == ChipTier.Epic && IsAtTierCap;
     public int AdvanceStoneCost => NeedsAdvanceStones ? 10 : 0;
 
-    public bool CanEnhance => ChipManager.DataChips >= enhanceCost && !IsAtTierCap && !IsMaxOverall;
-    public bool CanUpgrade => !IsAtTierCap && count >= requiredCount && requiredCount > 0;
-    public bool CanAdvanceTier => IsAtTierCap && tier < ChipTier.Holographic;
+    public int RequiredTierEnhances => requiredTierEnhances;
+    public bool IsTierUnlockReady => tierUnlockRulesEnabled
+        ? tierEnhanceCount >= requiredTierEnhances
+        : IsAtTierCap;
+    public bool UsesRedDataChipForAdvance => tierUnlockRulesEnabled && tier == ChipTier.Epic;
+    public int CurrentAdvanceCost
+    {
+        get
+        {
+            switch (tier)
+            {
+                case ChipTier.Magic: return greenToBlueFragmentCost;
+                case ChipTier.Rare: return blueToPurpleFragmentCost;
+                case ChipTier.Unique: return purpleToYellowFragmentCost;
+                case ChipTier.Epic: return yellowToRedDataChipCost;
+                default: return 0;
+            }
+        }
+    }
+
+    public bool HasAdvanceCurrency => tier < ChipTier.Holographic && (UsesRedDataChipForAdvance
+        ? ChipManager.HasEnoughRedGems(CurrentAdvanceCost)
+        : count >= CurrentAdvanceCost);
+
+    public bool CanEnhance => tierUnlockRulesEnabled
+        ? ChipManager.HasEnoughDataChips(enhanceCost) &&
+          (tier == ChipTier.Holographic ? !IsMaxOverall : tierEnhanceCount < requiredTierEnhances)
+        : ChipManager.DataChips >= enhanceCost && !IsAtTierCap && !IsMaxOverall;
+    public bool CanUpgrade => !tierUnlockRulesEnabled && !IsAtTierCap && count >= requiredCount && requiredCount > 0;
+    public bool CanAdvanceTier => tierUnlockRulesEnabled
+        ? tier < ChipTier.Holographic && IsTierUnlockReady && HasAdvanceCurrency
+        : IsAtTierCap && tier < ChipTier.Holographic;
+
+    public void ConfigureTierUnlockRules(
+        int enhancesRequired,
+        int greenToBlueCost,
+        int blueToPurpleCost,
+        int purpleToYellowCost,
+        int yellowToRedCost)
+    {
+        tierUnlockRulesEnabled = true;
+        requiredTierEnhances = Mathf.Max(1, enhancesRequired);
+        greenToBlueFragmentCost = Mathf.Max(0, greenToBlueCost);
+        blueToPurpleFragmentCost = Mathf.Max(0, blueToPurpleCost);
+        purpleToYellowFragmentCost = Mathf.Max(0, purpleToYellowCost);
+        yellowToRedDataChipCost = Mathf.Max(0, yellowToRedCost);
+        tierEnhanceCount = Mathf.Clamp(tierEnhanceCount, 0, requiredTierEnhances);
+
+        if (tier < ChipTier.Epic)
+        {
+            requiredCount = CurrentAdvanceCost;
+        }
+    }
 
     public bool Enhance()
     {
-        if (ChipManager.DataChips < enhanceCost) return false;
+        if (!CanEnhance) return false;
         if (!ChipManager.TrySpendDataChips(enhanceCost)) return false;
-        level++;
+        if (tierUnlockRulesEnabled)
+        {
+            if (tier < ChipTier.Holographic)
+            {
+                tierEnhanceCount++;
+            }
+            level = Mathf.Min(level + 1, MaxLevel);
+        }
+        else
+        {
+            level++;
+        }
         enhanceCost = Mathf.RoundToInt(enhanceCost * 1.35f);
         return true;
     }
@@ -87,7 +156,18 @@ public class ChipItemData
     {
         if (!CanAdvanceTier) return false;
 
-        if (NeedsAdvanceStones)
+        if (tierUnlockRulesEnabled)
+        {
+            if (UsesRedDataChipForAdvance)
+            {
+                if (!ChipManager.TrySpendRedGems(CurrentAdvanceCost)) return false;
+            }
+            else
+            {
+                count -= CurrentAdvanceCost;
+            }
+        }
+        else if (NeedsAdvanceStones)
         {
             if (!ChipManager.TrySpendAdvanceStones(10))
             {
@@ -96,7 +176,18 @@ public class ChipItemData
         }
 
         tier = (ChipTier)((int)tier + 1);
-        requiredCount = Mathf.Max(3, level + 1);
+        if (tierUnlockRulesEnabled)
+        {
+            tierEnhanceCount = 0;
+            if (tier < ChipTier.Epic)
+            {
+                requiredCount = CurrentAdvanceCost;
+            }
+        }
+        else
+        {
+            requiredCount = Mathf.Max(3, level + 1);
+        }
         return true;
     }
 
@@ -112,13 +203,20 @@ public class ChipItemData
             count = this.count,
             requiredCount = this.requiredCount,
             enhanceCost = this.enhanceCost,
+            tierEnhanceCount = this.tierEnhanceCount,
             hasStar = this.hasStar,
             description = this.description,
             baseStatsSummary = this.baseStatsSummary,
             magicBonus = this.magicBonus,
             rareBonus = this.rareBonus,
             uniqueBonus = this.uniqueBonus,
-            epicBonus = this.epicBonus
+            epicBonus = this.epicBonus,
+            tierUnlockRulesEnabled = this.tierUnlockRulesEnabled,
+            requiredTierEnhances = this.requiredTierEnhances,
+            greenToBlueFragmentCost = this.greenToBlueFragmentCost,
+            blueToPurpleFragmentCost = this.blueToPurpleFragmentCost,
+            purpleToYellowFragmentCost = this.purpleToYellowFragmentCost,
+            yellowToRedDataChipCost = this.yellowToRedDataChipCost
         };
     }
 }
@@ -186,6 +284,13 @@ public class ChipsetController : MonoBehaviour
     [SerializeField] private TMP_Text detailEquipBtnText;
     [SerializeField] private Button detailCloseBtn;
 
+    [Header("Chipset Tier Unlock Costs")]
+    [SerializeField, Min(1)] private int enhancesRequiredPerTier = 10;
+    [SerializeField, Min(0)] private int greenToBlueFragmentCost = 3;
+    [SerializeField, Min(0)] private int blueToPurpleFragmentCost = 5;
+    [SerializeField, Min(0)] private int purpleToYellowFragmentCost = 10;
+    [SerializeField, Min(0)] private int yellowToRedDataChipCost = 10;
+
     [Header("Blast Furnace Modal")]
     [SerializeField] private GameObject furnaceModal;
     [SerializeField] private TMP_Text furnaceDescText;
@@ -198,12 +303,13 @@ public class ChipsetController : MonoBehaviour
 
     [Header("Sprites Database")]
     [SerializeField] private Sprite[] chipIcons;
-    [SerializeField] private Sprite[] frameSprites; // 0: Magic, 1: Rare, 2: Epic, 3: Holographic
+    [SerializeField] private Sprite[] frameSprites; // 0: Green, 1: Blue, 2: Purple, 3: Yellow, 4: Red
     [SerializeField] private Sprite starSprite;
     [SerializeField] private Sprite upgradeArrowSprite;
     [SerializeField] private Sprite advanceStoneSprite;
     [SerializeField] private Sprite[] lockTierSprites = new Sprite[4]; // 0: Magic, 1: Rare, 2: Unique, 3: Epic
     [SerializeField] private Sprite unlockedCheckSprite;
+    [SerializeField] private ChipsetLevelVisualLibrary tierVisualLibrary;
 
     private int activeDeckIndex = 0; // Reference layout opens on Preset 1.
     private bool sortByQuantity = false; // Reference layout defaults to sorting by tier.
@@ -224,6 +330,10 @@ public class ChipsetController : MonoBehaviour
 
     private void Awake()
     {
+        if (tierVisualLibrary == null)
+        {
+            tierVisualLibrary = Resources.Load<ChipsetLevelVisualLibrary>("ChipsetLevelVisualLibrary");
+        }
         InitializeDatabase();
     }
 
@@ -264,14 +374,32 @@ public class ChipsetController : MonoBehaviour
 
     public void InitializeDatabase()
     {
-        if (allChips.Count > 0) return;
+        if (allChips.Count > 0)
+        {
+            ApplyTierUnlockRulesToCatalog();
+            return;
+        }
 
         allChips = CreateSavedDatabase();
+        ApplyTierUnlockRulesToCatalog();
         InitializeDefaultDecks();
         activeDeckIndex = PlayerDataService.ActiveChipsetDeckIndex;
         for (int i = 0; i < deckEquippedIds.Length; i++)
         {
             deckEquippedIds[i] = PlayerDataService.LoadChipsetDeck(i, deckEquippedIds[i]);
+        }
+    }
+
+    private void ApplyTierUnlockRulesToCatalog()
+    {
+        foreach (ChipItemData chip in allChips)
+        {
+            chip?.ConfigureTierUnlockRules(
+                enhancesRequiredPerTier,
+                greenToBlueFragmentCost,
+                blueToPurpleFragmentCost,
+                purpleToYellowFragmentCost,
+                yellowToRedDataChipCost);
         }
     }
 
@@ -294,8 +422,8 @@ public class ChipsetController : MonoBehaviour
                 count = 451,
                 requiredCount = 15,
                 enhanceCost = 1200,
-                description = "Standard kinetic firearm with consistent rate of fire.",
-                baseStatsSummary = "ATK <color=#FFCB49>185</color>\n<color=#FFCB49>Fast</color> ATK Speed",
+                description = "Always equipped, even when it is not included in your deck.",
+                baseStatsSummary = "ATK <color=#FFCB49>53.13</color>\n<color=#FFCB49>Fast</color> ATK Speed",
                 magicBonus = "ATK +15%",
                 rareBonus = "ATK Speed +15%",
                 uniqueBonus = "+5% Life Steal",
@@ -312,8 +440,8 @@ public class ChipsetController : MonoBehaviour
                 count = 449,
                 requiredCount = 0,
                 enhanceCost = 2000,
-                description = "High-caliber precision rifle dealing devastating critical damage.",
-                baseStatsSummary = "ATK <color=#FFCB49>320</color>\n<color=#FFCB49>Very fast</color> ATK Speed",
+                description = "Fires a rapid burst of bullets.",
+                baseStatsSummary = "ATK <color=#FFCB49>10.5</color>\n<color=#FFCB49>Fast</color> ATK Speed",
                 magicBonus = "ATK +25%",
                 rareBonus = "ATK Speed +20%",
                 uniqueBonus = "ATK +80%",
@@ -330,8 +458,8 @@ public class ChipsetController : MonoBehaviour
                 count = 470,
                 requiredCount = 7,
                 enhanceCost = 650,
-                description = "Launches heavy mechanical fists inflicting area blast shockwaves.",
-                baseStatsSummary = "ATK <color=#FFCB49>95</color> / AoE ATK <color=#FFCB49>60</color>\n<color=#FFCB49>Slow</color> ATK Speed",
+                description = "Launches a rocket that deals area damage.",
+                baseStatsSummary = "ATK <color=#FFCB49>70</color> / AoE ATK <color=#FFCB49>37</color>\n<color=#FFCB49>Slow</color> ATK Speed",
                 magicBonus = "ATK +40%",
                 rareBonus = "ATK Speed +40%",
                 uniqueBonus = "AoE ATK Range +40%",
@@ -348,8 +476,8 @@ public class ChipsetController : MonoBehaviour
                 count = 468,
                 requiredCount = 9,
                 enhanceCost = 900,
-                description = "Whirling razor disc cleaving nearby enemies continuously.",
-                baseStatsSummary = "ATK <color=#FFCB49>142.8</color>\n<color=#FFCB49>Fast</color> ATK Speed",
+                description = "Summons a spinning blade that circles the player.",
+                baseStatsSummary = "ATK <color=#FFCB49>36</color>\n<color=#FFCB49>Fast</color> ATK Speed",
                 magicBonus = "ATK Speed +9%",
                 rareBonus = "ATK Speed +18%",
                 uniqueBonus = "Spin Speed +36%",
@@ -366,8 +494,8 @@ public class ChipsetController : MonoBehaviour
                 count = 423,
                 requiredCount = 3,
                 enhanceCost = 650,
-                description = "Multi-barrel shotgun scattering projectiles across wide cones.",
-                baseStatsSummary = "ATK <color=#FFCB49>48.5</color> | 4 shells\n<color=#FFCB49>Slow</color> ATK Speed",
+                description = "Fires a rain of bullets in multiple directions at once.",
+                baseStatsSummary = "ATK <color=#FFCB49>19</color> | 4 shells\n<color=#FFCB49>Slow</color> ATK Speed",
                 magicBonus = "Adds +1 shells",
                 rareBonus = "Adds +1 shells",
                 uniqueBonus = "Adds +3 shells",
@@ -384,8 +512,8 @@ public class ChipsetController : MonoBehaviour
                 count = 501,
                 requiredCount = 3,
                 enhanceCost = 500,
-                description = "Automated deployable turret firing at closest hostiles.",
-                baseStatsSummary = "ATK <color=#FFCB49>27</color> | Duration 12s | CD 8.4s\n<color=#FFCB49>Fast</color> ATK Speed",
+                description = "Deploys a turret that fires standard bullets.",
+                baseStatsSummary = "ATK <color=#FFCB49>27</color> | Duration 14.4s | CD 8.4s\n<color=#FFCB49>Fast</color> ATK Speed",
                 magicBonus = "Turret Duration +20%",
                 rareBonus = "Turret Cooldown -30%",
                 uniqueBonus = "Turret Duration +20%",
@@ -402,7 +530,7 @@ public class ChipsetController : MonoBehaviour
                 count = 479,
                 requiredCount = 3,
                 enhanceCost = 500,
-                description = "Rebounding serrated blade ricocheting off dungeon walls.",
+                description = "Spins a spiky discus around the player to attack enemies.",
                 baseStatsSummary = "ATK <color=#FFCB49>30</color>\n<color=#FFCB49>Normal</color> Spin Speed",
                 magicBonus = "+1 Discus",
                 rareBonus = "Spin Speed +30%",
@@ -420,8 +548,8 @@ public class ChipsetController : MonoBehaviour
                 count = 450,
                 requiredCount = 7,
                 enhanceCost = 650,
-                description = "Heavy pump-action shotgun delivering point-blank destruction.",
-                baseStatsSummary = "ATK <color=#FFCB49>178.02</color>\n<color=#FFCB49>Slow</color> ATK Speed",
+                description = "Deals heavy damage to nearby enemies with multiple pellets.",
+                baseStatsSummary = "ATK <color=#FFCB49>86</color>\n<color=#FFCB49>Slow</color> ATK Speed",
                 magicBonus = "ATK +15%",
                 rareBonus = "ATK +15%",
                 uniqueBonus = "Adds Penetration Skill",
@@ -439,7 +567,7 @@ public class ChipsetController : MonoBehaviour
                 requiredCount = 3,
                 enhanceCost = 500,
                 hasStar = true,
-                description = "Siphons biological essence from wounded enemies to heal player.",
+                description = "Steals life from enemies.",
                 baseStatsSummary = "Life Steal <color=#FFCB49>2.3%</color>",
                 magicBonus = "All Weapons' +1% Life Steal",
                 rareBonus = "All Weapons' +1% Life Steal",
@@ -457,7 +585,7 @@ public class ChipsetController : MonoBehaviour
                 count = 390,
                 requiredCount = 3,
                 enhanceCost = 500,
-                description = "Drops high-yield proximity charges detonating upon enemy contact.",
+                description = "Periodically places powerful explosive mines on the ground.",
                 baseStatsSummary = "Mine AoE ATK <color=#FFCB49>27</color>\nCooldown: 5.55s",
                 magicBonus = "ATK +20%",
                 rareBonus = "Cooldown -20%",
@@ -745,6 +873,8 @@ public class ChipsetController : MonoBehaviour
             chip.count = Mathf.Max(0, savedCount);
             chip.requiredCount = Mathf.Max(0, savedRequiredCount);
             chip.hasStar = savedHasStar;
+            chip.tierEnhanceCount = PlayerDataService.LoadChipsetTierEnhanceCount(chip.id);
+            chip.enhanceCost = PlayerDataService.LoadChipsetEnhanceCost(chip.id, chip.enhanceCost);
         }
         return result;
     }
@@ -803,6 +933,8 @@ public class ChipsetController : MonoBehaviour
             chip.count,
             chip.requiredCount,
             chip.hasStar);
+        PlayerDataService.SaveChipsetTierEnhanceCount(chip.id, chip.tierEnhanceCount);
+        PlayerDataService.SaveChipsetEnhanceCost(chip.id, chip.enhanceCost);
     }
 
     private void InitializeDefaultDecks()
@@ -1042,13 +1174,14 @@ public class ChipsetController : MonoBehaviour
             Sprite icon = GetIconSprite(selectedDetailChip.iconKey);
             Sprite frame = GetFrameSprite(selectedDetailChip.tier);
             detailTopCard.Setup(selectedDetailChip, icon, frame);
+            detailTopCard.UseDetailBottomBarLayout();
         }
 
         // 3. Name & Tier Subtitle
         if (detailNameText != null) detailNameText.text = selectedDetailChip.chipName;
         if (detailTierText != null)
         {
-            detailTierText.text = selectedDetailChip.tier == ChipTier.Magic ? "Common" : selectedDetailChip.tier.ToString();
+            detailTierText.text = GetFrameColorName(selectedDetailChip.tier);
         }
 
         // 4. Description & Base Stats
@@ -1067,7 +1200,7 @@ public class ChipsetController : MonoBehaviour
 
         for (int i = 0; i < 4; i++)
         {
-            bool isUnlocked = (int)selectedDetailChip.tier > i;
+            bool isUnlocked = IsTierPerkUnlocked(selectedDetailChip.tier, i);
             if (i < perkRowIcons.Length && perkRowIcons[i] != null)
             {
                 if (isUnlocked && unlockedCheckSprite != null)
@@ -1096,7 +1229,9 @@ public class ChipsetController : MonoBehaviour
         // 6. Enhance Button
         if (detailEnhanceCostText != null)
         {
-            detailEnhanceCostText.text = $"{selectedDetailChip.enhanceCost}";
+            detailEnhanceCostText.text = selectedDetailChip.tier < ChipTier.Holographic
+                ? $"{selectedDetailChip.enhanceCost}  ({selectedDetailChip.tierEnhanceCount}/{selectedDetailChip.RequiredTierEnhances})"
+                : $"{selectedDetailChip.enhanceCost}";
         }
         if (detailEnhanceBtn != null)
         {
@@ -1106,9 +1241,23 @@ public class ChipsetController : MonoBehaviour
         // 7. Advance Tier Button
         if (detailAdvanceTierText != null)
         {
-            detailAdvanceTierText.text = selectedDetailChip.requiredCount > 0
-                ? $"Advance Tier ({selectedDetailChip.count}/{selectedDetailChip.requiredCount})"
-                : "MAX TIER";
+            if (selectedDetailChip.tier >= ChipTier.Holographic)
+            {
+                detailAdvanceTierText.text = "MAX TIER";
+            }
+            else if (!selectedDetailChip.IsTierUnlockReady)
+            {
+                detailAdvanceTierText.text = $"Enhance {selectedDetailChip.tierEnhanceCount}/{selectedDetailChip.RequiredTierEnhances}";
+            }
+            else if (selectedDetailChip.UsesRedDataChipForAdvance)
+            {
+                detailAdvanceTierText.text = $"Advance RED ({ChipManager.RedGems}/{selectedDetailChip.CurrentAdvanceCost})";
+            }
+            else
+            {
+                ChipTier nextTier = (ChipTier)((int)selectedDetailChip.tier + 1);
+                detailAdvanceTierText.text = $"Advance {GetFrameColorName(nextTier)} ({selectedDetailChip.count}/{selectedDetailChip.CurrentAdvanceCost})";
+            }
         }
         if (detailAdvanceTierBtn != null)
         {
@@ -1128,7 +1277,9 @@ public class ChipsetController : MonoBehaviour
         if (selectedDetailChip == null) return;
         if (!selectedDetailChip.CanEnhance)
         {
-            ShowToast("Not enough Data Chips to enhance!");
+            ShowToast(selectedDetailChip.IsTierUnlockReady && selectedDetailChip.tier < ChipTier.Holographic
+                ? "Enhance requirement complete. Advance the chipset frame now!"
+                : "Not enough Data Chips to enhance!");
             return;
         }
 
@@ -1146,14 +1297,26 @@ public class ChipsetController : MonoBehaviour
     private void AdvanceTierSelectedChip()
     {
         if (selectedDetailChip == null) return;
-        if (selectedDetailChip.NeedsAdvanceStones && !ChipManager.HasEnoughAdvanceStones(10))
+        if (selectedDetailChip.tier >= ChipTier.Holographic)
         {
-            ShowToast("Need 10 Advance Stones to Breakthrough Tier 5 (LV.24)!");
+            ShowToast("This chipset has already unlocked the red frame!");
+            return;
+        }
+        if (!selectedDetailChip.IsTierUnlockReady)
+        {
+            ShowToast($"Enhance {selectedDetailChip.RequiredTierEnhances} times before advancing this frame!");
+            return;
+        }
+        if (!selectedDetailChip.HasAdvanceCurrency)
+        {
+            ShowToast(selectedDetailChip.UsesRedDataChipForAdvance
+                ? "Not enough Red Data Chips to unlock the red frame!"
+                : "Not enough chipset fragments to unlock the next frame!");
             return;
         }
         if (!selectedDetailChip.CanAdvanceTier)
         {
-            ShowToast("Not enough fragments to advance tier!");
+            ShowToast("This chipset frame cannot advance further!");
             return;
         }
 
@@ -1164,7 +1327,7 @@ public class ChipsetController : MonoBehaviour
             RefreshEquippedGrid();
             RefreshInventory();
             RefreshDetailModal();
-            ShowToast($"Advanced {selectedDetailChip.chipName} to {selectedDetailChip.tier.ToString().ToUpper()} Tier!");
+            ShowToast($"Unlocked {GetFrameColorName(selectedDetailChip.tier)} frame for {selectedDetailChip.chipName}!");
         }
     }
 
@@ -1274,11 +1437,42 @@ public class ChipsetController : MonoBehaviour
         return chipIcons[0];
     }
 
+    public static int GetFrameIndex(ChipTier tier)
+    {
+        return Mathf.Clamp((int)tier - 1, 0, 4);
+    }
+
+    public static bool IsTierPerkUnlocked(ChipTier tier, int perkRowIndex)
+    {
+        return perkRowIndex >= 0 && perkRowIndex < 4 && GetFrameIndex(tier) > perkRowIndex;
+    }
+
+    private static string GetFrameColorName(ChipTier tier)
+    {
+        switch (tier)
+        {
+            case ChipTier.Magic: return "GREEN";
+            case ChipTier.Rare: return "BLUE";
+            case ChipTier.Unique: return "PURPLE";
+            case ChipTier.Epic: return "YELLOW";
+            case ChipTier.Holographic: return "RED";
+            default: return "GREEN";
+        }
+    }
+
     private Sprite GetFrameSprite(ChipTier tier)
     {
+        int index = GetFrameIndex(tier);
+        if (tierVisualLibrary != null &&
+            tierVisualLibrary.mainMenuTierFrames != null &&
+            index < tierVisualLibrary.mainMenuTierFrames.Length &&
+            tierVisualLibrary.mainMenuTierFrames[index] != null)
+        {
+            return tierVisualLibrary.mainMenuTierFrames[index];
+        }
+
         if (frameSprites == null || frameSprites.Length == 0) return null;
-        // All tiers intentionally share the same green card background.
-        return frameSprites[0];
+        return frameSprites[Mathf.Clamp(index, 0, frameSprites.Length - 1)];
     }
 
     private void ShowToast(string message)

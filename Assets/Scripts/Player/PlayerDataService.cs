@@ -427,6 +427,28 @@ public static class PlayerDataService
         PlayerPrefs.Save();
     }
 
+    public static void SaveChipsetTierEnhanceCount(int id, int enhanceCount)
+    {
+        PlayerPrefs.SetInt($"{GetChipItemPrefix(id)}TierEnhanceCount", Mathf.Max(0, enhanceCount));
+        PlayerPrefs.Save();
+    }
+
+    public static int LoadChipsetTierEnhanceCount(int id)
+    {
+        return Mathf.Max(0, PlayerPrefs.GetInt($"{GetChipItemPrefix(id)}TierEnhanceCount", 0));
+    }
+
+    public static void SaveChipsetEnhanceCost(int id, int enhanceCost)
+    {
+        PlayerPrefs.SetInt($"{GetChipItemPrefix(id)}EnhanceCost", Mathf.Max(0, enhanceCost));
+        PlayerPrefs.Save();
+    }
+
+    public static int LoadChipsetEnhanceCost(int id, int defaultCost)
+    {
+        return Mathf.Max(0, PlayerPrefs.GetInt($"{GetChipItemPrefix(id)}EnhanceCost", Mathf.Max(0, defaultCost)));
+    }
+
     public static bool LoadChipsetItemData(int id, out int level, out int tier, out int count, out int reqCount, out bool hasStar)
     {
         string pfx = GetChipItemPrefix(id);

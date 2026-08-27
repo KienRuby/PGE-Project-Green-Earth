@@ -1326,6 +1326,47 @@ public class PGEGameLogicTests
     }
 
     [Test]
+    public void Chipset_PrimaryTenStats_MatchDesignTable()
+    {
+        List<ChipItemData> chips = ChipsetController.CreateDefaultDatabase();
+        string[] expectedBaseStats = {
+            "ATK <color=#FFCB49>53.13</color>\n<color=#FFCB49>Fast</color> ATK Speed",
+            "ATK <color=#FFCB49>10.5</color>\n<color=#FFCB49>Fast</color> ATK Speed",
+            "ATK <color=#FFCB49>70</color> / AoE ATK <color=#FFCB49>37</color>\n<color=#FFCB49>Slow</color> ATK Speed",
+            "ATK <color=#FFCB49>36</color>\n<color=#FFCB49>Fast</color> ATK Speed",
+            "ATK <color=#FFCB49>19</color> | 4 shells\n<color=#FFCB49>Slow</color> ATK Speed",
+            "ATK <color=#FFCB49>27</color> | Duration 14.4s | CD 8.4s\n<color=#FFCB49>Fast</color> ATK Speed",
+            "ATK <color=#FFCB49>30</color>\n<color=#FFCB49>Normal</color> Spin Speed",
+            "ATK <color=#FFCB49>86</color>\n<color=#FFCB49>Slow</color> ATK Speed",
+            "Life Steal <color=#FFCB49>2.3%</color>",
+            "Mine AoE ATK <color=#FFCB49>27</color>\nCooldown: 5.55s"
+        };
+
+        string[][] expectedTierBonuses = {
+            new[] { "ATK +15%", "ATK Speed +15%", "+5% Life Steal", "Adds Penetration Skill" },
+            new[] { "ATK +25%", "ATK Speed +20%", "ATK +80%", "ATK Speed +35%" },
+            new[] { "ATK +40%", "ATK Speed +40%", "AoE ATK Range +40%", "ATK +180%" },
+            new[] { "ATK Speed +9%", "ATK Speed +18%", "Spin Speed +36%", "ATK Speed +36%" },
+            new[] { "Adds +1 shells", "Adds +1 shells", "Adds +3 shells", "Adds +4 shells" },
+            new[] { "Turret Duration +20%", "Turret Cooldown -30%", "Turret Duration +20%", "Turret Duration +30%" },
+            new[] { "+1 Discus", "Spin Speed +30%", "+1 Discus", "Spin Speed +35%" },
+            new[] { "ATK +15%", "ATK +15%", "Adds Penetration Skill", "Fires two times in a row" },
+            new[] { "All Weapons' +1% Life Steal", "All Weapons' +1% Life Steal", "All Weapons' +1% Life Steal", "All Weapons' +2% Life Steal" },
+            new[] { "ATK +20%", "Cooldown -20%", "ATK +55%", "ATK +144%" }
+        };
+
+        for (int i = 0; i < 10; i++)
+        {
+            ChipItemData chip = chips[i];
+            Assert.That(chip.baseStatsSummary, Is.EqualTo(expectedBaseStats[i]), $"Base stats của {chip.chipName} phải khớp bảng thiết kế.");
+            Assert.That(
+                new[] { chip.magicBonus, chip.rareBonus, chip.uniqueBonus, chip.epicBonus },
+                Is.EqualTo(expectedTierBonuses[i]),
+                $"Tier bonus của {chip.chipName} phải khớp bảng thiết kế.");
+        }
+    }
+
+    [Test]
     public void Chipset_TierLevelCaps_FollowProgressionRules()
     {
         Assert.That(ChipItemData.GetMaxLevelForTier(ChipTier.Magic), Is.EqualTo(6), "Tier 1 (Magic) max level phải là 6.");
@@ -1595,6 +1636,107 @@ public class PGEGameLogicTests
         card.Setup(chip, null, null);
         Assert.That(card.SlotState, Is.EqualTo(ChipSlotState.Normal));
         Assert.That(card.BoundData, Is.EqualTo(chip));
+
+        Object.DestroyImmediate(go);
+    }
+
+    [Test]
+    public void Chipset_TierUnlock_RequiresTenEnhancesAndConsumesFragments()
+    {
+        ChipItemData chip = new ChipItemData
+        {
+            id = 201,
+            chipName = "Tier Test",
+            tier = ChipTier.Magic,
+            level = 1,
+            count = 8,
+            enhanceCost = 1
+        };
+        chip.ConfigureTierUnlockRules(10, 3, 5, 7, 11);
+        ChipManager.IsTestMode = false;
+        ChipManager.DataChips = 100000;
+
+        for (int i = 0; i < 10; i++)
+        {
+            Assert.That(chip.Enhance(), Is.True, $"Enhance lần {i + 1} phải thành công.");
+        }
+
+        Assert.That(chip.tierEnhanceCount, Is.EqualTo(10));
+        Assert.That(chip.IsTierUnlockReady, Is.True);
+        Assert.That(chip.CanEnhance, Is.False);
+        Assert.That(chip.CanAdvanceTier, Is.True);
+        Assert.That(chip.AdvanceTier(), Is.True);
+        Assert.That(chip.tier, Is.EqualTo(ChipTier.Rare));
+        Assert.That(chip.count, Is.EqualTo(5), "Green -> Blue phải trừ đúng 3 mảnh chipset.");
+        Assert.That(chip.tierEnhanceCount, Is.Zero, "Sang khung mới phải reset tiến độ Enhance.");
+    }
+
+    [Test]
+    public void Chipset_YellowToRed_ConsumesInspectorConfiguredRedDataChips()
+    {
+        ChipItemData chip = new ChipItemData
+        {
+            id = 202,
+            chipName = "Red Frame Test",
+            tier = ChipTier.Epic,
+            level = 18,
+            count = 999,
+            tierEnhanceCount = 10
+        };
+        chip.ConfigureTierUnlockRules(10, 3, 5, 7, 11);
+        ChipManager.IsTestMode = false;
+        ChipManager.RedGems = 11;
+
+        Assert.That(chip.UsesRedDataChipForAdvance, Is.True);
+        Assert.That(chip.CanAdvanceTier, Is.True);
+        Assert.That(chip.AdvanceTier(), Is.True);
+        Assert.That(chip.tier, Is.EqualTo(ChipTier.Holographic));
+        Assert.That(ChipManager.RedGems, Is.Zero, "Yellow -> Red phải trừ đúng Data Chip đỏ đã cấu hình.");
+        Assert.That(chip.count, Is.EqualTo(999), "Yellow -> Red không được trừ mảnh chipset thường.");
+    }
+
+    [Test]
+    public void Chipset_FrameAndPerkMapping_FollowsGreenBluePurpleYellowRedOrder()
+    {
+        Assert.That(ChipsetController.GetFrameIndex(ChipTier.Magic), Is.EqualTo(0));
+        Assert.That(ChipsetController.GetFrameIndex(ChipTier.Rare), Is.EqualTo(1));
+        Assert.That(ChipsetController.GetFrameIndex(ChipTier.Unique), Is.EqualTo(2));
+        Assert.That(ChipsetController.GetFrameIndex(ChipTier.Epic), Is.EqualTo(3));
+        Assert.That(ChipsetController.GetFrameIndex(ChipTier.Holographic), Is.EqualTo(4));
+
+        Assert.That(ChipsetController.IsTierPerkUnlocked(ChipTier.Magic, 0), Is.False);
+        Assert.That(ChipsetController.IsTierPerkUnlocked(ChipTier.Rare, 0), Is.True);
+        Assert.That(ChipsetController.IsTierPerkUnlocked(ChipTier.Unique, 1), Is.True);
+        Assert.That(ChipsetController.IsTierPerkUnlocked(ChipTier.Epic, 2), Is.True);
+        Assert.That(ChipsetController.IsTierPerkUnlocked(ChipTier.Holographic, 3), Is.True);
+    }
+
+    [Test]
+    public void Chipset_MainMenuFrameLibrary_ContainsFiveDistinctTierFrames()
+    {
+        ChipsetLevelVisualLibrary library = Resources.Load<ChipsetLevelVisualLibrary>("ChipsetLevelVisualLibrary");
+
+        Assert.That(library, Is.Not.Null);
+        Assert.That(library.mainMenuTierFrames, Has.Length.EqualTo(5));
+        Assert.That(library.mainMenuTierFrames, Has.All.Not.Null);
+        Assert.That(new HashSet<Sprite>(library.mainMenuTierFrames).Count, Is.EqualTo(5));
+    }
+
+    [Test]
+    public void Chipset_DetailBottomBar_UsesSelectedReferenceLayout()
+    {
+        GameObject go = new GameObject("DetailBottomBarTest", typeof(RectTransform));
+        RectTransform rect = go.GetComponent<RectTransform>();
+
+        ChipsetCardUI.ApplyDetailBottomBarLayout(rect);
+
+        Assert.That(rect.anchorMin, Is.EqualTo(new Vector2(0.08f, 0.10f)));
+        Assert.That(rect.anchorMax, Is.EqualTo(new Vector2(0.92f, 0.25f)));
+        Assert.That(rect.offsetMin, Is.EqualTo(new Vector2(0f, 28f)));
+        Assert.That(rect.offsetMax, Is.EqualTo(new Vector2(0f, 28f)));
+        Assert.That(rect.pivot, Is.EqualTo(new Vector2(0.5f, 0.5f)));
+        Assert.That(rect.localRotation, Is.EqualTo(Quaternion.identity));
+        Assert.That(rect.localScale, Is.EqualTo(new Vector3(0.966f, 0.975f, 1f)));
 
         Object.DestroyImmediate(go);
     }

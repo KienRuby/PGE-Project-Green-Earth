@@ -52,6 +52,75 @@ public class ChipsetLevelUpPopupTests
     }
 
     [Test]
+    public void RuntimeCatalog_ContainsOnlyTheTenPrimaryChipsets()
+    {
+        var catalog = ChipsetLevelUpPopup.CreateRuntimeCatalog();
+
+        Assert.That(catalog.Count, Is.EqualTo(10));
+        CollectionAssert.AreEqual(Enumerable.Range(1, 10), catalog.Select(chip => chip.id));
+    }
+
+    [Test]
+    public void UpgradeRuntimeChipset_IncreasesExactlyOneLevel_AndCapsAtFive()
+    {
+        UnityEngine.GameObject go = new UnityEngine.GameObject("RuntimeChipLevelTest");
+        ChipsetLevelUpPopup popup = go.AddComponent<ChipsetLevelUpPopup>();
+
+        try
+        {
+            Assert.That(popup.GetRuntimeLevel(1), Is.EqualTo(0));
+            for (int expectedLevel = 1; expectedLevel <= ChipsetLevelUpPopup.MaxRuntimeChipLevel; expectedLevel++)
+            {
+                Assert.That(popup.UpgradeRuntimeChipset(1), Is.EqualTo(expectedLevel));
+                Assert.That(popup.GetRuntimeLevel(1), Is.EqualTo(expectedLevel));
+            }
+
+            Assert.That(popup.UpgradeRuntimeChipset(1), Is.EqualTo(ChipsetLevelUpPopup.MaxRuntimeChipLevel));
+        }
+        finally
+        {
+            UnityEngine.Object.DestroyImmediate(go);
+        }
+    }
+
+    [Test]
+    public void VisualLibrary_UsesFiveTierLeverFrames_AndFiveLevelPips()
+    {
+        ChipsetLevelVisualLibrary library = UnityEngine.Resources.Load<ChipsetLevelVisualLibrary>("ChipsetLevelVisualLibrary");
+
+        Assert.That(library, Is.Not.Null);
+        CollectionAssert.AreEqual(
+            new[] { "ChipsetLeverGreen", "ChipsetLeverBlue", "ChipsetLeverPurple", "ChipsetLeveYellow", "ChipsetLeverRed" },
+            library.tierLeverFrames.Select(sprite => sprite.name));
+        CollectionAssert.AreEqual(
+            new[] { "cấp 1", "cấp 2", "cấp 3", "Cấp 4", "Cấp 5" },
+            library.levelPipSprites.Select(sprite => sprite.name));
+        Assert.That(library.primaryChipIcons.Length, Is.EqualTo(10));
+        Assert.That(library.primaryChipIcons.All(sprite => sprite != null), Is.True);
+        Assert.That(library.primaryChipIcons.Select(sprite => sprite.name).Distinct().Count(), Is.EqualTo(10));
+
+        string[] iconKeys = ChipsetLevelUpPopup.CreateRuntimeCatalog()
+            .Select(chip => chip.iconKey)
+            .ToArray();
+        UnityEngine.Sprite[] resolvedIcons = iconKeys
+            .Select(key => ChipsetLevelUpPopup.FindMatchingIcon(library.primaryChipIcons, key))
+            .ToArray();
+
+        Assert.That(resolvedIcons.All(sprite => sprite != null), Is.True);
+        Assert.That(
+            resolvedIcons.Select(sprite => sprite.name).Distinct().Count(),
+            Is.EqualTo(10),
+            "Mỗi chipset chính phải resolve thành một icon atlas riêng, không được fallback về Standard Gun.");
+
+        UnityEngine.Sprite gameplayFrame = ChipsetLevelUpPopup.ResolveGreenLeverFrame(library.tierLeverFrames);
+        Assert.That(gameplayFrame, Is.Not.Null);
+        Assert.That(
+            gameplayFrame.name,
+            Is.EqualTo("ChipsetLeverGreen"),
+            "Runtime level 1-5 phải luôn giữ khung Green; màu khung chỉ đổi trong hệ thống mở khóa chipset riêng.");
+    }
+
+    [Test]
     public void SelectEquippedCatalog_UsesDeckOrder_AndReturnsFreshCopies()
     {
         var catalog = ChipsetController.CreateDefaultDatabase();

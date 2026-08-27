@@ -1,0 +1,620 @@
+fileFormatVersion: 2
+guid: 2ab09f1459253de459ea75fd3b8d8659
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: khung chipset (1)_0
+      rect:
+        serializedVersion: 2
+        x: 272
+        y: 3187
+        width: 1614
+        height: 415
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f6f7c9a52b71223479f2d163f35cd75a
+      internalID: 648833277
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: khung chipset (1)_1
+      rect:
+        serializedVersion: 2
+        x: 279
+        y: 2721
+        width: 1589
+        height: 421
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2bf2ab19a8dc8fd42a7a89bca2b5cb11
+      internalID: 1443437712
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: khung chipset (1)_2
+      rect:
+        serializedVersion: 2
+        x: 1890
+        y: 2745
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 85939d3f394a2f544b1fb18d7c5c031e
+      internalID: 960734808
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ChipsetYelloe
+      rect:
+        serializedVersion: 2
+        x: 1279
+        y: 2179
+        width: 267
+        height: 333
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 06bdedef3e93f13479c3265238bc1b6b
+      internalID: -1222936589
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ChipsetLeverGreen
+      rect:
+        serializedVersion: 2
+        x: 329
+        y: 2170
+        width: 267
+        height: 333
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f15fa873e75fb704ca3d381419b43488
+      internalID: -1478496656
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ChipsetLeveYellow
+      rect:
+        serializedVersion: 2
+        x: 851
+        y: 2170
+        width: 267
+        height: 333
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 04fec8271ffaf59439b22eb0a10ed450
+      internalID: 1439231244
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ChipsetLeverBlue
+      rect:
+        serializedVersion: 2
+        x: 329
+        y: 1736
+        width: 267
+        height: 333
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4e63290f7f1c5644f8fc49f1f3d7f785
+      internalID: 125935959
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ChipsetLeverRed
+      rect:
+        serializedVersion: 2
+        x: 852
+        y: 1727
+        width: 267
+        height: 333
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9f3e24fa3d961bd4bb41abf7f3ce20e9
+      internalID: 1045301950
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ChipsetRed
+      rect:
+        serializedVersion: 2
+        x: 1274
+        y: 1724
+        width: 267
+        height: 333
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d3dc6179837ca614fbe2aaa606ac51d0
+      internalID: -1350579062
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ChipsetLeverPurple
+      rect:
+        serializedVersion: 2
+        x: 325
+        y: 1311
+        width: 267
+        height: 333
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8735e11dcbe37fb43820b8d83996a7a8
+      internalID: -2045370888
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Locked
+      rect:
+        serializedVersion: 2
+        x: 855
+        y: 1293
+        width: 267
+        height: 333
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5664cc441121adb4ca74710d7047894d
+      internalID: -1190361685
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ChipsetBlue
+      rect:
+        serializedVersion: 2
+        x: 1282
+        y: 1290
+        width: 272
+        height: 329
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c2bb21045bb543b4fa473877a245004f
+      internalID: -1651229128
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "c\u1EA5p 1"
+      rect:
+        serializedVersion: 2
+        x: 351
+        y: 1218
+        width: 41
+        height: 46
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2fc197267ce61f446b1d7eefd00751b7
+      internalID: 880683550
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "c\u1EA5p 2"
+      rect:
+        serializedVersion: 2
+        x: 396
+        y: 1218
+        width: 42
+        height: 46
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 47a5ef8bf0a6f0e49ad26e17aec25b06
+      internalID: 363790820
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "c\u1EA5p 3"
+      rect:
+        serializedVersion: 2
+        x: 442
+        y: 1218
+        width: 42
+        height: 46
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 18c4993a50551264ebfc9d83404583f9
+      internalID: -1876374054
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "C\u1EA5p 4"
+      rect:
+        serializedVersion: 2
+        x: 488
+        y: 1218
+        width: 42
+        height: 46
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d26404ca9e686f9439043deec97ef6e3
+      internalID: 1535659659
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "C\u1EA5p 5"
+      rect:
+        serializedVersion: 2
+        x: 534
+        y: 1218
+        width: 40
+        height: 46
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3a7b88b28691746438bc52de99c314cc
+      internalID: -1261019655
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ChipsetGreen
+      rect:
+        serializedVersion: 2
+        x: 860
+        y: 933
+        width: 267
+        height: 333
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c30fca7de7f87bb40a4b65eadc8fd3ae
+      internalID: -1911426385
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ChipsetPurple
+      rect:
+        serializedVersion: 2
+        x: 1275
+        y: 904
+        width: 267
+        height: 333
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 472196a58fa5eca4bbaa3927071972a9
+      internalID: -1129621477
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      ChipsetBlue: -1651229128
+      ChipsetGreen: -1911426385
+      ChipsetLeveYellow: 1439231244
+      ChipsetLeverBlue: 125935959
+      ChipsetLeverGreen: -1478496656
+      ChipsetLeverPurple: -2045370888
+      ChipsetLeverRed: 1045301950
+      ChipsetPurple: -1129621477
+      ChipsetRed: -1350579062
+      ChipsetYelloe: -1222936589
+      "C\u1EA5p 4": 1535659659
+      "C\u1EA5p 5": -1261019655
+      Locked: -1190361685
+      "c\u1EA5p 1": 880683550
+      "c\u1EA5p 2": 363790820
+      "c\u1EA5p 3": -1876374054
+      khung chipset (1)_0: 648833277
+      khung chipset (1)_1: 1443437712
+      khung chipset (1)_10: -465350185
+      khung chipset (1)_11: 1350185728
+      khung chipset (1)_13: -981362094
+      khung chipset (1)_14: -1707745473
+      khung chipset (1)_15: 455457195
+      khung chipset (1)_16: -79289543
+      khung chipset (1)_17: 1693435025
+      khung chipset (1)_18: 611089263
+      khung chipset (1)_19: -974052137
+      khung chipset (1)_2: 960734808
+      khung chipset (1)_20: 1769231367
+      khung chipset (1)_21: -931678475
+      khung chipset (1)_22: -205758175
+      khung chipset (1)_23: 984768437
+      khung chipset (1)_24: -67424617
+      khung chipset (1)_25: 804099435
+      khung chipset (1)_26: 1821955849
+      khung chipset (1)_27: 543209021
+      khung chipset (1)_28: 922532322
+      khung chipset (1)_29: -780148139
+      khung chipset (1)_31: 177034428
+      khung chipset (1)_33: -1692069040
+      khung chipset (1)_35: 437113588
+      khung chipset (1)_36: 135409047
+      khung chipset (1)_39: 1904388017
+      khung chipset (1)_4: -2092316371
+      khung chipset (1)_40: 634913245
+      khung chipset (1)_41: 69810684
+      khung chipset (1)_42: -139589692
+      khung chipset (1)_44: -1102493718
+      khung chipset (1)_45: 871704694
+      khung chipset (1)_46: 871305408
+      khung chipset (1)_47: 1206086308
+      khung chipset (1)_48: -947059540
+      khung chipset (1)_49: -266115154
+      khung chipset (1)_5: -109065001
+      khung chipset (1)_50: 1436951543
+      khung chipset (1)_51: 2014965456
+      khung chipset (1)_52: -1640465078
+      khung chipset (1)_53: 2130609394
+      khung chipset (1)_54: 1182610634
+      khung chipset (1)_55: -1667881939
+      khung chipset (1)_56: 1149951350
+      khung chipset (1)_57: 953018482
+      khung chipset (1)_58: 1697186573
+      khung chipset (1)_59: 912173450
+      khung chipset (1)_60: 1615238945
+      khung chipset (1)_61: 2138013976
+      khung chipset (1)_62: 635260902
+      khung chipset (1)_63: 996444419
+      khung chipset (1)_64: 1015751488
+      khung chipset (1)_65: 952572185
+      khung chipset (1)_66: -723880210
+      khung chipset (1)_7: -1376527664
+      khung chipset (1)_73: 812847575
+      khung chipset (1)_74: -594490095
+      khung chipset (1)_75: -791147536
+      khung chipset (1)_77: 591070442
+      khung chipset (1)_78: -2126237045
+      khung chipset (1)_79: -895950614
+      khung chipset (1)_8: 1180278280
+      khung chipset (1)_80: -938308271
+      khung chipset (1)_81: -173886155
+      khung chipset (1)_82: -558977459
+      khung chipset (1)_83: -2064162312
+      khung chipset (1)_84: -867954189
+      khung chipset (1)_85: -1459008012
+      khung chipset (1)_86: 2096916802
+      khung chipset (1)_87: -924319106
+      khung chipset (1)_88: -751447378
+      khung chipset (1)_89: -540880982
+      khung chipset (1)_9: 1531976779
+      khung chipset (1)_90: 1087722561
+      khung chipset (1)_91: -1430985545
+      khung chipset (1)_92: -921705401
+      khung chipset (1)_93: 826053889
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

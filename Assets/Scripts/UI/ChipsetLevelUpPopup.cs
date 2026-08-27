@@ -12,6 +12,9 @@ using UnityEngine.EventSystems;
 /// </summary>
 public class ChipsetLevelUpPopup : MonoBehaviour
 {
+    public const int MaxRuntimeChipLevel = 5;
+    private const int PrimaryChipsetCount = 10;
+
     [Header("Gameplay")]
     [SerializeField] private PlayerLevelController playerLevelController;
     [SerializeField, Min(1)] private int choicesPerLevel = 4;
@@ -30,8 +33,10 @@ public class ChipsetLevelUpPopup : MonoBehaviour
     [SerializeField] private CanvasGroup rerollCanvasGroup;
 
     [Header("MainMenu Chipset Assets")]
+    [SerializeField] private ChipsetLevelVisualLibrary visualLibrary;
     [SerializeField] private Sprite[] chipIcons;
     [SerializeField] private Sprite[] frameSprites;
+    [SerializeField] private Sprite[] levelPipSprites;
     [Tooltip("Thay sprite tại đây sau. Để trống sẽ dùng glyph placeholder.")]
     [SerializeField] private Sprite[] mechanicalParticleSprites;
 
@@ -63,7 +68,11 @@ public class ChipsetLevelUpPopup : MonoBehaviour
     private void Awake()
     {
         random = new System.Random(Environment.TickCount);
-        catalog = ChipsetController.CreateGameplayDatabase();
+        if (visualLibrary == null)
+        {
+            visualLibrary = Resources.Load<ChipsetLevelVisualLibrary>("ChipsetLevelVisualLibrary");
+        }
+        catalog = CreateRuntimeCatalog();
 
         if (popupRoot != null && mechanicalParticleSprites != null && mechanicalParticleSprites.Length > 0)
         {
@@ -131,8 +140,16 @@ public class ChipsetLevelUpPopup : MonoBehaviour
         if (pendingLevels.Count == 0 || popupRoot == null) return;
 
         // Đọc lại preset và tiến trình mới nhất trước mỗi lần lên cấp.
-        catalog = ChipsetController.CreateGameplayDatabase();
+        catalog = CreateRuntimeCatalog();
         pendingLevels.Dequeue();
+        if (!catalog.Any(item => item != null && GetRuntimeLevel(item.id) < MaxRuntimeChipLevel))
+        {
+            if (popupRoot != null) popupRoot.SetActive(false);
+            isShowing = false;
+            acceptingInput = false;
+            RestoreTimeScale();
+            return;
+        }
         currentRerollCount = 0;
         isShowing = true;
         acceptingInput = false;
@@ -154,7 +171,10 @@ public class ChipsetLevelUpPopup : MonoBehaviour
     private void GenerateOffers()
     {
         currentOffers.Clear();
-        currentOffers.AddRange(SelectDistinctOffers(catalog, Mathf.Min(choicesPerLevel, choiceCards?.Length ?? 0), random));
+        List<ChipItemData> eligibleCatalog = catalog
+            .Where(item => item != null && GetRuntimeLevel(item.id) < MaxRuntimeChipLevel)
+            .ToList();
+        currentOffers.AddRange(SelectDistinctOffers(eligibleCatalog, Mathf.Min(choicesPerLevel, choiceCards?.Length ?? 0), random));
 
         for (int i = 0; i < (choiceCards?.Length ?? 0); i++)
         {
@@ -166,13 +186,16 @@ public class ChipsetLevelUpPopup : MonoBehaviour
             if (!hasOffer) continue;
 
             ChipItemData offer = currentOffers[i].Clone();
-            offer.level = Mathf.Clamp(GetRuntimeLevel(offer.id) + 1, 1, offer.MaxLevel);
+            int currentRuntimeLevel = GetRuntimeLevel(offer.id);
+            offer.level = Mathf.Clamp(currentRuntimeLevel + 1, 1, MaxRuntimeChipLevel);
             currentOffers[i] = offer;
 
             card.Setup(
                 offer,
                 GetIconSprite(offer.iconKey),
-                GetFrameSprite(offer.tier),
+                GetGameplayLeverFrameSprite(),
+                GetLevelPipSprites(),
+                currentRuntimeLevel,
                 GetOfferDescription(offer),
                 HandleChipSelected);
             card.SetInteractionEnabled(false);
@@ -249,11 +272,24 @@ public class ChipsetLevelUpPopup : MonoBehaviour
 
         acceptingInput = false;
         SetCardInteraction(false);
-        runtimeChipLevels[selected.id] = selected.level;
-        OnRuntimeChipsetSelected?.Invoke(selected.Clone(), selected.level);
+        int newLevel = UpgradeRuntimeChipset(selected.id);
+        selected.level = newLevel;
+        OnRuntimeChipsetSelected?.Invoke(selected.Clone(), newLevel);
 
         if (transitionRoutine != null) StopCoroutine(transitionRoutine);
-        transitionRoutine = StartCoroutine(PlayCloseAnimation());
+        ChipsetChoiceCardUI selectedCard = choiceCards?.FirstOrDefault(card =>
+            card != null && ReferenceEquals(card.BoundData, selected));
+        transitionRoutine = StartCoroutine(PlaySelectionThenClose(selectedCard, newLevel));
+    }
+
+    private IEnumerator PlaySelectionThenClose(ChipsetChoiceCardUI selectedCard, int newLevel)
+    {
+        if (selectedCard != null)
+        {
+            yield return selectedCard.PlayLevelUpgradeFlash(newLevel);
+        }
+
+        yield return PlayCloseAnimation();
     }
 
     private IEnumerator PlayCloseAnimation()
@@ -348,24 +384,40 @@ public class ChipsetLevelUpPopup : MonoBehaviour
         }
     }
 
-    private int GetRuntimeLevel(int chipId)
+    public int GetRuntimeLevel(int chipId)
     {
         if (runtimeChipLevels.TryGetValue(chipId, out int level)) return level;
-        ChipItemData savedChip = catalog?.FirstOrDefault(chip => chip.id == chipId);
-        return savedChip != null ? Mathf.Max(0, savedChip.level - 1) : 0;
+        return 0;
+    }
+
+    public int UpgradeRuntimeChipset(int chipId)
+    {
+        int newLevel = Mathf.Clamp(GetRuntimeLevel(chipId) + 1, 1, MaxRuntimeChipLevel);
+        runtimeChipLevels[chipId] = newLevel;
+        return newLevel;
     }
 
     private Sprite GetIconSprite(string key)
     {
-        if (chipIcons == null || chipIcons.Length == 0) return null;
-        if (string.IsNullOrEmpty(key)) return chipIcons[0];
+        Sprite[] availableIcons = visualLibrary != null && visualLibrary.primaryChipIcons != null && visualLibrary.primaryChipIcons.Length > 0
+            ? visualLibrary.primaryChipIcons
+            : chipIcons;
+        return FindMatchingIcon(availableIcons, key);
+    }
 
-        string cleanKey = key.Replace(" ", "").Replace("-", "").Replace("_", "").ToLowerInvariant();
+    public static Sprite FindMatchingIcon(Sprite[] availableIcons, string key)
+    {
+        if (availableIcons == null || availableIcons.Length == 0) return null;
+        if (string.IsNullOrWhiteSpace(key)) return availableIcons.FirstOrDefault(sprite => sprite != null);
 
-        // 1. Direct name match
-        Sprite match = chipIcons.FirstOrDefault(sprite => sprite != null && (
+        string cleanKey = NormalizeSpriteName(key);
+
+        // The source atlas uses bilingual names such as "Rifle (Súng Trường)", while
+        // gameplay keys are short slugs such as "rifle". Match the normalized prefix too.
+        Sprite match = availableIcons.FirstOrDefault(sprite => sprite != null && (
             string.Equals(sprite.name, key, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(sprite.name.Replace(" ", "").Replace("-", "").Replace("_", "").ToLowerInvariant(), cleanKey)
+            string.Equals(NormalizeSpriteName(sprite.name), cleanKey, StringComparison.Ordinal) ||
+            NormalizeSpriteName(sprite.name).StartsWith(cleanKey, StringComparison.Ordinal)
         ));
         if (match != null) return match;
 
@@ -384,21 +436,55 @@ public class ChipsetLevelUpPopup : MonoBehaviour
 
         if (!string.IsNullOrEmpty(numKey))
         {
-            match = chipIcons.FirstOrDefault(s => s != null && s.name == numKey);
+            match = availableIcons.FirstOrDefault(s => s != null && s.name == numKey);
             if (match != null) return match;
         }
 
-        return chipIcons[0];
+        return availableIcons[0];
     }
 
-    private Sprite GetFrameSprite(ChipTier tier)
+    private static string NormalizeSpriteName(string value)
     {
-        if (frameSprites == null || frameSprites.Length == 0) return null;
-        return frameSprites[0];
+        if (string.IsNullOrEmpty(value)) return string.Empty;
+        return value.Replace(" ", string.Empty)
+            .Replace("-", string.Empty)
+            .Replace("_", string.Empty)
+            .ToLowerInvariant();
+    }
+
+    private Sprite GetGameplayLeverFrameSprite()
+    {
+        Sprite[] availableFrames = visualLibrary != null && visualLibrary.tierLeverFrames != null && visualLibrary.tierLeverFrames.Length > 0
+            ? visualLibrary.tierLeverFrames
+            : frameSprites;
+        return ResolveGreenLeverFrame(availableFrames);
+    }
+
+    public static Sprite ResolveGreenLeverFrame(Sprite[] availableFrames)
+    {
+        if (availableFrames == null || availableFrames.Length == 0) return null;
+        return availableFrames.FirstOrDefault(frame => frame != null && frame.name == "ChipsetLeverGreen")
+            ?? availableFrames.FirstOrDefault(frame => frame != null);
+    }
+
+    private Sprite[] GetLevelPipSprites()
+    {
+        return visualLibrary != null && visualLibrary.levelPipSprites != null && visualLibrary.levelPipSprites.Length > 0
+            ? visualLibrary.levelPipSprites
+            : levelPipSprites;
     }
 
     private static string GetOfferDescription(ChipItemData data)
     {
+        if (data == null) return string.Empty;
+        switch (Mathf.Clamp(data.level, 1, MaxRuntimeChipLevel))
+        {
+            case 2: return data.magicBonus;
+            case 3: return data.rareBonus;
+            case 4: return data.uniqueBonus;
+            case 5: return data.epicBonus;
+        }
+
         switch (data.iconKey)
         {
             case "spiky-discus": return "Spins a spiky Discus to attack an enemy.";
@@ -407,6 +493,14 @@ public class ChipsetLevelUpPopup : MonoBehaviour
             case "shotgun": return "Deals significant damage to nearby enemies with many shells.";
             default: return data.description;
         }
+    }
+
+    public static List<ChipItemData> CreateRuntimeCatalog()
+    {
+        return ChipsetController.CreateSavedDatabase()
+            .Where(chip => chip != null && chip.id >= 1 && chip.id <= PrimaryChipsetCount)
+            .Select(chip => chip.Clone())
+            .ToList();
     }
 
     public static List<ChipItemData> SelectDistinctOffers(
@@ -443,14 +537,9 @@ public class ChipsetLevelUpPopup : MonoBehaviour
 
     private static double GetOfferWeight(ChipItemData item)
     {
-        switch (item.tier)
-        {
-            case ChipTier.Rare: return 0.55d;
-            case ChipTier.Unique: return 0.28d;
-            case ChipTier.Epic: return 0.14d;
-            case ChipTier.Holographic: return 0.07d;
-            default: return 1d;
-        }
+        // Ten primary chipsets must all have the same chance to appear. Their persistent
+        // MainMenu tier controls the Lever frame colour, not their draw probability.
+        return 1d;
     }
 
     private void RestoreTimeScale()
@@ -484,6 +573,7 @@ public class ChipsetLevelUpPopup : MonoBehaviour
         UnityEngine.UI.Image currencyIcon,
         Sprite[] icons,
         Sprite[] frames,
+        Sprite[] levelPips,
         Sprite[] particleSprites)
     {
         playerLevelController = levelController;
@@ -498,6 +588,7 @@ public class ChipsetLevelUpPopup : MonoBehaviour
         rerollCanvasGroup = drawAgainButton != null ? drawAgainButton.GetComponent<CanvasGroup>() : null;
         chipIcons = icons;
         frameSprites = frames;
+        levelPipSprites = levelPips;
         mechanicalParticleSprites = particleSprites;
     }
 }

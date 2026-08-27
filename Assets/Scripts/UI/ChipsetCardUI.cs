@@ -69,6 +69,11 @@ public class ChipsetCardUI : MonoBehaviour
             Transform t = transform.Find("NormalContentGroup/BottomBar/ProgressText") ?? transform.Find("BottomBar/ProgressText") ?? transform.Find("ProgressText");
             if (t != null) progressText = t.GetComponent<TMP_Text>();
         }
+        if (bottomProgressBar == null)
+        {
+            Transform t = transform.Find("NormalContentGroup/BottomBar") ?? transform.Find("BottomBar");
+            if (t != null) bottomProgressBar = t.GetComponent<Image>();
+        }
         if (upgradeArrowGroup == null)
         {
             Transform t = transform.Find("NormalContentGroup/UpgradeArrowGroup") ?? transform.Find("UpgradeArrowGroup");
@@ -126,7 +131,7 @@ public class ChipsetCardUI : MonoBehaviour
             {
                 levelText.text = $"LV.{data.level:00} MAX";
             }
-            else if (data.IsAtTierCap)
+            else if (data.IsTierUnlockReady)
             {
                 levelText.text = $"LV.{data.level:00} CAP";
             }
@@ -183,6 +188,32 @@ public class ChipsetCardUI : MonoBehaviour
         }
     }
 
+    public void UseDetailBottomBarLayout()
+    {
+        ResolveReferences();
+        if (bottomProgressBar != null)
+        {
+            ApplyDetailBottomBarLayout(bottomProgressBar.rectTransform);
+        }
+    }
+
+    public static void ApplyDetailBottomBarLayout(RectTransform rect)
+    {
+        if (rect == null) return;
+
+        rect.anchorMin = new Vector2(0.08f, 0.10f);
+        rect.anchorMax = new Vector2(0.92f, 0.25f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.offsetMin = new Vector2(0f, 28f);
+        rect.offsetMax = new Vector2(0f, 28f);
+
+        Vector3 anchoredPosition = rect.anchoredPosition3D;
+        anchoredPosition.z = 0f;
+        rect.anchoredPosition3D = anchoredPosition;
+        rect.localRotation = Quaternion.identity;
+        rect.localScale = new Vector3(0.966f, 0.975f, 1f);
+    }
+
     public void SetupEmpty(Sprite frameSprite, Action onEmptyClick = null)
     {
         ResolveReferences();
@@ -217,7 +248,7 @@ public class ChipsetCardUI : MonoBehaviour
             {
                 levelText.text = $"LV.{boundData.level:00} MAX";
             }
-            else if (boundData.IsAtTierCap)
+            else if (boundData.IsTierUnlockReady)
             {
                 levelText.text = $"LV.{boundData.level:00} CAP";
             }

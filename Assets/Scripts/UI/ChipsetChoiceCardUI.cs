@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using TMPro;
 using UnityEngine;
 
@@ -20,6 +21,7 @@ public class ChipsetChoiceCardUI : MonoBehaviour
 
     private ChipItemData boundData;
     private Action<ChipItemData> onSelected;
+    private readonly UnityEngine.UI.Image[] levelPipImages = new UnityEngine.UI.Image[5];
 
     public ChipItemData BoundData => boundData;
     public CanvasGroup RootCanvasGroup => canvasGroup;
@@ -34,6 +36,8 @@ public class ChipsetChoiceCardUI : MonoBehaviour
         ChipItemData data,
         Sprite iconSprite,
         Sprite frameSprite,
+        Sprite[] levelPipSprites,
+        int currentRuntimeLevel,
         string offerDescription,
         Action<ChipItemData> selectionCallback)
     {
@@ -66,7 +70,12 @@ public class ChipsetChoiceCardUI : MonoBehaviour
             iconFrameImage.preserveAspect = true;
         }
 
-        ApplyTierColors(data != null ? data.tier : ChipTier.Magic);
+        EnsureLevelPips(levelPipSprites);
+        SetDisplayedRuntimeLevel(currentRuntimeLevel);
+
+        // Runtime levels 1-5 do not unlock or recolour chipset frames. Tier-colour
+        // unlocking belongs to the separate MainMenu chipset system.
+        ApplyTierColors(ChipTier.Magic);
 
         if (selectButton != null)
         {
@@ -84,6 +93,80 @@ public class ChipsetChoiceCardUI : MonoBehaviour
     private void HandleClicked()
     {
         if (boundData != null) onSelected?.Invoke(boundData);
+    }
+
+    public IEnumerator PlayLevelUpgradeFlash(int newLevel)
+    {
+        int pipIndex = Mathf.Clamp(newLevel, 1, levelPipImages.Length) - 1;
+        SetDisplayedRuntimeLevel(newLevel - 1);
+
+        UnityEngine.UI.Image pip = levelPipImages[pipIndex];
+        if (pip == null) yield break;
+
+        pip.enabled = true;
+        const float duration = 0.52f;
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float pulse = 0.5f + 0.5f * Mathf.Sin(elapsed * 34f);
+            Color color = pip.color;
+            color.a = Mathf.Lerp(0.25f, 1f, pulse);
+            pip.color = color;
+            pip.rectTransform.localScale = Vector3.one * Mathf.Lerp(0.86f, 1.22f, pulse);
+            yield return null;
+        }
+
+        pip.color = Color.white;
+        pip.rectTransform.localScale = Vector3.one;
+        SetDisplayedRuntimeLevel(newLevel);
+    }
+
+    private void EnsureLevelPips(Sprite[] levelPipSprites)
+    {
+        if (iconFrameImage == null) return;
+
+        for (int i = 0; i < levelPipImages.Length; i++)
+        {
+            string objectName = $"RuntimeLevelPip_{i + 1}";
+            Transform existing = iconFrameImage.transform.Find(objectName);
+            UnityEngine.UI.Image pip;
+            if (existing != null)
+            {
+                pip = existing.GetComponent<UnityEngine.UI.Image>();
+            }
+            else
+            {
+                GameObject pipObject = new GameObject(objectName, typeof(RectTransform), typeof(UnityEngine.UI.Image));
+                pipObject.transform.SetParent(iconFrameImage.transform, false);
+                pip = pipObject.GetComponent<UnityEngine.UI.Image>();
+                pip.raycastTarget = false;
+                pip.preserveAspect = true;
+                RectTransform rect = pip.rectTransform;
+                rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0f);
+                rect.pivot = new Vector2(0.5f, 0f);
+                rect.anchoredPosition = new Vector2((i - 2) * 21f, 8f);
+                rect.sizeDelta = new Vector2(20f, 23f);
+            }
+
+            pip.sprite = levelPipSprites != null && i < levelPipSprites.Length
+                ? levelPipSprites[i]
+                : null;
+            pip.enabled = false;
+            levelPipImages[i] = pip;
+        }
+    }
+
+    private void SetDisplayedRuntimeLevel(int level)
+    {
+        int clampedLevel = Mathf.Clamp(level, 0, levelPipImages.Length);
+        for (int i = 0; i < levelPipImages.Length; i++)
+        {
+            if (levelPipImages[i] == null) continue;
+            levelPipImages[i].enabled = i < clampedLevel && levelPipImages[i].sprite != null;
+            levelPipImages[i].color = Color.white;
+            levelPipImages[i].rectTransform.localScale = Vector3.one;
+        }
     }
 
     private void ApplyTierColors(ChipTier tier)
