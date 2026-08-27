@@ -60,6 +60,113 @@ public class PGEGameLogicTests
     }
 
     [Test]
+    public void ApkFreshInstall_AllLabItemsStartLocked_AndReleaseBalancesAreCorrect()
+    {
+        const string scenePath = "Assets/Scenes/MainMenu.unity";
+        Scene scene = UnityEditor.SceneManagement.EditorSceneManager.OpenScene(
+            scenePath,
+            UnityEditor.SceneManagement.OpenSceneMode.Single);
+
+        LabUpgradeController controller = Object.FindObjectOfType<LabUpgradeController>(true);
+        Assert.That(controller, Is.Not.Null, "MainMenu must contain a LabUpgradeController.");
+        Assert.That(controller.gameObject.scene, Is.EqualTo(scene));
+
+        FieldInfo itemsField = typeof(LabUpgradeController).GetField(
+            "items",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.That(itemsField, Is.Not.Null);
+
+        LabUpgradeController.ItemEntry[] items =
+            (LabUpgradeController.ItemEntry[])itemsField.GetValue(controller);
+        Assert.That(items, Is.Not.Null);
+        Assert.That(items.Length, Is.EqualTo(16), "The fresh-install contract covers all 16 Lab stats.");
+
+        string[] balanceKeys =
+        {
+            PlayerDataService.DataChipsKey,
+            PlayerDataService.RedGemsKey,
+            PlayerDataService.EnergyKey,
+            PlayerDataService.AdvanceStonesKey
+        };
+        bool[] hadBalance = new bool[balanceKeys.Length];
+        int[] savedBalance = new int[balanceKeys.Length];
+        string[] itemKeys = new string[items.Length];
+        bool[] hadItemLevel = new bool[items.Length];
+        int[] savedItemLevel = new int[items.Length];
+
+        for (int i = 0; i < balanceKeys.Length; i++)
+        {
+            hadBalance[i] = PlayerPrefs.HasKey(balanceKeys[i]);
+            savedBalance[i] = PlayerPrefs.GetInt(balanceKeys[i]);
+        }
+
+        for (int i = 0; i < items.Length; i++)
+        {
+            Assert.That(items[i], Is.Not.Null, $"Lab item {i} must be configured.");
+            itemKeys[i] = LabUpgradeController.GetItemLevelKey(items[i].itemName, i);
+            hadItemLevel[i] = PlayerPrefs.HasKey(itemKeys[i]);
+            savedItemLevel[i] = PlayerPrefs.GetInt(itemKeys[i]);
+        }
+
+        try
+        {
+            foreach (string key in balanceKeys)
+            {
+                PlayerPrefs.DeleteKey(key);
+            }
+
+            foreach (string key in itemKeys)
+            {
+                PlayerPrefs.DeleteKey(key);
+            }
+
+            PlayerPrefs.Save();
+
+            Assert.That(PlayerDataService.DataChips, Is.EqualTo(1000));
+            Assert.That(PlayerDataService.RedGems, Is.EqualTo(1000));
+            Assert.That(PlayerDataService.Energy, Is.EqualTo(100));
+            Assert.That(PlayerDataService.AdvanceStones, Is.EqualTo(0));
+
+            for (int i = 0; i < items.Length; i++)
+            {
+                LabUpgradeController.ItemEntry item = items[i];
+                Assert.That(item.startsUnlocked, Is.False,
+                    $"{item.itemName} must be locked on a clean APK install.");
+                Assert.That(PlayerDataService.GetItemLevel(item.itemName), Is.EqualTo(0),
+                    $"{item.itemName} must use level 0 as its locked fresh-install state.");
+            }
+        }
+        finally
+        {
+            for (int i = 0; i < balanceKeys.Length; i++)
+            {
+                if (hadBalance[i])
+                {
+                    PlayerPrefs.SetInt(balanceKeys[i], savedBalance[i]);
+                }
+                else
+                {
+                    PlayerPrefs.DeleteKey(balanceKeys[i]);
+                }
+            }
+
+            for (int i = 0; i < itemKeys.Length; i++)
+            {
+                if (hadItemLevel[i])
+                {
+                    PlayerPrefs.SetInt(itemKeys[i], savedItemLevel[i]);
+                }
+                else
+                {
+                    PlayerPrefs.DeleteKey(itemKeys[i]);
+                }
+            }
+
+            PlayerPrefs.Save();
+        }
+    }
+
+    [Test]
     public void PlayerHealth_DamageReduction_ReducesDamageCorrectly()
     {
         GameObject go = new GameObject("PlayerHealthTest");
@@ -1643,6 +1750,9 @@ public class PGEGameLogicTests
     [Test]
     public void Chipset_TierUnlock_RequiresTenEnhancesAndConsumesFragments()
     {
+        bool originalTestMode = ChipManager.IsTestMode;
+        int originalDataChips = ChipManager.DataChips;
+        int originalStoredDataChips = PlayerDataService.DataChips;
         ChipItemData chip = new ChipItemData
         {
             id = 201,
@@ -1653,27 +1763,39 @@ public class PGEGameLogicTests
             enhanceCost = 1
         };
         chip.ConfigureTierUnlockRules(10, 3, 5, 7, 11);
-        ChipManager.IsTestMode = false;
-        ChipManager.DataChips = 100000;
-
-        for (int i = 0; i < 10; i++)
+        try
         {
-            Assert.That(chip.Enhance(), Is.True, $"Enhance lần {i + 1} phải thành công.");
-        }
+            ChipManager.IsTestMode = false;
+            ChipManager.DataChips = 100000;
 
-        Assert.That(chip.tierEnhanceCount, Is.EqualTo(10));
-        Assert.That(chip.IsTierUnlockReady, Is.True);
-        Assert.That(chip.CanEnhance, Is.False);
-        Assert.That(chip.CanAdvanceTier, Is.True);
-        Assert.That(chip.AdvanceTier(), Is.True);
-        Assert.That(chip.tier, Is.EqualTo(ChipTier.Rare));
-        Assert.That(chip.count, Is.EqualTo(5), "Green -> Blue phải trừ đúng 3 mảnh chipset.");
-        Assert.That(chip.tierEnhanceCount, Is.Zero, "Sang khung mới phải reset tiến độ Enhance.");
+            for (int i = 0; i < 10; i++)
+            {
+                Assert.That(chip.Enhance(), Is.True, $"Enhance lần {i + 1} phải thành công.");
+            }
+
+            Assert.That(chip.tierEnhanceCount, Is.EqualTo(10));
+            Assert.That(chip.IsTierUnlockReady, Is.True);
+            Assert.That(chip.CanEnhance, Is.False);
+            Assert.That(chip.CanAdvanceTier, Is.True);
+            Assert.That(chip.AdvanceTier(), Is.True);
+            Assert.That(chip.tier, Is.EqualTo(ChipTier.Rare));
+            Assert.That(chip.count, Is.EqualTo(5), "Green -> Blue phải trừ đúng 3 mảnh chipset.");
+            Assert.That(chip.tierEnhanceCount, Is.Zero, "Sang khung mới phải reset tiến độ Enhance.");
+        }
+        finally
+        {
+            PlayerDataService.DataChips = originalStoredDataChips;
+            ChipManager.IsTestMode = originalTestMode;
+            ChipManager.DataChips = originalDataChips;
+        }
     }
 
     [Test]
     public void Chipset_YellowToRed_ConsumesInspectorConfiguredRedDataChips()
     {
+        bool originalTestMode = ChipManager.IsTestMode;
+        int originalRedGems = ChipManager.RedGems;
+        int originalStoredRedGems = PlayerDataService.RedGems;
         ChipItemData chip = new ChipItemData
         {
             id = 202,
@@ -1684,15 +1806,24 @@ public class PGEGameLogicTests
             tierEnhanceCount = 10
         };
         chip.ConfigureTierUnlockRules(10, 3, 5, 7, 11);
-        ChipManager.IsTestMode = false;
-        ChipManager.RedGems = 11;
+        try
+        {
+            ChipManager.IsTestMode = false;
+            ChipManager.RedGems = 11;
 
-        Assert.That(chip.UsesRedDataChipForAdvance, Is.True);
-        Assert.That(chip.CanAdvanceTier, Is.True);
-        Assert.That(chip.AdvanceTier(), Is.True);
-        Assert.That(chip.tier, Is.EqualTo(ChipTier.Holographic));
-        Assert.That(ChipManager.RedGems, Is.Zero, "Yellow -> Red phải trừ đúng Data Chip đỏ đã cấu hình.");
-        Assert.That(chip.count, Is.EqualTo(999), "Yellow -> Red không được trừ mảnh chipset thường.");
+            Assert.That(chip.UsesRedDataChipForAdvance, Is.True);
+            Assert.That(chip.CanAdvanceTier, Is.True);
+            Assert.That(chip.AdvanceTier(), Is.True);
+            Assert.That(chip.tier, Is.EqualTo(ChipTier.Holographic));
+            Assert.That(ChipManager.RedGems, Is.Zero, "Yellow -> Red phải trừ đúng Data Chip đỏ đã cấu hình.");
+            Assert.That(chip.count, Is.EqualTo(999), "Yellow -> Red không được trừ mảnh chipset thường.");
+        }
+        finally
+        {
+            PlayerDataService.RedGems = originalStoredRedGems;
+            ChipManager.IsTestMode = originalTestMode;
+            ChipManager.RedGems = originalRedGems;
+        }
     }
 
     [Test]
@@ -1720,6 +1851,9 @@ public class PGEGameLogicTests
         Assert.That(library.mainMenuTierFrames, Has.Length.EqualTo(5));
         Assert.That(library.mainMenuTierFrames, Has.All.Not.Null);
         Assert.That(new HashSet<Sprite>(library.mainMenuTierFrames).Count, Is.EqualTo(5));
+        CollectionAssert.AreEqual(
+            new[] { "ChipsetGreen", "ChipsetBlue", "ChipsetPurple", "ChipsetYelloe", "ChipsetRed" },
+            System.Array.ConvertAll(library.mainMenuTierFrames, sprite => sprite.name));
     }
 
     [Test]
@@ -1739,6 +1873,33 @@ public class PGEGameLogicTests
         Assert.That(rect.localScale, Is.EqualTo(new Vector3(0.966f, 0.975f, 1f)));
 
         Object.DestroyImmediate(go);
+    }
+
+    [Test]
+    public void Chipset_LevelLabel_AutoShrinksStatusSuffixInsideFrame()
+    {
+        GameObject go = new GameObject("ChipsetLevelLabelTest", typeof(RectTransform), typeof(TextMeshProUGUI));
+        TMP_Text text = go.GetComponent<TMP_Text>();
+
+        ChipsetCardUI.ConfigureLevelLabel(text, true);
+
+        Assert.That(text.enableAutoSizing, Is.True);
+        Assert.That(text.fontSizeMin, Is.EqualTo(10f));
+        Assert.That(text.fontSizeMax, Is.EqualTo(18f));
+        Assert.That(text.enableWordWrapping, Is.False);
+        Assert.That(text.margin, Is.EqualTo(new Vector4(2f, 0f, 2f, 0f)));
+
+        Object.DestroyImmediate(go);
+    }
+
+    [Test]
+    public void Chipset_FragmentBarColor_MatchesUnlockedFrameTier()
+    {
+        Assert.That(ChipsetCardUI.GetTierProgressColor(ChipTier.Magic), Is.EqualTo(new Color32(74, 222, 128, 255)));
+        Assert.That(ChipsetCardUI.GetTierProgressColor(ChipTier.Rare), Is.EqualTo(new Color32(56, 189, 248, 255)));
+        Assert.That(ChipsetCardUI.GetTierProgressColor(ChipTier.Unique), Is.EqualTo(new Color32(192, 132, 252, 255)));
+        Assert.That(ChipsetCardUI.GetTierProgressColor(ChipTier.Epic), Is.EqualTo(new Color32(250, 204, 21, 255)));
+        Assert.That(ChipsetCardUI.GetTierProgressColor(ChipTier.Holographic), Is.EqualTo(new Color32(255, 77, 45, 255)));
     }
 
     [Test]

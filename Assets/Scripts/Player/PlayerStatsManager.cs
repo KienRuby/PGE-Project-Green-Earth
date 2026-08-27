@@ -68,15 +68,18 @@ public class PlayerStatsManager : MonoBehaviour
         int defLevel = GetStatLevel("DEF") + GetStatLevel("ARMOR");
         int autoRecoveryLevel = GetStatLevel("AUTO RECOVERY") + GetStatLevel("REGEN");
         int critRateLevel = GetStatLevel("CRIT RATE") + GetStatLevel("CRITICAL") + GetStatLevel("CRIT");
+        int fireRateLevel = GetStatLevel("FIRE RATE") + GetStatLevel("ATK SPEED") + GetStatLevel("FIRE");
+        int rangeLevel = GetStatLevel("RANGE") + GetStatLevel("ATTACK RANGE");
+        int bulletSpeedLevel = GetStatLevel("BULLET SPEED") + GetStatLevel("TECH");
 
         BonusMaxHealth = hpLevel * hpBonusPerLevel;
         BonusDamage = atkLevel * damageBonusPerLevel;
         BonusSpeed = moveSpeedLevel * speedBonusPerLevel;
-        BonusFireRate = 0f;
-        BonusRange = 0f;
+        BonusFireRate = fireRateLevel * fireRateBonusPerLevel;
+        BonusRange = rangeLevel * rangeBonusPerLevel;
         HealthRegenPerSecond = autoRecoveryLevel * regenPerSecondPerLevel;
         DamageReduction = defLevel * damageReductionPerLevel;
-        BonusBulletSpeed = 0f;
+        BonusBulletSpeed = bulletSpeedLevel * bulletSpeedBonusPerLevel;
         CritChance = Mathf.Clamp01(critRateLevel * critChancePerLevel);
 
         if (playerHealth != null && BonusMaxHealth > 0)

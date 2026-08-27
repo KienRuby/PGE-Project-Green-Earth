@@ -1,0 +1,1447 @@
+fileFormatVersion: 2
+guid: 975c94a1b4a0fbf46860896c5c4f475c
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: icon chipset (1) 1_0
+      rect:
+        serializedVersion: 2
+        x: 1001
+        y: 2880
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9897c44f6665b424aaaf30ff9f7e0067
+      internalID: -1163071680
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_1
+      rect:
+        serializedVersion: 2
+        x: 1013
+        y: 2858
+        width: 22
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4930915eb468ece41b6bb5f8336b9519
+      internalID: -2054147271
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_2
+      rect:
+        serializedVersion: 2
+        x: 1326
+        y: 2752
+        width: 243
+        height: 107
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1b3202cbe6ffcab498e88aac674e639d
+      internalID: 1969729168
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_3
+      rect:
+        serializedVersion: 2
+        x: 875
+        y: 2710
+        width: 135
+        height: 148
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 87f67025aa70e6c478e2ec04ccf1df80
+      internalID: 700865893
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_4
+      rect:
+        serializedVersion: 2
+        x: 1035
+        y: 2846
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8ce89b5f358ac3c44b9feeb41817cbe5
+      internalID: -1817177714
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_5
+      rect:
+        serializedVersion: 2
+        x: 1474
+        y: 2824
+        width: 11
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0cd645b9780c3ed48b789ed0607e935c
+      internalID: 1487816897
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_6
+      rect:
+        serializedVersion: 2
+        x: 1508
+        y: 2835
+        width: 11
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: af7454bd44bd6fd4190542dafa5a7e45
+      internalID: -399938292
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_7
+      rect:
+        serializedVersion: 2
+        x: 417
+        y: 2700
+        width: 135
+        height: 142
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0108f5447647050489d26d103b44dacd
+      internalID: 1284060676
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_8
+      rect:
+        serializedVersion: 2
+        x: 855
+        y: 2813
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7d9413dff21f3524dab38598bd805526
+      internalID: -1587443874
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_9
+      rect:
+        serializedVersion: 2
+        x: 1035
+        y: 2813
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b9351b2c7b6928a499c6df05a24b9809
+      internalID: -1851174473
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_10
+      rect:
+        serializedVersion: 2
+        x: 844
+        y: 2801
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3bd11250e92260f4b89c4eebeb5f8c20
+      internalID: -372984104
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_11
+      rect:
+        serializedVersion: 2
+        x: 1024
+        y: 2801
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8e10b4f430ff27745978febed9656215
+      internalID: 1431852815
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_12
+      rect:
+        serializedVersion: 2
+        x: 1418
+        y: 2723
+        width: 22
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c67df113e15f47945bdd4360bb528020
+      internalID: 1115068472
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_13
+      rect:
+        serializedVersion: 2
+        x: 1024
+        y: 2711
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6611037dab466264f9480ba6228d4947
+      internalID: -1699140099
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_14
+      rect:
+        serializedVersion: 2
+        x: 419
+        y: 2356
+        width: 150
+        height: 164
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cbf225a6c7ff457468248cdadc77ca3f
+      internalID: -93335821
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_15
+      rect:
+        serializedVersion: 2
+        x: 574
+        y: 2453
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9340676b4f6e5b740bd450173a89fed6
+      internalID: -713198422
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ThapSung
+      rect:
+        serializedVersion: 2
+        x: 888
+        y: 2430
+        width: 163
+        height: 92
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5c33ae79dd6742245b690e740d46f3e9
+      internalID: 1006994453
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_17
+      rect:
+        serializedVersion: 2
+        x: 1058
+        y: 2453
+        width: 22
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dc2662d8688a9334ea22dba45dfa3249
+      internalID: -303137668
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_18
+      rect:
+        serializedVersion: 2
+        x: 1361
+        y: 2453
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ed5e0952f6b27894c99e66ee67597a1a
+      internalID: -665773949
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_19
+      rect:
+        serializedVersion: 2
+        x: 1372
+        y: 2356
+        width: 178
+        height: 143
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cbd9470e2d2ab844489339be79ea7aed
+      internalID: 557265613
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_20
+      rect:
+        serializedVersion: 2
+        x: 585
+        y: 2408
+        width: 22
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 319c8b1b014b696498a61adc31440af4
+      internalID: -1182987111
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_21
+      rect:
+        serializedVersion: 2
+        x: 1339
+        y: 2408
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 07bc55cd5613c0b4d9be9b0d3a2f42a3
+      internalID: 535971583
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_22
+      rect:
+        serializedVersion: 2
+        x: 574
+        y: 2396
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0fa776ad84412e94abce4d96b8ef92c1
+      internalID: 336854449
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_23
+      rect:
+        serializedVersion: 2
+        x: 855
+        y: 2396
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e2db2b4f303d2f445b01a2808d8c92c2
+      internalID: -686238260
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_24
+      rect:
+        serializedVersion: 2
+        x: 878
+        y: 2374
+        width: 22
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 27308b8542a162847bc6e1c1ad7f8965
+      internalID: 36225143
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_25
+      rect:
+        serializedVersion: 2
+        x: 968
+        y: 2385
+        width: 22
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9cf8894b7c2383b4091fe33e7b7dce8e
+      internalID: -567871707
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_26
+      rect:
+        serializedVersion: 2
+        x: 1350
+        y: 2385
+        width: 22
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: db3a520b5112edf49b524bcd05d51b06
+      internalID: 1409032753
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_27
+      rect:
+        serializedVersion: 2
+        x: 855
+        y: 2374
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5dbc11082bfcdeb4885cba2e013574b8
+      internalID: 1612664787
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_28
+      rect:
+        serializedVersion: 2
+        x: 439
+        y: 2351
+        width: 9
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2a73c4803fd1f7a4c915c559d843fe47
+      internalID: -338350568
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_29
+      rect:
+        serializedVersion: 2
+        x: 833
+        y: 2351
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 55090a3303d6a124ebca371051ff8576
+      internalID: -799495774
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ThapSung1
+      rect:
+        serializedVersion: 2
+        x: 836
+        y: 2238
+        width: 212
+        height: 122
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2ff46bdb6b31cb64ab857132a72811c9
+      internalID: -20553852
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_31
+      rect:
+        serializedVersion: 2
+        x: 878
+        y: 2340
+        width: 56
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f64f2c1bb1dc1464c93ce4588d60c029
+      internalID: -809385044
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_32
+      rect:
+        serializedVersion: 2
+        x: 1046
+        y: 2318
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d051af9f30869b64e81835237849e537
+      internalID: -198267589
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_33
+      rect:
+        serializedVersion: 2
+        x: 844
+        y: 1969
+        width: 135
+        height: 78
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c2cfce30a0865dd4fa367bb0cbab8d54
+      internalID: -1598605087
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_34
+      rect:
+        serializedVersion: 2
+        x: 873
+        y: 1868
+        width: 184
+        height: 168
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3dd1012aa3f1ad24dbc318c1e745c862
+      internalID: 1336955130
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_35
+      rect:
+        serializedVersion: 2
+        x: 1350
+        y: 2025
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bc76cd07f54f3a843805d8b13d150a1b
+      internalID: 189137636
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_36
+      rect:
+        serializedVersion: 2
+        x: 1373
+        y: 2014
+        width: 22
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 47442e9f8468aca4b843c062099fbb9d
+      internalID: -137591333
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_37
+      rect:
+        serializedVersion: 2
+        x: 1474
+        y: 2014
+        width: 22
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7519134861c3697478045b4306002824
+      internalID: 1256503078
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_38
+      rect:
+        serializedVersion: 2
+        x: 371
+        y: 1969
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d43e00ffe27d93c41b7a8f23fee92359
+      internalID: -2093136563
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_39
+      rect:
+        serializedVersion: 2
+        x: 412
+        y: 1888
+        width: 198
+        height: 128
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c4117daad1839fd44b313358534cc72d
+      internalID: -272380912
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_40
+      rect:
+        serializedVersion: 2
+        x: 1316
+        y: 1958
+        width: 34
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b5a3555fbd095b54390f419127a76286
+      internalID: -199744567
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_41
+      rect:
+        serializedVersion: 2
+        x: 1351
+        y: 1882
+        width: 213
+        height: 133
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f61e061648432c648ae3af7e95a6e38e
+      internalID: -136733714
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_42
+      rect:
+        serializedVersion: 2
+        x: 383
+        y: 1935
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 80bc514c822e1ac4b8c40e6c27151abb
+      internalID: 352239549
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_43
+      rect:
+        serializedVersion: 2
+        x: 833
+        y: 1924
+        width: 33
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cffc8e7349579fe4481ed101b7c06922
+      internalID: 1469529015
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_44
+      rect:
+        serializedVersion: 2
+        x: 1328
+        y: 1924
+        width: 33
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b7ae0a9be03c5e646bc22d91ba1da2bf
+      internalID: 1790524004
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_45
+      rect:
+        serializedVersion: 2
+        x: 416
+        y: 1901
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 16df61a72d668a94b914c4759750eafa
+      internalID: 694105585
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_46
+      rect:
+        serializedVersion: 2
+        x: 518
+        y: 1901
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 982a0154d7fec75479bd18c32788c791
+      internalID: 1516489985
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_47
+      rect:
+        serializedVersion: 2
+        x: 540
+        y: 1901
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c039e4bf2f2c1dc459de55bd0dd68620
+      internalID: 2073093495
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_48
+      rect:
+        serializedVersion: 2
+        x: 844
+        y: 1879
+        width: 33
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 671f140e6248135419b8b47ce65f6c3a
+      internalID: 722844091
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_49
+      rect:
+        serializedVersion: 2
+        x: 428
+        y: 1890
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 54f4df059061a7c4bb02c3868f3abdf6
+      internalID: -1573300017
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_50
+      rect:
+        serializedVersion: 2
+        x: 945
+        y: 1856
+        width: 22
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 623f3ad357683984d9c24c18707d9bfb
+      internalID: -2000838435
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_51
+      rect:
+        serializedVersion: 2
+        x: 979
+        y: 1856
+        width: 28
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 25ca2874aed85644d94ab052f1672373
+      internalID: -1165197018
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_52
+      rect:
+        serializedVersion: 2
+        x: 1373
+        y: 1845
+        width: 22
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9705817f56b89bb4c860c7bc2e96e5c5
+      internalID: -231214786
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_53
+      rect:
+        serializedVersion: 2
+        x: 1316
+        y: 1510
+        width: 234
+        height: 134
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2fd968cd6a939e74fa50473e2d99802d
+      internalID: 1293967973
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_54
+      rect:
+        serializedVersion: 2
+        x: 1519
+        y: 1643
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 01865ac5a744de6439cf4f747db869a7
+      internalID: -1106686678
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_55
+      rect:
+        serializedVersion: 2
+        x: 1521
+        y: 1598
+        width: 54
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e2c809deb488c5f4d98ef903269f7cd9
+      internalID: 1993018230
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_56
+      rect:
+        serializedVersion: 2
+        x: 1564
+        y: 1553
+        width: 22
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bc362c2a0638f9d488c2b1c3d1084df2
+      internalID: 1736568178
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_57
+      rect:
+        serializedVersion: 2
+        x: 1553
+        y: 1541
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 093525f9c65225b44930093f01079746
+      internalID: -1403484504
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_58
+      rect:
+        serializedVersion: 2
+        x: 1384
+        y: 1485
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 71a465e7c237c3f429bb494938468aba
+      internalID: -1523671242
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: icon chipset (1) 1_59
+      rect:
+        serializedVersion: 2
+        x: 1440
+        y: 1474
+        width: 45
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7a7e1fd51cb517548836a3f0c45643d0
+      internalID: -1173932930
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      ThapSung: 1006994453
+      ThapSung1: -20553852
+      icon chipset (1) 1_0: -1163071680
+      icon chipset (1) 1_1: -2054147271
+      icon chipset (1) 1_10: -372984104
+      icon chipset (1) 1_11: 1431852815
+      icon chipset (1) 1_12: 1115068472
+      icon chipset (1) 1_13: -1699140099
+      icon chipset (1) 1_14: -93335821
+      icon chipset (1) 1_15: -713198422
+      icon chipset (1) 1_17: -303137668
+      icon chipset (1) 1_18: -665773949
+      icon chipset (1) 1_19: 557265613
+      icon chipset (1) 1_2: 1969729168
+      icon chipset (1) 1_20: -1182987111
+      icon chipset (1) 1_21: 535971583
+      icon chipset (1) 1_22: 336854449
+      icon chipset (1) 1_23: -686238260
+      icon chipset (1) 1_24: 36225143
+      icon chipset (1) 1_25: -567871707
+      icon chipset (1) 1_26: 1409032753
+      icon chipset (1) 1_27: 1612664787
+      icon chipset (1) 1_28: -338350568
+      icon chipset (1) 1_29: -799495774
+      icon chipset (1) 1_3: 700865893
+      icon chipset (1) 1_31: -809385044
+      icon chipset (1) 1_32: -198267589
+      icon chipset (1) 1_33: -1598605087
+      icon chipset (1) 1_34: 1336955130
+      icon chipset (1) 1_35: 189137636
+      icon chipset (1) 1_36: -137591333
+      icon chipset (1) 1_37: 1256503078
+      icon chipset (1) 1_38: -2093136563
+      icon chipset (1) 1_39: -272380912
+      icon chipset (1) 1_4: -1817177714
+      icon chipset (1) 1_40: -199744567
+      icon chipset (1) 1_41: -136733714
+      icon chipset (1) 1_42: 352239549
+      icon chipset (1) 1_43: 1469529015
+      icon chipset (1) 1_44: 1790524004
+      icon chipset (1) 1_45: 694105585
+      icon chipset (1) 1_46: 1516489985
+      icon chipset (1) 1_47: 2073093495
+      icon chipset (1) 1_48: 722844091
+      icon chipset (1) 1_49: -1573300017
+      icon chipset (1) 1_5: 1487816897
+      icon chipset (1) 1_50: -2000838435
+      icon chipset (1) 1_51: -1165197018
+      icon chipset (1) 1_52: -231214786
+      icon chipset (1) 1_53: 1293967973
+      icon chipset (1) 1_54: -1106686678
+      icon chipset (1) 1_55: 1993018230
+      icon chipset (1) 1_56: 1736568178
+      icon chipset (1) 1_57: -1403484504
+      icon chipset (1) 1_58: -1523671242
+      icon chipset (1) 1_59: -1173932930
+      icon chipset (1) 1_6: -399938292
+      icon chipset (1) 1_7: 1284060676
+      icon chipset (1) 1_8: -1587443874
+      icon chipset (1) 1_9: -1851174473
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

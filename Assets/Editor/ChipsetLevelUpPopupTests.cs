@@ -112,12 +112,24 @@ public class ChipsetLevelUpPopupTests
             Is.EqualTo(10),
             "Mỗi chipset chính phải resolve thành một icon atlas riêng, không được fallback về Standard Gun.");
 
-        UnityEngine.Sprite gameplayFrame = ChipsetLevelUpPopup.ResolveGreenLeverFrame(library.tierLeverFrames);
-        Assert.That(gameplayFrame, Is.Not.Null);
-        Assert.That(
-            gameplayFrame.name,
-            Is.EqualTo("ChipsetLeverGreen"),
-            "Runtime level 1-5 phải luôn giữ khung Green; màu khung chỉ đổi trong hệ thống mở khóa chipset riêng.");
+        string[] expectedTierFrames =
+        {
+            "ChipsetLeverGreen",
+            "ChipsetLeverBlue",
+            "ChipsetLeverPurple",
+            "ChipsetLeveYellow",
+            "ChipsetLeverRed"
+        };
+        for (int tierIndex = 0; tierIndex < expectedTierFrames.Length; tierIndex++)
+        {
+            ChipTier tier = (ChipTier)(tierIndex + 1);
+            UnityEngine.Sprite gameplayFrame = ChipsetLevelUpPopup.ResolveLeverFrameForTier(library.tierLeverFrames, tier);
+            Assert.That(gameplayFrame, Is.Not.Null);
+            Assert.That(
+                gameplayFrame.name,
+                Is.EqualTo(expectedTierFrames[tierIndex]),
+                $"Popup gameplay phải dùng đúng khung đã mở khóa của tier {tier}.");
+        }
     }
 
     [Test]

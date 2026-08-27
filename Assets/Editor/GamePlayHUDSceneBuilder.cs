@@ -129,11 +129,39 @@ public static class GamePlayHUDSceneBuilder
         scaler.referenceResolution = new Vector2(1080f, 1920f);
         scaler.matchWidthOrHeight = 0.5f;
 
-        // 2. Tìm hoặc thêm PlayerLevelController vào Player hoặc Manager
+        // 2. Tìm hoặc thêm PlayerLevelController, GunTurretSkill, PlayerChipsetSkillManager vào Player hoặc Manager
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-        if (playerObj != null && playerObj.GetComponent<PlayerLevelController>() == null)
+        if (playerObj != null)
         {
-            playerObj.AddComponent<PlayerLevelController>();
+            if (playerObj.GetComponent<PlayerLevelController>() == null)
+            {
+                playerObj.AddComponent<PlayerLevelController>();
+            }
+
+            GunTurretSkill turretSkill = playerObj.GetComponent<GunTurretSkill>();
+            if (turretSkill == null)
+            {
+                turretSkill = playerObj.AddComponent<GunTurretSkill>();
+            }
+
+            RocketPunchSkill punchSkill = playerObj.GetComponent<RocketPunchSkill>();
+            if (punchSkill == null)
+            {
+                punchSkill = playerObj.AddComponent<RocketPunchSkill>();
+            }
+
+            SpinningBladeSkill bladeSkill = playerObj.GetComponent<SpinningBladeSkill>();
+            if (bladeSkill == null)
+            {
+                bladeSkill = playerObj.AddComponent<SpinningBladeSkill>();
+            }
+
+            PlayerChipsetSkillManager skillMgr = playerObj.GetComponent<PlayerChipsetSkillManager>();
+            if (skillMgr == null)
+            {
+                skillMgr = playerObj.AddComponent<PlayerChipsetSkillManager>();
+            }
+
             EditorUtility.SetDirty(playerObj);
         }
 
@@ -681,7 +709,11 @@ public static class GamePlayHUDSceneBuilder
         iconFrame.raycastTarget = false;
 
         UnityEngine.UI.Image icon = CreateImage("ChipIcon", iconFrame.transform, Color.white, null);
-        Stretch(icon.rectTransform, Vector2.zero, Vector2.one, new Vector2(22f, 22f), new Vector2(-22f, -22f));
+        // Designer-approved Level Up layout saved in GamePlay.unity.
+        icon.rectTransform.anchorMin = icon.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+        icon.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+        icon.rectTransform.anchoredPosition = new Vector2(-16.9f, 19.8f);
+        icon.rectTransform.sizeDelta = new Vector2(107.569725f, 82.56f);
         icon.preserveAspect = true;
         icon.raycastTarget = false;
 

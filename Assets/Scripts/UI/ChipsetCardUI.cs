@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,6 +14,7 @@ public class ChipsetCardUI : MonoBehaviour
 {
     [Header("UI Elements")]
     [SerializeField] private Image cardFrameImage;
+    [SerializeField] private Image redEffectBackgroundImage;
     [SerializeField] private Image iconImage;
     [SerializeField] private TMP_Text levelText;
     [SerializeField] private TMP_Text progressText;
@@ -31,6 +33,12 @@ public class ChipsetCardUI : MonoBehaviour
     private Action<ChipItemData> onCardClicked;
     private Action<ChipItemData> onUpgradeClicked;
     private Action onEmptySlotClicked;
+    private Material defaultFrameMaterial;
+    private bool hasCapturedDefaultFrameMaterial;
+    private Material defaultBackgroundMaterial;
+    private Color defaultBackgroundColor;
+    private bool hasCapturedDefaultBackgroundVisual;
+    private bool toggleDedicatedRedBackground;
 
     public ChipItemData BoundData => boundData;
     public ChipSlotState SlotState => slotState;
@@ -44,6 +52,27 @@ public class ChipsetCardUI : MonoBehaviour
     {
         if (cardButton == null) cardButton = GetComponent<Button>();
         if (cardFrameImage == null) cardFrameImage = GetComponent<Image>();
+        CaptureDefaultFrameMaterial();
+        if (redEffectBackgroundImage == null)
+        {
+            Transform background = transform.Find("BackgroundRed") ?? transform.Find("Background");
+            if (background != null)
+            {
+                redEffectBackgroundImage = background.GetComponent<Image>();
+                toggleDedicatedRedBackground = string.Equals(
+                    background.name,
+                    "BackgroundRed",
+                    StringComparison.OrdinalIgnoreCase);
+            }
+        }
+        else
+        {
+            toggleDedicatedRedBackground = string.Equals(
+                redEffectBackgroundImage.name,
+                "BackgroundRed",
+                StringComparison.OrdinalIgnoreCase);
+        }
+        CaptureDefaultBackgroundVisual();
         if (normalContentGroup == null)
         {
             Transform t = transform.Find("NormalContentGroup");
@@ -111,6 +140,7 @@ public class ChipsetCardUI : MonoBehaviour
             cardFrameImage.raycastTarget = true;
             if (frameSprite != null) cardFrameImage.sprite = frameSprite;
         }
+        SetRedTierBackgroundEffect(data != null && data.tier == ChipTier.Holographic);
 
         if (iconImage != null)
         {
@@ -139,6 +169,13 @@ public class ChipsetCardUI : MonoBehaviour
             {
                 levelText.text = $"LV.{data.level:00}";
             }
+
+            ConfigureLevelLabel(levelText, data.IsMaxOverall || data.IsTierUnlockReady);
+        }
+
+        if (bottomProgressBar != null && data != null)
+        {
+            bottomProgressBar.color = GetTierProgressColor(data.tier);
         }
 
         if (progressText != null && data != null)
@@ -146,11 +183,9 @@ public class ChipsetCardUI : MonoBehaviour
             if (data.IsMaxOverall)
             {
                 progressText.text = $"{data.count}";
-                if (bottomProgressBar != null) bottomProgressBar.color = new Color32(232, 121, 249, 255); // Pink
             }
             else
             {
-                if (bottomProgressBar != null) bottomProgressBar.color = new Color32(74, 222, 128, 255); // Bright Green
                 if (data.requiredCount > 0)
                 {
                     progressText.text = $"{data.count}/{data.requiredCount}";
@@ -185,6 +220,30 @@ public class ChipsetCardUI : MonoBehaviour
             upgradeButton.interactable = true;
             upgradeButton.onClick.RemoveAllListeners();
             upgradeButton.onClick.AddListener(() => onUpgradeClicked?.Invoke(boundData));
+        }
+    }
+
+    public static void ConfigureLevelLabel(TMP_Text text, bool hasStatusSuffix)
+    {
+        if (text == null) return;
+
+        text.enableAutoSizing = true;
+        text.fontSizeMin = 10f;
+        text.fontSizeMax = hasStatusSuffix ? 18f : 22f;
+        text.enableWordWrapping = false;
+        text.overflowMode = TextOverflowModes.Overflow;
+        text.margin = new Vector4(2f, 0f, 2f, 0f);
+    }
+
+    public static Color32 GetTierProgressColor(ChipTier tier)
+    {
+        switch (tier)
+        {
+            case ChipTier.Rare: return new Color32(56, 189, 248, 255);      // Blue
+            case ChipTier.Unique: return new Color32(192, 132, 252, 255);  // Purple
+            case ChipTier.Epic: return new Color32(250, 204, 21, 255);     // Yellow
+            case ChipTier.Holographic: return new Color32(255, 255, 255, 0); // Red Tier: Alpha = 0 trong suốt thấy trọn vẹn khung
+            default: return new Color32(74, 222, 128, 255);                // Green
         }
     }
 
@@ -229,6 +288,7 @@ public class ChipsetCardUI : MonoBehaviour
             cardFrameImage.raycastTarget = true;
             if (frameSprite != null) cardFrameImage.sprite = frameSprite;
         }
+        SetRedTierBackgroundEffect(false);
 
         if (cardButton != null)
         {
@@ -256,18 +316,25 @@ public class ChipsetCardUI : MonoBehaviour
             {
                 levelText.text = $"LV.{boundData.level:00}";
             }
+
+            ConfigureLevelLabel(levelText, boundData.IsMaxOverall || boundData.IsTierUnlockReady);
         }
+
+        if (bottomProgressBar != null)
+        {
+            bottomProgressBar.color = GetTierProgressColor(boundData.tier);
+        }
+
+        SetRedTierBackgroundEffect(boundData.tier == ChipTier.Holographic);
 
         if (progressText != null)
         {
             if (boundData.IsMaxOverall)
             {
                 progressText.text = $"{boundData.count}";
-                if (bottomProgressBar != null) bottomProgressBar.color = new Color32(232, 121, 249, 255); // Pink
             }
             else
             {
-                if (bottomProgressBar != null) bottomProgressBar.color = new Color32(74, 222, 128, 255); // Bright Green
                 if (boundData.requiredCount > 0)
                 {
                     progressText.text = $"{boundData.count}/{boundData.requiredCount}";
@@ -315,6 +382,72 @@ public class ChipsetCardUI : MonoBehaviour
         this.bottomProgressBar = bottomBar;
         this.normalContentGroup = normalGroup;
         this.emptySlotGroup = emptyGroup;
+        hasCapturedDefaultFrameMaterial = false;
+        CaptureDefaultFrameMaterial();
+    }
+
+    private Material defaultBottomBarMaterial;
+    private bool hasCapturedDefaultBottomBarMaterial;
+
+    private void CaptureDefaultFrameMaterial()
+    {
+        if (hasCapturedDefaultFrameMaterial || cardFrameImage == null) return;
+
+        defaultFrameMaterial = cardFrameImage.material;
+        hasCapturedDefaultFrameMaterial = true;
+    }
+
+    private void CaptureDefaultBottomBarMaterial()
+    {
+        if (hasCapturedDefaultBottomBarMaterial || bottomProgressBar == null) return;
+
+        defaultBottomBarMaterial = bottomProgressBar.material;
+        hasCapturedDefaultBottomBarMaterial = true;
+    }
+
+    private void CaptureDefaultBackgroundVisual()
+    {
+        if (hasCapturedDefaultBackgroundVisual || redEffectBackgroundImage == null) return;
+
+        defaultBackgroundMaterial = redEffectBackgroundImage.material;
+        defaultBackgroundColor = redEffectBackgroundImage.color;
+        hasCapturedDefaultBackgroundVisual = true;
+    }
+
+    private void SetRedTierBackgroundEffect(bool enabled)
+    {
+        CaptureDefaultFrameMaterial();
+        if (cardFrameImage != null)
+        {
+            cardFrameImage.material = enabled
+                ? ChipsetFrameShimmerMaterial.Get(cardFrameImage.sprite) ?? defaultFrameMaterial
+                : defaultFrameMaterial;
+        }
+
+        CaptureDefaultBottomBarMaterial();
+        if (bottomProgressBar != null)
+        {
+            bottomProgressBar.material = defaultBottomBarMaterial;
+            if (enabled)
+            {
+                bottomProgressBar.color = new Color32(255, 255, 255, 0);
+            }
+        }
+
+        if (redEffectBackgroundImage == null) return;
+
+        CaptureDefaultBackgroundVisual();
+        if (toggleDedicatedRedBackground)
+        {
+            redEffectBackgroundImage.gameObject.SetActive(enabled);
+        }
+
+        redEffectBackgroundImage.material = enabled
+            ? ChipsetFrameShimmerMaterial.Get(redEffectBackgroundImage.sprite) ?? defaultBackgroundMaterial
+            : defaultBackgroundMaterial;
+        redEffectBackgroundImage.color = enabled
+            ? new Color32(210, 24, 24, 255)
+            : defaultBackgroundColor;
     }
 
     public void SetDirectVisual(Sprite frame, Sprite icon, string level, string progress, bool star, bool arrow)
@@ -332,5 +465,48 @@ public class ChipsetCardUI : MonoBehaviour
         if (progressText != null) progressText.text = progress;
         if (starObject != null) starObject.SetActive(star);
         if (upgradeArrowGroup != null) upgradeArrowGroup.SetActive(arrow);
+    }
+}
+
+internal static class ChipsetFrameShimmerMaterial
+{
+    private static readonly Dictionary<int, Material> MaterialsBySprite = new Dictionary<int, Material>();
+
+    public static Material Get(Sprite sprite)
+    {
+        int spriteId = sprite != null ? sprite.GetInstanceID() : 0;
+        if (MaterialsBySprite.TryGetValue(spriteId, out Material existing) && existing != null)
+        {
+            return existing;
+        }
+
+        Shader shader = Resources.Load<Shader>("Shaders/ChipsetRedShimmer");
+        if (shader == null) shader = Shader.Find("PGE/UI/Chipset Red Shimmer");
+        if (shader == null) return null;
+
+        Material material = new Material(shader)
+        {
+            name = "Chipset Red Shimmer (Runtime)",
+            hideFlags = HideFlags.HideAndDontSave
+        };
+
+        Vector4 uvRect = new Vector4(0f, 0f, 1f, 1f);
+        if (sprite != null && sprite.uv != null && sprite.uv.Length > 0)
+        {
+            Vector2 min = sprite.uv[0];
+            Vector2 max = sprite.uv[0];
+            for (int i = 1; i < sprite.uv.Length; i++)
+            {
+                min = Vector2.Min(min, sprite.uv[i]);
+                max = Vector2.Max(max, sprite.uv[i]);
+            }
+
+            Vector2 size = max - min;
+            uvRect = new Vector4(min.x, min.y, Mathf.Max(0.0001f, size.x), Mathf.Max(0.0001f, size.y));
+        }
+
+        material.SetVector("_SpriteUVRect", uvRect);
+        MaterialsBySprite[spriteId] = material;
+        return material;
     }
 }

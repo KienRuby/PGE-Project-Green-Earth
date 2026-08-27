@@ -20,6 +20,16 @@ public class Projectile : MonoBehaviour, IPoolable
     [Tooltip("Tốc độ bẻ lái đuổi theo mục tiêu khi bật isHoming (độ/giây).")]
     [SerializeField] private float homingRotateSpeed = 360f;
 
+    [Header("Explosion Settings (Đạn Nổ Diện Rộng)")]
+    [Tooltip("Bật tính năng đạn nổ gây sát thương diện rộng khi trúng mục tiêu.")]
+    [SerializeField] private bool isExplosive = false;
+
+    [Tooltip("Bán kính nổ gây sát thương (mét).")]
+    [SerializeField] private float explosionRadius = 2.0f;
+
+    [Tooltip("Prefab hiệu ứng nổ (VFX Boom).")]
+    [SerializeField] private GameObject explosionVfxPrefab;
+
     private Rigidbody2D rb;
     private Vector2 moveDirection;
     private float lifeTimer;
@@ -127,6 +137,13 @@ public class Projectile : MonoBehaviour, IPoolable
         );
     }
 
+    public void SetExplosive(bool explosive, float radius = 2.0f, GameObject vfx = null)
+    {
+        isExplosive = explosive;
+        explosionRadius = Mathf.Max(0.5f, radius);
+        if (vfx != null) explosionVfxPrefab = vfx;
+    }
+
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other == null) return;
@@ -146,7 +163,15 @@ public class Projectile : MonoBehaviour, IPoolable
                 return;
             }
 
-            damageable.TakeDamage(damage);
+            if (isExplosive)
+            {
+                Explode();
+            }
+            else
+            {
+                damageable.TakeDamage(damage);
+            }
+
             Despawn();
             return;
         }
@@ -154,7 +179,36 @@ public class Projectile : MonoBehaviour, IPoolable
         // Tự hủy nếu đạn đâm vào tường hoặc vật cản vật lý (không phải trigger)
         if (!other.isTrigger)
         {
+            if (isExplosive) Explode();
             Despawn();
+        }
+    }
+
+    private void Explode()
+    {
+        if (explosionVfxPrefab != null)
+        {
+            if (PoolManager.Instance != null)
+            {
+                PoolManager.Instance.Spawn(explosionVfxPrefab, transform.position, Quaternion.identity);
+            }
+            else
+            {
+                Instantiate(explosionVfxPrefab, transform.position, Quaternion.identity);
+            }
+        }
+
+        Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(transform.position, explosionRadius);
+        for (int i = 0; i < hitEnemies.Length; i++)
+        {
+            Collider2D col = hitEnemies[i];
+            if (col == null) continue;
+
+            EnemyHealth enemy = col.GetComponentInParent<EnemyHealth>();
+            if (enemy != null && !enemy.IsDead && enemy.gameObject.activeInHierarchy)
+            {
+                enemy.TakeDamage(damage);
+            }
         }
     }
 
@@ -190,6 +244,7 @@ public class Projectile : MonoBehaviour, IPoolable
     {
         moveDirection = Vector2.zero;
         targetEnemy = null;
+        isExplosive = false;
         if (rb != null)
         {
             rb.velocity = Vector2.zero;

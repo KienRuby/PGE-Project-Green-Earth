@@ -36,6 +36,7 @@ public class EnemyMovement : MonoBehaviour, IPoolable
     private float nextPlayerSearchTime;
     private Vector3 initialScale;
     private bool isFacingRight = true;
+    private float stunTimer = 0f;
 
     // Shared static buffer để quét quái xung quanh không tạo rác GC
     private static readonly Collider2D[] sharedCollidersBuffer = new Collider2D[16];
@@ -43,6 +44,15 @@ public class EnemyMovement : MonoBehaviour, IPoolable
     private float baseMoveSpeed;
     private Vector2 cachedSeparationForce;
     private int instanceId;
+
+    public bool IsStunned => stunTimer > 0f;
+
+    public void ApplyStun(float duration)
+    {
+        if (duration <= 0f) return;
+        stunTimer = Mathf.Max(stunTimer, duration);
+        if (rb != null) rb.velocity = Vector2.zero;
+    }
 
     public float MoveSpeed
     {
@@ -101,6 +111,13 @@ public class EnemyMovement : MonoBehaviour, IPoolable
 
     private void FixedUpdate()
     {
+        if (stunTimer > 0f)
+        {
+            stunTimer -= Time.fixedDeltaTime;
+            if (rb != null) rb.velocity = Vector2.zero;
+            return;
+        }
+
         if (player == null || !player.gameObject.activeInHierarchy)
         {
             if (Time.time >= nextPlayerSearchTime)
@@ -300,6 +317,7 @@ public class EnemyMovement : MonoBehaviour, IPoolable
     public void OnSpawnFromPool()
     {
         moveSpeed = BaseMoveSpeed;
+        stunTimer = 0f;
         cachedSeparationForce = Vector2.zero;
         if (initialScale != Vector3.zero)
         {
@@ -316,6 +334,7 @@ public class EnemyMovement : MonoBehaviour, IPoolable
     public void OnReturnToPool()
     {
         moveSpeed = BaseMoveSpeed;
+        stunTimer = 0f;
         cachedSeparationForce = Vector2.zero;
         if (rb != null)
         {

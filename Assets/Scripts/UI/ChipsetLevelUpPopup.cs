@@ -193,7 +193,7 @@ public class ChipsetLevelUpPopup : MonoBehaviour
             card.Setup(
                 offer,
                 GetIconSprite(offer.iconKey),
-                GetGameplayLeverFrameSprite(),
+                GetGameplayLeverFrameSprite(offer.tier),
                 GetLevelPipSprites(),
                 currentRuntimeLevel,
                 GetOfferDescription(offer),
@@ -452,11 +452,24 @@ public class ChipsetLevelUpPopup : MonoBehaviour
             .ToLowerInvariant();
     }
 
-    private Sprite GetGameplayLeverFrameSprite()
+    private Sprite GetGameplayLeverFrameSprite(ChipTier tier)
     {
         Sprite[] availableFrames = visualLibrary != null && visualLibrary.tierLeverFrames != null && visualLibrary.tierLeverFrames.Length > 0
             ? visualLibrary.tierLeverFrames
             : frameSprites;
+        return ResolveLeverFrameForTier(availableFrames, tier);
+    }
+
+    public static Sprite ResolveLeverFrameForTier(Sprite[] availableFrames, ChipTier tier)
+    {
+        if (availableFrames == null || availableFrames.Length == 0) return null;
+
+        int frameIndex = ChipsetController.GetFrameIndex(tier);
+        if (frameIndex < availableFrames.Length && availableFrames[frameIndex] != null)
+        {
+            return availableFrames[frameIndex];
+        }
+
         return ResolveGreenLeverFrame(availableFrames);
     }
 
@@ -477,6 +490,43 @@ public class ChipsetLevelUpPopup : MonoBehaviour
     private static string GetOfferDescription(ChipItemData data)
     {
         if (data == null) return string.Empty;
+
+        if (data.id == 6 || (data.iconKey != null && data.iconKey.Contains("turret")))
+        {
+            switch (Mathf.Clamp(data.level, 1, MaxRuntimeChipLevel))
+            {
+                case 1: return "Đặt một tháp pháo cố định tại chỗ.";
+                case 2: return "Tăng sát thương và thời gian tháp đứng vững.";
+                case 3: return "Đạn tháp pháo có tỉ lệ (30%) nổ gây sát thương diện rộng.";
+                case 4: return "Tháp pháo tự động hồi phục máu khi bị quái đánh.";
+                case 5: return "Tối thượng: Đặt được tối đa 2 Tháp súng cùng lúc trên sân.";
+            }
+        }
+
+        if (data.id == 3 || (data.iconKey != null && (data.iconKey.Contains("punch") || data.iconKey.Contains("rocket"))))
+        {
+            switch (Mathf.Clamp(data.level, 1, MaxRuntimeChipLevel))
+            {
+                case 1: return "Phóng nắm đấm tên lửa nổ tung mục tiêu.";
+                case 2: return "Tăng mạnh sát thương trực tiếp.";
+                case 3: return "Tăng 40% bán kính vụ nổ, dễ dàng dọn bầy quái.";
+                case 4: return "Vụ nổ làm choáng (Stun) kẻ địch sống sót trong 1s.";
+                case 5: return "Tối thượng: Vị trí nổ để lại một vùng dung nham thiêu đốt kẻ địch đi qua trong 3 giây.";
+            }
+        }
+
+        if (data.id == 4 || (data.iconKey != null && data.iconKey.Contains("blade")))
+        {
+            switch (Mathf.Clamp(data.level, 1, MaxRuntimeChipLevel))
+            {
+                case 1: return "Phóng dao đi và tự động quay về tay.";
+                case 2: return "Dao sắc hơn, bay nhanh hơn.";
+                case 3: return "Chắc chắn đâm xuyên mọi mục tiêu trên đường bay.";
+                case 4: return "Phóng ra 2 lưỡi dao hình chữ V.";
+                case 5: return "Tối thượng: Lưỡi dao khi bay tới đích sẽ dừng lại xoay tại chỗ 2 giây tạo lốc xoáy AoE trước khi quay về.";
+            }
+        }
+
         switch (Mathf.Clamp(data.level, 1, MaxRuntimeChipLevel))
         {
             case 2: return data.magicBonus;

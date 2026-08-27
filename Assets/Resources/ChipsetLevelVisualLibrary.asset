@@ -24,11 +24,11 @@ MonoBehaviour:
   - {fileID: 1736317296, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
   - {fileID: 563165159, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
   mainMenuTierFrames:
-  - {fileID: 21300000, guid: bf8017a72e40b0e49b17deea9beb1d01, type: 3}
-  - {fileID: 21300000, guid: 6f3d4cf65b7e36f4fbb10be45b45854f, type: 3}
-  - {fileID: 21300000, guid: 1fad9d41a61e8e54b809fb50b03f7152, type: 3}
-  - {fileID: 21300000, guid: c0fcc6d0f3f19504f8725beadfadff1a, type: 3}
-  - {fileID: 21300000, guid: 404d0f2a93c455945aeaa1407c848a5f, type: 3}
+  - {fileID: -1911426385, guid: 2ab09f1459253de459ea75fd3b8d8659, type: 3}
+  - {fileID: -1651229128, guid: 2ab09f1459253de459ea75fd3b8d8659, type: 3}
+  - {fileID: -1129621477, guid: 2ab09f1459253de459ea75fd3b8d8659, type: 3}
+  - {fileID: -1222936589, guid: 2ab09f1459253de459ea75fd3b8d8659, type: 3}
+  - {fileID: -1350579062, guid: 2ab09f1459253de459ea75fd3b8d8659, type: 3}
   tierLeverFrames:
   - {fileID: -1478496656, guid: 2ab09f1459253de459ea75fd3b8d8659, type: 3}
   - {fileID: 125935959, guid: 2ab09f1459253de459ea75fd3b8d8659, type: 3}
