@@ -361,7 +361,7 @@ public static class PlayerDataService
 
     public static int ActiveChipsetDeckIndex
     {
-        get => Mathf.Clamp(PlayerPrefs.GetInt(ChipsetActiveDeckKey, 2), 0, 2); // Mặc định Preset 3 (index 2)
+        get => Mathf.Clamp(PlayerPrefs.GetInt(ChipsetActiveDeckKey, 0), 0, 2); // Mặc định Preset 1 (index 0)
         set
         {
             PlayerPrefs.SetInt(ChipsetActiveDeckKey, Mathf.Clamp(value, 0, 2));

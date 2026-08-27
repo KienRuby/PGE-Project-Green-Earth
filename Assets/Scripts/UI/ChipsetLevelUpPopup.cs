@@ -63,7 +63,7 @@ public class ChipsetLevelUpPopup : MonoBehaviour
     private void Awake()
     {
         random = new System.Random(Environment.TickCount);
-        catalog = ChipsetController.CreateDefaultDatabase();
+        catalog = ChipsetController.CreateGameplayDatabase();
 
         if (popupRoot != null && mechanicalParticleSprites != null && mechanicalParticleSprites.Length > 0)
         {
@@ -130,6 +130,8 @@ public class ChipsetLevelUpPopup : MonoBehaviour
     {
         if (pendingLevels.Count == 0 || popupRoot == null) return;
 
+        // Đọc lại preset và tiến trình mới nhất trước mỗi lần lên cấp.
+        catalog = ChipsetController.CreateGameplayDatabase();
         pendingLevels.Dequeue();
         currentRerollCount = 0;
         isShowing = true;
@@ -164,7 +166,7 @@ public class ChipsetLevelUpPopup : MonoBehaviour
             if (!hasOffer) continue;
 
             ChipItemData offer = currentOffers[i].Clone();
-            offer.level = GetRuntimeLevel(offer.id) + 1;
+            offer.level = Mathf.Clamp(GetRuntimeLevel(offer.id) + 1, 1, offer.MaxLevel);
             currentOffers[i] = offer;
 
             card.Setup(
@@ -348,7 +350,9 @@ public class ChipsetLevelUpPopup : MonoBehaviour
 
     private int GetRuntimeLevel(int chipId)
     {
-        return runtimeChipLevels.TryGetValue(chipId, out int level) ? level : 0;
+        if (runtimeChipLevels.TryGetValue(chipId, out int level)) return level;
+        ChipItemData savedChip = catalog?.FirstOrDefault(chip => chip.id == chipId);
+        return savedChip != null ? Mathf.Max(0, savedChip.level - 1) : 0;
     }
 
     private Sprite GetIconSprite(string key)
@@ -390,21 +394,7 @@ public class ChipsetLevelUpPopup : MonoBehaviour
     private Sprite GetFrameSprite(ChipTier tier)
     {
         if (frameSprites == null || frameSprites.Length == 0) return null;
-        switch (tier)
-        {
-            case ChipTier.Magic:
-                return frameSprites.Length > 0 ? frameSprites[0] : null; // Green
-            case ChipTier.Rare:
-                return frameSprites.Length > 1 ? frameSprites[1] : frameSprites[0]; // Blu
-            case ChipTier.Unique:
-                return frameSprites.Length > 2 ? frameSprites[2] : (frameSprites.Length > 1 ? frameSprites[1] : frameSprites[0]); // Tím
-            case ChipTier.Epic:
-                return frameSprites.Length > 3 ? frameSprites[3] : (frameSprites.Length > 2 ? frameSprites[2] : frameSprites[0]); // Yello
-            case ChipTier.Holographic:
-                return frameSprites.Length > 4 ? frameSprites[4] : (frameSprites.Length > 3 ? frameSprites[3] : frameSprites[0]); // Red / Holographic
-            default:
-                return frameSprites[0];
-        }
+        return frameSprites[0];
     }
 
     private static string GetOfferDescription(ChipItemData data)

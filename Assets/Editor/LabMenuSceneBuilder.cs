@@ -21,6 +21,7 @@ public static class LabMenuSceneBuilder
         EditorApplication.update += TryBuildRequestedShopPanel;
         EditorApplication.update += TryBuildRequestedChipsetPanel;
         EditorApplication.update += TryApplyRequestedGreenChipsetFrames;
+        EditorApplication.update += TryApplyRequestedSelectedBottomBarLayout;
         EditorApplication.update += TryBuildRequestedBuddyPanel;
         EditorApplication.update += TryUpdateRequestedLabStats;
     }
@@ -56,6 +57,7 @@ public static class LabMenuSceneBuilder
     private const string ShopBuildRequestPath = "Assets/Editor/PGE_ShopUI_BuildRequest.txt";
     private const string ChipsetBuildRequestPath = "Assets/Editor/PGE_ChipsetUI_BuildRequest.txt";
     private const string ChipsetGreenFramesRequestPath = "Assets/Editor/PGE_ChipsetGreenFrames_Request.txt";
+    private const string ChipsetBottomBarLayoutRequestPath = "Assets/Editor/PGE_ChipsetBottomBarLayout_Request.txt";
     private const string BuddyBuildRequestPath = "Assets/Editor/PGE_BuddyUI_BuildRequest.txt";
     private const string LabStatsBuildRequestPath = "Assets/Editor/PGE_LabStats_BuildRequest.txt";
     private const string FontPath = "Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset";
@@ -329,6 +331,57 @@ public static class LabMenuSceneBuilder
         Debug.Log($"[LabMenuSceneBuilder] Applied green frames and card element positions to {cards.Length} Chipset cards.");
     }
 
+    [MenuItem("PGE/UI/Apply Selected BottomBar Layout To All Chipset Cards")]
+    public static void ApplySelectedBottomBarLayoutToAllChipsetCards()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling || EditorApplication.isUpdating)
+        {
+            Debug.LogWarning("[LabMenuSceneBuilder] Stop Play Mode before copying the selected BottomBar layout.");
+            return;
+        }
+
+        RectTransform source = Selection.activeTransform as RectTransform;
+        if (source == null || !string.Equals(source.name, "BottomBar", StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException("[LabMenuSceneBuilder] Select the source Chipset BottomBar in the Hierarchy first.");
+        }
+
+        Scene scene = SceneManager.GetActiveScene();
+        Canvas canvas = UnityEngine.Object.FindObjectOfType<Canvas>();
+        RectTransform chipsetPanel = canvas != null ? canvas.transform.Find("Content/ChipsetPanel") as RectTransform : null;
+        if (chipsetPanel == null)
+        {
+            throw new InvalidOperationException("[LabMenuSceneBuilder] Canvas/Content/ChipsetPanel was not found in the active scene.");
+        }
+
+        ChipsetCardUI[] cards = chipsetPanel.GetComponentsInChildren<ChipsetCardUI>(true);
+        int updatedCount = 0;
+        foreach (ChipsetCardUI card in cards)
+        {
+            RectTransform target = card.GetComponentsInChildren<RectTransform>(true)
+                .FirstOrDefault(rect => rect.name == "BottomBar");
+            if (target == null) continue;
+
+            Undo.RecordObject(target, "Copy Chipset BottomBar Layout");
+            target.anchorMin = source.anchorMin;
+            target.anchorMax = source.anchorMax;
+            target.pivot = source.pivot;
+            target.offsetMin = source.offsetMin;
+            target.offsetMax = source.offsetMax;
+            Vector3 anchoredPosition3D = target.anchoredPosition3D;
+            anchoredPosition3D.z = source.anchoredPosition3D.z;
+            target.anchoredPosition3D = anchoredPosition3D;
+            target.localRotation = source.localRotation;
+            target.localScale = source.localScale;
+            EditorUtility.SetDirty(target);
+            updatedCount++;
+        }
+
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        Debug.Log($"[LabMenuSceneBuilder] Copied selected BottomBar RectTransform to {updatedCount} Chipset cards.");
+    }
+
     [MenuItem("PGE/UI/Rebuild Shop Panel")]
     public static void RebuildShopPanel()
     {
@@ -455,6 +508,25 @@ public static class LabMenuSceneBuilder
         try
         {
             File.Delete(ChipsetGreenFramesRequestPath);
+        }
+        catch {}
+        AssetDatabase.Refresh();
+    }
+
+    private static void TryApplyRequestedSelectedBottomBarLayout()
+    {
+        if (!File.Exists(ChipsetBottomBarLayoutRequestPath) ||
+            EditorApplication.isPlayingOrWillChangePlaymode ||
+            EditorApplication.isCompiling ||
+            EditorApplication.isUpdating)
+        {
+            return;
+        }
+
+        ApplySelectedBottomBarLayoutToAllChipsetCards();
+        try
+        {
+            File.Delete(ChipsetBottomBarLayoutRequestPath);
         }
         catch {}
         AssetDatabase.Refresh();
@@ -2208,7 +2280,13 @@ public static class LabMenuSceneBuilder
 
         // Bottom Progress Bar
         RectTransform bottomBar = CreateRect("BottomBar", normalGroup);
-        Stretch(bottomBar, new Vector2(0.08f, 0.10f), new Vector2(0.92f, 0.25f), Vector2.zero, Vector2.zero);
+        bottomBar.anchorMin = new Vector2(0.09573685f, 0.19583333f);
+        bottomBar.anchorMax = new Vector2(0.92f, 0.35000002f);
+        bottomBar.pivot = new Vector2(0.5f, 0.5f);
+        bottomBar.anchoredPosition = new Vector2(-1.3580017f, -0.049995422f);
+        bottomBar.sizeDelta = new Vector2(-3.5190032f, -1.1000135f);
+        bottomBar.localRotation = Quaternion.identity;
+        bottomBar.localScale = Vector3.one;
         Image bottomBarBg = bottomBar.gameObject.AddComponent<Image>();
         bottomBarBg.color = new Color32(74, 222, 128, 255);
         bottomBarBg.raycastTarget = false;

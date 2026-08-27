@@ -155,10 +155,10 @@ TextureImporter:
       name: "Shotgun (S\xFAng S\u0103n)"
       rect:
         serializedVersion: 2
-        x: 1444
-        y: 2423
+        x: 1448
+        y: 2430
         width: 245
-        height: 142
+        height: 139
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -168,69 +168,6 @@ TextureImporter:
       bones: []
       spriteID: 8c2b22173b4ecfc409a5fff9b9f937f8
       internalID: 838293656
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: icon chipset_4
-      rect:
-        serializedVersion: 2
-        x: 1463
-        y: 2543
-        width: 33
-        height: 13
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: b9ef8422520586d419094135e2632434
-      internalID: 1332407785
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: icon chipset_5
-      rect:
-        serializedVersion: 2
-        x: 1553
-        y: 2543
-        width: 67
-        height: 20
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 3a3e08f03d09d4344b619b12a3573778
-      internalID: 347432394
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: icon chipset_6
-      rect:
-        serializedVersion: 2
-        x: 1650
-        y: 2543
-        width: 4
-        height: 22
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: b1a4bf79b730e424aba11ec5e21e483c
-      internalID: -1630766024
       vertices: []
       indices: 
       edges: []
@@ -278,7 +215,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 5
+      name: "Gun Turret (Th\xE1p S\xFAng)"
       rect:
         serializedVersion: 2
         x: 978
@@ -393,8 +330,8 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      5: -1704925112
       "Energy Jumper Cables (C\xE1p H\u1ED3i M\xE1u)": 1736317296
+      "Gun Turret (Th\xE1p S\xFAng)": -1704925112
       "High-Explosive Mine (M\xECn N\u1ED5)": 563165159
       "Multigun (S\xFAng \u0110a Tia)": -370857278
       "Rifle (S\xFAng Tr\u01B0\u1EDDng)": 983117041

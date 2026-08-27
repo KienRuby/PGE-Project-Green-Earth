@@ -52,6 +52,28 @@ public class ChipsetLevelUpPopupTests
     }
 
     [Test]
+    public void SelectEquippedCatalog_UsesDeckOrder_AndReturnsFreshCopies()
+    {
+        var catalog = ChipsetController.CreateDefaultDatabase();
+        int[] equippedIds = { 10, 20, -1, 16, 10 };
+
+        var gameplayCatalog = ChipsetController.SelectEquippedCatalog(catalog, equippedIds);
+
+        CollectionAssert.AreEqual(new[] { 10, 20, 16 }, gameplayCatalog.Select(item => item.id).ToArray());
+        Assert.That(gameplayCatalog.All(item => catalog.All(source => !ReferenceEquals(source, item))), Is.True);
+    }
+
+    [Test]
+    public void SelectEquippedCatalog_FallsBackToFullCatalog_WhenDeckIsEmpty()
+    {
+        var catalog = ChipsetController.CreateDefaultDatabase();
+
+        var gameplayCatalog = ChipsetController.SelectEquippedCatalog(catalog, new[] { -1, -1 });
+
+        Assert.That(gameplayCatalog.Count, Is.EqualTo(catalog.Count));
+    }
+
+    [Test]
     public void Reroll_MaxRerollsPerLevel_IsCappedAtTwo()
     {
         UnityEngine.GameObject go = new UnityEngine.GameObject("TestLevelUpPopup");

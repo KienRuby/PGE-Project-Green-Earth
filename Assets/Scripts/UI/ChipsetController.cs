@@ -266,8 +266,13 @@ public class ChipsetController : MonoBehaviour
     {
         if (allChips.Count > 0) return;
 
-        allChips = CreateDefaultDatabase();
+        allChips = CreateSavedDatabase();
         InitializeDefaultDecks();
+        activeDeckIndex = PlayerDataService.ActiveChipsetDeckIndex;
+        for (int i = 0; i < deckEquippedIds.Length; i++)
+        {
+            deckEquippedIds[i] = PlayerDataService.LoadChipsetDeck(i, deckEquippedIds[i]);
+        }
     }
 
     /// <summary>
@@ -716,9 +721,93 @@ public class ChipsetController : MonoBehaviour
         };
     }
 
+    /// <summary>
+    /// Catalog dùng chung đã phủ tiến trình Chipset người chơi lưu từ MainMenu.
+    /// </summary>
+    public static List<ChipItemData> CreateSavedDatabase()
+    {
+        List<ChipItemData> result = CreateDefaultDatabase();
+        foreach (ChipItemData chip in result)
+        {
+            if (!PlayerDataService.LoadChipsetItemData(
+                    chip.id,
+                    out int savedLevel,
+                    out int savedTier,
+                    out int savedCount,
+                    out int savedRequiredCount,
+                    out bool savedHasStar))
+            {
+                continue;
+            }
+
+            chip.tier = (ChipTier)Mathf.Clamp(savedTier, (int)ChipTier.Magic, (int)ChipTier.Holographic);
+            chip.level = Mathf.Clamp(savedLevel, 1, ChipItemData.GetMaxLevelForTier(chip.tier));
+            chip.count = Mathf.Max(0, savedCount);
+            chip.requiredCount = Mathf.Max(0, savedRequiredCount);
+            chip.hasStar = savedHasStar;
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Gameplay chỉ rút các Chipset thuộc preset đang hoạt động, theo đúng thứ tự deck.
+    /// </summary>
+    public static List<ChipItemData> CreateGameplayDatabase()
+    {
+        List<ChipItemData> savedCatalog = CreateSavedDatabase();
+        int activeDeck = PlayerDataService.ActiveChipsetDeckIndex;
+        int[] equippedIds = PlayerDataService.LoadChipsetDeck(activeDeck, GetDefaultDeckIds(activeDeck));
+        return SelectEquippedCatalog(savedCatalog, equippedIds);
+    }
+
+    public static List<ChipItemData> SelectEquippedCatalog(
+        IReadOnlyList<ChipItemData> source,
+        IEnumerable<int> equippedIds)
+    {
+        if (source == null) return new List<ChipItemData>();
+
+        Dictionary<int, ChipItemData> byId = source
+            .Where(chip => chip != null)
+            .GroupBy(chip => chip.id)
+            .ToDictionary(group => group.Key, group => group.First());
+
+        List<ChipItemData> equipped = (equippedIds ?? Enumerable.Empty<int>())
+            .Where(id => id > 0)
+            .Distinct()
+            .Where(byId.ContainsKey)
+            .Select(id => byId[id].Clone())
+            .ToList();
+
+        return equipped.Count > 0
+            ? equipped
+            : source.Where(chip => chip != null).Select(chip => chip.Clone()).ToList();
+    }
+
+    private static int[] GetDefaultDeckIds(int deckIndex)
+    {
+        switch (Mathf.Clamp(deckIndex, 0, 2))
+        {
+            case 0: return new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+            case 1: return new[] { 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 };
+            default: return new[] { 21, 22, 23, 24, 1, 2, 3, 4, 5, 6 };
+        }
+    }
+
+    private static void SaveChipProgress(ChipItemData chip)
+    {
+        if (chip == null) return;
+        PlayerDataService.SaveChipsetItemData(
+            chip.id,
+            chip.level,
+            (int)chip.tier,
+            chip.count,
+            chip.requiredCount,
+            chip.hasStar);
+    }
+
     private void InitializeDefaultDecks()
     {
-        // Preset 3 equipped chips (Slots 1 to 10 matching user screenshot):
+        // Preset 1 equipped chips (Slots 1 to 10 matching user screenshot):
         // 1: Standard Gun (Yellow LV.18)
         // 2: Rifle (Holo LV.24)
         // 3: Rocket Punch (Blue LV.06)
@@ -729,11 +818,11 @@ public class ChipsetController : MonoBehaviour
         // 8: Shotgun (Blue LV.09)
         // 9: Energy Jumper Cables (Green LV.01 Star)
         // 10: High-Explosive Mine (Green LV.01)
-        deckEquippedIds[2] = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        deckEquippedIds[0] = GetDefaultDeckIds(0);
 
-        // Presets 1 & 2
-        deckEquippedIds[0] = new int[] { 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 };
-        deckEquippedIds[1] = new int[] { 21, 22, 23, 24, 1, 2, 3, 4, 5, 6 };
+        // Presets 2 & 3
+        deckEquippedIds[1] = GetDefaultDeckIds(1);
+        deckEquippedIds[2] = GetDefaultDeckIds(2);
     }
 
     private void SetupEventListeners()
@@ -760,7 +849,8 @@ public class ChipsetController : MonoBehaviour
 
     public void SwitchDeck(int deckIndex)
     {
-        activeDeckIndex = deckIndex;
+        activeDeckIndex = Mathf.Clamp(deckIndex, 0, 2);
+        PlayerDataService.ActiveChipsetDeckIndex = activeDeckIndex;
         RefreshPresetButtons();
         RefreshEquippedGrid();
         ShowToast($"Switched to Preset Deck {deckIndex + 1}");
@@ -1044,6 +1134,7 @@ public class ChipsetController : MonoBehaviour
 
         if (selectedDetailChip.Enhance())
         {
+            SaveChipProgress(selectedDetailChip);
             RefreshTopBar();
             RefreshEquippedGrid();
             RefreshInventory();
@@ -1068,6 +1159,7 @@ public class ChipsetController : MonoBehaviour
 
         if (selectedDetailChip.AdvanceTier())
         {
+            SaveChipProgress(selectedDetailChip);
             RefreshTopBar();
             RefreshEquippedGrid();
             RefreshInventory();
@@ -1105,6 +1197,7 @@ public class ChipsetController : MonoBehaviour
             }
         }
 
+        PlayerDataService.SaveChipsetDeck(activeDeckIndex, currentDeck);
         RefreshEquippedGrid();
         RefreshDetailModal();
         RefreshInventory();
@@ -1131,6 +1224,7 @@ public class ChipsetController : MonoBehaviour
             {
                 int remove = chip.count - 10;
                 chip.count = 10;
+                SaveChipProgress(chip);
                 dismantledPieces += remove;
             }
         }
