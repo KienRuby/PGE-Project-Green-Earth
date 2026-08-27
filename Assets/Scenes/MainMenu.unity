@@ -9124,6 +9124,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardFrameImage: {fileID: 121537901}
+  redEffectBackgroundImage: {fileID: 0}
   iconImage: {fileID: 342035096}
   levelText: {fileID: 62530630}
   progressText: {fileID: 639535874}
@@ -20037,6 +20038,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardFrameImage: {fileID: 242796465}
+  redEffectBackgroundImage: {fileID: 0}
   iconImage: {fileID: 833496353}
   levelText: {fileID: 2129227262}
   progressText: {fileID: 2137814456}
@@ -23681,6 +23683,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardFrameImage: {fileID: 291602355}
+  redEffectBackgroundImage: {fileID: 0}
   iconImage: {fileID: 474217601}
   levelText: {fileID: 796042015}
   progressText: {fileID: 1500123940}
@@ -25007,6 +25010,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardFrameImage: {fileID: 308989304}
+  redEffectBackgroundImage: {fileID: 0}
   iconImage: {fileID: 1093396395}
   levelText: {fileID: 224134203}
   progressText: {fileID: 1780481641}
@@ -28782,6 +28786,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardFrameImage: {fileID: 357560104}
+  redEffectBackgroundImage: {fileID: 0}
   iconImage: {fileID: 1314580301}
   levelText: {fileID: 871339248}
   progressText: {fileID: 1197171987}
@@ -35424,6 +35429,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardFrameImage: {fileID: 439841232}
+  redEffectBackgroundImage: {fileID: 0}
   iconImage: {fileID: 821500064}
   levelText: {fileID: 509372539}
   progressText: {fileID: 2010988949}
@@ -37388,6 +37394,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardFrameImage: {fileID: 461721808}
+  redEffectBackgroundImage: {fileID: 0}
   iconImage: {fileID: 107483462}
   levelText: {fileID: 1545001929}
   progressText: {fileID: 1084928573}
@@ -49775,6 +49782,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardFrameImage: {fileID: 638446847}
+  redEffectBackgroundImage: {fileID: 0}
   iconImage: {fileID: 1180814699}
   levelText: {fileID: 1222936259}
   progressText: {fileID: 1408178501}
@@ -50642,6 +50650,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardFrameImage: {fileID: 653145942}
+  redEffectBackgroundImage: {fileID: 0}
   iconImage: {fileID: 1902965750}
   levelText: {fileID: 138145344}
   progressText: {fileID: 1490545221}
@@ -63844,6 +63853,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardFrameImage: {fileID: 828116067}
+  redEffectBackgroundImage: {fileID: 0}
   iconImage: {fileID: 817144805}
   levelText: {fileID: 905900072}
   progressText: {fileID: 1104614719}
@@ -69880,6 +69890,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardFrameImage: {fileID: 910124609}
+  redEffectBackgroundImage: {fileID: 0}
   iconImage: {fileID: 941517711}
   levelText: {fileID: 1048267358}
   progressText: {fileID: 1486578506}
@@ -80169,6 +80180,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardFrameImage: {fileID: 1036594638}
+  redEffectBackgroundImage: {fileID: 0}
   iconImage: {fileID: 917499843}
   levelText: {fileID: 2048270987}
   progressText: {fileID: 252456689}
@@ -84750,6 +84762,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardFrameImage: {fileID: 1098152631}
+  redEffectBackgroundImage: {fileID: 0}
   iconImage: {fileID: 45380909}
   levelText: {fileID: 907620908}
   progressText: {fileID: 1358481706}
@@ -127375,6 +127388,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardFrameImage: {fileID: 1619320154}
+  redEffectBackgroundImage: {fileID: 0}
   iconImage: {fileID: 1382248206}
   levelText: {fileID: 1077196432}
   progressText: {fileID: 1687200320}
@@ -129587,6 +129601,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardFrameImage: {fileID: 1645034178}
+  redEffectBackgroundImage: {fileID: 0}
   iconImage: {fileID: 1845228753}
   levelText: {fileID: 772567260}
   progressText: {fileID: 2108633307}
@@ -131794,6 +131809,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardFrameImage: {fileID: 1687431632}
+  redEffectBackgroundImage: {fileID: 0}
   iconImage: {fileID: 543043205}
   levelText: {fileID: 1655641969}
   progressText: {fileID: 1052099332}
@@ -138114,6 +138130,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardFrameImage: {fileID: 1765033281}
+  redEffectBackgroundImage: {fileID: 0}
   iconImage: {fileID: 1663347576}
   levelText: {fileID: 531919784}
   progressText: {fileID: 980124977}
@@ -145056,6 +145073,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardFrameImage: {fileID: 1847265625}
+  redEffectBackgroundImage: {fileID: 0}
   iconImage: {fileID: 689087755}
   levelText: {fileID: 1946143456}
   progressText: {fileID: 322243058}
@@ -145987,6 +146005,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardFrameImage: {fileID: 1863915905}
+  redEffectBackgroundImage: {fileID: 0}
   iconImage: {fileID: 928706482}
   levelText: {fileID: 1380858919}
   progressText: {fileID: 1279937636}
@@ -147305,81 +147324,6 @@ Material:
     - _OutlineColor: {r: 0.03137255, g: 0.15294118, b: 0.27058825, a: 1}
     - _UnderlayColor: {r: 0, g: 0, b: 0, a: 0.5}
   m_BuildTextureStacks: []
---- !u!1 &1880523696
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1880523697}
-  - component: {fileID: 1880523699}
-  - component: {fileID: 1880523698}
-  m_Layer: 5
-  m_Name: BackGround
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &1880523697
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1880523696}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.375, y: 1.133551, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 2082915240}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 1.1612, y: 30.6353}
-  m_SizeDelta: {x: 100.6776, y: 101.1293}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1880523698
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1880523696}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Sprite: {fileID: 2125995957, guid: e4c241a6ab954b24aa7aad522df49391, type: 3}
-  m_Type: 0
-  m_PreserveAspect: 0
-  m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
-  m_FillOrigin: 0
-  m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
---- !u!222 &1880523699
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1880523696}
-  m_CullTransparentMesh: 1
 --- !u!1 &1882097361
 GameObject:
   m_ObjectHideFlags: 0
@@ -147893,6 +147837,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardFrameImage: {fileID: 1886494066}
+  redEffectBackgroundImage: {fileID: 0}
   iconImage: {fileID: 715794710}
   levelText: {fileID: 957471532}
   progressText: {fileID: 199703699}
@@ -148352,6 +148297,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardFrameImage: {fileID: 1894494250}
+  redEffectBackgroundImage: {fileID: 0}
   iconImage: {fileID: 969767471}
   levelText: {fileID: 1344043357}
   progressText: {fileID: 53274315}
@@ -156001,6 +155947,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardFrameImage: {fileID: 1957252704}
+  redEffectBackgroundImage: {fileID: 0}
   iconImage: {fileID: 1277574212}
   levelText: {fileID: 1422400390}
   progressText: {fileID: 2042628511}
@@ -157440,6 +157387,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardFrameImage: {fileID: 1970476831}
+  redEffectBackgroundImage: {fileID: 0}
   iconImage: {fileID: 391514072}
   levelText: {fileID: 1883251381}
   progressText: {fileID: 2129155376}
@@ -160581,6 +160529,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardFrameImage: {fileID: 2021930857}
+  redEffectBackgroundImage: {fileID: 0}
   iconImage: {fileID: 863811921}
   levelText: {fileID: 29932993}
   progressText: {fileID: 1393801207}
@@ -165120,7 +165069,6 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1880523697}
   - {fileID: 992896912}
   - {fileID: 1486641199}
   m_Father: {fileID: 1391649549}
@@ -165143,6 +165091,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardFrameImage: {fileID: 2082915243}
+  redEffectBackgroundImage: {fileID: 0}
   iconImage: {fileID: 1596859755}
   levelText: {fileID: 1637730060}
   progressText: {fileID: 1327535594}
@@ -166072,6 +166021,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardFrameImage: {fileID: 2091976113}
+  redEffectBackgroundImage: {fileID: 0}
   iconImage: {fileID: 1858561389}
   levelText: {fileID: 486710993}
   progressText: {fileID: 235963626}
