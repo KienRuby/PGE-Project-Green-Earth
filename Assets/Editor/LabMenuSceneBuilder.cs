@@ -86,7 +86,7 @@ public static class LabMenuSceneBuilder
     };
     private static readonly Color[] LabRarityColors =
     {
-        new Color32(48, 94, 111, 255),
+        new Color32(245, 245, 245, 255),
         new Color32(38, 82, 145, 255),
         new Color32(94, 55, 142, 255),
         new Color32(170, 128, 35, 255)
@@ -414,6 +414,7 @@ public static class LabMenuSceneBuilder
     private static void TryUpdateRequestedLabStats()
     {
         if (!File.Exists(LabStatsBuildRequestPath) ||
+            EditorApplication.isPlaying ||
             EditorApplication.isPlayingOrWillChangePlaymode ||
             EditorApplication.isCompiling ||
             EditorApplication.isUpdating)
@@ -445,6 +446,10 @@ public static class LabMenuSceneBuilder
 
         SerializedObject serializedController = new SerializedObject(controller);
         SerializedProperty items = GetRequiredProperty(serializedController, "items");
+        GetRequiredProperty(serializedController, "commonBackgroundColor").colorValue = LabRarityColors[0];
+        GetRequiredProperty(serializedController, "eliteBackgroundColor").colorValue = LabRarityColors[1];
+        GetRequiredProperty(serializedController, "epicBackgroundColor").colorValue = LabRarityColors[2];
+        GetRequiredProperty(serializedController, "legendBackgroundColor").colorValue = LabRarityColors[3];
         if (items.arraySize != LabStatNames.Length)
         {
             throw new InvalidOperationException(
@@ -518,6 +523,7 @@ public static class LabMenuSceneBuilder
         }
 
         ConfigureTextures();
+        ConfigureStatTexture();
         ConfigureChipsetTextures();
         ConfigureBuddyTextures();
 

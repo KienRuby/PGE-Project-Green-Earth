@@ -149635,8 +149635,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   items:
-  - itemName: DEF
-    itemIcon: {fileID: -1094185162, guid: 5424adb2f9ebec9459ec5817bc67a31c, type: 3}
+  - itemName: HP
+    itemIcon: {fileID: 8496340680106949141, guid: d048410c05842af428e350224d7fe7e7, type: 3}
     rarity: 0
     dropWeight: 14
     startsUnlocked: 0
@@ -149647,8 +149647,8 @@ MonoBehaviour:
     levelText: {fileID: 993281010}
     nameText: {fileID: 941650034}
     slotBackground: {fileID: 1899049664}
-  - itemName: ATK
-    itemIcon: {fileID: -1475386712, guid: 5424adb2f9ebec9459ec5817bc67a31c, type: 3}
+  - itemName: RECOVERY
+    itemIcon: {fileID: -6637313871124558188, guid: d048410c05842af428e350224d7fe7e7, type: 3}
     rarity: 0
     dropWeight: 12
     startsUnlocked: 0
@@ -149659,8 +149659,8 @@ MonoBehaviour:
     levelText: {fileID: 909019212}
     nameText: {fileID: 185810413}
     slotBackground: {fileID: 1786788662}
-  - itemName: HP
-    itemIcon: {fileID: 1551726181, guid: 5424adb2f9ebec9459ec5817bc67a31c, type: 3}
+  - itemName: AUTO RECOVERY
+    itemIcon: {fileID: 6485784117945978910, guid: d048410c05842af428e350224d7fe7e7, type: 3}
     rarity: 0
     dropWeight: 12
     startsUnlocked: 0
@@ -149671,8 +149671,8 @@ MonoBehaviour:
     levelText: {fileID: 2080306777}
     nameText: {fileID: 817349111}
     slotBackground: {fileID: 569335144}
-  - itemName: SPD
-    itemIcon: {fileID: -1218426287, guid: 5424adb2f9ebec9459ec5817bc67a31c, type: 3}
+  - itemName: DEF
+    itemIcon: {fileID: 6282822904773073729, guid: d048410c05842af428e350224d7fe7e7, type: 3}
     rarity: 0
     dropWeight: 10
     startsUnlocked: 0
@@ -149683,8 +149683,8 @@ MonoBehaviour:
     levelText: {fileID: 1518804947}
     nameText: {fileID: 1099473476}
     slotBackground: {fileID: 1631369731}
-  - itemName: CRIT
-    itemIcon: {fileID: -1806302092, guid: 5424adb2f9ebec9459ec5817bc67a31c, type: 3}
+  - itemName: ATK
+    itemIcon: {fileID: -532138815611542620, guid: d048410c05842af428e350224d7fe7e7, type: 3}
     rarity: 1
     dropWeight: 8
     startsUnlocked: 0
@@ -149695,8 +149695,8 @@ MonoBehaviour:
     levelText: {fileID: 439176294}
     nameText: {fileID: 1855931617}
     slotBackground: {fileID: 2010464235}
-  - itemName: RANGE
-    itemIcon: {fileID: -579946858, guid: 5424adb2f9ebec9459ec5817bc67a31c, type: 3}
+  - itemName: CRIT RATE
+    itemIcon: {fileID: -4078199248562732675, guid: d048410c05842af428e350224d7fe7e7, type: 3}
     rarity: 1
     dropWeight: 10
     startsUnlocked: 0
@@ -149707,8 +149707,8 @@ MonoBehaviour:
     levelText: {fileID: 516885388}
     nameText: {fileID: 343521868}
     slotBackground: {fileID: 1754616785}
-  - itemName: FIRE
-    itemIcon: {fileID: 1936296624, guid: 5424adb2f9ebec9459ec5817bc67a31c, type: 3}
+  - itemName: CRIT DAMAGE
+    itemIcon: {fileID: -8596014928098115845, guid: d048410c05842af428e350224d7fe7e7, type: 3}
     rarity: 1
     dropWeight: 8
     startsUnlocked: 0
@@ -149719,8 +149719,8 @@ MonoBehaviour:
     levelText: {fileID: 385590861}
     nameText: {fileID: 1141579780}
     slotBackground: {fileID: 2088467953}
-  - itemName: REGEN
-    itemIcon: {fileID: -57964638, guid: 5424adb2f9ebec9459ec5817bc67a31c, type: 3}
+  - itemName: OBTAINED CHIPS
+    itemIcon: {fileID: 7612049277812949300, guid: d048410c05842af428e350224d7fe7e7, type: 3}
     rarity: 1
     dropWeight: 8
     startsUnlocked: 0
@@ -149731,8 +149731,8 @@ MonoBehaviour:
     levelText: {fileID: 1566627252}
     nameText: {fileID: 1176287239}
     slotBackground: {fileID: 538331881}
-  - itemName: DODGE
-    itemIcon: {fileID: -188171556, guid: 5424adb2f9ebec9459ec5817bc67a31c, type: 3}
+  - itemName: RANGED DEFENSE
+    itemIcon: {fileID: -4725956158642595825, guid: d048410c05842af428e350224d7fe7e7, type: 3}
     rarity: 2
     dropWeight: 7
     startsUnlocked: 0
@@ -149743,8 +149743,8 @@ MonoBehaviour:
     levelText: {fileID: 2122465395}
     nameText: {fileID: 1777488717}
     slotBackground: {fileID: 419448238}
-  - itemName: ARMOR
-    itemIcon: {fileID: -1094185162, guid: 5424adb2f9ebec9459ec5817bc67a31c, type: 3}
+  - itemName: DRONE ATK
+    itemIcon: {fileID: -6223296265782271767, guid: d048410c05842af428e350224d7fe7e7, type: 3}
     rarity: 2
     dropWeight: 7
     startsUnlocked: 0
@@ -149755,8 +149755,8 @@ MonoBehaviour:
     levelText: {fileID: 1245179783}
     nameText: {fileID: 536731799}
     slotBackground: {fileID: 894784748}
-  - itemName: POWER
-    itemIcon: {fileID: -1317006964, guid: 5424adb2f9ebec9459ec5817bc67a31c, type: 3}
+  - itemName: TURRET ATK
+    itemIcon: {fileID: -8692719627706627689, guid: d048410c05842af428e350224d7fe7e7, type: 3}
     rarity: 2
     dropWeight: 6
     startsUnlocked: 0
@@ -149767,8 +149767,8 @@ MonoBehaviour:
     levelText: {fileID: 1518366710}
     nameText: {fileID: 1912025469}
     slotBackground: {fileID: 1318648417}
-  - itemName: TECH
-    itemIcon: {fileID: 1040604794, guid: 5424adb2f9ebec9459ec5817bc67a31c, type: 3}
+  - itemName: TURRET DURATION
+    itemIcon: {fileID: -7976796001190730680, guid: d048410c05842af428e350224d7fe7e7, type: 3}
     rarity: 2
     dropWeight: 6
     startsUnlocked: 0
@@ -149779,8 +149779,8 @@ MonoBehaviour:
     levelText: {fileID: 326467757}
     nameText: {fileID: 1906850374}
     slotBackground: {fileID: 1634580494}
-  - itemName: LUCK
-    itemIcon: {fileID: -359928730, guid: 5424adb2f9ebec9459ec5817bc67a31c, type: 3}
+  - itemName: EVADE
+    itemIcon: {fileID: 3142701477100863824, guid: d048410c05842af428e350224d7fe7e7, type: 3}
     rarity: 3
     dropWeight: 5
     startsUnlocked: 0
@@ -149791,8 +149791,8 @@ MonoBehaviour:
     levelText: {fileID: 1498139906}
     nameText: {fileID: 1785424273}
     slotBackground: {fileID: 1071334191}
-  - itemName: GROWTH
-    itemIcon: {fileID: -535247977, guid: 5424adb2f9ebec9459ec5817bc67a31c, type: 3}
+  - itemName: LIFE STEAL
+    itemIcon: {fileID: 6732957469223898404, guid: d048410c05842af428e350224d7fe7e7, type: 3}
     rarity: 3
     dropWeight: 5
     startsUnlocked: 0
@@ -149803,8 +149803,8 @@ MonoBehaviour:
     levelText: {fileID: 355255926}
     nameText: {fileID: 623400203}
     slotBackground: {fileID: 1882851971}
-  - itemName: SHIELD
-    itemIcon: {fileID: -1475386712, guid: 5424adb2f9ebec9459ec5817bc67a31c, type: 3}
+  - itemName: MOVE SPEED
+    itemIcon: {fileID: -7103230177737088617, guid: d048410c05842af428e350224d7fe7e7, type: 3}
     rarity: 3
     dropWeight: 4
     startsUnlocked: 0
@@ -149815,8 +149815,8 @@ MonoBehaviour:
     levelText: {fileID: 150673035}
     nameText: {fileID: 1691057690}
     slotBackground: {fileID: 77217792}
-  - itemName: DRONE
-    itemIcon: {fileID: -188171556, guid: 5424adb2f9ebec9459ec5817bc67a31c, type: 3}
+  - itemName: CHIPSET SELECTION
+    itemIcon: {fileID: -9037956896835845203, guid: d048410c05842af428e350224d7fe7e7, type: 3}
     rarity: 3
     dropWeight: 4
     startsUnlocked: 0
@@ -149828,7 +149828,7 @@ MonoBehaviour:
     nameText: {fileID: 1430319668}
     slotBackground: {fileID: 403638777}
   commonWeight: 55
-  commonBackgroundColor: {r: 0.1882353, g: 0.36862746, b: 0.43529412, a: 1}
+  commonBackgroundColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
   eliteWeight: 30
   eliteBackgroundColor: {r: 0.14901961, g: 0.32156864, b: 0.5686275, a: 1}
   epicWeight: 10

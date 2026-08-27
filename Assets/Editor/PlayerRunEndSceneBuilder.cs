@@ -39,7 +39,7 @@ public static class PlayerRunEndSceneBuilder
     [MenuItem("PGE/UI/Build Revive Panel Only")]
     public static void BuildReviveOnly()
     {
-        if (EditorApplication.isPlayingOrWillChangePlaymode)
+        if (EditorApplication.isPlaying || EditorApplication.isPlayingOrWillChangePlaymode)
         {
             Debug.LogWarning("[PlayerRunEndSceneBuilder] Không thể build khi đang Play Mode.");
             return;
@@ -94,7 +94,7 @@ public static class PlayerRunEndSceneBuilder
     [MenuItem("PGE/UI/Build Game Over Panel Only")]
     public static void BuildGameOverOnly()
     {
-        if (EditorApplication.isPlayingOrWillChangePlaymode)
+        if (EditorApplication.isPlaying || EditorApplication.isPlayingOrWillChangePlaymode)
         {
             Debug.LogWarning("[PlayerRunEndSceneBuilder] Không thể build khi đang Play Mode.");
             return;
@@ -155,7 +155,7 @@ public static class PlayerRunEndSceneBuilder
 
     public static void Build()
     {
-        if (EditorApplication.isPlayingOrWillChangePlaymode)
+        if (EditorApplication.isPlaying || EditorApplication.isPlayingOrWillChangePlaymode)
         {
             Debug.LogWarning("[PlayerRunEndSceneBuilder] Không thể build khi đang Play Mode.");
             return;

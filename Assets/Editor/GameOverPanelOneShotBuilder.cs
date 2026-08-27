@@ -8,11 +8,21 @@ public static class GameOverPanelOneShotBuilder
     static GameOverPanelOneShotBuilder()
     {
         EditorApplication.delayCall += Run;
+        EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+    }
+
+    private static void OnPlayModeStateChanged(PlayModeStateChange state)
+    {
+        if (state == PlayModeStateChange.EnteredEditMode)
+            EditorApplication.delayCall += Run;
     }
 
     private static void Run()
     {
-        if (EditorApplication.isPlayingOrWillChangePlaymode)
+        if (EditorApplication.isPlaying || EditorApplication.isPlayingOrWillChangePlaymode)
+            return;
+
+        if (EditorApplication.isCompiling || EditorApplication.isUpdating)
         {
             EditorApplication.delayCall += Run;
             return;

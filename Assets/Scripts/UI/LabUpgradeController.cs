@@ -76,7 +76,7 @@ public class LabUpgradeController : MonoBehaviour
 
     [InspectorName("Common Background Color")]
     [Tooltip("Màu nền của toàn bộ item Common ở hàng 1, kể cả khi item còn khóa.")]
-    [SerializeField] private Color commonBackgroundColor = new Color32(48, 94, 111, 255);
+    [SerializeField] private Color commonBackgroundColor = new Color32(245, 245, 245, 255);
 
     [FormerlySerializedAs("type2Weight")]
     [InspectorName("Elite Random Weight")]
@@ -742,6 +742,18 @@ public class LabUpgradeController : MonoBehaviour
         if (item.lockedGroup != null)
         {
             item.lockedGroup.SetActive(!unlocked);
+
+            Image lockedCard = item.lockedGroup.transform.Find("LockIcon")?.GetComponent<Image>();
+            if (lockedCard != null)
+            {
+                lockedCard.sprite = item.itemIcon;
+                lockedCard.color = Color.white;
+                lockedCard.preserveAspect = true;
+                lockedCard.rectTransform.anchorMin = new Vector2(0.5f, 0.49f);
+                lockedCard.rectTransform.anchorMax = new Vector2(0.5f, 0.49f);
+                lockedCard.rectTransform.anchoredPosition = Vector2.zero;
+                lockedCard.rectTransform.sizeDelta = new Vector2(194f, 194f);
+            }
         }
 
         if (item.unlockedGroup != null)
@@ -752,6 +764,11 @@ public class LabUpgradeController : MonoBehaviour
         if (item.iconImage != null)
         {
             item.iconImage.sprite = item.itemIcon;
+            item.iconImage.preserveAspect = true;
+            item.iconImage.rectTransform.anchorMin = new Vector2(0.5f, 0.49f);
+            item.iconImage.rectTransform.anchorMax = new Vector2(0.5f, 0.49f);
+            item.iconImage.rectTransform.anchoredPosition = Vector2.zero;
+            item.iconImage.rectTransform.sizeDelta = new Vector2(194f, 194f);
         }
 
         if (item.levelText != null)
@@ -769,6 +786,7 @@ public class LabUpgradeController : MonoBehaviour
         if (item.nameText != null)
         {
             item.nameText.text = item.itemName;
+            item.nameText.gameObject.SetActive(false);
         }
 
         if (item.slotBackground != null)
