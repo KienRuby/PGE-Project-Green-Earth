@@ -278,25 +278,25 @@ public class ChipsetController : MonoBehaviour
     {
         return new List<ChipItemData>
         {
-            // 1. Standard Gun
+            // 1. Standard Gun (Row 1 Col 1)
             new ChipItemData
             {
                 id = 1,
                 chipName = "Standard Gun",
                 iconKey = "standard-gun",
-                tier = ChipTier.Magic,
-                level = 1,
-                count = 22,
-                requiredCount = 3,
-                enhanceCost = 500,
+                tier = ChipTier.Epic,
+                level = 18,
+                count = 451,
+                requiredCount = 15,
+                enhanceCost = 1200,
                 description = "Standard kinetic firearm with consistent rate of fire.",
-                baseStatsSummary = "ATK <color=#FFCB49>42</color>\n<color=#FFCB49>Fast</color> ATK Speed",
+                baseStatsSummary = "ATK <color=#FFCB49>185</color>\n<color=#FFCB49>Fast</color> ATK Speed",
                 magicBonus = "ATK +15%",
                 rareBonus = "ATK Speed +15%",
                 uniqueBonus = "+5% Life Steal",
                 epicBonus = "Adds Penetration Skill"
             },
-            // 2. Rifle
+            // 2. Rifle (Row 1 Col 2)
             new ChipItemData
             {
                 id = 2,
@@ -304,71 +304,71 @@ public class ChipsetController : MonoBehaviour
                 iconKey = "rifle",
                 tier = ChipTier.Holographic,
                 level = 24,
-                count = 20,
+                count = 449,
                 requiredCount = 0,
-                enhanceCost = 500,
+                enhanceCost = 2000,
                 description = "High-caliber precision rifle dealing devastating critical damage.",
-                baseStatsSummary = "ATK <color=#FFCB49>47.36</color>\n<color=#FFCB49>Very fast</color> ATK Speed",
+                baseStatsSummary = "ATK <color=#FFCB49>320</color>\n<color=#FFCB49>Very fast</color> ATK Speed",
                 magicBonus = "ATK +25%",
                 rareBonus = "ATK Speed +20%",
                 uniqueBonus = "ATK +80%",
                 epicBonus = "ATK Speed +35%"
             },
-            // 3. Rocket Punch
+            // 3. Rocket Punch (Row 1 Col 3)
             new ChipItemData
             {
                 id = 3,
                 chipName = "Rocket Punch",
                 iconKey = "rocket-punch",
-                tier = ChipTier.Magic,
-                level = 1,
-                count = 50,
-                requiredCount = 3,
-                enhanceCost = 500,
+                tier = ChipTier.Rare,
+                level = 6,
+                count = 470,
+                requiredCount = 7,
+                enhanceCost = 650,
                 description = "Launches heavy mechanical fists inflicting area blast shockwaves.",
-                baseStatsSummary = "ATK <color=#FFCB49>50</color> / AoE ATK <color=#FFCB49>27</color>\n<color=#FFCB49>Slow</color> ATK Speed",
+                baseStatsSummary = "ATK <color=#FFCB49>95</color> / AoE ATK <color=#FFCB49>60</color>\n<color=#FFCB49>Slow</color> ATK Speed",
                 magicBonus = "ATK +40%",
                 rareBonus = "ATK Speed +40%",
                 uniqueBonus = "AoE ATK Range +40%",
                 epicBonus = "ATK +180%"
             },
-            // 4. Spinning Blade
+            // 4. Spinning Blade (Row 1 Col 4)
             new ChipItemData
             {
                 id = 4,
                 chipName = "Spinning Blade",
                 iconKey = "spinning-blade",
-                tier = ChipTier.Epic,
+                tier = ChipTier.Unique,
                 level = 14,
-                count = 31,
+                count = 468,
                 requiredCount = 9,
-                enhanceCost = 750,
+                enhanceCost = 900,
                 description = "Whirling razor disc cleaving nearby enemies continuously.",
-                baseStatsSummary = "ATK <color=#FFCB49>82.8</color>\n<color=#FFCB49>Fast</color> ATK Speed",
+                baseStatsSummary = "ATK <color=#FFCB49>142.8</color>\n<color=#FFCB49>Fast</color> ATK Speed",
                 magicBonus = "ATK Speed +9%",
                 rareBonus = "ATK Speed +18%",
                 uniqueBonus = "Spin Speed +36%",
                 epicBonus = "ATK Speed +36%"
             },
-            // 5. Multigun
+            // 5. Multigun (Row 1 Col 5)
             new ChipItemData
             {
                 id = 5,
                 chipName = "Multigun",
                 iconKey = "multigun",
-                tier = ChipTier.Magic,
+                tier = ChipTier.Rare,
                 level = 6,
-                count = 37,
+                count = 423,
                 requiredCount = 3,
-                enhanceCost = 500,
+                enhanceCost = 650,
                 description = "Multi-barrel shotgun scattering projectiles across wide cones.",
-                baseStatsSummary = "ATK <color=#FFCB49>28.5</color> | 3 shells\n<color=#FFCB49>Slow</color> ATK Speed",
+                baseStatsSummary = "ATK <color=#FFCB49>48.5</color> | 4 shells\n<color=#FFCB49>Slow</color> ATK Speed",
                 magicBonus = "Adds +1 shells",
                 rareBonus = "Adds +1 shells",
                 uniqueBonus = "Adds +3 shells",
                 epicBonus = "Adds +4 shells"
             },
-            // 6. Gun Turret
+            // 6. Gun Turret (Row 2 Col 1)
             new ChipItemData
             {
                 id = 6,
@@ -376,7 +376,7 @@ public class ChipsetController : MonoBehaviour
                 iconKey = "gun-turret",
                 tier = ChipTier.Magic,
                 level = 1,
-                count = 49,
+                count = 501,
                 requiredCount = 3,
                 enhanceCost = 500,
                 description = "Automated deployable turret firing at closest hostiles.",
@@ -386,7 +386,7 @@ public class ChipsetController : MonoBehaviour
                 uniqueBonus = "Turret Duration +20%",
                 epicBonus = "Turret Duration +30%"
             },
-            // 7. Spiky Discus
+            // 7. Spiky Discus (Row 2 Col 2)
             new ChipItemData
             {
                 id = 7,
@@ -394,7 +394,7 @@ public class ChipsetController : MonoBehaviour
                 iconKey = "spiky-discus",
                 tier = ChipTier.Magic,
                 level = 1,
-                count = 30,
+                count = 479,
                 requiredCount = 3,
                 enhanceCost = 500,
                 description = "Rebounding serrated blade ricocheting off dungeon walls.",
@@ -404,7 +404,7 @@ public class ChipsetController : MonoBehaviour
                 uniqueBonus = "+1 Discus",
                 epicBonus = "Spin Speed +35%"
             },
-            // 8. Shotgun
+            // 8. Shotgun (Row 2 Col 3)
             new ChipItemData
             {
                 id = 8,
@@ -412,7 +412,7 @@ public class ChipsetController : MonoBehaviour
                 iconKey = "shotgun",
                 tier = ChipTier.Rare,
                 level = 9,
-                count = 49,
+                count = 450,
                 requiredCount = 7,
                 enhanceCost = 650,
                 description = "Heavy pump-action shotgun delivering point-blank destruction.",
@@ -422,7 +422,7 @@ public class ChipsetController : MonoBehaviour
                 uniqueBonus = "Adds Penetration Skill",
                 epicBonus = "Fires two times in a row"
             },
-            // 9. Energy Jumper Cables
+            // 9. Energy Jumper Cables (Row 2 Col 4)
             new ChipItemData
             {
                 id = 9,
@@ -430,7 +430,7 @@ public class ChipsetController : MonoBehaviour
                 iconKey = "energy-jumper-cables",
                 tier = ChipTier.Magic,
                 level = 1,
-                count = 38,
+                count = 391,
                 requiredCount = 3,
                 enhanceCost = 500,
                 hasStar = true,
@@ -441,7 +441,7 @@ public class ChipsetController : MonoBehaviour
                 uniqueBonus = "All Weapons' +1% Life Steal",
                 epicBonus = "All Weapons' +2% Life Steal"
             },
-            // 10. High-Explosive Mine
+            // 10. High-Explosive Mine (Row 2 Col 5)
             new ChipItemData
             {
                 id = 10,
@@ -449,7 +449,7 @@ public class ChipsetController : MonoBehaviour
                 iconKey = "high-explosive-mine",
                 tier = ChipTier.Magic,
                 level = 1,
-                count = 24,
+                count = 390,
                 requiredCount = 3,
                 enhanceCost = 500,
                 description = "Drops high-yield proximity charges detonating upon enemy contact.",
@@ -459,232 +459,33 @@ public class ChipsetController : MonoBehaviour
                 uniqueBonus = "ATK +55%",
                 epicBonus = "ATK +144%"
             },
-            // 11. Aiming Lens
+            // 11. Sonic Boom (Inv Row 1 Col 2)
             new ChipItemData
             {
                 id = 11,
-                chipName = "Aiming Lens",
-                iconKey = "aiming-lens",
-                tier = ChipTier.Magic,
-                level = 1,
-                count = 63,
-                requiredCount = 3,
-                enhanceCost = 500,
-                hasStar = true,
-                description = "Precision optical matrix augmenting firearm critical hit rate.",
-                baseStatsSummary = "CRIT Rate <color=#FFCB49>+4%</color>",
-                magicBonus = "All Weapons' CRIT Rate +3%",
-                rareBonus = "All Weapons' CRIT Rate +3%",
-                uniqueBonus = "All Weapons' CRIT Rate +4%",
-                epicBonus = "All Weapons' CRIT Rate +5%"
-            },
-            // 12. Plasma Field
-            new ChipItemData
-            {
-                id = 12,
-                chipName = "Plasma Field",
-                iconKey = "plasma-field",
-                tier = ChipTier.Magic,
-                level = 1,
-                count = 52,
-                requiredCount = 3,
-                enhanceCost = 500,
-                description = "Creates persistent electrified barriers zapping encroaching swarms.",
-                baseStatsSummary = "ATK <color=#FFCB49>40/s</color> (3s duration) | CD 7.5s",
-                magicBonus = "AoE ATK Range +25%",
-                rareBonus = "ATK Speed +10%",
-                uniqueBonus = "AoE ATK Range +35%",
-                epicBonus = "ATK Speed +20%"
-            },
-            // 13. Laser Eye
-            new ChipItemData
-            {
-                id = 13,
-                chipName = "Laser Eye",
-                iconKey = "laser-eye",
-                tier = ChipTier.Magic,
-                level = 1,
-                count = 58,
-                requiredCount = 3,
-                enhanceCost = 500,
-                description = "Direct thermal emitter burning holes through monster flesh.",
-                baseStatsSummary = "ATK <color=#FFCB49>5</color>\n<color=#FFCB49>Very fast</color> ATK Speed",
-                magicBonus = "ATK +15%",
-                rareBonus = "CRIT Rate +10%",
-                uniqueBonus = "ATK +15%",
-                epicBonus = "ATK +100%"
-            },
-            // 14. Biochemical Mine
-            new ChipItemData
-            {
-                id = 14,
-                chipName = "Biochemical Mine",
-                iconKey = "biochemical-mine",
-                tier = ChipTier.Magic,
-                level = 1,
-                count = 48,
-                requiredCount = 3,
-                enhanceCost = 500,
-                description = "Disperses corrosive toxin clouds poisoning large areas.",
-                baseStatsSummary = "Poison ATK <color=#FFCB49>14/s</color> (3s duration) | CD 7.7s",
-                magicBonus = "AoE ATK Range +40%",
-                rareBonus = "Cooldown -30%",
-                uniqueBonus = "ATK +77%",
-                epicBonus = "ATK +144%"
-            },
-            // 15. Tesla Coil
-            new ChipItemData
-            {
-                id = 15,
-                chipName = "Tesla Coil",
-                iconKey = "tesla-coil",
-                tier = ChipTier.Unique,
-                level = 14,
-                count = 19,
-                requiredCount = 15,
-                enhanceCost = 800,
-                description = "High-voltage tower chaining arc lightning between targets.",
-                baseStatsSummary = "ATK <color=#FFCB49>86</color> | 1 Target\n<color=#FFCB49>Slow</color> ATK Speed",
-                magicBonus = "Enemies Attacked: +1",
-                rareBonus = "ATK Speed +20%",
-                uniqueBonus = "Enemies Attacked: +1",
-                epicBonus = "ATK +100%"
-            },
-            // 16. ATK Module
-            new ChipItemData
-            {
-                id = 16,
-                chipName = "ATK Module",
-                iconKey = "atk-module",
-                tier = ChipTier.Magic,
-                level = 1,
-                count = 35,
-                requiredCount = 3,
-                enhanceCost = 500,
-                description = "Overclocks weapon core amplifiers across all arsenal.",
-                baseStatsSummary = "All Weapon ATK <color=#FFCB49>+19.6%</color>",
-                magicBonus = "All Weapons' ATK +7%",
-                rareBonus = "All Weapons' ATK +8%",
-                uniqueBonus = "All Weapons' ATK +9%",
-                epicBonus = "All Weapons' ATK +10%"
-            },
-            // 17. Black Hole Mine
-            new ChipItemData
-            {
-                id = 17,
-                chipName = "Black Hole Mine",
-                iconKey = "black-hole-mine",
-                tier = ChipTier.Magic,
-                level = 1,
-                count = 42,
-                requiredCount = 3,
-                enhanceCost = 500,
-                description = "Spawns gravitational singularities dragging surrounding foes inward.",
-                baseStatsSummary = "Mine AoE ATK <color=#FFCB49>15</color> | Vortex: 1.5s | CD 9.7s",
-                magicBonus = "AoE ATK Range +10%",
-                rareBonus = "Cooldown -10%",
-                uniqueBonus = "Black Hole Duration +20%",
-                epicBonus = "Black Hole Duration +30%"
-            },
-            // 18. Sonic Boom (Matches User Screenshot 1)
-            new ChipItemData
-            {
-                id = 18,
                 chipName = "Sonic Boom",
                 iconKey = "sonic-boom",
                 tier = ChipTier.Magic,
                 level = 1,
-                count = 439,
+                count = 513,
                 requiredCount = 3,
                 enhanceCost = 500,
-                description = "Inflicts a Sonic attack on enemies in a large area.",
-                baseStatsSummary = "ATK <color=#FFCB49>33</color>\n<color=#FFCB49>Very slow</color> ATK Speed",
-                magicBonus = "ATK +15%",
-                rareBonus = "AoE ATK Range +15%",
-                uniqueBonus = "ATK +30%",
-                epicBonus = "AoE ATK Range +35%"
+                description = "Emits concussive sonic waves pushing enemies back.",
+                baseStatsSummary = "Knockback: <color=#FFCB49>180%</color> | CD: 6.2s\nStuns for 0.6s",
+                magicBonus = "AoE Range +15%",
+                rareBonus = "Cooldown -20%",
+                uniqueBonus = "Stun Duration +0.4s",
+                epicBonus = "Knockback +100%"
             },
-            // 19. Big Battery
+            // 12. Healing Turret (Inv Row 1 Col 3)
             new ChipItemData
             {
-                id = 19,
-                chipName = "Big Battery",
-                iconKey = "big-battery",
-                tier = ChipTier.Magic,
-                level = 1,
-                count = 34,
-                requiredCount = 3,
-                enhanceCost = 500,
-                description = "High-density capacitor module raising player max health.",
-                baseStatsSummary = "HP <color=#FFCB49>+10%</color>",
-                magicBonus = "HP +15%",
-                rareBonus = "HP +20%",
-                uniqueBonus = "HP +25%",
-                epicBonus = "HP +40%"
-            },
-            // 20. Turret Module
-            new ChipItemData
-            {
-                id = 20,
-                chipName = "Turret Module",
-                iconKey = "turret-module",
-                tier = ChipTier.Magic,
-                level = 1,
-                count = 29,
-                requiredCount = 3,
-                enhanceCost = 500,
-                description = "Synchronizes firing algorithms across all automated turrets.",
-                baseStatsSummary = "All Turret Cooldown <color=#FFCB49>-7%</color>",
-                magicBonus = "Turret ATK Speed +5%",
-                rareBonus = "Turret ATK Speed +10%",
-                uniqueBonus = "Turret ATK Speed +10%",
-                epicBonus = "Turret ATK Speed +25%"
-            },
-            // 21. Ice Turret
-            new ChipItemData
-            {
-                id = 21,
-                chipName = "Ice Turret",
-                iconKey = "ice-turret",
-                tier = ChipTier.Magic,
-                level = 1,
-                count = 31,
-                requiredCount = 3,
-                enhanceCost = 500,
-                description = "Projects cryogenic bursts freezing and slowing monsters.",
-                baseStatsSummary = "Freeze: 1s | Duration: 11s | CD: 11s\n<color=#FFCB49>Slow</color> ATK Speed",
-                magicBonus = "AoE ATK Range +10%",
-                rareBonus = "Cold Wave Duration +15%",
-                uniqueBonus = "AoE ATK Range +10%",
-                epicBonus = "Cold Wave Duration +30%"
-            },
-            // 22. Invincible Shield
-            new ChipItemData
-            {
-                id = 22,
-                chipName = "Invincible Shield",
-                iconKey = "invincible-shield",
-                tier = ChipTier.Magic,
-                level = 1,
-                count = 26,
-                requiredCount = 3,
-                enhanceCost = 500,
-                description = "Triggers temporary impenetrable invulnerability bubble.",
-                baseStatsSummary = "Invincibility: <color=#FFCB49>2.3s</color> | CD: 35s\nRemoves all status debuffs",
-                magicBonus = "Duration +10%",
-                rareBonus = "Cooldown -10%",
-                uniqueBonus = "Duration +9%",
-                epicBonus = "Cooldown -9%"
-            },
-            // 23. Healing Turret
-            new ChipItemData
-            {
-                id = 23,
+                id = 12,
                 chipName = "Healing Turret",
                 iconKey = "healing-turret",
                 tier = ChipTier.Magic,
                 level = 1,
-                count = 33,
+                count = 502,
                 requiredCount = 3,
                 enhanceCost = 500,
                 description = "Medical beacon emitting regenerative restorative pulses.",
@@ -694,33 +495,243 @@ public class ChipsetController : MonoBehaviour
                 uniqueBonus = "Turret Range +60%",
                 epicBonus = "Turret Duration +30%"
             },
-            // 24. Flamethrower
+            // 13. Aiming Lens (Inv Row 1 Col 4)
             new ChipItemData
             {
-                id = 24,
-                chipName = "Flamethrower",
-                iconKey = "flamethrower",
+                id = 13,
+                chipName = "Aiming Lens",
+                iconKey = "aiming-lens",
                 tier = ChipTier.Magic,
                 level = 1,
-                count = 45,
+                count = 498,
                 requiredCount = 3,
                 enhanceCost = 500,
+                hasStar = true,
+                description = "Tactical scope magnifying weak points and critical precision.",
+                baseStatsSummary = "CRIT Rate <color=#FFCB49>+8%</color>\nCRIT DMG <color=#FFCB49>+25%</color>",
+                magicBonus = "CRIT Rate +4%",
+                rareBonus = "CRIT DMG +15%",
+                uniqueBonus = "CRIT Rate +6%",
+                epicBonus = "CRIT DMG +40%"
+            },
+            // 14. Ice Turret (Inv Row 2 Col 2)
+            new ChipItemData
+            {
+                id = 14,
+                chipName = "Ice Turret",
+                iconKey = "ice-turret",
+                tier = ChipTier.Magic,
+                level = 1,
+                count = 494,
+                requiredCount = 3,
+                enhanceCost = 500,
+                description = "Projects cryogenic bursts freezing and slowing monsters.",
+                baseStatsSummary = "Freeze: 1s | Duration: 11s | CD: 11s\n<color=#FFCB49>Slow</color> ATK Speed",
+                magicBonus = "AoE ATK Range +10%",
+                rareBonus = "Cold Wave Duration +15%",
+                uniqueBonus = "AoE ATK Range +10%",
+                epicBonus = "Cold Wave Duration +30%"
+            },
+            // 15. Flamethrower (Inv Row 2 Col 4)
+            new ChipItemData
+            {
+                id = 15,
+                chipName = "Flamethrower",
+                iconKey = "flamethrower",
+                tier = ChipTier.Epic,
+                level = 18,
+                count = 486,
+                requiredCount = 15,
+                enhanceCost = 1200,
                 description = "Continuous napalm jet incinerating monsters in a forward stream.",
                 baseStatsSummary = "ATK <color=#FFCB49>102.46/s</color> (3s duration)\n<color=#FFCB49>Normal</color> ATK Speed",
                 magicBonus = "AoE ATK Range +25%",
                 rareBonus = "ATK +15%",
                 uniqueBonus = "AoE ATK Range +25%",
                 epicBonus = "ATK +100%"
+            },
+            // 16. ATK Module (Inv Row 3 Col 1)
+            new ChipItemData
+            {
+                id = 16,
+                chipName = "ATK Module",
+                iconKey = "atk-module",
+                tier = ChipTier.Magic,
+                level = 1,
+                count = 483,
+                requiredCount = 3,
+                enhanceCost = 500,
+                description = "Reinforced weapon servo amplifying base attack power across all weapons.",
+                baseStatsSummary = "Overall ATK <color=#FFCB49>+5%</color>",
+                magicBonus = "ATK +5%",
+                rareBonus = "ATK +5%",
+                uniqueBonus = "ATK +10%",
+                epicBonus = "ATK +20%"
+            },
+            // 17. Laser Eye (Inv Row 3 Col 2)
+            new ChipItemData
+            {
+                id = 17,
+                chipName = "Laser Eye",
+                iconKey = "laser-eye",
+                tier = ChipTier.Magic,
+                level = 1,
+                count = 473,
+                requiredCount = 3,
+                enhanceCost = 500,
+                description = "Orbital targeting laser sweeping high-heat beams through lines of hostiles.",
+                baseStatsSummary = "Laser ATK <color=#FFCB49>36/s</color> | CD: 4.8s",
+                magicBonus = "Laser Width +20%",
+                rareBonus = "ATK +15%",
+                uniqueBonus = "Laser Duration +1s",
+                epicBonus = "Dual Lasers"
+            },
+            // 18. Black Hole Mine (Inv Row 3 Col 3)
+            new ChipItemData
+            {
+                id = 18,
+                chipName = "Black Hole Mine",
+                iconKey = "black-hole-mine",
+                tier = ChipTier.Magic,
+                level = 1,
+                count = 467,
+                requiredCount = 3,
+                enhanceCost = 500,
+                hasStar = true,
+                description = "Implosive vortex pulling nearby targets inward and crushing them.",
+                baseStatsSummary = "Vortex Radius: <color=#FFCB49>4.5m</color> | CD: 8.0s\nSlows targets by 60%",
+                magicBonus = "Pull Radius +15%",
+                rareBonus = "Vortex Duration +1.2s",
+                uniqueBonus = "Pull Force +40%",
+                epicBonus = "Creates Secondary Explosion"
+            },
+            // 19. Invincible Shield (Inv Row 3 Col 4)
+            new ChipItemData
+            {
+                id = 19,
+                chipName = "Invincible Shield",
+                iconKey = "invincible-shield",
+                tier = ChipTier.Magic,
+                level = 1,
+                count = 458,
+                requiredCount = 3,
+                enhanceCost = 500,
+                description = "Triggers temporary impenetrable invulnerability bubble.",
+                baseStatsSummary = "Invincibility: <color=#FFCB49>2.3s</color> | CD: 35s\nRemoves all status debuffs",
+                magicBonus = "Duration +10%",
+                rareBonus = "Cooldown -10%",
+                uniqueBonus = "Duration +9%",
+                epicBonus = "Cooldown -9%"
+            },
+            // 20. Big Battery
+            new ChipItemData
+            {
+                id = 20,
+                chipName = "Big Battery",
+                iconKey = "big-battery",
+                tier = ChipTier.Magic,
+                level = 1,
+                count = 450,
+                requiredCount = 3,
+                enhanceCost = 500,
+                description = "Extended power capacitor reducing cooldowns across all equipped chips.",
+                baseStatsSummary = "Cooldown Reduction <color=#FFCB49>4%</color>",
+                magicBonus = "All Skills CD -2%",
+                rareBonus = "All Skills CD -3%",
+                uniqueBonus = "All Skills CD -4%",
+                epicBonus = "All Skills CD -5%"
+            },
+            // 21. Plasma Field
+            new ChipItemData
+            {
+                id = 21,
+                chipName = "Plasma Field",
+                iconKey = "plasma-field",
+                tier = ChipTier.Magic,
+                level = 1,
+                count = 440,
+                requiredCount = 3,
+                enhanceCost = 500,
+                description = "Static aura generating periodic ionized electrical discharge.",
+                baseStatsSummary = "Shock DMG: <color=#FFCB49>18</color> every 1.5s",
+                magicBonus = "Shock Radius +15%",
+                rareBonus = "Shock Frequency +20%",
+                uniqueBonus = "Chains to 2 additional targets",
+                epicBonus = "Shock DMG +100%"
+            },
+            // 22. Biochemical Mine
+            new ChipItemData
+            {
+                id = 22,
+                chipName = "Biochemical Mine",
+                iconKey = "biochemical-mine",
+                tier = ChipTier.Magic,
+                level = 1,
+                count = 430,
+                requiredCount = 3,
+                enhanceCost = 500,
+                description = "Toxic canister leaving corrosive gas clouds that poison enemies.",
+                baseStatsSummary = "Gas Poison: <color=#FFCB49>12 DMG/s</color> for 5s",
+                magicBonus = "Gas Radius +20%",
+                rareBonus = "Gas Duration +2s",
+                uniqueBonus = "Poison Tick +50%",
+                epicBonus = "Reduces Enemy Defense by 30%"
+            },
+            // 23. Tesla Coil
+            new ChipItemData
+            {
+                id = 23,
+                chipName = "Tesla Coil",
+                iconKey = "tesla-coil",
+                tier = ChipTier.Magic,
+                level = 1,
+                count = 420,
+                requiredCount = 3,
+                enhanceCost = 500,
+                description = "High-voltage pylon discharging chained lightning through dense crowds.",
+                baseStatsSummary = "Chain ATK <color=#FFCB49>32</color> | 3 Targets",
+                magicBonus = "Chain Targets +1",
+                rareBonus = "Lightning Damage +20%",
+                uniqueBonus = "Chain Range +30%",
+                epicBonus = "Forks to 6 Targets"
+            },
+            // 24. Turret Module
+            new ChipItemData
+            {
+                id = 24,
+                chipName = "Turret Module",
+                iconKey = "turret-module",
+                tier = ChipTier.Magic,
+                level = 1,
+                count = 410,
+                requiredCount = 3,
+                enhanceCost = 500,
+                description = "Specialized hardware unit enhancing all deployed turrets.",
+                baseStatsSummary = "Turret ATK +10%\nTurret HP +15%",
+                magicBonus = "Turret ATK +5%",
+                rareBonus = "Turret Cooldown -10%",
+                uniqueBonus = "Turret ATK Speed +10%",
+                epicBonus = "Turret ATK Speed +25%"
             }
         };
-
     }
 
     private void InitializeDefaultDecks()
     {
-        // Preset 3 equipped chips (Slots 1 to 10)
+        // Preset 3 equipped chips (Slots 1 to 10 matching user screenshot):
+        // 1: Standard Gun (Yellow LV.18)
+        // 2: Rifle (Holo LV.24)
+        // 3: Rocket Punch (Blue LV.06)
+        // 4: Spinning Blade (Purple LV.14)
+        // 5: Multigun (Blue LV.06)
+        // 6: Gun Turret (Green LV.01)
+        // 7: Spiky Discus (Green LV.01)
+        // 8: Shotgun (Blue LV.09)
+        // 9: Energy Jumper Cables (Green LV.01 Star)
+        // 10: High-Explosive Mine (Green LV.01)
         deckEquippedIds[2] = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-        // Preset 1 & 2
+
+        // Presets 1 & 2
         deckEquippedIds[0] = new int[] { 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 };
         deckEquippedIds[1] = new int[] { 21, 22, 23, 24, 1, 2, 3, 4, 5, 6 };
     }
@@ -1136,7 +1147,37 @@ public class ChipsetController : MonoBehaviour
     private Sprite GetIconSprite(string key)
     {
         if (chipIcons == null || chipIcons.Length == 0) return null;
-        return chipIcons.FirstOrDefault(s => s != null && s.name.Equals(key, StringComparison.OrdinalIgnoreCase)) ?? chipIcons[0];
+        if (string.IsNullOrEmpty(key)) return chipIcons[0];
+
+        string cleanKey = key.Replace(" ", "").Replace("-", "").Replace("_", "").ToLowerInvariant();
+
+        // 1. Khớp chính xác tên sprite
+        Sprite match = chipIcons.FirstOrDefault(s => s != null && (
+            string.Equals(s.name, key, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(s.name.Replace(" ", "").Replace("-", "").Replace("_", "").ToLowerInvariant(), cleanKey)
+        ));
+        if (match != null) return match;
+
+        // 2. Ánh xạ số cho icon chipset (1..10)
+        string numKey = null;
+        if (cleanKey.Contains("highexplosive") || cleanKey.Contains("mine") && !cleanKey.Contains("blackhole") && !cleanKey.Contains("biochemical")) numKey = "1";
+        else if (cleanKey.Contains("energyjumper") || cleanKey.Contains("jumpercable")) numKey = "2";
+        else if (cleanKey.Contains("shotgun")) numKey = "3";
+        else if (cleanKey.Contains("spiky") || cleanKey.Contains("discus") || cleanKey.Contains("spicky")) numKey = "4";
+        else if (cleanKey.Contains("gunturret") || cleanKey.Equals("turret")) numKey = "5";
+        else if (cleanKey.Contains("multigun")) numKey = "6";
+        else if (cleanKey.Contains("spinningblade") || cleanKey.Contains("blade")) numKey = "7";
+        else if (cleanKey.Contains("rocketpunch") || cleanKey.Contains("punch")) numKey = "8";
+        else if (cleanKey.Contains("standardgun") || cleanKey.Equals("gun") || cleanKey.Equals("pistol")) numKey = "9";
+        else if (cleanKey.Contains("rifle") || cleanKey.Contains("assault")) numKey = "10";
+
+        if (!string.IsNullOrEmpty(numKey))
+        {
+            match = chipIcons.FirstOrDefault(s => s != null && s.name == numKey);
+            if (match != null) return match;
+        }
+
+        return chipIcons[0];
     }
 
     private Sprite GetFrameSprite(ChipTier tier)
@@ -1145,14 +1186,15 @@ public class ChipsetController : MonoBehaviour
         switch (tier)
         {
             case ChipTier.Magic:
-                return frameSprites.Length > 0 ? frameSprites[0] : null;
+                return frameSprites.Length > 0 ? frameSprites[0] : null; // Green
             case ChipTier.Rare:
-                return frameSprites.Length > 1 ? frameSprites[1] : frameSprites[0];
+                return frameSprites.Length > 1 ? frameSprites[1] : frameSprites[0]; // Blu
             case ChipTier.Unique:
+                return frameSprites.Length > 2 ? frameSprites[2] : (frameSprites.Length > 1 ? frameSprites[1] : frameSprites[0]); // Tím
             case ChipTier.Epic:
-                return frameSprites.Length > 2 ? frameSprites[2] : frameSprites[0];
+                return frameSprites.Length > 3 ? frameSprites[3] : (frameSprites.Length > 2 ? frameSprites[2] : frameSprites[0]); // Yello
             case ChipTier.Holographic:
-                return frameSprites.Length > 3 ? frameSprites[3] : (frameSprites.Length > 2 ? frameSprites[2] : frameSprites[0]);
+                return frameSprites.Length > 4 ? frameSprites[4] : (frameSprites.Length > 3 ? frameSprites[3] : frameSprites[0]); // Red / Holographic
             default:
                 return frameSprites[0];
         }

@@ -19,6 +19,7 @@ public static class LabMenuSceneBuilder
     {
         EditorApplication.update += TryBuildRequestedScene;
         EditorApplication.update += TryBuildRequestedShopPanel;
+        EditorApplication.update += TryBuildRequestedChipsetPanel;
         EditorApplication.update += TryBuildRequestedBuddyPanel;
         EditorApplication.update += TryUpdateRequestedLabStats;
     }
@@ -51,6 +52,7 @@ public static class LabMenuSceneBuilder
     private const string BuddyPreviewPath = "Assets/UI/Buddy/Generated/buddy-menu-preview.png";
     private const string BuildRequestPath = "Assets/Editor/PGE_LabUI_BuildRequest.txt";
     private const string ShopBuildRequestPath = "Assets/Editor/PGE_ShopUI_BuildRequest.txt";
+    private const string ChipsetBuildRequestPath = "Assets/Editor/PGE_ChipsetUI_BuildRequest.txt";
     private const string BuddyBuildRequestPath = "Assets/Editor/PGE_BuddyUI_BuildRequest.txt";
     private const string LabStatsBuildRequestPath = "Assets/Editor/PGE_LabStats_BuildRequest.txt";
     private const string FontPath = "Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset";
@@ -332,6 +334,25 @@ public static class LabMenuSceneBuilder
 
         RebuildShopPanel();
         AssetDatabase.DeleteAsset(ShopBuildRequestPath);
+        AssetDatabase.Refresh();
+    }
+
+    private static void TryBuildRequestedChipsetPanel()
+    {
+        if (!File.Exists(ChipsetBuildRequestPath) ||
+            EditorApplication.isPlayingOrWillChangePlaymode ||
+            EditorApplication.isCompiling ||
+            EditorApplication.isUpdating)
+        {
+            return;
+        }
+
+        RebuildChipsetPanel();
+        try
+        {
+            File.Delete(ChipsetBuildRequestPath);
+        }
+        catch {}
         AssetDatabase.Refresh();
     }
 
@@ -819,8 +840,51 @@ public static class LabMenuSceneBuilder
 
     private static void CacheChipsetSprites()
     {
-        cachedChipsetSprites = AssetDatabase.LoadAllAssetsAtPath(ChipsetAtlasPath).OfType<Sprite>().ToArray();
-        Debug.Log($"[Chipset] Cached {cachedChipsetSprites.Length} sprites: {string.Join(", ", cachedChipsetSprites.Select(s => s.name))}");
+        List<Sprite> list = new List<Sprite>();
+
+        // 1. Tải toàn bộ sub-sprites từ icon chipset và khung chipset mà user đã up
+        string[] sheetPaths = {
+            "Assets/Sprites/UI/Chipset/icon chipset.png",
+            "Assets/Sprites/UI/Chipset/khung chipset.png",
+            "Assets/UI/Chipset/Generated/icon chipset.png",
+            ChipsetAtlasPath
+        };
+        foreach (string sheet in sheetPaths)
+        {
+            if (File.Exists(sheet))
+            {
+                Sprite[] subs = AssetDatabase.LoadAllAssetsAtPath(sheet).OfType<Sprite>().ToArray();
+                foreach (Sprite s in subs)
+                {
+                    if (s != null && !list.Any(existing => existing.name == s.name)) list.Add(s);
+                }
+            }
+        }
+
+        // 2. Tải các khung bậc riêng lẻ từ Assets/Sprites/UI/Chipset/Frames/
+        string framesDir = "Assets/Sprites/UI/Chipset/Frames";
+        if (Directory.Exists(framesDir))
+        {
+            foreach (string file in Directory.GetFiles(framesDir, "*.png"))
+            {
+                Sprite s = AssetDatabase.LoadAssetAtPath<Sprite>(file.Replace("\\", "/"));
+                if (s != null && !list.Contains(s)) list.Add(s);
+            }
+        }
+
+        // 3. Tải các icon riêng lẻ từ Assets/Sprites/UI/Chipset/Icons/
+        string iconsDir = "Assets/Sprites/UI/Chipset/Icons";
+        if (Directory.Exists(iconsDir))
+        {
+            foreach (string file in Directory.GetFiles(iconsDir, "*.png"))
+            {
+                Sprite s = AssetDatabase.LoadAssetAtPath<Sprite>(file.Replace("\\", "/"));
+                if (s != null && !list.Contains(s)) list.Add(s);
+            }
+        }
+
+        cachedChipsetSprites = list.ToArray();
+        Debug.Log($"[Chipset] Cached {cachedChipsetSprites.Length} user uploaded and sliced sprites.");
     }
 
     private static void ConfigureBuddyTextures()
@@ -1108,9 +1172,7 @@ public static class LabMenuSceneBuilder
         RectTransform tabChipsetRect = tabChipsetObj.GetComponent<RectTransform>();
         Stretch(tabChipsetRect, new Vector2(0.03f, 0f), new Vector2(0.485f, 1f), Vector2.zero, Vector2.zero);
         TMP_Text tabChipsetText = CreateText("Label", tabChipsetRect, "Chipset", 44f, Color.white, TextAlignmentOptions.Center);
-        Anchor(tabChipsetText.rectTransform, new Vector2(0.5f, 0.62f), Vector2.zero, new Vector2(300f, 50f));
-        Image waveImg = CreateChipsetIcon("Wave", tabChipsetRect, "wave-circuit", 140f);
-        Anchor(waveImg.rectTransform, new Vector2(0.5f, 0.22f), Vector2.zero, new Vector2(140f, 30f));
+        Stretch(tabChipsetText.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
         Button tabChipsetBtn = tabChipsetObj.AddComponent<Button>();
         tabChipsetBtn.targetGraphic = tabChipsetBg;
 
@@ -1118,10 +1180,8 @@ public static class LabMenuSceneBuilder
         GameObject tabHighTechObj = CreateFrame("TabHighTech", topTabs, new Color32(16, 52, 54, 235), new Color32(12, 38, 42, 255), out Image tabHighTechBg);
         RectTransform tabHighTechRect = tabHighTechObj.GetComponent<RectTransform>();
         Stretch(tabHighTechRect, new Vector2(0.515f, 0f), new Vector2(0.97f, 1f), Vector2.zero, Vector2.zero);
-        TMP_Text tabHighTechText = CreateText("Label", tabHighTechRect, "High-Tech Chipset", 36f, new Color32(40, 95, 95, 255), TextAlignmentOptions.Center);
-        Anchor(tabHighTechText.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(400f, 50f));
-        Image lockImg = CreateChipsetIcon("Lock", tabHighTechRect, "icon-lock", 60f);
-        Anchor(lockImg.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(60f, 60f));
+        TMP_Text tabHighTechText = CreateText("Label", tabHighTechRect, "High-Tech Chipset", 36f, new Color32(60, 110, 110, 255), TextAlignmentOptions.Center);
+        Stretch(tabHighTechText.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
         Button tabHighTechBtn = tabHighTechObj.AddComponent<Button>();
         tabHighTechBtn.targetGraphic = tabHighTechBg;
 
@@ -1242,20 +1302,20 @@ public static class LabMenuSceneBuilder
 
         // Pre-configure the 10 equipped cards to match Preset 3 screenshot
         string[] eqIcons = {
-            "standard-gun", "rifle", "rocket-punch", "spinning-blade", "multigun",
-            "gun-turret", "spiky-discus", "shotgun", "energy-jumper-cables", "high-explosive-mine"
+            "Standard gun", "Rifle", "Rocket Punch", "Spinning Blade", "Multigun",
+            "Gun Turret", "Spiky Discus", "Shotgun", "Energy Jumper Cable", "High Explosive Mine"
         };
         string[] eqFrames = {
-            "card-frame-common", "card-frame-holographic", "card-frame-common", "card-frame-epic", "card-frame-common",
-            "card-frame-common", "card-frame-common", "card-frame-rare", "card-frame-common", "card-frame-common"
+            "Yello", "card-frame-tier5-holographic", "Blu", "Tím", "Blu",
+            "Green", "Green", "Blu", "Green", "Green"
         };
         string[] eqLevels = {
-            "LV.01", "LV.24", "LV.01", "LV.14", "LV.06",
+            "LV.18", "LV.24", "LV.06", "LV.14", "LV.06",
             "LV.01", "LV.01", "LV.09", "LV.01", "LV.01"
         };
         string[] eqProgress = {
-            "22/3", "20", "50/3", "31/9", "37/3",
-            "49/3", "30/3", "49/7", "38/3", "24/3"
+            "451/15", "449", "470/7", "468/9", "423/3",
+            "501/3", "479/3", "450/7", "391/3", "390/3"
         };
         bool[] eqStars = { false, false, false, false, false, false, false, false, true, false };
         bool[] eqArrows = { true, false, true, true, true, true, true, true, true, true };
@@ -1265,32 +1325,43 @@ public static class LabMenuSceneBuilder
             ConfigureCardStaticView(equippedCardSlots[i], eqIcons[i], eqFrames[i], eqLevels[i], eqProgress[i], eqStars[i], eqArrows[i]);
         }
 
-        // Pre-populate Inventory cards to match screenshot
+        // Pre-populate Inventory cards matching Image 1:
         string[] invIcons = {
-            "aiming-lens", "laser-eye", "plasma-field", "biochemical-mine",
-            "tesla-coil", "standard-gun", "spiky-discus", "multigun",
-            "power-battery", "rocket-punch", "gun-turret", "plasma-field"
+            "Rocket Punch", "sonic-boom", "healing-turret", "aiming-lens",
+            "Gun Turret", "ice-turret", "Multigun", "flamethrower",
+            "atk-module", "laser-eye", "black-hole-mine", "invincible-shield"
         };
         string[] invFrames = {
-            "card-frame-common", "card-frame-common", "card-frame-common", "card-frame-common",
-            "card-frame-common", "card-frame-rare", "card-frame-common", "card-frame-common",
-            "card-frame-common", "card-frame-common", "card-frame-common", "card-frame-common"
+            "Green", "Green", "Green", "Green",
+            "Green", "Green", "Green", "Yello",
+            "Green", "Green", "Green", "Green"
         };
         string[] invLevels = {
             "LV.01", "LV.01", "LV.01", "LV.01",
-            "LV.01", "LV.09", "LV.01", "LV.01",
+            "LV.01", "LV.01", "LV.01", "LV.18",
             "LV.01", "LV.01", "LV.01", "LV.01"
         };
         string[] invProgress = {
-            "63/3", "58/3", "52/3", "48/3",
-            "33/3", "31/7", "31/3", "30/3",
-            "30/3", "26/3", "23/3", "22/3"
+            "547/3", "513/3", "502/3", "498/3",
+            "497/3", "494/3", "489/3", "486/15",
+            "483/3", "473/3", "467/3", "458/3"
         };
         bool[] invStars = {
-            true, false, false, false,
+            false, false, false, true,
             false, false, false, false,
-            false, false, false, false
+            false, false, true, false
         };
+        bool[] invArrows = {
+            true, true, true, true,
+            true, true, true, true,
+            true, true, true, true
+        };
+
+        for (int i = 0; i < invIcons.Length; i++)
+        {
+            ChipsetCardUI invCard = CreateChipCardUI(invContent, $"StaticInvCard_{i:00}", new Vector2(225f, 290f));
+            ConfigureCardStaticView(invCard, invIcons[i], invFrames[i], invLevels[i], invProgress[i], invStars[i], invArrows[i]);
+        }
 
         // Card Prefab template for dynamic instantiation at runtime
         GameObject cardPrefab = CreateChipCardUI(invContent, "CardTemplate", new Vector2(225f, 290f)).gameObject;
@@ -1386,7 +1457,8 @@ public static class LabMenuSceneBuilder
         sController.FindProperty("toastText").objectReferenceValue = toastText;
 
         // Load Sprites into database
-        Sprite[] allChipsetSprites = AssetDatabase.LoadAllAssetRepresentationsAtPath(ChipsetAtlasPath).OfType<Sprite>().ToArray();
+        if (cachedChipsetSprites == null || cachedChipsetSprites.Length == 0) CacheChipsetSprites();
+
         string[] iconKeys = {
             "standard-gun", "rifle", "rocket-punch", "spinning-blade", "multigun",
             "gun-turret", "spiky-discus", "shotgun", "energy-jumper-cables", "high-explosive-mine",
@@ -1394,12 +1466,13 @@ public static class LabMenuSceneBuilder
             "atk-module", "black-hole-mine", "sonic-boom", "big-battery", "turret-module",
             "ice-turret", "invincible-shield", "healing-turret", "flamethrower"
         };
-        Sprite[] chipIcons = iconKeys.Select(k => allChipsetSprites.FirstOrDefault(s => s.name == k)).Where(s => s != null).ToArray();
+        Sprite[] chipIcons = iconKeys.Select(k => LoadChipsetSprite(k)).Where(s => s != null).ToArray();
         Sprite[] frameSprites = new[] {
-            allChipsetSprites.FirstOrDefault(s => s.name == "card-frame-common"),
-            allChipsetSprites.FirstOrDefault(s => s.name == "card-frame-rare"),
-            allChipsetSprites.FirstOrDefault(s => s.name == "card-frame-epic"),
-            allChipsetSprites.FirstOrDefault(s => s.name == "card-frame-holographic")
+            LoadChipsetSprite("Green") ?? LoadChipsetSprite("card-frame-tier1-green") ?? LoadChipsetSprite("card-frame-common"),
+            LoadChipsetSprite("Blu") ?? LoadChipsetSprite("card-frame-tier2-blue") ?? LoadChipsetSprite("card-frame-rare"),
+            LoadChipsetSprite("Tím") ?? LoadChipsetSprite("card-frame-tier3-purple") ?? LoadChipsetSprite("card-frame-epic"),
+            LoadChipsetSprite("Yello") ?? LoadChipsetSprite("card-frame-tier4-yellow") ?? LoadChipsetSprite("card-frame-epic"),
+            LoadChipsetSprite("card-frame-tier5-holographic") ?? LoadChipsetSprite("Red") ?? LoadChipsetSprite("card-frame-tier5-red")
         };
 
         SerializedProperty sIcons = sController.FindProperty("chipIcons");
@@ -1410,9 +1483,9 @@ public static class LabMenuSceneBuilder
         sFrames.arraySize = frameSprites.Length;
         for (int i = 0; i < frameSprites.Length; i++) sFrames.GetArrayElementAtIndex(i).objectReferenceValue = frameSprites[i];
 
-        sController.FindProperty("starSprite").objectReferenceValue = allChipsetSprites.FirstOrDefault(s => s.name == "icon-star");
-        sController.FindProperty("upgradeArrowSprite").objectReferenceValue = allChipsetSprites.FirstOrDefault(s => s.name == "badge-upgrade");
-        sController.FindProperty("advanceStoneSprite").objectReferenceValue = allChipsetSprites.FirstOrDefault(s => s.name == "advance-stone");
+        sController.FindProperty("starSprite").objectReferenceValue = LoadChipsetSprite("icon-star");
+        sController.FindProperty("upgradeArrowSprite").objectReferenceValue = LoadChipsetSprite("badge-upgrade");
+        sController.FindProperty("advanceStoneSprite").objectReferenceValue = LoadChipsetSprite("advance-stone");
 
         Sprite[] allBuddySprites = AssetDatabase.LoadAllAssetRepresentationsAtPath(BuddyAtlasPath).OfType<Sprite>().ToArray();
         SerializedProperty sTierLocks = sController.FindProperty("lockTierSprites");
@@ -1983,7 +2056,7 @@ public static class LabMenuSceneBuilder
 
         // Card Frame Image (pins top/bottom)
         Image cardFrame = cardRoot.gameObject.AddComponent<Image>();
-        cardFrame.sprite = LoadChipsetSprite("card-frame-common");
+        cardFrame.sprite = LoadChipsetSprite("Green") ?? LoadChipsetSprite("card-frame-tier1-green");
         cardFrame.type = Image.Type.Simple;
         cardFrame.preserveAspect = false;
         cardFrame.raycastTarget = true;
@@ -1996,33 +2069,38 @@ public static class LabMenuSceneBuilder
         Stretch(normalGroup, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
         // Top Level Text
-        TMP_Text levelText = CreateText("LevelText", normalGroup, "LV.01", 24f, Yellow, TextAlignmentOptions.Center);
-        Anchor(levelText.rectTransform, new Vector2(0.5f, 0.79f), Vector2.zero, new Vector2(size.x * 0.9f, 30f));
+        TMP_Text levelText = CreateText("LevelText", normalGroup, "LV.01", 24f, Color.white, TextAlignmentOptions.Center);
+        levelText.fontStyle = FontStyles.Bold;
+        levelText.outlineColor = Color.black;
+        levelText.outlineWidth = 0.25f;
+        Anchor(levelText.rectTransform, new Vector2(0.5f, 0.86f), Vector2.zero, new Vector2(size.x * 0.85f, 32f));
 
         // Star Icon (Top Right)
         Image starImg = CreateChipsetIcon("Star", normalGroup, "icon-star", 28f);
-        Anchor(starImg.rectTransform, new Vector2(0.84f, 0.80f), Vector2.zero, new Vector2(28f, 28f));
+        Anchor(starImg.rectTransform, new Vector2(0.82f, 0.84f), Vector2.zero, new Vector2(28f, 28f));
         starImg.gameObject.SetActive(false);
 
         // Center Icon
-        Image centerIcon = CreateChipsetIcon("Icon", normalGroup, "standard-gun", 105f);
-        Anchor(centerIcon.rectTransform, new Vector2(0.5f, 0.50f), Vector2.zero, new Vector2(105f, 105f));
+        Image centerIcon = CreateChipsetIcon("Icon", normalGroup, "standard-gun", 110f);
+        Anchor(centerIcon.rectTransform, new Vector2(0.5f, 0.52f), Vector2.zero, new Vector2(110f, 110f));
+        centerIcon.preserveAspect = true;
 
         // Bottom Progress Bar
         RectTransform bottomBar = CreateRect("BottomBar", normalGroup);
-        Stretch(bottomBar, new Vector2(0.08f, 0.09f), new Vector2(0.92f, 0.25f), Vector2.zero, Vector2.zero);
+        Stretch(bottomBar, new Vector2(0.08f, 0.10f), new Vector2(0.92f, 0.25f), Vector2.zero, Vector2.zero);
         Image bottomBarBg = bottomBar.gameObject.AddComponent<Image>();
-        bottomBarBg.color = new Color32(20, 120, 50, 230);
+        bottomBarBg.color = new Color32(74, 222, 128, 255);
         bottomBarBg.raycastTarget = false;
 
-        TMP_Text progressText = CreateText("ProgressText", bottomBar, "22/3", 24f, Color.white, TextAlignmentOptions.Center);
-        Stretch(progressText.rectTransform, Vector2.zero, Vector2.one, new Vector2(6f, 0f), new Vector2(-36f, 0f));
+        TMP_Text progressText = CreateText("ProgressText", bottomBar, "22/3", 22f, new Color32(10, 20, 30, 255), TextAlignmentOptions.Center);
+        progressText.fontStyle = FontStyles.Bold;
+        Stretch(progressText.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
         // Upgrade Green Arrow Button
         GameObject upgradeArrowObj = new GameObject("UpgradeArrowGroup", typeof(RectTransform));
         RectTransform arrowRect = upgradeArrowObj.GetComponent<RectTransform>();
         arrowRect.SetParent(normalGroup, false);
-        Anchor(arrowRect, new Vector2(0.85f, 0.17f), Vector2.zero, new Vector2(44f, 44f));
+        Anchor(arrowRect, new Vector2(0.88f, 0.17f), Vector2.zero, new Vector2(44f, 44f));
 
         Image arrowIcon = upgradeArrowObj.AddComponent<Image>();
         arrowIcon.sprite = LoadChipsetSprite("badge-upgrade");
@@ -2883,7 +2961,13 @@ public static class LabMenuSceneBuilder
     {
         RectTransform rect = CreateRect(name, parent);
         TextMeshProUGUI text = rect.gameObject.AddComponent<TextMeshProUGUI>();
-        text.font = font;
+        TMP_FontAsset activeFont = font;
+        if (activeFont == null)
+        {
+            activeFont = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Fonts/Nunito/Nunito SDF.asset")
+                ?? AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath);
+        }
+        if (activeFont != null) text.font = activeFont;
         text.text = value;
         text.fontSize = fontSize;
         text.fontStyle = FontStyles.Bold;
@@ -2892,8 +2976,8 @@ public static class LabMenuSceneBuilder
         text.enableWordWrapping = true;
         text.overflowMode = TextOverflowModes.Ellipsis;
         text.raycastTarget = false;
-        text.outlineColor = Navy;
-        text.outlineWidth = 0.16f;
+        text.outlineColor = Color.black;
+        text.outlineWidth = 0.2f;
         return text;
     }
 
@@ -2921,11 +3005,85 @@ public static class LabMenuSceneBuilder
 
     private static Sprite LoadChipsetSprite(string spriteName)
     {
+        if (string.IsNullOrEmpty(spriteName)) return null;
+
         if (cachedChipsetSprites == null || cachedChipsetSprites.Length == 0)
         {
             CacheChipsetSprites();
         }
-        return cachedChipsetSprites?.FirstOrDefault(sprite => string.Equals(sprite.name, spriteName, StringComparison.OrdinalIgnoreCase));
+
+        string cleanName = spriteName.Replace(" ", "").Replace("-", "").Replace("_", "").ToLowerInvariant();
+
+        // 1. Khớp chính xác tên trong cache
+        Sprite match = cachedChipsetSprites?.FirstOrDefault(sprite => 
+            sprite != null && (
+                string.Equals(sprite.name, spriteName, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(sprite.name.Replace(" ", "").Replace("-", "").Replace("_", "").ToLowerInvariant(), cleanName)
+            )
+        );
+        if (match != null) return match;
+
+        // 2. Ánh xạ số cho các icon trong icon chipset (1..10)
+        string numKey = null;
+        if (cleanName.Contains("highexplosive") || cleanName.Contains("mine") && !cleanName.Contains("blackhole") && !cleanName.Contains("biochemical")) numKey = "1";
+        else if (cleanName.Contains("energyjumper") || cleanName.Contains("jumpercable")) numKey = "2";
+        else if (cleanName.Contains("shotgun")) numKey = "3";
+        else if (cleanName.Contains("spiky") || cleanName.Contains("discus") || cleanName.Contains("spicky")) numKey = "4";
+        else if (cleanName.Contains("gunturret") || cleanName.Equals("turret")) numKey = "5";
+        else if (cleanName.Contains("multigun")) numKey = "6";
+        else if (cleanName.Contains("spinningblade") || cleanName.Contains("blade")) numKey = "7";
+        else if (cleanName.Contains("rocketpunch") || cleanName.Contains("punch")) numKey = "8";
+        else if (cleanName.Contains("standardgun") || cleanName.Equals("gun") || cleanName.Equals("pistol")) numKey = "9";
+        else if (cleanName.Contains("rifle") || cleanName.Contains("assault")) numKey = "10";
+
+        if (!string.IsNullOrEmpty(numKey))
+        {
+            match = cachedChipsetSprites?.FirstOrDefault(s => s != null && s.name == numKey);
+            if (match != null) return match;
+        }
+
+        // 3. Ánh xạ khung thẻ Bậc 1-5
+        if (cleanName.Contains("green") || cleanName.Contains("tier1") || cleanName.Contains("magic") || cleanName.Contains("common"))
+        {
+            match = cachedChipsetSprites?.FirstOrDefault(s => s != null && (s.name == "Green" || s.name == "card-frame-tier1-green"));
+            if (match != null) return match;
+        }
+        else if (cleanName.Contains("blue") || cleanName.Contains("tier2") || cleanName.Contains("rare") || cleanName.Contains("blu"))
+        {
+            match = cachedChipsetSprites?.FirstOrDefault(s => s != null && (s.name == "Blu" || s.name == "card-frame-tier2-blue"));
+            if (match != null) return match;
+        }
+        else if (cleanName.Contains("purple") || cleanName.Contains("tier3") || cleanName.Contains("unique") || cleanName.Contains("tim") || cleanName.Contains("tím"))
+        {
+            match = cachedChipsetSprites?.FirstOrDefault(s => s != null && (s.name == "Tím" || s.name.Contains("T") && s.name.Contains("m") || s.name == "card-frame-tier3-purple"));
+            if (match != null) return match;
+        }
+        else if (cleanName.Contains("yellow") || cleanName.Contains("tier4") || cleanName.Contains("epic") || cleanName.Contains("yello") || cleanName.Contains("gold"))
+        {
+            match = cachedChipsetSprites?.FirstOrDefault(s => s != null && (s.name == "Yello" || s.name == "card-frame-tier4-yellow"));
+            if (match != null) return match;
+        }
+        else if (cleanName.Contains("holo") || cleanName.Contains("rainbow") || cleanName.Contains("tier5") || cleanName.Contains("red"))
+        {
+            match = cachedChipsetSprites?.FirstOrDefault(s => s != null && (s.name == "card-frame-tier5-holographic" || s.name == "Red" || s.name == "card-frame-tier5-red"));
+            if (match != null) return match;
+        }
+
+        // 4. Kiểm tra file riêng lẻ
+        string framePath = $"Assets/Sprites/UI/Chipset/Frames/{spriteName}.png";
+        if (File.Exists(framePath))
+        {
+            Sprite s = AssetDatabase.LoadAssetAtPath<Sprite>(framePath);
+            if (s != null) return s;
+        }
+        string iconPath = $"Assets/Sprites/UI/Chipset/Icons/{spriteName}.png";
+        if (File.Exists(iconPath))
+        {
+            Sprite s = AssetDatabase.LoadAssetAtPath<Sprite>(iconPath);
+            if (s != null) return s;
+        }
+
+        return null;
     }
 
     private static void AddOutline(Graphic graphic, Color color, float size)

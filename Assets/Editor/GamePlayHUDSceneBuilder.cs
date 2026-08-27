@@ -610,10 +610,11 @@ public static class GamePlayHUDSceneBuilder
         Sprite[] icons = iconKeys.Select(key => FindSprite(allAtlasSprites, key)).Where(sprite => sprite != null).ToArray();
         Sprite[] frames =
         {
-            FindSprite(allAtlasSprites, "card-frame-common"),
-            FindSprite(allAtlasSprites, "card-frame-rare"),
-            FindSprite(allAtlasSprites, "card-frame-epic"),
-            FindSprite(allAtlasSprites, "card-frame-holographic")
+            FindSprite(allAtlasSprites, "Green") ?? FindSprite(allAtlasSprites, "card-frame-tier1-green") ?? FindSprite(allAtlasSprites, "card-frame-common"),
+            FindSprite(allAtlasSprites, "Blu") ?? FindSprite(allAtlasSprites, "card-frame-tier2-blue") ?? FindSprite(allAtlasSprites, "card-frame-rare"),
+            FindSprite(allAtlasSprites, "Tím") ?? FindSprite(allAtlasSprites, "card-frame-tier3-purple") ?? FindSprite(allAtlasSprites, "card-frame-epic"),
+            FindSprite(allAtlasSprites, "Yello") ?? FindSprite(allAtlasSprites, "card-frame-tier4-yellow") ?? FindSprite(allAtlasSprites, "card-frame-epic"),
+            FindSprite(allAtlasSprites, "card-frame-tier5-holographic") ?? FindSprite(allAtlasSprites, "Red") ?? FindSprite(allAtlasSprites, "card-frame-tier5-red")
         };
 
         controller.InitializeReferences(
@@ -727,8 +728,49 @@ public static class GamePlayHUDSceneBuilder
 
     private static Sprite FindSprite(Sprite[] sprites, string spriteName)
     {
-        return sprites?.FirstOrDefault(sprite =>
-            sprite != null && string.Equals(sprite.name, spriteName, StringComparison.OrdinalIgnoreCase));
+        if (string.IsNullOrEmpty(spriteName) || sprites == null || sprites.Length == 0) return null;
+
+        string cleanName = spriteName.Replace(" ", "").Replace("-", "").Replace("_", "").ToLowerInvariant();
+
+        // 1. Khớp chính xác
+        Sprite match = sprites.FirstOrDefault(s => s != null && (
+            string.Equals(s.name, spriteName, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(s.name.Replace(" ", "").Replace("-", "").Replace("_", "").ToLowerInvariant(), cleanName)
+        ));
+        if (match != null) return match;
+
+        // 2. Numeric slice mapping cho icon chipset
+        string numKey = null;
+        if (cleanName.Contains("highexplosive") || cleanName.Contains("mine") && !cleanName.Contains("blackhole") && !cleanName.Contains("biochemical")) numKey = "1";
+        else if (cleanName.Contains("energyjumper") || cleanName.Contains("jumpercable")) numKey = "2";
+        else if (cleanName.Contains("shotgun")) numKey = "3";
+        else if (cleanName.Contains("spiky") || cleanName.Contains("discus") || cleanName.Contains("spicky")) numKey = "4";
+        else if (cleanName.Contains("gunturret") || cleanName.Equals("turret")) numKey = "5";
+        else if (cleanName.Contains("multigun")) numKey = "6";
+        else if (cleanName.Contains("spinningblade") || cleanName.Contains("blade")) numKey = "7";
+        else if (cleanName.Contains("rocketpunch") || cleanName.Contains("punch")) numKey = "8";
+        else if (cleanName.Contains("standardgun") || cleanName.Equals("gun") || cleanName.Equals("pistol")) numKey = "9";
+        else if (cleanName.Contains("rifle") || cleanName.Contains("assault")) numKey = "10";
+
+        if (!string.IsNullOrEmpty(numKey))
+        {
+            match = sprites.FirstOrDefault(s => s != null && s.name == numKey);
+            if (match != null) return match;
+        }
+
+        // 3. Khung bậc
+        if (cleanName.Contains("green") || cleanName.Contains("tier1") || cleanName.Contains("magic") || cleanName.Contains("common"))
+            return sprites.FirstOrDefault(s => s != null && (s.name == "Green" || s.name == "card-frame-tier1-green"));
+        if (cleanName.Contains("blue") || cleanName.Contains("tier2") || cleanName.Contains("rare") || cleanName.Contains("blu"))
+            return sprites.FirstOrDefault(s => s != null && (s.name == "Blu" || s.name == "card-frame-tier2-blue"));
+        if (cleanName.Contains("purple") || cleanName.Contains("tier3") || cleanName.Contains("unique") || cleanName.Contains("tim") || cleanName.Contains("tím"))
+            return sprites.FirstOrDefault(s => s != null && (s.name == "Tím" || s.name.Contains("T") && s.name.Contains("m") || s.name == "card-frame-tier3-purple"));
+        if (cleanName.Contains("yellow") || cleanName.Contains("tier4") || cleanName.Contains("epic") || cleanName.Contains("yello") || cleanName.Contains("gold"))
+            return sprites.FirstOrDefault(s => s != null && (s.name == "Yello" || s.name == "card-frame-tier4-yellow"));
+        if (cleanName.Contains("holo") || cleanName.Contains("rainbow") || cleanName.Contains("tier5") || cleanName.Contains("red"))
+            return sprites.FirstOrDefault(s => s != null && (s.name == "card-frame-tier5-holographic" || s.name == "Red" || s.name == "card-frame-tier5-red"));
+
+        return null;
     }
 
     private static GameObject BuildPauseModal(Transform canvasTr, TMP_FontAsset fontAsset)

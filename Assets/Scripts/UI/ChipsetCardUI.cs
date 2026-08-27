@@ -140,23 +140,24 @@ public class ChipsetCardUI : MonoBehaviour
         {
             if (data.IsMaxOverall)
             {
-                progressText.text = "MAX";
-            }
-            else if (data.CanAdvanceTier)
-            {
-                progressText.text = data.NeedsAdvanceStones ? "10 STONES" : "ADVANCE";
-            }
-            else if (data.requiredCount > 0)
-            {
-                progressText.text = $"{data.count}/{data.requiredCount}";
+                progressText.text = $"{data.count}";
+                if (bottomProgressBar != null) bottomProgressBar.color = new Color32(232, 121, 249, 255); // Pink
             }
             else
             {
-                progressText.text = $"{data.count}";
+                if (bottomProgressBar != null) bottomProgressBar.color = new Color32(74, 222, 128, 255); // Bright Green
+                if (data.requiredCount > 0)
+                {
+                    progressText.text = $"{data.count}/{data.requiredCount}";
+                }
+                else
+                {
+                    progressText.text = $"{data.count}";
+                }
             }
         }
 
-        bool hasAction = data != null && (data.CanUpgrade || data.CanAdvanceTier);
+        bool hasAction = data != null && !data.IsMaxOverall && (data.CanUpgrade || data.CanAdvanceTier);
         if (upgradeArrowGroup != null)
         {
             upgradeArrowGroup.SetActive(hasAction);
@@ -230,23 +231,24 @@ public class ChipsetCardUI : MonoBehaviour
         {
             if (boundData.IsMaxOverall)
             {
-                progressText.text = "MAX";
-            }
-            else if (boundData.CanAdvanceTier)
-            {
-                progressText.text = boundData.NeedsAdvanceStones ? "10 STONES" : "ADVANCE";
-            }
-            else if (boundData.requiredCount > 0)
-            {
-                progressText.text = $"{boundData.count}/{boundData.requiredCount}";
+                progressText.text = $"{boundData.count}";
+                if (bottomProgressBar != null) bottomProgressBar.color = new Color32(232, 121, 249, 255); // Pink
             }
             else
             {
-                progressText.text = $"{boundData.count}";
+                if (bottomProgressBar != null) bottomProgressBar.color = new Color32(74, 222, 128, 255); // Bright Green
+                if (boundData.requiredCount > 0)
+                {
+                    progressText.text = $"{boundData.count}/{boundData.requiredCount}";
+                }
+                else
+                {
+                    progressText.text = $"{boundData.count}";
+                }
             }
         }
 
-        bool hasAction = boundData.CanUpgrade || boundData.CanAdvanceTier;
+        bool hasAction = !boundData.IsMaxOverall && (boundData.CanUpgrade || boundData.CanAdvanceTier);
         if (upgradeArrowGroup != null)
         {
             upgradeArrowGroup.SetActive(hasAction);

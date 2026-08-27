@@ -354,22 +354,57 @@ public class ChipsetLevelUpPopup : MonoBehaviour
     private Sprite GetIconSprite(string key)
     {
         if (chipIcons == null || chipIcons.Length == 0) return null;
-        return chipIcons.FirstOrDefault(sprite => sprite != null && string.Equals(sprite.name, key, StringComparison.OrdinalIgnoreCase));
+        if (string.IsNullOrEmpty(key)) return chipIcons[0];
+
+        string cleanKey = key.Replace(" ", "").Replace("-", "").Replace("_", "").ToLowerInvariant();
+
+        // 1. Direct name match
+        Sprite match = chipIcons.FirstOrDefault(sprite => sprite != null && (
+            string.Equals(sprite.name, key, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(sprite.name.Replace(" ", "").Replace("-", "").Replace("_", "").ToLowerInvariant(), cleanKey)
+        ));
+        if (match != null) return match;
+
+        // 2. Numeric sub-sprite mapping for icon chipset (1..10)
+        string numKey = null;
+        if (cleanKey.Contains("highexplosive") || cleanKey.Contains("mine") && !cleanKey.Contains("blackhole") && !cleanKey.Contains("biochemical")) numKey = "1";
+        else if (cleanKey.Contains("energyjumper") || cleanKey.Contains("jumpercable")) numKey = "2";
+        else if (cleanKey.Contains("shotgun")) numKey = "3";
+        else if (cleanKey.Contains("spiky") || cleanKey.Contains("discus") || cleanKey.Contains("spicky")) numKey = "4";
+        else if (cleanKey.Contains("gunturret") || cleanKey.Equals("turret")) numKey = "5";
+        else if (cleanKey.Contains("multigun")) numKey = "6";
+        else if (cleanKey.Contains("spinningblade") || cleanKey.Contains("blade")) numKey = "7";
+        else if (cleanKey.Contains("rocketpunch") || cleanKey.Contains("punch")) numKey = "8";
+        else if (cleanKey.Contains("standardgun") || cleanKey.Equals("gun") || cleanKey.Equals("pistol")) numKey = "9";
+        else if (cleanKey.Contains("rifle") || cleanKey.Contains("assault")) numKey = "10";
+
+        if (!string.IsNullOrEmpty(numKey))
+        {
+            match = chipIcons.FirstOrDefault(s => s != null && s.name == numKey);
+            if (match != null) return match;
+        }
+
+        return chipIcons[0];
     }
 
     private Sprite GetFrameSprite(ChipTier tier)
     {
         if (frameSprites == null || frameSprites.Length == 0) return null;
-        int index;
         switch (tier)
         {
-            case ChipTier.Rare: index = 1; break;
+            case ChipTier.Magic:
+                return frameSprites.Length > 0 ? frameSprites[0] : null; // Green
+            case ChipTier.Rare:
+                return frameSprites.Length > 1 ? frameSprites[1] : frameSprites[0]; // Blu
             case ChipTier.Unique:
-            case ChipTier.Epic: index = 2; break;
-            case ChipTier.Holographic: index = 3; break;
-            default: index = 0; break;
+                return frameSprites.Length > 2 ? frameSprites[2] : (frameSprites.Length > 1 ? frameSprites[1] : frameSprites[0]); // Tím
+            case ChipTier.Epic:
+                return frameSprites.Length > 3 ? frameSprites[3] : (frameSprites.Length > 2 ? frameSprites[2] : frameSprites[0]); // Yello
+            case ChipTier.Holographic:
+                return frameSprites.Length > 4 ? frameSprites[4] : (frameSprites.Length > 3 ? frameSprites[3] : frameSprites[0]); // Red / Holographic
+            default:
+                return frameSprites[0];
         }
-        return frameSprites[Mathf.Clamp(index, 0, frameSprites.Length - 1)];
     }
 
     private static string GetOfferDescription(ChipItemData data)
