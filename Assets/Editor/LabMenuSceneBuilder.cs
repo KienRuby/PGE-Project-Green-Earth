@@ -20,6 +20,7 @@ public static class LabMenuSceneBuilder
         EditorApplication.update += TryBuildRequestedScene;
         EditorApplication.update += TryBuildRequestedShopPanel;
         EditorApplication.update += TryBuildRequestedChipsetPanel;
+        EditorApplication.update += TryApplyRequestedGreenChipsetFrames;
         EditorApplication.update += TryBuildRequestedBuddyPanel;
         EditorApplication.update += TryUpdateRequestedLabStats;
     }
@@ -49,10 +50,12 @@ public static class LabMenuSceneBuilder
     private const string BuddyAtlasPath = "Assets/UI/Buddy/Generated/buddy-atlas.png";
     private const string PreviewPath = "Assets/UI/Lab/Generated/lab-menu-preview.png";
     private const string ChipsetPreviewPath = "Assets/UI/Chipset/Generated/chipset-menu-preview.png";
+    private const string ChipsetEquippedFramePath = "Assets/Sprites/UI/Chipset/Extracted/Frame_Equipped_Box.png";
     private const string BuddyPreviewPath = "Assets/UI/Buddy/Generated/buddy-menu-preview.png";
     private const string BuildRequestPath = "Assets/Editor/PGE_LabUI_BuildRequest.txt";
     private const string ShopBuildRequestPath = "Assets/Editor/PGE_ShopUI_BuildRequest.txt";
     private const string ChipsetBuildRequestPath = "Assets/Editor/PGE_ChipsetUI_BuildRequest.txt";
+    private const string ChipsetGreenFramesRequestPath = "Assets/Editor/PGE_ChipsetGreenFrames_Request.txt";
     private const string BuddyBuildRequestPath = "Assets/Editor/PGE_BuddyUI_BuildRequest.txt";
     private const string LabStatsBuildRequestPath = "Assets/Editor/PGE_LabStats_BuildRequest.txt";
     private const string FontPath = "Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset";
@@ -244,6 +247,88 @@ public static class LabMenuSceneBuilder
         Debug.Log("[LabMenuSceneBuilder] Functional ChipsetPanel rebuilt in MainMenu.");
     }
 
+    [MenuItem("PGE/UI/Apply Green Chipset Card Frames")]
+    public static void ApplyGreenChipsetCardFrames()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling || EditorApplication.isUpdating)
+        {
+            Debug.LogWarning("[LabMenuSceneBuilder] Stop Play Mode before applying green Chipset frames.");
+            return;
+        }
+
+        CacheChipsetSprites();
+        Sprite greenFrame = LoadChipsetSprite("Green") ?? LoadChipsetSprite("card-frame-tier1-green") ?? LoadChipsetSprite("card-frame-common");
+        if (greenFrame == null)
+        {
+            throw new InvalidOperationException("[LabMenuSceneBuilder] Green Chipset frame sprite was not found.");
+        }
+
+        Scene scene = SceneManager.GetActiveScene();
+        if (!string.Equals(scene.path, ScenePath, StringComparison.OrdinalIgnoreCase))
+        {
+            scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+        }
+
+        Canvas canvas = UnityEngine.Object.FindObjectOfType<Canvas>();
+        RectTransform chipsetPanel = canvas != null ? canvas.transform.Find("Content/ChipsetPanel") as RectTransform : null;
+        if (chipsetPanel == null)
+        {
+            throw new InvalidOperationException("[LabMenuSceneBuilder] Canvas/Content/ChipsetPanel was not found in MainMenu.");
+        }
+
+        ChipsetCardUI[] cards = chipsetPanel.GetComponentsInChildren<ChipsetCardUI>(true);
+        foreach (ChipsetCardUI card in cards)
+        {
+            SerializedObject cardObject = new SerializedObject(card);
+            UnityEngine.UI.Image frameImage = card.GetComponent<UnityEngine.UI.Image>();
+            if (frameImage != null)
+            {
+                frameImage.sprite = greenFrame;
+                EditorUtility.SetDirty(frameImage);
+            }
+
+            UnityEngine.UI.Image iconImage = cardObject.FindProperty("iconImage")?.objectReferenceValue as UnityEngine.UI.Image;
+            RectTransform iconRect = iconImage != null
+                ? iconImage.rectTransform
+                : card.GetComponentsInChildren<RectTransform>(true).FirstOrDefault(rect => rect.name == "Icon");
+            if (iconRect != null)
+            {
+                iconRect.anchoredPosition = new Vector2(iconRect.anchoredPosition.x, 13f);
+                EditorUtility.SetDirty(iconRect);
+            }
+
+            TMP_Text levelText = cardObject.FindProperty("levelText")?.objectReferenceValue as TMP_Text;
+            RectTransform levelRect = levelText != null
+                ? levelText.rectTransform
+                : card.GetComponentsInChildren<RectTransform>(true).FirstOrDefault(rect => rect.name == "LevelText");
+            if (levelRect != null)
+            {
+                levelRect.anchoredPosition = new Vector2(levelRect.anchoredPosition.x, -8f);
+                EditorUtility.SetDirty(levelRect);
+            }
+        }
+
+        ChipsetController controller = chipsetPanel.GetComponent<ChipsetController>();
+        if (controller != null)
+        {
+            SerializedObject controllerObject = new SerializedObject(controller);
+            SerializedProperty frames = controllerObject.FindProperty("frameSprites");
+            if (frames != null)
+            {
+                frames.arraySize = 5;
+                for (int i = 0; i < frames.arraySize; i++)
+                {
+                    frames.GetArrayElementAtIndex(i).objectReferenceValue = greenFrame;
+                }
+                controllerObject.ApplyModifiedPropertiesWithoutUndo();
+            }
+        }
+
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        Debug.Log($"[LabMenuSceneBuilder] Applied green frames and card element positions to {cards.Length} Chipset cards.");
+    }
+
     [MenuItem("PGE/UI/Rebuild Shop Panel")]
     public static void RebuildShopPanel()
     {
@@ -351,6 +436,25 @@ public static class LabMenuSceneBuilder
         try
         {
             File.Delete(ChipsetBuildRequestPath);
+        }
+        catch {}
+        AssetDatabase.Refresh();
+    }
+
+    private static void TryApplyRequestedGreenChipsetFrames()
+    {
+        if (!File.Exists(ChipsetGreenFramesRequestPath) ||
+            EditorApplication.isPlayingOrWillChangePlaymode ||
+            EditorApplication.isCompiling ||
+            EditorApplication.isUpdating)
+        {
+            return;
+        }
+
+        ApplyGreenChipsetCardFrames();
+        try
+        {
+            File.Delete(ChipsetGreenFramesRequestPath);
         }
         catch {}
         AssetDatabase.Refresh();
@@ -1191,16 +1295,36 @@ public static class LabMenuSceneBuilder
         Button tabHighTechBtn = tabHighTechObj.AddComponent<Button>();
         tabHighTechBtn.targetGraphic = tabHighTechBg;
 
-        // 2. Equipped Chipset Board
+        // 2. Preset selector overlapping the equipped board, matching the portrait reference layout.
+        RectTransform presetBar = CreateRect("PresetBar", panel);
+        presetBar.anchorMin = new Vector2(0.5f, 1f);
+        presetBar.anchorMax = new Vector2(0.5f, 1f);
+        presetBar.pivot = new Vector2(0.5f, 0.5f);
+        presetBar.anchoredPosition = new Vector2(0f, -205f);
+        presetBar.sizeDelta = new Vector2(390f, 82f);
+
+        Button p1Btn = CreatePresetButton(presetBar, "Preset1", 0.18f, "1", true, out Image p1Bg, out TMP_Text p1Text);
+        Button p2Btn = CreatePresetButton(presetBar, "Preset2", 0.5f, "2", false, out Image p2Bg, out TMP_Text p2Text);
+        Button p3Btn = CreatePresetButton(presetBar, "Preset3", 0.82f, "3", false, out Image p3Bg, out TMP_Text p3Text);
+
+        // 3. Equipped Chipset Board
         GameObject boardObj = CreateFrame("EquippedBoard", panel, DarkPanel, TealBorder, out Image boardBg);
         RectTransform boardRect = boardObj.GetComponent<RectTransform>();
         boardRect.anchorMin = new Vector2(0.5f, 1f);
         boardRect.anchorMax = new Vector2(0.5f, 1f);
         boardRect.pivot = new Vector2(0.5f, 1f);
-        boardRect.anchoredPosition = new Vector2(0f, -125f);
-        boardRect.sizeDelta = new Vector2(1020f, 650f);
+        boardRect.anchoredPosition = new Vector2(0f, -230f);
+        boardRect.sizeDelta = new Vector2(980f, 600f);
 
-        // Header inside Board: Presets 1, 2, 3 + Blast Furnace
+        Sprite equippedFrame = AssetDatabase.LoadAssetAtPath<Sprite>(ChipsetEquippedFramePath);
+        if (equippedFrame != null)
+        {
+            boardBg.sprite = equippedFrame;
+            boardBg.type = Image.Type.Simple;
+            boardBg.color = Color.white;
+        }
+
+        // Keep the furnace hierarchy/controller reference for compatibility, but hide it in this layout.
         RectTransform boardHeader = CreateRect("BoardHeader", boardRect);
         boardHeader.anchorMin = new Vector2(0f, 1f);
         boardHeader.anchorMax = new Vector2(1f, 1f);
@@ -1208,12 +1332,6 @@ public static class LabMenuSceneBuilder
         boardHeader.anchoredPosition = new Vector2(0f, -12f);
         boardHeader.sizeDelta = new Vector2(0f, 65f);
 
-        // Preset buttons
-        Button p1Btn = CreatePresetButton(boardHeader, "Preset1", 0.35f, "1", false, out Image p1Bg, out TMP_Text p1Text);
-        Button p2Btn = CreatePresetButton(boardHeader, "Preset2", 0.45f, "2", false, out Image p2Bg, out TMP_Text p2Text);
-        Button p3Btn = CreatePresetButton(boardHeader, "Preset3", 0.55f, "3", true, out Image p3Bg, out TMP_Text p3Text);
-
-        // Blast Furnace Button
         GameObject furnaceBtnObj = CreateFrame("BlastFurnaceBtn", boardHeader, FieryRed, FieryOrange, out Image furnaceBg);
         RectTransform furnaceRect = furnaceBtnObj.GetComponent<RectTransform>();
         Anchor(furnaceRect, new Vector2(0.85f, 0.5f), Vector2.zero, new Vector2(230f, 64f));
@@ -1222,52 +1340,54 @@ public static class LabMenuSceneBuilder
         furnaceBg.raycastTarget = true;
         Button furnaceBtn = furnaceBtnObj.AddComponent<Button>();
         furnaceBtn.targetGraphic = furnaceBg;
+        furnaceBtnObj.SetActive(false);
+        boardHeader.gameObject.SetActive(false);
 
         // Equipped Grid (2 rows x 5 columns)
         RectTransform equippedGrid = CreateRect("EquippedGrid", boardRect);
         equippedGrid.anchorMin = new Vector2(0f, 0f);
         equippedGrid.anchorMax = new Vector2(1f, 1f);
-        equippedGrid.offsetMin = new Vector2(18f, 15f);
-        equippedGrid.offsetMax = new Vector2(-18f, -75f);
+        equippedGrid.offsetMin = new Vector2(45f, 35f);
+        equippedGrid.offsetMax = new Vector2(-45f, -35f);
 
         GridLayoutGroup equippedLayout = equippedGrid.gameObject.AddComponent<GridLayoutGroup>();
         equippedLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
         equippedLayout.constraintCount = 5;
-        equippedLayout.cellSize = new Vector2(180f, 255f);
-        equippedLayout.spacing = new Vector2(16f, 16f);
+        equippedLayout.cellSize = new Vector2(165f, 225f);
+        equippedLayout.spacing = new Vector2(15f, 25f);
         equippedLayout.childAlignment = TextAnchor.UpperCenter;
 
         ChipsetCardUI[] equippedCardSlots = new ChipsetCardUI[10];
         for (int i = 0; i < 10; i++)
         {
-            equippedCardSlots[i] = CreateChipCardUI(equippedGrid, $"EquippedSlot_{i:00}", new Vector2(180f, 255f));
+            equippedCardSlots[i] = CreateChipCardUI(equippedGrid, $"EquippedSlot_{i:00}", new Vector2(165f, 225f));
         }
 
         // Lower Section Background Tint
         Image invBgTint = CreateImage("InventoryBgTint", panel, new Color32(18, 62, 74, 210), false);
-        Stretch(invBgTint.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, new Vector2(0f, -770f));
+        Stretch(invBgTint.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, new Vector2(0f, -930f));
 
         // 3. Sort Filter Bar
         RectTransform sortBar = CreateRect("SortFilterBar", panel);
         sortBar.anchorMin = new Vector2(0.5f, 1f);
         sortBar.anchorMax = new Vector2(0.5f, 1f);
         sortBar.pivot = new Vector2(0.5f, 1f);
-        sortBar.anchoredPosition = new Vector2(0f, -790f);
-        sortBar.sizeDelta = new Vector2(1020f, 70f);
+        sortBar.anchoredPosition = new Vector2(0f, -850f);
+        sortBar.sizeDelta = new Vector2(760f, 78f);
 
-        GameObject byTierObj = CreateFrame("ByTierBtn", sortBar, new Color32(18, 58, 68, 255), BrightCyan, out Image byTierBg);
+        GameObject byTierObj = CreateFrame("ByTierBtn", sortBar, Yellow, Border, out Image byTierBg);
         RectTransform byTierRect = byTierObj.GetComponent<RectTransform>();
-        Anchor(byTierRect, new Vector2(0.36f, 0.5f), Vector2.zero, new Vector2(230f, 62f));
-        TMP_Text byTierText = CreateText("Label", byTierRect, "By Tier", 34f, Color.white, TextAlignmentOptions.Center);
+        Anchor(byTierRect, new Vector2(0.31f, 0.5f), Vector2.zero, new Vector2(275f, 68f));
+        TMP_Text byTierText = CreateText("Label", byTierRect, "By Tier", 34f, new Color32(10, 20, 30, 255), TextAlignmentOptions.Center);
         Stretch(byTierText.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
         byTierBg.raycastTarget = true;
         Button byTierBtn = byTierObj.AddComponent<Button>();
         byTierBtn.targetGraphic = byTierBg;
 
-        GameObject byQtyObj = CreateFrame("ByQtyBtn", sortBar, Yellow, Border, out Image byQtyBg);
+        GameObject byQtyObj = CreateFrame("ByQtyBtn", sortBar, new Color32(18, 58, 68, 255), BrightCyan, out Image byQtyBg);
         RectTransform byQtyRect = byQtyObj.GetComponent<RectTransform>();
-        Anchor(byQtyRect, new Vector2(0.64f, 0.5f), Vector2.zero, new Vector2(250f, 62f));
-        TMP_Text byQtyText = CreateText("Label", byQtyRect, "By Quantity", 34f, new Color32(10, 20, 30, 255), TextAlignmentOptions.Center);
+        Anchor(byQtyRect, new Vector2(0.69f, 0.5f), Vector2.zero, new Vector2(290f, 68f));
+        TMP_Text byQtyText = CreateText("Label", byQtyRect, "By Quantity", 34f, Color.white, TextAlignmentOptions.Center);
         Stretch(byQtyText.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
         byQtyBg.raycastTarget = true;
         Button byQtyBtn = byQtyObj.AddComponent<Button>();
@@ -1275,7 +1395,7 @@ public static class LabMenuSceneBuilder
 
         // 4. Inventory Scroll View
         RectTransform scrollRoot = CreateRect("InventoryScrollView", panel);
-        Stretch(scrollRoot, Vector2.zero, Vector2.one, new Vector2(20f, 15f), new Vector2(-20f, -870f));
+        Stretch(scrollRoot, Vector2.zero, Vector2.one, new Vector2(20f, 15f), new Vector2(-20f, -950f));
 
         ScrollRect scrollRect = scrollRoot.gameObject.AddComponent<ScrollRect>();
         scrollRect.horizontal = false;
@@ -1298,9 +1418,9 @@ public static class LabMenuSceneBuilder
         GridLayoutGroup invLayout = invContent.gameObject.AddComponent<GridLayoutGroup>();
         invLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
         invLayout.constraintCount = 4;
-        invLayout.cellSize = new Vector2(225f, 290f);
-        invLayout.spacing = new Vector2(20f, 22f);
-        invLayout.padding = new RectOffset(15, 15, 10, 30);
+        invLayout.cellSize = new Vector2(190f, 240f);
+        invLayout.spacing = new Vector2(35f, 35f);
+        invLayout.padding = new RectOffset(70, 70, 20, 30);
         invLayout.childAlignment = TextAnchor.UpperCenter;
 
         ContentSizeFitter fitter = invContent.gameObject.AddComponent<ContentSizeFitter>();
@@ -1312,8 +1432,8 @@ public static class LabMenuSceneBuilder
             "Gun Turret", "Spiky Discus", "Shotgun", "Energy Jumper Cable", "High Explosive Mine"
         };
         string[] eqFrames = {
-            "Yello", "card-frame-tier5-holographic", "Blu", "Tím", "Blu",
-            "Green", "Green", "Blu", "Green", "Green"
+            "Green", "Green", "Green", "Green", "Green",
+            "Green", "Green", "Green", "Green", "Green"
         };
         string[] eqLevels = {
             "LV.18", "LV.24", "LV.06", "LV.14", "LV.06",
@@ -1339,7 +1459,7 @@ public static class LabMenuSceneBuilder
         };
         string[] invFrames = {
             "Green", "Green", "Green", "Green",
-            "Green", "Green", "Green", "Yello",
+            "Green", "Green", "Green", "Green",
             "Green", "Green", "Green", "Green"
         };
         string[] invLevels = {
@@ -1365,12 +1485,12 @@ public static class LabMenuSceneBuilder
 
         for (int i = 0; i < invIcons.Length; i++)
         {
-            ChipsetCardUI invCard = CreateChipCardUI(invContent, $"StaticInvCard_{i:00}", new Vector2(225f, 290f));
+            ChipsetCardUI invCard = CreateChipCardUI(invContent, $"StaticInvCard_{i:00}", new Vector2(190f, 240f));
             ConfigureCardStaticView(invCard, invIcons[i], invFrames[i], invLevels[i], invProgress[i], invStars[i], invArrows[i]);
         }
 
         // Card Prefab template for dynamic instantiation at runtime
-        GameObject cardPrefab = CreateChipCardUI(invContent, "CardTemplate", new Vector2(225f, 290f)).gameObject;
+        GameObject cardPrefab = CreateChipCardUI(invContent, "CardTemplate", new Vector2(190f, 240f)).gameObject;
         cardPrefab.SetActive(false);
 
         // 5. Detail Modal
@@ -1473,13 +1593,8 @@ public static class LabMenuSceneBuilder
             "ice-turret", "invincible-shield", "healing-turret", "flamethrower"
         };
         Sprite[] chipIcons = iconKeys.Select(k => LoadChipsetSprite(k)).Where(s => s != null).ToArray();
-        Sprite[] frameSprites = new[] {
-            LoadChipsetSprite("Green") ?? LoadChipsetSprite("card-frame-tier1-green") ?? LoadChipsetSprite("card-frame-common"),
-            LoadChipsetSprite("Blu") ?? LoadChipsetSprite("card-frame-tier2-blue") ?? LoadChipsetSprite("card-frame-rare"),
-            LoadChipsetSprite("Tím") ?? LoadChipsetSprite("card-frame-tier3-purple") ?? LoadChipsetSprite("card-frame-epic"),
-            LoadChipsetSprite("Yello") ?? LoadChipsetSprite("card-frame-tier4-yellow") ?? LoadChipsetSprite("card-frame-epic"),
-            LoadChipsetSprite("card-frame-tier5-holographic") ?? LoadChipsetSprite("Red") ?? LoadChipsetSprite("card-frame-tier5-red")
-        };
+        Sprite greenFrame = LoadChipsetSprite("Green") ?? LoadChipsetSprite("card-frame-tier1-green") ?? LoadChipsetSprite("card-frame-common");
+        Sprite[] frameSprites = { greenFrame, greenFrame, greenFrame, greenFrame, greenFrame };
 
         SerializedProperty sIcons = sController.FindProperty("chipIcons");
         sIcons.arraySize = chipIcons.Length;
@@ -2046,7 +2161,7 @@ public static class LabMenuSceneBuilder
     {
         GameObject root = CreateFrame(name, parent, active ? Yellow : new Color32(18, 58, 68, 255), BrightCyan, out bg);
         RectTransform rect = root.GetComponent<RectTransform>();
-        Anchor(rect, new Vector2(xAnchor, 0.5f), Vector2.zero, new Vector2(74f, 62f));
+        Anchor(rect, new Vector2(xAnchor, 0.5f), Vector2.zero, new Vector2(88f, 72f));
         label = CreateText("Label", rect, text, 36f, active ? new Color32(10, 20, 30, 255) : Color.white, TextAlignmentOptions.Center);
         Stretch(label.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
         bg.raycastTarget = true;
@@ -2079,7 +2194,7 @@ public static class LabMenuSceneBuilder
         levelText.fontStyle = FontStyles.Bold;
         levelText.outlineColor = Color.black;
         levelText.outlineWidth = 0.25f;
-        Anchor(levelText.rectTransform, new Vector2(0.5f, 0.86f), Vector2.zero, new Vector2(size.x * 0.85f, 32f));
+        Anchor(levelText.rectTransform, new Vector2(0.5f, 0.86f), new Vector2(0f, -8f), new Vector2(size.x * 0.85f, 32f));
 
         // Star Icon (Top Right)
         Image starImg = CreateChipsetIcon("Star", normalGroup, "icon-star", 28f);
@@ -2088,7 +2203,7 @@ public static class LabMenuSceneBuilder
 
         // Center Icon
         Image centerIcon = CreateChipsetIcon("Icon", normalGroup, "standard-gun", 110f);
-        Anchor(centerIcon.rectTransform, new Vector2(0.5f, 0.52f), Vector2.zero, new Vector2(110f, 110f));
+        Anchor(centerIcon.rectTransform, new Vector2(0.5f, 0.52f), new Vector2(0f, 13f), new Vector2(110f, 110f));
         centerIcon.preserveAspect = true;
 
         // Bottom Progress Bar

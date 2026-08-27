@@ -205,8 +205,8 @@ public class ChipsetController : MonoBehaviour
     [SerializeField] private Sprite[] lockTierSprites = new Sprite[4]; // 0: Magic, 1: Rare, 2: Unique, 3: Epic
     [SerializeField] private Sprite unlockedCheckSprite;
 
-    private int activeDeckIndex = 2; // Default to Preset 3 (index 2)
-    private bool sortByQuantity = true;
+    private int activeDeckIndex = 0; // Reference layout opens on Preset 1.
+    private bool sortByQuantity = false; // Reference layout defaults to sorting by tier.
     private ChipItemData selectedDetailChip;
 
     // Database of all 24 chips with full user defined stats
@@ -1183,21 +1183,8 @@ public class ChipsetController : MonoBehaviour
     private Sprite GetFrameSprite(ChipTier tier)
     {
         if (frameSprites == null || frameSprites.Length == 0) return null;
-        switch (tier)
-        {
-            case ChipTier.Magic:
-                return frameSprites.Length > 0 ? frameSprites[0] : null; // Green
-            case ChipTier.Rare:
-                return frameSprites.Length > 1 ? frameSprites[1] : frameSprites[0]; // Blu
-            case ChipTier.Unique:
-                return frameSprites.Length > 2 ? frameSprites[2] : (frameSprites.Length > 1 ? frameSprites[1] : frameSprites[0]); // Tím
-            case ChipTier.Epic:
-                return frameSprites.Length > 3 ? frameSprites[3] : (frameSprites.Length > 2 ? frameSprites[2] : frameSprites[0]); // Yello
-            case ChipTier.Holographic:
-                return frameSprites.Length > 4 ? frameSprites[4] : (frameSprites.Length > 3 ? frameSprites[3] : frameSprites[0]); // Red / Holographic
-            default:
-                return frameSprites[0];
-        }
+        // All tiers intentionally share the same green card background.
+        return frameSprites[0];
     }
 
     private void ShowToast(string message)
