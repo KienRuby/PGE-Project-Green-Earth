@@ -282,6 +282,33 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
         expReward = Mathf.Max(0, newExpReward);
     }
 
+    private Coroutine bleedRoutine;
+
+    public void ApplyBleed(int damagePerSec, float duration)
+    {
+        if (IsDead || damagePerSec <= 0 || duration <= 0f) return;
+        if (bleedRoutine != null)
+        {
+            StopCoroutine(bleedRoutine);
+        }
+        bleedRoutine = StartCoroutine(BleedRoutine(damagePerSec, duration));
+    }
+
+    private IEnumerator BleedRoutine(int dps, float duration)
+    {
+        float timer = duration;
+        while (timer > 0f && !IsDead)
+        {
+            yield return new WaitForSeconds(1.0f);
+            timer -= 1.0f;
+            if (!IsDead)
+            {
+                TakeDamage(dps);
+            }
+        }
+        bleedRoutine = null;
+    }
+
     public void TakeDamage(int damage)
     {
         TakeDamage(damage, false);

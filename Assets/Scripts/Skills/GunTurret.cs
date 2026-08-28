@@ -89,6 +89,7 @@ public class GunTurret : MonoBehaviour, IPoolable, IDamageable
     private float nextFireTime;
     private float targetSearchTimer;
     private Transform currentTarget;
+    private PlayerAutoShooter sharedTargetProvider;
     private Action onDespawnCallback;
     private bool isInitialized;
     private float regenAccumulator;
@@ -180,7 +181,8 @@ public class GunTurret : MonoBehaviour, IPoolable, IDamageable
         GameObject boomVfx,
         Action onDespawn,
         float width = -1f,
-        float height = -1f)
+        float height = -1f,
+        PlayerAutoShooter targetProvider = null)
     {
         damage = damageAmount;
         fireRate = Mathf.Max(0.1f, fireRateValue);
@@ -197,6 +199,7 @@ public class GunTurret : MonoBehaviour, IPoolable, IDamageable
         if (bulletPrefab != null) projectilePrefab = bulletPrefab;
         if (boomVfx != null) explosionVfxPrefab = boomVfx;
         onDespawnCallback = onDespawn;
+        sharedTargetProvider = targetProvider;
 
         durationTimer = duration;
         nextFireTime = Time.time + (1f / fireRate);
@@ -250,6 +253,12 @@ public class GunTurret : MonoBehaviour, IPoolable, IDamageable
 
     private void UpdateTarget()
     {
+        if (sharedTargetProvider != null)
+        {
+            currentTarget = sharedTargetProvider.CurrentTarget;
+            return;
+        }
+
         targetSearchTimer -= Time.deltaTime;
 
         if (currentTarget == null || !currentTarget.gameObject.activeInHierarchy)
@@ -340,13 +349,15 @@ public class GunTurret : MonoBehaviour, IPoolable, IDamageable
     {
         if (currentTarget == null || projectilePrefab == null) return;
 
-        Vector3 spawnPos = firePoint != null ? firePoint.position : (aimPivot != null ? aimPivot.position : transform.position);
+        Transform sharedFirePoint = sharedTargetProvider != null ? sharedTargetProvider.FirePoint : firePoint;
+        Vector3 spawnPos = sharedFirePoint != null ? sharedFirePoint.position : (aimPivot != null ? aimPivot.position : transform.position);
         Vector2 direction = ((Vector2)currentTarget.position - (Vector2)spawnPos).normalized;
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         Quaternion rotation = Quaternion.Euler(0f, 0f, angle);
 
         // Hiệu ứng nòng súng
         SpawnMuzzleFlash(spawnPos, rotation);
+        ChipsetBattleStats.RecordAttack(6, 1);
 
         // Sinh đạn
         GameObject projectileObj;
@@ -364,8 +375,11 @@ public class GunTurret : MonoBehaviour, IPoolable, IDamageable
             Projectile projectileScript = projectileObj.GetComponent<Projectile>();
             if (projectileScript != null)
             {
-                float maxBulletRange = Mathf.Sqrt(detectionWidth * detectionWidth + detectionHeight * detectionHeight) + 2f;
+                float maxBulletRange = sharedTargetProvider != null
+                    ? sharedTargetProvider.SharedAttackRange
+                    : Mathf.Sqrt(detectionWidth * detectionWidth + detectionHeight * detectionHeight) + 2f;
                 projectileScript.Setup(damage, bulletSpeed, maxBulletRange);
+                projectileScript.SetDamageSource(6);
                 projectileScript.SetDirection(direction);
                 projectileScript.SetTarget(currentTarget);
 
@@ -382,7 +396,9 @@ public class GunTurret : MonoBehaviour, IPoolable, IDamageable
     {
         if (muzzleFlashPrefab == null) return;
 
-        Transform parentTransform = firePoint != null ? firePoint : transform;
+        Transform parentTransform = sharedTargetProvider != null
+            ? sharedTargetProvider.FirePoint
+            : (firePoint != null ? firePoint : transform);
         GameObject flashObj;
 
         if (PoolManager.Instance != null)

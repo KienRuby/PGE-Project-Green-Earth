@@ -97,6 +97,21 @@ public class PlayerAutoShooter : MonoBehaviour
     private int currentBulletsPerShot = 1;
     private float currentSpreadAngle = 15f;
 
+    // Các chipset dạng súng dùng chung prefab đạn và FirePoint, nhưng giữ damage,
+    // cooldown và bộ đếm riêng để có thể thống kê chính xác sau trận đấu.
+    private readonly int[] chipsetWeaponLevels = new int[11];
+    private readonly float[] nextChipsetFireTime = new float[11];
+
+    [Header("Chipset Damage By Runtime Level")]
+    [Tooltip("Standard Gun ID 1 - sát thương mỗi viên ở cấp 1 đến 5.")]
+    [SerializeField] private int[] standardGunDamageByLevel = { 53, 65, 80, 100, 130 };
+    [Tooltip("Rifle ID 2 - sát thương mỗi viên ở cấp 1 đến 5.")]
+    [SerializeField] private int[] rifleDamageByLevel = { 15, 20, 25, 30, 40 };
+    [Tooltip("Multigun ID 5 - sát thương mỗi viên ở cấp 1 đến 5.")]
+    [SerializeField] private int[] multigunDamageByLevel = { 19, 25, 35, 50, 70 };
+    [Tooltip("Shotgun ID 8 - tổng sát thương của 5 viên ở cấp 1 đến 5.")]
+    [SerializeField] private int[] shotgunTotalDamageByLevel = { 86, 105, 130, 160, 210 };
+
     private Transform currentTarget;
     private PlayerMovement playerMovement;
     private PlayerHealth playerHealth;
@@ -119,6 +134,13 @@ public class PlayerAutoShooter : MonoBehaviour
 
     public WeaponData CurrentEquippedWeapon => currentEquippedWeapon;
     public bool IsAttacking { get; private set; }
+    public int CurrentDamage => currentDamage + bonusDamage;
+    public float CurrentFireRate => fireRate + bonusFireRate;
+    public int CurrentBulletsPerShot => currentBulletsPerShot;
+    public float CurrentSpreadAngle => currentSpreadAngle;
+    public Transform CurrentTarget => currentTarget;
+    public Transform FirePoint => attackPoint != null ? attackPoint : transform;
+    public float SharedAttackRange => Mathf.Max(0.1f, currentAttackRange + bonusAttackRange);
 
     private void Awake()
     {
@@ -142,10 +164,7 @@ public class PlayerAutoShooter : MonoBehaviour
             useTriggers = true
         };
 
-        if (attackPoint == null && gunTransform != null)
-        {
-            attackPoint = gunTransform;
-        }
+        ResolveFirePoint();
 
         if (gunTransform != null)
         {
@@ -170,6 +189,35 @@ public class PlayerAutoShooter : MonoBehaviour
 #endif
     }
 
+    private void ResolveFirePoint()
+    {
+        if (attackPoint != null) return;
+
+        if (gunTransform != null)
+        {
+            attackPoint = gunTransform.Find("FirePoint");
+        }
+
+        if (attackPoint == null)
+        {
+            Transform[] children = GetComponentsInChildren<Transform>(true);
+            for (int i = 0; i < children.Length; i++)
+            {
+                if (children[i].name == "FirePoint")
+                {
+                    attackPoint = children[i];
+                    break;
+                }
+            }
+        }
+
+        if (attackPoint == null)
+        {
+            attackPoint = gunTransform != null ? gunTransform : transform;
+            Debug.LogWarning("[PlayerAutoShooter] Không tìm thấy child FirePoint; tạm dùng vị trí súng/Player.", this);
+        }
+    }
+
     private void Start()
     {
         LoadSelectedWeapon();
@@ -182,6 +230,118 @@ public class PlayerAutoShooter : MonoBehaviour
         bonusAttackRange = rangeBonus;
         bonusBulletSpeed = bulletSpeedBonus;
         critChance = crit;
+    }
+
+    /// <summary>
+    /// Nâng khẩu súng hiện tại bằng chipset không có prefab riêng.
+    /// Hỗ trợ: Standard Gun (1), Rifle (2), Multigun (5), Shotgun (8).
+    /// </summary>
+    public void ApplyChipsetWeaponUpgrade(int chipsetId, int targetLevel)
+    {
+        if (chipsetId != 1 && chipsetId != 2 && chipsetId != 5 && chipsetId != 8)
+        {
+            return;
+        }
+
+        int level = Mathf.Clamp(targetLevel, 1, 5);
+        chipsetWeaponLevels[chipsetId] = Mathf.Max(chipsetWeaponLevels[chipsetId], level);
+        int damage = GetChipsetWeaponDamage(chipsetId);
+        ChipsetBattleStats.RegisterChipset(chipsetId, level, damage);
+    }
+
+    public int GetChipsetWeaponLevel(int chipsetId)
+    {
+        return chipsetId >= 0 && chipsetId < chipsetWeaponLevels.Length
+            ? chipsetWeaponLevels[chipsetId]
+            : 0;
+    }
+
+    public int GetChipsetWeaponDamage(int chipsetId)
+    {
+        int level = GetChipsetWeaponLevel(chipsetId);
+        if (level <= 0) return 0;
+        int index = level - 1;
+
+        if (chipsetId == 1)
+        {
+            float multiplier = PlayerDataService.GetChipTier(1) >= ChipTier.Rare ? 1.15f : 1f;
+            return Mathf.RoundToInt(GetLevelValue(standardGunDamageByLevel, index) * multiplier);
+        }
+        if (chipsetId == 2)
+        {
+            ChipTier tier = PlayerDataService.GetChipTier(2);
+            float multiplier = 1f;
+            if (tier >= ChipTier.Rare) multiplier += 0.25f;
+            if (tier >= ChipTier.Epic) multiplier += 0.80f;
+            return Mathf.RoundToInt(GetLevelValue(rifleDamageByLevel, index) * multiplier);
+        }
+        if (chipsetId == 5)
+        {
+            return GetLevelValue(multigunDamageByLevel, index);
+        }
+        if (chipsetId == 8)
+        {
+            ChipTier tier = PlayerDataService.GetChipTier(8);
+            float multiplier = 1f;
+            if (tier >= ChipTier.Rare) multiplier += 0.15f;
+            if (tier >= ChipTier.Unique) multiplier += 0.15f;
+            return Mathf.Max(1, Mathf.RoundToInt(GetLevelValue(shotgunTotalDamageByLevel, index) * multiplier / 5f));
+        }
+        return 0;
+    }
+
+    private static int GetLevelValue(int[] values, int index)
+    {
+        if (values == null || values.Length == 0) return 1;
+        return Mathf.Max(1, values[Mathf.Clamp(index, 0, values.Length - 1)]);
+    }
+
+    public float GetChipsetWeaponFireInterval(int chipsetId)
+    {
+        int level = GetChipsetWeaponLevel(chipsetId);
+        if (level <= 0) return float.PositiveInfinity;
+        int index = level - 1;
+
+        if (chipsetId == 1)
+        {
+            float[] values = { 0.35f, 0.30f, 0.25f, 0.20f, 0.15f };
+            float speed = PlayerDataService.GetChipTier(1) >= ChipTier.Unique ? 1.15f : 1f;
+            return values[index] / speed;
+        }
+        if (chipsetId == 2)
+        {
+            float[] values = { 0.20f, 0.18f, 0.15f, 0.12f, 0.10f };
+            ChipTier tier = PlayerDataService.GetChipTier(2);
+            float speed = 1f;
+            if (tier >= ChipTier.Unique) speed += 0.20f;
+            if (tier == ChipTier.Holographic) speed += 0.35f;
+            return values[index] / speed;
+        }
+        if (chipsetId == 5)
+        {
+            float[] values = { 1f, 0.8f, 0.6f, 0.4f, 0.2f };
+            return values[index];
+        }
+
+        float[] shotgunValues = { 1.5f, 1.3f, 1.1f, 0.9f, 0.7f };
+        return shotgunValues[index];
+    }
+
+    public int GetChipsetWeaponProjectileCount(int chipsetId)
+    {
+        int level = GetChipsetWeaponLevel(chipsetId);
+        if (level <= 0) return 0;
+        if (chipsetId == 1 || chipsetId == 2) return level >= 5 ? 2 : 1;
+        if (chipsetId == 8) return level >= 5 || PlayerDataService.GetChipTier(8) == ChipTier.Holographic ? 10 : 5;
+
+        int[] shells = { 4, 5, 6, 9, 13 };
+        int count = shells[level - 1];
+        ChipTier tier = PlayerDataService.GetChipTier(5);
+        if (tier >= ChipTier.Rare) count += 1;
+        if (tier >= ChipTier.Unique) count += 1;
+        if (tier >= ChipTier.Epic) count += 3;
+        if (tier == ChipTier.Holographic) count += 4;
+        return count;
     }
 
     /// <summary>
@@ -259,7 +419,7 @@ public class PlayerAutoShooter : MonoBehaviour
             muzzleFlashScale = weapon.muzzleFlashScale;
         }
 
-        // 4. Cập nhật 4 Chỉ số cốt lõi: Tốc độ bắn, Khoảng cách bắn, Sát thương, Tốc độ ra đạn
+        // 4. Cập nhật chỉ số của khẩu súng mặc định. Các kênh chipset giữ chỉ số riêng.
         if (weapon.fireRate > 0f) fireRate = weapon.fireRate;
         if (weapon.damage > 0) currentDamage = weapon.damage;
         if (weapon.bulletSpeed > 0f) currentBulletSpeed = weapon.bulletSpeed;
@@ -304,6 +464,7 @@ public class PlayerAutoShooter : MonoBehaviour
         UpdateGunAndAttackPointRotation();
 
         AutoShoot();
+        AutoShootChipsetWeapons();
 
         if (gatlingSpinner == null && gunSpriteRenderer != null)
         {
@@ -590,6 +751,77 @@ public class PlayerAutoShooter : MonoBehaviour
         nextFireTime = Time.time + (1f / effectiveFireRate);
     }
 
+    private void AutoShootChipsetWeapons()
+    {
+        if (currentTarget == null || projectilePrefab == null) return;
+
+        TryFireChipsetWeapon(1);
+        TryFireChipsetWeapon(2);
+        TryFireChipsetWeapon(5);
+        TryFireChipsetWeapon(8);
+    }
+
+    private void TryFireChipsetWeapon(int chipsetId)
+    {
+        if (GetChipsetWeaponLevel(chipsetId) <= 0 || Time.time < nextChipsetFireTime[chipsetId]) return;
+
+        FireChipsetWeapon(chipsetId);
+        nextChipsetFireTime[chipsetId] = Time.time + GetChipsetWeaponFireInterval(chipsetId);
+    }
+
+    private void FireChipsetWeapon(int chipsetId)
+    {
+        Vector3 spawnPosition = attackPoint != null ? attackPoint.position : transform.position;
+        Vector2 baseDirection = ((Vector2)currentTarget.position - (Vector2)spawnPosition).normalized;
+        float baseAngle = Mathf.Atan2(baseDirection.y, baseDirection.x) * Mathf.Rad2Deg;
+        int level = GetChipsetWeaponLevel(chipsetId);
+        int projectileCount = GetChipsetWeaponProjectileCount(chipsetId);
+        int damage = GetChipsetWeaponDamage(chipsetId) + bonusDamage;
+        float spread = 0f;
+        float speed = chipsetId == 2 ? 18f : 16f;
+        float range = chipsetId == 8 ? 9f : 12f;
+        float sourceCritChance = chipsetId == 1 && level >= 3 ? 0.10f : 0f;
+        bool homing = chipsetId == 5 && level >= 3;
+        bool radial = chipsetId == 5 && level >= 5;
+
+        if (chipsetId == 1 && projectileCount > 1) spread = 6f;
+        if (chipsetId == 2 && projectileCount > 1) spread = 3f;
+        if (chipsetId == 5) spread = radial ? 360f : 50f;
+        if (chipsetId == 8) spread = level >= 3 ? 30f : 45f;
+
+        SpawnMuzzleFlash(spawnPosition, baseAngle);
+        ChipsetBattleStats.RecordAttack(chipsetId, projectileCount);
+
+        if (projectileCount <= 1)
+        {
+            SpawnConfiguredBullet(spawnPosition, baseDirection, baseAngle, damage, speed, range, sourceCritChance, homing, chipsetId);
+            return;
+        }
+
+        if (radial)
+        {
+            float radialStep = 360f / projectileCount;
+            for (int i = 0; i < projectileCount; i++)
+            {
+                float angle = baseAngle + (i * radialStep);
+                float radians = angle * Mathf.Deg2Rad;
+                Vector2 direction = new Vector2(Mathf.Cos(radians), Mathf.Sin(radians));
+                SpawnConfiguredBullet(spawnPosition, direction, angle, damage, speed, range, sourceCritChance, homing, chipsetId);
+            }
+            return;
+        }
+
+        float startAngle = baseAngle - (spread * 0.5f);
+        float angleStep = spread / (projectileCount - 1);
+        for (int i = 0; i < projectileCount; i++)
+        {
+            float angle = startAngle + (i * angleStep);
+            float radians = angle * Mathf.Deg2Rad;
+            Vector2 direction = new Vector2(Mathf.Cos(radians), Mathf.Sin(radians));
+            SpawnConfiguredBullet(spawnPosition, direction, angle, damage, speed, range, sourceCritChance, homing, chipsetId);
+        }
+    }
+
     private void OnDisable()
     {
         IsAttacking = false;
@@ -614,6 +846,17 @@ public class PlayerAutoShooter : MonoBehaviour
         if (currentBulletsPerShot <= 1)
         {
             SpawnSingleBullet(spawnPosition, baseDirection, baseAngle);
+        }
+        else if (currentSpreadAngle >= 359f)
+        {
+            float angleStep = 360f / currentBulletsPerShot;
+            for (int i = 0; i < currentBulletsPerShot; i++)
+            {
+                float angle = baseAngle + (i * angleStep);
+                float rad = angle * Mathf.Deg2Rad;
+                Vector2 dir = new Vector2(Mathf.Cos(rad), Mathf.Sin(rad));
+                SpawnSingleBullet(spawnPosition, dir, angle);
+            }
         }
         else
         {
@@ -677,6 +920,29 @@ public class PlayerAutoShooter : MonoBehaviour
 
     private void SpawnSingleBullet(Vector3 position, Vector2 direction, float angle)
     {
+        SpawnConfiguredBullet(
+            position,
+            direction,
+            angle,
+            currentDamage + bonusDamage,
+            currentBulletSpeed + bonusBulletSpeed,
+            currentAttackRange + bonusAttackRange,
+            critChance,
+            false,
+            0);
+    }
+
+    private void SpawnConfiguredBullet(
+        Vector3 position,
+        Vector2 direction,
+        float angle,
+        int damage,
+        float speed,
+        float range,
+        float sourceCritChance,
+        bool homing,
+        int sourceChipsetId)
+    {
         Quaternion rotation = Quaternion.Euler(0f, 0f, angle);
         GameObject projectileObj;
 
@@ -694,16 +960,15 @@ public class PlayerAutoShooter : MonoBehaviour
             Projectile projectileScript = projectileObj.GetComponent<Projectile>();
             if (projectileScript != null)
             {
-                int finalDamage = currentDamage + bonusDamage;
-                if (critChance > 0f && Random.value < critChance)
+                int finalDamage = Mathf.Max(1, damage);
+                if (sourceCritChance > 0f && Random.value < Mathf.Clamp01(sourceCritChance))
                 {
                     finalDamage = Mathf.RoundToInt(finalDamage * 1.5f);
                 }
-                float finalBulletSpeed = currentBulletSpeed + bonusBulletSpeed;
-                float finalAttackRange = currentAttackRange + bonusAttackRange;
 
-                // Cài đặt 4 chỉ số động từ khẩu súng đang trang bị kèm bonus nâng cấp Lab
-                projectileScript.Setup(finalDamage, finalBulletSpeed, finalAttackRange);
+                projectileScript.Setup(finalDamage, Mathf.Max(0.1f, speed), Mathf.Max(0.1f, range));
+                projectileScript.IsHoming = homing;
+                projectileScript.SetDamageSource(sourceChipsetId);
                 projectileScript.SetDirection(direction);
                 projectileScript.SetTarget(currentTarget);
             }

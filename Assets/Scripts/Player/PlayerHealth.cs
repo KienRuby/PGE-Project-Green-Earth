@@ -81,6 +81,24 @@ public class PlayerHealth : MonoBehaviour, IDamageable
     }
     private int baseMaxHealth;
 
+    [SerializeField] private int currentShield = 0;
+    [SerializeField] private int maxShield = 0;
+
+    public int CurrentShield => currentShield;
+    public int MaxShield => maxShield;
+
+    public void SetMaxShield(int max)
+    {
+        maxShield = Mathf.Max(0, max);
+        currentShield = Mathf.Clamp(currentShield, 0, maxShield);
+    }
+
+    public void AddShield(int amount)
+    {
+        if (IsDead || maxShield <= 0 || amount <= 0) return;
+        currentShield = Mathf.Clamp(currentShield + amount, 0, maxShield);
+    }
+
     public bool IsDead { get; private set; }
 
     public event Action<int, int> OnHealthChanged;
@@ -265,11 +283,22 @@ public class PlayerHealth : MonoBehaviour, IDamageable
 
         int effectiveDamage = Mathf.Max(1, damage - damageReduction);
 
-        CurrentHealth = Mathf.Clamp(CurrentHealth - effectiveDamage, 0, maxHealth);
+        int damageToHp = effectiveDamage;
+        if (currentShield > 0)
+        {
+            int shieldDamage = Mathf.Min(currentShield, effectiveDamage);
+            currentShield -= shieldDamage;
+            damageToHp -= shieldDamage;
+        }
+
+        if (damageToHp > 0)
+        {
+            CurrentHealth = Mathf.Clamp(CurrentHealth - damageToHp, 0, maxHealth);
+        }
 
         invincibleTimer = invincibleTime;
 
-        Debug.Log($"Player nhận {effectiveDamage} damage (gốc {damage}, giáp giảm {damageReduction}). HP: {CurrentHealth}/{maxHealth}");
+        Debug.Log($"Player nhận {effectiveDamage} damage (gốc {damage}, giáp giảm {damageReduction}, Shield còn {currentShield}/{maxShield}). HP: {CurrentHealth}/{maxHealth}");
 
         OnHealthChanged?.Invoke(CurrentHealth, maxHealth);
 
@@ -279,6 +308,9 @@ public class PlayerHealth : MonoBehaviour, IDamageable
 
         // Luôn kích hoạt hiệu ứng đỏ cho MỌI đòn nhận sát thương (kể cả đòn chí tử khiến máu về 0)
         TriggerDamageFlash();
+
+        // Cài đặt Screen Shake điều khiển trực tiếp phản hồi camera khi Player trúng đòn.
+        ScreenShakeService.AddTrauma(CurrentHealth <= 0 ? 0.8f : 0.38f);
 
         if (CurrentHealth <= 0)
         {
@@ -374,7 +406,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable
         }
     }
 
-    public void Heal(int amount)
+    public void Heal(int amount, bool canOverhealToShield = false)
     {
         if (IsDead)
             return;
@@ -385,11 +417,17 @@ public class PlayerHealth : MonoBehaviour, IDamageable
         int prevHp = CurrentHealth;
         CurrentHealth = Mathf.Clamp(CurrentHealth + amount, 0, maxHealth);
         int healedAmount = CurrentHealth - prevHp;
+        int overheal = amount - healedAmount;
 
         if (healedAmount > 0)
         {
             Vector3 spawnPos = transform.position + Vector3.up * 0.6f;
             DamageNumberManager.ShowDamage(spawnPos, healedAmount, DamageType.Heal);
+        }
+
+        if (canOverhealToShield && overheal > 0 && maxShield > 0)
+        {
+            AddShield(overheal);
         }
 
         OnHealthChanged?.Invoke(CurrentHealth, maxHealth);

@@ -34,6 +34,7 @@ public class Projectile : MonoBehaviour, IPoolable
     private Vector2 moveDirection;
     private float lifeTimer;
     private Transform targetEnemy;
+    private int sourceChipsetId;
 
     public bool IsHoming
     {
@@ -94,6 +95,11 @@ public class Projectile : MonoBehaviour, IPoolable
     public void SetTarget(Transform target)
     {
         targetEnemy = target;
+    }
+
+    public void SetDamageSource(int chipsetId)
+    {
+        sourceChipsetId = Mathf.Max(0, chipsetId);
     }
 
     private void FixedUpdate()
@@ -170,6 +176,8 @@ public class Projectile : MonoBehaviour, IPoolable
             else
             {
                 damageable.TakeDamage(damage);
+                ChipsetBattleStats.RecordDamage(sourceChipsetId, damage);
+                EnergyJumperCablesSkill.TriggerLifeSteal(damage, isMainWeapon: true);
             }
 
             Despawn();
@@ -208,6 +216,8 @@ public class Projectile : MonoBehaviour, IPoolable
             if (enemy != null && !enemy.IsDead && enemy.gameObject.activeInHierarchy)
             {
                 enemy.TakeDamage(damage);
+                ChipsetBattleStats.RecordDamage(sourceChipsetId, damage);
+                EnergyJumperCablesSkill.TriggerLifeSteal(damage, isMainWeapon: true);
             }
         }
     }
@@ -234,6 +244,7 @@ public class Projectile : MonoBehaviour, IPoolable
         lifeTimer = lifeTime;
         moveDirection = Vector2.zero;
         targetEnemy = null;
+        sourceChipsetId = 0;
         if (rb != null)
         {
             rb.velocity = Vector2.zero;
@@ -244,6 +255,7 @@ public class Projectile : MonoBehaviour, IPoolable
     {
         moveDirection = Vector2.zero;
         targetEnemy = null;
+        sourceChipsetId = 0;
         isExplosive = false;
         if (rb != null)
         {

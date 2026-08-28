@@ -43,9 +43,6 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
     [Range(120f, 1080f)]
     [SerializeField] private float steeringTurnRate = 420f;
 
-    [Tooltip("Bán kính quét tìm mục tiêu mới khi mục tiêu cũ bị tiêu diệt (mét).")]
-    [SerializeField] private float autoRetargetRadius = 14f;
-
     [Header("Special Perks (Cấp 4 - Cấp 5)")]
     [Tooltip("Làm choáng quái vật sống sót trong bán kính nổ (Cấp 4+).")]
     [SerializeField] private bool hasStun = false;
@@ -81,9 +78,7 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
     private System.Action onPunchLaunchedOrDespawned;
 
     private Transform currentTargetEnemy;
-    private LayerMask enemyLayer;
-    private ContactFilter2D contactFilter;
-    private readonly Collider2D[] scanBuffer = new Collider2D[48];
+    private PlayerAutoShooter sharedTargetProvider;
 
     public RocketPunchState State => state;
 
@@ -101,19 +96,6 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
         {
             trailRenderer = GetComponentInChildren<TrailRenderer>();
         }
-
-        if (enemyLayer.value == 0)
-        {
-            enemyLayer = LayerMask.GetMask("Enemy");
-            if (enemyLayer.value == 0) enemyLayer = 1 << 7;
-        }
-
-        contactFilter = new ContactFilter2D
-        {
-            layerMask = enemyLayer,
-            useLayerMask = enemyLayer.value != 0,
-            useTriggers = true
-        };
 
         FixTrailMaterial();
         UpdateTrailScale();
@@ -244,6 +226,11 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
         onPunchLaunchedOrDespawned = null;
     }
 
+    public void SetSharedTargetProvider(PlayerAutoShooter provider)
+    {
+        sharedTargetProvider = provider;
+    }
+
     /// <summary>
     /// Khóa hướng và phóng nắm đấm tới vị trí quái vật với cơ chế bẻ lái ôm cua mượt mà.
     /// </summary>
@@ -348,35 +335,9 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
     /// </summary>
     private Transform FindNewTarget()
     {
-        Vector2 center = transform.position;
-        int hitCount = Physics2D.OverlapCircle(center, autoRetargetRadius, contactFilter, scanBuffer);
-        if (hitCount == 0 && enemyLayer.value != 0)
-        {
-            ContactFilter2D fallback = new ContactFilter2D { useTriggers = true };
-            hitCount = Physics2D.OverlapCircle(center, autoRetargetRadius, fallback, scanBuffer);
-        }
-
-        Transform nearest = null;
-        float nearestDistSqr = Mathf.Infinity;
-
-        for (int i = 0; i < hitCount; i++)
-        {
-            Collider2D col = scanBuffer[i];
-            if (col == null) continue;
-
-            EnemyHealth health = col.GetComponentInParent<EnemyHealth>();
-            if (health == null || health.IsDead || !health.gameObject.activeInHierarchy) continue;
-
-            Vector2 diff = (Vector2)health.transform.position - (Vector2)transform.position;
-            float distSqr = diff.sqrMagnitude;
-            if (distSqr < nearestDistSqr)
-            {
-                nearestDistSqr = distSqr;
-                nearest = health.transform;
-            }
-        }
-
-        return nearest;
+        if (sharedTargetProvider == null) return null;
+        Transform sharedTarget = sharedTargetProvider.CurrentTarget;
+        return IsEnemyDead(sharedTarget) ? null : sharedTarget;
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -391,6 +352,7 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
             if (damageable is EnemyHealth enemyHealth && enemyHealth.IsDead) return;
 
             damageable.TakeDamage(directDamage);
+            ChipsetBattleStats.RecordDamage(3, directDamage);
             Explode();
             return;
         }
@@ -430,6 +392,7 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
             if (enemy != null && !enemy.IsDead && enemy.gameObject.activeInHierarchy)
             {
                 enemy.TakeDamage(aoeDamage);
+                ChipsetBattleStats.RecordDamage(3, aoeDamage);
 
                 if (hasStun)
                 {
@@ -487,6 +450,7 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
         onPunchLaunchedOrDespawned?.Invoke();
         onPunchLaunchedOrDespawned = null;
         currentTargetEnemy = null;
+        sharedTargetProvider = null;
 
         if (PoolManager.Instance != null)
         {
@@ -503,6 +467,7 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
         hasExploded = false;
         state = RocketPunchState.Orbiting;
         currentTargetEnemy = null;
+        sharedTargetProvider = null;
         FixTrailMaterial();
         UpdateTrailScale();
         if (trailRenderer != null)
@@ -515,6 +480,7 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
     {
         hasExploded = true;
         currentTargetEnemy = null;
+        sharedTargetProvider = null;
         onPunchLaunchedOrDespawned = null;
         if (trailRenderer != null)
         {

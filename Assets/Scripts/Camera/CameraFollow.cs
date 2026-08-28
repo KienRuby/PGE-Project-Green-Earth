@@ -21,6 +21,7 @@ public class CameraFollow : MonoBehaviour
 
     private float cameraZ;
     private bool isCameraZInitialized;
+    private Vector3 appliedShakeOffset;
 
     private void Awake()
     {
@@ -132,7 +133,20 @@ public class CameraFollow : MonoBehaviour
 
     private void LateUpdate()
     {
+        // Loại offset của frame trước để thuật toán follow luôn làm việc trên vị trí camera gốc.
+        transform.position -= appliedShakeOffset;
+        appliedShakeOffset = Vector3.zero;
+
         UpdateFollow(Time.deltaTime);
+
+        appliedShakeOffset = ScreenShakeService.UpdateAndGetOffset(Time.deltaTime);
+        transform.position += appliedShakeOffset;
+    }
+
+    private void OnDisable()
+    {
+        transform.position -= appliedShakeOffset;
+        appliedShakeOffset = Vector3.zero;
     }
 
     public void SetTarget(Transform newTarget)

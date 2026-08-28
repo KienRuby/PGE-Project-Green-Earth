@@ -4,25 +4,15 @@ Shader "PGE/UI/Chipset Red Shimmer"
     {
         [PerRendererData] _MainTex ("Sprite Texture", 2D) = "white" {}
         _Color ("Tint", Color) = (1,1,1,1)
-        _ShimmerColor ("Shimmer Color", Color) = (1,0.86,0.55,1)
-        _WaveTravelDuration ("Wave Travel Duration", Float) = 2.8
-        _WaveGap ("Time Between Waves", Float) = 1.0
-        _ShimmerWidth ("Shimmer Width", Range(0.02, 0.5)) = 0.07
-        _ShimmerIntensity ("Shimmer Intensity", Range(0, 3)) = 1.55
-        _SolarGlowColor ("Solar Glow Color", Color) = (1,0.16,0.02,1)
-        _SolarSparkColor ("Solar Spark Color", Color) = (1,0.82,0.2,1)
-        _SolarGlowIntensity ("Solar Glow Intensity", Range(0, 2)) = 0.95
-        _SolarPulseSpeed ("Solar Pulse Speed", Float) = 0.75
-        _StarColor ("Vietnam Star Color", Color) = (1,0.82,0.035,1)
-        _StarIntensity ("Star Intensity", Range(0, 2)) = 1.15
-        _StarSize ("Star Size", Range(0.05, 0.45)) = 0.23
-        _ClothWaveStrength ("Cloth Wave Strength", Range(0, 0.08)) = 0.026
         
-        [Header(Radiating Outer Aura)]
-        _OuterAuraColor ("Outer Aura Color", Color) = (1, 0.22, 0.02, 1)
-        _OuterAuraRayColor ("Outer Aura Ray Color", Color) = (1, 0.85, 0.3, 1)
-        _OuterAuraIntensity ("Outer Aura Intensity", Range(0, 4)) = 1.8
-        _OuterAuraPulseSpeed ("Outer Aura Pulse Speed", Float) = 2.2
+        [Header(Holographic Rainbow Sheen)]
+        _HoloIntensity ("Holo Intensity", Range(0, 3)) = 1.45
+        _HoloSpeed ("Holo Flow Speed", Float) = 0.26
+        _HoloScale ("Holo Frequency", Float) = 0.95
+        _HoloWaveFreq ("Holo Wave Frequency", Float) = 4.6
+        _HoloWaveSpeed ("Holo Wave Speed", Float) = 1.1
+        _HoloWaveAmp ("Holo Wave Amplitude", Range(0, 0.1)) = 0.022
+        _HoloSheenIntensity ("Holo Sheen Boost", Range(0, 4)) = 1.4
         
         [HideInInspector] _SpriteUVRect ("Sprite UV Rect", Vector) = (0,0,1,1)
 
@@ -64,12 +54,12 @@ Shader "PGE/UI/Chipset Red Shimmer"
 
         Pass
         {
-            Name "ChipsetRedShimmer"
+            Name "ChipsetRedHolographicShimmer"
 
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-            #pragma target 2.0
+            #pragma target 3.0
             #pragma multi_compile_local _ UNITY_UI_CLIP_RECT
             #pragma multi_compile_local _ UNITY_UI_ALPHACLIP
 
@@ -96,25 +86,16 @@ Shader "PGE/UI/Chipset Red Shimmer"
             sampler2D _MainTex;
             fixed4 _Color;
             fixed4 _TextureSampleAdd;
-            fixed4 _ShimmerColor;
-            fixed4 _SolarGlowColor;
-            fixed4 _SolarSparkColor;
-            fixed4 _StarColor;
-            fixed4 _OuterAuraColor;
-            fixed4 _OuterAuraRayColor;
             float4 _ClipRect;
             float4 _SpriteUVRect;
-            float _WaveTravelDuration;
-            float _WaveGap;
-            float _ShimmerWidth;
-            float _ShimmerIntensity;
-            float _SolarGlowIntensity;
-            float _SolarPulseSpeed;
-            float _StarIntensity;
-            float _StarSize;
-            float _ClothWaveStrength;
-            float _OuterAuraIntensity;
-            float _OuterAuraPulseSpeed;
+
+            float _HoloIntensity;
+            float _HoloSpeed;
+            float _HoloScale;
+            float _HoloWaveFreq;
+            float _HoloWaveSpeed;
+            float _HoloWaveAmp;
+            float _HoloSheenIntensity;
 
             v2f vert(appdata_t input)
             {
@@ -128,30 +109,21 @@ Shader "PGE/UI/Chipset Red Shimmer"
                 return output;
             }
 
-            float FivePointStarMask(float2 uv, float starScale)
+            // 7 sắc cầu vồng đầy đủ với độ chuyển tiếp siêu mềm mại
+            fixed3 Sample7ColorRainbow(float t)
             {
-                float2 p = uv - 0.5;
-                p.x *= 0.78;
-
-                float angle = atan2(p.y, p.x) - 1.5708;
-                float sector = 0.6283185;
-                float segment = abs(frac((angle + sector) / (sector * 2.0))
-                    * sector * 2.0 - sector);
-                float boundary = lerp(starScale, starScale * 0.43, saturate(segment / sector));
-                float edgeSoftness = 0.007;
-                return 1.0 - smoothstep(
-                    boundary - edgeSoftness,
-                    boundary + edgeSoftness,
-                    length(p));
+                fixed3 a = fixed3(0.50, 0.50, 0.50);
+                fixed3 b = fixed3(0.50, 0.50, 0.50);
+                fixed3 c = fixed3(1.00, 1.00, 1.00);
+                fixed3 d = fixed3(0.00, 0.333, 0.667);
+                return saturate(a + b * cos(6.2831853 * (c * t + d)));
             }
 
             fixed4 frag(v2f input) : SV_Target
             {
                 float2 localUv = (input.texcoord - _SpriteUVRect.xy) / _SpriteUVRect.zw;
-                float flagTime = _Time.y * 0.55;
 
-                // Sample texture directly at exact undistorted UV so the frame shape,
-                // borders, edges and tassels remain 100% solid, crisp and never deformed.
+                // 1. Sample texture gốc tại UV chuẩn xác (bảo toàn 100% độ nét của viền)
                 fixed4 color = (tex2D(_MainTex, input.texcoord) + _TextureSampleAdd) * input.color;
 
                 float uiClip = 1.0;
@@ -160,98 +132,30 @@ Shader "PGE/UI/Chipset Red Shimmer"
                 color.a *= uiClip;
                 #endif
 
-                float redMask = saturate((color.r - max(color.g, color.b)) * 4.0) * color.a;
+                // Nhận diện vùng bề mặt thẻ màu đỏ (lòng thẻ chipset)
+                float redMask = saturate((color.r - max(color.g, color.b)) * 3.8) * color.a;
 
-                // Internal waving cloth coordinates applied purely to the lighting, shimmer, and star inside
-                float broadFold = sin(localUv.y * 9.0 - flagTime * 1.35);
-                float fineFold = sin(localUv.y * 19.0 + localUv.x * 4.5 - flagTime * 2.1);
-                float2 wavingUv = localUv;
-                wavingUv.x += broadFold * _ClothWaveStrength
-                    + fineFold * _ClothWaveStrength * 0.34;
-                wavingUv.y += sin(localUv.x * 7.0 + flagTime * 1.15)
-                    * _ClothWaveStrength * 0.42;
+                // 2. Chuyển đổi tọa độ quét nghiêng 45 độ êm ái (Diagonal Smooth Flow)
+                float2 centeredUv = localUv - 0.5;
+                float diagCoord = (centeredUv.x * 0.7071 - centeredUv.y * 0.7071);
+                float orthCoord = (centeredUv.x * 0.7071 + centeredUv.y * 0.7071);
 
-                // Undulating cloth light and shadow only modulates the red interior surface
-                float clothLight = 0.92 + broadFold * 0.08 + fineFold * 0.03;
-                color.rgb *= lerp(1.0, clothLight, redMask);
+                // 3. Hiệu ứng sóng lượn tơ lụa siêu mềm mại (Silky Gentle Undulation)
+                float waveMotion = sin(orthCoord * _HoloWaveFreq - _Time.y * _HoloWaveSpeed) * _HoloWaveAmp
+                                 + cos(localUv.x * 8.0 + _Time.y * 1.1) * (_HoloWaveAmp * 0.35);
 
-                // Golden shimmer sweep with ripples across the red metal
-                float travelDuration = max(0.1, _WaveTravelDuration);
-                float cycleDuration = travelDuration + max(0.0, _WaveGap);
-                float cycleIndex = floor(_Time.y / cycleDuration);
-                float cycleTime = frac(_Time.y / cycleDuration) * cycleDuration;
-                float travelProgress = saturate(cycleTime / travelDuration);
-                float reverseDirection = frac(cycleIndex * 0.5) * 2.0;
-                float forwardCentre = lerp(-0.25, 1.25, travelProgress);
-                float backwardCentre = lerp(1.25, -0.25, travelProgress);
-                float sweepCentre = lerp(forwardCentre, backwardCentre, reverseDirection);
-                float waveTime = _Time.y * 0.18;
-                float curvedX = wavingUv.x
-                    + sin(wavingUv.y * 13.0 + waveTime * 3.2) * 0.055
-                    + sin(wavingUv.y * 27.0 - waveTime * 1.7) * 0.018;
-                float bandDistance = abs(curvedX - sweepCentre);
-                float waveCore = 1.0 - smoothstep(_ShimmerWidth * 0.22, _ShimmerWidth, bandDistance);
-                float waveHalo = 1.0 - smoothstep(_ShimmerWidth, _ShimmerWidth * 2.2, bandDistance);
+                // 4. Tọa độ dòng chảy Hologram 7 sắc cầu vồng trôi êm đềm
+                float holoT = (diagCoord * _HoloScale + waveMotion) - (_Time.y * _HoloSpeed);
+                fixed3 rainbow7 = Sample7ColorRainbow(holoT);
 
-                // Two interfering ripples keep the red metal gently alive between sweeps
-                float rippleA = sin(wavingUv.x * 22.0 + wavingUv.y * 12.0 - waveTime * 5.0);
-                float rippleB = sin(wavingUv.x * 13.0 - wavingUv.y * 19.0 + waveTime * 3.4);
-                float waterRipple = pow(saturate(0.5 + 0.25 * (rippleA + rippleB)), 5.0);
+                // 5. Vệt ánh kim khuếch tán dịu nhẹ (Soft Prismatic Sheen)
+                float sheenBand = pow(saturate(0.5 + 0.5 * sin(holoT * 6.2831853)), 2.6);
+                fixed3 rainbowSheen = rainbow7 * (0.28 + sheenBand * _HoloSheenIntensity * 0.75);
 
-                float shimmer = waveCore + waveHalo * 0.34 + waterRipple * 0.16;
-                float glow = redMask * shimmer * _ShimmerIntensity;
-                color.rgb += _ShimmerColor.rgb * glow;
-
-                // Solar boiling embers and pulse on red surface
-                float solarTime = _Time.y * _SolarPulseSpeed;
-                float solarPulse = 0.76 + sin(solarTime) * 0.24;
-                float solarCellA = sin(wavingUv.x * 47.0
-                    + sin(wavingUv.y * 19.0 + solarTime * 1.4) * 2.2
-                    + solarTime * 1.8);
-                float solarCellB = sin(wavingUv.y * 41.0
-                    - wavingUv.x * 16.0
-                    - solarTime * 1.25);
-                float solarGranules = pow(saturate(0.5 + 0.25 * (solarCellA + solarCellB)), 6.0);
-
-                float solarBase = redMask * solarPulse * _SolarGlowIntensity * 0.38;
-                float solarSpark = redMask * solarGranules * _SolarGlowIntensity * 1.25;
-                color.rgb += _SolarGlowColor.rgb * solarBase;
-                color.rgb += _SolarSparkColor.rgb * solarSpark;
-
-                // Five-point star placed inside the red background (confined by redMask)
-                float starMask = FivePointStarMask(wavingUv, _StarSize) * uiClip * redMask;
-                float starSheen = 0.88 + 0.22 * sin(
-                    wavingUv.x * 18.0 + wavingUv.y * 8.0 - solarTime * 2.0);
-                float3 illuminatedStar = _StarColor.rgb * starSheen * _StarIntensity;
-                color.rgb = lerp(color.rgb, illuminatedStar, saturate(starMask * 0.96));
-                color.a = max(color.a, starMask * _StarColor.a * input.color.a);
-
-                // --- RADIATING OUTWARD AURA & RAYS EFFECT ---
-                float2 centerVec = localUv - 0.5;
-                float2 absCenter = abs(centerVec);
-                
-                // Outer perimeter distance calculation for card rectangle
-                float boxDistX = max(0.0, absCenter.x - 0.32) / 0.18;
-                float boxDistY = max(0.0, absCenter.y - 0.34) / 0.16;
-                float edgeDist = length(float2(boxDistX, boxDistY));
-
-                // Radiating ray flares sweeping outward from card
-                float rayAngle = atan2(centerVec.y, centerVec.x);
-                float rayPatternA = sin(rayAngle * 10.0 + _Time.y * 2.0) * 0.5 + 0.5;
-                float rayPatternB = sin(rayAngle * 18.0 - _Time.y * 2.8) * 0.5 + 0.5;
-                float combinedRays = pow(rayPatternA * 0.65 + rayPatternB * 0.35, 2.5);
-
-                // Rhythmic aura pulse
-                float auraPulse = 0.80 + 0.20 * sin(_Time.y * _OuterAuraPulseSpeed);
-                float auraSoftGlow = exp(-edgeDist * 2.8) * auraPulse * _OuterAuraIntensity;
-                float auraRayIntensity = auraSoftGlow * (0.35 + combinedRays * 0.85);
-
-                // Blend radiant aura color between hot red-orange and bright golden rays
-                fixed3 auraRgb = lerp(_OuterAuraColor.rgb, _OuterAuraRayColor.rgb, combinedRays);
-                
-                // Radiating glow onto both the edge rim of the card and outward into surrounding space
-                color.rgb += auraRgb * (auraRayIntensity * 0.85 + redMask * auraSoftGlow * 0.4);
-                color.a = max(color.a, saturate(auraSoftGlow * 0.7) * uiClip * _OuterAuraColor.a * input.color.a);
+                // 6. HÒA TRỘN MỀM MẠI: ĐỎ CHỦ ĐẠO SÂU LẮNG (70%) + CẦU VỒNG 7 SẮC ÓNG Ả (30%)
+                fixed3 dominantRedBase = fixed3(0.92, 0.06, 0.12) * max(color.r, 0.90);
+                fixed3 blendedHolo = dominantRedBase * 0.70 + rainbowSheen * (color.r * 0.65 + 0.20) * _HoloIntensity;
+                color.rgb = lerp(color.rgb, blendedHolo, redMask);
 
                 #ifdef UNITY_UI_ALPHACLIP
                 clip(color.a - 0.001);
@@ -263,3 +167,5 @@ Shader "PGE/UI/Chipset Red Shimmer"
         }
     }
 }
+
+

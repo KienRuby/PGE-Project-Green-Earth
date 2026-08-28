@@ -187,6 +187,7 @@ public class SpinningBladeProjectile : MonoBehaviour, IPoolable
 
             // 1. Gây sát thương lên quái vật va chạm
             damageable.TakeDamage(damage);
+            ChipsetBattleStats.RecordDamage(4, damage);
             SpawnHitVfx(other.transform.position);
 
             remainingHits--;
@@ -230,7 +231,9 @@ public class SpinningBladeProjectile : MonoBehaviour, IPoolable
             EnemyHealth enemy = col.GetComponentInParent<EnemyHealth>();
             if (enemy != null && !enemy.IsDead && enemy.gameObject.activeInHierarchy)
             {
-                enemy.TakeDamage(Mathf.Max(5, Mathf.RoundToInt(damage * 0.45f)));
+                int vortexDamage = Mathf.Max(5, Mathf.RoundToInt(damage * 0.45f));
+                enemy.TakeDamage(vortexDamage);
+                ChipsetBattleStats.RecordDamage(4, vortexDamage);
                 SpawnHitVfx(col.transform.position);
             }
         }

@@ -1,0 +1,615 @@
+fileFormatVersion: 2
+guid: 141ab160b32182e40973b28ce8f4741a
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Setting
+      rect:
+        serializedVersion: 2
+        x: 168
+        y: 3479
+        width: 1830
+        height: 259
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a2b631140776fcf4b8626ae3c3a3f39c
+      internalID: -140578927
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n setting_8"
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 3163
+        width: 48
+        height: 268
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 77f841304f8609640b41d65743e9eb91
+      internalID: -701180717
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Log in and save your data
+      rect:
+        serializedVersion: 2
+        x: 173
+        y: 2918
+        width: 1829
+        height: 486
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b3267a13f787b9c4799f9de4e18f7438
+      internalID: -1586978251
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Log in with Google
+      rect:
+        serializedVersion: 2
+        x: 660
+        y: 2675
+        width: 583
+        height: 146
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 985d31224397fb74998deeaf16038a74
+      internalID: 1940691493
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Sign in with Apple
+      rect:
+        serializedVersion: 2
+        x: 1300
+        y: 2675
+        width: 583
+        height: 146
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: de95521d80fb79746b293e26781a6ada
+      internalID: 560677752
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BGM OFF
+      rect:
+        serializedVersion: 2
+        x: 1112
+        y: 2280
+        width: 464
+        height: 264
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b3d8ee0fcdb8c7e4399ee4720f133b8f
+      internalID: -980823628
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SFX OFF
+      rect:
+        serializedVersion: 2
+        x: 1588
+        y: 2278
+        width: 464
+        height: 264
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 68982ef21e428c048b63c2c7c53544b5
+      internalID: -618708925
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: English OFF
+      rect:
+        serializedVersion: 2
+        x: 1111
+        y: 1992
+        width: 943
+        height: 262
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4b6f8ef217acf5449ba85362cb4d6898
+      internalID: 924752372
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: BGM ON
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 1589
+        width: 459
+        height: 260
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6d1f11c727c37fc478b2999a98254f4b
+      internalID: 1789906678
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Show Damage Off
+      rect:
+        serializedVersion: 2
+        x: 1111
+        y: 1700
+        width: 944
+        height: 265
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ac46403e4ab657a47b704ba366ea09c1
+      internalID: 789076387
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: English
+      rect:
+        serializedVersion: 2
+        x: 95
+        y: 1297
+        width: 943
+        height: 262
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2e71dad67a1f5a7479687fa11588c865
+      internalID: 420480775
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Show Damage On
+      rect:
+        serializedVersion: 2
+        x: 90
+        y: 1010
+        width: 944
+        height: 265
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 381a1bc0ff8e7bf4eb9fff26bdabac5b
+      internalID: -298214059
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Screen Shake
+      rect:
+        serializedVersion: 2
+        x: 1112
+        y: 1128
+        width: 941
+        height: 262
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cae422c6f61fffc4abeb34f71711c82e
+      internalID: 141450712
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Dynamic - Fixed Pad ON
+      rect:
+        serializedVersion: 2
+        x: 1112
+        y: 725
+        width: 941
+        height: 262
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0335aa0a23c40754687ec9070276a2ba
+      internalID: 1835219468
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n setting_76"
+      rect:
+        serializedVersion: 2
+        x: 90
+        y: 723
+        width: 967
+        height: 262
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e75244b439c873345810efd94cc92a16
+      internalID: 1763070240
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Screen Shak
+      rect:
+        serializedVersion: 2
+        x: 91
+        y: 436
+        width: 941
+        height: 262
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c3c1b0d6fc8fd7e41a6f06a12b36f2a7
+      internalID: -275738692
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "n\xFAt m\xE0n setting_85"
+      rect:
+        serializedVersion: 2
+        x: 91
+        y: 142
+        width: 941
+        height: 262
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7719adfb882bd2044a4fa3d90af949c0
+      internalID: -1631908857
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SFX ON
+      rect:
+        serializedVersion: 2
+        x: 573
+        y: 1589
+        width: 459
+        height: 260
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3c9dd5ffd0963e648b8a23ef583f41de
+      internalID: -841733225
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Dynamic-Fixed Pad OFF
+      rect:
+        serializedVersion: 2
+        x: 1112
+        y: 1417
+        width: 941
+        height: 262
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5e3d84627c95b9b44855f820dc0784d9
+      internalID: 1318729711
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      BGM OFF: -980823628
+      BGM ON: 1789906678
+      Dynamic - Fixed Pad ON: 1835219468
+      Dynamic-Fixed Pad OFF: 1318729711
+      English: 420480775
+      English OFF: 924752372
+      Log in and save your data: -1586978251
+      Log in with Google: 1940691493
+      SFX OFF: -618708925
+      SFX ON: -841733225
+      Screen Shak: -275738692
+      Screen Shake: 141450712
+      Setting: -140578927
+      Show Damage Off: 789076387
+      Show Damage On: -298214059
+      Sign in with Apple: 560677752
+      "n\xFAt m\xE0n setting_1": -886262386
+      "n\xFAt m\xE0n setting_11": 60930797
+      "n\xFAt m\xE0n setting_12": -1670259544
+      "n\xFAt m\xE0n setting_13": 542724346
+      "n\xFAt m\xE0n setting_14": -936193227
+      "n\xFAt m\xE0n setting_15": -1786824703
+      "n\xFAt m\xE0n setting_16": -910278800
+      "n\xFAt m\xE0n setting_18": 1979694549
+      "n\xFAt m\xE0n setting_19": -2017020920
+      "n\xFAt m\xE0n setting_2": 1064789410
+      "n\xFAt m\xE0n setting_20": 834266654
+      "n\xFAt m\xE0n setting_21": 1305908095
+      "n\xFAt m\xE0n setting_22": 646880130
+      "n\xFAt m\xE0n setting_24": 1593557513
+      "n\xFAt m\xE0n setting_25": 1408777439
+      "n\xFAt m\xE0n setting_26": 1602671222
+      "n\xFAt m\xE0n setting_27": -592508964
+      "n\xFAt m\xE0n setting_28": 217208039
+      "n\xFAt m\xE0n setting_29": -1134474977
+      "n\xFAt m\xE0n setting_3": -1879194726
+      "n\xFAt m\xE0n setting_30": 1082901668
+      "n\xFAt m\xE0n setting_31": -808963279
+      "n\xFAt m\xE0n setting_32": -1541228372
+      "n\xFAt m\xE0n setting_33": 2110751342
+      "n\xFAt m\xE0n setting_34": -1566500496
+      "n\xFAt m\xE0n setting_35": 736090612
+      "n\xFAt m\xE0n setting_36": 646165557
+      "n\xFAt m\xE0n setting_38": 1363537131
+      "n\xFAt m\xE0n setting_39": -648461161
+      "n\xFAt m\xE0n setting_4": 1459992488
+      "n\xFAt m\xE0n setting_40": -1683703034
+      "n\xFAt m\xE0n setting_42": 739237903
+      "n\xFAt m\xE0n setting_44": -899365997
+      "n\xFAt m\xE0n setting_45": 1797510478
+      "n\xFAt m\xE0n setting_46": -1255254273
+      "n\xFAt m\xE0n setting_48": -1165727170
+      "n\xFAt m\xE0n setting_50": 271329105
+      "n\xFAt m\xE0n setting_51": -1989858301
+      "n\xFAt m\xE0n setting_52": 1370991451
+      "n\xFAt m\xE0n setting_53": 635306519
+      "n\xFAt m\xE0n setting_54": -1959423802
+      "n\xFAt m\xE0n setting_55": 290239669
+      "n\xFAt m\xE0n setting_56": 481189486
+      "n\xFAt m\xE0n setting_57": 1066947071
+      "n\xFAt m\xE0n setting_58": -654784859
+      "n\xFAt m\xE0n setting_6": 2099680533
+      "n\xFAt m\xE0n setting_60": 137777132
+      "n\xFAt m\xE0n setting_61": 958838819
+      "n\xFAt m\xE0n setting_62": 1505001849
+      "n\xFAt m\xE0n setting_63": -1633053206
+      "n\xFAt m\xE0n setting_65": -183679972
+      "n\xFAt m\xE0n setting_67": -979481139
+      "n\xFAt m\xE0n setting_68": -388399345
+      "n\xFAt m\xE0n setting_69": 2034963163
+      "n\xFAt m\xE0n setting_7": -2068392539
+      "n\xFAt m\xE0n setting_70": -1652375759
+      "n\xFAt m\xE0n setting_71": -1255183638
+      "n\xFAt m\xE0n setting_72": 1589865192
+      "n\xFAt m\xE0n setting_73": -914696621
+      "n\xFAt m\xE0n setting_74": 116081837
+      "n\xFAt m\xE0n setting_76": 1763070240
+      "n\xFAt m\xE0n setting_77": -10577257
+      "n\xFAt m\xE0n setting_78": -460896084
+      "n\xFAt m\xE0n setting_79": -133143742
+      "n\xFAt m\xE0n setting_8": -701180717
+      "n\xFAt m\xE0n setting_80": -2122206206
+      "n\xFAt m\xE0n setting_81": -724626525
+      "n\xFAt m\xE0n setting_83": 668726160
+      "n\xFAt m\xE0n setting_84": 2056870692
+      "n\xFAt m\xE0n setting_85": -1631908857
+      "n\xFAt m\xE0n setting_86": 1875211442
+      "n\xFAt m\xE0n setting_87": -829297092
+      "n\xFAt m\xE0n setting_9": 1902772172
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

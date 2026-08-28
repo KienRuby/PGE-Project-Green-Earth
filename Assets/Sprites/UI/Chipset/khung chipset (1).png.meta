@@ -110,13 +110,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: khung chipset (1)_0
+      name: BackGround2
       rect:
         serializedVersion: 2
         x: 272
         y: 3187
         width: 1614
-        height: 415
+        height: 390
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -131,13 +131,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: khung chipset (1)_1
+      name: BackGround1
       rect:
         serializedVersion: 2
-        x: 279
-        y: 2721
-        width: 1589
-        height: 421
+        x: 281
+        y: 2755
+        width: 1604
+        height: 387
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -147,27 +147,6 @@ TextureImporter:
       bones: []
       spriteID: 2bf2ab19a8dc8fd42a7a89bca2b5cb11
       internalID: 1443437712
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: khung chipset (1)_2
-      rect:
-        serializedVersion: 2
-        x: 1890
-        y: 2745
-        width: 11
-        height: 11
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 85939d3f394a2f544b1fb18d7c5c031e
-      internalID: 960734808
       vertices: []
       indices: 
       edges: []
@@ -519,6 +498,8 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
+      BackGround1: 1443437712
+      BackGround2: 648833277
       ChipsetBlue: -1651229128
       ChipsetGreen: -1911426385
       ChipsetLeveYellow: 1439231244
@@ -535,8 +516,6 @@ TextureImporter:
       "c\u1EA5p 1": 880683550
       "c\u1EA5p 2": 363790820
       "c\u1EA5p 3": -1876374054
-      khung chipset (1)_0: 648833277
-      khung chipset (1)_1: 1443437712
       khung chipset (1)_10: -465350185
       khung chipset (1)_11: 1350185728
       khung chipset (1)_13: -981362094

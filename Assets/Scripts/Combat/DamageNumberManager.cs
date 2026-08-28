@@ -63,6 +63,7 @@ public class DamageNumberManager : MonoBehaviour
     /// </summary>
     public static void ShowDamage(Vector3 worldPosition, int damage, DamageType type = DamageType.Normal, float extraScale = 1f)
     {
+        if (!GameSettings.ShowDamage) return;
         if (damage <= 0 && type != DamageType.Heal) return;
 
         if (Instance == null)

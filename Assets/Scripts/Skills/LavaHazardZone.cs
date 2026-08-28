@@ -171,6 +171,7 @@ public class LavaHazardZone : MonoBehaviour, IPoolable
             if (health != null && !health.IsDead && health.gameObject.activeInHierarchy)
             {
                 health.TakeDamage(tickDamage);
+                ChipsetBattleStats.RecordDamage(3, tickDamage);
             }
         }
     }

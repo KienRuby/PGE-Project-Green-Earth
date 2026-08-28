@@ -182,6 +182,8 @@ public class SpinningBladeSkill : MonoBehaviour
     {
         if (spinningBladePrefab == null) return;
 
+        ChipsetBattleStats.RecordAttack(4, 1);
+
         int newIndex = activeBlades.Count;
         float bladeAngle = baseOrbitAngle - (newIndex * bladeSpacingAngle);
         float initRad = bladeAngle * Mathf.Deg2Rad;

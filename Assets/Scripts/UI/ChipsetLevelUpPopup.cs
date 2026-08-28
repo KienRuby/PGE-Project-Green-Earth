@@ -491,6 +491,90 @@ public class ChipsetLevelUpPopup : MonoBehaviour
     {
         if (data == null) return string.Empty;
 
+        if (data.id == 1 || (data.iconKey != null && (data.iconKey.Contains("standard") || data.iconKey == "chipset_0")))
+        {
+            switch (Mathf.Clamp(data.level, 1, MaxRuntimeChipLevel))
+            {
+                case 1: return "Luôn tự động bắn hỗ trợ.";
+                case 2: return "Tăng sát thương và tốc độ.";
+                case 3: return "Đạn có 10% cơ hội gây Chí mạng (x2 sát thương).";
+                case 4: return "Súng tiêu chuẩn được hưởng 5% Hút máu.";
+                case 5: return "Tối thượng: Đạn nảy (Ricochet) sang 1 kẻ địch lân cận sau khi trúng mục tiêu đầu.";
+            }
+        }
+
+        if (data.id == 2 || (data.iconKey != null && (data.iconKey.Contains("rifle") || data.iconKey == "chipset_1")))
+        {
+            switch (Mathf.Clamp(data.level, 1, MaxRuntimeChipLevel))
+            {
+                case 1: return "Cơ bản, ngắm bắn mục tiêu gần nhất.";
+                case 2: return "Tăng sát thương và tốc độ xả đạn.";
+                case 3: return "Đạn có cơ hội (20%) xuyên thấu 1 kẻ địch.";
+                case 4: return "Xuyên thấu chắc chắn 1 kẻ địch phía sau.";
+                case 5: return "Tối thượng: Bắn ra 2 tia đạn song song, nhân đôi hỏa lực.";
+            }
+        }
+
+        if (data.id == 8 || (data.iconKey != null && (data.iconKey.Contains("shotgun") || data.iconKey == "chipset_7")))
+        {
+            switch (Mathf.Clamp(data.level, 1, MaxRuntimeChipLevel))
+            {
+                case 1: return "Bắn ra cụm đạn sát thương cực lớn ở cự ly gần.";
+                case 2: return "Cải thiện thời gian nạp đạn và hỏa lực.";
+                case 3: return "Gom góc đạn hẹp lại, đạn xuyên thấu mọi mục tiêu.";
+                case 4: return "Thêm hiệu ứng Đẩy lùi (Knockback) cực mạnh.";
+                case 5: return "Tối thượng: Bắn đúp (Xả 2 phát Shotgun liên tiếp không mất thêm thời gian chờ).";
+            }
+        }
+
+        if (data.id == 5 || (data.iconKey != null && (data.iconKey.Contains("multigun") || data.iconKey == "chipset_4")))
+        {
+            switch (Mathf.Clamp(data.level, 1, MaxRuntimeChipLevel))
+            {
+                case 1: return "Xả mưa đạn theo hướng ngẫu nhiên phía trước.";
+                case 2: return "Tăng số đạn và giảm thời gian giữa các loạt bắn.";
+                case 3: return "Đạn có tính năng bám đuổi nhẹ (Homing) mục tiêu.";
+                case 4: return "Hỏa lực dày đặc hơn.";
+                case 5: return "Tối thượng: Xả đạn liên tục 360 độ quanh người (Cơn bão đạn).";
+            }
+        }
+
+        if (data.id == 10 || (data.iconKey != null && (data.iconKey.Contains("mine") || data.iconKey == "chipset_9")))
+        {
+            switch (Mathf.Clamp(data.level, 1, MaxRuntimeChipLevel))
+            {
+                case 1: return "Định kỳ đặt mìn trên đường di chuyển.";
+                case 2: return "Tăng sát thương nổ và giảm thời gian đặt mìn.";
+                case 3: return "Kẻ địch trúng mìn bị làm chậm 40% trong 2s.";
+                case 4: return "Tăng mạnh bán kính nổ.";
+                case 5: return "Tối thượng: Mìn mẹ nổ văng ra 3 mìn con, nổ thêm lần 2.";
+            }
+        }
+
+        if (data.id == 9 || (data.iconKey != null && (data.iconKey.Contains("jumper") || data.iconKey.Contains("cable") || data.iconKey == "chipset_8")))
+        {
+            switch (Mathf.Clamp(data.level, 1, MaxRuntimeChipLevel))
+            {
+                case 1: return "Hút máu kẻ địch khi gây sát thương.";
+                case 2: return "Tăng tỷ lệ hút máu.";
+                case 3: return "Mở rộng hiệu ứng hút máu cho tất cả vũ khí đang mang.";
+                case 4: return "Hồi máu vượt giới hạn sẽ tạo thành Lớp khiên nhỏ (Tối đa 10% HP).";
+                case 5: return "Tối thượng: Hồi sinh lực bùng nổ (Nhân đôi tỷ lệ hút máu khi HP dưới 20%).";
+            }
+        }
+
+        if (data.id == 7 || (data.iconKey != null && (data.iconKey.Contains("discus") || data.iconKey == "chipset_6")))
+        {
+            switch (Mathf.Clamp(data.level, 1, MaxRuntimeChipLevel))
+            {
+                case 1: return "Xoay tròn quanh nhân vật.";
+                case 2: return "Thêm 1 đĩa và tăng sát thương.";
+                case 3: return "Đĩa gai gây hiệu ứng Chảy máu (Mất 5 HP/s).";
+                case 4: return "Thêm đĩa thứ 3, tạo vòng tròn bảo vệ khép kín.";
+                case 5: return "Tối thượng: Đĩa phóng to gấp đôi, có khả năng chém bay đạn của kẻ địch.";
+            }
+        }
+
         if (data.id == 6 || (data.iconKey != null && data.iconKey.Contains("turret")))
         {
             switch (Mathf.Clamp(data.level, 1, MaxRuntimeChipLevel))

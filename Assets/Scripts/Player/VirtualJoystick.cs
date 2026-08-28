@@ -40,6 +40,7 @@ public class VirtualJoystick : MonoBehaviour,
     private Canvas parentCanvas;
     private Camera canvasCamera;
     private Vector2 pointerDownScreenPos;
+    private Vector2 fixedBackgroundPosition;
     private Vector2 input;
     private bool isPressed;
     private int activeFingerId = -1;
@@ -66,6 +67,7 @@ public class VirtualJoystick : MonoBehaviour,
         // Đảm bảo các con (Background, Handle) không nuốt/chặn sự kiện raycast của TouchArea
         if (background != null)
         {
+            fixedBackgroundPosition = background.anchoredPosition;
             Graphic bgGraphic = background.GetComponent<Graphic>();
             if (bgGraphic != null) bgGraphic.raycastTarget = false;
 
@@ -198,10 +200,17 @@ public class VirtualJoystick : MonoBehaviour,
                 canvasCamera,
                 out Vector2 localPoint))
         {
-            if (keepInsideScreen)
-                localPoint = ClampJoystickPosition(localPoint);
+            if (GameSettings.DynamicJoystick)
+            {
+                if (keepInsideScreen)
+                    localPoint = ClampJoystickPosition(localPoint);
 
-            background.anchoredPosition = localPoint;
+                background.anchoredPosition = localPoint;
+            }
+            else
+            {
+                background.anchoredPosition = fixedBackgroundPosition;
+            }
         }
 
         background.gameObject.SetActive(true);

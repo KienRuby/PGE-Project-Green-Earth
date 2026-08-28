@@ -469,4 +469,11 @@ public static class PlayerDataService
         hasStar = PlayerPrefs.GetInt($"{pfx}HasStar", 0) == 1;
         return true;
     }
+
+    public static ChipTier GetChipTier(int id)
+    {
+        string pfx = GetChipItemPrefix(id);
+        int tierVal = PlayerPrefs.GetInt($"{pfx}Tier", 1);
+        return (ChipTier)Mathf.Clamp(tierVal, 1, 5);
+    }
 }

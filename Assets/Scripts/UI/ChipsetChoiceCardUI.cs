@@ -409,6 +409,7 @@ public class ChipsetChoiceCardUI : MonoBehaviour
 
     private void SetRedTierBackgroundEffect(bool enabled)
     {
+        // Nền thẻ luôn tĩnh; chỉ khung icon chipset đỏ nhận shader lá cờ.
         CaptureDefaultFrameMaterial();
         if (iconFrameImage != null)
         {
@@ -420,11 +421,7 @@ public class ChipsetChoiceCardUI : MonoBehaviour
         if (backgroundImage == null) return;
 
         CaptureDefaultBackgroundVisual();
-        backgroundImage.material = enabled
-            ? ChipsetFrameShimmerMaterial.Get(backgroundImage.sprite) ?? defaultBackgroundMaterial
-            : defaultBackgroundMaterial;
-        backgroundImage.color = enabled
-            ? new Color32(210, 24, 24, 245)
-            : defaultBackgroundColor;
+        backgroundImage.material = defaultBackgroundMaterial;
+        backgroundImage.color = defaultBackgroundColor;
     }
 }

@@ -58,6 +58,7 @@ public class GunTurretSkill : MonoBehaviour
     [SerializeField] private int activeTurretCount = 0;
 
     private readonly List<GunTurret> activeTurrets = new List<GunTurret>();
+    private PlayerAutoShooter playerAutoShooter;
 
     public bool IsUnlocked => isUnlocked;
     public int CurrentSkillLevel => currentSkillLevel;
@@ -66,6 +67,7 @@ public class GunTurretSkill : MonoBehaviour
 
     private void Awake()
     {
+        playerAutoShooter = GetComponent<PlayerAutoShooter>();
 #if UNITY_EDITOR
         if (turretPrefab == null)
         {
@@ -181,7 +183,6 @@ public class GunTurretSkill : MonoBehaviour
 
         int finalDamage = config.damage + bonusDmg;
         float fireRate = config.fireRate;
-        float attackRange = 10f;
         float bulletSpeed = 12f;
         CalculateMetaTierBonuses(out float durationMultiplier, out _);
         float duration = config.duration * durationMultiplier;
@@ -199,7 +200,8 @@ public class GunTurretSkill : MonoBehaviour
             health,
             projectilePrefab,
             explosionVfxPrefab,
-            () => OnSingleTurretDespawned(turretComponent)
+            () => OnSingleTurretDespawned(turretComponent),
+            targetProvider: playerAutoShooter
         );
     }
 

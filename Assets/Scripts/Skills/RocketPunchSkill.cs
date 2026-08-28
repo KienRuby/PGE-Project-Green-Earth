@@ -65,22 +65,13 @@ public class RocketPunchSkill : MonoBehaviour
         new RocketPunchLevelConfig { directDamage = 260, aoeDamage = 160, cooldown = 1.0f, aoeRadius = 5.0f, hasStun = true, stunDuration = 1.0f, hasLavaPool = true }
     };
 
-    [Header("360 Detection Area (Phạm vi quét quái quanh Player)")]
-    [SerializeField] private float detectionWidth = 12f;
-    [SerializeField] private float detectionHeight = 16f;
-    [SerializeField] private Vector2 detectionOffset = Vector2.zero;
-
-    [Tooltip("Layer quái vật để quét.")]
-    [SerializeField] private LayerMask enemyLayer;
-
     [Header("Runtime State (Debug)")]
     [SerializeField] private bool isUnlocked = false;
     [SerializeField] private int currentSkillLevel = 1;
     [SerializeField] private float currentCooldownTimer = 0f;
     [SerializeField] private RocketPunchProjectile activeOrbitingPunch;
 
-    private readonly Collider2D[] enemyBuffer = new Collider2D[64];
-    private ContactFilter2D contactFilter;
+    private PlayerAutoShooter playerAutoShooter;
 
     public bool IsUnlocked => isUnlocked;
     public int CurrentSkillLevel => currentSkillLevel;
@@ -90,6 +81,7 @@ public class RocketPunchSkill : MonoBehaviour
 
     private void Awake()
     {
+        playerAutoShooter = GetComponent<PlayerAutoShooter>();
 #if UNITY_EDITOR
         if (rocketPunchPrefab == null)
         {
@@ -101,18 +93,6 @@ public class RocketPunchSkill : MonoBehaviour
         }
 #endif
 
-        if (enemyLayer.value == 0)
-        {
-            enemyLayer = LayerMask.GetMask("Enemy");
-            if (enemyLayer.value == 0) enemyLayer = 1 << 7;
-        }
-
-        contactFilter = new ContactFilter2D
-        {
-            layerMask = enemyLayer,
-            useLayerMask = enemyLayer.value != 0,
-            useTriggers = true
-        };
     }
 
     /// <summary>
@@ -150,6 +130,8 @@ public class RocketPunchSkill : MonoBehaviour
             Transform target = FindTargetEnemy();
             if (target != null)
             {
+                activeOrbitingPunch.transform.position = GetSharedFirePoint().position;
+                ChipsetBattleStats.RecordAttack(3, 1);
                 // Phóng nắm đấm tới quái vật (kèm Transform để theo dõi và đổi mục tiêu nếu quái chết)
                 activeOrbitingPunch.LaunchTowards(target);
                 activeOrbitingPunch = null;
@@ -167,7 +149,7 @@ public class RocketPunchSkill : MonoBehaviour
     {
         if (rocketPunchPrefab == null) return;
 
-        Vector3 spawnPos = transform.position + new Vector3(orbitRadius, 0f, 0f);
+        Vector3 spawnPos = GetSharedFirePoint().position;
         GameObject punchObj;
 
         if (PoolManager.Instance != null)
@@ -220,44 +202,24 @@ public class RocketPunchSkill : MonoBehaviour
                 }
             }
         );
+        proj.SetSharedTargetProvider(playerAutoShooter);
 
         activeOrbitingPunch = proj;
     }
 
     private Transform FindTargetEnemy()
     {
-        Vector2 center = (Vector2)transform.position + detectionOffset;
-        Vector2 boxSize = new Vector2(detectionWidth, detectionHeight);
-
-        int hitCount = Physics2D.OverlapBox(center, boxSize, 0f, contactFilter, enemyBuffer);
-        if (hitCount == 0 && enemyLayer.value != 0)
+        if (playerAutoShooter != null)
         {
-            ContactFilter2D fallback = new ContactFilter2D { useTriggers = true };
-            hitCount = Physics2D.OverlapBox(center, boxSize, 0f, fallback, enemyBuffer);
+            return playerAutoShooter.CurrentTarget;
         }
 
-        Transform nearestEnemy = null;
-        float nearestDistSqr = Mathf.Infinity;
-        Vector2 playerPos = transform.position;
+        return null;
+    }
 
-        for (int i = 0; i < hitCount; i++)
-        {
-            Collider2D col = enemyBuffer[i];
-            if (col == null) continue;
-
-            EnemyHealth health = col.GetComponentInParent<EnemyHealth>();
-            if (health == null || health.IsDead || !health.gameObject.activeInHierarchy) continue;
-
-            Vector2 diff = (Vector2)health.transform.position - playerPos;
-            float distSqr = diff.sqrMagnitude;
-            if (distSqr < nearestDistSqr)
-            {
-                nearestDistSqr = distSqr;
-                nearestEnemy = health.transform;
-            }
-        }
-
-        return nearestEnemy;
+    private Transform GetSharedFirePoint()
+    {
+        return playerAutoShooter != null ? playerAutoShooter.FirePoint : transform;
     }
 
     public void CalculateMetaTierBonuses(out float damageMultiplier, out float cooldownMultiplier, out float aoeMultiplier)
@@ -316,8 +278,5 @@ public class RocketPunchSkill : MonoBehaviour
         Gizmos.color = Color.cyan;
         Gizmos.DrawWireSphere(transform.position, orbitRadius);
 
-        Gizmos.color = Color.yellow;
-        Vector3 center = transform.position + (Vector3)detectionOffset;
-        Gizmos.DrawWireCube(center, new Vector3(detectionWidth, detectionHeight, 0f));
     }
 }

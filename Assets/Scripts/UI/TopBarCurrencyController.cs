@@ -258,7 +258,29 @@ public class TopBarCurrencyController : MonoBehaviour
 
     private void OnSettingsClicked()
     {
-        Debug.Log("[TopBar] Đã bấm nút Settings.");
+        SettingsPanelController panel = SettingsPanelController.Instance;
+        if (panel == null)
+        {
+            panel = FindObjectOfType<SettingsPanelController>(true);
+        }
+
+        if (panel == null)
+        {
+            Canvas canvas = GetComponentInParent<Canvas>() ?? FindObjectOfType<Canvas>();
+            if (canvas != null)
+            {
+                panel = SettingsPanelController.CreateRuntimePanel(canvas.transform as RectTransform);
+            }
+        }
+
+        if (panel != null)
+        {
+            panel.Toggle();
+        }
+        else
+        {
+            Debug.LogWarning("[TopBar] Không tìm thấy Canvas để hiển thị SettingsPanel.");
+        }
     }
 
     public void SetTextsForTesting(TMP_Text energy, TMP_Text chips, TMP_Text gems)

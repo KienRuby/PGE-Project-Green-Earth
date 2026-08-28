@@ -416,6 +416,7 @@ public class ChipsetCardUI : MonoBehaviour
 
     private void SetRedTierBackgroundEffect(bool enabled)
     {
+        // BackGround1 luôn là nền tĩnh. Shader lá cờ chỉ áp dụng lên khung chipset đỏ.
         CaptureDefaultFrameMaterial();
         if (cardFrameImage != null)
         {
@@ -428,10 +429,6 @@ public class ChipsetCardUI : MonoBehaviour
         if (bottomProgressBar != null)
         {
             bottomProgressBar.material = defaultBottomBarMaterial;
-            if (enabled)
-            {
-                bottomProgressBar.color = new Color32(255, 255, 255, 0);
-            }
         }
 
         if (redEffectBackgroundImage == null) return;
@@ -442,12 +439,8 @@ public class ChipsetCardUI : MonoBehaviour
             redEffectBackgroundImage.gameObject.SetActive(enabled);
         }
 
-        redEffectBackgroundImage.material = enabled
-            ? ChipsetFrameShimmerMaterial.Get(redEffectBackgroundImage.sprite) ?? defaultBackgroundMaterial
-            : defaultBackgroundMaterial;
-        redEffectBackgroundImage.color = enabled
-            ? new Color32(210, 24, 24, 255)
-            : defaultBackgroundColor;
+        redEffectBackgroundImage.material = defaultBackgroundMaterial;
+        redEffectBackgroundImage.color = defaultBackgroundColor;
     }
 
     public void SetDirectVisual(Sprite frame, Sprite icon, string level, string progress, bool star, bool arrow)

@@ -44,6 +44,10 @@ public class EnemyMovement : MonoBehaviour, IPoolable
     private float baseMoveSpeed;
     private Vector2 cachedSeparationForce;
     private int instanceId;
+    private Vector2 knockbackVelocity;
+    private float knockbackTimer;
+    private float slowTimer;
+    private float currentSlowPercent;
 
     public bool IsStunned => stunTimer > 0f;
 
@@ -52,6 +56,20 @@ public class EnemyMovement : MonoBehaviour, IPoolable
         if (duration <= 0f) return;
         stunTimer = Mathf.Max(stunTimer, duration);
         if (rb != null) rb.velocity = Vector2.zero;
+    }
+
+    public void ApplyKnockback(Vector2 direction, float force, float duration = 0.2f)
+    {
+        if (duration <= 0f || force <= 0f) return;
+        knockbackVelocity = direction.normalized * force;
+        knockbackTimer = duration;
+    }
+
+    public void ApplySlow(float slowPercent, float duration)
+    {
+        if (duration <= 0f || slowPercent <= 0f) return;
+        slowTimer = Mathf.Max(slowTimer, duration);
+        currentSlowPercent = Mathf.Max(currentSlowPercent, Mathf.Clamp01(slowPercent));
     }
 
     public float MoveSpeed
@@ -111,6 +129,14 @@ public class EnemyMovement : MonoBehaviour, IPoolable
 
     private void FixedUpdate()
     {
+        if (knockbackTimer > 0f)
+        {
+            knockbackTimer -= Time.fixedDeltaTime;
+            rb.MovePosition(rb.position + knockbackVelocity * Time.fixedDeltaTime);
+            knockbackVelocity = Vector2.Lerp(knockbackVelocity, Vector2.zero, Time.fixedDeltaTime * 8f);
+            return;
+        }
+
         if (stunTimer > 0f)
         {
             stunTimer -= Time.fixedDeltaTime;
@@ -142,7 +168,18 @@ public class EnemyMovement : MonoBehaviour, IPoolable
             finalDirection.Normalize();
         }
 
-        Vector2 newPosition = rb.position + finalDirection * moveSpeed * Time.fixedDeltaTime;
+        float effectiveSpeed = moveSpeed;
+        if (slowTimer > 0f)
+        {
+            slowTimer -= Time.fixedDeltaTime;
+            effectiveSpeed *= Mathf.Max(0.1f, 1f - currentSlowPercent);
+            if (slowTimer <= 0f)
+            {
+                currentSlowPercent = 0f;
+            }
+        }
+
+        Vector2 newPosition = rb.position + finalDirection * effectiveSpeed * Time.fixedDeltaTime;
         rb.MovePosition(newPosition);
 
         UpdateFacingDirection();
