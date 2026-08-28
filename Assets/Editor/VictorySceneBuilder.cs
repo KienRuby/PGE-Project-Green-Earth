@@ -72,10 +72,26 @@ public static class VictorySceneBuilder
         RectTransform resultCard = panelObject.GetComponent<RectTransform>();
         SetRect(resultCard, new Vector2(0f, -8f), new Vector2(780f, 1218f));
 
-        RectTransform dataRow = BuildRewardRow(panelObject.transform, "DataChipReward", new Vector2(0f, 145f),
+        RectTransform dataRow = BuildRewardRow(panelObject.transform, "DataChipReward", new Vector2(-110f, 135f),
             LoadSprite(CurrencyAtlasPath, "data"), out TMP_Text dataRewardText);
-        RectTransform gemRow = BuildRewardRow(panelObject.transform, "RedGemReward", new Vector2(0f, 2f),
+        RectTransform gemRow = BuildRewardRow(panelObject.transform, "RedGemReward", new Vector2(-110f, 10f),
             LoadSprite(CurrencyAtlasPath, "red"), out TMP_Text gemRewardText);
+
+        // Details Button (Icon biểu đồ + Chữ Details màu cam)
+        GameObject detailsBtnObj = new GameObject("DetailsButton", typeof(RectTransform), typeof(Image), typeof(Button));
+        detailsBtnObj.transform.SetParent(panelObject.transform, false);
+        SetRect(detailsBtnObj.GetComponent<RectTransform>(), new Vector2(175f, 72f), new Vector2(140f, 180f));
+        Image detailsBtnImg = detailsBtnObj.GetComponent<Image>();
+        detailsBtnImg.color = Color.clear;
+        detailsBtnImg.raycastTarget = true;
+        Button detailsButton = detailsBtnObj.GetComponent<Button>();
+
+        Sprite chartSprite = LoadSprite("Assets/Sprites/UI/icon-damage-details.png", "icon-damage-details");
+        GameObject chartIconObj = CreateImage("Icon", detailsBtnObj.transform, chartSprite);
+        SetRect(chartIconObj.GetComponent<RectTransform>(), new Vector2(0f, 28f), new Vector2(72f, 72f));
+
+        TMP_Text detailsLabel = CreateText("Label", detailsBtnObj.transform, "Details", 30f, new Color32(255, 160, 32, 255));
+        SetRect(detailsLabel.rectTransform, new Vector2(0f, -34f), new Vector2(140f, 40f));
 
         Button normalButton = CreateSpriteButton(
             "GetRewardButton", panelObject.transform, normalButtonSprite, new Vector2(0f, -230f), new Vector2(320f, 158f));
@@ -84,6 +100,8 @@ public static class VictorySceneBuilder
 
         TMP_Text feedbackText = CreateText("FeedbackText", panelObject.transform, string.Empty, 24f, Feedback);
         SetRect(feedbackText.rectTransform, new Vector2(0f, -535f), new Vector2(600f, 52f));
+
+        DamageDetailsPopup damageDetailsPopup = canvas.transform.Find("DamageDetailsModal")?.GetComponent<DamageDetailsPopup>();
 
         VictoryPanelController controller = canvas.AddComponent<VictoryPanelController>();
         SerializedObject serialized = new SerializedObject(controller);
@@ -95,17 +113,22 @@ public static class VictorySceneBuilder
         serialized.FindProperty("confettiRoot").objectReferenceValue = confettiRoot;
         serialized.FindProperty("dataChipRewardText").objectReferenceValue = dataRewardText;
         serialized.FindProperty("redGemRewardText").objectReferenceValue = gemRewardText;
+        serialized.FindProperty("detailsButton").objectReferenceValue = detailsButton;
+        serialized.FindProperty("damageDetailsPopup").objectReferenceValue = damageDetailsPopup;
         serialized.FindProperty("feedbackText").objectReferenceValue = feedbackText;
         serialized.FindProperty("vipTripleButton").objectReferenceValue = tripleButton;
         serialized.FindProperty("homeButton").objectReferenceValue = normalButton;
 
         SerializedProperty stagedItems = serialized.FindProperty("stagedRevealItems");
-        stagedItems.arraySize = 4;
+        stagedItems.arraySize = 5;
         stagedItems.GetArrayElementAtIndex(0).objectReferenceValue = dataRow;
         stagedItems.GetArrayElementAtIndex(1).objectReferenceValue = gemRow;
-        stagedItems.GetArrayElementAtIndex(2).objectReferenceValue = normalButton.GetComponent<RectTransform>();
-        stagedItems.GetArrayElementAtIndex(3).objectReferenceValue = tripleButton.GetComponent<RectTransform>();
+        stagedItems.GetArrayElementAtIndex(2).objectReferenceValue = detailsBtnObj.GetComponent<RectTransform>();
+        stagedItems.GetArrayElementAtIndex(3).objectReferenceValue = normalButton.GetComponent<RectTransform>();
+        stagedItems.GetArrayElementAtIndex(4).objectReferenceValue = tripleButton.GetComponent<RectTransform>();
         serialized.ApplyModifiedPropertiesWithoutUndo();
+
+        detailsButton.onClick.AddListener(controller.ToggleDetails);
 
         victoryPanel.SetActive(false);
         victoryPanel.transform.SetAsLastSibling();

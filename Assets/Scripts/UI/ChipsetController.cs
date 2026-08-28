@@ -245,6 +245,15 @@ public class ChipsetController : MonoBehaviour
     [SerializeField] private TMP_Text preset1Text;
     [SerializeField] private TMP_Text preset2Text;
     [SerializeField] private TMP_Text preset3Text;
+
+    [Header("Preset Button Sprites")]
+    [SerializeField] private Sprite preset1YellowSprite;
+    [SerializeField] private Sprite preset1RedSprite;
+    [SerializeField] private Sprite preset2YellowSprite;
+    [SerializeField] private Sprite preset2RedSprite;
+    [SerializeField] private Sprite preset3YellowSprite;
+    [SerializeField] private Sprite preset3RedSprite;
+
     [SerializeField] private Button blastFurnaceBtn;
 
     [Header("Equipped Grid")]
@@ -597,260 +606,6 @@ public class ChipsetController : MonoBehaviour
                 rareBonus = "Cooldown -20%",
                 uniqueBonus = "ATK +55%",
                 epicBonus = "ATK +144%"
-            },
-            // 11. Sonic Boom (Inv Row 1 Col 2)
-            new ChipItemData
-            {
-                id = 11,
-                chipName = "Sonic Boom",
-                iconKey = "sonic-boom",
-                tier = ChipTier.Magic,
-                level = 1,
-                count = 0,
-                requiredCount = 3,
-                enhanceCost = 500,
-                description = "Emits concussive sonic waves pushing enemies back.",
-                baseStatsSummary = "Knockback: <color=#FFCB49>180%</color> | CD: 6.2s\nStuns for 0.6s",
-                magicBonus = "AoE Range +15%",
-                rareBonus = "Cooldown -20%",
-                uniqueBonus = "Stun Duration +0.4s",
-                epicBonus = "Knockback +100%"
-            },
-            // 12. Healing Turret (Inv Row 1 Col 3)
-            new ChipItemData
-            {
-                id = 12,
-                chipName = "Healing Turret",
-                iconKey = "healing-turret",
-                tier = ChipTier.Magic,
-                level = 1,
-                count = 0,
-                requiredCount = 3,
-                enhanceCost = 500,
-                description = "Medical beacon emitting regenerative restorative pulses.",
-                baseStatsSummary = "Heal: <color=#FFCB49>2 HP/s</color> | Duration 12s | CD 11s",
-                magicBonus = "Turret Duration +20%",
-                rareBonus = "Turret Range +37%",
-                uniqueBonus = "Turret Range +60%",
-                epicBonus = "Turret Duration +30%"
-            },
-            // 13. Aiming Lens (Inv Row 1 Col 4)
-            new ChipItemData
-            {
-                id = 13,
-                chipName = "Aiming Lens",
-                iconKey = "aiming-lens",
-                tier = ChipTier.Magic,
-                level = 1,
-                count = 0,
-                requiredCount = 3,
-                enhanceCost = 500,
-                hasStar = false,
-                description = "Tactical scope magnifying weak points and critical precision.",
-                baseStatsSummary = "CRIT Rate <color=#FFCB49>+8%</color>\nCRIT DMG <color=#FFCB49>+25%</color>",
-                magicBonus = "CRIT Rate +4%",
-                rareBonus = "CRIT DMG +15%",
-                uniqueBonus = "CRIT Rate +6%",
-                epicBonus = "CRIT DMG +40%"
-            },
-            // 14. Ice Turret (Inv Row 2 Col 2)
-            new ChipItemData
-            {
-                id = 14,
-                chipName = "Ice Turret",
-                iconKey = "ice-turret",
-                tier = ChipTier.Magic,
-                level = 1,
-                count = 0,
-                requiredCount = 3,
-                enhanceCost = 500,
-                description = "Projects cryogenic bursts freezing and slowing monsters.",
-                baseStatsSummary = "Freeze: 1s | Duration: 11s | CD: 11s\n<color=#FFCB49>Slow</color> ATK Speed",
-                magicBonus = "AoE ATK Range +10%",
-                rareBonus = "Cold Wave Duration +15%",
-                uniqueBonus = "AoE ATK Range +10%",
-                epicBonus = "Cold Wave Duration +30%"
-            },
-            // 15. Flamethrower (Inv Row 2 Col 4)
-            new ChipItemData
-            {
-                id = 15,
-                chipName = "Flamethrower",
-                iconKey = "flamethrower",
-                tier = ChipTier.Magic,
-                level = 1,
-                count = 0,
-                requiredCount = 3,
-                enhanceCost = 500,
-                description = "Continuous napalm jet incinerating monsters in a forward stream.",
-                baseStatsSummary = "ATK <color=#FFCB49>102.46/s</color> (3s duration)\n<color=#FFCB49>Normal</color> ATK Speed",
-                magicBonus = "AoE ATK Range +25%",
-                rareBonus = "ATK +15%",
-                uniqueBonus = "AoE ATK Range +25%",
-                epicBonus = "ATK +100%"
-            },
-            // 16. ATK Module (Inv Row 3 Col 1)
-            new ChipItemData
-            {
-                id = 16,
-                chipName = "ATK Module",
-                iconKey = "atk-module",
-                tier = ChipTier.Magic,
-                level = 1,
-                count = 0,
-                requiredCount = 3,
-                enhanceCost = 500,
-                description = "Reinforced weapon servo amplifying base attack power across all weapons.",
-                baseStatsSummary = "Overall ATK <color=#FFCB49>+5%</color>",
-                magicBonus = "ATK +5%",
-                rareBonus = "ATK +5%",
-                uniqueBonus = "ATK +10%",
-                epicBonus = "ATK +20%"
-            },
-            // 17. Laser Eye (Inv Row 3 Col 2)
-            new ChipItemData
-            {
-                id = 17,
-                chipName = "Laser Eye",
-                iconKey = "laser-eye",
-                tier = ChipTier.Magic,
-                level = 1,
-                count = 473,
-                requiredCount = 3,
-                enhanceCost = 500,
-                description = "Orbital targeting laser sweeping high-heat beams through lines of hostiles.",
-                baseStatsSummary = "Laser ATK <color=#FFCB49>36/s</color> | CD: 4.8s",
-                magicBonus = "Laser Width +20%",
-                rareBonus = "ATK +15%",
-                uniqueBonus = "Laser Duration +1s",
-                epicBonus = "Dual Lasers"
-            },
-            // 18. Black Hole Mine (Inv Row 3 Col 3)
-            new ChipItemData
-            {
-                id = 18,
-                chipName = "Black Hole Mine",
-                iconKey = "black-hole-mine",
-                tier = ChipTier.Magic,
-                level = 1,
-                count = 467,
-                requiredCount = 3,
-                enhanceCost = 500,
-                hasStar = true,
-                description = "Implosive vortex pulling nearby targets inward and crushing them.",
-                baseStatsSummary = "Vortex Radius: <color=#FFCB49>4.5m</color> | CD: 8.0s\nSlows targets by 60%",
-                magicBonus = "Pull Radius +15%",
-                rareBonus = "Vortex Duration +1.2s",
-                uniqueBonus = "Pull Force +40%",
-                epicBonus = "Creates Secondary Explosion"
-            },
-            // 19. Invincible Shield (Inv Row 3 Col 4)
-            new ChipItemData
-            {
-                id = 19,
-                chipName = "Invincible Shield",
-                iconKey = "invincible-shield",
-                tier = ChipTier.Magic,
-                level = 1,
-                count = 458,
-                requiredCount = 3,
-                enhanceCost = 500,
-                description = "Triggers temporary impenetrable invulnerability bubble.",
-                baseStatsSummary = "Invincibility: <color=#FFCB49>2.3s</color> | CD: 35s\nRemoves all status debuffs",
-                magicBonus = "Duration +10%",
-                rareBonus = "Cooldown -10%",
-                uniqueBonus = "Duration +9%",
-                epicBonus = "Cooldown -9%"
-            },
-            // 20. Big Battery
-            new ChipItemData
-            {
-                id = 20,
-                chipName = "Big Battery",
-                iconKey = "big-battery",
-                tier = ChipTier.Magic,
-                level = 1,
-                count = 450,
-                requiredCount = 3,
-                enhanceCost = 500,
-                description = "Extended power capacitor reducing cooldowns across all equipped chips.",
-                baseStatsSummary = "Cooldown Reduction <color=#FFCB49>4%</color>",
-                magicBonus = "All Skills CD -2%",
-                rareBonus = "All Skills CD -3%",
-                uniqueBonus = "All Skills CD -4%",
-                epicBonus = "All Skills CD -5%"
-            },
-            // 21. Plasma Field
-            new ChipItemData
-            {
-                id = 21,
-                chipName = "Plasma Field",
-                iconKey = "plasma-field",
-                tier = ChipTier.Magic,
-                level = 1,
-                count = 440,
-                requiredCount = 3,
-                enhanceCost = 500,
-                description = "Static aura generating periodic ionized electrical discharge.",
-                baseStatsSummary = "Shock DMG: <color=#FFCB49>18</color> every 1.5s",
-                magicBonus = "Shock Radius +15%",
-                rareBonus = "Shock Frequency +20%",
-                uniqueBonus = "Chains to 2 additional targets",
-                epicBonus = "Shock DMG +100%"
-            },
-            // 22. Biochemical Mine
-            new ChipItemData
-            {
-                id = 22,
-                chipName = "Biochemical Mine",
-                iconKey = "biochemical-mine",
-                tier = ChipTier.Magic,
-                level = 1,
-                count = 430,
-                requiredCount = 3,
-                enhanceCost = 500,
-                description = "Toxic canister leaving corrosive gas clouds that poison enemies.",
-                baseStatsSummary = "Gas Poison: <color=#FFCB49>12 DMG/s</color> for 5s",
-                magicBonus = "Gas Radius +20%",
-                rareBonus = "Gas Duration +2s",
-                uniqueBonus = "Poison Tick +50%",
-                epicBonus = "Reduces Enemy Defense by 30%"
-            },
-            // 23. Tesla Coil
-            new ChipItemData
-            {
-                id = 23,
-                chipName = "Tesla Coil",
-                iconKey = "tesla-coil",
-                tier = ChipTier.Magic,
-                level = 1,
-                count = 420,
-                requiredCount = 3,
-                enhanceCost = 500,
-                description = "High-voltage pylon discharging chained lightning through dense crowds.",
-                baseStatsSummary = "Chain ATK <color=#FFCB49>32</color> | 3 Targets",
-                magicBonus = "Chain Targets +1",
-                rareBonus = "Lightning Damage +20%",
-                uniqueBonus = "Chain Range +30%",
-                epicBonus = "Forks to 6 Targets"
-            },
-            // 24. Turret Module
-            new ChipItemData
-            {
-                id = 24,
-                chipName = "Turret Module",
-                iconKey = "turret-module",
-                tier = ChipTier.Magic,
-                level = 1,
-                count = 410,
-                requiredCount = 3,
-                enhanceCost = 500,
-                description = "Specialized hardware unit enhancing all deployed turrets.",
-                baseStatsSummary = "Turret ATK +10%\nTurret HP +15%",
-                magicBonus = "Turret ATK +5%",
-                rareBonus = "Turret Cooldown -10%",
-                uniqueBonus = "Turret ATK Speed +10%",
-                epicBonus = "Turret ATK Speed +25%"
             }
         };
     }
@@ -921,12 +676,7 @@ public class ChipsetController : MonoBehaviour
 
     private static int[] GetDefaultDeckIds(int deckIndex)
     {
-        switch (Mathf.Clamp(deckIndex, 0, 2))
-        {
-            case 0: return new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-            case 1: return new[] { 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 };
-            default: return new[] { 21, 22, 23, 24, 1, 2, 3, 4, 5, 6 };
-        }
+        return new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
     }
 
     private static void SaveChipProgress(ChipItemData chip)
@@ -1076,15 +826,142 @@ public class ChipsetController : MonoBehaviour
         if (advanceStonesText != null) advanceStonesText.text = $"{ChipManager.AdvanceStones:N0}";
     }
 
+    public void AutoWirePresetButtonsIfMissing()
+    {
+        if (preset1Btn == null)
+        {
+            var btns = GetComponentsInChildren<Button>(true);
+            preset1Btn = btns.FirstOrDefault(b => b.name.Equals("Preset1Btn", StringComparison.OrdinalIgnoreCase)
+                                               || b.name.Equals("Deck1Btn", StringComparison.OrdinalIgnoreCase)
+                                               || b.name.Equals("1", StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (preset2Btn == null)
+        {
+            var btns = GetComponentsInChildren<Button>(true);
+            preset2Btn = btns.FirstOrDefault(b => b.name.Equals("Preset2Btn", StringComparison.OrdinalIgnoreCase)
+                                               || b.name.Equals("Deck2Btn", StringComparison.OrdinalIgnoreCase)
+                                               || b.name.Equals("2", StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (preset3Btn == null)
+        {
+            var btns = GetComponentsInChildren<Button>(true);
+            preset3Btn = btns.FirstOrDefault(b => b.name.Equals("Preset3Btn", StringComparison.OrdinalIgnoreCase)
+                                               || b.name.Equals("Deck3Btn", StringComparison.OrdinalIgnoreCase)
+                                               || b.name.Equals("3", StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (preset1Btn != null)
+        {
+            if (preset1Bg == null) preset1Bg = preset1Btn.GetComponent<Image>() ?? preset1Btn.targetGraphic as Image;
+            if (preset1Text == null) preset1Text = preset1Btn.GetComponentInChildren<TMP_Text>(true);
+        }
+
+        if (preset2Btn != null)
+        {
+            if (preset2Bg == null) preset2Bg = preset2Btn.GetComponent<Image>() ?? preset2Btn.targetGraphic as Image;
+            if (preset2Text == null) preset2Text = preset2Btn.GetComponentInChildren<TMP_Text>(true);
+        }
+
+        if (preset3Btn != null)
+        {
+            if (preset3Bg == null) preset3Bg = preset3Btn.GetComponent<Image>() ?? preset3Btn.targetGraphic as Image;
+            if (preset3Text == null) preset3Text = preset3Btn.GetComponentInChildren<TMP_Text>(true);
+        }
+
+        LoadPresetSpritesIfMissing();
+    }
+
+    public void LoadPresetSpritesIfMissing()
+    {
+        if (preset1YellowSprite != null && preset1RedSprite != null &&
+            preset2YellowSprite != null && preset2RedSprite != null &&
+            preset3YellowSprite != null && preset3RedSprite != null)
+            return;
+
+#if UNITY_EDITOR
+        string path = "Assets/Sprites/UI/Chipset/nút màn chipset.png";
+        Sprite[] sprites = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(path).OfType<Sprite>().ToArray();
+        foreach (var s in sprites)
+        {
+            if (s.name.Equals("1 Yellow", StringComparison.OrdinalIgnoreCase)) preset1YellowSprite = s;
+            else if (s.name.Equals("1 Red", StringComparison.OrdinalIgnoreCase)) preset1RedSprite = s;
+            else if (s.name.Equals("2 Yellow", StringComparison.OrdinalIgnoreCase)) preset2YellowSprite = s;
+            else if (s.name.Equals("2 Red", StringComparison.OrdinalIgnoreCase)) preset2RedSprite = s;
+            else if (s.name.Equals("3 Yellow", StringComparison.OrdinalIgnoreCase)) preset3YellowSprite = s;
+            else if (s.name.Equals("3 Red", StringComparison.OrdinalIgnoreCase)) preset3RedSprite = s;
+        }
+#endif
+    }
+
     private void RefreshPresetButtons()
     {
-        if (preset1Bg != null) preset1Bg.color = activeDeckIndex == 0 ? SelectedPresetColor : NormalPresetColor;
-        if (preset2Bg != null) preset2Bg.color = activeDeckIndex == 1 ? SelectedPresetColor : NormalPresetColor;
-        if (preset3Bg != null) preset3Bg.color = activeDeckIndex == 2 ? SelectedPresetColor : NormalPresetColor;
+        AutoWirePresetButtonsIfMissing();
 
-        if (preset1Text != null) preset1Text.color = activeDeckIndex == 0 ? SelectedPresetTextColor : NormalPresetTextColor;
-        if (preset2Text != null) preset2Text.color = activeDeckIndex == 1 ? SelectedPresetTextColor : NormalPresetTextColor;
-        if (preset3Text != null) preset3Text.color = activeDeckIndex == 2 ? SelectedPresetTextColor : NormalPresetTextColor;
+        // 1. Preset 1 (activeDeckIndex == 0 -> 1 Yellow, else -> 1 Red)
+        if (preset1Bg != null)
+        {
+            Sprite s = activeDeckIndex == 0 ? preset1YellowSprite : preset1RedSprite;
+            if (s != null)
+            {
+                preset1Bg.sprite = s;
+                preset1Bg.color = Color.white;
+            }
+            else
+            {
+                preset1Bg.color = activeDeckIndex == 0 ? SelectedPresetColor : NormalPresetColor;
+            }
+        }
+
+        // 2. Preset 2 (activeDeckIndex == 1 -> 2 Yellow, else -> 2 Red)
+        if (preset2Bg != null)
+        {
+            Sprite s = activeDeckIndex == 1 ? preset2YellowSprite : preset2RedSprite;
+            if (s != null)
+            {
+                preset2Bg.sprite = s;
+                preset2Bg.color = Color.white;
+            }
+            else
+            {
+                preset2Bg.color = activeDeckIndex == 1 ? SelectedPresetColor : NormalPresetColor;
+            }
+        }
+
+        // 3. Preset 3 (activeDeckIndex == 2 -> 3 Yellow, else -> 3 Red)
+        if (preset3Bg != null)
+        {
+            Sprite s = activeDeckIndex == 2 ? preset3YellowSprite : preset3RedSprite;
+            if (s != null)
+            {
+                preset3Bg.sprite = s;
+                preset3Bg.color = Color.white;
+            }
+            else
+            {
+                preset3Bg.color = activeDeckIndex == 2 ? SelectedPresetColor : NormalPresetColor;
+            }
+        }
+
+        // Clear overlapping text if sprite has numbers
+        if (preset1Text != null)
+        {
+            if (preset1YellowSprite != null) preset1Text.text = string.Empty;
+            else preset1Text.color = activeDeckIndex == 0 ? SelectedPresetTextColor : NormalPresetTextColor;
+        }
+
+        if (preset2Text != null)
+        {
+            if (preset2YellowSprite != null) preset2Text.text = string.Empty;
+            else preset2Text.color = activeDeckIndex == 1 ? SelectedPresetTextColor : NormalPresetTextColor;
+        }
+
+        if (preset3Text != null)
+        {
+            if (preset3YellowSprite != null) preset3Text.text = string.Empty;
+            else preset3Text.color = activeDeckIndex == 2 ? SelectedPresetTextColor : NormalPresetTextColor;
+        }
     }
 
     private void RefreshSortButtons()

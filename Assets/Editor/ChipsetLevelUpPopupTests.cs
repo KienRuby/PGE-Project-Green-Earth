@@ -9,9 +9,9 @@ public class ChipsetLevelUpPopupTests
         var first = ChipsetController.CreateDefaultDatabase();
         var second = ChipsetController.CreateDefaultDatabase();
 
-        Assert.That(first.Count, Is.EqualTo(24));
-        Assert.That(second.Count, Is.EqualTo(24));
-        Assert.That(first.Select(item => item.id).Distinct().Count(), Is.EqualTo(24));
+        Assert.That(first.Count, Is.EqualTo(10));
+        Assert.That(second.Count, Is.EqualTo(10));
+        Assert.That(first.Select(item => item.id).Distinct().Count(), Is.EqualTo(10));
         Assert.That(first[0], Is.Not.SameAs(second[0]));
 
         first[0].level = 99;

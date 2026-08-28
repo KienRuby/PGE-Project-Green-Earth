@@ -329,6 +329,55 @@ public class SettingsPanelTests
         }
     }
 
+    [Test]
+    public void Chipset_PresetDeckButtons_SwapYellowAndRedSprites_AndDatabaseHasTenChips()
+    {
+        // 1. Verify exactly 10 chipsets in database
+        var db = ChipsetController.CreateDefaultDatabase();
+        Assert.That(db.Count, Is.EqualTo(10));
+
+        // 2. Verify Preset buttons sprite swapping
+        GameObject go = new GameObject("ChipsetPresetTest", typeof(RectTransform));
+        ChipsetController controller = go.AddComponent<ChipsetController>();
+
+        GameObject p1 = new GameObject("Preset1Btn", typeof(RectTransform), typeof(UnityEngine.UI.Image), typeof(UnityEngine.UI.Button));
+        p1.transform.SetParent(go.transform, false);
+        GameObject p2 = new GameObject("Preset2Btn", typeof(RectTransform), typeof(UnityEngine.UI.Image), typeof(UnityEngine.UI.Button));
+        p2.transform.SetParent(go.transform, false);
+        GameObject p3 = new GameObject("Preset3Btn", typeof(RectTransform), typeof(UnityEngine.UI.Image), typeof(UnityEngine.UI.Button));
+        p3.transform.SetParent(go.transform, false);
+
+        try
+        {
+            controller.AutoWirePresetButtonsIfMissing();
+            UnityEngine.UI.Image img1 = p1.GetComponent<UnityEngine.UI.Image>();
+            UnityEngine.UI.Image img2 = p2.GetComponent<UnityEngine.UI.Image>();
+            UnityEngine.UI.Image img3 = p3.GetComponent<UnityEngine.UI.Image>();
+
+            // Deck 0 (Preset 1 active) -> 1 Yellow, 2 Red, 3 Red
+            controller.SwitchDeck(0);
+            if (img1.sprite != null) Assert.That(img1.sprite.name, Is.EqualTo("1 Yellow"));
+            if (img2.sprite != null) Assert.That(img2.sprite.name, Is.EqualTo("2 Red"));
+            if (img3.sprite != null) Assert.That(img3.sprite.name, Is.EqualTo("3 Red"));
+
+            // Deck 1 (Preset 2 active) -> 1 Red, 2 Yellow, 3 Red
+            controller.SwitchDeck(1);
+            if (img1.sprite != null) Assert.That(img1.sprite.name, Is.EqualTo("1 Red"));
+            if (img2.sprite != null) Assert.That(img2.sprite.name, Is.EqualTo("2 Yellow"));
+            if (img3.sprite != null) Assert.That(img3.sprite.name, Is.EqualTo("3 Red"));
+
+            // Deck 2 (Preset 3 active) -> 1 Red, 2 Red, 3 Yellow
+            controller.SwitchDeck(2);
+            if (img1.sprite != null) Assert.That(img1.sprite.name, Is.EqualTo("1 Red"));
+            if (img2.sprite != null) Assert.That(img2.sprite.name, Is.EqualTo("2 Red"));
+            if (img3.sprite != null) Assert.That(img3.sprite.name, Is.EqualTo("3 Yellow"));
+        }
+        finally
+        {
+            Object.DestroyImmediate(go);
+        }
+    }
+
     private static void RestoreIntPreference(string key, bool hadKey, int value)
     {
         if (hadKey) PlayerPrefs.SetInt(key, value);

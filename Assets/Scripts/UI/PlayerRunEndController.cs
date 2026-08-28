@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -32,6 +33,8 @@ public sealed class PlayerRunEndController : MonoBehaviour
     [SerializeField] private TMP_Text progressText;
     [SerializeField] private TMP_Text dataChipRewardText;
     [SerializeField] private TMP_Text redGemRewardText;
+    [SerializeField] private Button detailsButton;
+    [SerializeField] private DamageDetailsPopup damageDetailsPopup;
     [FormerlySerializedAs("homeButton")]
     [SerializeField] private Button getRewardButton;
     [SerializeField] private Button vipTripleButton;
@@ -68,6 +71,7 @@ public sealed class PlayerRunEndController : MonoBehaviour
     {
         ResolveGameplayReferences();
 
+        EnsureDetailsUiComponents();
         SetPanelActive(revivePanel, false);
         SetPanelActive(gameOverPanel, false);
         BindButtons();
@@ -76,6 +80,7 @@ public sealed class PlayerRunEndController : MonoBehaviour
     private void OnEnable()
     {
         ResolveGameplayReferences();
+        EnsureDetailsUiComponents();
         if (playerHealth != null)
         {
             playerHealth.OnPlayerDeath -= HandlePlayerDeath;
@@ -149,6 +154,12 @@ public sealed class PlayerRunEndController : MonoBehaviour
             vipTripleButton.onClick.RemoveListener(ClaimTripleRewardAndReturnHome);
             vipTripleButton.onClick.AddListener(ClaimTripleRewardAndReturnHome);
         }
+
+        if (detailsButton != null)
+        {
+            detailsButton.onClick.RemoveListener(OnDetailsClicked);
+            detailsButton.onClick.AddListener(OnDetailsClicked);
+        }
     }
 
     private void UnbindButtons()
@@ -158,6 +169,7 @@ public sealed class PlayerRunEndController : MonoBehaviour
         if (adReviveButton != null) adReviveButton.onClick.RemoveListener(OnAdReviveClicked);
         if (getRewardButton != null) getRewardButton.onClick.RemoveListener(ClaimRewardAndReturnHome);
         if (vipTripleButton != null) vipTripleButton.onClick.RemoveListener(ClaimTripleRewardAndReturnHome);
+        if (detailsButton != null) detailsButton.onClick.RemoveListener(OnDetailsClicked);
     }
 
     private void HandlePlayerDeath()
@@ -352,6 +364,157 @@ public sealed class PlayerRunEndController : MonoBehaviour
         if (gameOverFeedbackText != null) gameOverFeedbackText.text = string.Empty;
         if (getRewardButton != null) getRewardButton.interactable = true;
         if (vipTripleButton != null) vipTripleButton.interactable = true;
+        EnsureDetailsUiComponents();
+        if (detailsButton != null) detailsButton.interactable = true;
+
+        ChipsetBattleStats.FinalizeBattle();
+    }
+
+    private void OnDetailsClicked()
+    {
+        EnsureDetailsUiComponents();
+        if (damageDetailsPopup != null)
+        {
+            damageDetailsPopup.Show();
+        }
+    }
+
+    public void EnsureDetailsUiComponents()
+    {
+        if (gameOverPanel != null)
+        {
+            Transform content = gameOverPanel.transform.Find("GameOverContent") ?? gameOverPanel.transform;
+
+            // 1. Dịch chuyển DataChipReward và RedGemReward sang trái
+            Transform dataRow = content.Find("DataChipReward");
+            if (dataRow != null)
+            {
+                RectTransform dataRt = dataRow.GetComponent<RectTransform>();
+                if (Mathf.Abs(dataRt.anchoredPosition.x) < 20f)
+                {
+                    dataRt.anchoredPosition = new Vector2(-110f, 135f);
+                    dataRt.sizeDelta = new Vector2(340f, 118f);
+                    Transform icon = dataRow.Find("Icon");
+                    if (icon != null) icon.GetComponent<RectTransform>().anchoredPosition = new Vector2(-95f, 0f);
+                    Transform val = dataRow.Find("Value");
+                    if (val != null) val.GetComponent<RectTransform>().anchoredPosition = new Vector2(55f, 0f);
+                }
+            }
+
+            Transform gemRow = content.Find("RedGemReward");
+            if (gemRow != null)
+            {
+                RectTransform gemRt = gemRow.GetComponent<RectTransform>();
+                if (Mathf.Abs(gemRt.anchoredPosition.x) < 20f)
+                {
+                    gemRt.anchoredPosition = new Vector2(-110f, 10f);
+                    gemRt.sizeDelta = new Vector2(340f, 118f);
+                    Transform icon = gemRow.Find("Icon");
+                    if (icon != null) icon.GetComponent<RectTransform>().anchoredPosition = new Vector2(-95f, 0f);
+                    Transform val = gemRow.Find("Value");
+                    if (val != null) val.GetComponent<RectTransform>().anchoredPosition = new Vector2(55f, 0f);
+                }
+            }
+
+            // 2. Tìm hoặc tạo nút DetailsButton
+            if (detailsButton == null)
+            {
+                Transform existingBtn = content.Find("DetailsButton");
+                if (existingBtn != null)
+                {
+                    detailsButton = existingBtn.GetComponent<Button>();
+                }
+                else
+                {
+                    detailsButton = CreateRuntimeDetailsButton(content);
+                }
+            }
+
+            if (detailsButton != null)
+            {
+                detailsButton.onClick.RemoveListener(OnDetailsClicked);
+                detailsButton.onClick.AddListener(OnDetailsClicked);
+            }
+        }
+
+        // 3. Tìm hoặc tạo DamageDetailsPopup
+        if (damageDetailsPopup == null)
+        {
+            Canvas canvas = GetComponentInParent<Canvas>() ?? FindAnyObjectByType<Canvas>();
+            if (canvas != null)
+            {
+                damageDetailsPopup = canvas.GetComponentInChildren<DamageDetailsPopup>(true);
+                if (damageDetailsPopup == null)
+                {
+                    damageDetailsPopup = DamageDetailsPopup.CreateRuntimeModal(canvas.transform);
+                }
+            }
+        }
+    }
+
+    private static Button CreateRuntimeDetailsButton(Transform parent)
+    {
+        TMP_FontAsset font = FindAnyObjectByType<TMP_Text>()?.font ?? TMP_Settings.defaultFontAsset;
+
+        GameObject btnObj = new GameObject("DetailsButton", typeof(RectTransform), typeof(Image), typeof(Button));
+        btnObj.transform.SetParent(parent, false);
+        RectTransform btnRt = btnObj.GetComponent<RectTransform>();
+        btnRt.anchorMin = new Vector2(0.5f, 0.5f);
+        btnRt.anchorMax = new Vector2(0.5f, 0.5f);
+        btnRt.pivot = new Vector2(0.5f, 0.5f);
+        btnRt.anchoredPosition = new Vector2(175f, 72f);
+        btnRt.sizeDelta = new Vector2(140f, 180f);
+
+        Image btnImg = btnObj.GetComponent<Image>();
+        btnImg.color = Color.clear;
+        btnImg.raycastTarget = true;
+        Button button = btnObj.GetComponent<Button>();
+
+        // Icon biểu đồ (Chart icon)
+        GameObject iconObj = new GameObject("Icon", typeof(RectTransform), typeof(Image));
+        iconObj.transform.SetParent(btnObj.transform, false);
+        RectTransform iconRt = iconObj.GetComponent<RectTransform>();
+        iconRt.anchorMin = new Vector2(0.5f, 0.5f);
+        iconRt.anchorMax = new Vector2(0.5f, 0.5f);
+        iconRt.pivot = new Vector2(0.5f, 0.5f);
+        iconRt.anchoredPosition = new Vector2(0f, 28f);
+        iconRt.sizeDelta = new Vector2(72f, 72f);
+
+        Image iconImg = iconObj.GetComponent<Image>();
+        iconImg.preserveAspect = true;
+        iconImg.raycastTarget = false;
+
+        Sprite[] allSprites = Resources.FindObjectsOfTypeAll<Sprite>();
+        Sprite chartSprite = allSprites?.FirstOrDefault(s => s != null && (s.name == "icon-damage-details" || s.name.Contains("damage-details")));
+        if (chartSprite != null)
+        {
+            iconImg.sprite = chartSprite;
+        }
+        else
+        {
+            iconImg.color = new Color32(255, 160, 32, 255);
+        }
+
+        // Chữ Details màu cam
+        GameObject labelObj = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+        labelObj.transform.SetParent(btnObj.transform, false);
+        RectTransform labelRt = labelObj.GetComponent<RectTransform>();
+        labelRt.anchorMin = new Vector2(0.5f, 0.5f);
+        labelRt.anchorMax = new Vector2(0.5f, 0.5f);
+        labelRt.pivot = new Vector2(0.5f, 0.5f);
+        labelRt.anchoredPosition = new Vector2(0f, -34f);
+        labelRt.sizeDelta = new Vector2(140f, 40f);
+
+        TMP_Text label = labelObj.GetComponent<TMP_Text>();
+        if (font != null) label.font = font;
+        label.text = "Details";
+        label.fontSize = 30f;
+        label.fontStyle = FontStyles.Bold;
+        label.color = new Color32(255, 160, 32, 255);
+        label.alignment = TextAlignmentOptions.Center;
+        label.raycastTarget = false;
+
+        return button;
     }
 
     public void ClaimRewardAndReturnHome()
