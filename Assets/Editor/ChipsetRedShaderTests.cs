@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -45,6 +46,61 @@ public class ChipsetRedShaderTests
         }
         finally
         {
+            Object.DestroyImmediate(cardObject);
+        }
+    }
+
+    [Test]
+    public void LevelUpChoiceCard_HolographicFrame_UsesAnimatedShaderWhileTimeScaleIsZero()
+    {
+        GameObject cardObject = new GameObject("LevelUpChoiceCard", typeof(RectTransform), typeof(Button), typeof(CanvasGroup));
+        GameObject backgroundObject = new GameObject("Background", typeof(RectTransform), typeof(Image));
+        GameObject frameObject = new GameObject("IconFrame", typeof(RectTransform), typeof(Image));
+        backgroundObject.transform.SetParent(cardObject.transform, false);
+        frameObject.transform.SetParent(cardObject.transform, false);
+        Texture2D texture = new Texture2D(2, 2);
+        Sprite frameSprite = Sprite.Create(texture, new Rect(0f, 0f, 2f, 2f), Vector2.one * 0.5f);
+        float previousTimeScale = Time.timeScale;
+
+        try
+        {
+            ChipsetChoiceCardUI card = cardObject.AddComponent<ChipsetChoiceCardUI>();
+            Image background = backgroundObject.GetComponent<Image>();
+            Image frame = frameObject.GetComponent<Image>();
+            Material originalBackgroundMaterial = background.material;
+            card.InitializeReferences(
+                null,
+                background,
+                frame,
+                null,
+                null,
+                null,
+                cardObject.GetComponent<Button>(),
+                cardObject.GetComponent<CanvasGroup>());
+
+            card.Setup(
+                new ChipItemData { id = 1, chipName = "Red Choice", tier = ChipTier.Holographic },
+                null,
+                frameSprite,
+                null,
+                0,
+                string.Empty,
+                null);
+
+            Time.timeScale = 0f;
+            MethodInfo update = typeof(ChipsetChoiceCardUI).GetMethod("Update", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(update, Is.Not.Null);
+            update.Invoke(card, null);
+
+            Assert.That(frame.material.shader.name, Is.EqualTo("PGE/UI/Chipset Red Shimmer"));
+            Assert.That(Shader.GetGlobalFloat("_ChipsetUnscaledTime"), Is.GreaterThanOrEqualTo(0f));
+            Assert.That(background.material, Is.SameAs(originalBackgroundMaterial));
+        }
+        finally
+        {
+            Time.timeScale = previousTimeScale;
+            Object.DestroyImmediate(frameSprite);
+            Object.DestroyImmediate(texture);
             Object.DestroyImmediate(cardObject);
         }
     }

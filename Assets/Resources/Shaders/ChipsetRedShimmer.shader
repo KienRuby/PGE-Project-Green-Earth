@@ -96,6 +96,9 @@ Shader "PGE/UI/Chipset Red Shimmer"
             float _HoloWaveSpeed;
             float _HoloWaveAmp;
             float _HoloSheenIntensity;
+            // Được cập nhật bằng Time.unscaledTime từ UI để shader vẫn chạy
+            // khi popup level-up tạm dừng gameplay bằng Time.timeScale = 0.
+            float _ChipsetUnscaledTime;
 
             v2f vert(appdata_t input)
             {
@@ -141,11 +144,11 @@ Shader "PGE/UI/Chipset Red Shimmer"
                 float orthCoord = (centeredUv.x * 0.7071 + centeredUv.y * 0.7071);
 
                 // 3. Hiệu ứng sóng lượn tơ lụa siêu mềm mại (Silky Gentle Undulation)
-                float waveMotion = sin(orthCoord * _HoloWaveFreq - _Time.y * _HoloWaveSpeed) * _HoloWaveAmp
-                                 + cos(localUv.x * 8.0 + _Time.y * 1.1) * (_HoloWaveAmp * 0.35);
+                float waveMotion = sin(orthCoord * _HoloWaveFreq - _ChipsetUnscaledTime * _HoloWaveSpeed) * _HoloWaveAmp
+                                 + cos(localUv.x * 8.0 + _ChipsetUnscaledTime * 1.1) * (_HoloWaveAmp * 0.35);
 
                 // 4. Tọa độ dòng chảy Hologram 7 sắc cầu vồng trôi êm đềm
-                float holoT = (diagCoord * _HoloScale + waveMotion) - (_Time.y * _HoloSpeed);
+                float holoT = (diagCoord * _HoloScale + waveMotion) - (_ChipsetUnscaledTime * _HoloSpeed);
                 fixed3 rainbow7 = Sample7ColorRainbow(holoT);
 
                 // 5. Vệt ánh kim khuếch tán dịu nhẹ (Soft Prismatic Sheen)
@@ -167,5 +170,4 @@ Shader "PGE/UI/Chipset Red Shimmer"
         }
     }
 }
-
 

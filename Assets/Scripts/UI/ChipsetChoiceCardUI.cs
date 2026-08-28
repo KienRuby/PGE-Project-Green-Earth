@@ -43,6 +43,7 @@ public class ChipsetChoiceCardUI : MonoBehaviour
     private Material defaultBackgroundMaterial;
     private Color defaultBackgroundColor;
     private bool hasCapturedDefaultBackgroundVisual;
+    private bool redShimmerEnabled;
 
     public ChipItemData BoundData => boundData;
     public CanvasGroup RootCanvasGroup => canvasGroup;
@@ -53,6 +54,14 @@ public class ChipsetChoiceCardUI : MonoBehaviour
         if (canvasGroup == null) canvasGroup = GetComponent<CanvasGroup>();
         CaptureDefaultFrameMaterial();
         CaptureDefaultBackgroundVisual();
+    }
+
+    private void Update()
+    {
+        if (redShimmerEnabled)
+        {
+            ChipsetFrameShimmerMaterial.UpdateUnscaledAnimationClock();
+        }
     }
 
     public void Setup(
@@ -409,6 +418,7 @@ public class ChipsetChoiceCardUI : MonoBehaviour
 
     private void SetRedTierBackgroundEffect(bool enabled)
     {
+        redShimmerEnabled = enabled;
         // Nền thẻ luôn tĩnh; chỉ khung icon chipset đỏ nhận shader lá cờ.
         CaptureDefaultFrameMaterial();
         if (iconFrameImage != null)

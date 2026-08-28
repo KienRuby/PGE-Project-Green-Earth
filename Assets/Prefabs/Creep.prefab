@@ -388,7 +388,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f59f6c4da518468489a9e2968abae2f7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 10
+  damage: 100
   damageInterval: 1
 --- !u!114 &7836231222298577633
 MonoBehaviour:
@@ -402,7 +402,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 42e9e99105793d54ebd275fc12d628e4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 500000
+  maxHealth: 100
   expReward: 10
   dataChipReward: 2
   redGemReward: 0

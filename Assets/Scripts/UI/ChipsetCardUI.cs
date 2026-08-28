@@ -39,6 +39,7 @@ public class ChipsetCardUI : MonoBehaviour
     private Color defaultBackgroundColor;
     private bool hasCapturedDefaultBackgroundVisual;
     private bool toggleDedicatedRedBackground;
+    private bool redShimmerEnabled;
 
     public ChipItemData BoundData => boundData;
     public ChipSlotState SlotState => slotState;
@@ -46,6 +47,14 @@ public class ChipsetCardUI : MonoBehaviour
     private void Awake()
     {
         ResolveReferences();
+    }
+
+    private void Update()
+    {
+        if (redShimmerEnabled)
+        {
+            ChipsetFrameShimmerMaterial.UpdateUnscaledAnimationClock();
+        }
     }
 
     private void ResolveReferences()
@@ -416,6 +425,7 @@ public class ChipsetCardUI : MonoBehaviour
 
     private void SetRedTierBackgroundEffect(bool enabled)
     {
+        redShimmerEnabled = enabled;
         // BackGround1 luôn là nền tĩnh. Shader lá cờ chỉ áp dụng lên khung chipset đỏ.
         CaptureDefaultFrameMaterial();
         if (cardFrameImage != null)
@@ -464,6 +474,12 @@ public class ChipsetCardUI : MonoBehaviour
 internal static class ChipsetFrameShimmerMaterial
 {
     private static readonly Dictionary<int, Material> MaterialsBySprite = new Dictionary<int, Material>();
+    private static readonly int UnscaledTimeId = Shader.PropertyToID("_ChipsetUnscaledTime");
+
+    public static void UpdateUnscaledAnimationClock()
+    {
+        Shader.SetGlobalFloat(UnscaledTimeId, Time.unscaledTime);
+    }
 
     public static Material Get(Sprite sprite)
     {
