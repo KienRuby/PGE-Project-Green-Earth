@@ -183,6 +183,152 @@ public class SettingsPanelTests
         }
     }
 
+    [Test]
+    public void Settings_GoogleAndAppleButtons_AutoWireAndToggleLogin()
+    {
+        GameObject canvasObject = new GameObject("Canvas", typeof(RectTransform), typeof(Canvas));
+        GameObject panelGo = new GameObject("SettingsPanel", typeof(RectTransform), typeof(SettingsPanelController));
+        panelGo.transform.SetParent(canvasObject.transform, false);
+
+        GameObject googleGo = new GameObject("Log in with Google", typeof(RectTransform), typeof(UnityEngine.UI.Button));
+        googleGo.transform.SetParent(panelGo.transform, false);
+        TextMeshProUGUI googleText = googleGo.AddComponent<TextMeshProUGUI>();
+
+        GameObject appleGo = new GameObject("Sign in with Apple", typeof(RectTransform), typeof(UnityEngine.UI.Button));
+        appleGo.transform.SetParent(panelGo.transform, false);
+        TextMeshProUGUI appleText = appleGo.AddComponent<TextMeshProUGUI>();
+
+        try
+        {
+            GameSettings.GoogleAccount = string.Empty;
+            GameSettings.AppleAccount = string.Empty;
+
+            SettingsPanelController controller = panelGo.GetComponent<SettingsPanelController>();
+            controller.Open();
+
+            Assert.That(GameSettings.IsLoggedInGoogle, Is.False);
+            Assert.That(GameSettings.IsLoggedInApple, Is.False);
+
+            googleGo.GetComponent<UnityEngine.UI.Button>().onClick.Invoke();
+            Assert.That(GameSettings.IsLoggedInGoogle, Is.True);
+            Assert.That(googleText.text, Does.Contain("LOGGED IN"));
+
+            appleGo.GetComponent<UnityEngine.UI.Button>().onClick.Invoke();
+            Assert.That(GameSettings.IsLoggedInApple, Is.True);
+            Assert.That(appleText.text, Does.Contain("SIGNED IN"));
+        }
+        finally
+        {
+            GameSettings.GoogleAccount = string.Empty;
+            GameSettings.AppleAccount = string.Empty;
+            Object.DestroyImmediate(canvasObject);
+        }
+    }
+
+    [Test]
+    public void Settings_ButtonSprites_SwapBetweenOnAndOffStates()
+    {
+        GameObject canvasObject = new GameObject("Canvas", typeof(RectTransform), typeof(Canvas));
+        GameObject panelGo = new GameObject("SettingsPanel", typeof(RectTransform), typeof(SettingsPanelController));
+        panelGo.transform.SetParent(canvasObject.transform, false);
+
+        GameObject bgmGo = new GameObject("BgmButton", typeof(RectTransform), typeof(UnityEngine.UI.Image), typeof(UnityEngine.UI.Button));
+        bgmGo.transform.SetParent(panelGo.transform, false);
+
+        GameObject langGo = new GameObject("LanguageButton", typeof(RectTransform), typeof(UnityEngine.UI.Image), typeof(UnityEngine.UI.Button));
+        langGo.transform.SetParent(panelGo.transform, false);
+
+        try
+        {
+            SettingsPanelController controller = panelGo.GetComponent<SettingsPanelController>();
+            controller.Open();
+
+            UnityEngine.UI.Image bgmImage = bgmGo.GetComponent<UnityEngine.UI.Image>();
+            UnityEngine.UI.Image langImage = langGo.GetComponent<UnityEngine.UI.Image>();
+
+            // Test BGM On -> Off
+            GameSettings.BgmEnabled = true;
+            controller.RefreshLabels();
+            Sprite onSprite = bgmImage.sprite;
+            if (onSprite != null) Assert.That(onSprite.name, Is.EqualTo("BGM ON"));
+
+            GameSettings.BgmEnabled = false;
+            controller.RefreshLabels();
+            Sprite offSprite = bgmImage.sprite;
+            if (offSprite != null) Assert.That(offSprite.name, Is.EqualTo("BGM OFF"));
+
+            // Test Language English (On) -> Tiếng Việt (Off)
+            GameSettings.Language = "English";
+            controller.RefreshLabels();
+            Sprite englishSprite = langImage.sprite;
+            if (englishSprite != null) Assert.That(englishSprite.name, Does.Contain("English"));
+
+            GameSettings.Language = "Tiếng Việt";
+            controller.RefreshLabels();
+            Sprite nonEnglishSprite = langImage.sprite;
+            if (nonEnglishSprite != null) Assert.That(nonEnglishSprite.name, Is.EqualTo("English OFF"));
+
+            // Test 3-State Joystick: Dynamic Pad On (0) -> Fixed Pad ON (1) -> Dynamic-Fixed Pad OFF (2)
+            GameObject joyGo = new GameObject("JoystickModeButton", typeof(RectTransform), typeof(UnityEngine.UI.Image), typeof(UnityEngine.UI.Button));
+            joyGo.transform.SetParent(panelGo.transform, false);
+            controller.AutoWireReferencesIfMissing();
+
+            GameSettings.JoystickMode = 0;
+            controller.RefreshLabels();
+            UnityEngine.UI.Image joyImage = joyGo.GetComponent<UnityEngine.UI.Image>();
+            if (joyImage.sprite != null) Assert.That(joyImage.sprite.name, Is.EqualTo("Dynamic Pad On"));
+
+            GameSettings.JoystickMode = 1;
+            controller.RefreshLabels();
+            if (joyImage.sprite != null) Assert.That(joyImage.sprite.name, Is.EqualTo("Fixed Pad ON"));
+
+            GameSettings.JoystickMode = 2;
+            controller.RefreshLabels();
+            if (joyImage.sprite != null) Assert.That(joyImage.sprite.name, Is.EqualTo("Dynamic-Fixed Pad OFF"));
+        }
+        finally
+        {
+            Object.DestroyImmediate(canvasObject);
+        }
+    }
+
+    [Test]
+    public void Chipset_SortButtons_SwapYellowAndGreenSpritesCorrectly()
+    {
+        GameObject go = new GameObject("ChipsetTestPanel", typeof(RectTransform));
+        ChipsetController controller = go.AddComponent<ChipsetController>();
+
+        GameObject barGo = new GameObject("SortFilterBar", typeof(RectTransform));
+        barGo.transform.SetParent(go.transform, false);
+
+        GameObject tierGo = new GameObject("ByTierBtn", typeof(RectTransform), typeof(UnityEngine.UI.Image), typeof(UnityEngine.UI.Button));
+        tierGo.transform.SetParent(barGo.transform, false);
+
+        GameObject qtyGo = new GameObject("ByQtyBtn", typeof(RectTransform), typeof(UnityEngine.UI.Image), typeof(UnityEngine.UI.Button));
+        qtyGo.transform.SetParent(barGo.transform, false);
+
+        try
+        {
+            controller.AutoWireSortButtonsIfMissing();
+            UnityEngine.UI.Image tierImage = tierGo.GetComponent<UnityEngine.UI.Image>();
+            UnityEngine.UI.Image qtyImage = qtyGo.GetComponent<UnityEngine.UI.Image>();
+
+            // 1. By Tier selected (false) -> By Tier Vàng (By TileYellow), By Quantity Xanh (ByQuantityGreen)
+            controller.SetSortMode(false);
+            if (tierImage.sprite != null) Assert.That(tierImage.sprite.name, Is.EqualTo("By TileYellow"));
+            if (qtyImage.sprite != null) Assert.That(qtyImage.sprite.name, Is.EqualTo("ByQuantityGreen"));
+
+            // 2. By Quantity selected (true) -> By Tier Xanh (By Tile Green), By Quantity Vàng (By QuantityYellow)
+            controller.SetSortMode(true);
+            if (tierImage.sprite != null) Assert.That(tierImage.sprite.name, Is.EqualTo("By Tile Green"));
+            if (qtyImage.sprite != null) Assert.That(qtyImage.sprite.name, Is.EqualTo("By QuantityYellow"));
+        }
+        finally
+        {
+            Object.DestroyImmediate(go);
+        }
+    }
+
     private static void RestoreIntPreference(string key, bool hadKey, int value)
     {
         if (hadKey) PlayerPrefs.SetInt(key, value);

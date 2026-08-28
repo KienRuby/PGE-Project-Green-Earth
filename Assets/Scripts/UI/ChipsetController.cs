@@ -258,6 +258,12 @@ public class ChipsetController : MonoBehaviour
     [SerializeField] private TMP_Text byTierText;
     [SerializeField] private TMP_Text byQuantityText;
 
+    [Header("Sort Button Sprites")]
+    [SerializeField] private Sprite byTierYellowSprite;
+    [SerializeField] private Sprite byTierGreenSprite;
+    [SerializeField] private Sprite byQuantityYellowSprite;
+    [SerializeField] private Sprite byQuantityGreenSprite;
+
     [Header("Inventory Scroll Area")]
     [SerializeField] private Transform inventoryContent;
     [SerializeField] private GameObject cardPrefab;
@@ -959,12 +965,22 @@ public class ChipsetController : MonoBehaviour
 
     private void SetupEventListeners()
     {
+        AutoWireSortButtonsIfMissing();
+
         if (preset1Btn != null) preset1Btn.onClick.AddListener(() => SwitchDeck(0));
         if (preset2Btn != null) preset2Btn.onClick.AddListener(() => SwitchDeck(1));
         if (preset3Btn != null) preset3Btn.onClick.AddListener(() => SwitchDeck(2));
 
-        if (byTierBtn != null) byTierBtn.onClick.AddListener(() => SetSortMode(false));
-        if (byQuantityBtn != null) byQuantityBtn.onClick.AddListener(() => SetSortMode(true));
+        if (byTierBtn != null)
+        {
+            byTierBtn.onClick.RemoveAllListeners();
+            byTierBtn.onClick.AddListener(() => SetSortMode(false));
+        }
+        if (byQuantityBtn != null)
+        {
+            byQuantityBtn.onClick.RemoveAllListeners();
+            byQuantityBtn.onClick.AddListener(() => SetSortMode(true));
+        }
 
         if (blastFurnaceBtn != null) blastFurnaceBtn.onClick.AddListener(OpenFurnaceModal);
         if (furnaceCloseBtn != null) furnaceCloseBtn.onClick.AddListener(() => furnaceModal.SetActive(false));
@@ -977,6 +993,63 @@ public class ChipsetController : MonoBehaviour
         if (detailEnhanceBtn != null) detailEnhanceBtn.onClick.AddListener(EnhanceSelectedChip);
         if (detailAdvanceTierBtn != null) detailAdvanceTierBtn.onClick.AddListener(AdvanceTierSelectedChip);
         if (detailEquipBtn != null) detailEquipBtn.onClick.AddListener(ToggleEquipSelectedChip);
+    }
+
+    public void AutoWireSortButtonsIfMissing()
+    {
+        if (byTierBtn == null)
+        {
+            var btns = GetComponentsInChildren<Button>(true);
+            byTierBtn = btns.FirstOrDefault(b => b.name.Equals("ByTierBtn", StringComparison.OrdinalIgnoreCase)
+                                              || b.name.Equals("ByTier", StringComparison.OrdinalIgnoreCase)
+                                              || b.name.Equals("By Tile", StringComparison.OrdinalIgnoreCase)
+                                              || b.name.Equals("ByTileBtn", StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (byQuantityBtn == null)
+        {
+            var btns = GetComponentsInChildren<Button>(true);
+            byQuantityBtn = btns.FirstOrDefault(b => b.name.Equals("ByQtyBtn", StringComparison.OrdinalIgnoreCase)
+                                                  || b.name.Equals("ByQuantityBtn", StringComparison.OrdinalIgnoreCase)
+                                                  || b.name.Equals("By Quantity", StringComparison.OrdinalIgnoreCase)
+                                                  || b.name.Equals("ByQty", StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (byTierBtn != null)
+        {
+            if (byTierBg == null) byTierBg = byTierBtn.GetComponent<Image>() ?? byTierBtn.targetGraphic as Image;
+            if (byTierText == null) byTierText = byTierBtn.GetComponentInChildren<TMP_Text>(true);
+        }
+
+        if (byQuantityBtn != null)
+        {
+            if (byQuantityBg == null) byQuantityBg = byQuantityBtn.GetComponent<Image>() ?? byQuantityBtn.targetGraphic as Image;
+            if (byQuantityText == null) byQuantityText = byQuantityBtn.GetComponentInChildren<TMP_Text>(true);
+        }
+
+        LoadSortSpritesIfMissing();
+    }
+
+    public void LoadSortSpritesIfMissing()
+    {
+        if (byTierYellowSprite != null && byTierGreenSprite != null && byQuantityYellowSprite != null && byQuantityGreenSprite != null)
+            return;
+
+#if UNITY_EDITOR
+        string path = "Assets/Sprites/UI/Chipset/nút màn chipset.png";
+        Sprite[] sprites = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(path).OfType<Sprite>().ToArray();
+        foreach (var s in sprites)
+        {
+            if (s.name.Equals("By TileYellow", StringComparison.OrdinalIgnoreCase) || s.name.Equals("By TierYellow", StringComparison.OrdinalIgnoreCase) || s.name.Equals("By Tile Yellow", StringComparison.OrdinalIgnoreCase) || s.name.Equals("By Tier Yellow", StringComparison.OrdinalIgnoreCase))
+                byTierYellowSprite = s;
+            else if (s.name.Equals("By Tile Green", StringComparison.OrdinalIgnoreCase) || s.name.Equals("By Tier Green", StringComparison.OrdinalIgnoreCase) || s.name.Equals("ByTileGreen", StringComparison.OrdinalIgnoreCase) || s.name.Equals("ByTierGreen", StringComparison.OrdinalIgnoreCase))
+                byTierGreenSprite = s;
+            else if (s.name.Equals("By QuantityYellow", StringComparison.OrdinalIgnoreCase) || s.name.Equals("By Quantity Yellow", StringComparison.OrdinalIgnoreCase) || s.name.Equals("ByQtyYellow", StringComparison.OrdinalIgnoreCase))
+                byQuantityYellowSprite = s;
+            else if (s.name.Equals("ByQuantityGreen", StringComparison.OrdinalIgnoreCase) || s.name.Equals("By Quantity Green", StringComparison.OrdinalIgnoreCase) || s.name.Equals("ByQtyGreen", StringComparison.OrdinalIgnoreCase))
+                byQuantityGreenSprite = s;
+        }
+#endif
     }
 
     public void SwitchDeck(int deckIndex)
@@ -1016,11 +1089,52 @@ public class ChipsetController : MonoBehaviour
 
     private void RefreshSortButtons()
     {
-        if (byQuantityBg != null) byQuantityBg.color = sortByQuantity ? SelectedPresetColor : NormalPresetColor;
-        if (byTierBg != null) byTierBg.color = !sortByQuantity ? SelectedPresetColor : NormalPresetColor;
+        AutoWireSortButtonsIfMissing();
 
-        if (byQuantityText != null) byQuantityText.color = sortByQuantity ? SelectedPresetTextColor : NormalPresetTextColor;
-        if (byTierText != null) byTierText.color = !sortByQuantity ? SelectedPresetTextColor : NormalPresetTextColor;
+        bool isByQuantity = sortByQuantity; // false = By Tier (By Tile), true = By Quantity
+
+        // 1. By Tier (By Tile): Khi chọn (!isByQuantity) -> Vàng (By TileYellow), khi không chọn -> Xanh (By Tile Green)
+        if (byTierBg != null)
+        {
+            Sprite tierSprite = !isByQuantity ? byTierYellowSprite : byTierGreenSprite;
+            if (tierSprite != null)
+            {
+                byTierBg.sprite = tierSprite;
+                byTierBg.color = Color.white;
+            }
+            else
+            {
+                byTierBg.color = !isByQuantity ? SelectedPresetColor : NormalPresetColor;
+            }
+        }
+
+        // 2. By Quantity: Khi chọn (isByQuantity) -> Vàng (By QuantityYellow), khi không chọn -> Xanh (ByQuantityGreen)
+        if (byQuantityBg != null)
+        {
+            Sprite qtySprite = isByQuantity ? byQuantityYellowSprite : byQuantityGreenSprite;
+            if (qtySprite != null)
+            {
+                byQuantityBg.sprite = qtySprite;
+                byQuantityBg.color = Color.white;
+            }
+            else
+            {
+                byQuantityBg.color = isByQuantity ? SelectedPresetColor : NormalPresetColor;
+            }
+        }
+
+        // Nếu sprite đã có sẵn chữ pixel art, xóa text đè lên để tránh bị nhân đôi chữ
+        if (byTierText != null)
+        {
+            if (byTierYellowSprite != null) byTierText.text = string.Empty;
+            else byTierText.color = !isByQuantity ? SelectedPresetTextColor : NormalPresetTextColor;
+        }
+
+        if (byQuantityText != null)
+        {
+            if (byQuantityYellowSprite != null) byQuantityText.text = string.Empty;
+            else byQuantityText.color = isByQuantity ? SelectedPresetTextColor : NormalPresetTextColor;
+        }
     }
 
     public void RefreshEquippedGrid()

@@ -188,7 +188,7 @@ public class VirtualJoystick : MonoBehaviour,
 
     private void StartJoystick(Vector2 screenPos, int fingerId)
     {
-        if (background == null || handle == null) return;
+        if (background == null || handle == null || !GameSettings.JoystickEnabled) return;
 
         activeFingerId = fingerId;
         pointerDownScreenPos = screenPos;

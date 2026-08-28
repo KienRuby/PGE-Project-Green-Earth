@@ -1,0 +1,481 @@
+fileFormatVersion: 2
+guid: 7e068b030091a0a468ea4703b9f48358
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: 2 Red
+      rect:
+        serializedVersion: 2
+        x: 349
+        y: 3479
+        width: 203
+        height: 199
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c942ce1dea196524da7ffe5ad2c9d626
+      internalID: -823843802
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 1 Red
+      rect:
+        serializedVersion: 2
+        x: 112
+        y: 3479
+        width: 203
+        height: 199
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 46c241b9d57a5894a8693acaec2f2c32
+      internalID: -1862139395
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 3 Red
+      rect:
+        serializedVersion: 2
+        x: 586
+        y: 3479
+        width: 203
+        height: 199
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8fc6f5d708a524f469bc8449d4b97510
+      internalID: 1493704347
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: By Tile Green
+      rect:
+        serializedVersion: 2
+        x: 999
+        y: 3494
+        width: 487
+        height: 182
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c48fab73dcedfe3419a78a5a58ba8691
+      internalID: -716554023
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ByQuantityGreen
+      rect:
+        serializedVersion: 2
+        x: 1549
+        y: 3494
+        width: 487
+        height: 182
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f1b43cb9d7d46e44cb43657c78aa25fb
+      internalID: 1764748197
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 1 Yellow
+      rect:
+        serializedVersion: 2
+        x: 112
+        y: 3226
+        width: 203
+        height: 199
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bbf1f5f15789a1145880ca88ede0b246
+      internalID: 1864609157
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 2 Yellow
+      rect:
+        serializedVersion: 2
+        x: 349
+        y: 3226
+        width: 203
+        height: 199
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 97969f1641edcbe42a81228f6c8533a2
+      internalID: 794128661
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 3 Yellow
+      rect:
+        serializedVersion: 2
+        x: 586
+        y: 3226
+        width: 203
+        height: 199
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 88054ecaca133d3428251d182060f063
+      internalID: 761577852
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: By TileYellow
+      rect:
+        serializedVersion: 2
+        x: 999
+        y: 3227
+        width: 487
+        height: 182
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a7cbd1802e1a9ab4e82c2292a1f8330b
+      internalID: 413850012
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: By QuantityYellow
+      rect:
+        serializedVersion: 2
+        x: 1549
+        y: 3226
+        width: 487
+        height: 182
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e6a7757ecc0257d4aa5708f21ce3897a
+      internalID: 1785540121
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Khung
+      rect:
+        serializedVersion: 2
+        x: 46
+        y: 2023
+        width: 1707
+        height: 1103
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c7943c352a111c74fa10988dec013e5b
+      internalID: -564706773
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: KhungChipsetGreen
+      rect:
+        serializedVersion: 2
+        x: 1793
+        y: 2653
+        width: 283
+        height: 356
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 360559345f0e2d044b86fcf3dc4b865c
+      internalID: 1250089131
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Backround
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 2160
+        height: 1792
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8844bc9aa0fe28340bb24415318d858a
+      internalID: -1648662191
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      1 Red: -1862139395
+      1 Yellow: 1864609157
+      2 Red: -823843802
+      2 Yellow: 794128661
+      3 Red: 1493704347
+      3 Yellow: 761577852
+      Backround: -1648662191
+      By QuantityYellow: 1785540121
+      By Tile Green: -716554023
+      By TileYellow: 413850012
+      ByQuantityGreen: 1764748197
+      Khung: -564706773
+      KhungChipsetGreen: 1250089131
+      "n\xFAt m\xE0n chipset_0": -265098642
+      "n\xFAt m\xE0n chipset_1": 246393197
+      "n\xFAt m\xE0n chipset_12": -541811747
+      "n\xFAt m\xE0n chipset_15": 1638931438
+      "n\xFAt m\xE0n chipset_16": -1277890889
+      "n\xFAt m\xE0n chipset_17": -705627292
+      "n\xFAt m\xE0n chipset_18": -1079119425
+      "n\xFAt m\xE0n chipset_19": 703269016
+      "n\xFAt m\xE0n chipset_2": 1838489267
+      "n\xFAt m\xE0n chipset_20": 800786080
+      "n\xFAt m\xE0n chipset_21": 1240943348
+      "n\xFAt m\xE0n chipset_22": 2145450495
+      "n\xFAt m\xE0n chipset_23": 1522640082
+      "n\xFAt m\xE0n chipset_24": 1944151019
+      "n\xFAt m\xE0n chipset_25": 86394372
+      "n\xFAt m\xE0n chipset_26": 538309578
+      "n\xFAt m\xE0n chipset_27": 854814663
+      "n\xFAt m\xE0n chipset_28": 569922158
+      "n\xFAt m\xE0n chipset_29": 1153695781
+      "n\xFAt m\xE0n chipset_3": -1784103739
+      "n\xFAt m\xE0n chipset_30": 830547442
+      "n\xFAt m\xE0n chipset_31": 634377004
+      "n\xFAt m\xE0n chipset_32": -1098084459
+      "n\xFAt m\xE0n chipset_33": -1716599048
+      "n\xFAt m\xE0n chipset_34": 1411534136
+      "n\xFAt m\xE0n chipset_35": -1752697469
+      "n\xFAt m\xE0n chipset_36": -1025256491
+      "n\xFAt m\xE0n chipset_37": -1141065714
+      "n\xFAt m\xE0n chipset_38": 463798626
+      "n\xFAt m\xE0n chipset_39": 24925108
+      "n\xFAt m\xE0n chipset_4": 2145311742
+      "n\xFAt m\xE0n chipset_40": -1167982044
+      "n\xFAt m\xE0n chipset_41": -302071091
+      "n\xFAt m\xE0n chipset_42": 2146011243
+      "n\xFAt m\xE0n chipset_43": -136788152
+      "n\xFAt m\xE0n chipset_44": 1204922201
+      "n\xFAt m\xE0n chipset_45": -1490840360
+      "n\xFAt m\xE0n chipset_48": -578442522
+      "n\xFAt m\xE0n chipset_49": 823139844
+      "n\xFAt m\xE0n chipset_5": 161555512
+      "n\xFAt m\xE0n chipset_50": 90817983
+      "n\xFAt m\xE0n chipset_51": 1008312984
+      "n\xFAt m\xE0n chipset_52": -1246133069
+      "n\xFAt m\xE0n chipset_53": -1358673450
+      "n\xFAt m\xE0n chipset_54": 12085493
+      "n\xFAt m\xE0n chipset_56": -664914399
+      "n\xFAt m\xE0n chipset_58": 46791646
+      "n\xFAt m\xE0n chipset_6": -299572199
+      "n\xFAt m\xE0n chipset_60": -117293362
+      "n\xFAt m\xE0n chipset_61": 884667552
+      "n\xFAt m\xE0n chipset_62": 1334845256
+      "n\xFAt m\xE0n chipset_63": 282419915
+      "n\xFAt m\xE0n chipset_64": -118170417
+      "n\xFAt m\xE0n chipset_65": -166380328
+      "n\xFAt m\xE0n chipset_66": 872614856
+      "n\xFAt m\xE0n chipset_67": -1727815309
+      "n\xFAt m\xE0n chipset_69": -1119563172
+      "n\xFAt m\xE0n chipset_7": 1330071266
+      "n\xFAt m\xE0n chipset_70": -1863231208
+      "n\xFAt m\xE0n chipset_71": 479403371
+      "n\xFAt m\xE0n chipset_73": 454591770
+      "n\xFAt m\xE0n chipset_74": -630772806
+      "n\xFAt m\xE0n chipset_75": -1139929588
+      "n\xFAt m\xE0n chipset_76": 1757261274
+      "n\xFAt m\xE0n chipset_77": -1035118558
+      "n\xFAt m\xE0n chipset_78": 340097837
+      "n\xFAt m\xE0n chipset_79": 454558052
+      "n\xFAt m\xE0n chipset_9": -1458766331
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

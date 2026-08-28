@@ -12,10 +12,36 @@ public static class GameSettings
     public const string LanguageKey = "PGE.Settings.Language";
     public const string ShowDamageKey = "PGE.Settings.ShowDamage";
     public const string DynamicJoystickKey = "PGE.Settings.DynamicJoystick";
+    public const string JoystickModeKey = "PGE.Settings.JoystickMode";
     public const string ScreenShakeKey = "PGE.Settings.ScreenShake";
     public const string LocalPlayerIdKey = "PGE.Settings.LocalPlayerId";
+    public const string GoogleAccountKey = "PGE.Settings.GoogleAccount";
+    public const string AppleAccountKey = "PGE.Settings.AppleAccount";
 
     public static event Action Changed;
+
+    public static string GoogleAccount
+    {
+        get => PlayerPrefs.GetString(GoogleAccountKey, string.Empty);
+        set
+        {
+            PlayerPrefs.SetString(GoogleAccountKey, value ?? string.Empty);
+            SaveAndNotify();
+        }
+    }
+
+    public static string AppleAccount
+    {
+        get => PlayerPrefs.GetString(AppleAccountKey, string.Empty);
+        set
+        {
+            PlayerPrefs.SetString(AppleAccountKey, value ?? string.Empty);
+            SaveAndNotify();
+        }
+    }
+
+    public static bool IsLoggedInGoogle => !string.IsNullOrEmpty(GoogleAccount);
+    public static bool IsLoggedInApple => !string.IsNullOrEmpty(AppleAccount);
 
     public static bool BgmEnabled
     {
@@ -47,11 +73,28 @@ public static class GameSettings
         set => SetBool(ShowDamageKey, value);
     }
 
+    /// <summary>
+    /// 0 = Dynamic Pad ON, 1 = Fixed Pad ON, 2 = Dynamic/Fixed Pad OFF
+    /// </summary>
+    public static int JoystickMode
+    {
+        get => PlayerPrefs.GetInt(JoystickModeKey, GetBool(DynamicJoystickKey, true) ? 0 : 1);
+        set
+        {
+            int clamped = (value % 3 + 3) % 3;
+            PlayerPrefs.SetInt(JoystickModeKey, clamped);
+            PlayerPrefs.SetInt(DynamicJoystickKey, clamped == 0 ? 1 : 0);
+            SaveAndNotify();
+        }
+    }
+
     public static bool DynamicJoystick
     {
-        get => GetBool(DynamicJoystickKey, true);
-        set => SetBool(DynamicJoystickKey, value);
+        get => JoystickMode == 0;
+        set => JoystickMode = value ? 0 : 1;
     }
+
+    public static bool JoystickEnabled => JoystickMode != 2;
 
     public static bool ScreenShake
     {

@@ -1,6 +1,8 @@
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using PGE.Auth;
 
 /// <summary>
 /// Màn Settings phong cách pixel/tech được tạo theo Canvas hiện tại.
@@ -22,6 +24,9 @@ public class SettingsPanelController : MonoBehaviour
 
     [Header("UI Text References")]
     [SerializeField] private TMP_Text titleText;
+    [SerializeField] private TMP_Text accountPromptText;
+    [SerializeField] private TMP_Text googleLoginText;
+    [SerializeField] private TMP_Text appleSignInText;
     [SerializeField] private TMP_Text bgmText;
     [SerializeField] private TMP_Text sfxText;
     [SerializeField] private TMP_Text languageText;
@@ -31,9 +36,12 @@ public class SettingsPanelController : MonoBehaviour
     [SerializeField] private TMP_Text copyFeedbackText;
     [SerializeField] private TMP_Text saveStateText;
     [SerializeField] private TMP_Text reviewText;
+    [SerializeField] private TMP_Text versionText;
     [SerializeField] private TMP_Text closeHintText;
 
     [Header("Button References")]
+    [SerializeField] private UnityEngine.UI.Button googleLoginButton;
+    [SerializeField] private UnityEngine.UI.Button appleSignInButton;
     [SerializeField] private UnityEngine.UI.Button copyIdButton;
     [SerializeField] private UnityEngine.UI.Button bgmButton;
     [SerializeField] private UnityEngine.UI.Button sfxButton;
@@ -45,11 +53,36 @@ public class SettingsPanelController : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Button closeButton;
     [SerializeField] private UnityEngine.UI.Button firstSelectedButton;
 
+    [Header("Button Sprites (Từ 'nút màn setting.png')")]
+    [SerializeField] private Sprite bgmOnSprite;
+    [SerializeField] private Sprite bgmOffSprite;
+    [SerializeField] private Sprite sfxOnSprite;
+    [SerializeField] private Sprite sfxOffSprite;
+    [SerializeField] private Sprite englishOnSprite;
+    [SerializeField] private Sprite englishOffSprite;
+    [SerializeField] private Sprite showDamageOnSprite;
+    [SerializeField] private Sprite showDamageOffSprite;
+    [SerializeField] private Sprite dynamicPadOnSprite;
+    [SerializeField] private Sprite fixedPadOnSprite;
+    [SerializeField] private Sprite dynamicFixedPadOffSprite;
+    [SerializeField] private Sprite screenShakeOnSprite;
+    [SerializeField] private Sprite screenShakeOffSprite;
+    [SerializeField] private Sprite reviewOnSprite;
+    [SerializeField] private Sprite googleLoginSprite;
+    [SerializeField] private Sprite appleSignInSprite;
+
     private void Awake()
     {
         Instance = this;
         AutoWireReferencesIfMissing();
         BindButtonListeners();
+    }
+
+    private void OnEnable()
+    {
+        AutoWireReferencesIfMissing();
+        BindButtonListeners();
+        RefreshLabels();
     }
 
     private void Start()
@@ -72,6 +105,8 @@ public class SettingsPanelController : MonoBehaviour
     {
         gameObject.SetActive(true);
         transform.SetAsLastSibling();
+        AutoWireReferencesIfMissing();
+        BindButtonListeners();
         RefreshLabels();
         if (EventSystem.current != null && firstSelectedButton != null)
         {
@@ -86,41 +121,322 @@ public class SettingsPanelController : MonoBehaviour
 
     public void BindButtonListeners()
     {
-        if (copyIdButton != null) { copyIdButton.onClick.RemoveListener(CopyPlayerId); copyIdButton.onClick.AddListener(CopyPlayerId); }
-        if (bgmButton != null) { bgmButton.onClick.RemoveAllListeners(); bgmButton.onClick.AddListener(() => { GameSettings.BgmEnabled = !GameSettings.BgmEnabled; RefreshLabels(); }); }
-        if (sfxButton != null) { sfxButton.onClick.RemoveAllListeners(); sfxButton.onClick.AddListener(() => { GameSettings.SfxEnabled = !GameSettings.SfxEnabled; RefreshLabels(); }); }
-        if (languageButton != null) { languageButton.onClick.RemoveAllListeners(); languageButton.onClick.AddListener(() => { GameSettings.Language = GameSettings.Language == "English" ? "Tiếng Việt" : "English"; RefreshLabels(); }); }
-        if (showDamageButton != null) { showDamageButton.onClick.RemoveAllListeners(); showDamageButton.onClick.AddListener(() => { GameSettings.ShowDamage = !GameSettings.ShowDamage; RefreshLabels(); }); }
-        if (joystickButton != null) { joystickButton.onClick.RemoveAllListeners(); joystickButton.onClick.AddListener(() => { GameSettings.DynamicJoystick = !GameSettings.DynamicJoystick; RefreshLabels(); }); }
-        if (screenShakeButton != null) { screenShakeButton.onClick.RemoveAllListeners(); screenShakeButton.onClick.AddListener(() => { GameSettings.ScreenShake = !GameSettings.ScreenShake; RefreshLabels(); }); }
-        if (reviewButton != null) { reviewButton.onClick.RemoveAllListeners(); reviewButton.onClick.AddListener(OpenStoreReview); }
-        if (closeButton != null) { closeButton.onClick.RemoveListener(Close); closeButton.onClick.AddListener(Close); }
+        if (googleLoginButton != null)
+        {
+            googleLoginButton.onClick.RemoveAllListeners();
+            googleLoginButton.onClick.AddListener(OnGoogleLoginClicked);
+        }
+
+        if (appleSignInButton != null)
+        {
+            appleSignInButton.onClick.RemoveAllListeners();
+            appleSignInButton.onClick.AddListener(OnAppleSignInClicked);
+        }
+
+        if (copyIdButton != null)
+        {
+            copyIdButton.onClick.RemoveListener(CopyPlayerId);
+            copyIdButton.onClick.AddListener(CopyPlayerId);
+        }
+
+        if (bgmButton != null)
+        {
+            bgmButton.onClick.RemoveAllListeners();
+            bgmButton.onClick.AddListener(() =>
+            {
+                GameSettings.BgmEnabled = !GameSettings.BgmEnabled;
+                RefreshLabels();
+            });
+        }
+
+        if (sfxButton != null)
+        {
+            sfxButton.onClick.RemoveAllListeners();
+            sfxButton.onClick.AddListener(() =>
+            {
+                GameSettings.SfxEnabled = !GameSettings.SfxEnabled;
+                RefreshLabels();
+            });
+        }
+
+        if (languageButton != null)
+        {
+            languageButton.onClick.RemoveAllListeners();
+            languageButton.onClick.AddListener(() =>
+            {
+                GameSettings.Language = GameSettings.Language == "English" ? "Tiếng Việt" : "English";
+                RefreshLabels();
+            });
+        }
+
+        if (showDamageButton != null)
+        {
+            showDamageButton.onClick.RemoveAllListeners();
+            showDamageButton.onClick.AddListener(() =>
+            {
+                GameSettings.ShowDamage = !GameSettings.ShowDamage;
+                RefreshLabels();
+            });
+        }
+
+        if (joystickButton != null)
+        {
+            joystickButton.onClick.RemoveAllListeners();
+            joystickButton.onClick.AddListener(() =>
+            {
+                // Chuyển vòng lặp: 0 (Dynamic Pad ON) -> 1 (Fixed Pad ON) -> 2 (Dynamic/Fixed Pad OFF)
+                GameSettings.JoystickMode = (GameSettings.JoystickMode + 1) % 3;
+                RefreshLabels();
+            });
+        }
+
+        if (screenShakeButton != null)
+        {
+            screenShakeButton.onClick.RemoveAllListeners();
+            screenShakeButton.onClick.AddListener(() =>
+            {
+                GameSettings.ScreenShake = !GameSettings.ScreenShake;
+                RefreshLabels();
+            });
+        }
+
+        if (reviewButton != null)
+        {
+            reviewButton.onClick.RemoveAllListeners();
+            reviewButton.onClick.AddListener(OpenStoreReview);
+        }
+
+        if (closeButton != null)
+        {
+            closeButton.onClick.RemoveListener(Close);
+            closeButton.onClick.AddListener(Close);
+        }
+    }
+
+    private void OnGoogleLoginClicked()
+    {
+        if (GoogleAuthManager.Instance != null && !GoogleAuthManager.Instance.IsLoggedIn)
+        {
+            GoogleAuthManager.Instance.SignInWithGoogle((success, user) =>
+            {
+                if (success)
+                {
+                    CloudSaveSyncService.LoadFromCloud();
+                }
+                RefreshLabels();
+            });
+        }
+        else if (GoogleAuthManager.Instance != null && GoogleAuthManager.Instance.IsLoggedIn)
+        {
+            GoogleAuthManager.Instance.SignOut(() =>
+            {
+                RefreshLabels();
+            });
+        }
+        else
+        {
+            GameSettings.GoogleAccount = string.IsNullOrEmpty(GameSettings.GoogleAccount)
+                ? $"Google_{GameSettings.LocalPlayerId.Substring(0, 6)}"
+                : string.Empty;
+            RefreshLabels();
+        }
+    }
+
+    private void OnAppleSignInClicked()
+    {
+        if (AppleAuthManager.Instance != null && !AppleAuthManager.Instance.IsLoggedIn)
+        {
+            AppleAuthManager.Instance.SignInWithApple((success, user) =>
+            {
+                if (success)
+                {
+                    CloudSaveSyncService.LoadFromCloud();
+                }
+                RefreshLabels();
+            });
+        }
+        else if (AppleAuthManager.Instance != null && AppleAuthManager.Instance.IsLoggedIn)
+        {
+            AppleAuthManager.Instance.SignOut(() =>
+            {
+                RefreshLabels();
+            });
+        }
+        else
+        {
+            GameSettings.AppleAccount = string.IsNullOrEmpty(GameSettings.AppleAccount)
+                ? $"Apple_{GameSettings.LocalPlayerId.Substring(0, 6)}"
+                : string.Empty;
+            RefreshLabels();
+        }
     }
 
     public void RefreshLabels()
     {
+        LoadSettingSpritesIfMissing();
+
         bool vi = GameSettings.IsVietnamese;
-        if (titleText != null) titleText.text = vi ? "CÀI ĐẶT" : "SETTINGS";
-        SetToggleLabel(bgmText, vi ? "NHẠC NỀN" : "BGM", GameSettings.BgmEnabled, vi ? "Âm lượng 100%" : "Vol. 100%");
-        SetToggleLabel(sfxText, vi ? "HIỆU ỨNG" : "SFX", GameSettings.SfxEnabled, vi ? "Âm lượng 100%" : "Vol. 100%");
-        if (languageText != null) languageText.text = vi ? "TIẾNG VIỆT" : "ENGLISH";
-        SetToggleLabel(showDamageText, vi ? "HIỆN SÁT THƯƠNG" : "SHOW DAMAGE", GameSettings.ShowDamage);
-        if (joystickText != null)
+
+        if (titleText != null)
+            titleText.text = vi ? "CÀI ĐẶT" : "Setting";
+
+        if (accountPromptText != null)
+            accountPromptText.text = vi ? "Đăng nhập để lưu dữ liệu của bạn!" : "Log in and save your data!";
+
+        // 1. BGM Button (BGM ON: Sáng, BGM OFF: Tối)
+        SetButtonSprite(bgmButton, GameSettings.BgmEnabled ? bgmOnSprite : bgmOffSprite, bgmText, vi ? "NHẠC NỀN" : "BGM", GameSettings.BgmEnabled);
+
+        // 2. SFX Button (SFX ON: Sáng, SFX OFF: Tối)
+        SetButtonSprite(sfxButton, GameSettings.SfxEnabled ? sfxOnSprite : sfxOffSprite, sfxText, vi ? "HIỆU ỨNG" : "SFX", GameSettings.SfxEnabled);
+
+        // 3. Language Button (English / English ON: Sáng, English OFF: Tối)
+        bool isEnglish = (GameSettings.Language == "English");
+        SetButtonSprite(languageButton, isEnglish ? englishOnSprite : englishOffSprite, languageText, isEnglish ? "English" : "TIẾNG VIỆT", isEnglish);
+
+        // 4. Show Damage Button (Show Damage On: Sáng, Show Damage Off: Tối)
+        SetButtonSprite(showDamageButton, GameSettings.ShowDamage ? showDamageOnSprite : showDamageOffSprite, showDamageText, vi ? "HIỆN SÁT THƯƠNG" : "Show Damage", GameSettings.ShowDamage);
+
+        // 5. Joystick Button (3 Nút: Dynamic Pad On (Sáng) -> Fixed Pad ON (Sáng) -> Dynamic-Fixed Pad OFF (Tối))
+        Sprite joystickSprite;
+        switch (GameSettings.JoystickMode)
         {
-            joystickText.text = vi
-                ? (GameSettings.DynamicJoystick ? "CẦN ĐIỀU KHIỂN:  <color=#FFC236>ĐỘNG</color>" : "CẦN ĐIỀU KHIỂN:  <color=#FFC236>CỐ ĐỊNH</color>")
-                : (GameSettings.DynamicJoystick ? "JOYSTICK:  <color=#FFC236>DYNAMIC</color>" : "JOYSTICK:  <color=#FFC236>FIXED</color>");
+            case 0:
+                joystickSprite = dynamicPadOnSprite ?? fixedPadOnSprite;
+                break;
+            case 1:
+                joystickSprite = fixedPadOnSprite ?? dynamicPadOnSprite;
+                break;
+            default:
+                joystickSprite = dynamicFixedPadOffSprite ?? fixedPadOnSprite;
+                break;
         }
-        SetToggleLabel(screenShakeText, vi ? "RUNG MÀN HÌNH" : "SCREEN SHAKE", GameSettings.ScreenShake);
+        SetButtonSprite(joystickButton, joystickSprite, joystickText, vi ? "CẦN ĐIỀU KHIỂN" : "Dynamic/ Fixed Pad", GameSettings.JoystickEnabled);
+
+        // 6. Screen Shake Button (Screen Shake ON: Sáng, Screen Shake OFF: Tối)
+        SetButtonSprite(screenShakeButton, GameSettings.ScreenShake ? screenShakeOnSprite : screenShakeOffSprite, screenShakeText, vi ? "RUNG MÀN HÌNH" : "Screen Shake", GameSettings.ScreenShake);
+
+        // 7. Write a review Button
+        SetButtonSprite(reviewButton, reviewOnSprite, reviewText, vi ? "VIẾT ĐÁNH GIÁ" : "Write a review", true);
+
+        // 8. Google & Apple Buttons
+        bool isGoogleLoggedIn = (GoogleAuthManager.Instance != null && GoogleAuthManager.Instance.IsLoggedIn) || GameSettings.IsLoggedInGoogle;
+        bool isAppleLoggedIn = (AppleAuthManager.Instance != null && AppleAuthManager.Instance.IsLoggedIn) || GameSettings.IsLoggedInApple;
+
+        if (googleLoginButton != null)
+        {
+            string googleLabel = isGoogleLoggedIn
+                ? (vi ? "GOOGLE: ĐÃ ĐĂNG NHẬP (LOGGED IN)" : "GOOGLE: LOGGED IN")
+                : (vi ? "ĐĂNG NHẬP GOOGLE" : "LOG IN WITH GOOGLE");
+            if (googleLoginSprite != null)
+                SetButtonSprite(googleLoginButton, googleLoginSprite, googleLoginText, null, true);
+            else if (googleLoginText != null)
+                googleLoginText.text = googleLabel;
+        }
+
+        if (appleSignInButton != null)
+        {
+            string appleLabel = isAppleLoggedIn
+                ? (vi ? "APPLE: ĐÃ ĐĂNG NHẬP (SIGNED IN)" : "APPLE: SIGNED IN")
+                : (vi ? "ĐĂNG NHẬP APPLE" : "SIGN IN WITH APPLE");
+            if (appleSignInSprite != null)
+                SetButtonSprite(appleSignInButton, appleSignInSprite, appleSignInText, null, true);
+            else if (appleSignInText != null)
+                appleSignInText.text = appleLabel;
+        }
+
+        // 9. Version & Close hint
+        if (versionText != null)
+            versionText.text = $"VERSION : {Application.version}";
+
         if (saveStateText != null)
         {
-            saveStateText.text = vi
-                ? "TỰ ĐỘNG LƯU CỤC BỘ  <color=#FFC236>BẬT</color>\n<size=23>Tiến trình được lưu trên thiết bị này</size>"
-                : "LOCAL AUTO SAVE  <color=#FFC236>ON</color>\n<size=23>Progress is stored on this device</size>";
+            if (isGoogleLoggedIn)
+            {
+                string userName = GoogleAuthManager.Instance?.CurrentUser?.displayName ?? "Google Account";
+                saveStateText.text = vi
+                    ? $"ĐỒNG BỘ ĐÁM MÂY GOOGLE  <color=#FFC236>BẬT</color>\n<size=23>{userName} • Đã lưu đám mây</size>"
+                    : $"GOOGLE CLOUD SYNC  <color=#FFC236>ON</color>\n<size=23>{userName} • Cloud secured</size>";
+            }
+            else if (isAppleLoggedIn)
+            {
+                string userName = AppleAuthManager.Instance?.CurrentUser?.displayName ?? "Apple ID";
+                saveStateText.text = vi
+                    ? $"ĐỒNG BỘ ĐÁM MÂY APPLE  <color=#FFC236>BẬT</color>\n<size=23>{userName} • Đã lưu đám mây</size>"
+                    : $"APPLE CLOUD SYNC  <color=#FFC236>ON</color>\n<size=23>{userName} • Cloud secured</size>";
+            }
+            else
+            {
+                saveStateText.text = vi
+                    ? "TỰ ĐỘNG LƯU CỤC BỘ  <color=#FFC236>BẬT</color>\n<size=23>Tiến trình được lưu trên thiết bị này</size>"
+                    : "LOCAL AUTO SAVE  <color=#FFC236>ON</color>\n<size=23>Progress is stored on this device</size>";
+            }
         }
+
         if (copyFeedbackText != null) copyFeedbackText.text = vi ? "SAO CHÉP ID" : "COPY ID";
-        if (reviewText != null) reviewText.text = vi ? "VIẾT ĐÁNH GIÁ" : "WRITE A REVIEW";
         if (closeHintText != null) closeHintText.text = vi ? "Chạm bánh răng lần nữa để đóng" : "Tap the gear again to close";
+    }
+
+    private void SetButtonSprite(UnityEngine.UI.Button button, Sprite sprite, TMP_Text textComponent, string labelTitle, bool isEnabled)
+    {
+        if (button == null) return;
+
+        UnityEngine.UI.Image img = button.GetComponent<UnityEngine.UI.Image>()
+                                ?? button.targetGraphic as UnityEngine.UI.Image;
+        if (img != null && sprite != null)
+        {
+            img.sprite = sprite;
+            img.color = Color.white;
+        }
+
+        if (textComponent != null)
+        {
+            if (sprite != null)
+            {
+                // Khi nút đã có ảnh vẽ sẵn chữ pixel sắc nét, ẩn text đè để giao diện không bị trùng lặp
+                textComponent.text = string.Empty;
+            }
+            else if (!string.IsNullOrEmpty(labelTitle))
+            {
+                SetToggleLabel(textComponent, labelTitle, isEnabled);
+            }
+        }
+    }
+
+    public void LoadSettingSpritesIfMissing()
+    {
+#if UNITY_EDITOR
+        if (bgmOnSprite == null || englishOnSprite == null)
+        {
+            string spriteSheetPath = "Assets/Sprites/UI/setting/nút màn setting.png";
+            Sprite[] allSprites = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(spriteSheetPath)
+                .OfType<Sprite>()
+                .ToArray();
+
+            foreach (var spr in allSprites)
+            {
+                switch (spr.name)
+                {
+                    case "BGM ON": bgmOnSprite = spr; break;
+                    case "BGM OFF": bgmOffSprite = spr; break;
+                    case "SFX ON": sfxOnSprite = spr; break;
+                    case "SFX OFF": sfxOffSprite = spr; break;
+                    case "English":
+                    case "English ON": englishOnSprite = spr; break;
+                    case "English OFF": englishOffSprite = spr; break;
+                    case "Show Damage On": showDamageOnSprite = spr; break;
+                    case "Show Damage Off": showDamageOffSprite = spr; break;
+                    case "Dynamic Pad On": dynamicPadOnSprite = spr; break;
+                    case "Fixed Pad ON": fixedPadOnSprite = spr; break;
+                    case "Dynamic-Fixed Pad OFF": dynamicFixedPadOffSprite = spr; break;
+                    case "Screen Shake ON": screenShakeOnSprite = spr; break;
+                    case "Screen Shake OFF": screenShakeOffSprite = spr; break;
+                    case "Write a review On": reviewOnSprite = spr; break;
+                    case "Log in with Google": googleLoginSprite = spr; break;
+                    case "Sign in with Apple": appleSignInSprite = spr; break;
+                }
+            }
+        }
+#endif
     }
 
     private static void SetToggleLabel(TMP_Text label, string title, bool enabled, string secondLine = null)
@@ -162,37 +478,65 @@ public class SettingsPanelController : MonoBehaviour
 
     public void AutoWireReferencesIfMissing()
     {
-        Transform safeContent = transform.Find("SafeContent") ?? transform;
-        
-        if (titleText == null) titleText = safeContent.Find("Title")?.GetComponent<TMP_Text>();
-        if (saveStateText == null) saveStateText = safeContent.Find("AccountCard/SaveState")?.GetComponent<TMP_Text>();
-        if (closeHintText == null) closeHintText = safeContent.Find("CloseHint")?.GetComponent<TMP_Text>();
+        LoadSettingSpritesIfMissing();
 
-        if (copyIdButton == null) copyIdButton = safeContent.Find("AccountCard/CopyIdButton")?.GetComponent<UnityEngine.UI.Button>();
-        if (copyFeedbackText == null && copyIdButton != null) copyFeedbackText = copyIdButton.GetComponentInChildren<TMP_Text>(true);
+        // 1. Tìm các đối tượng văn bản (TMP_Text)
+        if (titleText == null) titleText = FindMatchingComponent<TMP_Text>("Title", "Header");
+        if (accountPromptText == null) accountPromptText = FindMatchingComponent<TMP_Text>("Prompt", "Log in and save", "SaveDataPrompt");
+        if (saveStateText == null) saveStateText = FindMatchingComponent<TMP_Text>("SaveState");
+        if (versionText == null) versionText = FindMatchingComponent<TMP_Text>("Version");
+        if (closeHintText == null) closeHintText = FindMatchingComponent<TMP_Text>("CloseHint");
 
-        if (bgmButton == null) bgmButton = safeContent.Find("BgmButton")?.GetComponent<UnityEngine.UI.Button>();
+        // 2. Tìm và liên kết các nút (Buttons)
+        if (googleLoginButton == null) googleLoginButton = FindMatchingComponent<UnityEngine.UI.Button>("Log in with Google", "GoogleLoginButton", "Google");
+        if (googleLoginText == null && googleLoginButton != null) googleLoginText = googleLoginButton.GetComponentInChildren<TMP_Text>(true);
+
+        if (appleSignInButton == null) appleSignInButton = FindMatchingComponent<UnityEngine.UI.Button>("Sign in with Apple", "AppleSignInButton", "Apple");
+        if (appleSignInText == null && appleSignInButton != null) appleSignInText = appleSignInButton.GetComponentInChildren<TMP_Text>(true);
+
+        if (bgmButton == null) bgmButton = FindMatchingComponent<UnityEngine.UI.Button>("BgmButton", "BGM");
         if (bgmText == null && bgmButton != null) bgmText = bgmButton.GetComponentInChildren<TMP_Text>(true);
 
-        if (sfxButton == null) sfxButton = safeContent.Find("SfxButton")?.GetComponent<UnityEngine.UI.Button>();
+        if (sfxButton == null) sfxButton = FindMatchingComponent<UnityEngine.UI.Button>("SfxButton", "SFX");
         if (sfxText == null && sfxButton != null) sfxText = sfxButton.GetComponentInChildren<TMP_Text>(true);
 
-        if (languageButton == null) languageButton = safeContent.Find("LanguageButton")?.GetComponent<UnityEngine.UI.Button>();
+        if (languageButton == null) languageButton = FindMatchingComponent<UnityEngine.UI.Button>("LanguageButton", "Language");
         if (languageText == null && languageButton != null) languageText = languageButton.GetComponentInChildren<TMP_Text>(true);
 
-        if (showDamageButton == null) showDamageButton = safeContent.Find("ShowDamageButton")?.GetComponent<UnityEngine.UI.Button>();
+        if (showDamageButton == null) showDamageButton = FindMatchingComponent<UnityEngine.UI.Button>("ShowDamageButton", "ShowDamage");
         if (showDamageText == null && showDamageButton != null) showDamageText = showDamageButton.GetComponentInChildren<TMP_Text>(true);
 
-        if (joystickButton == null) joystickButton = safeContent.Find("JoystickModeButton")?.GetComponent<UnityEngine.UI.Button>();
+        if (joystickButton == null) joystickButton = FindMatchingComponent<UnityEngine.UI.Button>("JoystickModeButton", "JoystickButton", "Joystick");
         if (joystickText == null && joystickButton != null) joystickText = joystickButton.GetComponentInChildren<TMP_Text>(true);
 
-        if (screenShakeButton == null) screenShakeButton = safeContent.Find("ScreenShakeButton")?.GetComponent<UnityEngine.UI.Button>();
+        if (screenShakeButton == null) screenShakeButton = FindMatchingComponent<UnityEngine.UI.Button>("ScreenShakeButton", "ShakeButton", "ScreenShake");
         if (screenShakeText == null && screenShakeButton != null) screenShakeText = screenShakeButton.GetComponentInChildren<TMP_Text>(true);
 
-        if (reviewButton == null) reviewButton = safeContent.Find("ReviewButton")?.GetComponent<UnityEngine.UI.Button>();
+        if (reviewButton == null) reviewButton = FindMatchingComponent<UnityEngine.UI.Button>("ReviewButton", "Review");
         if (reviewText == null && reviewButton != null) reviewText = reviewButton.GetComponentInChildren<TMP_Text>(true);
 
+        if (copyIdButton == null) copyIdButton = FindMatchingComponent<UnityEngine.UI.Button>("CopyIdButton", "Copy");
+        if (copyFeedbackText == null && copyIdButton != null) copyFeedbackText = copyIdButton.GetComponentInChildren<TMP_Text>(true);
+
         if (firstSelectedButton == null) firstSelectedButton = bgmButton;
+    }
+
+    private T FindMatchingComponent<T>(params string[] possibleNames) where T : Component
+    {
+        T[] components = GetComponentsInChildren<T>(true);
+        foreach (string target in possibleNames)
+        {
+            string cleanTarget = target.Replace(" ", "").ToLowerInvariant();
+            foreach (T comp in components)
+            {
+                string objName = comp.gameObject.name.Replace(" ", "").ToLowerInvariant();
+                if (objName.Equals(cleanTarget) || objName.Contains(cleanTarget))
+                {
+                    return comp;
+                }
+            }
+        }
+        return null;
     }
 
     public static SettingsPanelController CreateRuntimePanel(RectTransform canvasParent)

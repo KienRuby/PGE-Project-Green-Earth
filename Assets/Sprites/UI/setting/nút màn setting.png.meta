@@ -118,7 +118,7 @@ TextureImporter:
         width: 1830
         height: 259
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -126,27 +126,6 @@ TextureImporter:
       bones: []
       spriteID: a2b631140776fcf4b8626ae3c3a3f39c
       internalID: -140578927
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: "n\xFAt m\xE0n setting_8"
-      rect:
-        serializedVersion: 2
-        x: 143
-        y: 3163
-        width: 48
-        height: 268
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 77f841304f8609640b41d65743e9eb91
-      internalID: -701180717
       vertices: []
       indices: 
       edges: []
@@ -160,7 +139,7 @@ TextureImporter:
         width: 1829
         height: 486
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -181,7 +160,7 @@ TextureImporter:
         width: 583
         height: 146
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -202,7 +181,7 @@ TextureImporter:
         width: 583
         height: 146
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -223,7 +202,7 @@ TextureImporter:
         width: 464
         height: 264
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -244,7 +223,7 @@ TextureImporter:
         width: 464
         height: 264
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -265,7 +244,7 @@ TextureImporter:
         width: 943
         height: 262
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -286,7 +265,7 @@ TextureImporter:
         width: 459
         height: 260
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -304,10 +283,10 @@ TextureImporter:
         serializedVersion: 2
         x: 1111
         y: 1700
-        width: 944
+        width: 943
         height: 265
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -328,7 +307,7 @@ TextureImporter:
         width: 943
         height: 262
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -346,10 +325,10 @@ TextureImporter:
         serializedVersion: 2
         x: 90
         y: 1010
-        width: 944
+        width: 943
         height: 265
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -362,15 +341,15 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Screen Shake
+      name: Screen Shake OFF
       rect:
         serializedVersion: 2
         x: 1112
         y: 1128
-        width: 941
+        width: 943
         height: 262
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -383,15 +362,15 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Dynamic - Fixed Pad ON
+      name: Fixed Pad ON
       rect:
         serializedVersion: 2
         x: 1112
         y: 725
-        width: 941
+        width: 943
         height: 262
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -404,15 +383,15 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: "n\xFAt m\xE0n setting_76"
+      name: Dynamic Pad On
       rect:
         serializedVersion: 2
         x: 90
         y: 723
-        width: 967
+        width: 943
         height: 262
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -425,15 +404,15 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Screen Shak
+      name: Screen Shake ON
       rect:
         serializedVersion: 2
         x: 91
         y: 436
-        width: 941
+        width: 943
         height: 262
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -446,15 +425,15 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: "n\xFAt m\xE0n setting_85"
+      name: Write a review On
       rect:
         serializedVersion: 2
         x: 91
         y: 142
-        width: 941
+        width: 943
         height: 262
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -475,7 +454,7 @@ TextureImporter:
         width: 459
         height: 260
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -493,10 +472,10 @@ TextureImporter:
         serializedVersion: 2
         x: 1112
         y: 1417
-        width: 941
+        width: 943
         height: 262
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -521,20 +500,22 @@ TextureImporter:
     nameFileIdTable:
       BGM OFF: -980823628
       BGM ON: 1789906678
-      Dynamic - Fixed Pad ON: 1835219468
+      Dynamic Pad On: 1763070240
       Dynamic-Fixed Pad OFF: 1318729711
       English: 420480775
       English OFF: 924752372
+      Fixed Pad ON: 1835219468
       Log in and save your data: -1586978251
       Log in with Google: 1940691493
       SFX OFF: -618708925
       SFX ON: -841733225
-      Screen Shak: -275738692
-      Screen Shake: 141450712
+      Screen Shake OFF: 141450712
+      Screen Shake ON: -275738692
       Setting: -140578927
       Show Damage Off: 789076387
       Show Damage On: -298214059
       Sign in with Apple: 560677752
+      Write a review On: -1631908857
       "n\xFAt m\xE0n setting_1": -886262386
       "n\xFAt m\xE0n setting_11": 60930797
       "n\xFAt m\xE0n setting_12": -1670259544
@@ -595,7 +576,6 @@ TextureImporter:
       "n\xFAt m\xE0n setting_72": 1589865192
       "n\xFAt m\xE0n setting_73": -914696621
       "n\xFAt m\xE0n setting_74": 116081837
-      "n\xFAt m\xE0n setting_76": 1763070240
       "n\xFAt m\xE0n setting_77": -10577257
       "n\xFAt m\xE0n setting_78": -460896084
       "n\xFAt m\xE0n setting_79": -133143742
@@ -604,7 +584,6 @@ TextureImporter:
       "n\xFAt m\xE0n setting_81": -724626525
       "n\xFAt m\xE0n setting_83": 668726160
       "n\xFAt m\xE0n setting_84": 2056870692
-      "n\xFAt m\xE0n setting_85": -1631908857
       "n\xFAt m\xE0n setting_86": 1875211442
       "n\xFAt m\xE0n setting_87": -829297092
       "n\xFAt m\xE0n setting_9": 1902772172
