@@ -389,19 +389,21 @@ public class ChipsetController : MonoBehaviour
 
     public void InitializeDatabase()
     {
-        if (allChips.Count > 0)
+        if (allChips.Count == 0)
         {
-            ApplyTierUnlockRulesToCatalog();
-            return;
+            allChips = CreateSavedDatabase();
         }
 
-        allChips = CreateSavedDatabase();
         ApplyTierUnlockRulesToCatalog();
         InitializeDefaultDecks();
         activeDeckIndex = PlayerDataService.ActiveChipsetDeckIndex;
         for (int i = 0; i < deckEquippedIds.Length; i++)
         {
             deckEquippedIds[i] = PlayerDataService.LoadChipsetDeck(i, deckEquippedIds[i]);
+            if (deckEquippedIds[i] == null || deckEquippedIds[i].Length == 0 || deckEquippedIds[i].All(id => id <= 0))
+            {
+                deckEquippedIds[i] = GetDefaultDeckIds(i);
+            }
         }
     }
 
@@ -1141,12 +1143,96 @@ public class ChipsetController : MonoBehaviour
         OpenDetailModal(chip);
     }
 
+    public void AutoWireDetailModalIfMissing()
+    {
+        if (detailModal == null)
+        {
+            var allGo = Resources.FindObjectsOfTypeAll<GameObject>();
+            detailModal = allGo.FirstOrDefault(g => (g.name == "ChipsetDetailModal" || g.name == "DetailModal") && g.scene.isLoaded);
+            if (detailModal == null)
+            {
+                Canvas canvas = GetComponentInParent<Canvas>() ?? FindObjectOfType<Canvas>();
+                if (canvas != null)
+                {
+                    Transform t = canvas.transform.Find("ChipsetDetailModal")
+                               ?? canvas.transform.Find("Content/ChipsetDetailModal")
+                               ?? canvas.transform.Find("Content/ChipsetPanel/ChipsetDetailModal")
+                               ?? canvas.transform.Find("DetailModal");
+                    if (t != null) detailModal = t.gameObject;
+                }
+            }
+        }
+
+        if (detailModal != null)
+        {
+            if (detailCloseBtn == null)
+            {
+                var btns = detailModal.GetComponentsInChildren<Button>(true);
+                detailCloseBtn = btns.FirstOrDefault(b => b.name.IndexOf("Close", StringComparison.OrdinalIgnoreCase) >= 0);
+            }
+            if (detailCloseBtn != null)
+            {
+                detailCloseBtn.onClick.RemoveAllListeners();
+                detailCloseBtn.onClick.AddListener(() => detailModal.SetActive(false));
+            }
+
+            if (detailEnhanceBtn == null)
+            {
+                var btns = detailModal.GetComponentsInChildren<Button>(true);
+                detailEnhanceBtn = btns.FirstOrDefault(b => b.name.IndexOf("Enhance", StringComparison.OrdinalIgnoreCase) >= 0);
+            }
+            if (detailEnhanceBtn != null)
+            {
+                detailEnhanceBtn.onClick.RemoveAllListeners();
+                detailEnhanceBtn.onClick.AddListener(EnhanceSelectedChip);
+            }
+
+            if (detailAdvanceTierBtn == null)
+            {
+                var btns = detailModal.GetComponentsInChildren<Button>(true);
+                detailAdvanceTierBtn = btns.FirstOrDefault(b => b.name.IndexOf("Advance", StringComparison.OrdinalIgnoreCase) >= 0);
+            }
+            if (detailAdvanceTierBtn != null)
+            {
+                detailAdvanceTierBtn.onClick.RemoveAllListeners();
+                detailAdvanceTierBtn.onClick.AddListener(AdvanceTierSelectedChip);
+            }
+
+            if (detailEquipBtn == null)
+            {
+                var btns = detailModal.GetComponentsInChildren<Button>(true);
+                detailEquipBtn = btns.FirstOrDefault(b => b.name.IndexOf("Equip", StringComparison.OrdinalIgnoreCase) >= 0);
+            }
+            if (detailEquipBtn != null)
+            {
+                detailEquipBtn.onClick.RemoveAllListeners();
+                detailEquipBtn.onClick.AddListener(ToggleEquipSelectedChip);
+            }
+
+            if (detailTopCard == null) detailTopCard = detailModal.GetComponentInChildren<ChipsetCardUI>(true);
+            if (detailNameText == null) detailNameText = detailModal.transform.Find("ModalBox/Name")?.GetComponent<TMP_Text>() ?? detailModal.transform.Find("Box/Name")?.GetComponent<TMP_Text>();
+            if (detailTierText == null) detailTierText = detailModal.transform.Find("ModalBox/Tier")?.GetComponent<TMP_Text>() ?? detailModal.transform.Find("Box/Tier")?.GetComponent<TMP_Text>();
+            if (detailDescText == null) detailDescText = detailModal.transform.Find("ModalBox/Description")?.GetComponent<TMP_Text>() ?? detailModal.transform.Find("Box/Desc")?.GetComponent<TMP_Text>();
+            if (detailBaseStatsText == null) detailBaseStatsText = detailModal.transform.Find("ModalBox/BaseStat")?.GetComponent<TMP_Text>() ?? detailModal.transform.Find("Box/BaseStats")?.GetComponent<TMP_Text>();
+            if (detailModBadgeText == null) detailModBadgeText = detailModal.transform.Find("ModalBox/ModBadge/BadgeLabel")?.GetComponent<TMP_Text>();
+        }
+    }
+
     public void OpenDetailModal(ChipItemData chip)
     {
-        if (chip == null || detailModal == null) return;
+        if (chip == null) return;
+        AutoWireDetailModalIfMissing();
+
+        if (detailModal == null)
+        {
+            Debug.LogWarning("[ChipsetController] detailModal is not assigned or found in scene!");
+            return;
+        }
+
         selectedDetailChip = chip;
         RefreshDetailModal();
         detailModal.SetActive(true);
+        detailModal.transform.SetAsLastSibling();
     }
 
     public void RefreshDetailModal()
@@ -1392,40 +1478,97 @@ public class ChipsetController : MonoBehaviour
         ShowToast($"Dismantled {dismantledPieces} fragments! Gained +{gainedCurrency:N0} Chips!");
     }
 
-    private Sprite GetIconSprite(string key)
+    public void LoadVisualLibraryIfMissing()
     {
-        if (chipIcons == null || chipIcons.Length == 0) return null;
-        if (string.IsNullOrEmpty(key)) return chipIcons[0];
+        if (tierVisualLibrary == null)
+        {
+            tierVisualLibrary = Resources.Load<ChipsetLevelVisualLibrary>("ChipsetLevelVisualLibrary");
+#if UNITY_EDITOR
+            if (tierVisualLibrary == null)
+            {
+                tierVisualLibrary = UnityEditor.AssetDatabase.LoadAssetAtPath<ChipsetLevelVisualLibrary>("Assets/Resources/ChipsetLevelVisualLibrary.asset");
+            }
+#endif
+        }
+
+        if (tierVisualLibrary != null)
+        {
+            if (tierVisualLibrary.primaryChipIcons != null && tierVisualLibrary.primaryChipIcons.Length > 0 &&
+                (chipIcons == null || chipIcons.Length == 0 || chipIcons.Any(s => s == null)))
+            {
+                chipIcons = tierVisualLibrary.primaryChipIcons;
+            }
+
+            if (tierVisualLibrary.mainMenuTierFrames != null && tierVisualLibrary.mainMenuTierFrames.Length > 0 &&
+                (frameSprites == null || frameSprites.Length == 0 || frameSprites.Any(s => s == null)))
+            {
+                frameSprites = tierVisualLibrary.mainMenuTierFrames;
+            }
+        }
+    }
+
+    public Sprite GetIconSprite(string key)
+    {
+        LoadVisualLibraryIfMissing();
+
+        Sprite[] icons = (tierVisualLibrary != null && tierVisualLibrary.primaryChipIcons != null && tierVisualLibrary.primaryChipIcons.Length > 0)
+            ? tierVisualLibrary.primaryChipIcons
+            : chipIcons;
+
+        if (icons == null || icons.Length == 0)
+        {
+            LoadChipIconsIfMissing();
+            icons = chipIcons;
+        }
+
+        if (icons == null || icons.Length == 0) return null;
+        if (string.IsNullOrEmpty(key)) return icons[0];
+
+        // 1. Nếu key là số ID (1..10)
+        if (int.TryParse(key, out int id) && id >= 1 && id <= icons.Length)
+        {
+            if (icons[id - 1] != null) return icons[id - 1];
+        }
 
         string cleanKey = key.Replace(" ", "").Replace("-", "").Replace("_", "").ToLowerInvariant();
 
-        // 1. Khớp chính xác tên sprite
-        Sprite match = chipIcons.FirstOrDefault(s => s != null && (
+        // 2. Tra cứu trực tiếp theo vị trí index 10 chipset chuẩn trong Resources
+        if (cleanKey.Contains("standard") || cleanKey.Contains("tieuchuan") || cleanKey == "1") return icons.Length > 0 ? icons[0] : null;
+        if (cleanKey.Contains("rifle") || cleanKey.Contains("truong") || cleanKey == "2") return icons.Length > 1 ? icons[1] : null;
+        if (cleanKey.Contains("punch") || cleanKey.Contains("rocket") || cleanKey.Contains("tenlua") || cleanKey == "3") return icons.Length > 2 ? icons[2] : null;
+        if (cleanKey.Contains("blade") || cleanKey.Contains("spinning") || cleanKey.Contains("dao") || cleanKey == "4") return icons.Length > 3 ? icons[3] : null;
+        if (cleanKey.Contains("multi") || cleanKey.Contains("datia") || cleanKey == "5") return icons.Length > 4 ? icons[4] : null;
+        if (cleanKey.Contains("turret") || cleanKey.Contains("thap") || cleanKey == "6") return icons.Length > 5 ? icons[5] : null;
+        if (cleanKey.Contains("discus") || cleanKey.Contains("spiky") || cleanKey.Contains("gai") || cleanKey == "7") return icons.Length > 6 ? icons[6] : null;
+        if (cleanKey.Contains("shotgun") || cleanKey.Contains("san") || cleanKey == "8") return icons.Length > 7 ? icons[7] : null;
+        if (cleanKey.Contains("cable") || cleanKey.Contains("jumper") || cleanKey.Contains("hoimau") || cleanKey == "9") return icons.Length > 8 ? icons[8] : null;
+        if (cleanKey.Contains("mine") || cleanKey.Contains("min") || cleanKey.Contains("explosive") || cleanKey == "10") return icons.Length > 9 ? icons[9] : null;
+
+        // 3. Khớp theo tên sprite
+        Sprite match = icons.FirstOrDefault(s => s != null && (
             string.Equals(s.name, key, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(s.name.Replace(" ", "").Replace("-", "").Replace("_", "").ToLowerInvariant(), cleanKey)
+            string.Equals(s.name.Replace(" ", "").Replace("-", "").Replace("_", "").ToLowerInvariant(), cleanKey) ||
+            s.name.Replace(" ", "").Replace("-", "").Replace("_", "").IndexOf(cleanKey, StringComparison.OrdinalIgnoreCase) >= 0
         ));
         if (match != null) return match;
 
-        // 2. Ánh xạ số cho icon chipset (1..10)
-        string numKey = null;
-        if (cleanKey.Contains("highexplosive") || cleanKey.Contains("mine") && !cleanKey.Contains("blackhole") && !cleanKey.Contains("biochemical")) numKey = "1";
-        else if (cleanKey.Contains("energyjumper") || cleanKey.Contains("jumpercable")) numKey = "2";
-        else if (cleanKey.Contains("shotgun")) numKey = "3";
-        else if (cleanKey.Contains("spiky") || cleanKey.Contains("discus") || cleanKey.Contains("spicky")) numKey = "4";
-        else if (cleanKey.Contains("gunturret") || cleanKey.Equals("turret")) numKey = "5";
-        else if (cleanKey.Contains("multigun")) numKey = "6";
-        else if (cleanKey.Contains("spinningblade") || cleanKey.Contains("blade")) numKey = "7";
-        else if (cleanKey.Contains("rocketpunch") || cleanKey.Contains("punch")) numKey = "8";
-        else if (cleanKey.Contains("standardgun") || cleanKey.Equals("gun") || cleanKey.Equals("pistol")) numKey = "9";
-        else if (cleanKey.Contains("rifle") || cleanKey.Contains("assault")) numKey = "10";
+        return icons[0];
+    }
 
-        if (!string.IsNullOrEmpty(numKey))
+    private static Sprite FindIconIn(Sprite[] source, params string[] keywords)
+    {
+        if (source == null) return null;
+        foreach (var s in source)
         {
-            match = chipIcons.FirstOrDefault(s => s != null && s.name == numKey);
-            if (match != null) return match;
+            if (s == null) continue;
+            string sName = s.name.ToLowerInvariant();
+            foreach (var kw in keywords)
+            {
+                if (sName.Contains(kw.ToLowerInvariant()))
+                    return s;
+            }
         }
-
-        return chipIcons[0];
+        return source.FirstOrDefault(s => s != null);
     }
 
     public static int GetFrameIndex(ChipTier tier)
@@ -1451,19 +1594,70 @@ public class ChipsetController : MonoBehaviour
         }
     }
 
-    private Sprite GetFrameSprite(ChipTier tier)
+    public void LoadChipIconsIfMissing()
     {
+        LoadVisualLibraryIfMissing();
+        if (chipIcons != null && chipIcons.Length > 0 && chipIcons.All(s => s != null))
+            return;
+
+#if UNITY_EDITOR
+        string path = "Assets/Sprites/UI/Chipset/icon chipset.png";
+        Sprite[] sprites = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(path).OfType<Sprite>().ToArray();
+        if (sprites != null && sprites.Length > 0)
+        {
+            chipIcons = sprites;
+        }
+#endif
+    }
+
+    public void LoadFrameSpritesIfMissing()
+    {
+        LoadVisualLibraryIfMissing();
+        if (frameSprites != null && frameSprites.Length >= 5 && frameSprites.All(s => s != null))
+            return;
+
+#if UNITY_EDITOR
+        string path = "Assets/Sprites/UI/Chipset/khung chipset (1).png";
+        Sprite[] sprites = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(path).OfType<Sprite>().ToArray();
+        if (sprites != null && sprites.Length > 0)
+        {
+            Sprite green = sprites.FirstOrDefault(s => s.name.Equals("ChipsetGreen", StringComparison.OrdinalIgnoreCase));
+            Sprite blue = sprites.FirstOrDefault(s => s.name.Equals("ChipsetBlue", StringComparison.OrdinalIgnoreCase));
+            Sprite purple = sprites.FirstOrDefault(s => s.name.Equals("ChipsetPurple", StringComparison.OrdinalIgnoreCase));
+            Sprite yellow = sprites.FirstOrDefault(s => s.name.Equals("ChipsetYelloe", StringComparison.OrdinalIgnoreCase) || s.name.Equals("ChipsetYellow", StringComparison.OrdinalIgnoreCase));
+            Sprite red = sprites.FirstOrDefault(s => s.name.Equals("ChipsetRed", StringComparison.OrdinalIgnoreCase));
+
+            frameSprites = new Sprite[5]
+            {
+                green ?? sprites[0],
+                blue ?? green ?? sprites[0],
+                purple ?? green ?? sprites[0],
+                yellow ?? green ?? sprites[0],
+                red ?? green ?? sprites[0]
+            };
+        }
+#endif
+    }
+
+    public Sprite GetFrameSprite(ChipTier tier)
+    {
+        LoadVisualLibraryIfMissing();
         int index = GetFrameIndex(tier);
+
         if (tierVisualLibrary != null &&
             tierVisualLibrary.mainMenuTierFrames != null &&
-            index < tierVisualLibrary.mainMenuTierFrames.Length &&
+            tierVisualLibrary.mainMenuTierFrames.Length > index &&
             tierVisualLibrary.mainMenuTierFrames[index] != null)
         {
             return tierVisualLibrary.mainMenuTierFrames[index];
         }
 
-        if (frameSprites == null || frameSprites.Length == 0) return null;
-        return frameSprites[Mathf.Clamp(index, 0, frameSprites.Length - 1)];
+        if (frameSprites != null && frameSprites.Length > index && frameSprites[index] != null)
+        {
+            return frameSprites[index];
+        }
+
+        return frameSprites != null && frameSprites.Length > 0 ? frameSprites[0] : null;
     }
 
     private void ShowToast(string message)

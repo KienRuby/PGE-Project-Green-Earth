@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public enum ChipSlotState
@@ -10,7 +11,7 @@ public enum ChipSlotState
     Empty = 1
 }
 
-public class ChipsetCardUI : MonoBehaviour
+public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
 {
     [Header("UI Elements")]
     [SerializeField] private Image cardFrameImage;
@@ -47,6 +48,18 @@ public class ChipsetCardUI : MonoBehaviour
     private void Awake()
     {
         ResolveReferences();
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (slotState == ChipSlotState.Normal && boundData != null)
+        {
+            onCardClicked?.Invoke(boundData);
+        }
+        else if (slotState == ChipSlotState.Empty)
+        {
+            onEmptySlotClicked?.Invoke();
+        }
     }
 
     private void Update()

@@ -108,7 +108,112 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
-    sprites: []
+    sprites:
+    - serializedVersion: 2
+      name: Drone
+      rect:
+        serializedVersion: 2
+        x: 110
+        y: 3142
+        width: 930
+        height: 260
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 24be19e514a9cbf4db621abd3d5ca582
+      internalID: -1639818199
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Robot Pet On
+      rect:
+        serializedVersion: 2
+        x: 1118
+        y: 3142
+        width: 930
+        height: 260
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5f250d1ddb3880e42b7307cb448177a2
+      internalID: -1973487918
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Robot Pet OFF
+      rect:
+        serializedVersion: 2
+        x: 1118
+        y: 2839
+        width: 930
+        height: 260
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 07bbb93974c144846b18671af2c24d39
+      internalID: -1471736010
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: khung
+      rect:
+        serializedVersion: 2
+        x: 501
+        y: 2224
+        width: 330
+        height: 408
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 847af1b6397c2234d88cbafcfd649d3b
+      internalID: 1717482901
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Empty
+      rect:
+        serializedVersion: 2
+        x: 922
+        y: 2224
+        width: 330
+        height: 408
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4b57cb31f5c90894193d2ad8f6463a87
+      internalID: -728055751
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -119,7 +224,52 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Drone: -1639818199
+      Empty: -728055751
+      Robot Pet OFF: -1471736010
+      Robot Pet On: -1973487918
+      khung: 1717482901
+      "n\xFAt m\xE0n buddy_1": 143538600
+      "n\xFAt m\xE0n buddy_10": 680900286
+      "n\xFAt m\xE0n buddy_11": 1470030263
+      "n\xFAt m\xE0n buddy_12": 1556688680
+      "n\xFAt m\xE0n buddy_13": -1339791017
+      "n\xFAt m\xE0n buddy_14": -628886831
+      "n\xFAt m\xE0n buddy_15": -1788013624
+      "n\xFAt m\xE0n buddy_16": 256450404
+      "n\xFAt m\xE0n buddy_17": -1121111814
+      "n\xFAt m\xE0n buddy_18": 1113383682
+      "n\xFAt m\xE0n buddy_20": -1880283960
+      "n\xFAt m\xE0n buddy_21": -285429678
+      "n\xFAt m\xE0n buddy_22": 1959378468
+      "n\xFAt m\xE0n buddy_23": 1537073422
+      "n\xFAt m\xE0n buddy_25": 1777805159
+      "n\xFAt m\xE0n buddy_26": 64541433
+      "n\xFAt m\xE0n buddy_27": -1602380628
+      "n\xFAt m\xE0n buddy_28": -655020269
+      "n\xFAt m\xE0n buddy_29": 1121863271
+      "n\xFAt m\xE0n buddy_3": -658510740
+      "n\xFAt m\xE0n buddy_30": -406848600
+      "n\xFAt m\xE0n buddy_31": -1606640775
+      "n\xFAt m\xE0n buddy_32": -960736056
+      "n\xFAt m\xE0n buddy_33": 578748673
+      "n\xFAt m\xE0n buddy_34": -1812396912
+      "n\xFAt m\xE0n buddy_36": 1094256943
+      "n\xFAt m\xE0n buddy_37": 246189262
+      "n\xFAt m\xE0n buddy_38": 432687053
+      "n\xFAt m\xE0n buddy_39": -1109209873
+      "n\xFAt m\xE0n buddy_4": -448844799
+      "n\xFAt m\xE0n buddy_40": 932210160
+      "n\xFAt m\xE0n buddy_41": -1387940195
+      "n\xFAt m\xE0n buddy_42": 1850720783
+      "n\xFAt m\xE0n buddy_43": -2040491094
+      "n\xFAt m\xE0n buddy_44": 1812967195
+      "n\xFAt m\xE0n buddy_45": -279491839
+      "n\xFAt m\xE0n buddy_6": 1353869429
+      "n\xFAt m\xE0n buddy_7": -1880423065
+      "n\xFAt m\xE0n buddy_8": -1850105560
+      "n\xFAt m\xE0n buddy_9": 1695712683
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

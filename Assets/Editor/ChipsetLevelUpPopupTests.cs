@@ -193,4 +193,32 @@ public class ChipsetLevelUpPopupTests
             UnityEngine.Object.DestroyImmediate(go);
         }
     }
+
+    [Test]
+    public void Victory_CancelsAndHidesLevelUpPopupImmediately()
+    {
+        UnityEngine.GameObject popupObject = new UnityEngine.GameObject("VictoryPopupTest");
+        ChipsetLevelUpPopup popup = popupObject.AddComponent<ChipsetLevelUpPopup>();
+        UnityEngine.GameObject popupRoot = new UnityEngine.GameObject("PopupRoot");
+        popupRoot.SetActive(true);
+        popup.InitializeReferences(null, popupRoot, null, null, null, null, null, null, null, null, null, null);
+
+        float originalTimeScale = UnityEngine.Time.timeScale;
+        try
+        {
+            UnityEngine.Time.timeScale = 0f;
+            popup.CancelForVictory();
+
+            Assert.That(popup.IsVictoryLocked, Is.True);
+            Assert.That(popupRoot.activeSelf, Is.False);
+            Assert.That(UnityEngine.Time.timeScale, Is.Zero,
+                "Popup không được tự mở lại gameplay sau khi Victory đã sở hữu trạng thái pause.");
+        }
+        finally
+        {
+            UnityEngine.Time.timeScale = originalTimeScale;
+            UnityEngine.Object.DestroyImmediate(popupRoot);
+            UnityEngine.Object.DestroyImmediate(popupObject);
+        }
+    }
 }

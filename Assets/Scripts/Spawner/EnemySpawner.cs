@@ -629,6 +629,7 @@ public class EnemySpawner : MonoBehaviour
 
         isStageCompleted = true;
         currentState = WaveState.StageVictory;
+        PlayerLevelController.Instance?.LockLevelUpsForVictory();
 
         Debug.Log($"[EnemySpawner] 🏆🏆 CHIẾN THẮNG MÀN CHƠI (STAGE CLEAR)! TOÀN BỘ WAVE ĐÃ ĐƯỢC CHINH PHỤC!");
 

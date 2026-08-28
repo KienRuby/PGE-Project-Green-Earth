@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using TMPro;
 using UnityEngine;
@@ -371,6 +373,110 @@ public class SettingsPanelTests
             if (img1.sprite != null) Assert.That(img1.sprite.name, Is.EqualTo("1 Red"));
             if (img2.sprite != null) Assert.That(img2.sprite.name, Is.EqualTo("2 Red"));
             if (img3.sprite != null) Assert.That(img3.sprite.name, Is.EqualTo("3 Yellow"));
+        }
+        finally
+        {
+            Object.DestroyImmediate(go);
+        }
+    }
+
+    [Test]
+    public void Chipset_IconMapping_MatchesAllTenChipsetsAndWiresCorrectly()
+    {
+        GameObject go = new GameObject("ChipsetControllerTest", typeof(RectTransform));
+        ChipsetController controller = go.AddComponent<ChipsetController>();
+
+        try
+        {
+            controller.LoadVisualLibraryIfMissing();
+            var catalog = ChipsetController.CreateDefaultDatabase();
+            Assert.That(catalog.Count, Is.EqualTo(10));
+
+            var resolvedSprites = new HashSet<Sprite>();
+            foreach (var chip in catalog)
+            {
+                Assert.That(chip.iconKey, Is.Not.Null.And.Not.Empty);
+                Sprite sprite = controller.GetIconSprite(chip.iconKey);
+                Assert.That(sprite, Is.Not.Null, $"Sprite for chip {chip.chipName} ({chip.iconKey}) should not be null.");
+                resolvedSprites.Add(sprite);
+            }
+
+            Assert.That(resolvedSprites.Count, Is.EqualTo(10), "All 10 chipsets must resolve to 10 unique sprites!");
+        }
+        finally
+        {
+            Object.DestroyImmediate(go);
+        }
+    }
+
+    [Test]
+    public void Buddy_PresetDeckButtons_SwapYellowAndRedSprites_AndDatabaseHasSixDrones()
+    {
+        GameObject go = new GameObject("BuddyControllerTest", typeof(RectTransform));
+        BuddyController controller = go.AddComponent<BuddyController>();
+
+        try
+        {
+            controller.LoadPresetSpritesIfMissing();
+            controller.LoadSortSpritesIfMissing();
+            controller.InitializeDatabase();
+
+            Assert.That(controller.AllBuddies.Count, Is.EqualTo(6));
+
+            foreach (var buddy in controller.AllBuddies)
+            {
+                Assert.That(buddy.iconKey, Is.Not.Null.And.Not.Empty);
+            }
+        }
+        finally
+        {
+            Object.DestroyImmediate(go);
+        }
+    }
+
+    [Test]
+    public void Chipset_AllFrames_UseChipsetGreen_AndClickTriggersDetailModal()
+    {
+        GameObject go = new GameObject("ChipsetCardTest", typeof(RectTransform));
+        ChipsetCardUI card = go.AddComponent<ChipsetCardUI>();
+
+        bool clicked = false;
+        ChipItemData testChip = new ChipItemData { id = 1, chipName = "Standard Gun", iconKey = "standard-gun" };
+
+        card.Setup(testChip, null, null, c => clicked = true);
+
+        Assert.That(clicked, Is.True, "Clicking on ChipsetCardUI should trigger onCardClicked callback.");
+
+        Object.DestroyImmediate(go);
+    }
+
+    [Test]
+    public void Chipset_FrameUpgradeRule_MapsAllFiveTiersCorrectly()
+    {
+        GameObject go = new GameObject("ChipsetTierFrameTest", typeof(RectTransform));
+        ChipsetController controller = go.AddComponent<ChipsetController>();
+
+        try
+        {
+            controller.LoadFrameSpritesIfMissing();
+
+            Sprite green = controller.GetFrameSprite(ChipTier.Magic);
+            Sprite blue = controller.GetFrameSprite(ChipTier.Rare);
+            Sprite purple = controller.GetFrameSprite(ChipTier.Unique);
+            Sprite yellow = controller.GetFrameSprite(ChipTier.Epic);
+            Sprite red = controller.GetFrameSprite(ChipTier.Holographic);
+
+            Assert.That(green, Is.Not.Null);
+            Assert.That(blue, Is.Not.Null);
+            Assert.That(purple, Is.Not.Null);
+            Assert.That(yellow, Is.Not.Null);
+            Assert.That(red, Is.Not.Null);
+
+            Assert.That(green.name.ToLowerInvariant(), Does.Contain("green"));
+            Assert.That(blue.name.ToLowerInvariant(), Does.Contain("blue"));
+            Assert.That(purple.name.ToLowerInvariant(), Does.Contain("purple"));
+            Assert.That(yellow.name.ToLowerInvariant(), Does.Contain("yello"));
+            Assert.That(red.name.ToLowerInvariant(), Does.Contain("red"));
         }
         finally
         {

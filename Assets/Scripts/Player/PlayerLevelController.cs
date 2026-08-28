@@ -23,6 +23,7 @@ public class PlayerLevelController : MonoBehaviour
 
     private int currentLevel = 1;
     private int currentExp = 0;
+    private bool levelUpLocked;
 
     // Events
     public event Action<int, int, float> OnEXPChanged; // (currentExp, maxExp, progress 0..1)
@@ -33,6 +34,7 @@ public class PlayerLevelController : MonoBehaviour
     public int CurrentEXP => currentExp;
     public int MaxEXP => CalculateMaxExpForLevel(currentLevel);
     public float EXPProgress => MaxEXP > 0 ? Mathf.Clamp01((float)currentExp / MaxEXP) : 0f;
+    public bool IsLevelUpLocked => levelUpLocked;
 
     private void Awake()
     {
@@ -45,6 +47,7 @@ public class PlayerLevelController : MonoBehaviour
 
         currentLevel = Mathf.Max(1, startingLevel);
         currentExp = 0;
+        levelUpLocked = false;
     }
 
     private void Start()
@@ -68,7 +71,7 @@ public class PlayerLevelController : MonoBehaviour
 
     public void AddEXP(int amount)
     {
-        if (amount <= 0) return;
+        if (amount <= 0 || levelUpLocked) return;
 
         currentExp += amount;
 
@@ -81,6 +84,15 @@ public class PlayerLevelController : MonoBehaviour
         }
 
         NotifyExpChanged();
+    }
+
+    /// <summary>
+    /// Khóa vĩnh viễn việc nhận EXP trong phần còn lại của trận sau khi đã thắng.
+    /// Scene gameplay mới sẽ tạo controller mới và tự mở khóa trong Awake.
+    /// </summary>
+    public void LockLevelUpsForVictory()
+    {
+        levelUpLocked = true;
     }
 
     public void SetLevelAndExpForTesting(int level, int exp)

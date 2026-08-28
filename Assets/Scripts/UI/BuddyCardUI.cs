@@ -1,6 +1,7 @@
 using System;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public enum BuddySlotState
@@ -10,7 +11,7 @@ public enum BuddySlotState
     Locked = 2
 }
 
-public class BuddyCardUI : MonoBehaviour
+public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
 {
     [Header("UI Elements")]
     [SerializeField] private Image cardFrameImage;
@@ -37,6 +38,22 @@ public class BuddyCardUI : MonoBehaviour
     private void Awake()
     {
         ResolveReferences();
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (slotState == BuddySlotState.Normal && boundData != null)
+        {
+            onCardClicked?.Invoke(boundData);
+        }
+        else if (slotState == BuddySlotState.Empty)
+        {
+            onEmptySlotClicked?.Invoke();
+        }
+        else if (slotState == BuddySlotState.Locked)
+        {
+            onLockedSlotClicked?.Invoke();
+        }
     }
 
     private void ResolveReferences()

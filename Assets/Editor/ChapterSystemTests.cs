@@ -703,6 +703,27 @@ public class ChapterSystemTests
     }
 
     [Test]
+    public void PlayerLevelController_VictoryLock_BlocksFurtherExpAndLevelUps()
+    {
+        GameObject go = new GameObject("TestVictoryLevelLock");
+        PlayerLevelController levelCtrl = go.AddComponent<PlayerLevelController>();
+        levelCtrl.SetLevelAndExpForTesting(1, levelCtrl.CalculateMaxExpForLevel(1) - 1);
+        int levelUpEvents = 0;
+        levelCtrl.OnLevelUp += _ => levelUpEvents++;
+
+        levelCtrl.LockLevelUpsForVictory();
+        int expBeforeVictory = levelCtrl.CurrentEXP;
+        levelCtrl.AddEXP(9999);
+
+        Assert.That(levelCtrl.IsLevelUpLocked, Is.True);
+        Assert.That(levelCtrl.CurrentLevel, Is.EqualTo(1));
+        Assert.That(levelCtrl.CurrentEXP, Is.EqualTo(expBeforeVictory));
+        Assert.That(levelUpEvents, Is.Zero);
+
+        GameObject.DestroyImmediate(go);
+    }
+
+    [Test]
     public void EnemyHealth_Die_AwardsEXPToPlayerLevelController()
     {
         GameObject playerGo = new GameObject("TestPlayerWithLevel");

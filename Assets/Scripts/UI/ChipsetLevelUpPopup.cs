@@ -50,11 +50,13 @@ public class ChipsetLevelUpPopup : MonoBehaviour
     private bool isShowing;
     private bool acceptingInput;
     private bool ownsTimeScale;
+    private bool victoryLocked;
     private float previousTimeScale = 1f;
 
     public static event Action<ChipItemData, int> OnRuntimeChipsetSelected;
 
     public bool IsShowing => isShowing;
+    public bool IsVictoryLocked => victoryLocked;
     public IReadOnlyDictionary<int, int> RuntimeChipLevels => runtimeChipLevels;
     public IReadOnlyList<ChipItemData> CurrentOffers => currentOffers;
     public int MaxRerollsPerLevel
@@ -131,13 +133,37 @@ public class ChipsetLevelUpPopup : MonoBehaviour
 
     private void HandleLevelUp(int newLevel)
     {
+        if (victoryLocked) return;
+
         pendingLevels.Enqueue(newLevel);
         if (!isShowing) OpenNextLevelSelection();
     }
 
+    /// <summary>
+    /// Hủy mọi lựa chọn lên cấp đang mở/chờ khi trận đấu đã kết thúc.
+    /// Không khôi phục timeScale vì VictoryPanel sẽ sở hữu trạng thái pause từ thời điểm này.
+    /// </summary>
+    public void CancelForVictory()
+    {
+        victoryLocked = true;
+        pendingLevels.Clear();
+        acceptingInput = false;
+        isShowing = false;
+        SetCardInteraction(false);
+
+        if (transitionRoutine != null)
+        {
+            StopCoroutine(transitionRoutine);
+            transitionRoutine = null;
+        }
+
+        if (popupRoot != null) popupRoot.SetActive(false);
+        ownsTimeScale = false;
+    }
+
     private void OpenNextLevelSelection()
     {
-        if (pendingLevels.Count == 0 || popupRoot == null) return;
+        if (victoryLocked || pendingLevels.Count == 0 || popupRoot == null) return;
 
         // Đọc lại preset và tiến trình mới nhất trước mỗi lần lên cấp.
         catalog = CreateRuntimeCatalog();

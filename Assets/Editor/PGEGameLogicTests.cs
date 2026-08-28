@@ -2014,6 +2014,26 @@ public class PGEGameLogicTests
     }
 
     [Test]
+    public void Chipset_DetailModal_WithUninitializedDeck_DoesNotThrow()
+    {
+        GameObject controllerGo = new GameObject("ChipsetNullDeckTest");
+        ChipsetController controller = controllerGo.AddComponent<ChipsetController>();
+        GameObject detailModal = new GameObject("DetailModal");
+        detailModal.SetActive(false);
+
+        var type = typeof(ChipsetController);
+        type.GetField("detailModal", BindingFlags.NonPublic | BindingFlags.Instance)?.SetValue(controller, detailModal);
+        type.GetField("deckEquippedIds", BindingFlags.NonPublic | BindingFlags.Instance)?.SetValue(controller, new int[3][]);
+
+        ChipItemData chip = ChipsetController.CreateDefaultDatabase()[0];
+        Assert.DoesNotThrow(() => controller.OpenDetailModal(chip));
+        Assert.That(detailModal.activeSelf, Is.True);
+
+        Object.DestroyImmediate(detailModal);
+        Object.DestroyImmediate(controllerGo);
+    }
+
+    [Test]
     public void Buddy_InventoryCards_CanBeClickedAndOpenModal()
     {
         GameObject controllerGo = new GameObject("BuddyControllerTest");

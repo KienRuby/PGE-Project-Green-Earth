@@ -24,6 +24,12 @@ public sealed class VictoryPanelController : MonoBehaviour
     [Tooltip("Controller Game Over để khóa kết quả thua khi Victory đã xuất hiện.")]
     [SerializeField] private PlayerRunEndController playerRunEndController;
 
+    [Tooltip("Khóa nhận EXP và phát sinh level-up mới ngay khi thắng.")]
+    [SerializeField] private PlayerLevelController playerLevelController;
+
+    [Tooltip("Popup chọn chipset sẽ bị hủy ngay nếu quái cuối đồng thời làm người chơi lên cấp.")]
+    [SerializeField] private ChipsetLevelUpPopup chipsetLevelUpPopup;
+
     [Header("Màn Victory")]
     [Tooltip("Toàn bộ panel Victory phủ lên gameplay.")]
     [SerializeField] private GameObject victoryPanel;
@@ -163,6 +169,10 @@ public sealed class VictoryPanelController : MonoBehaviour
     {
         if (enemySpawner == null) enemySpawner = FindObjectOfType<EnemySpawner>();
         if (playerRunEndController == null) playerRunEndController = FindObjectOfType<PlayerRunEndController>();
+        if (playerLevelController == null) playerLevelController = PlayerLevelController.Instance != null
+            ? PlayerLevelController.Instance
+            : FindObjectOfType<PlayerLevelController>();
+        if (chipsetLevelUpPopup == null) chipsetLevelUpPopup = FindObjectOfType<ChipsetLevelUpPopup>(true);
     }
 
     private void BindButtons()
@@ -206,6 +216,10 @@ public sealed class VictoryPanelController : MonoBehaviour
 
         victoryVisible = true;
         vipBonusClaimed = false;
+
+        playerLevelController?.LockLevelUpsForVictory();
+        chipsetLevelUpPopup?.CancelForVictory();
+
         timeScaleBeforeVictory = Time.timeScale > 0f ? Time.timeScale : 1f;
         ownsGameplayPause = true;
         Time.timeScale = 0f;
@@ -218,6 +232,7 @@ public sealed class VictoryPanelController : MonoBehaviour
         PopulateResult();
         SetPanelActive(detailsPanel, false);
         SetPanelActive(victoryPanel, true);
+        if (victoryPanel != null) victoryPanel.transform.SetAsLastSibling();
         ChipsetBattleStats.FinalizeBattle();
 
         int chapterNumber = PlayerDataService.SelectedChapterIndex + 1;

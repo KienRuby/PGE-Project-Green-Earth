@@ -101,6 +101,14 @@ public class BuddyController : MonoBehaviour
     [SerializeField] private TMP_Text preset2Text;
     [SerializeField] private TMP_Text preset3Text;
 
+    [Header("Preset Button Sprites")]
+    [SerializeField] private Sprite preset1YellowSprite;
+    [SerializeField] private Sprite preset1RedSprite;
+    [SerializeField] private Sprite preset2YellowSprite;
+    [SerializeField] private Sprite preset2RedSprite;
+    [SerializeField] private Sprite preset3YellowSprite;
+    [SerializeField] private Sprite preset3RedSprite;
+
     [Header("Equipped Slots (3 Slots)")]
     [SerializeField] private BuddyCardUI[] equippedSlots = new BuddyCardUI[3];
 
@@ -150,18 +158,20 @@ public class BuddyController : MonoBehaviour
     [Header("Sprites Database")]
     [SerializeField] private Sprite[] droneIcons;
     [SerializeField] private Sprite[] frameSprites;
+    [SerializeField] private Sprite emptySlotFrameSprite;
+    [SerializeField] private Sprite lockedSlotFrameSprite;
     [SerializeField] private Sprite upgradeArrowSprite;
     [SerializeField] private Sprite lockSlotSprite;
     [SerializeField] private Sprite[] lockTierSprites = new Sprite[4]; // 0: Magic, 1: Rare, 2: Unique, 3: Epic
     [SerializeField] private Sprite unlockedCheckSprite;
 
     private int activeDeckIndex = 0;
-    private bool sortByQuantity = true;
+    private bool sortByQuantity = false;
     private BuddyItemData selectedDetailBuddy;
 
     [SerializeField] private List<BuddyItemData> allBuddies = new List<BuddyItemData>();
     private int[][] deckEquippedIds = new int[3][];
-    private bool[] slotUnlocked = new bool[] { true, true, false };
+    private bool[] slotUnlocked = new bool[] { true, true, true };
     private List<BuddyCardUI> spawnedInventoryCards = new List<BuddyCardUI>();
 
     private static readonly Color SelectedPresetColor = new Color32(255, 203, 73, 255);
@@ -199,6 +209,26 @@ public class BuddyController : MonoBehaviour
         ChipManager.OnRedGemsChanged -= HandleCurrencyChanged;
         ChipManager.OnEnergyChanged -= HandleCurrencyChanged;
     }
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        if (!Application.isPlaying)
+        {
+            UnityEditor.EditorApplication.delayCall += () =>
+            {
+                if (this == null) return;
+                AutoWirePresetButtonsIfMissing();
+                AutoWireSortButtonsIfMissing();
+                InitializeDatabase();
+                RefreshPresetButtons();
+                RefreshSortButtons();
+                RefreshEquippedGrid();
+                RefreshInventory();
+            };
+        }
+    }
+#endif
 
     private void HandleCurrencyChanged(int _)
     {
@@ -433,9 +463,10 @@ public class BuddyController : MonoBehaviour
             }
         };
 
-        deckEquippedIds[0] = new int[] { 1, -1, -2 };
-        deckEquippedIds[1] = new int[] { 2, -1, -2 };
-        deckEquippedIds[2] = new int[] { 3, -1, -2 };
+        deckEquippedIds[0] = new int[] { 3, 2, 4 };
+        deckEquippedIds[1] = new int[] { 3, 2, 4 };
+        deckEquippedIds[2] = new int[] { 3, 2, 4 };
+        slotUnlocked = new bool[] { true, true, true };
     }
 
     private void SetupEventListeners()
@@ -545,15 +576,145 @@ public class BuddyController : MonoBehaviour
         if (redCurrencyText != null) redCurrencyText.text = $"{ChipManager.RedGems:N0}";
     }
 
+    public void AutoWirePresetButtonsIfMissing()
+    {
+        if (preset1Btn == null)
+        {
+            var btns = GetComponentsInChildren<Button>(true);
+            preset1Btn = btns.FirstOrDefault(b => b.name.Equals("Preset1Btn", StringComparison.OrdinalIgnoreCase)
+                                               || b.name.Equals("Preset1", StringComparison.OrdinalIgnoreCase)
+                                               || b.name.Equals("Deck1Btn", StringComparison.OrdinalIgnoreCase)
+                                               || b.name.Equals("1", StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (preset2Btn == null)
+        {
+            var btns = GetComponentsInChildren<Button>(true);
+            preset2Btn = btns.FirstOrDefault(b => b.name.Equals("Preset2Btn", StringComparison.OrdinalIgnoreCase)
+                                               || b.name.Equals("Preset2", StringComparison.OrdinalIgnoreCase)
+                                               || b.name.Equals("Deck2Btn", StringComparison.OrdinalIgnoreCase)
+                                               || b.name.Equals("2", StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (preset3Btn == null)
+        {
+            var btns = GetComponentsInChildren<Button>(true);
+            preset3Btn = btns.FirstOrDefault(b => b.name.Equals("Preset3Btn", StringComparison.OrdinalIgnoreCase)
+                                               || b.name.Equals("Preset3", StringComparison.OrdinalIgnoreCase)
+                                               || b.name.Equals("Deck3Btn", StringComparison.OrdinalIgnoreCase)
+                                               || b.name.Equals("3", StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (preset1Btn != null)
+        {
+            if (preset1Bg == null) preset1Bg = preset1Btn.GetComponent<Image>() ?? preset1Btn.targetGraphic as Image;
+            if (preset1Text == null) preset1Text = preset1Btn.GetComponentInChildren<TMP_Text>(true);
+        }
+
+        if (preset2Btn != null)
+        {
+            if (preset2Bg == null) preset2Bg = preset2Btn.GetComponent<Image>() ?? preset2Btn.targetGraphic as Image;
+            if (preset2Text == null) preset2Text = preset2Btn.GetComponentInChildren<TMP_Text>(true);
+        }
+
+        if (preset3Btn != null)
+        {
+            if (preset3Bg == null) preset3Bg = preset3Btn.GetComponent<Image>() ?? preset3Btn.targetGraphic as Image;
+            if (preset3Text == null) preset3Text = preset3Btn.GetComponentInChildren<TMP_Text>(true);
+        }
+
+        LoadPresetSpritesIfMissing();
+    }
+
+    public void LoadPresetSpritesIfMissing()
+    {
+        if (preset1YellowSprite != null && preset1RedSprite != null &&
+            preset2YellowSprite != null && preset2RedSprite != null &&
+            preset3YellowSprite != null && preset3RedSprite != null)
+            return;
+
+#if UNITY_EDITOR
+        string path = "Assets/Sprites/UI/Chipset/nút màn chipset.png";
+        Sprite[] sprites = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(path).OfType<Sprite>().ToArray();
+        foreach (var s in sprites)
+        {
+            if (s.name.Equals("1 Yellow", StringComparison.OrdinalIgnoreCase)) preset1YellowSprite = s;
+            else if (s.name.Equals("1 Red", StringComparison.OrdinalIgnoreCase)) preset1RedSprite = s;
+            else if (s.name.Equals("2 Yellow", StringComparison.OrdinalIgnoreCase)) preset2YellowSprite = s;
+            else if (s.name.Equals("2 Red", StringComparison.OrdinalIgnoreCase)) preset2RedSprite = s;
+            else if (s.name.Equals("3 Yellow", StringComparison.OrdinalIgnoreCase)) preset3YellowSprite = s;
+            else if (s.name.Equals("3 Red", StringComparison.OrdinalIgnoreCase)) preset3RedSprite = s;
+        }
+#endif
+    }
+
     private void RefreshPresetButtons()
     {
-        if (preset1Bg != null) preset1Bg.color = activeDeckIndex == 0 ? SelectedPresetColor : NormalPresetColor;
-        if (preset2Bg != null) preset2Bg.color = activeDeckIndex == 1 ? SelectedPresetColor : NormalPresetColor;
-        if (preset3Bg != null) preset3Bg.color = activeDeckIndex == 2 ? SelectedPresetColor : NormalPresetColor;
+        AutoWirePresetButtonsIfMissing();
 
-        if (preset1Text != null) preset1Text.color = activeDeckIndex == 0 ? SelectedPresetTextColor : NormalPresetTextColor;
-        if (preset2Text != null) preset2Text.color = activeDeckIndex == 1 ? SelectedPresetTextColor : NormalPresetTextColor;
-        if (preset3Text != null) preset3Text.color = activeDeckIndex == 2 ? SelectedPresetTextColor : NormalPresetTextColor;
+        // 1. Preset 1 (activeDeckIndex == 0 -> 1 Yellow, else -> 1 Red)
+        if (preset1Bg != null)
+        {
+            Sprite s = activeDeckIndex == 0 ? preset1YellowSprite : preset1RedSprite;
+            if (s != null)
+            {
+                preset1Bg.sprite = s;
+                preset1Bg.color = Color.white;
+            }
+            else
+            {
+                preset1Bg.color = activeDeckIndex == 0 ? SelectedPresetColor : NormalPresetColor;
+            }
+        }
+
+        // 2. Preset 2 (activeDeckIndex == 1 -> 2 Yellow, else -> 2 Red)
+        if (preset2Bg != null)
+        {
+            Sprite s = activeDeckIndex == 1 ? preset2YellowSprite : preset2RedSprite;
+            if (s != null)
+            {
+                preset2Bg.sprite = s;
+                preset2Bg.color = Color.white;
+            }
+            else
+            {
+                preset2Bg.color = activeDeckIndex == 1 ? SelectedPresetColor : NormalPresetColor;
+            }
+        }
+
+        // 3. Preset 3 (activeDeckIndex == 2 -> 3 Yellow, else -> 3 Red)
+        if (preset3Bg != null)
+        {
+            Sprite s = activeDeckIndex == 2 ? preset3YellowSprite : preset3RedSprite;
+            if (s != null)
+            {
+                preset3Bg.sprite = s;
+                preset3Bg.color = Color.white;
+            }
+            else
+            {
+                preset3Bg.color = activeDeckIndex == 2 ? SelectedPresetColor : NormalPresetColor;
+            }
+        }
+
+        // Clear overlapping text
+        if (preset1Text != null)
+        {
+            if (preset1YellowSprite != null) preset1Text.text = string.Empty;
+            else preset1Text.color = activeDeckIndex == 0 ? SelectedPresetTextColor : NormalPresetTextColor;
+        }
+
+        if (preset2Text != null)
+        {
+            if (preset2YellowSprite != null) preset2Text.text = string.Empty;
+            else preset2Text.color = activeDeckIndex == 1 ? SelectedPresetTextColor : NormalPresetTextColor;
+        }
+
+        if (preset3Text != null)
+        {
+            if (preset3YellowSprite != null) preset3Text.text = string.Empty;
+            else preset3Text.color = activeDeckIndex == 2 ? SelectedPresetTextColor : NormalPresetTextColor;
+        }
     }
 
     private void RefreshSortButtons()
@@ -887,30 +1048,58 @@ public class BuddyController : MonoBehaviour
         RefreshInventory();
     }
 
+    public void LoadDroneIconsIfMissing()
+    {
+        if (droneIcons != null && droneIcons.Length > 0 && droneIcons.All(s => s != null))
+            return;
+
+#if UNITY_EDITOR
+        string path = "Assets/Sprites/UI/Buddy/icon buddy.png";
+        Sprite[] sprites = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(path).OfType<Sprite>().ToArray();
+        if (sprites != null && sprites.Length > 0)
+        {
+            droneIcons = sprites;
+        }
+#endif
+    }
+
+    public void LoadFrameSpritesIfMissing()
+    {
+#if UNITY_EDITOR
+        if (frameSprites == null || frameSprites.Length == 0 || frameSprites.Any(s => s == null))
+        {
+            string framePath = "Assets/Sprites/UI/Buddy/nút màn buddy.png";
+            Sprite[] sprites = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(framePath).OfType<Sprite>().ToArray();
+            Sprite khung = sprites?.FirstOrDefault(s => s.name.Equals("khung", StringComparison.OrdinalIgnoreCase));
+            if (khung != null)
+            {
+                frameSprites = new Sprite[] { khung, khung, khung, khung, khung, khung };
+            }
+        }
+
+        if (emptySlotFrameSprite == null)
+        {
+            string framePath = "Assets/Sprites/UI/Buddy/nút màn buddy.png";
+            Sprite[] sprites = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(framePath).OfType<Sprite>().ToArray();
+            emptySlotFrameSprite = sprites?.FirstOrDefault(s => s.name.Equals("Empty", StringComparison.OrdinalIgnoreCase));
+        }
+#endif
+    }
+
     private Sprite GetIconSprite(string key)
     {
+        LoadDroneIconsIfMissing();
         if (droneIcons == null || droneIcons.Length == 0) return null;
-        return droneIcons.FirstOrDefault(s => s != null && s.name.Equals(key, StringComparison.OrdinalIgnoreCase)) ?? droneIcons[0];
+        if (string.IsNullOrEmpty(key)) return droneIcons[0];
+
+        return droneIcons.FirstOrDefault(s => s != null && (s.name.Equals(key, StringComparison.OrdinalIgnoreCase) || s.name.IndexOf(key, StringComparison.OrdinalIgnoreCase) >= 0)) ?? droneIcons[0];
     }
 
     private Sprite GetFrameSprite(BuddyTier tier)
     {
+        LoadFrameSpritesIfMissing();
         if (frameSprites == null || frameSprites.Length == 0) return null;
-        switch (tier)
-        {
-            case BuddyTier.Common:
-                return frameSprites.Length > 0 ? frameSprites[0] : null;
-            case BuddyTier.Magic:
-            case BuddyTier.Rare:
-                return frameSprites.Length > 1 ? frameSprites[1] : frameSprites[0];
-            case BuddyTier.Unique:
-            case BuddyTier.Epic:
-                return frameSprites.Length > 2 ? frameSprites[2] : frameSprites[0];
-            case BuddyTier.Holographic:
-                return frameSprites.Length > 3 ? frameSprites[3] : frameSprites[0];
-            default:
-                return frameSprites[0];
-        }
+        return frameSprites[0];
     }
 
     private void ShowToast(string message)

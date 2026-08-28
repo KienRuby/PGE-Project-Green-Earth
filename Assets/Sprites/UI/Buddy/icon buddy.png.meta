@@ -277,6 +277,111 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: drone-snowflake
+      rect:
+        serializedVersion: 2
+        x: 638
+        y: 2461
+        width: 120
+        height: 134
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 31f98c863b9e4e35a4f440dd7ea11001
+      internalID: 2100000001
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: drone-spider
+      rect:
+        serializedVersion: 2
+        x: 964
+        y: 2464
+        width: 113
+        height: 136
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 31f98c863b9e4e35a4f440dd7ea11002
+      internalID: 2100000002
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: drone-stealth-wing
+      rect:
+        serializedVersion: 2
+        x: 1247
+        y: 2469
+        width: 148
+        height: 111
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 31f98c863b9e4e35a4f440dd7ea11003
+      internalID: 2100000003
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: drone-antenna-eye
+      rect:
+        serializedVersion: 2
+        x: 1602
+        y: 2462
+        width: 111
+        height: 140
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 31f98c863b9e4e35a4f440dd7ea11004
+      internalID: 2100000004
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: drone-cross-visor
+      rect:
+        serializedVersion: 2
+        x: 1859
+        y: 2458
+        width: 137
+        height: 137
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 31f98c863b9e4e35a4f440dd7ea11005
+      internalID: 2100000005
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -295,6 +400,11 @@ TextureImporter:
       5: -326532469
       Locke: -882864043
       Quantity: 136814939
+      drone-antenna-eye: 2100000004
+      drone-cross-visor: 2100000005
+      drone-snowflake: 2100000001
+      drone-spider: 2100000002
+      drone-stealth-wing: 2100000003
       icon buddy_0: 886653792
       icon buddy_1: -1408744375
       icon buddy_10: 1846278327
