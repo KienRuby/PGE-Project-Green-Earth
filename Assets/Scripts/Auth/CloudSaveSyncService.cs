@@ -127,6 +127,10 @@ namespace PGE.Auth
                             PlayerDataService.DataChips = Mathf.Max(PlayerDataService.DataChips, cloudData.dataChips);
                             PlayerDataService.RedGems = Mathf.Max(PlayerDataService.RedGems, cloudData.redGems);
                             PlayerDataService.AdvanceStones = Mathf.Max(PlayerDataService.AdvanceStones, cloudData.advanceStones);
+                            if (cloudData.energy > 0)
+                            {
+                                PlayerDataService.Energy = Mathf.Max(PlayerDataService.Energy, cloudData.energy);
+                            }
 
                             Debug.Log($"<color=#00FF99>[CloudSave] Da tai va hop nhat tien trinh tu Cloud cho {accountId}</color>");
                             OnCloudLoadCompleted?.Invoke(cloudData);

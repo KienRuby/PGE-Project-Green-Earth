@@ -11,10 +11,17 @@ public static class ScreenShakeService
     private static float trauma;
     private static float phase;
 
+    public static object Instance => true;
+
     public static void AddTrauma(float amount)
     {
         if (!GameSettings.ScreenShake) return;
         trauma = Mathf.Clamp01(trauma + Mathf.Max(0f, amount));
+    }
+
+    public static void Shake(float intensity, float duration = 0.2f)
+    {
+        AddTrauma(intensity);
     }
 
     public static Vector3 UpdateAndGetOffset(float deltaTime)

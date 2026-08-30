@@ -52,6 +52,7 @@ public class SettingsPanelController : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Button reviewButton;
     [SerializeField] private UnityEngine.UI.Button closeButton;
     [SerializeField] private UnityEngine.UI.Button firstSelectedButton;
+    [SerializeField] private GameObject languageOptionsPanel;
 
     [Header("Button Sprites (Từ 'nút màn setting.png')")]
     [SerializeField] private Sprite bgmOnSprite;
@@ -75,12 +76,14 @@ public class SettingsPanelController : MonoBehaviour
     {
         Instance = this;
         AutoWireReferencesIfMissing();
+        EnsureLanguageOptionsPanel();
         BindButtonListeners();
     }
 
     private void OnEnable()
     {
         AutoWireReferencesIfMissing();
+        EnsureLanguageOptionsPanel();
         BindButtonListeners();
         RefreshLabels();
     }
@@ -116,6 +119,7 @@ public class SettingsPanelController : MonoBehaviour
 
     public void Close()
     {
+        if (languageOptionsPanel != null) languageOptionsPanel.SetActive(false);
         gameObject.SetActive(false);
     }
 
@@ -162,11 +166,7 @@ public class SettingsPanelController : MonoBehaviour
         if (languageButton != null)
         {
             languageButton.onClick.RemoveAllListeners();
-            languageButton.onClick.AddListener(() =>
-            {
-                GameSettings.Language = GameSettings.Language == "English" ? "Tiếng Việt" : "English";
-                RefreshLabels();
-            });
+            languageButton.onClick.AddListener(ToggleLanguageOptions);
         }
 
         if (showDamageButton != null)
@@ -290,8 +290,8 @@ public class SettingsPanelController : MonoBehaviour
         SetButtonSprite(sfxButton, GameSettings.SfxEnabled ? sfxOnSprite : sfxOffSprite, sfxText, vi ? "HIỆU ỨNG" : "SFX", GameSettings.SfxEnabled);
 
         // 3. Language Button (English / English ON: Sáng, English OFF: Tối)
-        bool isEnglish = (GameSettings.Language == "English");
-        SetButtonSprite(languageButton, isEnglish ? englishOnSprite : englishOffSprite, languageText, isEnglish ? "English" : "TIẾNG VIỆT", isEnglish);
+        bool isEnglish = GameSettings.Language == GameSettings.EnglishLanguage;
+        SetButtonSprite(languageButton, isEnglish ? englishOnSprite : englishOffSprite, languageText, GameSettings.Language, isEnglish);
 
         // 4. Show Damage Button (Show Damage On: Sáng, Show Damage Off: Tối)
         SetButtonSprite(showDamageButton, GameSettings.ShowDamage ? showDamageOnSprite : showDamageOffSprite, showDamageText, vi ? "HIỆN SÁT THƯƠNG" : "Show Damage", GameSettings.ShowDamage);
@@ -521,6 +521,63 @@ public class SettingsPanelController : MonoBehaviour
         if (firstSelectedButton == null) firstSelectedButton = bgmButton;
     }
 
+    public void ToggleLanguageOptions()
+    {
+        EnsureLanguageOptionsPanel();
+        if (languageOptionsPanel == null) return;
+
+        languageOptionsPanel.SetActive(!languageOptionsPanel.activeSelf);
+        if (languageOptionsPanel.activeSelf) languageOptionsPanel.transform.SetAsLastSibling();
+    }
+
+    public void SelectLanguage(string language)
+    {
+        GameSettings.Language = language;
+        PGEGameLocalization.ApplySavedLanguage();
+        if (languageOptionsPanel != null) languageOptionsPanel.SetActive(false);
+        RefreshLabels();
+    }
+
+    private void EnsureLanguageOptionsPanel()
+    {
+        if (languageOptionsPanel == null)
+        {
+            Transform existing = transform.Find("SafeContent/LanguageOptionsPanel");
+            if (existing != null) languageOptionsPanel = existing.gameObject;
+        }
+
+        if (languageOptionsPanel != null || languageButton == null) return;
+
+        Transform parent = languageButton.transform.parent;
+        TMP_FontAsset font = languageText != null ? languageText.font : FindFont(GetComponent<RectTransform>());
+        languageOptionsPanel = CreateFrame(
+            "LanguageOptionsPanel",
+            parent,
+            Vector2.zero,
+            new Vector2(680f, 390f),
+            CardColor,
+            BorderColor);
+
+        string[] languages = GameSettings.SupportedLanguages;
+        for (int i = 0; i < languages.Length; i++)
+        {
+            string language = languages[i];
+            UnityEngine.UI.Button option = CreateButton(
+                language + "Button",
+                languageOptionsPanel.transform,
+                new Vector2(0f, 120f - i * 80f),
+                new Vector2(600f, 66f),
+                language,
+                30f,
+                font,
+                out _);
+            option.onClick.AddListener(() => SelectLanguage(language));
+        }
+
+        languageOptionsPanel.transform.SetAsLastSibling();
+        languageOptionsPanel.SetActive(false);
+    }
+
     private T FindMatchingComponent<T>(params string[] possibleNames) where T : Component
     {
         T[] components = GetComponentsInChildren<T>(true);
@@ -618,6 +675,7 @@ public class SettingsPanelController : MonoBehaviour
         controller.reviewButton = review;
         controller.firstSelectedButton = bgm;
 
+        controller.EnsureLanguageOptionsPanel();
         controller.BindButtonListeners();
         controller.RefreshLabels();
         root.SetActive(false);

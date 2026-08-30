@@ -14,6 +14,10 @@ using UnityEngine.UI;
 /// </summary>
 public class PityGuaranteePanel : MonoBehaviour
 {
+    public const int EliteThreshold = 10;
+    public const int EpicThreshold = 25;
+    public const int LegendThreshold = 50;
+
     [Header("Controller Reference")]
     [Tooltip("Tham chiếu tới LabUpgradeController đang quản lý hệ thống roll/pity.")]
     [SerializeField] private LabUpgradeController labUpgradeController;

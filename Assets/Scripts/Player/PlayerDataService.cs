@@ -333,6 +333,13 @@ public static class PlayerDataService
         return $"{ItemLevelKeyPrefix}{normalized}";
     }
 
+    public static string GetItemLevelKey(string itemName, int index = -1)
+    {
+        return !string.IsNullOrEmpty(itemName)
+            ? FormatItemLevelKey(itemName)
+            : $"{ItemLevelKeyPrefix}Slot_{index}";
+    }
+
     public static int GetItemLevel(string itemName)
     {
         string key = FormatItemLevelKey(itemName);

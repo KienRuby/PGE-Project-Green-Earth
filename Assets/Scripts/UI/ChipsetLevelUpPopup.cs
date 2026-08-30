@@ -521,11 +521,11 @@ public class ChipsetLevelUpPopup : MonoBehaviour
         {
             switch (Mathf.Clamp(data.level, 1, MaxRuntimeChipLevel))
             {
-                case 1: return "Luôn tự động bắn hỗ trợ.";
-                case 2: return "Tăng sát thương và tốc độ.";
-                case 3: return "Đạn có 10% cơ hội gây Chí mạng (x2 sát thương).";
-                case 4: return "Súng tiêu chuẩn được hưởng 5% Hút máu.";
-                case 5: return "Tối thượng: Đạn nảy (Ricochet) sang 1 kẻ địch lân cận sau khi trúng mục tiêu đầu.";
+                case 1: return "Automatically fires support shots.";
+                case 2: return "Increases damage and fire rate.";
+                case 3: return "Shots gain a 10% chance to deal critical damage (2x).";
+                case 4: return "Standard Gun gains 5% life steal.";
+                case 5: return "Ultimate: Shots ricochet to one nearby enemy after the first hit.";
             }
         }
 
@@ -533,11 +533,11 @@ public class ChipsetLevelUpPopup : MonoBehaviour
         {
             switch (Mathf.Clamp(data.level, 1, MaxRuntimeChipLevel))
             {
-                case 1: return "Cơ bản, ngắm bắn mục tiêu gần nhất.";
-                case 2: return "Tăng sát thương và tốc độ xả đạn.";
-                case 3: return "Đạn có cơ hội (20%) xuyên thấu 1 kẻ địch.";
-                case 4: return "Xuyên thấu chắc chắn 1 kẻ địch phía sau.";
-                case 5: return "Tối thượng: Bắn ra 2 tia đạn song song, nhân đôi hỏa lực.";
+                case 1: return "Targets and fires at the nearest enemy.";
+                case 2: return "Increases damage and fire rate.";
+                case 3: return "Shots gain a 20% chance to pierce one enemy.";
+                case 4: return "Shots always pierce one additional enemy.";
+                case 5: return "Ultimate: Fires two parallel shots, doubling firepower.";
             }
         }
 
@@ -545,11 +545,11 @@ public class ChipsetLevelUpPopup : MonoBehaviour
         {
             switch (Mathf.Clamp(data.level, 1, MaxRuntimeChipLevel))
             {
-                case 1: return "Bắn ra cụm đạn sát thương cực lớn ở cự ly gần.";
-                case 2: return "Cải thiện thời gian nạp đạn và hỏa lực.";
-                case 3: return "Gom góc đạn hẹp lại, đạn xuyên thấu mọi mục tiêu.";
-                case 4: return "Thêm hiệu ứng Đẩy lùi (Knockback) cực mạnh.";
-                case 5: return "Tối thượng: Bắn đúp (Xả 2 phát Shotgun liên tiếp không mất thêm thời gian chờ).";
+                case 1: return "Fires a devastating close-range spread.";
+                case 2: return "Improves reload speed and damage.";
+                case 3: return "Narrows the spread and makes pellets pierce all targets.";
+                case 4: return "Adds powerful knockback.";
+                case 5: return "Ultimate: Fires two consecutive blasts without extra cooldown.";
             }
         }
 
@@ -557,11 +557,11 @@ public class ChipsetLevelUpPopup : MonoBehaviour
         {
             switch (Mathf.Clamp(data.level, 1, MaxRuntimeChipLevel))
             {
-                case 1: return "Xả mưa đạn theo hướng ngẫu nhiên phía trước.";
-                case 2: return "Tăng số đạn và giảm thời gian giữa các loạt bắn.";
-                case 3: return "Đạn có tính năng bám đuổi nhẹ (Homing) mục tiêu.";
-                case 4: return "Hỏa lực dày đặc hơn.";
-                case 5: return "Tối thượng: Xả đạn liên tục 360 độ quanh người (Cơn bão đạn).";
+                case 1: return "Unleashes a burst of shots in random forward directions.";
+                case 2: return "Fires more shots with less time between bursts.";
+                case 3: return "Shots lightly home in on targets.";
+                case 4: return "Further increases the volume of fire.";
+                case 5: return "Ultimate: Continuously fires in every direction around the player.";
             }
         }
 
@@ -569,11 +569,11 @@ public class ChipsetLevelUpPopup : MonoBehaviour
         {
             switch (Mathf.Clamp(data.level, 1, MaxRuntimeChipLevel))
             {
-                case 1: return "Định kỳ đặt mìn trên đường di chuyển.";
-                case 2: return "Tăng sát thương nổ và giảm thời gian đặt mìn.";
-                case 3: return "Kẻ địch trúng mìn bị làm chậm 40% trong 2s.";
-                case 4: return "Tăng mạnh bán kính nổ.";
-                case 5: return "Tối thượng: Mìn mẹ nổ văng ra 3 mìn con, nổ thêm lần 2.";
+                case 1: return "Periodically drops mines along your path.";
+                case 2: return "Increases explosion damage and reduces deployment time.";
+                case 3: return "Mine hits slow enemies by 40% for 2 seconds.";
+                case 4: return "Greatly increases the explosion radius.";
+                case 5: return "Ultimate: The main mine releases three smaller mines when it explodes.";
             }
         }
 
@@ -581,11 +581,11 @@ public class ChipsetLevelUpPopup : MonoBehaviour
         {
             switch (Mathf.Clamp(data.level, 1, MaxRuntimeChipLevel))
             {
-                case 1: return "Hút máu kẻ địch khi gây sát thương.";
-                case 2: return "Tăng tỷ lệ hút máu.";
-                case 3: return "Mở rộng hiệu ứng hút máu cho tất cả vũ khí đang mang.";
-                case 4: return "Hồi máu vượt giới hạn sẽ tạo thành Lớp khiên nhỏ (Tối đa 10% HP).";
-                case 5: return "Tối thượng: Hồi sinh lực bùng nổ (Nhân đôi tỷ lệ hút máu khi HP dưới 20%).";
+                case 1: return "Restores health when you damage enemies.";
+                case 2: return "Increases life-steal effectiveness.";
+                case 3: return "Applies life steal to every equipped weapon.";
+                case 4: return "Excess healing becomes a shield worth up to 10% max HP.";
+                case 5: return "Ultimate: Doubles life steal while HP is below 20%.";
             }
         }
 
@@ -593,11 +593,11 @@ public class ChipsetLevelUpPopup : MonoBehaviour
         {
             switch (Mathf.Clamp(data.level, 1, MaxRuntimeChipLevel))
             {
-                case 1: return "Xoay tròn quanh nhân vật.";
-                case 2: return "Thêm 1 đĩa và tăng sát thương.";
-                case 3: return "Đĩa gai gây hiệu ứng Chảy máu (Mất 5 HP/s).";
-                case 4: return "Thêm đĩa thứ 3, tạo vòng tròn bảo vệ khép kín.";
-                case 5: return "Tối thượng: Đĩa phóng to gấp đôi, có khả năng chém bay đạn của kẻ địch.";
+                case 1: return "A spiked disc orbits the player.";
+                case 2: return "Adds one disc and increases damage.";
+                case 3: return "Discs inflict Bleed for 5 damage per second.";
+                case 4: return "Adds a third disc to complete the defensive ring.";
+                case 5: return "Ultimate: Discs double in size and can destroy enemy projectiles.";
             }
         }
 
@@ -605,11 +605,11 @@ public class ChipsetLevelUpPopup : MonoBehaviour
         {
             switch (Mathf.Clamp(data.level, 1, MaxRuntimeChipLevel))
             {
-                case 1: return "Đặt một tháp pháo cố định tại chỗ.";
-                case 2: return "Tăng sát thương và thời gian tháp đứng vững.";
-                case 3: return "Đạn tháp pháo có tỉ lệ (30%) nổ gây sát thương diện rộng.";
-                case 4: return "Tháp pháo tự động hồi phục máu khi bị quái đánh.";
-                case 5: return "Tối thượng: Đặt được tối đa 2 Tháp súng cùng lúc trên sân.";
+                case 1: return "Deploys a stationary gun turret.";
+                case 2: return "Increases turret damage and duration.";
+                case 3: return "Turret shots gain a 30% chance to explode for area damage.";
+                case 4: return "The turret regenerates health after taking damage.";
+                case 5: return "Ultimate: Deploy up to two gun turrets at once.";
             }
         }
 
@@ -617,11 +617,11 @@ public class ChipsetLevelUpPopup : MonoBehaviour
         {
             switch (Mathf.Clamp(data.level, 1, MaxRuntimeChipLevel))
             {
-                case 1: return "Phóng nắm đấm tên lửa nổ tung mục tiêu.";
-                case 2: return "Tăng mạnh sát thương trực tiếp.";
-                case 3: return "Tăng 40% bán kính vụ nổ, dễ dàng dọn bầy quái.";
-                case 4: return "Vụ nổ làm choáng (Stun) kẻ địch sống sót trong 1s.";
-                case 5: return "Tối thượng: Vị trí nổ để lại một vùng dung nham thiêu đốt kẻ địch đi qua trong 3 giây.";
+                case 1: return "Launches a rocket-powered fist that explodes on impact.";
+                case 2: return "Greatly increases direct-hit damage.";
+                case 3: return "Increases the explosion radius by 40%.";
+                case 4: return "The explosion stuns surviving enemies for 1 second.";
+                case 5: return "Ultimate: The impact leaves a burning lava zone for 3 seconds.";
             }
         }
 
@@ -629,11 +629,11 @@ public class ChipsetLevelUpPopup : MonoBehaviour
         {
             switch (Mathf.Clamp(data.level, 1, MaxRuntimeChipLevel))
             {
-                case 1: return "Phóng dao đi và tự động quay về tay.";
-                case 2: return "Dao sắc hơn, bay nhanh hơn.";
-                case 3: return "Chắc chắn đâm xuyên mọi mục tiêu trên đường bay.";
-                case 4: return "Phóng ra 2 lưỡi dao hình chữ V.";
-                case 5: return "Tối thượng: Lưỡi dao khi bay tới đích sẽ dừng lại xoay tại chỗ 2 giây tạo lốc xoáy AoE trước khi quay về.";
+                case 1: return "Throws a blade that automatically returns to the player.";
+                case 2: return "The blade deals more damage and travels faster.";
+                case 3: return "The blade pierces every target in its path.";
+                case 4: return "Throws two blades in a V formation.";
+                case 5: return "Ultimate: The blade spins at its destination for 2 seconds, dealing area damage before returning.";
             }
         }
 

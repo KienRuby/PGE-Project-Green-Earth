@@ -772,6 +772,10 @@ GameObject:
   - component: {fileID: 78188141}
   - component: {fileID: 78188142}
   - component: {fileID: 78188143}
+  - component: {fileID: 78188147}
+  - component: {fileID: 78188146}
+  - component: {fileID: 78188145}
+  - component: {fileID: 78188144}
   m_Layer: 6
   m_Name: Player
   m_TagString: Player
@@ -1227,13 +1231,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9c30a513d62441dc9223e6789012345c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerAutoShooter: {fileID: 0}
-  highExplosiveMineSkill: {fileID: 0}
-  energyJumperCablesSkill: {fileID: 0}
-  spikyDiscusSkill: {fileID: 0}
+  playerAutoShooter: {fileID: 78188133}
+  highExplosiveMineSkill: {fileID: 78188147}
+  energyJumperCablesSkill: {fileID: 78188146}
+  spikyDiscusSkill: {fileID: 78188145}
   gunTurretSkill: {fileID: 78188141}
   rocketPunchSkill: {fileID: 78188143}
-  spinningBladeSkill: {fileID: 0}
+  spinningBladeSkill: {fileID: 78188144}
 --- !u!114 &78188143
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1293,6 +1297,202 @@ MonoBehaviour:
   currentSkillLevel: 1
   currentCooldownTimer: 0
   activeOrbitingPunch: {fileID: 0}
+--- !u!114 &78188144
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 78188126}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17c7f3b55a77e0243a2752af4443b94a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spinningBladePrefab: {fileID: 6482937105928172948, guid: 58e10b7410294828ba28472910482910, type: 3}
+  hitVfxPrefab: {fileID: 3290514725870574986, guid: 2019a65776aecea44abb57cfdb6e0df5, type: 3}
+  orbitRadius: 1.8
+  orbitSpeed: 80
+  bladeSpacingAngle: 25
+  selfSpinSpeed: 480
+  spinSpeedMultiplier: 1
+  attackSpeedMultiplier: 1
+  levelConfigs:
+  - damage: 36
+    cooldown: 1.2
+    hitsPerBlade: 1
+    spawnCountPerWave: 1
+    maxBladesOnField: 4
+    hasVortex: 0
+    vortexDuration: 0
+  - damage: 50
+    cooldown: 1
+    hitsPerBlade: 1
+    spawnCountPerWave: 1
+    maxBladesOnField: 5
+    hasVortex: 0
+    vortexDuration: 0
+  - damage: 70
+    cooldown: 0.8
+    hitsPerBlade: 2
+    spawnCountPerWave: 1
+    maxBladesOnField: 6
+    hasVortex: 0
+    vortexDuration: 0
+  - damage: 95
+    cooldown: 0.6
+    hitsPerBlade: 2
+    spawnCountPerWave: 2
+    maxBladesOnField: 8
+    hasVortex: 0
+    vortexDuration: 0
+  - damage: 130
+    cooldown: 0.4
+    hitsPerBlade: 3
+    spawnCountPerWave: 2
+    maxBladesOnField: 10
+    hasVortex: 1
+    vortexDuration: 2
+  isUnlocked: 0
+  currentSkillLevel: 1
+  currentCooldownTimer: 0
+  baseOrbitAngle: 0
+--- !u!114 &78188145
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 78188126}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a278ca4528c6fa842851279b2bf594d9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isUnlocked: 0
+  currentLevel: 1
+  levelConfigs:
+  - damage: 30
+    orbitSpeed: 90
+    discusCount: 1
+    hasBleed: 0
+    bleedDps: 0
+    bleedDuration: 0
+    isGiantScale: 0
+    destroyEnemyBullets: 0
+  - damage: 45
+    orbitSpeed: 130
+    discusCount: 2
+    hasBleed: 0
+    bleedDps: 0
+    bleedDuration: 0
+    isGiantScale: 0
+    destroyEnemyBullets: 0
+  - damage: 60
+    orbitSpeed: 170
+    discusCount: 2
+    hasBleed: 1
+    bleedDps: 5
+    bleedDuration: 3
+    isGiantScale: 0
+    destroyEnemyBullets: 0
+  - damage: 80
+    orbitSpeed: 220
+    discusCount: 3
+    hasBleed: 1
+    bleedDps: 5
+    bleedDuration: 3
+    isGiantScale: 0
+    destroyEnemyBullets: 0
+  - damage: 110
+    orbitSpeed: 280
+    discusCount: 3
+    hasBleed: 1
+    bleedDps: 5
+    bleedDuration: 3
+    isGiantScale: 1
+    destroyEnemyBullets: 1
+  orbitRadius: 1.8
+  selfSpinSpeed: 540
+  spikyDiscusPrefab: {fileID: 1958027733123456789, guid: f05c63f121ea36d43a7a1e4f536ef41d, type: 3}
+  hitVfxPrefab: {fileID: 3290514725870574986, guid: 2019a65776aecea44abb57cfdb6e0df5, type: 3}
+--- !u!114 &78188146
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 78188126}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ad7ab49a1a59d240a6a5bdd42006170, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isUnlocked: 0
+  currentLevel: 1
+  levelConfigs:
+  - lifeStealPercent: 0.02
+    allWeapons: 0
+    overhealToShield: 0
+    doubleHealLowHp: 0
+  - lifeStealPercent: 0.025
+    allWeapons: 0
+    overhealToShield: 0
+    doubleHealLowHp: 0
+  - lifeStealPercent: 0.035
+    allWeapons: 1
+    overhealToShield: 0
+    doubleHealLowHp: 0
+  - lifeStealPercent: 0.045
+    allWeapons: 1
+    overhealToShield: 1
+    doubleHealLowHp: 0
+  - lifeStealPercent: 0.06
+    allWeapons: 1
+    overhealToShield: 1
+    doubleHealLowHp: 1
+--- !u!114 &78188147
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 78188126}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6aec303bc4553ac4fb72f040cc885e72, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isUnlocked: 0
+  currentLevel: 1
+  levelConfigs:
+  - damage: 30
+    cooldown: 6
+    explosionRadius: 2
+    hasSlow: 0
+    hasSubMines: 0
+  - damage: 45
+    cooldown: 5
+    explosionRadius: 2.5
+    hasSlow: 0
+    hasSubMines: 0
+  - damage: 65
+    cooldown: 4
+    explosionRadius: 2.5
+    hasSlow: 1
+    hasSubMines: 0
+  - damage: 90
+    cooldown: 3
+    explosionRadius: 3.5
+    hasSlow: 1
+    hasSubMines: 0
+  - damage: 145
+    cooldown: 2.5
+    explosionRadius: 4
+    hasSlow: 1
+    hasSubMines: 1
+  minePrefab: {fileID: 5631651591234567890, guid: 82b49fa9621fd844cb16de048d298a9a, type: 3}
+  explosionVfxPrefab: {fileID: 3290514725870574986, guid: 2019a65776aecea44abb57cfdb6e0df5, type: 3}
 --- !u!1 &95513093
 GameObject:
   m_ObjectHideFlags: 0
@@ -4358,6 +4558,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enemySpawner: {fileID: 983277089}
   playerRunEndController: {fileID: 296717348}
+  playerLevelController: {fileID: 0}
+  chipsetLevelUpPopup: {fileID: 0}
   victoryPanel: {fileID: 1072937509}
   panelCanvasGroup: {fileID: 1072937511}
   resultCard: {fileID: 826183831}

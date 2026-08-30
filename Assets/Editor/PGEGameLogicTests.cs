@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -1048,12 +1048,6 @@ public class PGEGameLogicTests
         SerializedObject navSO = new SerializedObject(bottomNav);
         SerializedProperty items = navSO.FindProperty("items");
         int defaultSelectedIndex = navSO.FindProperty("defaultSelectedIndex").intValue;
-        Color normalBackground = navSO.FindProperty("normalColor").colorValue;
-        Color selectedBackground = navSO.FindProperty("selectedColor").colorValue;
-        Color normalBorder = navSO.FindProperty("normalBorderColor").colorValue;
-        Color selectedBorder = navSO.FindProperty("selectedBorderColor").colorValue;
-        Color normalContent = navSO.FindProperty("normalContentColor").colorValue;
-        Color selectedContent = navSO.FindProperty("selectedContentColor").colorValue;
         Assert.That(defaultSelectedIndex, Is.InRange(0, items.arraySize - 1));
 
         for (int i = 0; i < items.arraySize; i++)
@@ -1064,16 +1058,12 @@ public class PGEGameLogicTests
             Assert.That(panel, Is.Not.Null, $"Navigation item {i} must reference a panel.");
             Assert.That(panel.activeSelf, Is.EqualTo(selected), "Exactly the configured default tab must be active in the saved scene.");
 
-            Image background = item.FindPropertyRelative("background").objectReferenceValue as Image;
-            Image icon = item.FindPropertyRelative("icon").objectReferenceValue as Image;
-            TMP_Text label = item.FindPropertyRelative("label").objectReferenceValue as TMP_Text;
+            Sprite activeSprite = item.FindPropertyRelative("activeSprite").objectReferenceValue as Sprite;
+            Sprite inactiveSprite = item.FindPropertyRelative("inactiveSprite").objectReferenceValue as Sprite;
             Button button = item.FindPropertyRelative("button").objectReferenceValue as Button;
-            Image border = item.FindPropertyRelative("border").objectReferenceValue as Image ?? button.GetComponent<Image>();
-
-            Assert.That(background.color, Is.EqualTo(selected ? selectedBackground : normalBackground));
-            Assert.That(border.color, Is.EqualTo(selected ? selectedBorder : normalBorder));
-            Assert.That(icon.color, Is.EqualTo(selected ? selectedContent : normalContent));
-            Assert.That(label.color, Is.EqualTo(selected ? selectedContent : normalContent));
+            Assert.That(button, Is.Not.Null, $"Navigation item {i} must reference a Button.");
+            Assert.That(activeSprite, Is.Not.Null, $"Navigation item {i} must have activeSprite assigned.");
+            Assert.That(inactiveSprite, Is.Not.Null, $"Navigation item {i} must have inactiveSprite assigned.");
         }
     }
 

@@ -131,7 +131,7 @@ public class SettingsPanelTests
     }
 
     [Test]
-    public void Settings_LanguageButton_TranslatesTheSettingsPanel()
+    public void Settings_LanguageButton_OpensFourLanguageChoices_AndPersistsSelection()
     {
         bool hadLanguage = PlayerPrefs.HasKey(GameSettings.LanguageKey);
         string originalLanguage = PlayerPrefs.GetString(GameSettings.LanguageKey, "English");
@@ -149,9 +149,17 @@ public class SettingsPanelTests
                 .GetComponent<UnityEngine.UI.Button>();
             languageButton.onClick.Invoke();
 
-            TMP_Text title = panel.transform.Find("SafeContent/Title").GetComponent<TMP_Text>();
-            Assert.That(GameSettings.Language, Is.EqualTo("Tiếng Việt"));
-            Assert.That(title.text, Is.EqualTo("CÀI ĐẶT"));
+            Transform options = panel.transform.Find("SafeContent/LanguageOptionsPanel");
+            Assert.That(options, Is.Not.Null);
+            Assert.That(options.gameObject.activeSelf, Is.True);
+            Assert.That(options.Find("EnglishButton"), Is.Not.Null);
+            Assert.That(options.Find("VietnameseButton"), Is.Not.Null);
+            Assert.That(options.Find("ChineseButton"), Is.Not.Null);
+            Assert.That(options.Find("RussianButton"), Is.Not.Null);
+
+            options.Find("RussianButton").GetComponent<UnityEngine.UI.Button>().onClick.Invoke();
+            Assert.That(GameSettings.Language, Is.EqualTo(GameSettings.RussianLanguage));
+            Assert.That(options.gameObject.activeSelf, Is.False);
         }
         finally
         {
