@@ -101,6 +101,16 @@ public class PauseModalController : MonoBehaviour
     [SerializeField] private PlayerStatsManager playerStats;
     [SerializeField] private PlayerLevelController playerLevel;
 
+    [Header("13. Combat Damage Details")]
+    [Tooltip("Nút mở modal thống kê chi tiết sát thương (icon biểu đồ).")]
+    [SerializeField] private Button damageDetailsButton;
+
+    [Tooltip("Modal Thống Kê Sát Thương Chi Tiết.")]
+    [SerializeField] private DamageDetailsPopup damageDetailsPopup;
+
+    public Button DamageDetailsButton => damageDetailsButton;
+    public DamageDetailsPopup DamageDetailsPopup => damageDetailsPopup;
+
     // Styling Colors
     private static readonly Color32 ActiveTabBg = new Color32(88, 172, 178, 255);
     private static readonly Color32 InactiveTabBg = new Color32(36, 70, 86, 255);
@@ -187,6 +197,11 @@ public class PauseModalController : MonoBehaviour
             confirmOkButton.onClick.RemoveListener(OnConfirmOkClicked);
             confirmOkButton.onClick.AddListener(OnConfirmOkClicked);
         }
+        if (damageDetailsButton != null)
+        {
+            damageDetailsButton.onClick.RemoveListener(OnDamageDetailsButtonClicked);
+            damageDetailsButton.onClick.AddListener(OnDamageDetailsButtonClicked);
+        }
     }
 
     private void LocatePlayerReferences()
@@ -225,6 +240,7 @@ public class PauseModalController : MonoBehaviour
             modalRoot.SetActive(true);
         }
 
+        EnsureDamageDetailsComponents();
         BindButtons();
         LocatePlayerReferences();
         RefreshAllStats();
@@ -242,6 +258,11 @@ public class PauseModalController : MonoBehaviour
     {
         IsPaused = false;
         Time.timeScale = 1f;
+
+        if (damageDetailsPopup != null && damageDetailsPopup.IsVisible)
+        {
+            damageDetailsPopup.Hide();
+        }
 
         if (quitConfirmPanel != null)
         {
@@ -387,6 +408,132 @@ public class PauseModalController : MonoBehaviour
         if (turretDurationValueText != null) turretDurationValueText.text = "0%";
     }
 
+    public void OnDamageDetailsButtonClicked()
+    {
+        EnsureDamageDetailsComponents();
+        if (damageDetailsPopup != null)
+        {
+            damageDetailsPopup.Show();
+        }
+    }
+
+    public void EnsureDamageDetailsComponents()
+    {
+        // 1. Tìm hoặc khởi tạo DamageDetailsPopup trên Canvas
+        if (damageDetailsPopup == null)
+        {
+            Canvas canvas = GetComponentInParent<Canvas>() ?? FindAnyObjectByType<Canvas>();
+            if (canvas != null)
+            {
+                damageDetailsPopup = canvas.GetComponentInChildren<DamageDetailsPopup>(true);
+                if (damageDetailsPopup == null)
+                {
+                    damageDetailsPopup = DamageDetailsPopup.CreateRuntimeModal(canvas.transform);
+                }
+            }
+        }
+
+        // 2. Tìm hoặc tạo nút DamageDetailsButton trong Pause Modal
+        if (damageDetailsButton == null && modalRoot != null)
+        {
+            Transform existingBtn = modalRoot.transform.Find("DamageDetailsButton")
+                                 ?? modalRoot.transform.Find("DetailsButton");
+
+            if (existingBtn != null)
+            {
+                damageDetailsButton = existingBtn.GetComponent<Button>();
+            }
+            else
+            {
+                damageDetailsButton = CreateRuntimeDamageDetailsButton(modalRoot.transform, resumeButton, homeButton);
+            }
+
+            if (damageDetailsButton != null)
+            {
+                damageDetailsButton.onClick.RemoveListener(OnDamageDetailsButtonClicked);
+                damageDetailsButton.onClick.AddListener(OnDamageDetailsButtonClicked);
+            }
+        }
+    }
+
+    private static Button CreateRuntimeDamageDetailsButton(Transform parent, Button resumeBtn, Button homeBtn)
+    {
+        // Cân đối lại vị trí 3 nút ở thanh đáy: Home (-200, -680), Resume (0, -680), Details (+200, -680)
+        if (homeBtn != null && resumeBtn != null)
+        {
+            RectTransform homeRt = homeBtn.GetComponent<RectTransform>();
+            RectTransform resumeRt = resumeBtn.GetComponent<RectTransform>();
+            if (homeRt != null && resumeRt != null)
+            {
+                homeRt.anchoredPosition = new Vector2(-200f, -680f);
+                resumeRt.anchoredPosition = new Vector2(0f, -680f);
+            }
+        }
+
+        GameObject btnObj = new GameObject("DamageDetailsButton", typeof(RectTransform), typeof(Image), typeof(Button));
+        btnObj.transform.SetParent(parent, false);
+        RectTransform btnRt = btnObj.GetComponent<RectTransform>();
+        btnRt.anchorMin = new Vector2(0.5f, 0.5f);
+        btnRt.anchorMax = new Vector2(0.5f, 0.5f);
+        btnRt.pivot = new Vector2(0.5f, 0.5f);
+        btnRt.anchoredPosition = new Vector2(200f, -680f);
+        btnRt.sizeDelta = new Vector2(170f, 110f);
+
+        Image btnImg = btnObj.GetComponent<Image>();
+        btnImg.color = new Color32(64, 158, 166, 255);
+        Button btn = btnObj.GetComponent<Button>();
+        btn.targetGraphic = btnImg;
+
+        // Thêm Icon biểu đồ (Chart icon)
+        Sprite chartSprite = null;
+#if UNITY_EDITOR
+        chartSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/icon-damage-details.png");
+#endif
+        if (chartSprite == null)
+        {
+            Sprite[] allSprites = Resources.FindObjectsOfTypeAll<Sprite>();
+            chartSprite = System.Array.Find(allSprites, s => s != null && (s.name == "icon-damage-details" || s.name.Contains("damage-details")));
+        }
+
+        if (chartSprite != null)
+        {
+            GameObject iconObj = new GameObject("Icon", typeof(RectTransform), typeof(Image));
+            iconObj.transform.SetParent(btnObj.transform, false);
+            RectTransform iconRt = iconObj.GetComponent<RectTransform>();
+            iconRt.anchorMin = new Vector2(0.5f, 0.5f);
+            iconRt.anchorMax = new Vector2(0.5f, 0.5f);
+            iconRt.pivot = new Vector2(0.5f, 0.5f);
+            iconRt.anchoredPosition = new Vector2(0f, 0f);
+            iconRt.sizeDelta = new Vector2(64f, 64f);
+
+            Image iconImg = iconObj.GetComponent<Image>();
+            iconImg.sprite = chartSprite;
+            iconImg.preserveAspect = true;
+            iconImg.raycastTarget = false;
+        }
+        else
+        {
+            TMP_FontAsset font = FindAnyObjectByType<TMP_Text>()?.font ?? TMP_Settings.defaultFontAsset;
+            GameObject labelObj = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+            labelObj.transform.SetParent(btnObj.transform, false);
+            RectTransform labelRt = labelObj.GetComponent<RectTransform>();
+            labelRt.anchorMin = Vector2.zero;
+            labelRt.anchorMax = Vector2.one;
+            labelRt.offsetMin = Vector2.zero;
+            labelRt.offsetMax = Vector2.zero;
+
+            TextMeshProUGUI label = labelObj.GetComponent<TextMeshProUGUI>();
+            label.font = font;
+            label.text = "📊";
+            label.fontSize = 44f;
+            label.color = Color.white;
+            label.alignment = TextAlignmentOptions.Center;
+            label.raycastTarget = false;
+        }
+
+        return btn;
+    }
+
     public void SetReferencesForTesting(
         GameObject root,
         Button resumeBtn,
@@ -408,7 +555,9 @@ public class PauseModalController : MonoBehaviour
         TMP_Text lvlExpTxt,
         GameObject quitConfirmPnl = null,
         Button noBtn = null,
-        Button okBtn = null)
+        Button okBtn = null,
+        Button dmgDetailsBtn = null,
+        DamageDetailsPopup dmgDetailsPopup = null)
     {
         modalRoot = root;
         resumeButton = resumeBtn;
@@ -431,5 +580,7 @@ public class PauseModalController : MonoBehaviour
         quitConfirmPanel = quitConfirmPnl;
         confirmNoButton = noBtn;
         confirmOkButton = okBtn;
+        damageDetailsButton = dmgDetailsBtn;
+        damageDetailsPopup = dmgDetailsPopup;
     }
 }

@@ -23,8 +23,8 @@ public class DamageNumberManager : MonoBehaviour
     [Tooltip("Material có viền Stroke đen (mặc định Nunito SDF - Stroke).")]
     [SerializeField] private Material strokeMaterial;
 
-    [Tooltip("Kích thước chữ số (FontSize).")]
-    [SerializeField] private float defaultFontSize = 5f;
+    [Tooltip("Kích thước chữ số (FontSize) - được thu gọn để hiển thị tinh gọn, sắc nét.")]
+    [SerializeField] private float defaultFontSize = 2.4f;
 
     [Header("Sorting")]
     [SerializeField] private string sortingLayerName = "UI";
@@ -116,6 +116,14 @@ public class DamageNumberManager : MonoBehaviour
         {
             fontAsset = TMP_Settings.defaultFontAsset;
         }
+
+        if (strokeMaterial != null)
+        {
+            strokeMaterial.EnableKeyword("OUTLINE_ON");
+            strokeMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.28f);
+            strokeMaterial.SetFloat(ShaderUtilities.ID_FaceDilate, 0.18f);
+            strokeMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
+        }
     }
 
     private DamageNumber CreateNewInstance()
@@ -159,12 +167,42 @@ public class DamageNumberManager : MonoBehaviour
         return instance;
     }
 
+    private Vector3 lastSpawnPos;
+    private float lastSpawnTime;
+    private int consecutiveHitCount;
+
     public void SpawnDamage(Vector3 worldPosition, int damage, DamageType type = DamageType.Normal, float extraScale = 1f)
     {
         DamageNumber instance = GetFromPool();
         if (instance != null)
         {
-            instance.Initialize(damage, type, worldPosition, extraScale);
+            float now = Time.time;
+            if (now - lastSpawnTime < 0.22f && Vector3.Distance(worldPosition, lastSpawnPos) < 0.85f)
+            {
+                consecutiveHitCount++;
+            }
+            else
+            {
+                consecutiveHitCount = 0;
+            }
+
+            lastSpawnPos = worldPosition;
+            lastSpawnTime = now;
+
+            // Tính hướng tản số theo hình quạt (Alternating fan-out) để chống trùng đè khi xả đạn nhanh
+            float dir = 0f;
+            if (consecutiveHitCount > 0)
+            {
+                int step = (consecutiveHitCount % 6);
+                float sign = (step % 2 == 1) ? 1f : -1f;
+                dir = sign * (0.35f + (step * 0.15f));
+            }
+            else
+            {
+                dir = Random.Range(-0.6f, 0.6f);
+            }
+
+            instance.InitializeWithDirection(damage, type, worldPosition, dir, extraScale);
         }
     }
 

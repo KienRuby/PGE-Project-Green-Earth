@@ -12,7 +12,8 @@ public enum DamageType
 
 /// <summary>
 /// Quản lý hiển thị và diễn hoạt của một số sát thương (Floating Damage Number).
-/// Sử dụng TextMeshPro trong không gian 2D/3D (World-Space) với stroke viền đen sắc nét.
+/// Sử dụng TextMeshPro trong không gian World-Space với chuyển động Parabolic Arc,
+/// hiệu ứng Squash & Stretch nảy bùng nổ, Vertex Gradient rực rỡ và stroke viền đen sắc nét.
 /// </summary>
 [RequireComponent(typeof(TMP_Text))]
 public class DamageNumber : MonoBehaviour, IPoolable
@@ -29,19 +30,41 @@ public class DamageNumber : MonoBehaviour, IPoolable
 
     [Header("Animation Settings")]
     [Tooltip("Thời gian hiển thị (giây) trước khi tự thu hồi về Pool.")]
-    [SerializeField] private float duration = 0.7f;
+    [SerializeField] private float duration = 0.75f;
 
-    [Tooltip("Tốc độ bay trôi lên trên.")]
-    [SerializeField] private float floatSpeed = 1.25f;
+    [Tooltip("Tốc độ nảy bùng nổ ban đầu lên trên (Parabolic Arc).")]
+    [SerializeField] private float burstSpeedY = 3.2f;
+
+    [Tooltip("Trọng lực kéo trôi xuống êm ái.")]
+    [SerializeField] private float arcGravity = 4.8f;
+
+    [Tooltip("Lực cản không khí theo phương ngang.")]
+    [SerializeField] private float dragX = 2.5f;
+
+    [Tooltip("Hệ số thu nhỏ kích thước chữ số để tinh gọn, không che quái.")]
+    [SerializeField] private float baseScale = 0.65f;
 
     [Tooltip("Độ nảy phóng to ban đầu (Pop Multiplier).")]
-    [SerializeField] private float popMultiplier = 1.35f;
+    [SerializeField] private float popMultiplier = 1.22f;
 
-    [Header("Color Schemes")]
-    [SerializeField] private Color normalColor = new Color(1f, 0.72f, 0.18f, 1f);       // Vàng cam rực rỡ
-    [SerializeField] private Color criticalColor = new Color(1f, 0.42f, 0.05f, 1f);     // Cam lửa rực
-    [SerializeField] private Color playerDamageColor = new Color(1f, 0.22f, 0.22f, 1f); // Đỏ tươi nguy hiểm
-    [SerializeField] private Color healColor = new Color(0.18f, 0.9f, 0.45f, 1f);       // Xanh ngọc hồi phục
+    [Header("Color Schemes - Solid Fallbacks")]
+    [SerializeField] private Color normalColor = new Color(1f, 0.92f, 0.35f, 1f);       // Vàng hổ phách tươi
+    [SerializeField] private Color criticalColor = new Color(1f, 0.35f, 0.05f, 1f);     // Cam lửa rực
+    [SerializeField] private Color playerDamageColor = new Color(1f, 0.2f, 0.2f, 1f);   // Đỏ tươi nguy hiểm
+    [SerializeField] private Color healColor = new Color(0.15f, 0.95f, 0.45f, 1f);      // Xanh ngọc hồi phục
+
+    [Header("Vertex Gradients (Top / Bottom)")]
+    private static readonly Color NormalGradTop = new Color(1f, 1f, 1f, 1f);             // Trắng tinh khiết sáng rõ
+    private static readonly Color NormalGradBottom = new Color(1f, 0.82f, 0.08f, 1f);     // Vàng cam ấm tương phản cao
+
+    private static readonly Color CritGradTop = new Color(1f, 0.98f, 0.3f, 1f);
+    private static readonly Color CritGradBottom = new Color(1f, 0.18f, 0.02f, 1f);
+
+    private static readonly Color PlayerGradTop = new Color(1f, 0.65f, 0.65f, 1f);
+    private static readonly Color PlayerGradBottom = new Color(0.95f, 0.08f, 0.08f, 1f);
+
+    private static readonly Color HealGradTop = new Color(0.8f, 1f, 0.9f, 1f);
+    private static readonly Color HealGradBottom = new Color(0.05f, 0.9f, 0.4f, 1f);
 
     public float Duration
     {
@@ -54,8 +77,12 @@ public class DamageNumber : MonoBehaviour, IPoolable
     private Vector3 initialScale = Vector3.one;
     private Vector3 currentVelocity;
     private Color baseColor;
+    private Color gradTop;
+    private Color gradBottom;
+    private float targetScaleFactor = 1f;
     private float elapsedTime;
     private bool isRunning;
+    private bool isCrit;
     private MeshRenderer meshRenderer;
 
     private void Awake()
@@ -68,6 +95,18 @@ public class DamageNumber : MonoBehaviour, IPoolable
         if (textComponent == null)
         {
             textComponent = GetComponent<TMP_Text>();
+        }
+
+        if (textComponent != null)
+        {
+            textComponent.fontStyle = FontStyles.Bold;
+            if (textComponent.fontSharedMaterial != null)
+            {
+                textComponent.fontSharedMaterial.EnableKeyword("OUTLINE_ON");
+                textComponent.fontSharedMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.28f);
+                textComponent.fontSharedMaterial.SetFloat(ShaderUtilities.ID_FaceDilate, 0.18f);
+                textComponent.fontSharedMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
+            }
         }
 
         if (meshRenderer == null)
@@ -101,99 +140,172 @@ public class DamageNumber : MonoBehaviour, IPoolable
     }
 
     /// <summary>
-    /// Khởi tạo và kích hoạt hiệu ứng hiển thị số sát thương.
+    /// Khởi tạo và kích hoạt hiệu ứng hiển thị số sát thương với chuyển động nảy vòng cung.
     /// </summary>
     public void Initialize(int amount, DamageType type, Vector3 startPos, float extraScale = 1f)
     {
+        InitializeWithDirection(amount, type, startPos, Random.Range(-1f, 1f), extraScale);
+    }
+
+    /// <summary>
+    /// Khởi tạo với hướng tản số (horizontalDir: -1 đến +1) giúp chống trùng đè khi bắn liên thanh.
+    /// </summary>
+    public void InitializeWithDirection(int amount, DamageType type, Vector3 startPos, float horizontalDir, float extraScale = 1f)
+    {
         EnsureComponents();
 
-        // 1. Gán nội dung chữ
+        isCrit = (type == DamageType.Critical);
+
+        // 1. Định dạng nội dung hiển thị theo phong cách game Survivor
         if (textComponent != null)
         {
-            textComponent.text = amount > 0 ? amount.ToString() : "0";
-            if (type == DamageType.Heal)
+            string numStr = amount > 0 ? amount.ToString() : "0";
+            switch (type)
             {
-                textComponent.text = "+" + textComponent.text;
+                case DamageType.Critical:
+                    textComponent.text = "CRIT " + numStr + "!";
+                    break;
+                case DamageType.PlayerDamage:
+                    textComponent.text = "-" + numStr;
+                    break;
+                case DamageType.Heal:
+                    textComponent.text = "+" + numStr;
+                    break;
+                case DamageType.Normal:
+                default:
+                    textComponent.text = numStr;
+                    break;
             }
         }
 
-        // 2. Thiết lập màu sắc theo loại sát thương
+        // 2. Thiết lập màu sắc và Vertex Gradient
         float scaleFactor = extraScale;
+
+        // Dynamic scale nhẹ theo độ lớn sát thương
+        if (amount >= 300) scaleFactor *= 1.15f;
+        else if (amount >= 100) scaleFactor *= 1.08f;
+
         switch (type)
         {
             case DamageType.Critical:
                 baseColor = criticalColor;
-                scaleFactor *= 1.3f;
+                gradTop = CritGradTop;
+                gradBottom = CritGradBottom;
+                scaleFactor *= 1.35f;
+                SetSorting(sortingLayerName, sortingOrder + 10); // Ưu tiên hiển thị đòn chí mạng lên trên
                 break;
             case DamageType.PlayerDamage:
                 baseColor = playerDamageColor;
+                gradTop = PlayerGradTop;
+                gradBottom = PlayerGradBottom;
+                scaleFactor *= 1.08f;
+                SetSorting(sortingLayerName, sortingOrder + 5);
                 break;
             case DamageType.Heal:
                 baseColor = healColor;
+                gradTop = HealGradTop;
+                gradBottom = HealGradBottom;
+                scaleFactor *= 1.05f;
+                SetSorting(sortingLayerName, sortingOrder + 5);
                 break;
             case DamageType.Normal:
             default:
                 baseColor = normalColor;
+                gradTop = NormalGradTop;
+                gradBottom = NormalGradBottom;
+                SetSorting(sortingLayerName, sortingOrder);
                 break;
         }
 
-        if (textComponent != null)
-        {
-            textComponent.color = baseColor;
-        }
+        targetScaleFactor = scaleFactor;
+        ApplyColorAndGradient(1f);
 
-        // 3. Thiết lập vị trí và vận tốc trôi bổng (kèm độ lệch ngang ngẫu nhiên nhỏ)
-        float horizontalSpread = Random.Range(-0.3f, 0.3f);
-        transform.position = startPos + new Vector3(horizontalSpread * 0.4f, 0f, 0f);
-        currentVelocity = new Vector3(horizontalSpread, floatSpeed, 0f);
+        // 3. Khởi tạo quỹ đạo Parabolic Arc (bật nảy vòng cung)
+        float clampedDir = Mathf.Clamp(horizontalDir, -1.2f, 1.2f);
+        float hSpread = clampedDir * Random.Range(0.7f, 1.2f);
+        float startOffsetY = Random.Range(0.2f, 0.4f);
 
-        // 4. Kích hoạt trạng thái diễn hoạt
-        transform.localScale = initialScale * scaleFactor;
+        transform.position = startPos + new Vector3(clampedDir * 0.2f, startOffsetY, 0f);
+        currentVelocity = new Vector3(hSpread, burstSpeedY * (isCrit ? 1.15f : 1f), 0f);
+
+        // 4. Kích hoạt trạng thái diễn hoạt (Squash & Stretch ban đầu)
+        transform.localScale = new Vector3(initialScale.x * 1.12f, initialScale.y * 0.9f, initialScale.z) * (baseScale * targetScaleFactor);
         elapsedTime = 0f;
         isRunning = true;
         gameObject.SetActive(true);
+    }
+
+    private void ApplyColorAndGradient(float alpha)
+    {
+        if (textComponent == null) return;
+
+        Color c = baseColor;
+        c.a = alpha;
+        textComponent.color = c;
+
+        textComponent.enableVertexGradient = true;
+        Color top = gradTop;
+        top.a = alpha;
+        Color btm = gradBottom;
+        btm.a = alpha;
+        textComponent.colorGradient = new VertexGradient(top, top, btm, btm);
     }
 
     private void Update()
     {
         if (!isRunning) return;
 
-        elapsedTime += Time.deltaTime;
+        float dt = Time.deltaTime;
+        elapsedTime += dt;
         float progress = Mathf.Clamp01(elapsedTime / duration);
 
-        // Di chuyển trôi lên trên và giảm dần vận tốc ngang
-        transform.position += currentVelocity * Time.deltaTime;
-        currentVelocity.x = Mathf.Lerp(currentVelocity.x, 0f, Time.deltaTime * 3f);
+        // 1. Cập nhật vị trí vật lý Parabolic Arc
+        transform.position += currentVelocity * dt;
 
-        // Hiệu ứng Pop Scale: Nảy to trong 20% đầu tiên rồi về kích thước chuẩn
-        float currentPop;
-        if (progress < 0.2f)
+        // Trọng lực kéo trôi xuống dần
+        currentVelocity.y -= arcGravity * dt;
+        // Giảm dần vận tốc ngang theo lực cản
+        currentVelocity.x = Mathf.Lerp(currentVelocity.x, 0f, dt * dragX);
+
+        // 2. Hiệu ứng Squash & Stretch + Elastic Overshoot (Pop)
+        float currentMultiplier;
+        float peakPop = isCrit ? popMultiplier * 1.18f : popMultiplier;
+
+        if (progress < 0.15f)
         {
-            float popT = progress / 0.2f;
-            currentPop = Mathf.Lerp(0.8f, popMultiplier, popT);
+            // Bùng nổ phóng to nhanh (Overshoot)
+            float t = progress / 0.15f;
+            currentMultiplier = Mathf.Lerp(0.92f, peakPop, Mathf.Sin(t * Mathf.PI * 0.5f));
         }
-        else if (progress < 0.45f)
+        else if (progress < 0.4f)
         {
-            float popT = (progress - 0.2f) / 0.25f;
-            currentPop = Mathf.Lerp(popMultiplier, 1.0f, popT);
+            // Đàn hồi co về kích thước chuẩn (Elastic settle)
+            float t = (progress - 0.15f) / 0.25f;
+            currentMultiplier = Mathf.Lerp(peakPop, 1.0f, t);
         }
         else
         {
-            // Giai đoạn cuối hơi co nhỏ lại nhẹ nhàng
-            currentPop = Mathf.Lerp(1.0f, 0.85f, (progress - 0.45f) / 0.55f);
+            // Giai đoạn cuối hơi thu nhỏ nhẹ nhàng
+            float t = (progress - 0.4f) / 0.6f;
+            currentMultiplier = Mathf.Lerp(1.0f, 0.9f, t);
         }
-        transform.localScale = initialScale * currentPop;
 
-        // Hiệu ứng mờ dần (Fade-out): Giữ alpha 100% trong 50% thời gian đầu, mờ dần về 0 ở nửa sau
-        if (textComponent != null)
+        Vector3 finalScale = initialScale * (baseScale * targetScaleFactor * currentMultiplier);
+
+        // Hiệu ứng rung nhẹ điểm nhấn đòn Chí Mạng ở 0.2s đầu
+        if (isCrit && progress < 0.25f)
         {
-            float alpha = progress < 0.5f ? 1f : Mathf.Lerp(1f, 0f, (progress - 0.5f) / 0.5f);
-            Color col = baseColor;
-            col.a = alpha;
-            textComponent.color = col;
+            float shake = Mathf.Sin(elapsedTime * 65f) * 0.03f;
+            transform.position += new Vector3(shake, 0f, 0f);
         }
 
-        // Khi hết thời gian -> Thu hồi về Pool
+        transform.localScale = finalScale;
+
+        // 3. Hiệu ứng mờ dần (Fade-out): Giữ sắc nét 65% thời gian đầu, chỉ mờ dần ở 35% cuối
+        float alpha = progress < 0.65f ? 1f : Mathf.Lerp(1f, 0f, (progress - 0.65f) / 0.35f);
+        ApplyColorAndGradient(alpha);
+
+        // 4. Thu hồi về Pool khi hết thời gian
         if (progress >= 1f)
         {
             Despawn();
@@ -225,3 +337,4 @@ public class DamageNumber : MonoBehaviour, IPoolable
         gameObject.SetActive(false);
     }
 }
+

@@ -53,7 +53,7 @@ public static class DamageNumberSceneBuilder
         }
 
         so.FindProperty("initialPoolSize").intValue = 60;
-        so.FindProperty("defaultFontSize").floatValue = 5.0f;
+        so.FindProperty("defaultFontSize").floatValue = 2.4f;
         so.FindProperty("sortingLayerName").stringValue = "UI";
         so.FindProperty("sortingOrder").intValue = 600;
         so.ApplyModifiedProperties();
@@ -73,10 +73,17 @@ public static class DamageNumberSceneBuilder
         GameObject tempObj = new GameObject("DamageNumber");
         TextMeshPro tmp = tempObj.AddComponent<TextMeshPro>();
         tmp.text = "99";
-        tmp.fontSize = 5.0f;
+        tmp.fontSize = 2.4f;
         tmp.fontStyle = FontStyles.Bold;
         tmp.alignment = TextAlignmentOptions.Center;
         tmp.enableWordWrapping = false;
+        tmp.enableVertexGradient = true;
+        tmp.colorGradient = new VertexGradient(
+            new Color(1f, 1f, 1f, 1f),
+            new Color(1f, 1f, 1f, 1f),
+            new Color(1f, 0.82f, 0.08f, 1f),
+            new Color(1f, 0.82f, 0.08f, 1f)
+        );
 
         if (fontAsset != null)
         {

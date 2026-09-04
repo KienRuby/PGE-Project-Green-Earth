@@ -54,6 +54,24 @@ public class DamageNumberSystemTests
     }
 
     [Test]
+    public void DamageNumber_Initialization_CriticalDamage_HasCritFormatting()
+    {
+        DamageNumber critDmg = manager.GetFromPool();
+        critDmg.Initialize(120, DamageType.Critical, Vector3.zero);
+
+        Assert.That(critDmg.TextComponent.text, Does.Contain("CRIT").And.Contain("120").And.Contain("!"));
+    }
+
+    [Test]
+    public void DamageNumber_Initialization_PlayerDamage_HasMinusPrefix()
+    {
+        DamageNumber playerDmg = manager.GetFromPool();
+        playerDmg.Initialize(35, DamageType.PlayerDamage, Vector3.zero);
+
+        Assert.That(playerDmg.TextComponent.text, Is.EqualTo("-35"));
+    }
+
+    [Test]
     public void DamageNumber_Initialization_Heal_AddsPlusPrefix()
     {
         DamageNumber healDmg = manager.GetFromPool();
