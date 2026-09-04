@@ -7,6 +7,19 @@ using UnityEngine;
 /// </summary>
 public static class GameSettings
 {
+    public const string EnglishLanguage = "English";
+    public const string VietnameseLanguage = "Vietnamese";
+    public const string ChineseLanguage = "Chinese";
+    public const string RussianLanguage = "Russian";
+
+    public static readonly string[] SupportedLanguages =
+    {
+        EnglishLanguage,
+        VietnameseLanguage,
+        ChineseLanguage,
+        RussianLanguage
+    };
+
     public const string BgmKey = "PGE.Settings.BGM";
     public const string SfxKey = "PGE.Settings.SFX";
     public const string LanguageKey = "PGE.Settings.Language";
@@ -57,15 +70,29 @@ public static class GameSettings
 
     public static string Language
     {
-        get => PlayerPrefs.GetString(LanguageKey, "English");
+        get => NormalizeLanguage(PlayerPrefs.GetString(LanguageKey, EnglishLanguage));
         set
         {
-            PlayerPrefs.SetString(LanguageKey, string.IsNullOrWhiteSpace(value) ? "English" : value);
+            PlayerPrefs.SetString(LanguageKey, NormalizeLanguage(value));
             SaveAndNotify();
         }
     }
 
-    public static bool IsVietnamese => Language == "Tiếng Việt";
+    public static bool IsVietnamese => Language == VietnameseLanguage;
+
+    public static string NormalizeLanguage(string value)
+    {
+        if (string.Equals(value, "Tiếng Việt", StringComparison.OrdinalIgnoreCase))
+            return VietnameseLanguage;
+
+        foreach (string supportedLanguage in SupportedLanguages)
+        {
+            if (string.Equals(value, supportedLanguage, StringComparison.OrdinalIgnoreCase))
+                return supportedLanguage;
+        }
+
+        return EnglishLanguage;
+    }
 
     public static bool ShowDamage
     {

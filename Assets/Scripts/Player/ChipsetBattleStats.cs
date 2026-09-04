@@ -157,6 +157,8 @@ public static class ChipsetBattleStats
         return entry;
     }
 
+    public static Entry GetStats(int chipsetId) => GetEntry(chipsetId);
+
     public static void RecordAttack(int chipsetId, int projectileCount)
     {
         if (chipsetId <= 0) return;

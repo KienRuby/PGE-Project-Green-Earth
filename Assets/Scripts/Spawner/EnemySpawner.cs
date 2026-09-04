@@ -170,6 +170,7 @@ public class EnemySpawner : MonoBehaviour
     public int EnemiesSpawnedInWave => enemiesSpawnedInWave;
     public int EnemiesKilledInWave => enemiesKilledInWave;
     public int TotalEnemiesInCurrentWave => GetCurrentWaveConfig() != null ? GetCurrentWaveConfig().totalEnemiesToSpawn : 0;
+    public int GetActiveEnemyCount() => activeEnemies.Count + activeBosses.Count;
     public int CurrentActiveEnemiesCount => activeEnemies.Count;
     public int CurrentActiveBossesCount => activeBosses.Count;
     public EnemyHealth CurrentActiveBoss => activeBosses.Count > 0 ? activeBosses[0] : null;
@@ -183,6 +184,22 @@ public class EnemySpawner : MonoBehaviour
     public int StageVictoryDataChipReward => stageVictoryDataChipReward;
     public int StageVictoryRedGemReward => stageVictoryRedGemReward;
     public IReadOnlyList<WaveConfig> Waves => waves;
+
+    public void StopSpawner()
+    {
+        currentState = WaveState.NotStarted;
+        enabled = false;
+    }
+
+    public void ResumeSpawner()
+    {
+        enabled = true;
+        if (currentState == WaveState.NotStarted && waves != null && waves.Count > 0)
+        {
+            StartWave(currentWaveIndex);
+        }
+    }
+
 
     private void Awake()
     {

@@ -1,4 +1,4 @@
-﻿/[Ll]ibrary/
+/[Ll]ibrary/
 /[Tt]emp/
 /[Oo]bj/
 /[叠uild]/
@@ -25,7 +25,20 @@
 # Thư mục log và cài đặt cá nhân của người dùng
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
+*.log
+*.txt
+*.txt.meta
+
+# Agent, test runner & temporary test scripts/documents
+.agents/
+*.bat
+*.ps1
+*.md
+!README.md
+PGEAndroidVerificationResult.txt
+
 
 # Tệp sinh ra bởi hệ điều hành
 .DS_Store
 Thumbs.db
+

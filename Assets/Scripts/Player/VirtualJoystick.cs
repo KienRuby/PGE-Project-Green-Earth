@@ -188,7 +188,7 @@ public class VirtualJoystick : MonoBehaviour,
 
     private void StartJoystick(Vector2 screenPos, int fingerId)
     {
-        if (background == null || handle == null || !GameSettings.JoystickEnabled) return;
+        if (background == null || handle == null) return;
 
         activeFingerId = fingerId;
         pointerDownScreenPos = screenPos;
@@ -213,7 +213,8 @@ public class VirtualJoystick : MonoBehaviour,
             }
         }
 
-        background.gameObject.SetActive(true);
+        // Mode 2 chỉ ẩn hình joystick; vùng chạm và vector di chuyển vẫn hoạt động.
+        background.gameObject.SetActive(GameSettings.JoystickEnabled);
         handle.anchoredPosition = Vector2.zero;
         input = Vector2.zero;
     }

@@ -279,7 +279,7 @@ public static class PityUIBuilder
         winImg.color = WindowBgColor;
         winImg.raycastTarget = true;
 
-        Outline winOutline = winGo.GetComponent<Outline>();
+        Outline winOutline = GetOrRepairOutline(winGo);
         winOutline.effectColor = WindowBorderColor;
         winOutline.effectDistance = new Vector2(3f, -3f);
 
@@ -356,7 +356,7 @@ public static class PityUIBuilder
         Image rowImg = rowGo.GetComponent<Image>();
         rowImg.color = RowBgColor;
 
-        Outline rowOutline = rowGo.GetComponent<Outline>();
+        Outline rowOutline = GetOrRepairOutline(rowGo);
         rowOutline.effectColor = RowBorderColor;
         rowOutline.effectDistance = new Vector2(1.5f, -1.5f);
 
@@ -408,6 +408,22 @@ public static class PityUIBuilder
         rowSo.ApplyModifiedProperties();
 
         return rowComp;
+    }
+
+    private static Outline GetOrRepairOutline(GameObject gameObject)
+    {
+        Outline outline = gameObject.GetComponent<Outline>();
+        if (outline != null)
+        {
+            return outline;
+        }
+
+        if (GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(gameObject) > 0)
+        {
+            GameObjectUtility.RemoveMonoBehavioursWithMissingScript(gameObject);
+        }
+
+        return gameObject.AddComponent<Outline>();
     }
 
     private static Slider CreateProgressBar(Transform parent, string name, Vector2 pos, Vector2 size, Color fillColor)

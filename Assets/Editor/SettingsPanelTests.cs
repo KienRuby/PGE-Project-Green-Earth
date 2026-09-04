@@ -91,6 +91,83 @@ public class SettingsPanelTests
     }
 
     [Test]
+    public void Settings_GamePlayMode_HidesAccountSection_AndKeepsSevenButtons()
+    {
+        GameObject canvasObject = new GameObject("Canvas", typeof(RectTransform), typeof(Canvas));
+        try
+        {
+            SettingsPanelController panel = SettingsPanelController.CreateRuntimePanel(
+                canvasObject.GetComponent<RectTransform>());
+
+            Assert.That(panel, Is.Not.Null);
+
+            panel.IsGameplayMode = true;
+            panel.Open();
+
+            Transform accountCard = panel.transform.Find("SafeContent/AccountCard");
+            Assert.That(accountCard, Is.Not.Null);
+            Assert.That(accountCard.gameObject.activeSelf, Is.False, "AccountCard should be hidden in GamePlay mode!");
+
+            Transform bgm = panel.transform.Find("SafeContent/BgmButton");
+            Transform sfx = panel.transform.Find("SafeContent/SfxButton");
+            Transform lang = panel.transform.Find("SafeContent/LanguageButton");
+            Transform dmg = panel.transform.Find("SafeContent/ShowDamageButton");
+            Transform joy = panel.transform.Find("SafeContent/JoystickModeButton");
+            Transform shake = panel.transform.Find("SafeContent/ScreenShakeButton");
+            Transform review = panel.transform.Find("SafeContent/ReviewButton");
+
+            Assert.That(bgm, Is.Not.Null);
+            Assert.That(sfx, Is.Not.Null);
+            Assert.That(lang, Is.Not.Null);
+            Assert.That(dmg, Is.Not.Null);
+            Assert.That(joy, Is.Not.Null);
+            Assert.That(shake, Is.Not.Null);
+            Assert.That(review, Is.Not.Null);
+
+            Assert.That(bgm.gameObject.activeSelf, Is.True);
+            Assert.That(sfx.gameObject.activeSelf, Is.True);
+            Assert.That(lang.gameObject.activeSelf, Is.True);
+            Assert.That(dmg.gameObject.activeSelf, Is.True);
+            Assert.That(joy.gameObject.activeSelf, Is.True);
+            Assert.That(shake.gameObject.activeSelf, Is.True);
+            Assert.That(review.gameObject.activeSelf, Is.True);
+
+            RectTransform bgmRect = bgm.GetComponent<RectTransform>();
+            RectTransform langRect = lang.GetComponent<RectTransform>();
+            Assert.That(bgmRect.anchoredPosition.y, Is.EqualTo(350f));
+            Assert.That(langRect.anchoredPosition.y, Is.EqualTo(180f));
+        }
+        finally
+        {
+            Object.DestroyImmediate(canvasObject);
+        }
+    }
+
+    [Test]
+    public void Settings_MainMenuMode_KeepsAccountSection_Active()
+    {
+        GameObject canvasObject = new GameObject("Canvas", typeof(RectTransform), typeof(Canvas));
+        try
+        {
+            SettingsPanelController panel = SettingsPanelController.CreateRuntimePanel(
+                canvasObject.GetComponent<RectTransform>());
+
+            Assert.That(panel, Is.Not.Null);
+
+            panel.IsGameplayMode = false;
+            panel.Open();
+
+            Transform accountCard = panel.transform.Find("SafeContent/AccountCard");
+            Assert.That(accountCard, Is.Not.Null);
+            Assert.That(accountCard.gameObject.activeSelf, Is.True, "AccountCard should remain active in MainMenu!");
+        }
+        finally
+        {
+            Object.DestroyImmediate(canvasObject);
+        }
+    }
+
+    [Test]
     public void Settings_BgmAndSfxButtons_MuteTheirRealAudioCategories()
     {
         bool hadBgm = PlayerPrefs.HasKey(GameSettings.BgmKey);
@@ -131,7 +208,7 @@ public class SettingsPanelTests
     }
 
     [Test]
-    public void Settings_LanguageButton_TranslatesTheSettingsPanel()
+    public void Settings_LanguageButton_OpensFourLanguageChoices_AndPersistsSelection()
     {
         bool hadLanguage = PlayerPrefs.HasKey(GameSettings.LanguageKey);
         string originalLanguage = PlayerPrefs.GetString(GameSettings.LanguageKey, "English");
@@ -149,9 +226,17 @@ public class SettingsPanelTests
                 .GetComponent<UnityEngine.UI.Button>();
             languageButton.onClick.Invoke();
 
-            TMP_Text title = panel.transform.Find("SafeContent/Title").GetComponent<TMP_Text>();
-            Assert.That(GameSettings.Language, Is.EqualTo("Tiếng Việt"));
-            Assert.That(title.text, Is.EqualTo("CÀI ĐẶT"));
+            Transform options = panel.transform.Find("SafeContent/LanguageOptionsPanel");
+            Assert.That(options, Is.Not.Null);
+            Assert.That(options.gameObject.activeSelf, Is.True);
+            Assert.That(options.Find("EnglishButton"), Is.Not.Null);
+            Assert.That(options.Find("VietnameseButton"), Is.Not.Null);
+            Assert.That(options.Find("ChineseButton"), Is.Not.Null);
+            Assert.That(options.Find("RussianButton"), Is.Not.Null);
+
+            options.Find("RussianButton").GetComponent<UnityEngine.UI.Button>().onClick.Invoke();
+            Assert.That(GameSettings.Language, Is.EqualTo(GameSettings.RussianLanguage));
+            Assert.That(options.gameObject.activeSelf, Is.False);
         }
         finally
         {

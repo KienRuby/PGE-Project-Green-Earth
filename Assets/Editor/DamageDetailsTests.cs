@@ -200,4 +200,53 @@ public class DamageDetailsTests
 
         Object.DestroyImmediate(canvasGo);
     }
+
+    [Test]
+    public void VictoryPanelController_EnsureDetailsUiComponents_CreatesDetailsButtonAndPopup()
+    {
+        GameObject canvasGo = new GameObject("Canvas", typeof(RectTransform), typeof(Canvas), typeof(VictoryPanelController));
+        GameObject victoryPanel = new GameObject("VictoryPanel", typeof(RectTransform));
+        victoryPanel.transform.SetParent(canvasGo.transform, false);
+
+        GameObject completePanel = new GameObject("CompletePanel", typeof(RectTransform));
+        completePanel.transform.SetParent(victoryPanel.transform, false);
+
+        GameObject dataReward = new GameObject("DataChipReward", typeof(RectTransform));
+        dataReward.transform.SetParent(completePanel.transform, false);
+        RectTransform dataRt = dataReward.GetComponent<RectTransform>();
+        dataRt.anchoredPosition = Vector2.zero;
+        dataRt.sizeDelta = new Vector2(610f, 118f);
+
+        GameObject gemReward = new GameObject("RedGemReward", typeof(RectTransform));
+        gemReward.transform.SetParent(completePanel.transform, false);
+        RectTransform gemRt = gemReward.GetComponent<RectTransform>();
+        gemRt.anchoredPosition = Vector2.zero;
+        gemRt.sizeDelta = new Vector2(610f, 118f);
+
+        VictoryPanelController controller = canvasGo.GetComponent<VictoryPanelController>();
+        var serialized = new UnityEditor.SerializedObject(controller);
+        serialized.FindProperty("victoryPanel").objectReferenceValue = victoryPanel;
+        serialized.ApplyModifiedPropertiesWithoutUndo();
+
+        controller.EnsureDetailsUiComponents();
+
+        Transform detailsBtn = completePanel.transform.Find("DetailsButton");
+        Assert.That(detailsBtn, Is.Not.Null, "VictoryPanelController EnsureDetailsUiComponents phải tự tạo DetailsButton nếu thiếu.");
+        Assert.That(dataRt.anchoredPosition.x, Is.EqualTo(-110f).Within(0.01f), "DataChipReward phải dịch sang x = -110f.");
+        Assert.That(dataRt.sizeDelta.x, Is.EqualTo(340f).Within(0.01f), "DataChipReward phải thu gọn về width = 340f.");
+        Assert.That(gemRt.anchoredPosition.x, Is.EqualTo(-110f).Within(0.01f), "RedGemReward phải dịch sang x = -110f.");
+        Assert.That(gemRt.sizeDelta.x, Is.EqualTo(340f).Within(0.01f), "RedGemReward phải thu gọn về width = 340f.");
+
+        DamageDetailsPopup popup = canvasGo.GetComponentInChildren<DamageDetailsPopup>(true);
+        Assert.That(popup, Is.Not.Null, "VictoryPanelController EnsureDetailsUiComponents phải tự tạo DamageDetailsPopup trên Canvas.");
+
+        // Test ToggleDetails mở và đóng popup
+        controller.ToggleDetails();
+        Assert.That(popup.IsVisible, Is.True, "Bấm ToggleDetails phải mở DamageDetailsPopup.");
+
+        controller.ToggleDetails();
+        Assert.That(popup.IsVisible, Is.False, "Bấm ToggleDetails lần 2 phải đóng DamageDetailsPopup.");
+
+        Object.DestroyImmediate(canvasGo);
+    }
 }

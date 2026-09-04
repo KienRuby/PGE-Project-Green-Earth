@@ -4,7 +4,7 @@ using UnityEngine;
 
 /// <summary>
 /// Quản lý tập trung Object Pool và hiển thị số sát thương trong trận đấu.
-/// Hỗ trợ nạp Font Nunito có viền đen sắc nét, tối ưu hóa Zero-GC cho game Survivor.
+/// Hỗ trợ nạp Font Nunito có viền đen sắc nét, đổi màu viền linh hoạt, tối ưu hóa Zero-GC.
 /// </summary>
 public class DamageNumberManager : MonoBehaviour
 {
@@ -26,9 +26,43 @@ public class DamageNumberManager : MonoBehaviour
     [Tooltip("Kích thước chữ số (FontSize) - được thu gọn để hiển thị tinh gọn, sắc nét.")]
     [SerializeField] private float defaultFontSize = 2.4f;
 
+    [Header("Outline Settings")]
+    [Tooltip("Màu viền mặc định cho số sát thương (mặc định viền đen sắc nét).")]
+    [SerializeField] private Color defaultOutlineColor = Color.black;
+
+    [Tooltip("Độ dày viền mặc định (khuyên dùng 0.2f - 0.35f).")]
+    [Range(0f, 1f)]
+    [SerializeField] private float defaultOutlineWidth = 0.25f;
+
+    [Tooltip("Bật tùy chọn đổi màu viền theo loại sát thương ở cấp Manager.")]
+    [SerializeField] private bool useManagerOutlinePerType = false;
+
+    [SerializeField] private Color normalOutlineColor = Color.black;
+    [SerializeField] private Color criticalOutlineColor = Color.black;
+    [SerializeField] private Color playerDamageOutlineColor = Color.black;
+    [SerializeField] private Color healOutlineColor = Color.black;
+
     [Header("Sorting")]
     [SerializeField] private string sortingLayerName = "UI";
     [SerializeField] private int sortingOrder = 600;
+
+    public Color DefaultOutlineColor
+    {
+        get => defaultOutlineColor;
+        set => SetDefaultOutline(value, defaultOutlineWidth);
+    }
+
+    public float DefaultOutlineWidth
+    {
+        get => defaultOutlineWidth;
+        set => SetDefaultOutline(defaultOutlineColor, value);
+    }
+
+    public bool UseManagerOutlinePerType
+    {
+        get => useManagerOutlinePerType;
+        set => useManagerOutlinePerType = value;
+    }
 
     private readonly Queue<DamageNumber> poolQueue = new Queue<DamageNumber>();
     private readonly List<DamageNumber> allInstances = new List<DamageNumber>();
@@ -75,6 +109,80 @@ public class DamageNumberManager : MonoBehaviour
         Instance.SpawnDamage(worldPosition, damage, type, extraScale);
     }
 
+    /// <summary>
+    /// Đổi màu viền toàn cục cho tất cả số sát thương.
+    /// </summary>
+    public static void SetGlobalOutlineColor(Color color, float width = -1f)
+    {
+        if (Instance != null)
+        {
+            Instance.SetDefaultOutline(color, width);
+        }
+    }
+
+    /// <summary>
+    /// Đổi màu viền mặc định và cập nhật tất cả instance trong pool.
+    /// </summary>
+    public void SetDefaultOutline(Color color, float width = -1f)
+    {
+        defaultOutlineColor = color;
+        if (width >= 0f)
+        {
+            defaultOutlineWidth = Mathf.Clamp01(width);
+        }
+
+        if (strokeMaterial != null)
+        {
+            strokeMaterial.EnableKeyword(ShaderUtilities.Keyword_Outline);
+            strokeMaterial.SetColor(ShaderUtilities.ID_OutlineColor, defaultOutlineColor);
+            strokeMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, defaultOutlineWidth);
+        }
+
+        foreach (DamageNumber item in allInstances)
+        {
+            if (item != null)
+            {
+                item.SetOutlineColor(defaultOutlineColor, defaultOutlineWidth);
+            }
+        }
+    }
+
+    public Color GetOutlineForType(DamageType type)
+    {
+        switch (type)
+        {
+            case DamageType.Critical:
+                return criticalOutlineColor;
+            case DamageType.PlayerDamage:
+                return playerDamageOutlineColor;
+            case DamageType.Heal:
+                return healOutlineColor;
+            case DamageType.Normal:
+            default:
+                return normalOutlineColor;
+        }
+    }
+
+    public void SetOutlineForType(DamageType type, Color color)
+    {
+        switch (type)
+        {
+            case DamageType.Critical:
+                criticalOutlineColor = color;
+                break;
+            case DamageType.PlayerDamage:
+                playerDamageOutlineColor = color;
+                break;
+            case DamageType.Heal:
+                healOutlineColor = color;
+                break;
+            case DamageType.Normal:
+            default:
+                normalOutlineColor = color;
+                break;
+        }
+    }
+
     public void InitializePool()
     {
         if (poolContainer == null)
@@ -117,12 +225,22 @@ public class DamageNumberManager : MonoBehaviour
             fontAsset = TMP_Settings.defaultFontAsset;
         }
 
+        // Đảm bảo material có keyword OUTLINE_ON và cấu hình màu viền
         if (strokeMaterial != null)
         {
-            strokeMaterial.EnableKeyword("OUTLINE_ON");
+            strokeMaterial.EnableKeyword(ShaderUtilities.Keyword_Outline);
             strokeMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.28f);
             strokeMaterial.SetFloat(ShaderUtilities.ID_FaceDilate, 0.18f);
-            strokeMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
+            strokeMaterial.SetColor(ShaderUtilities.ID_OutlineColor, defaultOutlineColor);
+        }
+        else if (fontAsset != null && fontAsset.material != null)
+        {
+            strokeMaterial = new Material(fontAsset.material);
+            strokeMaterial.name = fontAsset.name + " - DynamicStroke";
+            strokeMaterial.EnableKeyword(ShaderUtilities.Keyword_Outline);
+            strokeMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.28f);
+            strokeMaterial.SetFloat(ShaderUtilities.ID_FaceDilate, 0.18f);
+            strokeMaterial.SetColor(ShaderUtilities.ID_OutlineColor, defaultOutlineColor);
         }
     }
 
@@ -163,6 +281,7 @@ public class DamageNumberManager : MonoBehaviour
 
         instance.SetSorting(sortingLayerName, sortingOrder);
         instance.EnsureComponents();
+        instance.SetOutlineColor(defaultOutlineColor, defaultOutlineWidth);
         allInstances.Add(instance);
         return instance;
     }
@@ -203,6 +322,11 @@ public class DamageNumberManager : MonoBehaviour
             }
 
             instance.InitializeWithDirection(damage, type, worldPosition, dir, extraScale);
+            if (useManagerOutlinePerType)
+            {
+                Color outline = GetOutlineForType(type);
+                instance.SetOutlineColor(outline, defaultOutlineWidth);
+            }
         }
     }
 
@@ -249,12 +373,20 @@ public class DamageNumberManager : MonoBehaviour
         fontAsset = newFont;
         strokeMaterial = newStrokeMat;
 
+        if (strokeMaterial != null)
+        {
+            strokeMaterial.EnableKeyword(ShaderUtilities.Keyword_Outline);
+            strokeMaterial.SetColor(ShaderUtilities.ID_OutlineColor, defaultOutlineColor);
+            strokeMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, defaultOutlineWidth);
+        }
+
         foreach (DamageNumber item in allInstances)
         {
             if (item != null && item.TextComponent != null)
             {
                 if (newFont != null) item.TextComponent.font = newFont;
                 if (newStrokeMat != null) item.TextComponent.fontSharedMaterial = newStrokeMat;
+                item.SetOutlineColor(defaultOutlineColor, defaultOutlineWidth);
             }
         }
     }

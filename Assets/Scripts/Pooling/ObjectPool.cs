@@ -193,6 +193,22 @@ public class ObjectPool
         obj.transform.SetParent(poolContainer);
         poolQueue.Enqueue(obj);
     }
+
+    /// <summary>
+    /// Alias cho Get(position, rotation, parent) để tương thích interface contract.
+    /// </summary>
+    public GameObject Spawn(Vector3 position, Quaternion rotation, Transform parent = null)
+    {
+        return Get(position, rotation, parent);
+    }
+
+    /// <summary>
+    /// Alias cho Return(obj) để tương thích interface contract.
+    /// </summary>
+    public void Despawn(GameObject obj)
+    {
+        Return(obj);
+    }
 }
 
 /// <summary>

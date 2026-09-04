@@ -1,4 +1,4 @@
-#if UNITY_EDITOR
+﻿#if UNITY_EDITOR
 using NUnit.Framework;
 using TMPro;
 using UnityEngine;
@@ -92,13 +92,71 @@ public class DamageNumberSystemTests
     }
 
     [Test]
+    public void DamageNumber_HasBlackOutlineByDefault()
+    {
+        DamageNumber dmgNumber = manager.GetFromPool();
+        dmgNumber.Initialize(50, DamageType.Normal, Vector3.zero);
+
+        Assert.That(dmgNumber.OutlineColor, Is.EqualTo(Color.black));
+        Assert.That(dmgNumber.OutlineWidth, Is.EqualTo(0.25f).Within(0.01f));
+    }
+
+    [Test]
+    public void DamageNumber_SetOutlineColor_UpdatesOutlineColorAndWidth()
+    {
+        DamageNumber dmgNumber = manager.GetFromPool();
+        dmgNumber.Initialize(50, DamageType.Normal, Vector3.zero);
+
+        dmgNumber.SetOutlineColor(Color.red, 0.3f);
+
+        Assert.That(dmgNumber.OutlineColor, Is.EqualTo(Color.red));
+        Assert.That(dmgNumber.OutlineWidth, Is.EqualTo(0.3f).Within(0.01f));
+    }
+
+    [Test]
+    public void DamageNumber_CustomOutlinePerType_AppliesCorrectColor()
+    {
+        DamageNumber dmgNumber = manager.GetFromPool();
+        dmgNumber.ConfigureOutlinePerType(true, Color.black, Color.red, Color.yellow, Color.green);
+
+        dmgNumber.Initialize(100, DamageType.Critical, Vector3.zero);
+        Assert.That(dmgNumber.OutlineColor, Is.EqualTo(Color.red));
+
+        dmgNumber.Initialize(50, DamageType.Heal, Vector3.zero);
+        Assert.That(dmgNumber.OutlineColor, Is.EqualTo(Color.green));
+    }
+
+    [Test]
+    public void DamageNumberManager_SetDefaultOutline_UpdatesAllInstances()
+    {
+        DamageNumber dmgNumber = manager.GetFromPool();
+        dmgNumber.Initialize(10, DamageType.Normal, Vector3.zero);
+
+        manager.SetDefaultOutline(Color.blue, 0.35f);
+
+        Assert.That(dmgNumber.OutlineColor, Is.EqualTo(Color.blue));
+        Assert.That(dmgNumber.OutlineWidth, Is.EqualTo(0.35f).Within(0.01f));
+    }
+
+    [Test]
+    public void DamageNumberSceneBuilder_CreateOrUpdatePrefab_CreatesPrefabWithOutline()
+    {
+        GameObject prefab = DamageNumberSceneBuilder.CreateOrUpdatePrefab();
+        Assert.That(prefab, Is.Not.Null);
+
+        DamageNumber dmgComp = prefab.GetComponent<DamageNumber>();
+        Assert.That(dmgComp, Is.Not.Null);
+        Assert.That(dmgComp.OutlineColor, Is.EqualTo(Color.black));
+        Assert.That(dmgComp.OutlineWidth, Is.EqualTo(0.25f).Within(0.01f));
+    }
+
+    [Test]
     public void EnemyHealth_TakeDamage_TriggersDamageNumber()
     {
         GameObject enemyObj = new GameObject("TestEnemy");
         EnemyHealth enemyHealth = enemyObj.AddComponent<EnemyHealth>();
         enemyHealth.SetMaxHealth(100, true);
 
-        // Nhận sát thương và đảm bảo không sinh ngoại lệ
         Assert.DoesNotThrow(() => enemyHealth.TakeDamage(25));
         Assert.That(enemyHealth.CurrentHealth, Is.EqualTo(75));
 

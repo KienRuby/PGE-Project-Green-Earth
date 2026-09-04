@@ -50,6 +50,7 @@ public class EnemyMovement : MonoBehaviour, IPoolable
     private float currentSlowPercent;
 
     public bool IsStunned => stunTimer > 0f;
+    public Transform CurrentTarget => player;
 
     public void ApplyStun(float duration)
     {

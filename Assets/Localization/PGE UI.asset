@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5be51871efa6c3e4eae1703925c8f5ac, type: 3}
+  m_Name: PGE UI
+  m_EditorClassIdentifier: 
+  m_SharedTableData: {fileID: 11400000, guid: 1fd2730aa5d2a0641a2516b7439631d5, type: 2}
+  m_Tables:
+  - {fileID: 11400000, guid: 3e72ce16bb6c9e2448d2a4cc8f10a7a9, type: 2}
+  - {fileID: 11400000, guid: b6590d0e245b71c4195ba67cf6f315c8, type: 2}
+  - {fileID: 11400000, guid: d0e725aa6f703bf44ba417362c5f3d42, type: 2}
+  - {fileID: 11400000, guid: 658281c8746d74549b026a7d55e667ed, type: 2}
+  m_Extensions: []
+  m_Group: String Table
+  references:
+    version: 2
+    RefIds: []

@@ -457,19 +457,19 @@ public static class PlayerRunEndSceneBuilder
 
         TMP_Text hChip = CreateText("H_CHIPSET", headerRow.transform, "CHIPSET", 22f, Cyan);
         hChip.alignment = TextAlignmentOptions.Left;
-        SetRect(hChip.rectTransform, new Vector2(-260f, 0f), new Vector2(200f, 40f));
+        SetRect(hChip.rectTransform, new Vector2(-235f, 0f), new Vector2(250f, 40f));
 
         TMP_Text hDPS = CreateText("H_DPS", headerRow.transform, "DPS", 22f, Cyan);
-        SetRect(hDPS.rectTransform, new Vector2(-75f, 0f), new Vector2(90f, 40f));
+        SetRect(hDPS.rectTransform, new Vector2(0f, 0f), new Vector2(80f, 40f));
 
         TMP_Text hD = CreateText("H_DPercent", headerRow.transform, "D %", 22f, Cyan);
-        SetRect(hD.rectTransform, new Vector2(35f, 0f), new Vector2(90f, 40f));
+        SetRect(hD.rectTransform, new Vector2(95f, 0f), new Vector2(80f, 40f));
 
         TMP_Text hDmg = CreateText("H_Damage", headerRow.transform, "Damage", 22f, Cyan);
-        SetRect(hDmg.rectTransform, new Vector2(165f, 0f), new Vector2(130f, 40f));
+        SetRect(hDmg.rectTransform, new Vector2(205f, 0f), new Vector2(110f, 40f));
 
         TMP_Text hTime = CreateText("H_Time", headerRow.transform, "Time", 22f, Cyan);
-        SetRect(hTime.rectTransform, new Vector2(295f, 0f), new Vector2(90f, 40f));
+        SetRect(hTime.rectTransform, new Vector2(310f, 0f), new Vector2(80f, 40f));
 
         // Khung cuộn danh sách (ScrollRect)
         GameObject scrollObj = new GameObject("ScrollArea", typeof(RectTransform), typeof(ScrollRect));
@@ -513,11 +513,10 @@ public static class PlayerRunEndSceneBuilder
         rowTemplate.SetActive(false);
 
         // Load Chipset Icons
-        Sprite[] chipIcons = AssetDatabase.LoadAllAssetsAtPath("Assets/Sprites/UI/Chipset/icon chipset.png").OfType<Sprite>().ToArray();
-        if (chipIcons == null || chipIcons.Length == 0)
-        {
-            chipIcons = AssetDatabase.LoadAllAssetsAtPath("Assets/Sprites/UI/Chipset/icon chipset (1) 1.png").OfType<Sprite>().ToArray();
-        }
+        ChipsetLevelVisualLibrary visualLib = Resources.Load<ChipsetLevelVisualLibrary>("ChipsetLevelVisualLibrary");
+        Sprite[] chipIcons = visualLib != null && visualLib.primaryChipIcons != null && visualLib.primaryChipIcons.Length > 0
+            ? visualLib.primaryChipIcons
+            : AssetDatabase.LoadAllAssetsAtPath("Assets/Sprites/UI/Chipset/icon chipset.png").OfType<Sprite>().ToArray();
 
         DamageDetailsPopup popup = root.AddComponent<DamageDetailsPopup>();
         SerializedObject popupSo = new SerializedObject(popup);
@@ -530,6 +529,7 @@ public static class PlayerRunEndSceneBuilder
         popupSo.FindProperty("chartIcon").objectReferenceValue = headerIcon;
         popupSo.FindProperty("closeButton").objectReferenceValue = closeBtn;
         popupSo.FindProperty("backgroundCloseButton").objectReferenceValue = bgCloseBtn;
+        popupSo.FindProperty("visualLibrary").objectReferenceValue = visualLib;
 
         SerializedProperty iconsProp = popupSo.FindProperty("chipIcons");
         iconsProp.arraySize = chipIcons.Length;
@@ -553,21 +553,10 @@ public static class PlayerRunEndSceneBuilder
         row.GetComponent<LayoutElement>().minHeight = 74f;
         row.GetComponent<LayoutElement>().preferredHeight = 74f;
 
-        // Thanh tiến trình nền Teal / Cyan thể hiện tỷ lệ % sát thương
-        GameObject fillObj = new GameObject("ProgressFill", typeof(RectTransform), typeof(Image));
-        fillObj.transform.SetParent(row.transform, false);
-        RectTransform fillRt = fillObj.GetComponent<RectTransform>();
-        fillRt.anchorMin = new Vector2(0f, 0f);
-        fillRt.anchorMax = new Vector2(0.5f, 1f);
-        fillRt.offsetMin = Vector2.zero;
-        fillRt.offsetMax = Vector2.zero;
-        Image fillImg = fillObj.GetComponent<Image>();
-        fillImg.color = new Color32(46, 125, 122, 235);
-
         // Khung Icon vũ khí
         GameObject iconFrame = new GameObject("IconFrame", typeof(RectTransform), typeof(Image));
         iconFrame.transform.SetParent(row.transform, false);
-        SetRect(iconFrame.GetComponent<RectTransform>(), new Vector2(-320f, 0f), new Vector2(56f, 56f));
+        SetRect(iconFrame.GetComponent<RectTransform>(), new Vector2(-325f, 0f), new Vector2(52f, 52f));
         iconFrame.GetComponent<Image>().color = new Color32(24, 64, 76, 255);
 
         GameObject iconObj = new GameObject("Icon", typeof(RectTransform), typeof(Image));
@@ -577,29 +566,50 @@ public static class PlayerRunEndSceneBuilder
         iconImg.preserveAspect = true;
 
         // Tên Chipset
-        TMP_Text nameText = CreateText("Name", row.transform, "Standard Gun", 22f, Color.white);
-        nameText.alignment = TextAlignmentOptions.Left;
-        SetRect(nameText.rectTransform, new Vector2(-215f, 0f), new Vector2(140f, 60f));
+        TMP_Text nameText = CreateText("Name", row.transform, "Standard Gun", 19f, Color.white);
+        nameText.alignment = TextAlignmentOptions.MidlineLeft;
+        nameText.enableAutoSizing = true;
+        nameText.fontSizeMin = 13f;
+        nameText.fontSizeMax = 19f;
+        SetRect(nameText.rectTransform, new Vector2(-185f, 10f), new Vector2(210f, 26f));
+
+        // Thanh tiến trình nền (Track + Fill) thể hiện tỷ lệ % sát thương
+        GameObject trackObj = new GameObject("ProgressBarTrack", typeof(RectTransform), typeof(Image));
+        trackObj.transform.SetParent(row.transform, false);
+        SetRect(trackObj.GetComponent<RectTransform>(), new Vector2(-185f, -14f), new Vector2(210f, 8f));
+        Image trackImg = trackObj.GetComponent<Image>();
+        trackImg.color = new Color32(10, 24, 34, 255);
+
+        GameObject fillObj = new GameObject("ProgressFill", typeof(RectTransform), typeof(Image));
+        fillObj.transform.SetParent(trackObj.transform, false);
+        RectTransform fillRt = fillObj.GetComponent<RectTransform>();
+        fillRt.anchorMin = new Vector2(0f, 0f);
+        fillRt.anchorMax = new Vector2(0.5f, 1f);
+        fillRt.offsetMin = Vector2.zero;
+        fillRt.offsetMax = Vector2.zero;
+        Image fillImg = fillObj.GetComponent<Image>();
+        fillImg.color = new Color32(78, 206, 196, 255);
 
         // DPS
-        TMP_Text dpsText = CreateText("DPS", row.transform, "357", 24f, Color.white);
-        SetRect(dpsText.rectTransform, new Vector2(-75f, 0f), new Vector2(90f, 60f));
+        TMP_Text dpsText = CreateText("DPS", row.transform, "357", 22f, Color.white);
+        SetRect(dpsText.rectTransform, new Vector2(0f, 0f), new Vector2(80f, 50f));
 
         // D %
-        TMP_Text percentText = CreateText("DPercent", row.transform, "59.8%", 24f, Color.white);
-        SetRect(percentText.rectTransform, new Vector2(35f, 0f), new Vector2(90f, 60f));
+        TMP_Text percentText = CreateText("DPercent", row.transform, "59.8%", 22f, Color.white);
+        SetRect(percentText.rectTransform, new Vector2(95f, 0f), new Vector2(80f, 50f));
 
         // Damage
-        TMP_Text damageText = CreateText("Damage", row.transform, "5,108", 24f, Color.white);
-        SetRect(damageText.rectTransform, new Vector2(165f, 0f), new Vector2(130f, 60f));
+        TMP_Text damageText = CreateText("Damage", row.transform, "5,108", 22f, Color.white);
+        SetRect(damageText.rectTransform, new Vector2(205f, 0f), new Vector2(110f, 50f));
 
         // Time
-        TMP_Text timeText = CreateText("Time", row.transform, "00:14", 24f, Color.white);
-        SetRect(timeText.rectTransform, new Vector2(295f, 0f), new Vector2(90f, 60f));
+        TMP_Text timeText = CreateText("Time", row.transform, "00:14", 22f, Color.white);
+        SetRect(timeText.rectTransform, new Vector2(310f, 0f), new Vector2(80f, 50f));
 
         DamageDetailRowUI rowUI = row.GetComponent<DamageDetailRowUI>();
         SerializedObject rSo = new SerializedObject(rowUI);
         rSo.FindProperty("rowRect").objectReferenceValue = rowRt;
+        rSo.FindProperty("progressBarTrack").objectReferenceValue = trackObj.GetComponent<RectTransform>();
         rSo.FindProperty("progressFillRect").objectReferenceValue = fillRt;
         rSo.FindProperty("progressFillImage").objectReferenceValue = fillImg;
         rSo.FindProperty("iconImage").objectReferenceValue = iconImg;

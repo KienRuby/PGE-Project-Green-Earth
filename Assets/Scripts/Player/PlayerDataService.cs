@@ -303,22 +303,38 @@ public static class PlayerDataService
 
     public static void AddDataChips(int amount)
     {
-        if (amount > 0) DataChips += amount;
+        if (amount > 0)
+        {
+            long sum = (long)DataChips + amount;
+            DataChips = (int)Math.Min((long)int.MaxValue, sum);
+        }
     }
 
     public static void AddRedGems(int amount)
     {
-        if (amount > 0) RedGems += amount;
+        if (amount > 0)
+        {
+            long sum = (long)RedGems + amount;
+            RedGems = (int)Math.Min((long)int.MaxValue, sum);
+        }
     }
 
     public static void AddEnergy(int amount)
     {
-        if (amount > 0) Energy += amount;
+        if (amount > 0)
+        {
+            long sum = (long)Energy + amount;
+            Energy = (int)Math.Min((long)int.MaxValue, sum);
+        }
     }
 
     public static void AddAdvanceStones(int amount)
     {
-        if (amount > 0) AdvanceStones += amount;
+        if (amount > 0)
+        {
+            long sum = (long)AdvanceStones + amount;
+            AdvanceStones = (int)Math.Min((long)int.MaxValue, sum);
+        }
     }
 
     // =========================================================================
@@ -331,6 +347,13 @@ public static class PlayerDataService
     {
         string normalized = (itemName ?? string.Empty).Trim().ToUpperInvariant();
         return $"{ItemLevelKeyPrefix}{normalized}";
+    }
+
+    public static string GetItemLevelKey(string itemName, int index = -1)
+    {
+        return !string.IsNullOrEmpty(itemName)
+            ? FormatItemLevelKey(itemName)
+            : $"{ItemLevelKeyPrefix}Slot_{index}";
     }
 
     public static int GetItemLevel(string itemName)

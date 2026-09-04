@@ -4,8 +4,8 @@ using UnityEngine;
 /// <summary>
 /// Quản lý cấp độ (Level) và thanh kinh nghiệm (EXP) trong trận chiến Gameplay:
 /// - Khi tiêu diệt quái vật: Nhận điểm EXP.
-/// - Khi thanh EXP đầy: Tăng cấp (Level Up) và phát sự kiện OnLevelUp.
-/// - Chuẩn bị sẵn hook kết nối giao diện chọn Chipset/Kỹ năng sau này.
+/// - Khi thanh EXP đầy: Tăng cấp (Level Up) và phát sự kiện OnLevelUp & GameEvents.OnPlayerLevelUp.
+/// - Công thức tính EXP: MaxEXP(level) = 30 + (level - 1) * 20.
 /// </summary>
 public class PlayerLevelController : MonoBehaviour
 {
@@ -81,6 +81,7 @@ public class PlayerLevelController : MonoBehaviour
             currentLevel++;
             Debug.Log($"[PlayerLevel] 🎉 LÊN CẤP! Level hiện tại: {currentLevel}, EXP dư: {currentExp}/{MaxEXP}");
             OnLevelUp?.Invoke(currentLevel);
+            GameEvents.RaisePlayerLevelUp(currentLevel);
         }
 
         NotifyExpChanged();

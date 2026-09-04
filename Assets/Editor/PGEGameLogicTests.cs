@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -1048,12 +1048,6 @@ public class PGEGameLogicTests
         SerializedObject navSO = new SerializedObject(bottomNav);
         SerializedProperty items = navSO.FindProperty("items");
         int defaultSelectedIndex = navSO.FindProperty("defaultSelectedIndex").intValue;
-        Color normalBackground = navSO.FindProperty("normalColor").colorValue;
-        Color selectedBackground = navSO.FindProperty("selectedColor").colorValue;
-        Color normalBorder = navSO.FindProperty("normalBorderColor").colorValue;
-        Color selectedBorder = navSO.FindProperty("selectedBorderColor").colorValue;
-        Color normalContent = navSO.FindProperty("normalContentColor").colorValue;
-        Color selectedContent = navSO.FindProperty("selectedContentColor").colorValue;
         Assert.That(defaultSelectedIndex, Is.InRange(0, items.arraySize - 1));
 
         for (int i = 0; i < items.arraySize; i++)
@@ -1064,16 +1058,12 @@ public class PGEGameLogicTests
             Assert.That(panel, Is.Not.Null, $"Navigation item {i} must reference a panel.");
             Assert.That(panel.activeSelf, Is.EqualTo(selected), "Exactly the configured default tab must be active in the saved scene.");
 
-            Image background = item.FindPropertyRelative("background").objectReferenceValue as Image;
-            Image icon = item.FindPropertyRelative("icon").objectReferenceValue as Image;
-            TMP_Text label = item.FindPropertyRelative("label").objectReferenceValue as TMP_Text;
+            Sprite activeSprite = item.FindPropertyRelative("activeSprite").objectReferenceValue as Sprite;
+            Sprite inactiveSprite = item.FindPropertyRelative("inactiveSprite").objectReferenceValue as Sprite;
             Button button = item.FindPropertyRelative("button").objectReferenceValue as Button;
-            Image border = item.FindPropertyRelative("border").objectReferenceValue as Image ?? button.GetComponent<Image>();
-
-            Assert.That(background.color, Is.EqualTo(selected ? selectedBackground : normalBackground));
-            Assert.That(border.color, Is.EqualTo(selected ? selectedBorder : normalBorder));
-            Assert.That(icon.color, Is.EqualTo(selected ? selectedContent : normalContent));
-            Assert.That(label.color, Is.EqualTo(selected ? selectedContent : normalContent));
+            Assert.That(button, Is.Not.Null, $"Navigation item {i} must reference a Button.");
+            Assert.That(activeSprite, Is.Not.Null, $"Navigation item {i} must have activeSprite assigned.");
+            Assert.That(inactiveSprite, Is.Not.Null, $"Navigation item {i} must have inactiveSprite assigned.");
         }
     }
 
@@ -1900,6 +1890,84 @@ public class PGEGameLogicTests
         Assert.That(ChipsetCardUI.GetTierProgressColor(ChipTier.Unique), Is.EqualTo(new Color32(192, 132, 252, 255)));
         Assert.That(ChipsetCardUI.GetTierProgressColor(ChipTier.Epic), Is.EqualTo(new Color32(250, 204, 21, 255)));
         Assert.That(ChipsetCardUI.GetTierProgressColor(ChipTier.Holographic), Is.EqualTo(new Color32(255, 77, 45, 255)));
+    }
+
+    [Test]
+    public void Chipset_CalculateFillRatio_MatchesQuantityRatio()
+    {
+        // 0/3 -> 0%
+        Assert.That(ChipsetCardUI.CalculateFillRatio(0, 3), Is.EqualTo(0f));
+        // 3/3 -> 100%
+        Assert.That(ChipsetCardUI.CalculateFillRatio(3, 3), Is.EqualTo(1.0f));
+        // 1/3 -> ~33.3%
+        Assert.That(ChipsetCardUI.CalculateFillRatio(1, 3), Is.EqualTo(1f / 3f).Within(0.001f));
+        // 2/3 -> ~66.7%
+        Assert.That(ChipsetCardUI.CalculateFillRatio(2, 3), Is.EqualTo(2f / 3f).Within(0.001f));
+        // 22/3 -> 100% (clamped)
+        Assert.That(ChipsetCardUI.CalculateFillRatio(22, 3), Is.EqualTo(1.0f));
+        // other quantities: e.g. 5/10 -> 50%
+        Assert.That(ChipsetCardUI.CalculateFillRatio(5, 10), Is.EqualTo(0.5f));
+        // Max level overall -> 100%
+        Assert.That(ChipsetCardUI.CalculateFillRatio(15, 0, isMaxOverall: true), Is.EqualTo(1.0f));
+        // Required 0 with count > 0 -> 100%
+        Assert.That(ChipsetCardUI.CalculateFillRatio(5, 0), Is.EqualTo(1.0f));
+        // Required 0 with count 0 -> 0%
+        Assert.That(ChipsetCardUI.CalculateFillRatio(0, 0), Is.EqualTo(0f));
+    }
+
+    [Test]
+    public void Chipset_ParseFillRatioFromProgressText_ParsesCorrectly()
+    {
+        Assert.That(ChipsetCardUI.ParseFillRatioFromProgressText("0/3"), Is.EqualTo(0f));
+        Assert.That(ChipsetCardUI.ParseFillRatioFromProgressText("3/3"), Is.EqualTo(1.0f));
+        Assert.That(ChipsetCardUI.ParseFillRatioFromProgressText("1/3"), Is.EqualTo(1f / 3f).Within(0.001f));
+        Assert.That(ChipsetCardUI.ParseFillRatioFromProgressText("2/3"), Is.EqualTo(2f / 3f).Within(0.001f));
+        Assert.That(ChipsetCardUI.ParseFillRatioFromProgressText("22/3"), Is.EqualTo(1.0f));
+        Assert.That(ChipsetCardUI.ParseFillRatioFromProgressText("MAX"), Is.EqualTo(1.0f));
+        Assert.That(ChipsetCardUI.ParseFillRatioFromProgressText(""), Is.EqualTo(0f));
+        Assert.That(ChipsetCardUI.ParseFillRatioFromProgressText(null), Is.EqualTo(0f));
+    }
+
+    [Test]
+    public void Chipset_UpdateProgressBar_SetsFillAnchorAndVisibility()
+    {
+        GameObject cardObj = new GameObject("TestCard", typeof(RectTransform), typeof(ChipsetCardUI));
+        GameObject bottomBarObj = new GameObject("BottomBar", typeof(RectTransform), typeof(Image));
+        bottomBarObj.transform.SetParent(cardObj.transform, false);
+
+        ChipsetCardUI card = cardObj.GetComponent<ChipsetCardUI>();
+        card.EnsureProgressBar();
+
+        Assert.That(card.ProgressFillRect, Is.Not.Null, "EnsureProgressBar must create or locate ProgressFillRect.");
+        Assert.That(card.ProgressFillImage, Is.Not.Null, "EnsureProgressBar must create or locate ProgressFillImage.");
+
+        // Test 0/3 -> fill is 0, image disabled
+        card.UpdateProgressBar(0f);
+        Assert.That(card.ProgressFillRect.anchorMax.x, Is.EqualTo(0f).Within(0.001f));
+        Assert.That(card.ProgressFillImage.enabled, Is.False);
+
+        // Test 3/3 -> fill is 1.0, image enabled
+        card.UpdateProgressBar(1.0f);
+        Assert.That(card.ProgressFillRect.anchorMax.x, Is.EqualTo(1.0f).Within(0.001f));
+        Assert.That(card.ProgressFillImage.enabled, Is.True);
+
+        // Test 1/3 -> fill is 0.333, image enabled
+        card.UpdateProgressBar(1f / 3f);
+        Assert.That(card.ProgressFillRect.anchorMax.x, Is.EqualTo(1f / 3f).Within(0.001f));
+        Assert.That(card.ProgressFillImage.enabled, Is.True);
+
+        // Test with ChipItemData
+        ChipItemData chip0 = new ChipItemData { id = 1, chipName = "Standard Gun", count = 0, requiredCount = 3 };
+        card.Setup(chip0, null, null);
+        Assert.That(card.ProgressFillRect.anchorMax.x, Is.EqualTo(0f).Within(0.001f));
+        Assert.That(card.ProgressFillImage.enabled, Is.False);
+
+        ChipItemData chip3 = new ChipItemData { id = 1, chipName = "Standard Gun", count = 3, requiredCount = 3 };
+        card.Setup(chip3, null, null);
+        Assert.That(card.ProgressFillRect.anchorMax.x, Is.EqualTo(1.0f).Within(0.001f));
+        Assert.That(card.ProgressFillImage.enabled, Is.True);
+
+        Object.DestroyImmediate(cardObj);
     }
 
     [Test]

@@ -113,6 +113,13 @@ public class PoolManager : MonoBehaviour
         }
         else
         {
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+            {
+                DestroyImmediate(instance);
+                return;
+            }
+#endif
             Destroy(instance);
         }
     }
@@ -124,6 +131,22 @@ public class PoolManager : MonoBehaviour
     {
         if (instance == null) return;
         StartCoroutine(ReturnAfterDelayCoroutine(instance, delay));
+    }
+
+    /// <summary>
+    /// Alias cho ReturnToPool(instance) để tương thích interface contract.
+    /// </summary>
+    public void Despawn(GameObject instance)
+    {
+        ReturnToPool(instance);
+    }
+
+    /// <summary>
+    /// Alias cho ReturnToPool(instance, delay) để tương thích interface contract.
+    /// </summary>
+    public void Despawn(GameObject instance, float delay)
+    {
+        ReturnToPool(instance, delay);
     }
 
     private static readonly Dictionary<float, WaitForSeconds> timeIntervalCache = new Dictionary<float, WaitForSeconds>();

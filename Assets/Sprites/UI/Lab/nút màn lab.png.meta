@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: f826a7ec4408b574a81f91da6a91338b
+guid: b1a80dda0c1a59248b7f0044b5fa2774
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -110,13 +110,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Hp
+      name: Stats
       rect:
         serializedVersion: 2
-        x: 17
-        y: 951
-        width: 294
-        height: 294
+        x: 112
+        y: 3451
+        width: 927
+        height: 258
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -124,20 +124,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 69b35f82bcf81594ab37bd0f43d3b692
-      internalID: 301023451
+      spriteID: 7d06589c3bb3cbd4681491945d4f34cb
+      internalID: 1578530995
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Chiso_1
+      name: Build body
       rect:
         serializedVersion: 2
-        x: 162
-        y: 942
-        width: 6
-        height: 6
+        x: 1135
+        y: 3451
+        width: 927
+        height: 258
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -145,20 +145,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 20040b3e843995f4bbec3c6a87036ad6
-      internalID: 786177445
+      spriteID: 1fdfb048e8314974fbba552cd5a6ed7e
+      internalID: -1682595371
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Chiso_4
+      name: Build body locked
       rect:
         serializedVersion: 2
-        x: 17
-        y: 636
-        width: 294
-        height: 294
+        x: 1135
+        y: 3113
+        width: 927
+        height: 258
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -166,20 +166,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 66b6196de1d4f5241a5ec05f7eedc138
-      internalID: -1676068358
+      spriteID: 8e36f95b2dfbc214ab914909f6feafc9
+      internalID: 229014695
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Chiso_5
+      name: HP
       rect:
         serializedVersion: 2
-        x: 325
-        y: 636
-        width: 294
-        height: 294
+        x: 289
+        y: 2589
+        width: 381
+        height: 443
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -187,20 +187,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 89a4da230aca8d24d9dc567d5c034f65
-      internalID: -1065237980
+      spriteID: fddbb23f790a4a744b4a69b8ccd092d2
+      internalID: 914684172
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Chiso_7
+      name: Recovery
       rect:
         serializedVersion: 2
-        x: 633
-        y: 638
-        width: 294
-        height: 294
+        x: 696
+        y: 2589
+        width: 381
+        height: 443
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -208,20 +208,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 4bd48c5c8f801794784e7cefeb5217f7
-      internalID: 1719577489
+      spriteID: 5ee036b83dc1f4347a274d105a9216ec
+      internalID: -807462868
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Chiso_12
+      name: Auto recavery
       rect:
         serializedVersion: 2
-        x: 17
-        y: 328
-        width: 294
-        height: 294
+        x: 1106
+        y: 2589
+        width: 381
+        height: 443
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -229,20 +229,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 763500628e7c33f4bbb6cfeed0ae78b8
-      internalID: -1921434991
+      spriteID: 0abd90db502de15489c4259a91f8d210
+      internalID: 1791037244
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Chiso_13
+      name: DEF
       rect:
         serializedVersion: 2
-        x: 325
-        y: 330
-        width: 294
-        height: 294
+        x: 1513
+        y: 2589
+        width: 381
+        height: 443
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -250,20 +250,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 10278462f1441ef4caaa0b5ac8f040ff
-      internalID: -932480638
+      spriteID: 8d0b17dc6cc74e44a9467e7033e55f5d
+      internalID: -422168641
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Chiso_14
+      name: ATK
       rect:
         serializedVersion: 2
-        x: 633
-        y: 330
-        width: 294
-        height: 294
+        x: 289
+        y: 2125
+        width: 381
+        height: 443
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -271,20 +271,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: ae2e6d9a168aad248a64b46af0eaf907
-      internalID: -711957300
+      spriteID: 6f08c5bba1bf5fa40bf62023e19e3c77
+      internalID: 2145527114
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Chiso_15
+      name: CRIT Rate
       rect:
         serializedVersion: 2
-        x: 940
-        y: 330
-        width: 294
-        height: 294
+        x: 696
+        y: 2125
+        width: 381
+        height: 443
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -292,20 +292,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 409de938045d5ff468d007a2cf86caaf
-      internalID: -1813703930
+      spriteID: 45b6e53588a29a64886d84d5405b9d54
+      internalID: 858735808
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Chiso_17
+      name: CRIT Damage
       rect:
         serializedVersion: 2
-        x: 17
-        y: 30
-        width: 294
-        height: 294
+        x: 1106
+        y: 2123
+        width: 381
+        height: 443
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -313,20 +313,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: a99e0453ddbad5845bf3b50ee8432723
-      internalID: -142349840
+      spriteID: 87265a8b110a2b64a8ad9cc685f8b99d
+      internalID: 539827371
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Chiso_18
+      name: Obtained Chips
       rect:
         serializedVersion: 2
-        x: 325
-        y: 32
-        width: 294
-        height: 294
+        x: 1513
+        y: 2125
+        width: 381
+        height: 443
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -334,20 +334,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: decf9b4d759e26a46b8a70849b49781f
-      internalID: -1204452727
+      spriteID: c364fc90545c6c048a82234dc608b3e1
+      internalID: 573707797
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Chiso_19
+      name: Rannged
       rect:
         serializedVersion: 2
-        x: 633
-        y: 32
-        width: 294
-        height: 294
+        x: 289
+        y: 1664
+        width: 381
+        height: 443
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -355,20 +355,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 4930e0af01a4127478ff3fbd6ad839d1
-      internalID: -1325191935
+      spriteID: d623666b67a3e9743a0f3e85c682cceb
+      internalID: 2041354620
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Chiso_21
+      name: Drone ATK
       rect:
         serializedVersion: 2
-        x: 12
-        y: 65
-        width: 6
-        height: 13
+        x: 696
+        y: 1664
+        width: 381
+        height: 443
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -376,20 +376,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 450a5105a8f6fa34fbc3c4203f2dc875
-      internalID: -1660819130
+      spriteID: af897558198c62547bd3822b0ea232d1
+      internalID: -1678389552
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: powew
+      name: Turret ATK
       rect:
         serializedVersion: 2
-        x: 325
-        y: 948
-        width: 294
-        height: 294
+        x: 1106
+        y: 1664
+        width: 381
+        height: 443
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -397,20 +397,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 7f821ab7870cca44a94348acf4a936b6
-      internalID: 147257510
+      spriteID: 4d971e4ef80b2364b805187ab9ca8dbf
+      internalID: -473488273
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Chiso_26
+      name: Turret Duration
       rect:
         serializedVersion: 2
-        x: 633
-        y: 948
-        width: 294
-        height: 294
+        x: 1513
+        y: 1664
+        width: 381
+        height: 443
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -418,20 +418,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 6641b211ffe6eb14e8c1e1a28fc67dd2
-      internalID: -1842609393
+      spriteID: be81fafb8baf64940b58a01bda3ca4b0
+      internalID: -727764430
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Chiso_8
+      name: Evade
       rect:
         serializedVersion: 2
-        x: 940
-        y: 636
-        width: 294
-        height: 294
+        x: 289
+        y: 1204
+        width: 381
+        height: 443
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -439,20 +439,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 7240c8fb4a1c2b14fb1e6092c2c386a5
-      internalID: 647941712
+      spriteID: 98c75c8bca0dea149b7c9ea1f301b851
+      internalID: -710055885
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Chiso_9
+      name: Lift steal
       rect:
         serializedVersion: 2
-        x: 940
-        y: 30
-        width: 294
-        height: 294
+        x: 696
+        y: 1204
+        width: 381
+        height: 443
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -460,29 +460,92 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: f41946cc545dd844d8963b7865f6e77b
-      internalID: -337481615
+      spriteID: 87c2f4482e1d3af4cbf23d15ca0528e1
+      internalID: -782474726
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Chiso_10
+      name: Move speed
       rect:
         serializedVersion: 2
-        x: 940
-        y: 948
-        width: 294
-        height: 294
+        x: 1105
+        y: 1204
+        width: 381
+        height: 443
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 28ae9adf3b7b0a442b5f84b12e0a649e
-      internalID: 835353084
+      spriteID: 6fe39e035c1f42246a3d80781bc01ff1
+      internalID: 1922518708
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Chipset seleciton +1
+      rect:
+        serializedVersion: 2
+        x: 1513
+        y: 1205
+        width: 381
+        height: 443
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ea750fe0c1b0341448009cd203eb6ee6
+      internalID: 1344519486
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Locked
+      rect:
+        serializedVersion: 2
+        x: 292
+        y: 676
+        width: 384
+        height: 443
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 846349e6d27fac44a9b3149e639bfd72
+      internalID: 267537321
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Upgrade
+      rect:
+        serializedVersion: 2
+        x: 704
+        y: 192
+        width: 778
+        height: 390
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 423de8434f5e36a4fbebc0ab90c05452
+      internalID: -685401574
       vertices: []
       indices: 
       edges: []
@@ -498,33 +561,61 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      Chiso_1: 786177445
-      Chiso_10: 835353084
-      Chiso_11: -1891105474
-      Chiso_12: -1921434991
-      Chiso_13: -932480638
-      Chiso_14: -711957300
-      Chiso_15: -1813703930
-      Chiso_16: 1625227931
-      Chiso_17: -142349840
-      Chiso_18: -1204452727
-      Chiso_19: -1325191935
-      Chiso_2: 1424853974
-      Chiso_20: -78513596
-      Chiso_21: -1660819130
-      Chiso_22: 1986270372
-      Chiso_23: -1418957987
-      Chiso_26: -1842609393
-      Chiso_3: 177015606
-      Chiso_4: -1676068358
-      Chiso_5: -1065237980
-      Chiso_6: 243767879
-      Chiso_7: 1719577489
-      Chiso_8: 647941712
-      Chiso_9: -337481615
-      Haste: -2092017167
-      Hp: 301023451
-      powew: 147257510
+      ATK: 2145527114
+      Auto recavery: 1791037244
+      Build body: -1682595371
+      Build body locked: 229014695
+      CRIT Damage: 539827371
+      CRIT Rate: 858735808
+      Chipset seleciton +1: 1344519486
+      DEF: -422168641
+      Drone ATK: -1678389552
+      Evade: -710055885
+      HP: 914684172
+      Lift steal: -782474726
+      Locked: 267537321
+      Move speed: 1922518708
+      Obtained Chips: 573707797
+      Rannged: 2041354620
+      Recovery: -807462868
+      Stats: 1578530995
+      Turret ATK: -473488273
+      Turret Duration: -727764430
+      Upgrade: -685401574
+      "n\xFAt m\xE0n lab_0": -709306962
+      "n\xFAt m\xE0n lab_1": 856714723
+      "n\xFAt m\xE0n lab_10": -1095593527
+      "n\xFAt m\xE0n lab_11": 1876161085
+      "n\xFAt m\xE0n lab_12": 681693454
+      "n\xFAt m\xE0n lab_13": 882272248
+      "n\xFAt m\xE0n lab_14": 1084397195
+      "n\xFAt m\xE0n lab_15": 654645935
+      "n\xFAt m\xE0n lab_16": 1868775603
+      "n\xFAt m\xE0n lab_17": -1750874235
+      "n\xFAt m\xE0n lab_18": -729757305
+      "n\xFAt m\xE0n lab_19": 104979261
+      "n\xFAt m\xE0n lab_2": 1453781760
+      "n\xFAt m\xE0n lab_20": 484596787
+      "n\xFAt m\xE0n lab_21": 709000983
+      "n\xFAt m\xE0n lab_22": 202680074
+      "n\xFAt m\xE0n lab_23": -498068050
+      "n\xFAt m\xE0n lab_25": -1894201880
+      "n\xFAt m\xE0n lab_26": 1454289070
+      "n\xFAt m\xE0n lab_27": -973300097
+      "n\xFAt m\xE0n lab_28": -1980402444
+      "n\xFAt m\xE0n lab_29": -1611000607
+      "n\xFAt m\xE0n lab_3": 844541573
+      "n\xFAt m\xE0n lab_32": 1024877480
+      "n\xFAt m\xE0n lab_33": 680342099
+      "n\xFAt m\xE0n lab_34": -904779866
+      "n\xFAt m\xE0n lab_4": 1054218696
+      "n\xFAt m\xE0n lab_45": 453041496
+      "n\xFAt m\xE0n lab_46": -2007345126
+      "n\xFAt m\xE0n lab_5": -1194084559
+      "n\xFAt m\xE0n lab_51": -406696128
+      "n\xFAt m\xE0n lab_53": 795774722
+      "n\xFAt m\xE0n lab_7": -633569998
+      "n\xFAt m\xE0n lab_8": 1262798380
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

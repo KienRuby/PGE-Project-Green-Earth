@@ -394,7 +394,7 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
         // 5. Phát sự kiện để Spawner và hệ thống Achievements ghi nhận tiêu diệt
         OnEnemyDeath?.Invoke();
         OnDeath?.Invoke(this);
-        GameEvents.RaiseEnemyKilled();
+        GameEvents.RaiseEnemyKilled(expReward);
 
         // 5. Khóa chặt vị trí và chạy animation Die trọn vẹn rồi mới thu hồi / destroy
         if (deathRoutine != null)

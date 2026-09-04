@@ -94,6 +94,26 @@ public sealed class ChipManager : MonoBehaviour
     public static event Action<int> OnAdvanceStonesChanged;
     public static event Action<bool> OnTestModeChanged;
 
+    static ChipManager()
+    {
+        PlayerDataService.OnDataChipsChanged += val =>
+        {
+            if (!IsTestMode) OnDataChipsChanged?.Invoke(val);
+        };
+        PlayerDataService.OnRedGemsChanged += val =>
+        {
+            if (!IsTestMode) OnRedGemsChanged?.Invoke(val);
+        };
+        PlayerDataService.OnEnergyChanged += val =>
+        {
+            if (!IsTestMode) OnEnergyChanged?.Invoke(val);
+        };
+        PlayerDataService.OnAdvanceStonesChanged += val =>
+        {
+            if (!IsTestMode) OnAdvanceStonesChanged?.Invoke(val);
+        };
+    }
+
     // =========================================================================
     // LIFECYCLE & INITIALIZATION
     // =========================================================================
@@ -264,7 +284,6 @@ public sealed class ChipManager : MonoBehaviour
             else
             {
                 PlayerDataService.DataChips = value;
-                OnDataChipsChanged?.Invoke(PlayerDataService.DataChips);
             }
         }
     }
@@ -292,7 +311,6 @@ public sealed class ChipManager : MonoBehaviour
             else
             {
                 PlayerDataService.RedGems = value;
-                OnRedGemsChanged?.Invoke(PlayerDataService.RedGems);
             }
         }
     }
@@ -320,7 +338,6 @@ public sealed class ChipManager : MonoBehaviour
             else
             {
                 PlayerDataService.Energy = value;
-                OnEnergyChanged?.Invoke(PlayerDataService.Energy);
             }
         }
     }
@@ -348,7 +365,6 @@ public sealed class ChipManager : MonoBehaviour
             else
             {
                 PlayerDataService.AdvanceStones = value;
-                OnAdvanceStonesChanged?.Invoke(PlayerDataService.AdvanceStones);
             }
         }
     }
@@ -458,25 +474,29 @@ public sealed class ChipManager : MonoBehaviour
     public static void AddDataChips(int amount)
     {
         if (amount <= 0) return;
-        DataChips += amount;
+        long sum = (long)DataChips + amount;
+        DataChips = (int)Math.Min((long)int.MaxValue, sum);
     }
 
     public static void AddRedGems(int amount)
     {
         if (amount <= 0) return;
-        RedGems += amount;
+        long sum = (long)RedGems + amount;
+        RedGems = (int)Math.Min((long)int.MaxValue, sum);
     }
 
     public static void AddEnergy(int amount)
     {
         if (amount <= 0) return;
-        Energy += amount;
+        long sum = (long)Energy + amount;
+        Energy = (int)Math.Min((long)int.MaxValue, sum);
     }
 
     public static void AddAdvanceStones(int amount)
     {
         if (amount <= 0) return;
-        AdvanceStones += amount;
+        long sum = (long)AdvanceStones + amount;
+        AdvanceStones = (int)Math.Min((long)int.MaxValue, sum);
     }
 
     public void NotifyAllBalancesChanged()
