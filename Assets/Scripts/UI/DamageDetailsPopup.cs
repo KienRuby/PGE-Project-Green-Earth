@@ -26,6 +26,7 @@ public sealed class DamageDetailsPopup : MonoBehaviour
     [SerializeField] private Button backgroundCloseButton;
 
     [Header("Sprite Catalog")]
+    [SerializeField] private ChipsetLevelVisualLibrary visualLibrary;
     [SerializeField] private Sprite[] chipIcons;
     [SerializeField] private Sprite defaultFrameSprite;
 
@@ -36,7 +37,43 @@ public sealed class DamageDetailsPopup : MonoBehaviour
     private void Awake()
     {
         if (popupRoot == null) popupRoot = gameObject;
+        EnsureVisuals();
         BindCloseButtons();
+    }
+
+    private void EnsureVisuals()
+    {
+        if (visualLibrary == null)
+        {
+            visualLibrary = Resources.Load<ChipsetLevelVisualLibrary>("ChipsetLevelVisualLibrary");
+        }
+        if ((chipIcons == null || chipIcons.Length == 0 || chipIcons.All(s => s == null)) && visualLibrary != null)
+        {
+            chipIcons = visualLibrary.primaryChipIcons;
+        }
+        EnsureHeaderLayout();
+    }
+
+    private void EnsureHeaderLayout()
+    {
+        if (modalFrame == null) return;
+        Transform header = modalFrame.Find("TableHeader");
+        if (header == null) return;
+
+        Transform hChip = header.Find("H_CHIPSET");
+        if (hChip != null) SetRect(hChip.GetComponent<RectTransform>(), new Vector2(-235f, 0f), new Vector2(250f, 40f));
+
+        Transform hDPS = header.Find("H_DPS");
+        if (hDPS != null) SetRect(hDPS.GetComponent<RectTransform>(), new Vector2(0f, 0f), new Vector2(80f, 40f));
+
+        Transform hD = header.Find("H_DPercent");
+        if (hD != null) SetRect(hD.GetComponent<RectTransform>(), new Vector2(95f, 0f), new Vector2(80f, 40f));
+
+        Transform hDmg = header.Find("H_Damage");
+        if (hDmg != null) SetRect(hDmg.GetComponent<RectTransform>(), new Vector2(205f, 0f), new Vector2(110f, 40f));
+
+        Transform hTime = header.Find("H_Time");
+        if (hTime != null) SetRect(hTime.GetComponent<RectTransform>(), new Vector2(310f, 0f), new Vector2(80f, 40f));
     }
 
     private void BindCloseButtons()
@@ -151,25 +188,58 @@ public sealed class DamageDetailsPopup : MonoBehaviour
 
     private Sprite GetChipsetIcon(int chipsetId)
     {
-        if (chipIcons != null && chipIcons.Length > 0)
+        Sprite[] icons = chipIcons;
+        if ((icons == null || icons.Length == 0 || icons.All(s => s == null)) && visualLibrary != null && visualLibrary.primaryChipIcons != null)
         {
-            string numKey = ChipsetBattleStats.GetChipsetIconKey(chipsetId);
-            Sprite match = chipIcons.FirstOrDefault(s => s != null && s.name == numKey);
-            if (match != null) return match;
-
-            string chipName = ChipsetBattleStats.GetChipsetName(chipsetId);
-            string cleanName = chipName.Replace(" ", "").ToLowerInvariant();
-
-            match = chipIcons.FirstOrDefault(s => s != null && (
-                string.Equals(s.name, chipName, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(s.name.Replace(" ", "").ToLowerInvariant(), cleanName)
-            ));
-
-            if (match != null) return match;
-            if (chipIcons[0] != null) return chipIcons[0];
+            icons = visualLibrary.primaryChipIcons;
         }
 
-        return null;
+        if (icons == null || icons.Length == 0 || icons.All(s => s == null))
+        {
+            var lib = Resources.Load<ChipsetLevelVisualLibrary>("ChipsetLevelVisualLibrary");
+            if (lib != null && lib.primaryChipIcons != null && lib.primaryChipIcons.Length > 0)
+            {
+                visualLibrary = lib;
+                icons = lib.primaryChipIcons;
+            }
+        }
+
+        if (icons == null || icons.Length == 0) return null;
+
+        string chipName = ChipsetBattleStats.GetChipsetName(chipsetId);
+        if (string.IsNullOrEmpty(chipName)) return icons.FirstOrDefault(s => s != null);
+
+        // 1. Direct StartsWith or Equals match (e.g. "Standard Gun" matches "Standard Gun (Súng Tiêu Chuẩn)")
+        Sprite match = icons.FirstOrDefault(s => s != null && (
+            string.Equals(s.name, chipName, StringComparison.OrdinalIgnoreCase) ||
+            s.name.StartsWith(chipName, StringComparison.OrdinalIgnoreCase) ||
+            s.name.IndexOf(chipName, StringComparison.OrdinalIgnoreCase) >= 0
+        ));
+        if (match != null) return match;
+
+        // 2. Normalized name matching
+        string cleanName = NormalizeSpriteName(chipName);
+        match = icons.FirstOrDefault(s => s != null && (
+            NormalizeSpriteName(s.name).StartsWith(cleanName, StringComparison.OrdinalIgnoreCase) ||
+            NormalizeSpriteName(s.name).Contains(cleanName)
+        ));
+        if (match != null) return match;
+
+        // 3. Direct 1-based index mapping into primaryChipIcons array (1..10)
+        int idx = chipsetId - 1;
+        if (idx >= 0 && idx < icons.Length && icons[idx] != null)
+        {
+            return icons[idx];
+        }
+
+        // 4. Fallback to ChipsetLevelUpPopup.FindMatchingIcon
+        return ChipsetLevelUpPopup.FindMatchingIcon(icons, chipName);
+    }
+
+    private static string NormalizeSpriteName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return string.Empty;
+        return name.Replace(" ", "").Replace("-", "").Replace("_", "").ToLowerInvariant();
     }
 
     private static GameObject CreateDefaultRowObject(Transform parent)
@@ -179,21 +249,10 @@ public sealed class DamageDetailsPopup : MonoBehaviour
         GameObject row = new GameObject("DamageDetailRow", typeof(RectTransform), typeof(Image), typeof(DamageDetailRowUI), typeof(LayoutElement));
         row.transform.SetParent(parent, false);
         RectTransform rowRt = row.GetComponent<RectTransform>();
-        rowRt.sizeDelta = new Vector2(760f, 74f);
+        rowRt.sizeDelta = new Vector2(768f, 74f);
         row.GetComponent<Image>().color = new Color32(13, 34, 46, 255);
         row.GetComponent<LayoutElement>().minHeight = 74f;
         row.GetComponent<LayoutElement>().preferredHeight = 74f;
-
-        // Progress bar fill (Teal / Cyan)
-        GameObject fillObj = new GameObject("ProgressFill", typeof(RectTransform), typeof(Image));
-        fillObj.transform.SetParent(row.transform, false);
-        RectTransform fillRt = fillObj.GetComponent<RectTransform>();
-        fillRt.anchorMin = new Vector2(0f, 0f);
-        fillRt.anchorMax = new Vector2(0.5f, 1f);
-        fillRt.offsetMin = Vector2.zero;
-        fillRt.offsetMax = Vector2.zero;
-        Image fillImg = fillObj.GetComponent<Image>();
-        fillImg.color = new Color32(46, 125, 122, 235);
 
         // Icon Frame
         GameObject iconFrame = new GameObject("IconFrame", typeof(RectTransform), typeof(Image));
@@ -202,8 +261,8 @@ public sealed class DamageDetailsPopup : MonoBehaviour
         iconFrameRt.anchorMin = new Vector2(0.5f, 0.5f);
         iconFrameRt.anchorMax = new Vector2(0.5f, 0.5f);
         iconFrameRt.pivot = new Vector2(0.5f, 0.5f);
-        iconFrameRt.anchoredPosition = new Vector2(-320f, 0f);
-        iconFrameRt.sizeDelta = new Vector2(56f, 56f);
+        iconFrameRt.anchoredPosition = new Vector2(-325f, 0f);
+        iconFrameRt.sizeDelta = new Vector2(52f, 52f);
         iconFrame.GetComponent<Image>().color = new Color32(24, 64, 76, 255);
 
         GameObject iconObj = new GameObject("Icon", typeof(RectTransform), typeof(Image));
@@ -217,23 +276,43 @@ public sealed class DamageDetailsPopup : MonoBehaviour
         iconImg.preserveAspect = true;
 
         // Texts
-        TMP_Text nameText = CreateRuntimeText("Name", row.transform, "Standard Gun", 22f, Color.white, font);
-        nameText.alignment = TextAlignmentOptions.Left;
-        SetRect(nameText.rectTransform, new Vector2(-215f, 0f), new Vector2(140f, 60f));
+        TMP_Text nameText = CreateRuntimeText("Name", row.transform, "Standard Gun", 19f, Color.white, font);
+        nameText.alignment = TextAlignmentOptions.MidlineLeft;
+        nameText.enableAutoSizing = true;
+        nameText.fontSizeMin = 13f;
+        nameText.fontSizeMax = 19f;
+        SetRect(nameText.rectTransform, new Vector2(-185f, 10f), new Vector2(210f, 26f));
 
-        TMP_Text dpsText = CreateRuntimeText("DPS", row.transform, "357", 24f, Color.white, font);
-        SetRect(dpsText.rectTransform, new Vector2(-75f, 0f), new Vector2(90f, 60f));
+        // Progress bar track & fill
+        GameObject trackObj = new GameObject("ProgressBarTrack", typeof(RectTransform), typeof(Image));
+        trackObj.transform.SetParent(row.transform, false);
+        SetRect(trackObj.GetComponent<RectTransform>(), new Vector2(-185f, -14f), new Vector2(210f, 8f));
+        trackObj.GetComponent<Image>().color = new Color32(10, 24, 34, 255);
 
-        TMP_Text percentText = CreateRuntimeText("DPercent", row.transform, "59.8%", 24f, Color.white, font);
-        SetRect(percentText.rectTransform, new Vector2(35f, 0f), new Vector2(90f, 60f));
+        GameObject fillObj = new GameObject("ProgressFill", typeof(RectTransform), typeof(Image));
+        fillObj.transform.SetParent(trackObj.transform, false);
+        RectTransform fillRt = fillObj.GetComponent<RectTransform>();
+        fillRt.anchorMin = new Vector2(0f, 0f);
+        fillRt.anchorMax = new Vector2(0.5f, 1f);
+        fillRt.offsetMin = Vector2.zero;
+        fillRt.offsetMax = Vector2.zero;
+        Image fillImg = fillObj.GetComponent<Image>();
+        fillImg.color = new Color32(78, 206, 196, 255);
 
-        TMP_Text damageText = CreateRuntimeText("Damage", row.transform, "5,108", 24f, Color.white, font);
-        SetRect(damageText.rectTransform, new Vector2(165f, 0f), new Vector2(130f, 60f));
+        TMP_Text dpsText = CreateRuntimeText("DPS", row.transform, "357", 22f, Color.white, font);
+        SetRect(dpsText.rectTransform, new Vector2(0f, 0f), new Vector2(80f, 50f));
 
-        TMP_Text timeText = CreateRuntimeText("Time", row.transform, "00:14", 24f, Color.white, font);
-        SetRect(timeText.rectTransform, new Vector2(295f, 0f), new Vector2(90f, 60f));
+        TMP_Text percentText = CreateRuntimeText("DPercent", row.transform, "59.8%", 22f, Color.white, font);
+        SetRect(percentText.rectTransform, new Vector2(95f, 0f), new Vector2(80f, 50f));
+
+        TMP_Text damageText = CreateRuntimeText("Damage", row.transform, "5,108", 22f, Color.white, font);
+        SetRect(damageText.rectTransform, new Vector2(205f, 0f), new Vector2(110f, 50f));
+
+        TMP_Text timeText = CreateRuntimeText("Time", row.transform, "00:14", 22f, Color.white, font);
+        SetRect(timeText.rectTransform, new Vector2(310f, 0f), new Vector2(80f, 50f));
 
         DamageDetailRowUI rowUI = row.GetComponent<DamageDetailRowUI>();
+        rowUI.EnsureLayout();
         return row;
     }
 
@@ -306,19 +385,19 @@ public sealed class DamageDetailsPopup : MonoBehaviour
         Color cyan = new Color32(78, 206, 196, 255);
         TMP_Text hChip = CreateRuntimeText("H_CHIPSET", headerRow.transform, "CHIPSET", 22f, cyan, font);
         hChip.alignment = TextAlignmentOptions.Left;
-        SetRect(hChip.rectTransform, new Vector2(-260f, 0f), new Vector2(200f, 40f));
+        SetRect(hChip.rectTransform, new Vector2(-235f, 0f), new Vector2(250f, 40f));
 
         TMP_Text hDPS = CreateRuntimeText("H_DPS", headerRow.transform, "DPS", 22f, cyan, font);
-        SetRect(hDPS.rectTransform, new Vector2(-75f, 0f), new Vector2(90f, 40f));
+        SetRect(hDPS.rectTransform, new Vector2(0f, 0f), new Vector2(80f, 40f));
 
         TMP_Text hD = CreateRuntimeText("H_DPercent", headerRow.transform, "D %", 22f, cyan, font);
-        SetRect(hD.rectTransform, new Vector2(35f, 0f), new Vector2(90f, 40f));
+        SetRect(hD.rectTransform, new Vector2(95f, 0f), new Vector2(80f, 40f));
 
         TMP_Text hDmg = CreateRuntimeText("H_Damage", headerRow.transform, "Damage", 22f, cyan, font);
-        SetRect(hDmg.rectTransform, new Vector2(165f, 0f), new Vector2(130f, 40f));
+        SetRect(hDmg.rectTransform, new Vector2(205f, 0f), new Vector2(110f, 40f));
 
         TMP_Text hTime = CreateRuntimeText("H_Time", headerRow.transform, "Time", 22f, cyan, font);
-        SetRect(hTime.rectTransform, new Vector2(295f, 0f), new Vector2(90f, 40f));
+        SetRect(hTime.rectTransform, new Vector2(310f, 0f), new Vector2(80f, 40f));
 
         // Scroll Area
         GameObject scrollObj = new GameObject("ScrollArea", typeof(RectTransform), typeof(ScrollRect));

@@ -1,4 +1,4 @@
-#if UNITY_EDITOR
+﻿#if UNITY_EDITOR
 using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -15,7 +15,7 @@ public static class DamageNumberSceneBuilder
     [MenuItem("PGE/Combat/Cài đặt Damage Numbers vào GamePlay Scene")]
     public static void BuildAndSetup()
     {
-        // 1. Tạo hoặc nạp Prefab DamageNumber
+        // 1. Tạo hoặc nạp Prefab DamageNumber với viền đen sắc nét
         GameObject prefab = CreateOrUpdatePrefab();
 
         // 2. Mở scene GamePlay và thiết lập DamageNumberManager
@@ -49,11 +49,16 @@ public static class DamageNumberSceneBuilder
         Material mat = AssetDatabase.LoadAssetAtPath<Material>(StrokeMaterialPath);
         if (mat != null)
         {
+            mat.EnableKeyword("OUTLINE_ON");
+            mat.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
+            mat.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.25f);
             so.FindProperty("strokeMaterial").objectReferenceValue = mat;
         }
 
         so.FindProperty("initialPoolSize").intValue = 60;
         so.FindProperty("defaultFontSize").floatValue = 5.0f;
+        so.FindProperty("defaultOutlineColor").colorValue = Color.black;
+        so.FindProperty("defaultOutlineWidth").floatValue = 0.25f;
         so.FindProperty("sortingLayerName").stringValue = "UI";
         so.FindProperty("sortingOrder").intValue = 600;
         so.ApplyModifiedProperties();
@@ -62,7 +67,7 @@ public static class DamageNumberSceneBuilder
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
 
-        Debug.Log("[Damage Numbers] Đã cài đặt thành công hệ thống Damage Numbers vào scene GamePlay!");
+        Debug.Log("[Damage Numbers] Đã cài đặt thành công hệ thống Damage Numbers (kèm viền đen) vào scene GamePlay!");
     }
 
     public static GameObject CreateOrUpdatePrefab()
@@ -85,6 +90,9 @@ public static class DamageNumberSceneBuilder
 
         if (strokeMaterial != null)
         {
+            strokeMaterial.EnableKeyword("OUTLINE_ON");
+            strokeMaterial.SetColor(ShaderUtilities.ID_OutlineColor, Color.black);
+            strokeMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, 0.25f);
             tmp.fontSharedMaterial = strokeMaterial;
         }
 
@@ -97,6 +105,7 @@ public static class DamageNumberSceneBuilder
 
         DamageNumber damageNumber = tempObj.AddComponent<DamageNumber>();
         damageNumber.EnsureComponents();
+        damageNumber.SetOutlineColor(Color.black, 0.25f);
 
         GameObject savedPrefab = PrefabUtility.SaveAsPrefabAsset(tempObj, PrefabPath);
         Object.DestroyImmediate(tempObj);

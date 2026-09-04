@@ -1893,6 +1893,84 @@ public class PGEGameLogicTests
     }
 
     [Test]
+    public void Chipset_CalculateFillRatio_MatchesQuantityRatio()
+    {
+        // 0/3 -> 0%
+        Assert.That(ChipsetCardUI.CalculateFillRatio(0, 3), Is.EqualTo(0f));
+        // 3/3 -> 100%
+        Assert.That(ChipsetCardUI.CalculateFillRatio(3, 3), Is.EqualTo(1.0f));
+        // 1/3 -> ~33.3%
+        Assert.That(ChipsetCardUI.CalculateFillRatio(1, 3), Is.EqualTo(1f / 3f).Within(0.001f));
+        // 2/3 -> ~66.7%
+        Assert.That(ChipsetCardUI.CalculateFillRatio(2, 3), Is.EqualTo(2f / 3f).Within(0.001f));
+        // 22/3 -> 100% (clamped)
+        Assert.That(ChipsetCardUI.CalculateFillRatio(22, 3), Is.EqualTo(1.0f));
+        // other quantities: e.g. 5/10 -> 50%
+        Assert.That(ChipsetCardUI.CalculateFillRatio(5, 10), Is.EqualTo(0.5f));
+        // Max level overall -> 100%
+        Assert.That(ChipsetCardUI.CalculateFillRatio(15, 0, isMaxOverall: true), Is.EqualTo(1.0f));
+        // Required 0 with count > 0 -> 100%
+        Assert.That(ChipsetCardUI.CalculateFillRatio(5, 0), Is.EqualTo(1.0f));
+        // Required 0 with count 0 -> 0%
+        Assert.That(ChipsetCardUI.CalculateFillRatio(0, 0), Is.EqualTo(0f));
+    }
+
+    [Test]
+    public void Chipset_ParseFillRatioFromProgressText_ParsesCorrectly()
+    {
+        Assert.That(ChipsetCardUI.ParseFillRatioFromProgressText("0/3"), Is.EqualTo(0f));
+        Assert.That(ChipsetCardUI.ParseFillRatioFromProgressText("3/3"), Is.EqualTo(1.0f));
+        Assert.That(ChipsetCardUI.ParseFillRatioFromProgressText("1/3"), Is.EqualTo(1f / 3f).Within(0.001f));
+        Assert.That(ChipsetCardUI.ParseFillRatioFromProgressText("2/3"), Is.EqualTo(2f / 3f).Within(0.001f));
+        Assert.That(ChipsetCardUI.ParseFillRatioFromProgressText("22/3"), Is.EqualTo(1.0f));
+        Assert.That(ChipsetCardUI.ParseFillRatioFromProgressText("MAX"), Is.EqualTo(1.0f));
+        Assert.That(ChipsetCardUI.ParseFillRatioFromProgressText(""), Is.EqualTo(0f));
+        Assert.That(ChipsetCardUI.ParseFillRatioFromProgressText(null), Is.EqualTo(0f));
+    }
+
+    [Test]
+    public void Chipset_UpdateProgressBar_SetsFillAnchorAndVisibility()
+    {
+        GameObject cardObj = new GameObject("TestCard", typeof(RectTransform), typeof(ChipsetCardUI));
+        GameObject bottomBarObj = new GameObject("BottomBar", typeof(RectTransform), typeof(Image));
+        bottomBarObj.transform.SetParent(cardObj.transform, false);
+
+        ChipsetCardUI card = cardObj.GetComponent<ChipsetCardUI>();
+        card.EnsureProgressBar();
+
+        Assert.That(card.ProgressFillRect, Is.Not.Null, "EnsureProgressBar must create or locate ProgressFillRect.");
+        Assert.That(card.ProgressFillImage, Is.Not.Null, "EnsureProgressBar must create or locate ProgressFillImage.");
+
+        // Test 0/3 -> fill is 0, image disabled
+        card.UpdateProgressBar(0f);
+        Assert.That(card.ProgressFillRect.anchorMax.x, Is.EqualTo(0f).Within(0.001f));
+        Assert.That(card.ProgressFillImage.enabled, Is.False);
+
+        // Test 3/3 -> fill is 1.0, image enabled
+        card.UpdateProgressBar(1.0f);
+        Assert.That(card.ProgressFillRect.anchorMax.x, Is.EqualTo(1.0f).Within(0.001f));
+        Assert.That(card.ProgressFillImage.enabled, Is.True);
+
+        // Test 1/3 -> fill is 0.333, image enabled
+        card.UpdateProgressBar(1f / 3f);
+        Assert.That(card.ProgressFillRect.anchorMax.x, Is.EqualTo(1f / 3f).Within(0.001f));
+        Assert.That(card.ProgressFillImage.enabled, Is.True);
+
+        // Test with ChipItemData
+        ChipItemData chip0 = new ChipItemData { id = 1, chipName = "Standard Gun", count = 0, requiredCount = 3 };
+        card.Setup(chip0, null, null);
+        Assert.That(card.ProgressFillRect.anchorMax.x, Is.EqualTo(0f).Within(0.001f));
+        Assert.That(card.ProgressFillImage.enabled, Is.False);
+
+        ChipItemData chip3 = new ChipItemData { id = 1, chipName = "Standard Gun", count = 3, requiredCount = 3 };
+        card.Setup(chip3, null, null);
+        Assert.That(card.ProgressFillRect.anchorMax.x, Is.EqualTo(1.0f).Within(0.001f));
+        Assert.That(card.ProgressFillImage.enabled, Is.True);
+
+        Object.DestroyImmediate(cardObj);
+    }
+
+    [Test]
     public void Buddy_PurifyingDrone_MatchesStats()
     {
         GameObject go = new GameObject("BuddyControllerTest");

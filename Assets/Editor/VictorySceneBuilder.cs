@@ -101,7 +101,11 @@ public static class VictorySceneBuilder
         TMP_Text feedbackText = CreateText("FeedbackText", panelObject.transform, string.Empty, 24f, Feedback);
         SetRect(feedbackText.rectTransform, new Vector2(0f, -535f), new Vector2(600f, 52f));
 
-        DamageDetailsPopup damageDetailsPopup = canvas.transform.Find("DamageDetailsModal")?.GetComponent<DamageDetailsPopup>();
+        DamageDetailsPopup damageDetailsPopup = canvas.GetComponentInChildren<DamageDetailsPopup>(true);
+        if (damageDetailsPopup == null)
+        {
+            damageDetailsPopup = PlayerRunEndSceneBuilder.BuildDamageDetailsModal(canvas.transform);
+        }
 
         VictoryPanelController controller = canvas.AddComponent<VictoryPanelController>();
         SerializedObject serialized = new SerializedObject(controller);
@@ -145,17 +149,17 @@ public static class VictorySceneBuilder
         GameObject row = new GameObject(name, typeof(RectTransform));
         row.transform.SetParent(parent, false);
         RectTransform rowRect = row.GetComponent<RectTransform>();
-        SetRect(rowRect, position, new Vector2(610f, 118f));
+        SetRect(rowRect, position, new Vector2(340f, 118f));
 
         GameObject iconObject = CreateImage("Icon", row.transform, iconSprite);
         Image icon = iconObject.GetComponent<Image>();
         icon.preserveAspect = true;
         icon.raycastTarget = false;
-        SetRect(icon.rectTransform, new Vector2(-148f, 0f), new Vector2(92f, 92f));
+        SetRect(icon.rectTransform, new Vector2(-95f, 0f), new Vector2(88f, 88f));
 
-        rewardText = CreateText("Value", row.transform, "Get 0", 46f, White);
+        rewardText = CreateText("Value", row.transform, "Get 0", 44f, White);
         rewardText.alignment = TextAlignmentOptions.Left;
-        SetRect(rewardText.rectTransform, new Vector2(98f, 0f), new Vector2(380f, 95f));
+        SetRect(rewardText.rectTransform, new Vector2(55f, 0f), new Vector2(210f, 95f));
         return rowRect;
     }
 

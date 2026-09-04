@@ -22,6 +22,25 @@ public class SettingsPanelController : MonoBehaviour
     public static SettingsPanelController Instance { get; private set; }
     public bool IsOpen => gameObject.activeSelf;
 
+    [Header("Header Image & Sprite")]
+    [SerializeField] private UnityEngine.UI.Image headerImage;
+    [SerializeField] private Sprite headerSprite;
+
+    [Header("Account / Login Section")]
+    [SerializeField] private GameObject accountCard;
+    [SerializeField] private bool hideAccountSection = false;
+
+    public bool IsGameplayMode
+    {
+        get
+        {
+            if (hideAccountSection) return true;
+            string activeScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+            return string.Equals(activeScene, "GamePlay", System.StringComparison.OrdinalIgnoreCase);
+        }
+        set => hideAccountSection = value;
+    }
+
     [Header("UI Text References")]
     [SerializeField] private TMP_Text titleText;
     [SerializeField] private TMP_Text accountPromptText;
@@ -76,6 +95,7 @@ public class SettingsPanelController : MonoBehaviour
     {
         Instance = this;
         AutoWireReferencesIfMissing();
+        ApplyLayoutForCurrentScene();
         EnsureLanguageOptionsPanel();
         BindButtonListeners();
     }
@@ -83,6 +103,7 @@ public class SettingsPanelController : MonoBehaviour
     private void OnEnable()
     {
         AutoWireReferencesIfMissing();
+        ApplyLayoutForCurrentScene();
         EnsureLanguageOptionsPanel();
         BindButtonListeners();
         RefreshLabels();
@@ -109,6 +130,7 @@ public class SettingsPanelController : MonoBehaviour
         gameObject.SetActive(true);
         transform.SetAsLastSibling();
         AutoWireReferencesIfMissing();
+        ApplyLayoutForCurrentScene();
         BindButtonListeners();
         RefreshLabels();
         if (EventSystem.current != null && firstSelectedButton != null)
@@ -277,8 +299,23 @@ public class SettingsPanelController : MonoBehaviour
 
         bool vi = GameSettings.IsVietnamese;
 
-        if (titleText != null)
+        // Header Setting Sprite
+        if (headerImage != null && headerSprite != null)
+        {
+            Transform border = headerImage.transform.Find("Border");
+            if (border != null) border.gameObject.SetActive(false);
+            var shadow = headerImage.GetComponent<UnityEngine.UI.Shadow>();
+            if (shadow != null) shadow.enabled = false;
+            headerImage.sprite = headerSprite;
+            headerImage.color = Color.white;
+            if (titleText != null) titleText.text = string.Empty;
+        }
+        else if (titleText != null)
+        {
+            Transform border = headerImage != null ? headerImage.transform.Find("Border") : null;
+            if (border != null) border.gameObject.SetActive(true);
             titleText.text = vi ? "CÀI ĐẶT" : "Setting";
+        }
 
         if (accountPromptText != null)
             accountPromptText.text = vi ? "Đăng nhập để lưu dữ liệu của bạn!" : "Log in and save your data!";
@@ -384,8 +421,25 @@ public class SettingsPanelController : MonoBehaviour
                                 ?? button.targetGraphic as UnityEngine.UI.Image;
         if (img != null && sprite != null)
         {
+            Transform border = button.transform.Find("Border");
+            if (border != null) border.gameObject.SetActive(false);
+
+            Transform bg = button.transform.Find("Background");
+            if (bg != null) bg.gameObject.SetActive(false);
+
+            var shadow = button.GetComponent<UnityEngine.UI.Shadow>();
+            if (shadow != null) shadow.enabled = false;
+
             img.sprite = sprite;
             img.color = Color.white;
+        }
+        else if (img != null && sprite == null)
+        {
+            Transform border = button.transform.Find("Border");
+            if (border != null) border.gameObject.SetActive(true);
+
+            var shadow = button.GetComponent<UnityEngine.UI.Shadow>();
+            if (shadow != null) shadow.enabled = true;
         }
 
         if (textComponent != null)
@@ -405,7 +459,7 @@ public class SettingsPanelController : MonoBehaviour
     public void LoadSettingSpritesIfMissing()
     {
 #if UNITY_EDITOR
-        if (bgmOnSprite == null || englishOnSprite == null)
+        if (bgmOnSprite == null || englishOnSprite == null || headerSprite == null)
         {
             string spriteSheetPath = "Assets/Sprites/UI/setting/nút màn setting.png";
             Sprite[] allSprites = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(spriteSheetPath)
@@ -416,6 +470,7 @@ public class SettingsPanelController : MonoBehaviour
             {
                 switch (spr.name)
                 {
+                    case "Setting": headerSprite = spr; break;
                     case "BGM ON": bgmOnSprite = spr; break;
                     case "BGM OFF": bgmOffSprite = spr; break;
                     case "SFX ON": sfxOnSprite = spr; break;
@@ -518,7 +573,147 @@ public class SettingsPanelController : MonoBehaviour
         if (copyIdButton == null) copyIdButton = FindMatchingComponent<UnityEngine.UI.Button>("CopyIdButton", "Copy");
         if (copyFeedbackText == null && copyIdButton != null) copyFeedbackText = copyIdButton.GetComponentInChildren<TMP_Text>(true);
 
+        if (headerImage == null)
+        {
+            Transform h = transform.Find("SafeContent/Header");
+            if (h != null) headerImage = h.GetComponent<UnityEngine.UI.Image>();
+        }
+
+        if (accountCard == null)
+        {
+            Transform acc = transform.Find("SafeContent/AccountCard");
+            if (acc != null) accountCard = acc.gameObject;
+            else
+            {
+                var accComp = FindMatchingComponent<Transform>("AccountCard", "Account");
+                if (accComp != null && accComp != transform) accountCard = accComp.gameObject;
+            }
+        }
+
         if (firstSelectedButton == null) firstSelectedButton = bgmButton;
+    }
+
+    public void ApplyLayoutForCurrentScene()
+    {
+        bool gameplay = IsGameplayMode;
+
+        if (accountCard != null)
+        {
+            accountCard.SetActive(!gameplay);
+        }
+        if (accountPromptText != null) accountPromptText.gameObject.SetActive(!gameplay);
+        if (googleLoginButton != null) googleLoginButton.gameObject.SetActive(!gameplay);
+        if (appleSignInButton != null) appleSignInButton.gameObject.SetActive(!gameplay);
+
+        if (gameplay)
+        {
+            ApplyGameplayLayout();
+        }
+    }
+
+    public void ApplyGameplayLayout()
+    {
+        // 1. Header Setting
+        Transform header = transform.Find("SafeContent/Header");
+        if (header != null)
+        {
+            RectTransform rt = header.GetComponent<RectTransform>();
+            if (rt != null)
+            {
+                rt.anchoredPosition = new Vector2(0f, 500f);
+                rt.sizeDelta = new Vector2(680f, 96f);
+            }
+        }
+        if (titleText != null)
+        {
+            titleText.rectTransform.anchoredPosition = new Vector2(0f, 500f);
+            titleText.rectTransform.sizeDelta = new Vector2(650f, 85f);
+        }
+
+        // 2. Row 1: BGM (-149, 350) & SFX (149, 350)
+        if (bgmButton != null)
+        {
+            RectTransform rt = bgmButton.GetComponent<RectTransform>();
+            if (rt != null)
+            {
+                rt.anchoredPosition = new Vector2(-149f, 350f);
+                rt.sizeDelta = new Vector2(282f, 160f);
+            }
+        }
+        if (sfxButton != null)
+        {
+            RectTransform rt = sfxButton.GetComponent<RectTransform>();
+            if (rt != null)
+            {
+                rt.anchoredPosition = new Vector2(149f, 350f);
+                rt.sizeDelta = new Vector2(282f, 160f);
+            }
+        }
+
+        // 3. Row 2: English (0, 180)
+        if (languageButton != null)
+        {
+            RectTransform rt = languageButton.GetComponent<RectTransform>();
+            if (rt != null)
+            {
+                rt.anchoredPosition = new Vector2(0f, 180f);
+                rt.sizeDelta = new Vector2(580f, 160f);
+            }
+        }
+
+        // 4. Row 3: Show Damage (0, 10)
+        if (showDamageButton != null)
+        {
+            RectTransform rt = showDamageButton.GetComponent<RectTransform>();
+            if (rt != null)
+            {
+                rt.anchoredPosition = new Vector2(0f, 10f);
+                rt.sizeDelta = new Vector2(580f, 160f);
+            }
+        }
+
+        // 5. Row 4: Joystick Mode (0, -160)
+        if (joystickButton != null)
+        {
+            RectTransform rt = joystickButton.GetComponent<RectTransform>();
+            if (rt != null)
+            {
+                rt.anchoredPosition = new Vector2(0f, -160f);
+                rt.sizeDelta = new Vector2(580f, 160f);
+            }
+        }
+
+        // 6. Row 5: Screen Shake (0, -330)
+        if (screenShakeButton != null)
+        {
+            RectTransform rt = screenShakeButton.GetComponent<RectTransform>();
+            if (rt != null)
+            {
+                rt.anchoredPosition = new Vector2(0f, -330f);
+                rt.sizeDelta = new Vector2(580f, 160f);
+            }
+        }
+
+        // 7. Row 6: Review (0, -500)
+        if (reviewButton != null)
+        {
+            RectTransform rt = reviewButton.GetComponent<RectTransform>();
+            if (rt != null)
+            {
+                rt.anchoredPosition = new Vector2(0f, -500f);
+                rt.sizeDelta = new Vector2(580f, 160f);
+            }
+        }
+
+        // Bottom labels
+        if (versionText != null)
+        {
+            versionText.rectTransform.anchoredPosition = new Vector2(0f, -615f);
+        }
+        if (closeHintText != null)
+        {
+            closeHintText.rectTransform.anchoredPosition = new Vector2(0f, -665f);
+        }
     }
 
     public void ToggleLanguageOptions()
@@ -626,7 +821,7 @@ public class SettingsPanelController : MonoBehaviour
         contentRect.pivot = new Vector2(0.5f, 0.5f);
         contentRect.sizeDelta = new Vector2(900f, 1450f);
 
-        CreateFrame("Header", content.transform, new Vector2(0f, 640f), new Vector2(850f, 105f), HeaderColor, BorderColor);
+        GameObject headerFrame = CreateFrame("Header", content.transform, new Vector2(0f, 640f), new Vector2(850f, 105f), HeaderColor, BorderColor);
         TMP_Text title = CreateText("Title", content.transform, "SETTINGS", 52f, Color.white, font);
         SetRect(title.rectTransform, new Vector2(0f, 640f), new Vector2(820f, 90f));
 
@@ -653,7 +848,9 @@ public class SettingsPanelController : MonoBehaviour
         SetRect(closeHint.rectTransform, new Vector2(0f, -595f), new Vector2(600f, 45f));
 
         SettingsPanelController controller = root.AddComponent<SettingsPanelController>();
+        controller.headerImage = headerFrame.GetComponent<UnityEngine.UI.Image>();
         controller.titleText = title;
+        controller.accountCard = account;
         controller.bgmText = bgmLabel;
         controller.sfxText = sfxLabel;
         controller.languageText = languageLabel;
@@ -677,6 +874,7 @@ public class SettingsPanelController : MonoBehaviour
 
         controller.EnsureLanguageOptionsPanel();
         controller.BindButtonListeners();
+        controller.ApplyLayoutForCurrentScene();
         controller.RefreshLabels();
         root.SetActive(false);
         return controller;

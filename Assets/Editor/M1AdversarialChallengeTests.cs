@@ -49,6 +49,11 @@ namespace PGE.Tests.Adversarial
                     sb.AppendLine($"[PASS] {testName}");
                     passed++;
                 }
+                catch (SuccessException)
+                {
+                    sb.AppendLine($"[PASS] {testName}");
+                    passed++;
+                }
                 catch (Exception ex)
                 {
                     sb.AppendLine($"[FAIL] {testName}");
@@ -200,7 +205,7 @@ namespace PGE.Tests.Adversarial
 
             try
             {
-                ObjectPool pool = new ObjectPool(prefab, initialSize: 5, canGrow: true, container: container.transform);
+                ObjectPool pool = new ObjectPool(prefab, initialSize: 1, canGrow: true, container: container.transform);
                 pool.Initialize(container.transform);
 
                 GameObject obj1 = pool.Spawn(Vector3.zero, Quaternion.identity);

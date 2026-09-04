@@ -14,9 +14,11 @@ using UnityEngine.SceneManagement;
 public static class SettingsPanelSceneBuilder
 {
     private const string MainMenuScenePath = "Assets/Scenes/MainMenu.unity";
+    private const string GamePlayScenePath = "Assets/Scenes/GamePlay.unity";
     private const string PrefabDir = "Assets/Prefabs/UI";
     private const string PrefabPath = "Assets/Prefabs/UI/SettingsPanel.prefab";
     private const string BuildRequestPath = "Assets/Editor/PGE_SettingsPanel_BuildRequest.txt";
+    private const string BuildGamePlayRequestPath = "Assets/Editor/PGE_SettingsPanel_GamePlay_BuildRequest.txt";
 
     static SettingsPanelSceneBuilder()
     {
@@ -30,18 +32,27 @@ public static class SettingsPanelSceneBuilder
             return;
         }
 
-        if (!File.Exists(BuildRequestPath))
+        if (File.Exists(BuildRequestPath))
         {
-            return;
+            try
+            {
+                File.Delete(BuildRequestPath);
+            }
+            catch { }
+
+            BuildStaticSettingsPanelInMainMenu();
         }
 
-        try
+        if (File.Exists(BuildGamePlayRequestPath))
         {
-            File.Delete(BuildRequestPath);
-        }
-        catch { }
+            try
+            {
+                File.Delete(BuildGamePlayRequestPath);
+            }
+            catch { }
 
-        BuildStaticSettingsPanelInMainMenu();
+            BuildStaticSettingsPanelInGamePlay();
+        }
     }
 
     [MenuItem("PGE/UI/Build Settings Panel Only", priority = 100)]
@@ -125,6 +136,83 @@ public static class SettingsPanelSceneBuilder
 
         Selection.activeGameObject = panel.gameObject;
         Debug.Log($"<color=#00FF88>[SettingsPanel] ĐÃ TẠO THÀNH CÔNG GameObject 'SettingsPanel' tĩnh trong Hierarchy của {MainMenuScenePath}!</color>");
+    }
+
+    [MenuItem("PGE/UI/Build Settings Panel in GamePlay", priority = 102)]
+    public static void BuildStaticSettingsPanelInGamePlay()
+    {
+        // 1. Mở Scene GamePlay nếu chưa mở
+        Scene activeScene = SceneManager.GetActiveScene();
+        if (activeScene.path != GamePlayScenePath)
+        {
+            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+            {
+                return;
+            }
+            activeScene = EditorSceneManager.OpenScene(GamePlayScenePath, OpenSceneMode.Single);
+        }
+
+        if (!activeScene.IsValid())
+        {
+            Debug.LogError($"[SettingsPanel] Không tìm thấy scene tại {GamePlayScenePath}");
+            return;
+        }
+
+        // 2. Tìm Canvas trong scene GamePlay
+        Canvas canvas = Object.FindObjectOfType<Canvas>();
+        if (canvas == null)
+        {
+            Debug.LogError("[SettingsPanel] Không tìm thấy Canvas trong GamePlay scene!");
+            return;
+        }
+
+        RectTransform canvasRect = canvas.transform as RectTransform;
+
+        // 3. Kiểm tra xem SettingsPanel đã tồn tại trong Hierarchy chưa
+        SettingsPanelController existing = canvas.GetComponentInChildren<SettingsPanelController>(true);
+        if (existing != null)
+        {
+            Debug.Log($"[SettingsPanel] SettingsPanel đã tồn tại trong GamePlay: {existing.gameObject.name}. Đang cập nhật lại tham chiếu...");
+            existing.IsGameplayMode = true;
+            existing.AutoWireReferencesIfMissing();
+            existing.ApplyLayoutForCurrentScene();
+            existing.BindButtonListeners();
+            existing.RefreshLabels();
+            existing.gameObject.SetActive(false);
+
+            EditorUtility.SetDirty(existing.gameObject);
+            EditorSceneManager.MarkSceneDirty(activeScene);
+            EditorSceneManager.SaveScene(activeScene);
+            Selection.activeGameObject = existing.gameObject;
+            Debug.Log("<color=#00FF88>[SettingsPanel] Đã cập nhật xong SettingsPanel trong GamePlay!</color>");
+            return;
+        }
+
+        // 4. Tạo cấu trúc phân cấp cho SettingsPanel
+        SettingsPanelController panel = SettingsPanelController.BuildPanelHierarchy(canvasRect);
+        if (panel == null)
+        {
+            Debug.LogError("[SettingsPanel] Không thể khởi tạo SettingsPanel trong GamePlay!");
+            return;
+        }
+
+        panel.gameObject.name = "SettingsPanel";
+        panel.IsGameplayMode = true;
+        panel.AutoWireReferencesIfMissing();
+        panel.ApplyLayoutForCurrentScene();
+        panel.RefreshLabels();
+        panel.gameObject.SetActive(false); // Ẩn mặc định khi bắt đầu game
+        panel.transform.SetAsLastSibling();
+
+        Undo.RegisterCreatedObjectUndo(panel.gameObject, "Create Static SettingsPanel in GamePlay");
+
+        // 5. Đánh dấu dirty và lưu scene GamePlay
+        EditorUtility.SetDirty(panel.gameObject);
+        EditorSceneManager.MarkSceneDirty(activeScene);
+        EditorSceneManager.SaveScene(activeScene);
+
+        Selection.activeGameObject = panel.gameObject;
+        Debug.Log($"<color=#00FF88>[SettingsPanel] ĐÃ TẠO THÀNH CÔNG GameObject 'SettingsPanel' tĩnh trong Hierarchy của {GamePlayScenePath}!</color>");
     }
 }
 #endif

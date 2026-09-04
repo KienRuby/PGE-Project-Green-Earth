@@ -43,6 +43,22 @@ public class DamageNumber : MonoBehaviour, IPoolable
     [SerializeField] private Color playerDamageColor = new Color(1f, 0.22f, 0.22f, 1f); // Đỏ tươi nguy hiểm
     [SerializeField] private Color healColor = new Color(0.18f, 0.9f, 0.45f, 1f);       // Xanh ngọc hồi phục
 
+    [Header("Outline Settings")]
+    [Tooltip("Màu viền (Outline Color). Mặc định là viền đen sắc nét (#000000).")]
+    [SerializeField] private Color outlineColor = Color.black;
+
+    [Tooltip("Độ dày viền (Outline Width). Khuyên dùng 0.2f - 0.35f.")]
+    [Range(0f, 1f)]
+    [SerializeField] private float outlineWidth = 0.25f;
+
+    [Tooltip("Cho phép dùng màu viền riêng cho từng loại sát thương.")]
+    [SerializeField] private bool useCustomOutlinePerType = false;
+
+    [SerializeField] private Color normalOutlineColor = Color.black;
+    [SerializeField] private Color criticalOutlineColor = Color.black;
+    [SerializeField] private Color playerDamageOutlineColor = Color.black;
+    [SerializeField] private Color healOutlineColor = Color.black;
+
     public float Duration
     {
         get => duration;
@@ -50,6 +66,24 @@ public class DamageNumber : MonoBehaviour, IPoolable
     }
 
     public TMP_Text TextComponent => textComponent != null ? textComponent : (textComponent = GetComponent<TMP_Text>());
+
+    public Color OutlineColor
+    {
+        get => outlineColor;
+        set => SetOutlineColor(value);
+    }
+
+    public float OutlineWidth
+    {
+        get => outlineWidth;
+        set => SetOutlineWidth(value);
+    }
+
+    public bool UseCustomOutlinePerType
+    {
+        get => useCustomOutlinePerType;
+        set => useCustomOutlinePerType = value;
+    }
 
     private Vector3 initialScale = Vector3.one;
     private Vector3 currentVelocity;
@@ -86,6 +120,8 @@ public class DamageNumber : MonoBehaviour, IPoolable
             initialScale = transform.localScale;
             if (initialScale == Vector3.zero) initialScale = Vector3.one;
         }
+
+        ApplyOutline();
     }
 
     public void SetSorting(string layerName, int order)
@@ -97,6 +133,61 @@ public class DamageNumber : MonoBehaviour, IPoolable
         {
             meshRenderer.sortingLayerName = layerName;
             meshRenderer.sortingOrder = order;
+        }
+    }
+
+    /// <summary>
+    /// Thay đổi màu sắc và độ dày viền của số sát thương.
+    /// </summary>
+    public void SetOutlineColor(Color color, float width = -1f)
+    {
+        outlineColor = color;
+        if (width >= 0f)
+        {
+            outlineWidth = Mathf.Clamp01(width);
+        }
+        ApplyOutline();
+    }
+
+    /// <summary>
+    /// Thay đổi độ dày viền.
+    /// </summary>
+    public void SetOutlineWidth(float width)
+    {
+        outlineWidth = Mathf.Clamp01(width);
+        ApplyOutline();
+    }
+
+    /// <summary>
+    /// Cấu hình màu viền riêng cho từng loại sát thương.
+    /// </summary>
+    public void ConfigureOutlinePerType(bool enable, Color normal, Color crit, Color playerDmg, Color heal)
+    {
+        useCustomOutlinePerType = enable;
+        normalOutlineColor = normal;
+        criticalOutlineColor = crit;
+        playerDamageOutlineColor = playerDmg;
+        healOutlineColor = heal;
+    }
+
+    /// <summary>
+    /// Áp dụng trực tiếp thiết lập màu viền lên TextMeshPro Material.
+    /// </summary>
+    public void ApplyOutline()
+    {
+        if (textComponent == null)
+        {
+            textComponent = GetComponent<TMP_Text>();
+        }
+
+        if (textComponent == null) return;
+
+        Material mat = textComponent.fontMaterial;
+        if (mat != null)
+        {
+            mat.EnableKeyword(ShaderUtilities.Keyword_Outline);
+            mat.SetColor(ShaderUtilities.ID_OutlineColor, outlineColor);
+            mat.SetFloat(ShaderUtilities.ID_OutlineWidth, outlineWidth);
         }
     }
 
@@ -140,6 +231,33 @@ public class DamageNumber : MonoBehaviour, IPoolable
         if (textComponent != null)
         {
             textComponent.color = baseColor;
+        }
+
+        // 3. Áp dụng viền (tùy biến theo loại hoặc viền chuẩn mặc định)
+        if (useCustomOutlinePerType)
+        {
+            Color targetOutline;
+            switch (type)
+            {
+                case DamageType.Critical:
+                    targetOutline = criticalOutlineColor;
+                    break;
+                case DamageType.PlayerDamage:
+                    targetOutline = playerDamageOutlineColor;
+                    break;
+                case DamageType.Heal:
+                    targetOutline = healOutlineColor;
+                    break;
+                case DamageType.Normal:
+                default:
+                    targetOutline = normalOutlineColor;
+                    break;
+            }
+            SetOutlineColor(targetOutline, outlineWidth);
+        }
+        else
+        {
+            ApplyOutline();
         }
 
         // 3. Thiết lập vị trí và vận tốc trôi bổng (kèm độ lệch ngang ngẫu nhiên nhỏ)

@@ -1012,11 +1012,29 @@ public static class GamePlayHUDSceneBuilder
         chipCardRt.anchoredPosition = new Vector2(-320f, 360f);
         chipCardRt.sizeDelta = new Vector2(170f, 210f);
 
+        ChipsetLevelVisualLibrary visualLib = Resources.Load<ChipsetLevelVisualLibrary>("ChipsetLevelVisualLibrary");
+        Sprite leverGreenSprite = null;
+        if (visualLib != null && visualLib.tierLeverFrames != null && visualLib.tierLeverFrames.Length > 0)
+        {
+            leverGreenSprite = visualLib.tierLeverFrames[0];
+        }
+        else
+        {
+            string frameAtlasPath = "Assets/Sprites/UI/Chipset/khung chipset (1).png";
+            var frames = AssetDatabase.LoadAllAssetsAtPath(frameAtlasPath).OfType<Sprite>().ToArray();
+            leverGreenSprite = ChipsetLevelUpPopup.ResolveGreenLeverFrame(frames);
+        }
+
+        Image iconFrameImg = CreateImage("IconFrame", chipCardObj.transform, Color.white, leverGreenSprite);
+        iconFrameImg.preserveAspect = true;
+        iconFrameImg.rectTransform.anchoredPosition = new Vector2(0f, 30f);
+        iconFrameImg.rectTransform.sizeDelta = new Vector2(120f, 120f);
+
         Sprite gunSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Gun.png");
         Image gunImg = CreateImage("GunIcon", chipCardObj.transform, Color.white, gunSprite);
         gunImg.preserveAspect = true;
-        gunImg.rectTransform.anchoredPosition = new Vector2(0f, 30f);
-        gunImg.rectTransform.sizeDelta = new Vector2(120f, 120f);
+        gunImg.rectTransform.anchoredPosition = new Vector2(0f, 34f);
+        gunImg.rectTransform.sizeDelta = new Vector2(85f, 65f);
 
         GameObject lvlBadge = CreateFrame("LvlBadge", chipCardObj.transform, new Color32(88, 172, 178, 255), DarkBorder, out _);
         RectTransform lvlBadgeRt = lvlBadge.GetComponent<RectTransform>();
@@ -1122,6 +1140,8 @@ public static class GamePlayHUDSceneBuilder
         so.FindProperty("artifactTabText").objectReferenceValue = artTabTxt;
         so.FindProperty("statsPanel").objectReferenceValue = statsPanelObj;
         so.FindProperty("chipsetPanel").objectReferenceValue = chipPanelObj;
+        so.FindProperty("equippedChipCardTemplate").objectReferenceValue = chipCardObj;
+        so.FindProperty("visualLibrary").objectReferenceValue = visualLib;
         so.FindProperty("artifactPanel").objectReferenceValue = artPanelObj;
         so.FindProperty("defSubTabButton").objectReferenceValue = defSubBtn;
         so.FindProperty("attackSubTabButton").objectReferenceValue = atkSubBtn;

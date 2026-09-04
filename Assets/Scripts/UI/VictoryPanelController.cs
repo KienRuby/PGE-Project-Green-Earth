@@ -125,6 +125,7 @@ public sealed class VictoryPanelController : MonoBehaviour
         }
 
         ResolveReferences();
+        EnsureDetailsUiComponents();
         SetPanelActive(victoryPanel, false);
         SetPanelActive(detailsPanel, false);
         BindButtons();
@@ -133,6 +134,7 @@ public sealed class VictoryPanelController : MonoBehaviour
     private void OnEnable()
     {
         ResolveReferences();
+        EnsureDetailsUiComponents();
         if (enemySpawner != null)
         {
             enemySpawner.OnStageVictory -= HandleStageVictory;
@@ -229,6 +231,7 @@ public sealed class VictoryPanelController : MonoBehaviour
             playerRunEndController.ResolveWithVictory();
         }
 
+        EnsureDetailsUiComponents();
         PopulateResult();
         SetPanelActive(detailsPanel, false);
         SetPanelActive(victoryPanel, true);
@@ -236,8 +239,9 @@ public sealed class VictoryPanelController : MonoBehaviour
         ChipsetBattleStats.FinalizeBattle();
 
         int chapterNumber = PlayerDataService.SelectedChapterIndex + 1;
-        GameEvents.RaiseChapterCleared(chapterNumber);
+        GameEvents.RaiseChapterCleared(chapterNumber, 3);
 
+        if (detailsButton != null) detailsButton.interactable = true;
         if (vipTripleButton != null) vipTripleButton.interactable = true;
         if (vipButtonText != null) vipButtonText.text = "Get x3 reward";
         if (feedbackText != null) feedbackText.text = string.Empty;
@@ -331,14 +335,24 @@ public sealed class VictoryPanelController : MonoBehaviour
             if (dataRow != null)
             {
                 RectTransform dataRt = dataRow.GetComponent<RectTransform>();
-                if (Mathf.Abs(dataRt.anchoredPosition.x) < 20f)
+                if (Mathf.Abs(dataRt.anchoredPosition.x) < 20f || dataRt.sizeDelta.x > 360f)
                 {
                     dataRt.anchoredPosition = new Vector2(-110f, 135f);
                     dataRt.sizeDelta = new Vector2(340f, 118f);
                     Transform icon = dataRow.Find("Icon");
-                    if (icon != null) icon.GetComponent<RectTransform>().anchoredPosition = new Vector2(-95f, 0f);
+                    if (icon != null)
+                    {
+                        RectTransform iconRt = icon.GetComponent<RectTransform>();
+                        iconRt.anchoredPosition = new Vector2(-95f, 0f);
+                        iconRt.sizeDelta = new Vector2(88f, 88f);
+                    }
                     Transform val = dataRow.Find("Value");
-                    if (val != null) val.GetComponent<RectTransform>().anchoredPosition = new Vector2(55f, 0f);
+                    if (val != null)
+                    {
+                        RectTransform valRt = val.GetComponent<RectTransform>();
+                        valRt.anchoredPosition = new Vector2(55f, 0f);
+                        valRt.sizeDelta = new Vector2(210f, 95f);
+                    }
                 }
             }
 
@@ -346,14 +360,24 @@ public sealed class VictoryPanelController : MonoBehaviour
             if (gemRow != null)
             {
                 RectTransform gemRt = gemRow.GetComponent<RectTransform>();
-                if (Mathf.Abs(gemRt.anchoredPosition.x) < 20f)
+                if (Mathf.Abs(gemRt.anchoredPosition.x) < 20f || gemRt.sizeDelta.x > 360f)
                 {
                     gemRt.anchoredPosition = new Vector2(-110f, 10f);
                     gemRt.sizeDelta = new Vector2(340f, 118f);
                     Transform icon = gemRow.Find("Icon");
-                    if (icon != null) icon.GetComponent<RectTransform>().anchoredPosition = new Vector2(-95f, 0f);
+                    if (icon != null)
+                    {
+                        RectTransform iconRt = icon.GetComponent<RectTransform>();
+                        iconRt.anchoredPosition = new Vector2(-95f, 0f);
+                        iconRt.sizeDelta = new Vector2(88f, 88f);
+                    }
                     Transform val = gemRow.Find("Value");
-                    if (val != null) val.GetComponent<RectTransform>().anchoredPosition = new Vector2(55f, 0f);
+                    if (val != null)
+                    {
+                        RectTransform valRt = val.GetComponent<RectTransform>();
+                        valRt.anchoredPosition = new Vector2(55f, 0f);
+                        valRt.sizeDelta = new Vector2(210f, 95f);
+                    }
                 }
             }
 
@@ -374,6 +398,25 @@ public sealed class VictoryPanelController : MonoBehaviour
             {
                 detailsButton.onClick.RemoveListener(ToggleDetails);
                 detailsButton.onClick.AddListener(ToggleDetails);
+
+                if (stagedRevealItems != null && stagedRevealItems.Length > 0)
+                {
+                    RectTransform btnRt = detailsButton.GetComponent<RectTransform>();
+                    if (!stagedRevealItems.Contains(btnRt))
+                    {
+                        var list = stagedRevealItems.ToList();
+                        int gemIndex = list.FindIndex(r => r != null && r.name == "RedGemReward");
+                        if (gemIndex >= 0)
+                        {
+                            list.Insert(gemIndex + 1, btnRt);
+                        }
+                        else
+                        {
+                            list.Add(btnRt);
+                        }
+                        stagedRevealItems = list.ToArray();
+                    }
+                }
             }
         }
 
@@ -422,11 +465,29 @@ public sealed class VictoryPanelController : MonoBehaviour
         iconImg.preserveAspect = true;
         iconImg.raycastTarget = false;
 
-        Sprite[] allSprites = Resources.FindObjectsOfTypeAll<Sprite>();
-        Sprite chartSprite = allSprites?.FirstOrDefault(s => s != null && (s.name == "icon-damage-details" || s.name.Contains("damage-details")));
+        Sprite chartSprite = null;
+#if UNITY_EDITOR
+        chartSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/icon-damage-details.png");
+#endif
+        if (chartSprite == null)
+        {
+            Button existingOtherBtn = FindObjectsOfType<Button>(true)
+                .FirstOrDefault(b => b != null && b.name == "DetailsButton" && b.transform.Find("Icon")?.GetComponent<Image>()?.sprite != null);
+            if (existingOtherBtn != null)
+            {
+                chartSprite = existingOtherBtn.transform.Find("Icon").GetComponent<Image>().sprite;
+            }
+        }
+        if (chartSprite == null)
+        {
+            Sprite[] allSprites = Resources.FindObjectsOfTypeAll<Sprite>();
+            chartSprite = allSprites?.FirstOrDefault(s => s != null && (s.name == "icon-damage-details" || s.name.Contains("damage-details")));
+        }
+
         if (chartSprite != null)
         {
             iconImg.sprite = chartSprite;
+            iconImg.color = Color.white;
         }
         else
         {

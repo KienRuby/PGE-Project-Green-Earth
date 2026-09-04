@@ -24,6 +24,8 @@ public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
     [SerializeField] private GameObject upgradeArrowGroup;
     [SerializeField] private GameObject starObject;
     [SerializeField] private Image bottomProgressBar;
+    [SerializeField] private Image progressFillImage;
+    [SerializeField] private RectTransform progressFillRect;
 
     [Header("UI Groups")]
     [SerializeField] private GameObject normalContentGroup;
@@ -44,6 +46,9 @@ public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
 
     public ChipItemData BoundData => boundData;
     public ChipSlotState SlotState => slotState;
+    public Image BottomProgressBar => bottomProgressBar;
+    public Image ProgressFillImage => progressFillImage;
+    public RectTransform ProgressFillRect => progressFillRect;
 
     private void Awake()
     {
@@ -125,6 +130,16 @@ public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
             Transform t = transform.Find("NormalContentGroup/BottomBar") ?? transform.Find("BottomBar");
             if (t != null) bottomProgressBar = t.GetComponent<Image>();
         }
+        if (progressFillRect == null && bottomProgressBar != null)
+        {
+            Transform fillT = bottomProgressBar.transform.Find("ProgressFill") ?? bottomProgressBar.transform.Find("Fill");
+            if (fillT != null)
+            {
+                progressFillRect = fillT.GetComponent<RectTransform>();
+                progressFillImage = fillT.GetComponent<Image>();
+            }
+        }
+        EnsureProgressBar();
         if (upgradeArrowGroup == null)
         {
             Transform t = transform.Find("NormalContentGroup/UpgradeArrowGroup") ?? transform.Find("UpgradeArrowGroup");
@@ -195,9 +210,16 @@ public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
             ConfigureLevelLabel(levelText, data.IsMaxOverall || data.IsTierUnlockReady);
         }
 
-        if (bottomProgressBar != null && data != null)
+        EnsureProgressBar();
+
+        ChipTier tier = data != null ? data.tier : ChipTier.Magic;
+        if (bottomProgressBar != null)
         {
-            bottomProgressBar.color = GetTierProgressColor(data.tier);
+            bottomProgressBar.color = GetTierTrackColor(tier);
+        }
+        if (progressFillImage != null)
+        {
+            progressFillImage.color = GetTierProgressColor(tier);
         }
 
         if (progressText != null && data != null)
@@ -218,6 +240,9 @@ public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
                 }
             }
         }
+
+        float fillRatio = data != null ? CalculateFillRatio(data.count, data.requiredCount, data.IsMaxOverall) : 0f;
+        UpdateProgressBar(fillRatio);
 
         bool hasAction = data != null && !data.IsMaxOverall && (data.CanUpgrade || data.CanAdvanceTier);
         if (upgradeArrowGroup != null)
@@ -264,8 +289,149 @@ public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
             case ChipTier.Rare: return new Color32(56, 189, 248, 255);      // Blue
             case ChipTier.Unique: return new Color32(192, 132, 252, 255);  // Purple
             case ChipTier.Epic: return new Color32(250, 204, 21, 255);     // Yellow
-            case ChipTier.Holographic: return new Color32(255, 255, 255, 0); // Red Tier: Alpha = 0 trong suốt thấy trọn vẹn khung
+            case ChipTier.Holographic: return new Color32(255, 77, 45, 255); // Red Tier
             default: return new Color32(74, 222, 128, 255);                // Green
+        }
+    }
+
+    public static Color32 GetTierTrackColor(ChipTier tier)
+    {
+        switch (tier)
+        {
+            case ChipTier.Rare: return new Color32(12, 36, 56, 235);        // Dark Blue
+            case ChipTier.Unique: return new Color32(36, 18, 54, 235);      // Dark Purple
+            case ChipTier.Epic: return new Color32(48, 38, 12, 235);        // Dark Yellow/Brown
+            case ChipTier.Holographic: return new Color32(48, 16, 16, 235); // Dark Red
+            default: return new Color32(14, 38, 32, 235);                  // Dark Green
+        }
+    }
+
+    public static void ConfigureProgressText(TMP_Text text)
+    {
+        if (text == null) return;
+        text.color = Color.white;
+        text.fontStyle = FontStyles.Bold;
+        text.outlineColor = Color.black;
+        text.outlineWidth = 0.25f;
+        text.alignment = TextAlignmentOptions.Center;
+    }
+
+    public static float CalculateFillRatio(int count, int requiredCount, bool isMaxOverall = false)
+    {
+        if (isMaxOverall) return 1.0f;
+        if (requiredCount <= 0) return count > 0 ? 1.0f : 0f;
+        return Mathf.Clamp01((float)count / requiredCount);
+    }
+
+    public static float ParseFillRatioFromProgressText(string progress)
+    {
+        if (string.IsNullOrWhiteSpace(progress)) return 0f;
+        if (string.Equals(progress.Trim(), "MAX", StringComparison.OrdinalIgnoreCase)) return 1.0f;
+
+        string[] parts = progress.Split('/');
+        if (parts.Length == 2)
+        {
+            if (int.TryParse(parts[0].Trim(), out int count) && int.TryParse(parts[1].Trim(), out int required))
+            {
+                return CalculateFillRatio(count, required);
+            }
+        }
+        else if (parts.Length == 1 && int.TryParse(parts[0].Trim(), out int countOnly))
+        {
+            return countOnly > 0 ? 1.0f : 0f;
+        }
+
+        return 0f;
+    }
+
+    public void EnsureProgressBar()
+    {
+        if (bottomProgressBar == null)
+        {
+            Transform barTransform = transform.Find("NormalContentGroup/BottomBar") ?? transform.Find("BottomBar");
+            if (barTransform != null)
+            {
+                bottomProgressBar = barTransform.GetComponent<Image>();
+            }
+        }
+
+        if (bottomProgressBar == null) return;
+
+        ChipTier tier = boundData != null ? boundData.tier : ChipTier.Magic;
+        bottomProgressBar.color = GetTierTrackColor(tier);
+
+        if (progressFillRect == null || progressFillImage == null)
+        {
+            Transform fillT = bottomProgressBar.transform.Find("ProgressFill") ?? bottomProgressBar.transform.Find("Fill");
+            if (fillT != null)
+            {
+                progressFillRect = fillT.GetComponent<RectTransform>();
+                progressFillImage = fillT.GetComponent<Image>();
+            }
+            else
+            {
+                GameObject fillObj = new GameObject("ProgressFill", typeof(RectTransform), typeof(Image));
+                fillObj.transform.SetParent(bottomProgressBar.transform, false);
+                progressFillRect = fillObj.GetComponent<RectTransform>();
+                progressFillImage = fillObj.GetComponent<Image>();
+                if (progressFillImage != null)
+                {
+                    progressFillImage.raycastTarget = false;
+                }
+            }
+        }
+
+        if (progressFillRect != null)
+        {
+            progressFillRect.anchorMin = new Vector2(0f, 0f);
+            progressFillRect.anchorMax = new Vector2(progressFillRect.anchorMax.x, 1f);
+            progressFillRect.pivot = new Vector2(0f, 0.5f);
+            progressFillRect.offsetMin = Vector2.zero;
+            progressFillRect.offsetMax = Vector2.zero;
+            progressFillRect.localScale = Vector3.one;
+            progressFillRect.localRotation = Quaternion.identity;
+        }
+
+        if (progressFillImage != null)
+        {
+            progressFillImage.color = GetTierProgressColor(tier);
+        }
+
+        if (progressText == null)
+        {
+            Transform textT = bottomProgressBar.transform.Find("ProgressText") ?? transform.Find("NormalContentGroup/BottomBar/ProgressText") ?? transform.Find("ProgressText");
+            if (textT != null) progressText = textT.GetComponent<TMP_Text>();
+        }
+
+        if (progressText != null)
+        {
+            progressText.transform.SetAsLastSibling();
+            ConfigureProgressText(progressText);
+        }
+    }
+
+    public void UpdateProgressBar(float fillRatio)
+    {
+        EnsureProgressBar();
+
+        if (fillRatio > 1.0f)
+        {
+            fillRatio /= 100f;
+        }
+        fillRatio = Mathf.Clamp01(fillRatio);
+
+        if (progressFillRect != null)
+        {
+            progressFillRect.anchorMin = new Vector2(0f, 0f);
+            progressFillRect.anchorMax = new Vector2(fillRatio, 1f);
+            progressFillRect.pivot = new Vector2(0f, 0.5f);
+            progressFillRect.offsetMin = Vector2.zero;
+            progressFillRect.offsetMax = Vector2.zero;
+        }
+
+        if (progressFillImage != null)
+        {
+            progressFillImage.enabled = fillRatio > 0.001f;
         }
     }
 
@@ -311,6 +477,7 @@ public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
             if (frameSprite != null) cardFrameImage.sprite = frameSprite;
         }
         SetRedTierBackgroundEffect(false);
+        UpdateProgressBar(0f);
 
         if (cardButton != null)
         {
@@ -342,12 +509,19 @@ public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
             ConfigureLevelLabel(levelText, boundData.IsMaxOverall || boundData.IsTierUnlockReady);
         }
 
+        EnsureProgressBar();
+
+        ChipTier tier = boundData.tier;
         if (bottomProgressBar != null)
         {
-            bottomProgressBar.color = GetTierProgressColor(boundData.tier);
+            bottomProgressBar.color = GetTierTrackColor(tier);
+        }
+        if (progressFillImage != null)
+        {
+            progressFillImage.color = GetTierProgressColor(tier);
         }
 
-        SetRedTierBackgroundEffect(boundData.tier == ChipTier.Holographic);
+        SetRedTierBackgroundEffect(tier == ChipTier.Holographic);
 
         if (progressText != null)
         {
@@ -367,6 +541,9 @@ public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
                 }
             }
         }
+
+        float fillRatio = CalculateFillRatio(boundData.count, boundData.requiredCount, boundData.IsMaxOverall);
+        UpdateProgressBar(fillRatio);
 
         bool hasAction = !boundData.IsMaxOverall && (boundData.CanUpgrade || boundData.CanAdvanceTier);
         if (upgradeArrowGroup != null)
@@ -391,7 +568,9 @@ public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
         GameObject starObj,
         Image bottomBar,
         GameObject normalGroup = null,
-        GameObject emptyGroup = null)
+        GameObject emptyGroup = null,
+        Image fillImg = null,
+        RectTransform fillRect = null)
     {
         this.cardFrameImage = frameImg;
         this.iconImage = iconImg;
@@ -404,6 +583,8 @@ public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
         this.bottomProgressBar = bottomBar;
         this.normalContentGroup = normalGroup;
         this.emptySlotGroup = emptyGroup;
+        this.progressFillImage = fillImg;
+        this.progressFillRect = fillRect;
         hasCapturedDefaultFrameMaterial = false;
         CaptureDefaultFrameMaterial();
     }
@@ -468,6 +649,8 @@ public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
 
     public void SetDirectVisual(Sprite frame, Sprite icon, string level, string progress, bool star, bool arrow)
     {
+        EnsureProgressBar();
+
         if (normalContentGroup != null) normalContentGroup.SetActive(true);
         if (emptySlotGroup != null) emptySlotGroup.SetActive(false);
 
@@ -481,6 +664,9 @@ public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
         if (progressText != null) progressText.text = progress;
         if (starObject != null) starObject.SetActive(star);
         if (upgradeArrowGroup != null) upgradeArrowGroup.SetActive(arrow);
+
+        float fillRatio = ParseFillRatioFromProgressText(progress);
+        UpdateProgressBar(fillRatio);
     }
 }
 

@@ -60,6 +60,9 @@ public class LabUpgradeController : MonoBehaviour
         [Tooltip("Ảnh nền của ô item, dùng để đổi màu khi khóa, mở khóa hoặc đang được quay chọn.")]
         public Image slotBackground;
 
+        [Tooltip("Button của ô slot để bắt sự kiện bấm vào xem chi tiết.")]
+        public Button slotButton;
+
         [NonSerialized] public int level;
     }
 
@@ -161,6 +164,13 @@ public class LabUpgradeController : MonoBehaviour
     [Tooltip("Panel giao diện hiển thị chi tiết tiến độ bảo hiểm lượt roll (PityGuaranteePanel).")]
     [SerializeField] private PityGuaranteePanel pityGuaranteePanel;
 
+    [Header("Stat Tooltip & Lock Icon")]
+    [Tooltip("Bảng hiển thị chi tiết cấp tiếp theo của chỉ số hoặc ??? khi đang khóa.")]
+    [SerializeField] private LabStatTooltip statTooltip;
+
+    [Tooltip("Sprite icon ổ khóa hiển thị trong ô khi đang khóa.")]
+    [SerializeField] private Sprite lockIconSprite;
+
     // Public Read-Only Properties for Pity Guarantee Panel
     public bool IsPitySystemEnabled => enablePitySystem;
     public int ElitePityThreshold => elitePityThreshold;
@@ -198,8 +208,19 @@ public class LabUpgradeController : MonoBehaviour
     [Tooltip("Khoảng thời gian chuyển vùng sáng sang ô item tiếp theo trong lúc quay, tính bằng giây.")]
     [SerializeField] private float rollStep = 0.075f;
 
-    [Tooltip("Màu nền tạm thời của ô item đang được hiệu ứng quay đi qua.")]
-    [SerializeField] private Color rollHighlightColor = new Color32(255, 203, 73, 255);
+    [Tooltip("Màu khung viền phát sáng của ô item khi quay qua hoặc trúng thưởng.")]
+    [SerializeField] private Color rollHighlightColor = new Color32(255, 215, 0, 255);
+
+    [Tooltip("Sprite khung viền phát sáng màu vàng bao quanh ô.")]
+    [SerializeField] private Sprite highlightBorderSprite;
+
+    [Tooltip("Màu của hiệu ứng đèn rọi sáng bừng nhấp nháy khi trúng thưởng.")]
+    [SerializeField] private Color highlightFlashColor = new Color32(255, 255, 180, 255);
+
+    private RectTransform highlightFrameRoot;
+    private Image highlightBorderImage;
+    private Image highlightFlashImage;
+    private Coroutine winningFlashCoroutine;
 
     private static readonly Color AffordableColor = new Color32(84, 180, 105, 255);
     private static readonly Color UnaffordableColor = new Color32(67, 105, 109, 255);
@@ -223,6 +244,12 @@ public class LabUpgradeController : MonoBehaviour
     private void OnValidate()
     {
         AssignRaritiesByRow();
+#if UNITY_EDITOR
+        if (highlightBorderSprite == null)
+        {
+            highlightBorderSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Lab/khung_highlight_lab.png");
+        }
+#endif
         if (items == null)
         {
             return;
@@ -232,7 +259,14 @@ public class LabUpgradeController : MonoBehaviour
         {
             if (items[i] != null && items[i].slotBackground != null)
             {
-                items[i].slotBackground.color = GetRarityColor(items[i].rarity);
+                if (items[i].unlockedGroup != null && items[i].slotBackground.gameObject == items[i].unlockedGroup)
+                {
+                    items[i].slotBackground.color = Color.white;
+                }
+                else
+                {
+                    items[i].slotBackground.color = GetRarityColor(items[i].rarity);
+                }
             }
         }
     }
@@ -297,6 +331,13 @@ public class LabUpgradeController : MonoBehaviour
             int defaultLevel = item.startsUnlocked ? Mathf.Clamp(item.startingLevel, 1, MaxStatLevel) : 0;
             item.level = Mathf.Clamp(PlayerPrefs.GetInt(GetItemLevelKey(item.itemName, i), defaultLevel), 0, MaxStatLevel);
             RefreshItemView(item);
+
+            int slotIndex = i;
+            if (item.slotButton != null)
+            {
+                item.slotButton.onClick.RemoveAllListeners();
+                item.slotButton.onClick.AddListener(() => OnSlotClicked(slotIndex));
+            }
         }
 
         if (upgradeButton != null)
@@ -367,11 +408,14 @@ public class LabUpgradeController : MonoBehaviour
 
         if (!isRolling || pendingItemIndex < 0)
         {
+            RestoreSlotHighlight();
             return;
         }
 
         StopAllCoroutines();
+        winningFlashCoroutine = null;
         ResolvePendingItem();
+        FinishRoll();
     }
 
     private void OnDestroy()
@@ -389,6 +433,11 @@ public class LabUpgradeController : MonoBehaviour
 
     private void StartRoll()
     {
+        if (statTooltip != null)
+        {
+            statTooltip.Hide();
+        }
+
         if (isRolling || IsAllItemsMaxed() || !ChipManager.HasEnoughDataChips(currentPrice))
         {
             return;
@@ -431,10 +480,8 @@ public class LabUpgradeController : MonoBehaviour
 
         while (elapsed < rollDuration)
         {
-            RestoreSlotColor(previousVisualIndex);
-
             int visualIndex = UnityEngine.Random.Range(0, items.Length);
-            SetSlotColor(visualIndex, rollHighlightColor);
+            SetSlotHighlight(visualIndex);
             previousVisualIndex = visualIndex;
 
             float progress = Mathf.Clamp01(elapsed / rollDuration);
@@ -443,10 +490,22 @@ public class LabUpgradeController : MonoBehaviour
             elapsed += delay;
         }
 
-        RestoreSlotColor(previousVisualIndex);
-        SetSlotColor(pendingItemIndex, rollHighlightColor);
-        yield return new WaitForSecondsRealtime(0.3f);
+        // 1. Dừng tại ô trúng thưởng, bật khung viền phát sáng màu vàng
+        SetSlotHighlight(pendingItemIndex);
+        yield return new WaitForSecondsRealtime(0.35f);
+
+        // 2. Mở khóa ô (nếu đang locked -> mở ra và hiển thị LV.01, icon) hoặc nâng cấp level
         ResolvePendingItem();
+
+        // 3. Giữ khung viền vàng tại ô vừa mở/nâng cấp
+        SetSlotHighlight(pendingItemIndex);
+
+        // 4. Bật hiệu ứng: Thẻ sáng bừng lên như có đèn rọi vào nhấp nháy
+        winningFlashCoroutine = StartCoroutine(WinningFlashRoutine());
+        yield return winningFlashCoroutine;
+
+        // 5. Kết thúc lượt quay, ẩn khung highlight
+        FinishRoll();
     }
 
     private int ChooseWeightedItemIndex(ItemRarity? minGuaranteedRarity = null)
@@ -557,7 +616,6 @@ public class LabUpgradeController : MonoBehaviour
     {
         if (pendingItemIndex < 0 || pendingItemIndex >= items.Length)
         {
-            FinishRoll();
             return;
         }
 
@@ -565,6 +623,11 @@ public class LabUpgradeController : MonoBehaviour
         bool wasLocked = item.level <= 0;
         item.level = Mathf.Min(MaxStatLevel, wasLocked ? 1 : item.level + 1);
         RefreshItemView(item);
+
+        if (wasLocked && item.unlockedGroup != null)
+        {
+            StartCoroutine(PunchScaleRoutine(item.unlockedGroup.transform));
+        }
 
         bool isMaxed = item.level >= MaxStatLevel;
         if (activeGuaranteedRarity.HasValue)
@@ -627,7 +690,37 @@ public class LabUpgradeController : MonoBehaviour
         SaveState(item, pendingItemIndex);
         RefreshPityUI();
         activeGuaranteedRarity = null;
-        FinishRoll();
+    }
+
+    private IEnumerator PunchScaleRoutine(Transform target)
+    {
+        if (target == null)
+        {
+            yield break;
+        }
+
+        Vector3 originalScale = Vector3.one;
+        float duration = 0.25f;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            if (target == null)
+            {
+                yield break;
+            }
+
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            float scale = Mathf.Lerp(1.15f, 1.0f, Mathf.Sin(t * Mathf.PI * 0.5f));
+            target.localScale = new Vector3(scale, scale, 1f);
+            yield return null;
+        }
+
+        if (target != null)
+        {
+            target.localScale = originalScale;
+        }
     }
 
     private void SaveState(ItemEntry item, int itemIndex)
@@ -702,6 +795,7 @@ public class LabUpgradeController : MonoBehaviour
 
     private void FinishRoll()
     {
+        RestoreSlotHighlight();
         RestoreSlotColor(pendingItemIndex);
         pendingItemIndex = -1;
         isRolling = false;
@@ -746,29 +840,34 @@ public class LabUpgradeController : MonoBehaviour
             Image lockedCard = item.lockedGroup.transform.Find("LockIcon")?.GetComponent<Image>();
             if (lockedCard != null)
             {
-                lockedCard.sprite = item.itemIcon;
+                lockedCard.sprite = lockIconSprite != null ? lockIconSprite : item.itemIcon;
                 lockedCard.color = Color.white;
                 lockedCard.preserveAspect = true;
-                lockedCard.rectTransform.anchorMin = new Vector2(0.5f, 0.49f);
-                lockedCard.rectTransform.anchorMax = new Vector2(0.5f, 0.49f);
+                lockedCard.rectTransform.anchorMin = new Vector2(0.5f, 0.52f);
+                lockedCard.rectTransform.anchorMax = new Vector2(0.5f, 0.52f);
                 lockedCard.rectTransform.anchoredPosition = Vector2.zero;
-                lockedCard.rectTransform.sizeDelta = new Vector2(194f, 194f);
+                lockedCard.rectTransform.sizeDelta = new Vector2(100f, 120f);
             }
         }
 
         if (item.unlockedGroup != null)
         {
             item.unlockedGroup.SetActive(unlocked);
+            Image unlockedCard = item.unlockedGroup.GetComponent<Image>();
+            if (unlockedCard != null && item.itemIcon != null && unlockedCard.sprite != item.itemIcon)
+            {
+                unlockedCard.sprite = item.itemIcon;
+            }
         }
 
-        if (item.iconImage != null)
+        if (item.iconImage != null && (item.unlockedGroup == null || item.iconImage.gameObject != item.unlockedGroup))
         {
             item.iconImage.sprite = item.itemIcon;
             item.iconImage.preserveAspect = true;
-            item.iconImage.rectTransform.anchorMin = new Vector2(0.5f, 0.49f);
-            item.iconImage.rectTransform.anchorMax = new Vector2(0.5f, 0.49f);
+            item.iconImage.rectTransform.anchorMin = new Vector2(0.5f, 0.52f);
+            item.iconImage.rectTransform.anchorMax = new Vector2(0.5f, 0.52f);
             item.iconImage.rectTransform.anchoredPosition = Vector2.zero;
-            item.iconImage.rectTransform.sizeDelta = new Vector2(194f, 194f);
+            item.iconImage.rectTransform.sizeDelta = new Vector2(140f, 140f);
         }
 
         if (item.levelText != null)
@@ -791,7 +890,40 @@ public class LabUpgradeController : MonoBehaviour
 
         if (item.slotBackground != null)
         {
-            item.slotBackground.color = GetRarityColor(item.rarity);
+            if (item.unlockedGroup != null && item.slotBackground.gameObject == item.unlockedGroup)
+            {
+                item.slotBackground.color = Color.white;
+            }
+            else
+            {
+                item.slotBackground.color = GetRarityColor(item.rarity);
+            }
+        }
+
+        if (statTooltip != null && statTooltip.IsShowing && items != null)
+        {
+            int index = Array.IndexOf(items, item);
+            if (index >= 0 && statTooltip.CurrentSlotIndex == index)
+            {
+                RectTransform slotRt = item.slotBackground != null ? item.slotBackground.rectTransform : null;
+                statTooltip.Show(index, slotRt, item.itemName, item.level, !unlocked, MaxStatLevel);
+            }
+        }
+    }
+
+    public void OnSlotClicked(int index)
+    {
+        if (items == null || index < 0 || index >= items.Length || items[index] == null)
+        {
+            return;
+        }
+
+        if (statTooltip != null)
+        {
+            ItemEntry item = items[index];
+            RectTransform slotRt = item.slotBackground != null ? item.slotBackground.rectTransform : null;
+            bool isLocked = item.level <= 0;
+            statTooltip.Show(index, slotRt, item.itemName, item.level, isLocked, MaxStatLevel);
         }
     }
 
@@ -975,24 +1107,214 @@ public class LabUpgradeController : MonoBehaviour
         return amount.ToString(CultureInfo.InvariantCulture);
     }
 
-    private void SetSlotColor(int itemIndex, Color color)
+    private void EnsureHighlightFrame()
     {
-        if (itemIndex < 0 || itemIndex >= items.Length || items[itemIndex].slotBackground == null)
+        if (highlightFrameRoot != null)
         {
             return;
         }
 
-        items[itemIndex].slotBackground.color = color;
+#if UNITY_EDITOR
+        if (highlightBorderSprite == null)
+        {
+            highlightBorderSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Lab/khung_highlight_lab.png");
+        }
+#endif
+
+        GameObject frameGo = new GameObject("SelectionHighlightFrame", typeof(RectTransform));
+        frameGo.layer = LayerMask.NameToLayer("UI");
+        highlightFrameRoot = frameGo.GetComponent<RectTransform>();
+
+        // 1. Flash Overlay (sáng bừng lên như đèn rọi)
+        GameObject flashGo = new GameObject("FlashOverlay", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        flashGo.layer = LayerMask.NameToLayer("UI");
+        RectTransform flashRt = flashGo.GetComponent<RectTransform>();
+        flashRt.SetParent(highlightFrameRoot, false);
+        flashRt.anchorMin = Vector2.zero;
+        flashRt.anchorMax = Vector2.one;
+        flashRt.offsetMin = Vector2.zero;
+        flashRt.offsetMax = Vector2.zero;
+
+        highlightFlashImage = flashGo.GetComponent<Image>();
+        highlightFlashImage.color = Color.clear;
+        highlightFlashImage.raycastTarget = false;
+
+        // 2. Glowing Border (khung viền phát sáng màu vàng)
+        GameObject borderGo = new GameObject("BorderImage", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        borderGo.layer = LayerMask.NameToLayer("UI");
+        RectTransform borderRt = borderGo.GetComponent<RectTransform>();
+        borderRt.SetParent(highlightFrameRoot, false);
+        borderRt.anchorMin = Vector2.zero;
+        borderRt.anchorMax = Vector2.one;
+        // Ôm trọn bên ngoài khung thẻ để phát sáng nổi bật (+6px mỗi cạnh)
+        borderRt.offsetMin = new Vector2(-6f, -6f);
+        borderRt.offsetMax = new Vector2(6f, 6f);
+
+        highlightBorderImage = borderGo.GetComponent<Image>();
+        if (highlightBorderSprite != null)
+        {
+            highlightBorderImage.sprite = highlightBorderSprite;
+            highlightBorderImage.type = Image.Type.Sliced;
+        }
+        highlightBorderImage.color = rollHighlightColor;
+        highlightBorderImage.raycastTarget = false;
+
+        highlightFrameRoot.gameObject.SetActive(false);
+    }
+
+    private void SetSlotHighlight(int itemIndex)
+    {
+        if (items == null || itemIndex < 0 || itemIndex >= items.Length || items[itemIndex] == null)
+        {
+            return;
+        }
+
+        EnsureHighlightFrame();
+
+        Transform parentSlot = null;
+        if (items[itemIndex].unlockedGroup != null)
+        {
+            parentSlot = items[itemIndex].unlockedGroup.transform.parent;
+        }
+        if (parentSlot == null && items[itemIndex].lockedGroup != null)
+        {
+            parentSlot = items[itemIndex].lockedGroup.transform.parent;
+        }
+        if (parentSlot == null && items[itemIndex].slotButton != null)
+        {
+            parentSlot = items[itemIndex].slotButton.transform;
+        }
+
+        if (parentSlot != null)
+        {
+            highlightFrameRoot.SetParent(parentSlot, false);
+            highlightFrameRoot.anchorMin = Vector2.zero;
+            highlightFrameRoot.anchorMax = Vector2.one;
+            highlightFrameRoot.offsetMin = Vector2.zero;
+            highlightFrameRoot.offsetMax = Vector2.zero;
+            highlightFrameRoot.localScale = Vector3.one;
+            highlightFrameRoot.localRotation = Quaternion.identity;
+            highlightFrameRoot.SetAsLastSibling();
+            highlightFrameRoot.gameObject.SetActive(true);
+
+            if (highlightFlashImage != null)
+            {
+                highlightFlashImage.color = Color.clear;
+            }
+
+            if (highlightBorderImage != null)
+            {
+                highlightBorderImage.color = rollHighlightColor;
+            }
+        }
+    }
+
+    private void RestoreSlotHighlight()
+    {
+        if (winningFlashCoroutine != null)
+        {
+            StopCoroutine(winningFlashCoroutine);
+            winningFlashCoroutine = null;
+        }
+
+        if (highlightFlashImage != null)
+        {
+            highlightFlashImage.color = Color.clear;
+        }
+
+        if (highlightFrameRoot != null)
+        {
+            highlightFrameRoot.localScale = Vector3.one;
+            highlightFrameRoot.gameObject.SetActive(false);
+        }
+    }
+
+    private IEnumerator WinningFlashRoutine()
+    {
+        if (highlightFlashImage == null)
+        {
+            yield return new WaitForSecondsRealtime(0.85f);
+            yield break;
+        }
+
+        float totalDuration = 0.9f;
+        float elapsed = 0f;
+
+        // Thẻ sáng bừng lên như có đèn rọi vào và nhấp nháy ~3 nhịp
+        while (elapsed < totalDuration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float progress = Mathf.Clamp01(elapsed / totalDuration);
+
+            // Tần số nhấp nháy ~3.5 chu kỳ
+            float wave = Mathf.Sin(progress * Mathf.PI * 7f);
+            float envelope = 1f - progress;
+            float flashAlpha = Mathf.Clamp01((0.35f + 0.5f * Mathf.Max(0f, wave)) * envelope);
+
+            Color c = highlightFlashColor;
+            c.a = flashAlpha;
+            highlightFlashImage.color = c;
+
+            if (highlightFrameRoot != null)
+            {
+                float scale = 1f + 0.08f * Mathf.Max(0f, wave) * envelope;
+                highlightFrameRoot.localScale = new Vector3(scale, scale, 1f);
+            }
+
+            yield return null;
+        }
+
+        if (highlightFlashImage != null)
+        {
+            highlightFlashImage.color = Color.clear;
+        }
+
+        if (highlightFrameRoot != null)
+        {
+            highlightFrameRoot.localScale = Vector3.one;
+        }
+    }
+
+    private void SetSlotColor(int itemIndex, Color color)
+    {
+        // Highlight is cleanly handled by SelectionHighlightFrame (Glowing Yellow Border + Flash Overlay)
+        // to preserve the card's original artwork without multiplicative color distortion.
     }
 
     private void RestoreSlotColor(int itemIndex)
     {
-        if (itemIndex < 0 || itemIndex >= items.Length)
+        if (items == null || itemIndex < 0 || itemIndex >= items.Length || items[itemIndex] == null)
         {
             return;
         }
 
-        RefreshItemView(items[itemIndex]);
+        ItemEntry item = items[itemIndex];
+
+        if (item.lockedGroup != null)
+        {
+            Image[] lockedImgs = item.lockedGroup.GetComponentsInChildren<Image>(true);
+            for (int i = 0; i < lockedImgs.Length; i++)
+            {
+                if (lockedImgs[i] != null)
+                {
+                    lockedImgs[i].color = Color.white;
+                }
+            }
+        }
+
+        if (item.unlockedGroup != null)
+        {
+            Image[] unlockedImgs = item.unlockedGroup.GetComponentsInChildren<Image>(true);
+            for (int i = 0; i < unlockedImgs.Length; i++)
+            {
+                if (unlockedImgs[i] != null)
+                {
+                    unlockedImgs[i].color = Color.white;
+                }
+            }
+        }
+
+        RefreshItemView(item);
     }
 
     private void HandleDataChipsChanged(int newAmount)

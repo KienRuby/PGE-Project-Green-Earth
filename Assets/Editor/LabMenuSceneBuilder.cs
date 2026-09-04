@@ -35,6 +35,7 @@ public static class LabMenuSceneBuilder
         public TMP_Text levelText;
         public TMP_Text nameText;
         public Image slotBackground;
+        public Button slotButton;
     }
 
     private sealed class ShopOfferView
@@ -441,6 +442,48 @@ public static class LabMenuSceneBuilder
         Debug.Log($"[LabMenuSceneBuilder] Applied UpgradeArrowGroup layout (Pos: {targetPos}, Size: {targetSize}) to {updatedCount} Chipset cards.");
     }
 
+    [MenuItem("PGE/UI/Apply Fill Bar To All Chipset Cards")]
+    public static void ApplyFillBarToAllChipsetCards()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling || EditorApplication.isUpdating)
+        {
+            Debug.LogWarning("[LabMenuSceneBuilder] Stop Play Mode before applying fill bars.");
+            return;
+        }
+
+        Scene scene = SceneManager.GetActiveScene();
+        if (!string.Equals(scene.path, ScenePath, StringComparison.OrdinalIgnoreCase))
+        {
+            scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+        }
+
+        Canvas canvas = UnityEngine.Object.FindObjectOfType<Canvas>();
+        RectTransform chipsetPanel = canvas != null ? canvas.transform.Find("Content/ChipsetPanel") as RectTransform : null;
+        if (chipsetPanel == null)
+        {
+            throw new InvalidOperationException("[LabMenuSceneBuilder] Canvas/Content/ChipsetPanel was not found in the scene.");
+        }
+
+        ChipsetCardUI[] cards = chipsetPanel.GetComponentsInChildren<ChipsetCardUI>(true);
+        int updatedCount = 0;
+        foreach (ChipsetCardUI card in cards)
+        {
+            card.EnsureProgressBar();
+            TMP_Text progressText = card.transform.Find("NormalContentGroup/BottomBar/ProgressText")?.GetComponent<TMP_Text>();
+            if (progressText != null)
+            {
+                float ratio = ChipsetCardUI.ParseFillRatioFromProgressText(progressText.text);
+                card.UpdateProgressBar(ratio);
+            }
+            EditorUtility.SetDirty(card.gameObject);
+            updatedCount++;
+        }
+
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        Debug.Log($"[LabMenuSceneBuilder] Applied progress fill bar to {updatedCount} Chipset cards in MainMenu.");
+    }
+
     [MenuItem("PGE/UI/Rebuild Shop Panel")]
     public static void RebuildShopPanel()
     {
@@ -665,6 +708,13 @@ public static class LabMenuSceneBuilder
         BuildLabMenuScene();
     }
 
+    [MenuItem("PGE/UI/Update Lab 16 Stats, Lock Icons & Tooltip")]
+    public static void UpdateLabStatsMenu()
+    {
+        File.WriteAllText(LabStatsBuildRequestPath, "update");
+        TryUpdateRequestedLabStats();
+    }
+
     private static void TryUpdateRequestedLabStats()
     {
         if (!File.Exists(LabStatsBuildRequestPath) ||
@@ -682,7 +732,7 @@ public static class LabMenuSceneBuilder
         }
         catch {}
 
-        ConfigureStatTexture();
+        LabSpriteSlicer.SliceLabTexture();
 
         Scene previousScene = SceneManager.GetActiveScene();
         bool mainMenuWasActive = string.Equals(previousScene.path, ScenePath, StringComparison.OrdinalIgnoreCase);
@@ -710,6 +760,26 @@ public static class LabMenuSceneBuilder
                 $"[LabMenuSceneBuilder] Expected {LabStatNames.Length} Lab stat slots, found {items.arraySize}.");
         }
 
+        Sprite lockIconSprite = LoadLockIconSprite();
+        SerializedProperty lockIconProp = serializedController.FindProperty("lockIconSprite");
+        if (lockIconProp != null)
+        {
+            lockIconProp.objectReferenceValue = lockIconSprite;
+        }
+
+        Transform statsPanelTransform = controller.transform.Find("StatsPanel") ?? controller.transform;
+        Transform existingTooltip = statsPanelTransform.Find("StatDetailTooltip");
+        LabStatTooltip statTooltip = existingTooltip != null ? existingTooltip.GetComponent<LabStatTooltip>() : null;
+        if (statTooltip == null)
+        {
+            statTooltip = CreateStatDetailTooltip(statsPanelTransform as RectTransform);
+        }
+        SerializedProperty statTooltipProp = serializedController.FindProperty("statTooltip");
+        if (statTooltipProp != null)
+        {
+            statTooltipProp.objectReferenceValue = statTooltip;
+        }
+
         for (int i = 0; i < items.arraySize; i++)
         {
             SerializedProperty item = items.GetArrayElementAtIndex(i);
@@ -718,14 +788,34 @@ public static class LabMenuSceneBuilder
             GetRequiredRelativeProperty(item, "itemIcon").objectReferenceValue = statSprite;
             GetRequiredRelativeProperty(item, "rarity").enumValueIndex = i / 4;
 
+            Image slotBackground = GetRequiredRelativeProperty(item, "slotBackground").objectReferenceValue as Image;
+            if (slotBackground != null)
+            {
+                slotBackground.color = LabRarityColors[i / 4];
+                slotBackground.raycastTarget = true;
+                GameObject slotObj = slotBackground.transform.parent.gameObject;
+                Button slotBtn = slotObj.GetComponent<Button>() ?? slotObj.AddComponent<Button>();
+                slotBtn.targetGraphic = slotBackground;
+                SerializedProperty slotButtonProp = item.FindPropertyRelative("slotButton");
+                if (slotButtonProp != null)
+                {
+                    slotButtonProp.objectReferenceValue = slotBtn;
+                }
+                EditorUtility.SetDirty(slotBtn);
+                EditorUtility.SetDirty(slotBackground);
+            }
+
             GameObject lockedGroup = GetRequiredRelativeProperty(item, "lockedGroup").objectReferenceValue as GameObject;
             Image lockedCard = lockedGroup != null ? lockedGroup.transform.Find("LockIcon")?.GetComponent<Image>() : null;
             if (lockedCard != null)
             {
-                lockedCard.sprite = statSprite;
+                lockedCard.sprite = lockIconSprite;
                 lockedCard.color = Color.white;
                 lockedCard.preserveAspect = true;
-                Anchor(lockedCard.rectTransform, new Vector2(0.5f, 0.49f), Vector2.zero, new Vector2(194f, 194f));
+                lockedCard.rectTransform.anchorMin = new Vector2(0.5f, 0.52f);
+                lockedCard.rectTransform.anchorMax = new Vector2(0.5f, 0.52f);
+                lockedCard.rectTransform.anchoredPosition = Vector2.zero;
+                lockedCard.rectTransform.sizeDelta = new Vector2(100f, 120f);
                 EditorUtility.SetDirty(lockedCard);
             }
 
@@ -733,8 +823,12 @@ public static class LabMenuSceneBuilder
             if (iconImage != null)
             {
                 iconImage.sprite = statSprite;
+                iconImage.color = Color.white;
                 iconImage.preserveAspect = true;
-                Anchor(iconImage.rectTransform, new Vector2(0.5f, 0.49f), Vector2.zero, new Vector2(194f, 194f));
+                iconImage.rectTransform.anchorMin = new Vector2(0.5f, 0.52f);
+                iconImage.rectTransform.anchorMax = new Vector2(0.5f, 0.52f);
+                iconImage.rectTransform.anchoredPosition = Vector2.zero;
+                iconImage.rectTransform.sizeDelta = new Vector2(140f, 140f);
                 EditorUtility.SetDirty(iconImage);
             }
 
@@ -744,13 +838,6 @@ public static class LabMenuSceneBuilder
                 nameText.text = LabStatNames[i];
                 nameText.gameObject.SetActive(false);
                 EditorUtility.SetDirty(nameText);
-            }
-
-            Image slotBackground = GetRequiredRelativeProperty(item, "slotBackground").objectReferenceValue as Image;
-            if (slotBackground != null)
-            {
-                slotBackground.color = LabRarityColors[i / 4];
-                EditorUtility.SetDirty(slotBackground);
             }
         }
 
@@ -765,7 +852,7 @@ public static class LabMenuSceneBuilder
         }
 
         AssetDatabase.SaveAssets();
-        Debug.Log("[LabMenuSceneBuilder] Updated 16 Lab stats from Chiso.png without rebuilding MainMenu.");
+        Debug.Log("[LabMenuSceneBuilder] Updated 16 Lab stats, lock icons & tooltip in MainMenu.");
     }
 
     private static void BuildLabMenuScene()
@@ -2366,11 +2453,23 @@ public static class LabMenuSceneBuilder
         bottomBar.localRotation = Quaternion.identity;
         bottomBar.localScale = Vector3.one;
         Image bottomBarBg = bottomBar.gameObject.AddComponent<Image>();
-        bottomBarBg.color = new Color32(74, 222, 128, 255);
+        bottomBarBg.color = new Color32(14, 38, 32, 235);
         bottomBarBg.raycastTarget = false;
 
-        TMP_Text progressText = CreateText("ProgressText", bottomBar, "22/3", 22f, new Color32(10, 20, 30, 255), TextAlignmentOptions.Center);
+        RectTransform fillRect = CreateRect("ProgressFill", bottomBar);
+        fillRect.anchorMin = new Vector2(0f, 0f);
+        fillRect.anchorMax = new Vector2(1f, 1f);
+        fillRect.pivot = new Vector2(0f, 0.5f);
+        fillRect.offsetMin = Vector2.zero;
+        fillRect.offsetMax = Vector2.zero;
+        Image fillImg = fillRect.gameObject.AddComponent<Image>();
+        fillImg.color = new Color32(74, 222, 128, 255);
+        fillImg.raycastTarget = false;
+
+        TMP_Text progressText = CreateText("ProgressText", bottomBar, "22/3", 22f, Color.white, TextAlignmentOptions.Center);
         progressText.fontStyle = FontStyles.Bold;
+        progressText.outlineColor = Color.black;
+        progressText.outlineWidth = 0.25f;
         Stretch(progressText.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
         // Upgrade Green Arrow Button
@@ -2406,11 +2505,26 @@ public static class LabMenuSceneBuilder
         sCard.FindProperty("upgradeArrowGroup").objectReferenceValue = upgradeArrowObj;
         sCard.FindProperty("starObject").objectReferenceValue = starImg.gameObject;
         sCard.FindProperty("bottomProgressBar").objectReferenceValue = bottomBarBg;
+        sCard.FindProperty("progressFillImage").objectReferenceValue = fillImg;
+        sCard.FindProperty("progressFillRect").objectReferenceValue = fillRect;
         sCard.FindProperty("normalContentGroup").objectReferenceValue = normalGroup.gameObject;
         sCard.FindProperty("emptySlotGroup").objectReferenceValue = emptyGroup.gameObject;
         sCard.ApplyModifiedPropertiesWithoutUndo();
 
-        cardComp.InitializeReferences(cardFrame, centerIcon, levelText, progressText, cardBtn, upgradeBtn, upgradeArrowObj, starImg.gameObject, bottomBarBg, normalGroup.gameObject, emptyGroup.gameObject);
+        cardComp.InitializeReferences(
+            cardFrame,
+            centerIcon,
+            levelText,
+            progressText,
+            cardBtn,
+            upgradeBtn,
+            upgradeArrowObj,
+            starImg.gameObject,
+            bottomBarBg,
+            normalGroup.gameObject,
+            emptyGroup.gameObject,
+            fillImg,
+            fillRect);
 
         return cardComp;
     }
@@ -2878,6 +2992,56 @@ public static class LabMenuSceneBuilder
         GetRequiredRelativeProperty(property, "oncePerDay").boolValue = oncePerDay;
     }
 
+    private static LabStatTooltip CreateStatDetailTooltip(RectTransform parent)
+    {
+        GameObject tooltipObj = CreateFrame(
+            "StatDetailTooltip",
+            parent,
+            new Color32(11, 48, 62, 248),
+            TealBorder,
+            out Image tooltipBg);
+        RectTransform tooltipRect = tooltipObj.GetComponent<RectTransform>();
+        tooltipRect.anchorMin = new Vector2(0.5f, 1f);
+        tooltipRect.anchorMax = new Vector2(0.5f, 1f);
+        tooltipRect.pivot = new Vector2(0.5f, 1f);
+        tooltipRect.anchoredPosition = new Vector2(0f, -250f);
+        tooltipRect.sizeDelta = new Vector2(920f, 150f);
+
+        RectTransform arrowRect = CreateRect("ArrowPointer", tooltipRect);
+        arrowRect.anchorMin = new Vector2(0.5f, 1f);
+        arrowRect.anchorMax = new Vector2(0.5f, 1f);
+        arrowRect.pivot = new Vector2(0.5f, 0f);
+        arrowRect.anchoredPosition = new Vector2(0f, -2f);
+        arrowRect.sizeDelta = new Vector2(40f, 26f);
+        Image arrowImage = arrowRect.gameObject.AddComponent<Image>();
+        arrowImage.sprite = LoadTooltipPointerSprite();
+        arrowImage.preserveAspect = true;
+        arrowImage.raycastTarget = false;
+
+        TMP_Text detailText = CreateText(
+            "DetailText",
+            tooltipRect,
+            "",
+            27f,
+            Cream,
+            TextAlignmentOptions.TopLeft);
+        detailText.richText = true;
+        detailText.lineSpacing = 10f;
+        detailText.enableWordWrapping = true;
+        Stretch(detailText.rectTransform, new Vector2(0.04f, 0.08f), new Vector2(0.96f, 0.92f), Vector2.zero, Vector2.zero);
+
+        LabStatTooltip tooltipComp = tooltipObj.AddComponent<LabStatTooltip>();
+        SerializedObject so = new SerializedObject(tooltipComp);
+        so.FindProperty("panelRect").objectReferenceValue = tooltipRect;
+        so.FindProperty("arrowPointer").objectReferenceValue = arrowRect;
+        so.FindProperty("arrowPointerImage").objectReferenceValue = arrowImage;
+        so.FindProperty("detailText").objectReferenceValue = detailText;
+        so.ApplyModifiedPropertiesWithoutUndo();
+
+        tooltipObj.SetActive(false);
+        return tooltipComp;
+    }
+
     private static GameObject CreateLabPanel(
         RectTransform parent,
         TMP_Text energyBalanceText,
@@ -2968,6 +3132,8 @@ public static class LabMenuSceneBuilder
         Stretch(buildBodyPanel, Vector2.zero, Vector2.one, Vector2.zero, new Vector2(0f, -150f));
         buildBodyPanel.gameObject.SetActive(false);
 
+        LabStatTooltip statTooltip = CreateStatDetailTooltip(statsPanel);
+
         LabUpgradeController controller = panel.gameObject.AddComponent<LabUpgradeController>();
         SerializedObject serializedController = new SerializedObject(controller);
         GetRequiredProperty(serializedController, "upgradeButton").objectReferenceValue = upgradeButton;
@@ -2977,6 +3143,8 @@ public static class LabMenuSceneBuilder
         GetRequiredProperty(serializedController, "priceText").objectReferenceValue = priceText;
         GetRequiredProperty(serializedController, "resultText").objectReferenceValue = resultText;
         GetRequiredProperty(serializedController, "upgradeBackground").objectReferenceValue = upgradeBackground;
+        GetRequiredProperty(serializedController, "statTooltip").objectReferenceValue = statTooltip;
+        GetRequiredProperty(serializedController, "lockIconSprite").objectReferenceValue = LoadLockIconSprite();
 
         SerializedProperty items = GetRequiredProperty(serializedController, "items");
         items.arraySize = slotViews.Length;
@@ -2995,6 +3163,7 @@ public static class LabMenuSceneBuilder
             item.FindPropertyRelative("levelText").objectReferenceValue = slotViews[i].levelText;
             item.FindPropertyRelative("nameText").objectReferenceValue = slotViews[i].nameText;
             item.FindPropertyRelative("slotBackground").objectReferenceValue = slotViews[i].slotBackground;
+            item.FindPropertyRelative("slotButton").objectReferenceValue = slotViews[i].slotButton;
         }
 
         serializedController.ApplyModifiedPropertiesWithoutUndo();
@@ -3051,12 +3220,16 @@ public static class LabMenuSceneBuilder
             out Image slotBackground);
         RectTransform slotRect = slot.GetComponent<RectTransform>();
 
+        slotBackground.raycastTarget = true;
+        Button slotButton = slot.AddComponent<Button>();
+        slotButton.targetGraphic = slotBackground;
+
         RectTransform lockedGroup = CreateRect("LockedGroup", slotRect);
         Stretch(lockedGroup, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
         Image lockIcon = CreateImage("LockIcon", lockedGroup, Color.white, false);
-        lockIcon.sprite = LoadStatSprite(itemIconName);
+        lockIcon.sprite = LoadLockIconSprite();
         lockIcon.preserveAspect = true;
-        Anchor(lockIcon.rectTransform, new Vector2(0.5f, 0.49f), Vector2.zero, new Vector2(194f, 194f));
+        Anchor(lockIcon.rectTransform, new Vector2(0.5f, 0.52f), Vector2.zero, new Vector2(100f, 120f));
         TMP_Text lockedText = CreateText("LockedText", lockedGroup, "LOCKED", 27f, Cream, TextAlignmentOptions.Center);
         Anchor(lockedText.rectTransform, new Vector2(0.5f, 0.28f), Vector2.zero, new Vector2(190f, 44f));
 
@@ -3067,7 +3240,7 @@ public static class LabMenuSceneBuilder
         Image itemIcon = CreateImage("ItemIcon", unlockedGroup, Color.white, false);
         itemIcon.sprite = LoadStatSprite(itemIconName);
         itemIcon.preserveAspect = true;
-        Anchor(itemIcon.rectTransform, new Vector2(0.5f, 0.49f), Vector2.zero, new Vector2(194f, 194f));
+        Anchor(itemIcon.rectTransform, new Vector2(0.5f, 0.52f), Vector2.zero, new Vector2(140f, 140f));
 
         // Tên đã được vẽ sẵn trong từng card của Chiso.png. Vẫn giữ TMP_Text làm
         // reference dữ liệu cho LabUpgradeController, nhưng không vẽ đè tên lần hai.
@@ -3084,7 +3257,8 @@ public static class LabMenuSceneBuilder
             iconImage = itemIcon,
             levelText = levelText,
             nameText = statName,
-            slotBackground = slotBackground
+            slotBackground = slotBackground,
+            slotButton = slotButton
         };
     }
 
@@ -3265,19 +3439,68 @@ public static class LabMenuSceneBuilder
             .FirstOrDefault(sprite => sprite.name == spriteName);
     }
 
-    private static Sprite LoadStatSprite(string spriteName)
+    private static Sprite LoadLockIconSprite()
     {
-        Sprite sprite = AssetDatabase.LoadAllAssetRepresentationsAtPath(StatSpriteSheetPath)
-            .OfType<Sprite>()
-            .FirstOrDefault(candidate => candidate.name == spriteName);
-
-        if (sprite == null)
+        string path = "Assets/Sprites/UI/Lab/Extracted/Icon_Locked.png";
+        if (File.Exists(path))
         {
-            throw new InvalidOperationException(
-                $"[LabMenuSceneBuilder] Stat sprite '{spriteName}' not found in {StatSpriteSheetPath}.");
+            Sprite s = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+            if (s != null) return s;
         }
 
-        return sprite;
+        return AssetDatabase.LoadAllAssetRepresentationsAtPath("Assets/Sprites/UI/Lab/nút màn lab 1.png")
+            .OfType<Sprite>()
+            .FirstOrDefault(s => s.name == "Locked");
+    }
+
+    private static Sprite LoadTooltipPointerSprite()
+    {
+        string path = "Assets/Sprites/UI/Lab/Extracted/Tooltip_Pointer.png";
+        if (File.Exists(path))
+        {
+            return AssetDatabase.LoadAssetAtPath<Sprite>(path);
+        }
+        return null;
+    }
+
+    private static Sprite LoadStatSprite(string spriteName)
+    {
+        if (string.IsNullOrEmpty(spriteName)) return null;
+
+        string clean = spriteName.Replace("-", "_").Replace(" ", "_");
+
+        string[] candidates = new string[]
+        {
+            $"Assets/Sprites/UI/Lab/Extracted/{clean}.png",
+            $"Assets/Sprites/UI/Lab/Extracted/{spriteName}.png",
+            $"Assets/Sprites/UI/Lab/Extracted/{clean.ToUpperInvariant()}.png",
+            $"Assets/Sprites/UI/Lab/Extracted/{spriteName.ToUpperInvariant()}.png"
+        };
+
+        foreach (string path in candidates)
+        {
+            if (File.Exists(path))
+            {
+                Sprite s = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+                if (s != null) return s;
+            }
+        }
+
+        Sprite fromLab1 = AssetDatabase.LoadAllAssetRepresentationsAtPath("Assets/Sprites/UI/Lab/nút màn lab 1.png")
+            .OfType<Sprite>()
+            .FirstOrDefault(s => string.Equals(s.name, spriteName, StringComparison.OrdinalIgnoreCase) ||
+                                 string.Equals(s.name.Replace(" ", "").Replace("-", "").Replace("_", ""), clean.Replace("_", ""), StringComparison.OrdinalIgnoreCase));
+        if (fromLab1 != null) return fromLab1;
+
+        if (File.Exists(StatSpriteSheetPath))
+        {
+            Sprite candidate = AssetDatabase.LoadAllAssetRepresentationsAtPath(StatSpriteSheetPath)
+                .OfType<Sprite>()
+                .FirstOrDefault(s => string.Equals(s.name, spriteName, StringComparison.OrdinalIgnoreCase));
+            if (candidate != null) return candidate;
+        }
+
+        return null;
     }
 
     private static Sprite LoadChipsetSprite(string spriteName)
