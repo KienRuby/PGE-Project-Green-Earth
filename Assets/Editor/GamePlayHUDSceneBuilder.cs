@@ -1006,11 +1006,13 @@ public static class GamePlayHUDSceneBuilder
         chipPanelObj.transform.SetParent(frameObj.transform, false);
         Stretch(chipPanelObj.GetComponent<RectTransform>(), Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
-        // Weapon/Chip Card
-        GameObject chipCardObj = CreateFrame("EquippedChipCard", chipPanelObj.transform, new Color32(18, 40, 52, 255), new Color32(88, 172, 178, 255), out _);
+        // Editable chipset slot: dùng thẳng hierarchy khung + icon + level pips
+        // của Level Up, không bọc trong khung chữ nhật lớn.
+        GameObject chipCardObj = new GameObject("EquippedChipCard", typeof(RectTransform));
+        chipCardObj.transform.SetParent(chipPanelObj.transform, false);
         RectTransform chipCardRt = chipCardObj.GetComponent<RectTransform>();
         chipCardRt.anchoredPosition = new Vector2(-320f, 360f);
-        chipCardRt.sizeDelta = new Vector2(170f, 210f);
+        chipCardRt.sizeDelta = new Vector2(150f, 190f);
 
         ChipsetLevelVisualLibrary visualLib = Resources.Load<ChipsetLevelVisualLibrary>("ChipsetLevelVisualLibrary");
         Sprite leverGreenSprite = null;
@@ -1025,24 +1027,36 @@ public static class GamePlayHUDSceneBuilder
             leverGreenSprite = ChipsetLevelUpPopup.ResolveGreenLeverFrame(frames);
         }
 
-        Image iconFrameImg = CreateImage("IconFrame", chipCardObj.transform, Color.white, leverGreenSprite);
+        Image iconFrameImg = CreateImage("IconFrameAssetSlot", chipCardObj.transform, Color.white, leverGreenSprite);
         iconFrameImg.preserveAspect = true;
-        iconFrameImg.rectTransform.anchoredPosition = new Vector2(0f, 30f);
-        iconFrameImg.rectTransform.sizeDelta = new Vector2(120f, 120f);
+        iconFrameImg.raycastTarget = false;
+        iconFrameImg.rectTransform.anchoredPosition = Vector2.zero;
+        iconFrameImg.rectTransform.sizeDelta = new Vector2(120f, 150f);
 
-        Sprite gunSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Gun.png");
-        Image gunImg = CreateImage("GunIcon", chipCardObj.transform, Color.white, gunSprite);
+        Sprite gunSprite = visualLib != null && visualLib.primaryChipIcons != null && visualLib.primaryChipIcons.Length > 0
+            ? ChipsetLevelUpPopup.FindMatchingIcon(visualLib.primaryChipIcons, 1, "standard-gun")
+            : null;
+        Image gunImg = CreateImage("ChipIcon", iconFrameImg.transform, Color.white, gunSprite);
         gunImg.preserveAspect = true;
-        gunImg.rectTransform.anchoredPosition = new Vector2(0f, 34f);
-        gunImg.rectTransform.sizeDelta = new Vector2(85f, 65f);
+        gunImg.raycastTarget = false;
+        gunImg.rectTransform.anchoredPosition = new Vector2(-0.5f, 20.1f);
+        gunImg.rectTransform.sizeDelta = new Vector2(93.6f, 72f);
 
-        GameObject lvlBadge = CreateFrame("LvlBadge", chipCardObj.transform, new Color32(88, 172, 178, 255), DarkBorder, out _);
-        RectTransform lvlBadgeRt = lvlBadge.GetComponent<RectTransform>();
-        lvlBadgeRt.anchoredPosition = new Vector2(0f, -65f);
-        lvlBadgeRt.sizeDelta = new Vector2(130f, 38f);
-        TMP_Text lvlBadgeTxt = CreateText("Label", lvlBadge.transform, "LV.01", 24f, new Color32(14, 28, 36, 255), TextAlignmentOptions.Center);
-        lvlBadgeTxt.fontStyle = FontStyles.Bold;
-        Stretch(lvlBadgeTxt.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        for (int i = 0; i < 5; i++)
+        {
+            Sprite pipSprite = visualLib != null && visualLib.levelPipSprites != null && i < visualLib.levelPipSprites.Length
+                ? visualLib.levelPipSprites[i]
+                : null;
+            Image pip = CreateImage($"RuntimeLevelPip_{i + 1}", iconFrameImg.transform, Color.white, pipSprite);
+            pip.preserveAspect = true;
+            pip.raycastTarget = false;
+            pip.enabled = i == 0 && pipSprite != null;
+            pip.rectTransform.anchorMin = pip.rectTransform.anchorMax = new Vector2(0.5f, 0f);
+            pip.rectTransform.pivot = new Vector2(0.5f, 0f);
+            float normalizedCenter = Mathf.Lerp(0.174f, 0.858f, i / 4f);
+            pip.rectTransform.anchoredPosition = new Vector2((normalizedCenter - 0.5f) * 120f, 32.4f);
+            pip.rectTransform.sizeDelta = new Vector2(18.6f, 20.7f);
+        }
         chipPanelObj.SetActive(false);
 
         // ==========================================
@@ -1303,6 +1317,47 @@ public static class GamePlayHUDSceneBuilder
                     tex.SetPixel(x, y, Color.white);
             tex.Apply();
             rectSprite = Sprite.Create(tex, new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f));
+        }
+    }
+}
+
+/// <summary>
+/// Đồng bộ card chipset Pause cũ sang hierarchy editable sau khi scripts compile.
+/// Scene chỉ được đánh dấu dirty; người thiết kế vẫn là người quyết định lúc Save.
+/// </summary>
+[InitializeOnLoad]
+public static class PauseChipsetHierarchySync
+{
+    private const string MenuPath = "Tools/PGE/Sync Editable Pause Chipset Frame";
+
+    static PauseChipsetHierarchySync()
+    {
+        EditorApplication.delayCall += SyncLoadedGamePlayScene;
+    }
+
+    [MenuItem(MenuPath, priority = 102)]
+    public static void SyncLoadedGamePlayScene()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode) return;
+
+        PauseModalController[] controllers = UnityEngine.Object.FindObjectsByType<PauseModalController>(
+            FindObjectsInactive.Include,
+            FindObjectsSortMode.None);
+
+        int changed = 0;
+        foreach (PauseModalController controller in controllers)
+        {
+            if (controller == null || !controller.gameObject.scene.IsValid()) continue;
+            if (!controller.PrepareEditableChipsetTemplateInEditor()) continue;
+
+            EditorSceneManager.MarkSceneDirty(controller.gameObject.scene);
+            changed++;
+        }
+
+        if (changed > 0)
+        {
+            SceneView.RepaintAll();
+            Debug.Log($"[PauseChipsetHierarchySync] Đã chuyển {changed} Pause chipset template sang khung Level Up editable. Hãy Save scene sau khi kiểm tra.");
         }
     }
 }

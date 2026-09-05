@@ -86,6 +86,7 @@ public class BossMovement : MonoBehaviour, IPoolable
     private float stateTimer;
     private Vector2 dashDirection;
     private float nextPlayerSearchTime;
+    private Vector3 basePrefabScale = Vector3.one;
     private Vector3 initialScale;
     private bool isFacingRight = true;
     private bool isEnraged = false;
@@ -94,6 +95,18 @@ public class BossMovement : MonoBehaviour, IPoolable
 
     private static readonly int RunAnimationHash = Animator.StringToHash("Run");
     private static readonly int IdleAnimationHash = Animator.StringToHash("Idle");
+
+    public void SetScaleMultiplier(float multiplier)
+    {
+        if (multiplier <= 0f) return;
+        if (basePrefabScale == Vector3.zero)
+        {
+            basePrefabScale = transform.localScale != Vector3.zero ? transform.localScale : Vector3.one;
+        }
+        initialScale = basePrefabScale * multiplier;
+        float sign = (isFacingRight ^ initialFacingLeft) ? 1f : -1f;
+        transform.localScale = new Vector3(Mathf.Abs(initialScale.x) * sign, initialScale.y, initialScale.z);
+    }
 
     public float MoveSpeed
     {
@@ -111,6 +124,8 @@ public class BossMovement : MonoBehaviour, IPoolable
         rb = GetComponent<Rigidbody2D>();
         rb.gravityScale = 0f;
         rb.freezeRotation = true;
+        basePrefabScale = transform.localScale != Vector3.zero ? transform.localScale : Vector3.one;
+        initialScale = basePrefabScale;
 
         health = GetComponent<EnemyHealth>();
         rangedAttack = GetComponent<BossRangedAttack>();
@@ -126,7 +141,7 @@ public class BossMovement : MonoBehaviour, IPoolable
             }
         }
 
-        initialScale = transform.localScale;
+        initialScale = basePrefabScale;
         isFacingRight = !initialFacingLeft;
         dashTimer = Random.Range(dashCooldown * 0.5f, dashCooldown);
     }
@@ -432,6 +447,11 @@ public class BossMovement : MonoBehaviour, IPoolable
         moveSpeed = BaseMoveSpeed;
         currentState = BossState.Chase;
         isEnraged = false;
+        if (basePrefabScale != Vector3.zero)
+        {
+            initialScale = basePrefabScale;
+            transform.localScale = basePrefabScale;
+        }
         if (rb != null) rb.velocity = Vector2.zero;
         RestoreSpritesColor();
         currentAnimationHash = 0;

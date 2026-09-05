@@ -526,7 +526,7 @@ public class WaveHUDController : MonoBehaviour
         Time.timeScale = 0f;
         if (pausePanel != null)
         {
-            pausePanel.SetActive(true);
+            UIDissolveController.ShowInstant(pausePanel);
         }
     }
 
@@ -543,7 +543,7 @@ public class WaveHUDController : MonoBehaviour
         Time.timeScale = 1f;
         if (pausePanel != null)
         {
-            pausePanel.SetActive(false);
+            UIDissolveController.HideWithEffect(pausePanel);
         }
     }
 

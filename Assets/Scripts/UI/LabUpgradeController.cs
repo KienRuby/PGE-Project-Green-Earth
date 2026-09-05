@@ -111,6 +111,23 @@ public class LabUpgradeController : MonoBehaviour
     [Tooltip("Màu nền vàng của toàn bộ item Legend ở hàng 4, kể cả khi item còn khóa.")]
     [SerializeField] private Color legendBackgroundColor = new Color32(170, 128, 35, 255);
 
+    [Header("Level Text Colors")]
+    [InspectorName("Common Level Text Color")]
+    [Tooltip("Màu text Level của toàn bộ item Common ở hàng 1.")]
+    [SerializeField] private Color commonLevelColor = new Color32(255, 233, 92, 255);
+
+    [InspectorName("Elite Level Text Color")]
+    [Tooltip("Màu text Level của toàn bộ item Elite ở hàng 2.")]
+    [SerializeField] private Color eliteLevelColor = new Color32(255, 240, 106, 255);
+
+    [InspectorName("Epic Level Text Color")]
+    [Tooltip("Màu text Level của toàn bộ item Epic ở hàng 3.")]
+    [SerializeField] private Color epicLevelColor = new Color32(255, 244, 184, 255);
+
+    [InspectorName("Legend Level Text Color")]
+    [Tooltip("Màu text Level của toàn bộ item Legend ở hàng 4.")]
+    [SerializeField] private Color legendLevelColor = new Color32(22, 50, 79, 255);
+
     [Header("Pity Guarantees (Bảo Hiểm Số Lượt Quay Theo Bậc Màu)")]
     [Tooltip("Bật/Tắt toàn bộ hệ thống bảo hiểm roll.")]
     [SerializeField] private bool enablePitySystem = true;
@@ -184,6 +201,11 @@ public class LabUpgradeController : MonoBehaviour
     public Color EpicRarityColor => epicBackgroundColor;
     public Color LegendRarityColor => legendBackgroundColor;
 
+    public Color CommonLevelColor => commonLevelColor;
+    public Color EliteLevelColor => eliteLevelColor;
+    public Color EpicLevelColor => epicLevelColor;
+    public Color LegendLevelColor => legendLevelColor;
+
     public event Action OnPityDataChanged;
 
     [Header("Upgrade Cost & Level Cap")]
@@ -222,8 +244,6 @@ public class LabUpgradeController : MonoBehaviour
     private Image highlightFlashImage;
     private Coroutine winningFlashCoroutine;
 
-    private static readonly Color AffordableColor = new Color32(84, 180, 105, 255);
-    private static readonly Color UnaffordableColor = new Color32(67, 105, 109, 255);
     private const int MaxEnergy = 100;
 
     private int currentChips;
@@ -299,6 +319,39 @@ public class LabUpgradeController : MonoBehaviour
         return !string.IsNullOrEmpty(itemName)
             ? PlayerDataService.FormatItemLevelKey(itemName)
             : $"{ItemLevelKeyPrefix}Slot_{index}";
+    }
+
+    private void Awake()
+    {
+        EnsureUIReferences();
+    }
+
+    private void EnsureUIReferences()
+    {
+        if (upgradeButton != null)
+        {
+            if (upgradeBackground == null)
+            {
+                upgradeBackground = upgradeButton.GetComponent<Image>();
+            }
+
+            if (upgradeButton.targetGraphic is Image targetImg)
+            {
+                targetImg.raycastTarget = true;
+            }
+        }
+
+        if (upgradeBackground != null)
+        {
+            upgradeBackground.raycastTarget = true;
+        }
+
+        CanvasGroup cg = GetComponent<CanvasGroup>();
+        if (cg != null)
+        {
+            cg.interactable = true;
+            cg.blocksRaycasts = true;
+        }
     }
 
     private void Start()
@@ -880,6 +933,7 @@ public class LabUpgradeController : MonoBehaviour
             {
                 item.levelText.text = $"LV.{Mathf.Max(1, item.level):00}";
             }
+            item.levelText.color = GetLevelTextColor(item.rarity);
         }
 
         if (item.nameText != null)
@@ -960,11 +1014,6 @@ public class LabUpgradeController : MonoBehaviour
         if (upgradeButton != null)
         {
             upgradeButton.interactable = canRoll;
-        }
-
-        if (upgradeBackground != null)
-        {
-            upgradeBackground.color = canRoll ? AffordableColor : UnaffordableColor;
         }
     }
 
@@ -1089,6 +1138,22 @@ public class LabUpgradeController : MonoBehaviour
                 return legendBackgroundColor;
             default:
                 return commonBackgroundColor;
+        }
+    }
+
+    public Color GetLevelTextColor(ItemRarity rarity)
+    {
+        switch (rarity)
+        {
+            case ItemRarity.Elite:
+                return eliteLevelColor;
+            case ItemRarity.Epic:
+                return epicLevelColor;
+            case ItemRarity.Legend:
+                return legendLevelColor;
+            case ItemRarity.Common:
+            default:
+                return commonLevelColor;
         }
     }
 

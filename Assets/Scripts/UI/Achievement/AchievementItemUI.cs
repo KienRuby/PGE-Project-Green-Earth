@@ -51,8 +51,67 @@ public class AchievementItemUI : MonoBehaviour
     private static readonly Color TextWhite = new Color32(245, 255, 255, 255);
     private static readonly Color TextGray = new Color32(160, 180, 195, 255);
 
+    public void EnsureUIReferences()
+    {
+        if (actionButton == null)
+        {
+            actionButton = GetComponentInChildren<Button>(true);
+        }
+        if (actionButton != null)
+        {
+            if (actionButtonImage == null)
+            {
+                actionButtonImage = actionButton.GetComponent<Image>();
+            }
+            if (actionButtonText == null)
+            {
+                actionButtonText = actionButton.GetComponentInChildren<TMP_Text>(true);
+            }
+        }
+
+        if (titleText == null)
+        {
+            Transform t = transform.Find("Title") ?? transform.Find("TitleText") ?? transform.Find("Text_Title");
+            if (t != null) titleText = t.GetComponent<TMP_Text>();
+        }
+
+        if (progressText == null)
+        {
+            Transform p = transform.Find("ProgressText") ?? transform.Find("ProgressBar/ProgressText") ?? transform.Find("Text_Progress");
+            if (p != null) progressText = p.GetComponent<TMP_Text>();
+        }
+
+        if (progressFillImage == null)
+        {
+            Transform f = transform.Find("ProgressBar/Fill") ?? transform.Find("ProgressBar/ProgressFill") ?? transform.Find("Fill");
+            if (f != null) progressFillImage = f.GetComponent<Image>();
+        }
+
+        if (progressBgImage == null)
+        {
+            Transform bg = transform.Find("ProgressBar/Background") ?? transform.Find("ProgressBar/ProgressBg") ?? transform.Find("ProgressBar");
+            if (bg != null) progressBgImage = bg.GetComponent<Image>();
+        }
+
+        if (rewardsContainer == null)
+        {
+            Transform r = transform.Find("RewardIcons") ?? transform.Find("RewardsContainer") ?? transform.Find("Rewards");
+            if (r != null) rewardsContainer = r;
+        }
+
+        if (buttonNotificationDot == null && actionButton != null)
+        {
+            Transform dot = actionButton.transform.Find("NotificationDot") ?? actionButton.transform.Find("RedDot") ?? transform.Find("NotificationDot");
+            if (dot != null) buttonNotificationDot = dot.gameObject;
+        }
+    }
+
+    public TMP_Text ActionButtonText => actionButtonText;
+    public Button ActionButton => actionButton;
+
     private void Awake()
     {
+        EnsureUIReferences();
         if (actionButton != null)
         {
             actionButton.onClick.RemoveListener(OnActionButtonClicked);
@@ -75,6 +134,7 @@ public class AchievementItemUI : MonoBehaviour
         Action<string> claimCallback,
         Func<RewardType, Sprite> iconResolver)
     {
+        EnsureUIReferences();
         if (definition == null) return;
 
         achievementId = definition.id;
@@ -180,6 +240,7 @@ public class AchievementItemUI : MonoBehaviour
 
     public void UpdateState(AchievementState state)
     {
+        EnsureUIReferences();
         isClaimable = (state == AchievementState.Completed);
 
         if (state == AchievementState.Completed)

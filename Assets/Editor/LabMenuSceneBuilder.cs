@@ -1733,8 +1733,10 @@ public static class LabMenuSceneBuilder
         // 5. Detail Modal
         GameObject detailModal = CreateDetailModal(canvasRect, out TMP_Text dModBadge, out ChipsetCardUI dTopCard,
             out TMP_Text dName, out TMP_Text dTier, out TMP_Text dDesc, out TMP_Text dBaseStats, out Image[] dPerkIcons,
-            out TMP_Text[] dPerkTexts, out Button dEnhanceBtn, out TMP_Text dEnhanceCostText, out Button dAdvanceTierBtn,
-            out TMP_Text dAdvanceTierText, out Button dEquipBtn, out TMP_Text dEquipBtnText, out Button dCloseBtn);
+            out TMP_Text[] dPerkTexts, out Button dEnhanceBtn, out TMP_Text dEnhanceCostText, out CanvasGroup dEnhanceBtnCg,
+            out Button dAdvanceTierBtn, out TMP_Text dAdvanceTierText, out CanvasGroup dAdvanceTierBtnCg,
+            out GameObject dFragNotice, out GameObject dChipNotice,
+            out Button dEquipBtn, out TMP_Text dEquipBtnText, out Button dCloseBtn);
         detailModal.SetActive(false);
 
         // 6. Blast Furnace Modal
@@ -1805,11 +1807,16 @@ public static class LabMenuSceneBuilder
 
         sController.FindProperty("detailEnhanceBtn").objectReferenceValue = dEnhanceBtn;
         sController.FindProperty("detailEnhanceCostText").objectReferenceValue = dEnhanceCostText;
+        sController.FindProperty("enhanceBtnCanvasGroup").objectReferenceValue = dEnhanceBtnCg;
         sController.FindProperty("detailAdvanceTierBtn").objectReferenceValue = dAdvanceTierBtn;
         sController.FindProperty("detailAdvanceTierText").objectReferenceValue = dAdvanceTierText;
+        sController.FindProperty("advanceTierBtnCanvasGroup").objectReferenceValue = dAdvanceTierBtnCg;
         sController.FindProperty("detailEquipBtn").objectReferenceValue = dEquipBtn;
         sController.FindProperty("detailEquipBtnText").objectReferenceValue = dEquipBtnText;
         sController.FindProperty("detailCloseBtn").objectReferenceValue = dCloseBtn;
+
+        sController.FindProperty("notEnoughFragmentsNotice").objectReferenceValue = dFragNotice;
+        sController.FindProperty("notEnoughChipsNotice").objectReferenceValue = dChipNotice;
 
         sController.FindProperty("furnaceModal").objectReferenceValue = furnaceModal;
         sController.FindProperty("furnaceDescText").objectReferenceValue = fDesc;
@@ -1845,14 +1852,21 @@ public static class LabMenuSceneBuilder
         sController.FindProperty("upgradeArrowSprite").objectReferenceValue = LoadChipsetSprite("badge-upgrade");
         sController.FindProperty("advanceStoneSprite").objectReferenceValue = LoadChipsetSprite("advance-stone");
 
-        Sprite[] allBuddySprites = AssetDatabase.LoadAllAssetRepresentationsAtPath(BuddyAtlasPath).OfType<Sprite>().ToArray();
         SerializedProperty sTierLocks = sController.FindProperty("lockTierSprites");
         sTierLocks.arraySize = 4;
-        sTierLocks.GetArrayElementAtIndex(0).objectReferenceValue = allBuddySprites.FirstOrDefault(s => s.name == "icon-lock-blue");
-        sTierLocks.GetArrayElementAtIndex(1).objectReferenceValue = allBuddySprites.FirstOrDefault(s => s.name == "icon-lock-purple");
-        sTierLocks.GetArrayElementAtIndex(2).objectReferenceValue = allBuddySprites.FirstOrDefault(s => s.name == "icon-lock-yellow");
-        sTierLocks.GetArrayElementAtIndex(3).objectReferenceValue = allBuddySprites.FirstOrDefault(s => s.name == "icon-lock-pink");
+        sTierLocks.GetArrayElementAtIndex(0).objectReferenceValue = LoadChipsetSprite("Lock_Blue");
+        sTierLocks.GetArrayElementAtIndex(1).objectReferenceValue = LoadChipsetSprite("Lock_Purple");
+        sTierLocks.GetArrayElementAtIndex(2).objectReferenceValue = LoadChipsetSprite("Lock_Yellow");
+        sTierLocks.GetArrayElementAtIndex(3).objectReferenceValue = LoadChipsetSprite("Lock_Red");
 
+        SerializedProperty sUnlockedLocks = sController.FindProperty("unlockedTierSprites");
+        sUnlockedLocks.arraySize = 4;
+        sUnlockedLocks.GetArrayElementAtIndex(0).objectReferenceValue = LoadChipsetSprite("Lock_Blue_Open");
+        sUnlockedLocks.GetArrayElementAtIndex(1).objectReferenceValue = LoadChipsetSprite("Lock_Purple_Open");
+        sUnlockedLocks.GetArrayElementAtIndex(2).objectReferenceValue = LoadChipsetSprite("Lock_Yellow_Open");
+        sUnlockedLocks.GetArrayElementAtIndex(3).objectReferenceValue = LoadChipsetSprite("Lock_Red_Open");
+
+        Sprite[] allBuddySprites = AssetDatabase.LoadAllAssetRepresentationsAtPath(BuddyAtlasPath).OfType<Sprite>().ToArray();
         sController.FindProperty("unlockedCheckSprite").objectReferenceValue = allBuddySprites.FirstOrDefault(s => s.name == "icon-lock-unlocked");
 
         sController.ApplyModifiedPropertiesWithoutUndo();
@@ -2310,12 +2324,12 @@ public static class LabMenuSceneBuilder
         perkIcons = new Image[4];
         perkTexts = new TMP_Text[4];
 
-        string[] defaultLockSprites = { "icon-lock-blue", "icon-lock-purple", "icon-lock-yellow", "icon-lock-pink" };
+        string[] defaultLockSprites = { "Lock_Blue", "Lock_Purple", "Lock_Yellow", "Lock_Red" };
         string[] defaultPerks = {
-            "Turret Duration +20%(<color=#38BDF8>Magic</color>Unlock)",
-            "Turret Duration +30%(<color=#C084FC>Rare</color>Unlock)",
-            "Turret Duration +30%(<color=#FACC15>Unique</color>Unlock)",
-            "Turret Duration +30%(<color=#FB7185>Epic</color>Unlock)"
+            "Turret Duration +20%(<color=#38BDF8>Rare</color>Unlock)",
+            "Turret Duration +30%(<color=#C084FC>Unique</color>Unlock)",
+            "Turret Duration +30%(<color=#FACC15>Epic</color>Unlock)",
+            "Turret Duration +30%(<color=#FB7185>Holo</color>Unlock)"
         };
 
         float startY = 0.485f;
@@ -2326,7 +2340,14 @@ public static class LabMenuSceneBuilder
             RectTransform rowRect = CreateRect($"PerkRow_{i}", boxRect);
             Anchor(rowRect, new Vector2(0.5f, startY - i * deltaY), Vector2.zero, new Vector2(780f, 50f));
 
-            Image lockImg = CreateBuddyIcon("LockIcon", rowRect, defaultLockSprites[i], 42f);
+            Sprite lockSp = LoadChipsetSprite(defaultLockSprites[i]);
+            Image lockImg = CreateImage("LockIcon", rowRect, Color.white, false);
+            lockImg.sprite = lockSp;
+            lockImg.preserveAspect = true;
+            if (i == 3 && lockSp != null)
+            {
+                lockImg.material = ChipsetFrameShimmerMaterial.Get(lockSp);
+            }
             Anchor(lockImg.rectTransform, new Vector2(0.08f, 0.5f), Vector2.zero, new Vector2(42f, 42f));
             perkIcons[i] = lockImg;
 
@@ -2557,8 +2578,12 @@ public static class LabMenuSceneBuilder
         out TMP_Text[] perkTexts,
         out Button enhanceBtn,
         out TMP_Text enhanceCostText,
+        out CanvasGroup enhanceBtnCg,
         out Button advanceTierBtn,
         out TMP_Text advanceTierText,
+        out CanvasGroup advanceTierBtnCg,
+        out GameObject fragNotice,
+        out GameObject chipNotice,
         out Button equipBtn,
         out TMP_Text equipBtnText,
         out Button closeBtn)
@@ -2664,6 +2689,7 @@ public static class LabMenuSceneBuilder
         enhBg.raycastTarget = true;
         enhanceBtn = enhBtnObj.AddComponent<Button>();
         enhanceBtn.targetGraphic = enhBg;
+        enhanceBtnCg = enhBtnObj.AddComponent<CanvasGroup>();
 
         TMP_Text enhLabel = CreateText("Label", enhBtnRect, "Enhance", 26f, new Color32(10, 20, 30, 255), TextAlignmentOptions.Center);
         Anchor(enhLabel.rectTransform, new Vector2(0.5f, 0.70f), Vector2.zero, new Vector2(320f, 32f));
@@ -2689,9 +2715,49 @@ public static class LabMenuSceneBuilder
         advBg.raycastTarget = true;
         advanceTierBtn = advBtnObj.AddComponent<Button>();
         advanceTierBtn.targetGraphic = advBg;
+        advanceTierBtnCg = advBtnObj.AddComponent<CanvasGroup>();
 
         advanceTierText = CreateText("Label", advBtnRect, "Advance Tier (439/3)", 24f, new Color32(10, 20, 30, 255), TextAlignmentOptions.Center);
         Stretch(advanceTierText.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+
+        // 8. Notice Panels (Missing Currency / Fragments)
+        // Panel 1: Not Enough Fragments Notice (Bảng ở Hình 1)
+        GameObject fragNoticeObj = CreateFrame("NotEnoughFragmentsNotice", boxRect, new Color32(11, 40, 56, 252), BrightCyan, out Image fragBg);
+        RectTransform fragNoticeRect = fragNoticeObj.GetComponent<RectTransform>();
+        Anchor(fragNoticeRect, new Vector2(0.5f, 0.54f), Vector2.zero, new Vector2(830f, 270f));
+        fragBg.raycastTarget = false;
+
+        TMP_Text fragLine1 = CreateText("TitleText", fragNoticeRect, "You need to collect more Chipsets.", 32f, Color.white, TextAlignmentOptions.Center);
+        fragLine1.fontStyle = FontStyles.Bold;
+        fragLine1.outlineColor = Color.black;
+        fragLine1.outlineWidth = 0.25f;
+        Anchor(fragLine1.rectTransform, new Vector2(0.5f, 0.68f), Vector2.zero, new Vector2(790f, 70f));
+
+        TMP_Text fragLine2 = CreateText("SubText", fragNoticeRect, "You can purchase Chipset Boxes at the\nShop.", 26f, new Color32(254, 209, 66, 255), TextAlignmentOptions.Center);
+        fragLine2.fontStyle = FontStyles.Bold;
+        fragLine2.outlineColor = Color.black;
+        fragLine2.outlineWidth = 0.25f;
+        Anchor(fragLine2.rectTransform, new Vector2(0.5f, 0.32f), Vector2.zero, new Vector2(790f, 90f));
+
+        fragNoticeObj.AddComponent<UIDissolveController>();
+        fragNoticeObj.SetActive(false);
+        fragNotice = fragNoticeObj;
+
+        // Panel 2: Not Enough Data Chips Notice (Bảng ở Hình 2)
+        GameObject chipNoticeObj = CreateFrame("NotEnoughChipsNotice", boxRect, new Color32(11, 40, 56, 252), BrightCyan, out Image chipBg);
+        RectTransform chipNoticeRect = chipNoticeObj.GetComponent<RectTransform>();
+        Anchor(chipNoticeRect, new Vector2(0.5f, 0.54f), Vector2.zero, new Vector2(830f, 270f));
+        chipBg.raycastTarget = false;
+
+        TMP_Text chipLine = CreateText("TitleText", chipNoticeRect, "Not enough Data Chips", 34f, Color.white, TextAlignmentOptions.Center);
+        chipLine.fontStyle = FontStyles.Bold;
+        chipLine.outlineColor = Color.black;
+        chipLine.outlineWidth = 0.25f;
+        Stretch(chipLine.rectTransform, Vector2.zero, Vector2.one, new Vector2(20f, 20f), new Vector2(-20f, -20f));
+
+        chipNoticeObj.AddComponent<UIDissolveController>();
+        chipNoticeObj.SetActive(false);
+        chipNotice = chipNoticeObj;
 
         return modalRoot.gameObject;
     }
@@ -3145,6 +3211,10 @@ public static class LabMenuSceneBuilder
         GetRequiredProperty(serializedController, "upgradeBackground").objectReferenceValue = upgradeBackground;
         GetRequiredProperty(serializedController, "statTooltip").objectReferenceValue = statTooltip;
         GetRequiredProperty(serializedController, "lockIconSprite").objectReferenceValue = LoadLockIconSprite();
+        GetRequiredProperty(serializedController, "commonLevelColor").colorValue = new Color32(255, 233, 92, 255);
+        GetRequiredProperty(serializedController, "eliteLevelColor").colorValue = new Color32(255, 240, 106, 255);
+        GetRequiredProperty(serializedController, "epicLevelColor").colorValue = new Color32(255, 244, 184, 255);
+        GetRequiredProperty(serializedController, "legendLevelColor").colorValue = new Color32(22, 50, 79, 255);
 
         SerializedProperty items = GetRequiredProperty(serializedController, "items");
         items.arraySize = slotViews.Length;
@@ -3235,7 +3305,14 @@ public static class LabMenuSceneBuilder
 
         RectTransform unlockedGroup = CreateRect("UnlockedGroup", slotRect);
         Stretch(unlockedGroup, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-        TMP_Text levelText = CreateText("LevelText", unlockedGroup, "LV.01", 29f, Yellow, TextAlignmentOptions.Center);
+        Color levelColor = (index / 4) switch
+        {
+            0 => new Color32(255, 233, 92, 255), // #FFE95C
+            1 => new Color32(255, 240, 106, 255), // #FFF06A
+            2 => new Color32(255, 244, 184, 255), // #FFF4B8
+            _ => new Color32(22, 50, 79, 255)     // #16324F
+        };
+        TMP_Text levelText = CreateText("LevelText", unlockedGroup, "LV.01", 29f, levelColor, TextAlignmentOptions.Center);
         Anchor(levelText.rectTransform, new Vector2(0.5f, 0.81f), Vector2.zero, new Vector2(180f, 44f));
         Image itemIcon = CreateImage("ItemIcon", unlockedGroup, Color.white, false);
         itemIcon.sprite = LoadStatSprite(itemIconName);
@@ -3570,6 +3647,18 @@ public static class LabMenuSceneBuilder
         }
 
         // 4. Kiểm tra file riêng lẻ
+        string rootPath = $"Assets/Sprites/UI/Chipset/{spriteName}.png";
+        if (File.Exists(rootPath))
+        {
+            Sprite s = AssetDatabase.LoadAssetAtPath<Sprite>(rootPath);
+            if (s != null) return s;
+        }
+        string locksPath = $"Assets/Resources/UI/Chipset/Locks/{spriteName}.png";
+        if (File.Exists(locksPath))
+        {
+            Sprite s = AssetDatabase.LoadAssetAtPath<Sprite>(locksPath);
+            if (s != null) return s;
+        }
         string framePath = $"Assets/Sprites/UI/Chipset/Frames/{spriteName}.png";
         if (File.Exists(framePath))
         {

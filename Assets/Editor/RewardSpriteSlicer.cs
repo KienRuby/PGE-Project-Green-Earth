@@ -7,16 +7,13 @@ using UnityEditor;
 using UnityEditor.U2D.Sprites;
 using UnityEngine;
 
-[InitializeOnLoad]
 public static class RewardSpriteSlicer
 {
     private const string TexturePathDailyLogin = "Assets/Sprites/UI/Reward/nút daily login.png";
     private const string TexturePathKhungDailyLogin = "Assets/Sprites/UI/Reward/nút khung daily login.png";
 
-    static RewardSpriteSlicer()
-    {
-        EditorApplication.delayCall += SliceAllRewardTextures;
-    }
+    // Không dùng [InitializeOnLoad] để tránh tự động ghi đè kích thước cắt thủ công của người dùng trong Sprite Editor.
+    // Chỉ chạy khi người dùng chủ động bấm menu: PGE > UI > Slice Reward Textures (Daily Login)
 
     [MenuItem("PGE/UI/Slice Reward Textures (Daily Login)")]
     public static void SliceAllRewardTextures()

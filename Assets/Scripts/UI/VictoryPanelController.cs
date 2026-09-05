@@ -316,13 +316,17 @@ public sealed class VictoryPanelController : MonoBehaviour
             else damageDetailsPopup.Show();
             return;
         }
-        if (detailsPanel != null) detailsPanel.SetActive(!detailsPanel.activeSelf);
+        if (detailsPanel != null)
+        {
+            if (detailsPanel.activeSelf) UIDissolveController.HideWithEffect(detailsPanel);
+            else UIDissolveController.ShowInstant(detailsPanel);
+        }
     }
 
     public void CloseDetails()
     {
         if (damageDetailsPopup != null) damageDetailsPopup.Hide();
-        SetPanelActive(detailsPanel, false);
+        if (detailsPanel != null) UIDissolveController.HideWithEffect(detailsPanel);
     }
 
     public void EnsureDetailsUiComponents()

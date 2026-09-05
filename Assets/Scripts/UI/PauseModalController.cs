@@ -79,6 +79,8 @@ public class PauseModalController : MonoBehaviour
         public string iconKey;
         public int level = 1;
         public ChipTier tier = ChipTier.Magic;
+        public Sprite cachedIconSprite;
+        public Sprite cachedFrameSprite;
     }
 
     private readonly List<RuntimeEquippedChipData> runtimeEquippedChips = new List<RuntimeEquippedChipData>();
@@ -194,6 +196,7 @@ public class PauseModalController : MonoBehaviour
     private void Awake()
     {
         AutoWireTabButtonsAndSettings();
+        EnsureDamageDetailsComponents();
         BindButtons();
         LocatePlayerReferences();
         RefreshEquippedChips();
@@ -341,7 +344,7 @@ public class PauseModalController : MonoBehaviour
 
         if (modalRoot != null)
         {
-            modalRoot.SetActive(true);
+            UIDissolveController.ShowInstant(modalRoot);
         }
 
         EnsureDamageDetailsComponents();
@@ -375,7 +378,12 @@ public class PauseModalController : MonoBehaviour
             quitConfirmPanel.SetActive(false);
         }
 
-        if (modalRoot != null)
+        UIDissolveController dissolve = modalRoot != null ? modalRoot.GetComponent<UIDissolveController>() : null;
+        if (dissolve != null && modalRoot != null && modalRoot.activeSelf)
+        {
+            dissolve.Hide();
+        }
+        else if (modalRoot != null)
         {
             modalRoot.SetActive(false);
         }
@@ -385,7 +393,7 @@ public class PauseModalController : MonoBehaviour
     {
         if (quitConfirmPanel != null)
         {
-            quitConfirmPanel.SetActive(true);
+            UIDissolveController.ShowInstant(quitConfirmPanel);
         }
         else
         {
@@ -423,7 +431,7 @@ public class PauseModalController : MonoBehaviour
     {
         if (quitConfirmPanel != null)
         {
-            quitConfirmPanel.SetActive(false);
+            UIDissolveController.HideWithEffect(quitConfirmPanel);
         }
     }
 
@@ -661,21 +669,8 @@ public class PauseModalController : MonoBehaviour
 
     public void EnsureDamageDetailsComponents()
     {
-        // 1. Tìm hoặc khởi tạo DamageDetailsPopup trên Canvas
-        if (damageDetailsPopup == null)
-        {
-            Canvas canvas = GetComponentInParent<Canvas>() ?? FindAnyObjectByType<Canvas>();
-            if (canvas != null)
-            {
-                damageDetailsPopup = canvas.GetComponentInChildren<DamageDetailsPopup>(true);
-                if (damageDetailsPopup == null)
-                {
-                    damageDetailsPopup = DamageDetailsPopup.CreateRuntimeModal(canvas.transform);
-                }
-            }
-        }
-
-        // 2. Tìm hoặc tạo nút DamageDetailsButton trong Pause Modal
+        // Damage Details không thuộc thanh nút Pause. Nếu scene cũ vẫn còn nút này
+        // thì giữ object/reference để không làm hỏng scene, nhưng vô hiệu hóa nó.
         if (damageDetailsButton == null && modalRoot != null)
         {
             Transform existingBtn = modalRoot.transform.Find("DamageDetailsButton")
@@ -685,95 +680,47 @@ public class PauseModalController : MonoBehaviour
             {
                 damageDetailsButton = existingBtn.GetComponent<Button>();
             }
-            else
-            {
-                damageDetailsButton = CreateRuntimeDamageDetailsButton(modalRoot.transform, resumeButton, homeButton);
-            }
+        }
 
-            if (damageDetailsButton != null)
-            {
-                damageDetailsButton.onClick.RemoveListener(OnDamageDetailsButtonClicked);
-                damageDetailsButton.onClick.AddListener(OnDamageDetailsButtonClicked);
-            }
+        if (damageDetailsButton != null)
+        {
+            damageDetailsButton.onClick.RemoveListener(OnDamageDetailsButtonClicked);
+            damageDetailsButton.gameObject.SetActive(false);
+        }
+
+        ApplyBottomActionLayout();
+    }
+
+    /// <summary>
+    /// Giữ thanh nút Pause đúng mẫu: Resume bên trái, Settings ở giữa, Home bên phải.
+    /// Damage Details không xuất hiện trên màn Pause.
+    /// </summary>
+    public void ApplyBottomActionLayout()
+    {
+        SetBottomButtonPosition(resumeButton, -246f);
+        SetBottomButtonPosition(settingButton, 11f);
+        SetBottomButtonPosition(homeButton, 259f);
+
+        if (resumeButton != null)
+        {
+            resumeButton.gameObject.SetActive(true);
+        }
+
+        if (damageDetailsButton != null && damageDetailsButton != resumeButton)
+        {
+            damageDetailsButton.gameObject.SetActive(false);
         }
     }
 
-    private static Button CreateRuntimeDamageDetailsButton(Transform parent, Button resumeBtn, Button homeBtn)
+    private static void SetBottomButtonPosition(Button button, float x)
     {
-        // Cân đối lại vị trí 3 nút ở thanh đáy: Home (-200, -680), Resume (0, -680), Details (+200, -680)
-        if (homeBtn != null && resumeBtn != null)
+        if (button == null) return;
+
+        RectTransform rect = button.GetComponent<RectTransform>();
+        if (rect != null)
         {
-            RectTransform homeRt = homeBtn.GetComponent<RectTransform>();
-            RectTransform resumeRt = resumeBtn.GetComponent<RectTransform>();
-            if (homeRt != null && resumeRt != null)
-            {
-                homeRt.anchoredPosition = new Vector2(-200f, -680f);
-                resumeRt.anchoredPosition = new Vector2(0f, -680f);
-            }
+            rect.anchoredPosition = new Vector2(x, -680f);
         }
-
-        GameObject btnObj = new GameObject("DamageDetailsButton", typeof(RectTransform), typeof(Image), typeof(Button));
-        btnObj.transform.SetParent(parent, false);
-        RectTransform btnRt = btnObj.GetComponent<RectTransform>();
-        btnRt.anchorMin = new Vector2(0.5f, 0.5f);
-        btnRt.anchorMax = new Vector2(0.5f, 0.5f);
-        btnRt.pivot = new Vector2(0.5f, 0.5f);
-        btnRt.anchoredPosition = new Vector2(200f, -680f);
-        btnRt.sizeDelta = new Vector2(170f, 110f);
-
-        Image btnImg = btnObj.GetComponent<Image>();
-        btnImg.color = new Color32(64, 158, 166, 255);
-        Button btn = btnObj.GetComponent<Button>();
-        btn.targetGraphic = btnImg;
-
-        // Thêm Icon biểu đồ (Chart icon)
-        Sprite chartSprite = null;
-#if UNITY_EDITOR
-        chartSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/icon-damage-details.png");
-#endif
-        if (chartSprite == null)
-        {
-            Sprite[] allSprites = Resources.FindObjectsOfTypeAll<Sprite>();
-            chartSprite = System.Array.Find(allSprites, s => s != null && (s.name == "icon-damage-details" || s.name.Contains("damage-details")));
-        }
-
-        if (chartSprite != null)
-        {
-            GameObject iconObj = new GameObject("Icon", typeof(RectTransform), typeof(Image));
-            iconObj.transform.SetParent(btnObj.transform, false);
-            RectTransform iconRt = iconObj.GetComponent<RectTransform>();
-            iconRt.anchorMin = new Vector2(0.5f, 0.5f);
-            iconRt.anchorMax = new Vector2(0.5f, 0.5f);
-            iconRt.pivot = new Vector2(0.5f, 0.5f);
-            iconRt.anchoredPosition = new Vector2(0f, 0f);
-            iconRt.sizeDelta = new Vector2(64f, 64f);
-
-            Image iconImg = iconObj.GetComponent<Image>();
-            iconImg.sprite = chartSprite;
-            iconImg.preserveAspect = true;
-            iconImg.raycastTarget = false;
-        }
-        else
-        {
-            TMP_FontAsset font = FindAnyObjectByType<TMP_Text>()?.font ?? TMP_Settings.defaultFontAsset;
-            GameObject labelObj = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
-            labelObj.transform.SetParent(btnObj.transform, false);
-            RectTransform labelRt = labelObj.GetComponent<RectTransform>();
-            labelRt.anchorMin = Vector2.zero;
-            labelRt.anchorMax = Vector2.one;
-            labelRt.offsetMin = Vector2.zero;
-            labelRt.offsetMax = Vector2.zero;
-
-            TextMeshProUGUI label = labelObj.GetComponent<TextMeshProUGUI>();
-            label.font = font;
-            label.text = "📊";
-            label.fontSize = 44f;
-            label.color = Color.white;
-            label.alignment = TextAlignmentOptions.Center;
-            label.raycastTarget = false;
-        }
-
-        return btn;
     }
 
     public void SetReferencesForTesting(
@@ -1130,14 +1077,25 @@ public class PauseModalController : MonoBehaviour
     private void HandleChipsetSelected(ChipItemData chip, int newLevel)
     {
         if (chip == null) return;
-        RegisterOrUpdateRuntimeChip(chip.id, chip.chipName, chip.iconKey, newLevel, chip.tier);
+        Sprite icon = null;
+        Sprite frame = null;
+        if (ChipsetLevelUpPopup.EquippedRuntimeChips != null &&
+            ChipsetLevelUpPopup.EquippedRuntimeChips.TryGetValue(chip.id, out var entry))
+        {
+            icon = entry.iconSprite;
+            frame = entry.frameSprite;
+        }
+        if (icon == null) icon = GetChipsetIconSprite(chip.id, chip.iconKey);
+        if (frame == null) frame = GetChipsetLeverFrame(chip.tier);
+
+        RegisterOrUpdateRuntimeChip(chip.id, chip.chipName, chip.iconKey, newLevel, chip.tier, icon, frame);
         if (IsPaused && CurrentMainTab == 1)
         {
             RefreshEquippedChips();
         }
     }
 
-    public void RegisterOrUpdateRuntimeChip(int id, string name, string iconKey, int level, ChipTier tier)
+    public void RegisterOrUpdateRuntimeChip(int id, string name, string iconKey, int level, ChipTier tier, Sprite iconSprite = null, Sprite frameSprite = null)
     {
         if (id <= 0) return;
         RuntimeEquippedChipData existing = runtimeEquippedChips.FirstOrDefault(c => c.id == id);
@@ -1147,6 +1105,8 @@ public class PauseModalController : MonoBehaviour
             if (!string.IsNullOrEmpty(name)) existing.name = name;
             if (!string.IsNullOrEmpty(iconKey)) existing.iconKey = iconKey;
             existing.tier = tier;
+            if (iconSprite != null) existing.cachedIconSprite = iconSprite;
+            if (frameSprite != null) existing.cachedFrameSprite = frameSprite;
         }
         else
         {
@@ -1156,20 +1116,45 @@ public class PauseModalController : MonoBehaviour
                 name = string.IsNullOrEmpty(name) ? ChipsetBattleStats.GetChipsetName(id) : name,
                 iconKey = string.IsNullOrEmpty(iconKey) ? ChipsetBattleStats.GetChipsetIconKey(id) : iconKey,
                 level = Mathf.Max(1, level),
-                tier = tier
+                tier = tier,
+                cachedIconSprite = iconSprite,
+                cachedFrameSprite = frameSprite
             });
         }
     }
 
     public void SyncRuntimeEquippedChips()
     {
-        // 1. Luôn đảm bảo vũ khí mặc định (Standard Gun ID 1 hoặc súng đã trang bị)
-        if (runtimeEquippedChips.Count == 0 || !runtimeEquippedChips.Any(c => c.id == 1))
+        // 1. Đồng bộ từ ChipsetLevelUpPopup.EquippedRuntimeChips (chứa chính xác 100% icon và khung của thẻ level up đã chọn)
+        var runtimeChips = ChipsetLevelUpPopup.EquippedRuntimeChips;
+        if (runtimeChips != null && runtimeChips.Count > 0)
         {
-            RegisterOrUpdateRuntimeChip(1, "Standard Gun", "standard-gun", 1, ChipTier.Magic);
+            foreach (var kvp in runtimeChips)
+            {
+                var entry = kvp.Value;
+                if (entry != null)
+                {
+                    RegisterOrUpdateRuntimeChip(
+                        entry.id,
+                        entry.name,
+                        entry.iconKey,
+                        entry.level,
+                        entry.tier,
+                        entry.iconSprite,
+                        entry.frameSprite);
+                }
+            }
         }
 
-        // 2. Đồng bộ từ ChipsetBattleStats (được cập nhật khi Player lên cấp và qua PlayerChipsetSkillManager)
+        // 2. Luôn đảm bảo vũ khí mặc định (Standard Gun ID 1 hoặc súng đã trang bị)
+        if (runtimeEquippedChips.Count == 0 || !runtimeEquippedChips.Any(c => c.id == 1))
+        {
+            Sprite defaultGunIcon = GetChipsetIconSprite(1, "standard-gun");
+            Sprite defaultFrame = GetChipsetLeverFrame(ChipTier.Magic);
+            RegisterOrUpdateRuntimeChip(1, "Standard Gun", "standard-gun", 1, ChipTier.Magic, defaultGunIcon, defaultFrame);
+        }
+
+        // 3. Đồng bộ từ ChipsetBattleStats (được cập nhật khi Player lên cấp và qua PlayerChipsetSkillManager)
         var battleEntries = ChipsetBattleStats.Entries;
         if (battleEntries != null)
         {
@@ -1178,12 +1163,14 @@ public class PauseModalController : MonoBehaviour
                 var entry = battleEntries[i];
                 if (entry != null && entry.RuntimeLevel > 0)
                 {
-                    RegisterOrUpdateRuntimeChip(entry.ChipsetId, entry.ChipsetName, entry.IconKey, entry.RuntimeLevel, ChipTier.Magic);
+                    Sprite icon = GetChipsetIconSprite(entry.ChipsetId, entry.IconKey);
+                    Sprite frame = GetChipsetLeverFrame(ChipTier.Magic);
+                    RegisterOrUpdateRuntimeChip(entry.ChipsetId, entry.ChipsetName, entry.IconKey, entry.RuntimeLevel, ChipTier.Magic, icon, frame);
                 }
             }
         }
 
-        // 3. Đồng bộ từ ChipsetLevelUpPopup nếu có instance trong Scene
+        // 4. Đồng bộ từ ChipsetLevelUpPopup nếu có instance trong Scene (fallback runtimeChipLevels)
         ChipsetLevelUpPopup popup = FindObjectOfType<ChipsetLevelUpPopup>(true);
         if (popup != null && popup.RuntimeChipLevels != null)
         {
@@ -1193,7 +1180,10 @@ public class PauseModalController : MonoBehaviour
                 int level = kvp.Value;
                 if (level > 0)
                 {
-                    RegisterOrUpdateRuntimeChip(chipId, ChipsetBattleStats.GetChipsetName(chipId), ChipsetBattleStats.GetChipsetIconKey(chipId), level, ChipTier.Magic);
+                    string iconKey = ChipsetBattleStats.GetChipsetIconKey(chipId);
+                    Sprite icon = GetChipsetIconSprite(chipId, iconKey);
+                    Sprite frame = GetChipsetLeverFrame(ChipTier.Magic);
+                    RegisterOrUpdateRuntimeChip(chipId, ChipsetBattleStats.GetChipsetName(chipId), iconKey, level, ChipTier.Magic, icon, frame);
                 }
             }
         }
@@ -1248,7 +1238,7 @@ public class PauseModalController : MonoBehaviour
 
             cardObj.SetActive(true);
 
-            // Căn vị trí hàng ngang: 5 card mỗi hàng, khoảng cách 160px
+            // Căn vị trí hàng ngang: 5 khung chipset mỗi hàng, khoảng cách 160px.
             int col = i % 5;
             int row = i / 5;
             float posX = -320f + (col * 160f);
@@ -1261,7 +1251,7 @@ public class PauseModalController : MonoBehaviour
                 rt.anchorMax = new Vector2(0.5f, 0.5f);
                 rt.pivot = new Vector2(0.5f, 0.5f);
                 rt.anchoredPosition = new Vector2(posX, posY);
-                rt.sizeDelta = new Vector2(170f, 210f);
+                rt.sizeDelta = new Vector2(150f, 190f);
             }
 
             UpdateChipCardVisual(cardObj, chip);
@@ -1281,33 +1271,53 @@ public class PauseModalController : MonoBehaviour
     {
         if (cardObj == null || chip == null) return;
 
-        // 1. Khung Chipset (IC Chip Frame): Image with sprite ChipsetLeverGreen / tier frame
-        Transform iconFrameTr = cardObj.transform.Find("IconFrame") ?? cardObj.transform.Find("ChipsetFrame");
+        // Card chỉ là container chỉnh vị trí. Bỏ khung chữ nhật lớn cũ để trong
+        // Hierarchy mỗi slot chính là khung chipset lấy thẳng từ Level Up.
+        Image legacyCardImage = cardObj.GetComponent<Image>();
+        if (legacyCardImage != null) legacyCardImage.enabled = false;
+        Transform legacyFill = cardObj.transform.Find("Fill");
+        if (legacyFill != null)
+        {
+            Image fillImage = legacyFill.GetComponent<Image>();
+            if (fillImage != null) fillImage.enabled = false;
+        }
+
+        // 1. Khung chipset dùng đúng sprite và cấu trúc của Level Up.
+        Transform iconFrameTr = cardObj.transform.Find("IconFrameAssetSlot")
+            ?? cardObj.transform.Find("IconFrame")
+            ?? cardObj.transform.Find("ChipsetFrame");
         Image iconFrameImg = null;
+        bool configureFrameLayout = false;
         if (iconFrameTr == null)
         {
-            GameObject frameGo = new GameObject("IconFrame", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            GameObject frameGo = new GameObject("IconFrameAssetSlot", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
             frameGo.transform.SetParent(cardObj.transform, false);
             iconFrameTr = frameGo.transform;
             iconFrameImg = frameGo.GetComponent<Image>();
             iconFrameTr.SetSiblingIndex(Mathf.Min(1, cardObj.transform.childCount - 1));
+            configureFrameLayout = true;
         }
         else
         {
             iconFrameImg = iconFrameTr.GetComponent<Image>();
+            if (!string.Equals(iconFrameTr.name, "IconFrameAssetSlot", StringComparison.Ordinal))
+            {
+                iconFrameTr.name = "IconFrameAssetSlot";
+                configureFrameLayout = true;
+            }
         }
 
         RectTransform frameRt = iconFrameTr.GetComponent<RectTransform>();
-        if (frameRt != null)
+        if (frameRt != null && configureFrameLayout)
         {
             frameRt.anchorMin = new Vector2(0.5f, 0.5f);
             frameRt.anchorMax = new Vector2(0.5f, 0.5f);
             frameRt.pivot = new Vector2(0.5f, 0.5f);
-            frameRt.anchoredPosition = new Vector2(0f, 30f);
-            frameRt.sizeDelta = new Vector2(120f, 120f);
+            frameRt.anchoredPosition = Vector2.zero;
+            frameRt.sizeDelta = new Vector2(120f, 150f);
         }
 
-        Sprite leverFrameSprite = GetChipsetLeverFrame(chip.tier);
+        Sprite leverFrameSprite = chip.cachedFrameSprite ?? GetChipsetLeverFrame(chip.tier);
         if (iconFrameImg != null)
         {
             iconFrameImg.sprite = leverFrameSprite;
@@ -1317,23 +1327,33 @@ public class PauseModalController : MonoBehaviour
         }
 
         // 2. Icon Chipset: Image with weapon/skill icon
-        Transform iconTr = cardObj.transform.Find("GunIcon")
-            ?? cardObj.transform.Find("Icon")
-            ?? cardObj.transform.Find("ChipsetIcon")
+        Transform iconTr = iconFrameTr.Find("ChipIcon")
             ?? iconFrameTr.Find("GunIcon")
-            ?? iconFrameTr.Find("Icon");
+            ?? iconFrameTr.Find("Icon")
+            ?? iconFrameTr.Find("ChipsetIcon")
+            ?? cardObj.transform.Find("GunIcon")
+            ?? cardObj.transform.Find("Icon")
+            ?? cardObj.transform.Find("ChipsetIcon");
 
         Image iconImg = null;
         if (iconTr == null)
         {
-            GameObject iconGo = new GameObject("ChipsetIcon", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
-            iconGo.transform.SetParent(cardObj.transform, false);
+            GameObject iconGo = new GameObject("ChipIcon", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            iconGo.transform.SetParent(iconFrameTr, false);
             iconTr = iconGo.transform;
             iconImg = iconGo.GetComponent<Image>();
         }
         else
         {
             iconImg = iconTr.GetComponent<Image>();
+            if (iconTr.parent != iconFrameTr)
+            {
+                iconTr.SetParent(iconFrameTr, false);
+            }
+            if (!string.Equals(iconTr.name, "ChipIcon", StringComparison.Ordinal))
+            {
+                iconTr.name = "ChipIcon";
+            }
         }
 
         RectTransform iconRt = iconTr.GetComponent<RectTransform>();
@@ -1342,17 +1362,15 @@ public class PauseModalController : MonoBehaviour
             iconRt.anchorMin = new Vector2(0.5f, 0.5f);
             iconRt.anchorMax = new Vector2(0.5f, 0.5f);
             iconRt.pivot = new Vector2(0.5f, 0.5f);
-            iconRt.anchoredPosition = new Vector2(0f, 34f);
-            iconRt.sizeDelta = new Vector2(85f, 65f);
+            // Chuẩn hóa theo Transform thiết kế trong Inspector (media_1788528507150.png):
+            // Pos X = -0.5, Pos Y = 20.1, Pos Z = 0, Width = 93.6, Height = 72, Scale = (1, 1, 1)
+            iconRt.anchoredPosition = new Vector2(-0.5f, 20.1f);
+            iconRt.sizeDelta = new Vector2(93.6f, 72f);
+            iconRt.localScale = Vector3.one;
+            iconRt.localEulerAngles = Vector3.zero;
         }
 
-        // Đảm bảo Icon hiển thị phía trước Khung IC
-        if (iconFrameTr != null && iconTr.GetSiblingIndex() < iconFrameTr.GetSiblingIndex())
-        {
-            iconTr.SetSiblingIndex(iconFrameTr.GetSiblingIndex() + 1);
-        }
-
-        Sprite chipIconSprite = GetChipsetIconSprite(chip.id, chip.iconKey);
+        Sprite chipIconSprite = chip.cachedIconSprite ?? GetChipsetIconSprite(chip.id, chip.iconKey);
         if (iconImg != null)
         {
             iconImg.sprite = chipIconSprite;
@@ -1361,29 +1379,47 @@ public class PauseModalController : MonoBehaviour
             iconImg.enabled = chipIconSprite != null;
         }
 
-        // 3. Level Badge: LvlBadge with Text "LV.01", "LV.02", etc.
+        // 3. Dùng đúng năm sprite cấp của Level Up, đặt thành child của khung để
+        // người thiết kế có thể chỉnh trực tiếp từng pip trong Hierarchy.
+        Sprite[] levelPipSprites = visualLibrary != null ? visualLibrary.levelPipSprites : null;
+        for (int i = 0; i < 5; i++)
+        {
+            string pipName = $"RuntimeLevelPip_{i + 1}";
+            Transform pipTr = iconFrameTr.Find(pipName);
+            Image pipImage;
+            if (pipTr == null)
+            {
+                GameObject pipGo = new GameObject(pipName, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+                pipGo.transform.SetParent(iconFrameTr, false);
+                pipTr = pipGo.transform;
+                pipImage = pipGo.GetComponent<Image>();
+
+                RectTransform pipRt = pipGo.GetComponent<RectTransform>();
+                pipRt.anchorMin = pipRt.anchorMax = new Vector2(0.5f, 0f);
+                pipRt.pivot = new Vector2(0.5f, 0f);
+                float normalizedCenter = Mathf.Lerp(0.174f, 0.858f, i / 4f);
+                pipRt.anchoredPosition = new Vector2((normalizedCenter - 0.5f) * 120f, 32.4f);
+                pipRt.sizeDelta = new Vector2(18.6f, 20.7f);
+                pipRt.localScale = Vector3.one;
+            }
+            else
+            {
+                pipImage = pipTr.GetComponent<Image>();
+            }
+
+            if (pipImage == null) continue;
+            pipImage.sprite = levelPipSprites != null && i < levelPipSprites.Length ? levelPipSprites[i] : null;
+            pipImage.preserveAspect = true;
+            pipImage.raycastTarget = false;
+            pipImage.color = Color.white;
+            pipImage.enabled = i < Mathf.Clamp(chip.level, 0, 5) && pipImage.sprite != null;
+        }
+
+        // Badge chữ cũ được giữ lại nhưng ẩn để không phá reference trong scene.
         Transform badgeTr = cardObj.transform.Find("LvlBadge") ?? cardObj.transform.Find("Badge");
         if (badgeTr != null)
         {
-            RectTransform badgeRt = badgeTr.GetComponent<RectTransform>();
-            if (badgeRt != null)
-            {
-                badgeRt.anchorMin = new Vector2(0.5f, 0.5f);
-                badgeRt.anchorMax = new Vector2(0.5f, 0.5f);
-                badgeRt.pivot = new Vector2(0.5f, 0.5f);
-                badgeRt.anchoredPosition = new Vector2(0f, -65f);
-                badgeRt.sizeDelta = new Vector2(130f, 38f);
-            }
-
-            TMP_Text lvlText = badgeTr.GetComponentInChildren<TMP_Text>(true);
-            if (lvlText != null)
-            {
-                lvlText.text = $"LV.{chip.level:D2}";
-                lvlText.color = new Color32(14, 28, 36, 255);
-                lvlText.fontStyle = FontStyles.Bold;
-                lvlText.alignment = TextAlignmentOptions.Center;
-                lvlText.fontSize = 24f;
-            }
+            badgeTr.gameObject.SetActive(false);
         }
     }
 
@@ -1457,7 +1493,7 @@ public class PauseModalController : MonoBehaviour
 
         if (availableIcons != null)
         {
-            Sprite found = ChipsetLevelUpPopup.FindMatchingIcon(availableIcons, iconKey);
+            Sprite found = ChipsetLevelUpPopup.FindMatchingIcon(availableIcons, id, iconKey);
             if (found != null) return found;
         }
 
@@ -1466,7 +1502,7 @@ public class PauseModalController : MonoBehaviour
         var icons = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(iconAtlasPath).OfType<Sprite>().ToArray();
         if (icons.Length > 0)
         {
-            Sprite found = ChipsetLevelUpPopup.FindMatchingIcon(icons, iconKey);
+            Sprite found = ChipsetLevelUpPopup.FindMatchingIcon(icons, id, iconKey);
             if (found != null) return found;
         }
 #endif
@@ -1499,4 +1535,42 @@ public class PauseModalController : MonoBehaviour
         equippedChipCardTemplate = template;
         visualLibrary = lib;
     }
+
+#if UNITY_EDITOR
+    /// <summary>
+    /// Chuyển card Pause cũ thành hierarchy khung chipset có thể chỉnh trực tiếp
+    /// trong Scene. Không lưu scene tự động để không ghi đè công việc đang mở.
+    /// </summary>
+    public bool PrepareEditableChipsetTemplateInEditor()
+    {
+        if (Application.isPlaying) return false;
+
+        AutoWireTabButtonsAndSettings();
+        if (visualLibrary == null)
+        {
+            visualLibrary = Resources.Load<ChipsetLevelVisualLibrary>("ChipsetLevelVisualLibrary");
+        }
+
+        GameObject template = FindChipCardTemplate();
+        if (template == null) return false;
+
+        Sprite icon = GetChipsetIconSprite(1, "standard-gun");
+        Sprite frame = GetChipsetLeverFrame(ChipTier.Magic);
+        var previewChip = new RuntimeEquippedChipData
+        {
+            id = 1,
+            name = "Standard Gun",
+            iconKey = "standard-gun",
+            level = 1,
+            tier = ChipTier.Magic,
+            cachedIconSprite = icon,
+            cachedFrameSprite = frame
+        };
+
+        UpdateChipCardVisual(template, previewChip);
+        UnityEditor.EditorUtility.SetDirty(template);
+        UnityEditor.EditorUtility.SetDirty(this);
+        return true;
+    }
+#endif
 }

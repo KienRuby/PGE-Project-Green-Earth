@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
@@ -23,17 +24,18 @@ public class ChipItemData
     public ChipTier tier = ChipTier.Magic;
     public int level = 1;
     public int count = 0;
-    public int requiredCount = 3;
+    public int requiredCount = 5;
     public int enhanceCost = 500;
     public int tierEnhanceCount;
     public bool hasStar;
 
     [NonSerialized] private bool tierUnlockRulesEnabled;
     [NonSerialized] private int requiredTierEnhances = 10;
-    [NonSerialized] private int greenToBlueFragmentCost = 3;
-    [NonSerialized] private int blueToPurpleFragmentCost = 5;
-    [NonSerialized] private int purpleToYellowFragmentCost = 10;
-    [NonSerialized] private int yellowToRedDataChipCost = 10;
+    [NonSerialized] private int greenToBlueFragmentCost = 5;
+    [NonSerialized] private int blueToPurpleFragmentCost = 10;
+    [NonSerialized] private int purpleToYellowFragmentCost = 15;
+    [NonSerialized] private int yellowToRedFragmentCost = 20;
+    [NonSerialized] private int yellowToRedDataChipCost = 100;
 
     [Header("Stats Description")]
     [TextArea(2, 4)]
@@ -68,6 +70,9 @@ public class ChipItemData
         ? tierEnhanceCount >= requiredTierEnhances
         : IsAtTierCap;
     public bool UsesRedDataChipForAdvance => tierUnlockRulesEnabled && tier == ChipTier.Epic;
+    public int YellowToRedDataChipCost => yellowToRedDataChipCost;
+    public int YellowToRedFragmentCost => yellowToRedFragmentCost;
+
     public int CurrentAdvanceCost
     {
         get
@@ -77,20 +82,44 @@ public class ChipItemData
                 case ChipTier.Magic: return greenToBlueFragmentCost;
                 case ChipTier.Rare: return blueToPurpleFragmentCost;
                 case ChipTier.Unique: return purpleToYellowFragmentCost;
-                case ChipTier.Epic: return yellowToRedDataChipCost;
+                case ChipTier.Epic: return yellowToRedFragmentCost;
                 default: return 0;
             }
         }
     }
 
-    public bool HasAdvanceCurrency => tier < ChipTier.Holographic && (UsesRedDataChipForAdvance
-        ? ChipManager.HasEnoughRedGems(CurrentAdvanceCost)
-        : count >= CurrentAdvanceCost);
+    public bool HasAdvanceCurrency
+    {
+        get
+        {
+            if (tier >= ChipTier.Holographic) return false;
+            if (tier == ChipTier.Epic && tierUnlockRulesEnabled)
+            {
+                bool hasFragments = count >= yellowToRedFragmentCost;
+                bool hasRedGems = yellowToRedDataChipCost <= 0 || ChipManager.HasEnoughRedGems(yellowToRedDataChipCost);
+                return hasFragments && hasRedGems;
+            }
+            return count >= CurrentAdvanceCost;
+        }
+    }
 
-    public bool CanEnhance => tierUnlockRulesEnabled
-        ? ChipManager.HasEnoughDataChips(enhanceCost) &&
-          (tier == ChipTier.Holographic ? !IsMaxOverall : tierEnhanceCount < requiredTierEnhances)
-        : ChipManager.DataChips >= enhanceCost && !IsAtTierCap && !IsMaxOverall;
+    public bool IsMaxEnhanceForCurrentFrame
+    {
+        get
+        {
+            if (tier >= ChipTier.Holographic)
+            {
+                return IsMaxOverall || level >= MaxLevel;
+            }
+            if (tierUnlockRulesEnabled)
+            {
+                return tierEnhanceCount >= requiredTierEnhances || level >= MaxLevel;
+            }
+            return IsAtTierCap;
+        }
+    }
+
+    public bool CanEnhance => !IsMaxEnhanceForCurrentFrame && ChipManager.HasEnoughDataChips(enhanceCost);
     public bool CanUpgrade => !tierUnlockRulesEnabled && !IsAtTierCap && count >= requiredCount && requiredCount > 0;
     public bool CanAdvanceTier => tierUnlockRulesEnabled
         ? tier < ChipTier.Holographic && IsTierUnlockReady && HasAdvanceCurrency
@@ -101,7 +130,8 @@ public class ChipItemData
         int greenToBlueCost,
         int blueToPurpleCost,
         int purpleToYellowCost,
-        int yellowToRedCost)
+        int yellowToRedCost,
+        int yellowToRedFragments = 0)
     {
         tierUnlockRulesEnabled = true;
         requiredTierEnhances = Mathf.Max(1, enhancesRequired);
@@ -109,9 +139,10 @@ public class ChipItemData
         blueToPurpleFragmentCost = Mathf.Max(0, blueToPurpleCost);
         purpleToYellowFragmentCost = Mathf.Max(0, purpleToYellowCost);
         yellowToRedDataChipCost = Mathf.Max(0, yellowToRedCost);
+        yellowToRedFragmentCost = Mathf.Max(0, yellowToRedFragments);
         tierEnhanceCount = Mathf.Clamp(tierEnhanceCount, 0, requiredTierEnhances);
 
-        if (tier < ChipTier.Epic)
+        if (tier < ChipTier.Holographic)
         {
             requiredCount = CurrentAdvanceCost;
         }
@@ -158,9 +189,16 @@ public class ChipItemData
 
         if (tierUnlockRulesEnabled)
         {
-            if (UsesRedDataChipForAdvance)
+            if (tier == ChipTier.Epic)
             {
-                if (!ChipManager.TrySpendRedGems(CurrentAdvanceCost)) return false;
+                if (yellowToRedDataChipCost > 0 && !ChipManager.TrySpendRedGems(yellowToRedDataChipCost))
+                {
+                    return false;
+                }
+                if (yellowToRedFragmentCost > 0)
+                {
+                    count -= yellowToRedFragmentCost;
+                }
             }
             else
             {
@@ -179,9 +217,13 @@ public class ChipItemData
         if (tierUnlockRulesEnabled)
         {
             tierEnhanceCount = 0;
-            if (tier < ChipTier.Epic)
+            if (tier < ChipTier.Holographic)
             {
                 requiredCount = CurrentAdvanceCost;
+            }
+            else
+            {
+                requiredCount = 0;
             }
         }
         else
@@ -216,6 +258,7 @@ public class ChipItemData
             greenToBlueFragmentCost = this.greenToBlueFragmentCost,
             blueToPurpleFragmentCost = this.blueToPurpleFragmentCost,
             purpleToYellowFragmentCost = this.purpleToYellowFragmentCost,
+            yellowToRedFragmentCost = this.yellowToRedFragmentCost,
             yellowToRedDataChipCost = this.yellowToRedDataChipCost
         };
     }
@@ -293,18 +336,36 @@ public class ChipsetController : MonoBehaviour
     [Header("Detail Action Buttons")]
     [SerializeField] private Button detailEnhanceBtn;
     [SerializeField] private TMP_Text detailEnhanceCostText;
+    [SerializeField] private CanvasGroup enhanceBtnCanvasGroup;
     [SerializeField] private Button detailAdvanceTierBtn;
     [SerializeField] private TMP_Text detailAdvanceTierText;
+    [SerializeField] private CanvasGroup advanceTierBtnCanvasGroup;
     [SerializeField] private Button detailEquipBtn;
     [SerializeField] private TMP_Text detailEquipBtnText;
     [SerializeField] private Button detailCloseBtn;
 
+    [Header("Notice Panels (Missing Currency / Fragments)")]
+    [SerializeField] private GameObject notEnoughFragmentsNotice;
+    [SerializeField] private GameObject notEnoughChipsNotice;
+
+    public GameObject NotEnoughFragmentsNotice => notEnoughFragmentsNotice;
+    public GameObject NotEnoughChipsNotice => notEnoughChipsNotice;
+    public CanvasGroup EnhanceBtnCanvasGroup => enhanceBtnCanvasGroup;
+    public CanvasGroup AdvanceTierBtnCanvasGroup => advanceTierBtnCanvasGroup;
+
     [Header("Chipset Tier Unlock Costs")]
     [SerializeField, Min(1)] private int enhancesRequiredPerTier = 10;
-    [SerializeField, Min(0)] private int greenToBlueFragmentCost = 3;
-    [SerializeField, Min(0)] private int blueToPurpleFragmentCost = 5;
-    [SerializeField, Min(0)] private int purpleToYellowFragmentCost = 10;
-    [SerializeField, Min(0)] private int yellowToRedDataChipCost = 10;
+    [SerializeField, Min(0)] private int greenToBlueFragmentCost = 5;
+    [SerializeField, Min(0)] private int blueToPurpleFragmentCost = 10;
+    [SerializeField, Min(0)] private int purpleToYellowFragmentCost = 15;
+    [SerializeField, Min(0)] private int yellowToRedFragmentCost = 20;
+    [SerializeField, Min(0)] private int yellowToRedDataChipCost = 100;
+
+    public int GreenToBlueFragmentCost => greenToBlueFragmentCost;
+    public int BlueToPurpleFragmentCost => blueToPurpleFragmentCost;
+    public int PurpleToYellowFragmentCost => purpleToYellowFragmentCost;
+    public int YellowToRedFragmentCost => yellowToRedFragmentCost;
+    public int YellowToRedDataChipCost => yellowToRedDataChipCost;
 
     [Header("Blast Furnace Modal")]
     [SerializeField] private GameObject furnaceModal;
@@ -322,7 +383,8 @@ public class ChipsetController : MonoBehaviour
     [SerializeField] private Sprite starSprite;
     [SerializeField] private Sprite upgradeArrowSprite;
     [SerializeField] private Sprite advanceStoneSprite;
-    [SerializeField] private Sprite[] lockTierSprites = new Sprite[4]; // 0: Magic, 1: Rare, 2: Unique, 3: Epic
+    [SerializeField] private Sprite[] lockTierSprites = new Sprite[4]; // 0: Rare (Blue), 1: Unique (Purple), 2: Epic (Yellow), 3: Holo (Red)
+    [SerializeField] private Sprite[] unlockedTierSprites = new Sprite[4]; // 0: Rare (Blue Open), 1: Unique (Purple Open), 2: Epic (Yellow Open), 3: Holo (Red Open)
     [SerializeField] private Sprite unlockedCheckSprite;
     [SerializeField] private ChipsetLevelVisualLibrary tierVisualLibrary;
 
@@ -349,6 +411,7 @@ public class ChipsetController : MonoBehaviour
         {
             tierVisualLibrary = Resources.Load<ChipsetLevelVisualLibrary>("ChipsetLevelVisualLibrary");
         }
+        EnsureLockTierSprites();
         InitializeDatabase();
     }
 
@@ -360,6 +423,58 @@ public class ChipsetController : MonoBehaviour
         RefreshSortButtons();
         RefreshEquippedGrid();
         RefreshInventory();
+    }
+
+    private void Update()
+    {
+        ChipsetFrameShimmerMaterial.UpdateUnscaledAnimationClock();
+    }
+
+    public void EnsureLockTierSprites()
+    {
+        if (lockTierSprites == null || lockTierSprites.Length < 4)
+        {
+            Array.Resize(ref lockTierSprites, 4);
+        }
+
+        string[] lockNames = { "Lock_Blue", "Lock_Purple", "Lock_Yellow", "Lock_Red" };
+        for (int i = 0; i < 4; i++)
+        {
+            if (lockTierSprites[i] == null)
+            {
+                lockTierSprites[i] = Resources.Load<Sprite>($"UI/Chipset/Locks/{lockNames[i]}")
+                                  ?? Resources.Load<Sprite>($"Sprites/UI/Chipset/{lockNames[i]}")
+                                  ?? Resources.Load<Sprite>($"UI/Chipset/{lockNames[i]}");
+#if UNITY_EDITOR
+                if (lockTierSprites[i] == null)
+                {
+                    lockTierSprites[i] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>($"Assets/Sprites/UI/Chipset/{lockNames[i]}.png");
+                }
+#endif
+            }
+        }
+
+        if (unlockedTierSprites == null || unlockedTierSprites.Length < 4)
+        {
+            Array.Resize(ref unlockedTierSprites, 4);
+        }
+
+        string[] openLockNames = { "Lock_Blue_Open", "Lock_Purple_Open", "Lock_Yellow_Open", "Lock_Red_Open" };
+        for (int i = 0; i < 4; i++)
+        {
+            if (unlockedTierSprites[i] == null)
+            {
+                unlockedTierSprites[i] = Resources.Load<Sprite>($"UI/Chipset/Locks/{openLockNames[i]}")
+                                      ?? Resources.Load<Sprite>($"Sprites/UI/Chipset/{openLockNames[i]}")
+                                      ?? Resources.Load<Sprite>($"UI/Chipset/{openLockNames[i]}");
+#if UNITY_EDITOR
+                if (unlockedTierSprites[i] == null)
+                {
+                    unlockedTierSprites[i] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>($"Assets/Sprites/UI/Chipset/{openLockNames[i]}.png");
+                }
+#endif
+            }
+        }
     }
 
     private void OnEnable()
@@ -416,7 +531,8 @@ public class ChipsetController : MonoBehaviour
                 greenToBlueFragmentCost,
                 blueToPurpleFragmentCost,
                 purpleToYellowFragmentCost,
-                yellowToRedDataChipCost);
+                yellowToRedDataChipCost,
+                yellowToRedFragmentCost);
         }
     }
 
@@ -436,8 +552,8 @@ public class ChipsetController : MonoBehaviour
                 iconKey = "standard-gun",
                 tier = ChipTier.Magic,
                 level = 1,
-                count = 3,
-                requiredCount = 3,
+                count = 5,
+                requiredCount = 5,
                 enhanceCost = 500,
                 description = "Always equipped, even when it is not included in your deck.",
                 baseStatsSummary = "ATK <color=#FFCB49>53.13</color>\n<color=#FFCB49>Fast</color> ATK Speed",
@@ -455,7 +571,7 @@ public class ChipsetController : MonoBehaviour
                 tier = ChipTier.Magic,
                 level = 1,
                 count = 0,
-                requiredCount = 3,
+                requiredCount = 5,
                 enhanceCost = 500,
                 description = "Fires a rapid burst of bullets.",
                 baseStatsSummary = "ATK <color=#FFCB49>10.5</color>\n<color=#FFCB49>Fast</color> ATK Speed",
@@ -473,7 +589,7 @@ public class ChipsetController : MonoBehaviour
                 tier = ChipTier.Magic,
                 level = 1,
                 count = 0,
-                requiredCount = 3,
+                requiredCount = 5,
                 enhanceCost = 500,
                 description = "Launches a rocket-powered fist that deals area damage.",
                 baseStatsSummary = "ATK <color=#FFCB49>70</color> / AoE ATK <color=#FFCB49>37</color>\n<color=#FFCB49>Slow</color> ATK Speed",
@@ -491,7 +607,7 @@ public class ChipsetController : MonoBehaviour
                 tier = ChipTier.Magic,
                 level = 1,
                 count = 0,
-                requiredCount = 3,
+                requiredCount = 5,
                 enhanceCost = 500,
                 description = "Throws a spinning blade that pierces enemies and returns to the player.",
                 baseStatsSummary = "ATK <color=#FFCB49>36</color>\n<color=#FFCB49>Fast</color> ATK Speed",
@@ -509,7 +625,7 @@ public class ChipsetController : MonoBehaviour
                 tier = ChipTier.Magic,
                 level = 1,
                 count = 0,
-                requiredCount = 3,
+                requiredCount = 5,
                 enhanceCost = 500,
                 description = "Fires a rain of bullets in multiple directions at once.",
                 baseStatsSummary = "ATK <color=#FFCB49>19</color> | 4 shells\n<color=#FFCB49>Slow</color> ATK Speed",
@@ -527,7 +643,7 @@ public class ChipsetController : MonoBehaviour
                 tier = ChipTier.Magic,
                 level = 1,
                 count = 0,
-                requiredCount = 3,
+                requiredCount = 5,
                 enhanceCost = 500,
                 description = "Deploys a turret that fires standard rounds.",
                 baseStatsSummary = "ATK <color=#FFCB49>27</color> | Duration 14.4s | CD 8.4s\n<color=#FFCB49>Fast</color> ATK Speed",
@@ -545,7 +661,7 @@ public class ChipsetController : MonoBehaviour
                 tier = ChipTier.Magic,
                 level = 1,
                 count = 0,
-                requiredCount = 3,
+                requiredCount = 5,
                 enhanceCost = 500,
                 description = "Spins a spiky discus around the player to attack enemies.",
                 baseStatsSummary = "ATK <color=#FFCB49>30</color>\n<color=#FFCB49>Normal</color> Spin Speed",
@@ -563,7 +679,7 @@ public class ChipsetController : MonoBehaviour
                 tier = ChipTier.Magic,
                 level = 1,
                 count = 0,
-                requiredCount = 3,
+                requiredCount = 5,
                 enhanceCost = 500,
                 description = "Deals heavy damage to nearby enemies with multiple pellets.",
                 baseStatsSummary = "ATK <color=#FFCB49>86</color>\n<color=#FFCB49>Slow</color> ATK Speed",
@@ -581,7 +697,7 @@ public class ChipsetController : MonoBehaviour
                 tier = ChipTier.Magic,
                 level = 1,
                 count = 0,
-                requiredCount = 3,
+                requiredCount = 5,
                 enhanceCost = 500,
                 hasStar = false,
                 description = "Steals life from enemies.",
@@ -600,7 +716,7 @@ public class ChipsetController : MonoBehaviour
                 tier = ChipTier.Magic,
                 level = 1,
                 count = 0,
-                requiredCount = 3,
+                requiredCount = 5,
                 enhanceCost = 500,
                 description = "Periodically places powerful explosive mines on the ground.",
                 baseStatsSummary = "Mine AoE ATK <color=#FFCB49>27</color>\nCooldown: 5.55s",
@@ -741,7 +857,7 @@ public class ChipsetController : MonoBehaviour
         if (chipsetModeBtn != null) chipsetModeBtn.onClick.AddListener(() => ShowToast("Chipset Configuration Active"));
         if (highTechModeBtn != null) highTechModeBtn.onClick.AddListener(() => ShowToast("High-Tech Chipset unlocks at Chapter 10!"));
 
-        if (detailCloseBtn != null) detailCloseBtn.onClick.AddListener(() => detailModal.SetActive(false));
+        if (detailCloseBtn != null) detailCloseBtn.onClick.AddListener(CloseDetailModal);
         if (detailEnhanceBtn != null) detailEnhanceBtn.onClick.AddListener(EnhanceSelectedChip);
         if (detailAdvanceTierBtn != null) detailAdvanceTierBtn.onClick.AddListener(AdvanceTierSelectedChip);
         if (detailEquipBtn != null) detailEquipBtn.onClick.AddListener(ToggleEquipSelectedChip);
@@ -1173,7 +1289,7 @@ public class ChipsetController : MonoBehaviour
             if (detailCloseBtn != null)
             {
                 detailCloseBtn.onClick.RemoveAllListeners();
-                detailCloseBtn.onClick.AddListener(() => detailModal.SetActive(false));
+                detailCloseBtn.onClick.AddListener(CloseDetailModal);
             }
 
             if (detailEnhanceBtn == null)
@@ -1215,6 +1331,38 @@ public class ChipsetController : MonoBehaviour
             if (detailDescText == null) detailDescText = detailModal.transform.Find("ModalBox/Description")?.GetComponent<TMP_Text>() ?? detailModal.transform.Find("Box/Desc")?.GetComponent<TMP_Text>();
             if (detailBaseStatsText == null) detailBaseStatsText = detailModal.transform.Find("ModalBox/BaseStat")?.GetComponent<TMP_Text>() ?? detailModal.transform.Find("Box/BaseStats")?.GetComponent<TMP_Text>();
             if (detailModBadgeText == null) detailModBadgeText = detailModal.transform.Find("ModalBox/ModBadge/BadgeLabel")?.GetComponent<TMP_Text>();
+
+            if (perkRowIcons == null || perkRowIcons.Length < 4 || perkRowIcons.Any(img => img == null))
+            {
+                perkRowIcons = new Image[4];
+                for (int i = 0; i < 4; i++)
+                {
+                    Transform row = detailModal.transform.Find($"ModalBox/PerkRow_{i}")
+                                 ?? detailModal.transform.Find($"Box/PerkRow_{i}");
+                    if (row != null)
+                    {
+                        perkRowIcons[i] = row.Find("LockIcon")?.GetComponent<Image>()
+                                       ?? row.GetComponentInChildren<Image>();
+                    }
+                }
+            }
+
+            if (perkRowTexts == null || perkRowTexts.Length < 4 || perkRowTexts.Any(txt => txt == null))
+            {
+                perkRowTexts = new TMP_Text[4];
+                for (int i = 0; i < 4; i++)
+                {
+                    Transform row = detailModal.transform.Find($"ModalBox/PerkRow_{i}")
+                                 ?? detailModal.transform.Find($"Box/PerkRow_{i}");
+                    if (row != null)
+                    {
+                        perkRowTexts[i] = row.Find("PerkText")?.GetComponent<TMP_Text>()
+                                       ?? row.GetComponentInChildren<TMP_Text>();
+                    }
+                }
+            }
+
+            EnsureNoticeReferences();
         }
     }
 
@@ -1238,6 +1386,7 @@ public class ChipsetController : MonoBehaviour
     public void RefreshDetailModal()
     {
         if (selectedDetailChip == null) return;
+        EnsureLockTierSprites();
 
         // 1. Mod Badge
         if (detailModBadgeText != null)
@@ -1266,7 +1415,7 @@ public class ChipsetController : MonoBehaviour
         if (detailBaseStatsText != null) detailBaseStatsText.text = selectedDetailChip.baseStatsSummary;
 
         // 5. 4 Tier Perk Rows with color tags
-        string[] tierNames = { "Magic", "Rare", "Unique", "Epic" };
+        string[] tierNames = { "Rare", "Unique", "Epic", "Holo" };
         string[] tierColors = { "#38BDF8", "#C084FC", "#FACC15", "#FB7185" };
         string[] perkTexts = {
             selectedDetailChip.magicBonus,
@@ -1280,13 +1429,37 @@ public class ChipsetController : MonoBehaviour
             bool isUnlocked = IsTierPerkUnlocked(selectedDetailChip.tier, i);
             if (i < perkRowIcons.Length && perkRowIcons[i] != null)
             {
-                if (isUnlocked && unlockedCheckSprite != null)
+                if (isUnlocked)
                 {
-                    perkRowIcons[i].sprite = unlockedCheckSprite;
+                    if (i < unlockedTierSprites.Length && unlockedTierSprites[i] != null)
+                    {
+                        perkRowIcons[i].sprite = unlockedTierSprites[i];
+                    }
+                    else if (unlockedCheckSprite != null)
+                    {
+                        perkRowIcons[i].sprite = unlockedCheckSprite;
+                    }
+
+                    if (i == 3 && perkRowIcons[i].sprite != null)
+                    {
+                        perkRowIcons[i].material = ChipsetFrameShimmerMaterial.Get(perkRowIcons[i].sprite);
+                    }
+                    else
+                    {
+                        perkRowIcons[i].material = null;
+                    }
                 }
                 else if (i < lockTierSprites.Length && lockTierSprites[i] != null)
                 {
                     perkRowIcons[i].sprite = lockTierSprites[i];
+                    if (i == 3) // Row 3 is Red Lock (Holographic)
+                    {
+                        perkRowIcons[i].material = ChipsetFrameShimmerMaterial.Get(lockTierSprites[i]);
+                    }
+                    else
+                    {
+                        perkRowIcons[i].material = null;
+                    }
                 }
             }
 
@@ -1304,42 +1477,35 @@ public class ChipsetController : MonoBehaviour
         }
 
         // 6. Enhance Button
+        EnsureNoticeReferences();
+        bool isMaxEnhanceForFrame = selectedDetailChip.IsMaxEnhanceForCurrentFrame;
+        bool hasEnoughDataChips = ChipManager.HasEnoughDataChips(selectedDetailChip.enhanceCost);
+        bool canEnhance = !isMaxEnhanceForFrame && hasEnoughDataChips;
+
         if (detailEnhanceCostText != null)
         {
             detailEnhanceCostText.text = selectedDetailChip.tier < ChipTier.Holographic
                 ? $"{selectedDetailChip.enhanceCost}  ({selectedDetailChip.tierEnhanceCount}/{selectedDetailChip.RequiredTierEnhances})"
                 : $"{selectedDetailChip.enhanceCost}";
         }
-        if (detailEnhanceBtn != null)
-        {
-            detailEnhanceBtn.interactable = selectedDetailChip.CanEnhance;
-        }
+        SetButtonBrightness(detailEnhanceBtn, enhanceBtnCanvasGroup, canEnhance);
 
         // 7. Advance Tier Button
+        bool isMaxTier = selectedDetailChip.tier >= ChipTier.Holographic;
+        bool hasFragments = !isMaxTier && selectedDetailChip.count >= selectedDetailChip.CurrentAdvanceCost;
+
         if (detailAdvanceTierText != null)
         {
-            if (selectedDetailChip.tier >= ChipTier.Holographic)
+            if (isMaxTier)
             {
                 detailAdvanceTierText.text = "MAX TIER";
             }
-            else if (!selectedDetailChip.IsTierUnlockReady)
-            {
-                detailAdvanceTierText.text = $"Enhance {selectedDetailChip.tierEnhanceCount}/{selectedDetailChip.RequiredTierEnhances}";
-            }
-            else if (selectedDetailChip.UsesRedDataChipForAdvance)
-            {
-                detailAdvanceTierText.text = $"Advance RED ({ChipManager.RedGems}/{selectedDetailChip.CurrentAdvanceCost})";
-            }
             else
             {
-                ChipTier nextTier = (ChipTier)((int)selectedDetailChip.tier + 1);
-                detailAdvanceTierText.text = $"Advance {GetFrameColorName(nextTier)} ({selectedDetailChip.count}/{selectedDetailChip.CurrentAdvanceCost})";
+                detailAdvanceTierText.text = $"Advance Tier ({selectedDetailChip.count}/{selectedDetailChip.CurrentAdvanceCost})";
             }
         }
-        if (detailAdvanceTierBtn != null)
-        {
-            detailAdvanceTierBtn.interactable = selectedDetailChip.CanAdvanceTier;
-        }
+        SetButtonBrightness(detailAdvanceTierBtn, advanceTierBtnCanvasGroup, hasFragments);
 
         // 8. Equip / Unequip Button
         bool isEquipped = deckEquippedIds[activeDeckIndex].Contains(selectedDetailChip.id);
@@ -1352,14 +1518,22 @@ public class ChipsetController : MonoBehaviour
     private void EnhanceSelectedChip()
     {
         if (selectedDetailChip == null) return;
-        if (!selectedDetailChip.CanEnhance)
+        EnsureNoticeReferences();
+
+        // 1. Nếu enchan tối đa của khung hiện tại thì sẽ không hiện gì
+        if (selectedDetailChip.IsMaxEnhanceForCurrentFrame)
         {
-            ShowToast(selectedDetailChip.IsTierUnlockReady && selectedDetailChip.tier < ChipTier.Holographic
-                ? "Enhance requirement complete. Advance the chipset frame now!"
-                : "Not enough Data Chips to enhance!");
             return;
         }
 
+        // 2. Nếu ko đủ data chip thì hiện bảng ở hình 2
+        if (!ChipManager.HasEnoughDataChips(selectedDetailChip.enhanceCost))
+        {
+            ShowNotice(notEnoughChipsNotice);
+            return;
+        }
+
+        // 3. Đủ điều kiện: Nâng cấp!
         if (selectedDetailChip.Enhance())
         {
             SaveChipProgress(selectedDetailChip);
@@ -1367,6 +1541,7 @@ public class ChipsetController : MonoBehaviour
             RefreshEquippedGrid();
             RefreshInventory();
             RefreshDetailModal();
+            HideAllNoticesInstant();
             ShowToast($"Enhanced {selectedDetailChip.chipName} to LV.{selectedDetailChip.level:00}!");
         }
     }
@@ -1374,29 +1549,38 @@ public class ChipsetController : MonoBehaviour
     private void AdvanceTierSelectedChip()
     {
         if (selectedDetailChip == null) return;
+        EnsureNoticeReferences();
+
         if (selectedDetailChip.tier >= ChipTier.Holographic)
         {
-            ShowToast("This chipset has already unlocked the red frame!");
             return;
         }
+
+        // 1. Nếu ko đủ mảnh thì hiện bảng ở hình 1
+        if (selectedDetailChip.count < selectedDetailChip.CurrentAdvanceCost)
+        {
+            ShowNotice(notEnoughFragmentsNotice);
+            return;
+        }
+
+        // 2. Nếu chưa hoàn thành Enhance của khung hiện tại
         if (!selectedDetailChip.IsTierUnlockReady)
         {
             ShowToast($"Enhance {selectedDetailChip.RequiredTierEnhances} times before advancing this frame!");
             return;
         }
+
+        // 3. Nếu là Epic lên Holo cần thêm Red Gems
         if (!selectedDetailChip.HasAdvanceCurrency)
         {
-            ShowToast(selectedDetailChip.UsesRedDataChipForAdvance
-                ? "Not enough Red Data Chips to unlock the red frame!"
-                : "Not enough chipset fragments to unlock the next frame!");
-            return;
-        }
-        if (!selectedDetailChip.CanAdvanceTier)
-        {
-            ShowToast("This chipset frame cannot advance further!");
+            if (selectedDetailChip.tier == ChipTier.Epic)
+            {
+                ShowToast($"Need {selectedDetailChip.YellowToRedDataChipCost} Red Gems to advance!");
+            }
             return;
         }
 
+        // 4. Đủ mảnh và đủ điều kiện: Thăng bậc khung!
         if (selectedDetailChip.AdvanceTier())
         {
             SaveChipProgress(selectedDetailChip);
@@ -1404,6 +1588,7 @@ public class ChipsetController : MonoBehaviour
             RefreshEquippedGrid();
             RefreshInventory();
             RefreshDetailModal();
+            HideAllNoticesInstant();
             ShowToast($"Unlocked {GetFrameColorName(selectedDetailChip.tier)} frame for {selectedDetailChip.chipName}!");
         }
     }
@@ -1673,5 +1858,232 @@ public class ChipsetController : MonoBehaviour
     private void HideToast()
     {
         if (toastRoot != null) toastRoot.SetActive(false);
+    }
+
+    public void CloseDetailModal()
+    {
+        HideAllNoticesInstant();
+        if (detailModal != null) detailModal.SetActive(false);
+    }
+
+    public void SetButtonBrightness(Button btn, CanvasGroup cg, bool isBright)
+    {
+        if (btn == null) return;
+        btn.interactable = true; // Giữ true để người chơi click vẫn nhận diện sự kiện mở bảng thông báo
+
+        if (cg != null)
+        {
+            cg.alpha = isBright ? 1.0f : 0.48f;
+        }
+        else
+        {
+            Image img = btn.GetComponent<Image>();
+            if (img != null)
+            {
+                img.color = isBright ? Color.white : new Color(0.48f, 0.48f, 0.48f, 1f);
+            }
+        }
+    }
+
+    private Coroutine noticeDismissRoutine;
+
+    public void ShowNotice(GameObject noticeObj)
+    {
+        if (noticeObj == null) return;
+
+        EnsureNoticeReferences();
+
+        if (notEnoughFragmentsNotice != null && notEnoughFragmentsNotice != noticeObj)
+        {
+            notEnoughFragmentsNotice.SetActive(false);
+        }
+        if (notEnoughChipsNotice != null && notEnoughChipsNotice != noticeObj)
+        {
+            notEnoughChipsNotice.SetActive(false);
+        }
+
+        if (noticeDismissRoutine != null)
+        {
+            StopCoroutine(noticeDismissRoutine);
+            noticeDismissRoutine = null;
+        }
+
+        // Hiện bảng sắc nét ngay tức thì
+        UIDissolveController.ShowInstant(noticeObj);
+
+        // Tự động tắt sau 2 giây áp dụng hiệu ứng shader tan biến
+        noticeDismissRoutine = StartCoroutine(AutoDismissNoticeRoutine(noticeObj));
+    }
+
+    private IEnumerator AutoDismissNoticeRoutine(GameObject noticeObj)
+    {
+        yield return new WaitForSecondsRealtime(2.0f);
+        if (noticeObj != null && noticeObj.activeSelf)
+        {
+            UIDissolveController.HideWithEffect(noticeObj);
+        }
+        noticeDismissRoutine = null;
+    }
+
+    public void HideAllNoticesInstant()
+    {
+        if (noticeDismissRoutine != null)
+        {
+            StopCoroutine(noticeDismissRoutine);
+            noticeDismissRoutine = null;
+        }
+        if (notEnoughFragmentsNotice != null) notEnoughFragmentsNotice.SetActive(false);
+        if (notEnoughChipsNotice != null) notEnoughChipsNotice.SetActive(false);
+    }
+
+    public void EnsureNoticeReferences()
+    {
+        Transform boxParent = detailModal != null
+            ? detailModal.transform.Find("ModalBox") ?? detailModal.transform.Find("Box") ?? detailModal.transform
+            : null;
+
+        if (boxParent != null)
+        {
+            if (notEnoughFragmentsNotice == null)
+            {
+                Transform existing = boxParent.Find("NotEnoughFragmentsNotice");
+                if (existing != null)
+                {
+                    notEnoughFragmentsNotice = existing.gameObject;
+                }
+                else
+                {
+                    notEnoughFragmentsNotice = CreateNoticePanelRuntime(boxParent, "NotEnoughFragmentsNotice",
+                        "You need to collect more Chipsets.",
+                        "You can purchase Chipset Boxes at the\nShop.");
+                }
+            }
+
+            if (notEnoughChipsNotice == null)
+            {
+                Transform existing = boxParent.Find("NotEnoughChipsNotice");
+                if (existing != null)
+                {
+                    notEnoughChipsNotice = existing.gameObject;
+                }
+                else
+                {
+                    notEnoughChipsNotice = CreateNoticePanelRuntime(boxParent, "NotEnoughChipsNotice",
+                        "Not enough Data Chips",
+                        null);
+                }
+            }
+        }
+
+        if (enhanceBtnCanvasGroup == null && detailEnhanceBtn != null)
+        {
+            enhanceBtnCanvasGroup = detailEnhanceBtn.GetComponent<CanvasGroup>() ?? detailEnhanceBtn.gameObject.AddComponent<CanvasGroup>();
+        }
+
+        if (advanceTierBtnCanvasGroup == null && detailAdvanceTierBtn != null)
+        {
+            advanceTierBtnCanvasGroup = detailAdvanceTierBtn.GetComponent<CanvasGroup>() ?? detailAdvanceTierBtn.gameObject.AddComponent<CanvasGroup>();
+        }
+    }
+
+    private GameObject CreateNoticePanelRuntime(Transform parent, string name, string line1, string line2)
+    {
+        GameObject root = new GameObject(name, typeof(RectTransform));
+        root.layer = LayerMask.NameToLayer("UI");
+        RectTransform rootRt = root.GetComponent<RectTransform>();
+        rootRt.SetParent(parent, false);
+        rootRt.anchorMin = new Vector2(0.5f, 0.54f);
+        rootRt.anchorMax = new Vector2(0.5f, 0.54f);
+        rootRt.pivot = new Vector2(0.5f, 0.5f);
+        rootRt.anchoredPosition = Vector2.zero;
+        rootRt.sizeDelta = new Vector2(830f, 270f);
+
+        Image borderImg = root.AddComponent<Image>();
+        borderImg.color = new Color32(64, 218, 210, 255);
+        borderImg.raycastTarget = false;
+
+        Shadow shadow = root.AddComponent<Shadow>();
+        shadow.effectColor = new Color32(0, 14, 24, 210);
+        shadow.effectDistance = new Vector2(7f, -8f);
+        shadow.useGraphicAlpha = true;
+
+        GameObject bgObj = new GameObject("Background", typeof(RectTransform));
+        bgObj.layer = LayerMask.NameToLayer("UI");
+        RectTransform bgRt = bgObj.GetComponent<RectTransform>();
+        bgRt.SetParent(rootRt, false);
+        bgRt.anchorMin = Vector2.zero;
+        bgRt.anchorMax = Vector2.one;
+        bgRt.pivot = new Vector2(0.5f, 0.5f);
+        bgRt.offsetMin = new Vector2(6f, 6f);
+        bgRt.offsetMax = new Vector2(-6f, -6f);
+        Image bgImg = bgObj.AddComponent<Image>();
+        bgImg.color = new Color32(11, 40, 56, 252);
+        bgImg.raycastTarget = false;
+
+        if (string.IsNullOrEmpty(line2))
+        {
+            GameObject textObj = new GameObject("Text", typeof(RectTransform));
+            textObj.layer = LayerMask.NameToLayer("UI");
+            RectTransform textRt = textObj.GetComponent<RectTransform>();
+            textRt.SetParent(rootRt, false);
+            textRt.anchorMin = Vector2.zero;
+            textRt.anchorMax = Vector2.one;
+            textRt.offsetMin = new Vector2(20f, 20f);
+            textRt.offsetMax = new Vector2(-20f, -20f);
+
+            TMP_Text txt = textObj.AddComponent<TextMeshProUGUI>();
+            txt.text = line1;
+            txt.fontSize = 36f;
+            txt.color = Color.white;
+            txt.fontStyle = FontStyles.Bold;
+            txt.alignment = TextAlignmentOptions.Center;
+            txt.outlineColor = Color.black;
+            txt.outlineWidth = 0.25f;
+            txt.raycastTarget = false;
+        }
+        else
+        {
+            GameObject line1Obj = new GameObject("Line1", typeof(RectTransform));
+            line1Obj.layer = LayerMask.NameToLayer("UI");
+            RectTransform line1Rt = line1Obj.GetComponent<RectTransform>();
+            line1Rt.SetParent(rootRt, false);
+            line1Rt.anchorMin = new Vector2(0f, 0.50f);
+            line1Rt.anchorMax = new Vector2(1f, 0.95f);
+            line1Rt.offsetMin = new Vector2(20f, 0f);
+            line1Rt.offsetMax = new Vector2(-20f, 0f);
+
+            TMP_Text txt1 = line1Obj.AddComponent<TextMeshProUGUI>();
+            txt1.text = line1;
+            txt1.fontSize = 32f;
+            txt1.color = Color.white;
+            txt1.fontStyle = FontStyles.Bold;
+            txt1.alignment = TextAlignmentOptions.Center;
+            txt1.outlineColor = Color.black;
+            txt1.outlineWidth = 0.25f;
+            txt1.raycastTarget = false;
+
+            GameObject line2Obj = new GameObject("Line2", typeof(RectTransform));
+            line2Obj.layer = LayerMask.NameToLayer("UI");
+            RectTransform line2Rt = line2Obj.GetComponent<RectTransform>();
+            line2Rt.SetParent(rootRt, false);
+            line2Rt.anchorMin = new Vector2(0f, 0.08f);
+            line2Rt.anchorMax = new Vector2(1f, 0.52f);
+            line2Rt.offsetMin = new Vector2(20f, 0f);
+            line2Rt.offsetMax = new Vector2(-20f, 0f);
+
+            TMP_Text txt2 = line2Obj.AddComponent<TextMeshProUGUI>();
+            txt2.text = line2;
+            txt2.fontSize = 26f;
+            txt2.color = new Color32(254, 209, 66, 255);
+            txt2.fontStyle = FontStyles.Bold;
+            txt2.alignment = TextAlignmentOptions.Center;
+            txt2.outlineColor = Color.black;
+            txt2.outlineWidth = 0.25f;
+            txt2.raycastTarget = false;
+        }
+
+        root.AddComponent<UIDissolveController>();
+        root.SetActive(false);
+        return root;
     }
 }

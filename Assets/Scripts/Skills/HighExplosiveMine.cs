@@ -29,6 +29,8 @@ public class HighExplosiveMine : MonoBehaviour, IPoolable
     private bool isArmed = false;
     private bool hasExploded = false;
     private float lifeTimer;
+    private Vector3 baseScale = Vector3.one;
+    private Coroutine activeRoutine;
     private readonly Collider2D[] hitBuffer = new Collider2D[64];
 
     public int Damage => damage;
@@ -36,6 +38,8 @@ public class HighExplosiveMine : MonoBehaviour, IPoolable
 
     private void Awake()
     {
+        baseScale = transform.localScale != Vector3.zero ? transform.localScale : Vector3.one;
+
         if (explosionVfxPrefab == null)
         {
             explosionVfxPrefab = Resources.Load<GameObject>("Prefabs/VFX Boom");
@@ -54,13 +58,28 @@ public class HighExplosiveMine : MonoBehaviour, IPoolable
         hasExploded = false;
         lifeTimer = maxLifeTime;
 
+        if (activeRoutine != null)
+        {
+            StopCoroutine(activeRoutine);
+            activeRoutine = null;
+        }
+
         if (isSubMine)
         {
-            StartCoroutine(SubMineFuseRoutine());
+            activeRoutine = StartCoroutine(SubMineFuseRoutine());
         }
         else
         {
-            StartCoroutine(ArmingRoutine());
+            activeRoutine = StartCoroutine(ArmingRoutine());
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (activeRoutine != null)
+        {
+            StopCoroutine(activeRoutine);
+            activeRoutine = null;
         }
     }
 
@@ -100,6 +119,10 @@ public class HighExplosiveMine : MonoBehaviour, IPoolable
         slowDuration = slowDur;
         canSpawnSubMines = spawnSubMinesOnDeath;
         isSubMine = false;
+        if (baseScale != Vector3.zero)
+        {
+            transform.localScale = baseScale;
+        }
 
         if (explosionVfx != null) explosionVfxPrefab = explosionVfx;
         if (subPrefab != null) subMinePrefab = subPrefab;
@@ -120,6 +143,16 @@ public class HighExplosiveMine : MonoBehaviour, IPoolable
         subMineFuseTime = fuseTime;
 
         if (explosionVfx != null) explosionVfxPrefab = explosionVfx;
+
+        // Kích hoạt ngay ngòi nổ hẹn giờ cho mìn con
+        if (activeRoutine != null)
+        {
+            StopCoroutine(activeRoutine);
+        }
+        if (gameObject.activeInHierarchy)
+        {
+            activeRoutine = StartCoroutine(SubMineFuseRoutine());
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -229,8 +262,9 @@ public class HighExplosiveMine : MonoBehaviour, IPoolable
 
             if (subObj != null)
             {
-                // Thu nhỏ kích thước mìn con
-                subObj.transform.localScale = transform.localScale * 0.75f;
+                // Thu nhỏ kích thước mìn con dựa trên baseScale để không bị nhân dồn khi tái sử dụng Pool
+                Vector3 targetScale = (baseScale != Vector3.zero ? baseScale : Vector3.one) * 0.75f;
+                subObj.transform.localScale = targetScale;
                 HighExplosiveMine subMineScript = subObj.GetComponent<HighExplosiveMine>();
                 if (subMineScript != null)
                 {
@@ -262,13 +296,26 @@ public class HighExplosiveMine : MonoBehaviour, IPoolable
         isArmed = false;
         hasExploded = false;
         lifeTimer = maxLifeTime;
+        if (baseScale != Vector3.zero)
+        {
+            transform.localScale = baseScale;
+        }
     }
 
     public void OnReturnToPool()
     {
+        if (activeRoutine != null)
+        {
+            StopCoroutine(activeRoutine);
+            activeRoutine = null;
+        }
         isArmed = false;
         hasExploded = false;
         canSpawnSubMines = false;
         isSubMine = false;
+        if (baseScale != Vector3.zero)
+        {
+            transform.localScale = baseScale;
+        }
     }
 }

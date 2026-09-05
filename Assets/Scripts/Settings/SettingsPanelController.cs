@@ -8,7 +8,7 @@ using PGE.Auth;
 /// Màn Settings phong cách pixel/tech được tạo theo Canvas hiện tại.
 /// Panel chỉ phủ vùng nội dung để TopBar và BottomNavigation vẫn hiển thị.
 /// </summary>
-public class SettingsPanelController : MonoBehaviour
+public class SettingsPanelController : MonoBehaviour, IPointerClickHandler
 {
     private static readonly Color32 PageColor = new Color32(7, 59, 82, 252);
     private static readonly Color32 CardColor = new Color32(18, 67, 82, 255);
@@ -127,7 +127,7 @@ public class SettingsPanelController : MonoBehaviour
 
     public void Open()
     {
-        gameObject.SetActive(true);
+        UIDissolveController.ShowInstant(gameObject);
         transform.SetAsLastSibling();
         AutoWireReferencesIfMissing();
         ApplyLayoutForCurrentScene();
@@ -141,8 +141,28 @@ public class SettingsPanelController : MonoBehaviour
 
     public void Close()
     {
-        if (languageOptionsPanel != null) languageOptionsPanel.SetActive(false);
-        gameObject.SetActive(false);
+        if (languageOptionsPanel != null && languageOptionsPanel.activeSelf)
+        {
+            // Parent đang tan toàn bộ nên không chạy coroutine con (coroutine con sẽ bị
+            // dừng giữa chừng khi parent tắt và làm bảng ngôn ngữ hiện sai ở lần mở sau).
+            UIDissolveController languageDissolve = languageOptionsPanel.GetComponent<UIDissolveController>();
+            if (languageDissolve != null) languageDissolve.HideInstant();
+            else languageOptionsPanel.SetActive(false);
+        }
+        UIDissolveController.HideWithEffect(gameObject);
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        // Button tự nhận PointerClick nên callback này chỉ chạy khi người chơi
+        // bấm vào phần nền/không gian trống của Settings hoặc bảng ngôn ngữ.
+        if (languageOptionsPanel != null && languageOptionsPanel.activeSelf)
+        {
+            UIDissolveController.HideWithEffect(languageOptionsPanel);
+            return;
+        }
+
+        Close();
     }
 
     public void BindButtonListeners()
@@ -721,15 +741,21 @@ public class SettingsPanelController : MonoBehaviour
         EnsureLanguageOptionsPanel();
         if (languageOptionsPanel == null) return;
 
-        languageOptionsPanel.SetActive(!languageOptionsPanel.activeSelf);
-        if (languageOptionsPanel.activeSelf) languageOptionsPanel.transform.SetAsLastSibling();
+        if (languageOptionsPanel.activeSelf)
+        {
+            UIDissolveController.HideWithEffect(languageOptionsPanel);
+            return;
+        }
+
+        UIDissolveController.ShowInstant(languageOptionsPanel);
+        languageOptionsPanel.transform.SetAsLastSibling();
     }
 
     public void SelectLanguage(string language)
     {
         GameSettings.Language = language;
         PGEGameLocalization.ApplySavedLanguage();
-        if (languageOptionsPanel != null) languageOptionsPanel.SetActive(false);
+        if (languageOptionsPanel != null) UIDissolveController.HideWithEffect(languageOptionsPanel);
         RefreshLabels();
     }
 
@@ -741,7 +767,13 @@ public class SettingsPanelController : MonoBehaviour
             if (existing != null) languageOptionsPanel = existing.gameObject;
         }
 
-        if (languageOptionsPanel != null || languageButton == null) return;
+        if (languageOptionsPanel != null)
+        {
+            EnsureLanguagePanelBlocksClicks();
+            BindLanguageOptionButtons();
+            return;
+        }
+        if (languageButton == null) return;
 
         Transform parent = languageButton.transform.parent;
         TMP_FontAsset font = languageText != null ? languageText.font : FindFont(GetComponent<RectTransform>());
@@ -766,11 +798,43 @@ public class SettingsPanelController : MonoBehaviour
                 30f,
                 font,
                 out _);
-            option.onClick.AddListener(() => SelectLanguage(language));
         }
 
         languageOptionsPanel.transform.SetAsLastSibling();
+        EnsureLanguagePanelBlocksClicks();
+        BindLanguageOptionButtons();
         languageOptionsPanel.SetActive(false);
+    }
+
+    private void BindLanguageOptionButtons()
+    {
+        if (languageOptionsPanel == null) return;
+
+        foreach (string language in GameSettings.SupportedLanguages)
+        {
+            Transform optionTransform = languageOptionsPanel.transform.Find(language + "Button");
+            UnityEngine.UI.Button option = optionTransform != null
+                ? optionTransform.GetComponent<UnityEngine.UI.Button>()
+                : null;
+            if (option == null) continue;
+
+            string selectedLanguage = language;
+            option.onClick.RemoveAllListeners();
+            option.onClick.AddListener(() => SelectLanguage(selectedLanguage));
+        }
+    }
+
+    private void EnsureLanguagePanelBlocksClicks()
+    {
+        if (languageOptionsPanel == null) return;
+
+        UnityEngine.UI.Image panelImage = languageOptionsPanel.GetComponent<UnityEngine.UI.Image>();
+        if (panelImage != null)
+        {
+            // Chặn các nút Settings nằm phía sau. Click vào khoảng trống sẽ nổi
+            // lên SettingsPanelController.OnPointerClick và chỉ đóng bảng ngôn ngữ.
+            panelImage.raycastTarget = true;
+        }
     }
 
     private T FindMatchingComponent<T>(params string[] possibleNames) where T : Component

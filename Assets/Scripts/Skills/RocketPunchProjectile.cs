@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -79,6 +80,7 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
 
     private Transform currentTargetEnemy;
     private PlayerAutoShooter sharedTargetProvider;
+    private readonly HashSet<int> hitEnemiesInExplosion = new HashSet<int>();
 
     public RocketPunchState State => state;
 
@@ -382,6 +384,7 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
             }
         }
 
+        hitEnemiesInExplosion.Clear();
         Collider2D[] colliders = Physics2D.OverlapCircleAll(explosionPos, aoeRadius);
         for (int i = 0; i < colliders.Length; i++)
         {
@@ -391,6 +394,12 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
             EnemyHealth enemy = col.GetComponentInParent<EnemyHealth>();
             if (enemy != null && !enemy.IsDead && enemy.gameObject.activeInHierarchy)
             {
+                int enemyId = enemy.GetInstanceID();
+                if (!hitEnemiesInExplosion.Add(enemyId))
+                {
+                    continue;
+                }
+
                 enemy.TakeDamage(aoeDamage);
                 ChipsetBattleStats.RecordDamage(3, aoeDamage);
 
@@ -482,6 +491,7 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
         currentTargetEnemy = null;
         sharedTargetProvider = null;
         onPunchLaunchedOrDespawned = null;
+        hitEnemiesInExplosion.Clear();
         if (trailRenderer != null)
         {
             trailRenderer.Clear();

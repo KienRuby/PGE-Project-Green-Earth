@@ -15,6 +15,26 @@ public class ChipsetLevelUpPopup : MonoBehaviour
     public const int MaxRuntimeChipLevel = 5;
     private const int PrimaryChipsetCount = 10;
 
+    [Serializable]
+    public class RuntimeEquippedChipEntry
+    {
+        public int id;
+        public string name;
+        public string iconKey;
+        public int level = 1;
+        public ChipTier tier = ChipTier.Magic;
+        public Sprite iconSprite;
+        public Sprite frameSprite;
+    }
+
+    private static readonly Dictionary<int, RuntimeEquippedChipEntry> equippedRuntimeChips = new Dictionary<int, RuntimeEquippedChipEntry>();
+    public static IReadOnlyDictionary<int, RuntimeEquippedChipEntry> EquippedRuntimeChips => equippedRuntimeChips;
+
+    public static void ResetEquippedRuntimeChipsForTesting()
+    {
+        equippedRuntimeChips.Clear();
+    }
+
     [Header("Gameplay")]
     [SerializeField] private PlayerLevelController playerLevelController;
     [SerializeField, Min(1)] private int choicesPerLevel = 4;
@@ -89,6 +109,27 @@ public class ChipsetLevelUpPopup : MonoBehaviour
         }
 
         if (popupRoot != null) popupRoot.SetActive(false);
+
+        RegisterStartingChipset();
+    }
+
+    private void RegisterStartingChipset()
+    {
+        if (!equippedRuntimeChips.ContainsKey(1))
+        {
+            Sprite gunIcon = GetIconSprite(1, "standard-gun");
+            Sprite leverFrame = GetGameplayLeverFrameSprite(ChipTier.Magic);
+            equippedRuntimeChips[1] = new RuntimeEquippedChipEntry
+            {
+                id = 1,
+                name = "Standard Gun",
+                iconKey = "standard-gun",
+                level = 1,
+                tier = ChipTier.Magic,
+                iconSprite = gunIcon,
+                frameSprite = leverFrame
+            };
+        }
     }
 
     private void Start()
@@ -218,7 +259,7 @@ public class ChipsetLevelUpPopup : MonoBehaviour
 
             card.Setup(
                 offer,
-                GetIconSprite(offer.iconKey),
+                GetIconSprite(offer.id, offer.iconKey),
                 GetGameplayLeverFrameSprite(offer.tier),
                 GetLevelPipSprites(),
                 currentRuntimeLevel,
@@ -300,6 +341,21 @@ public class ChipsetLevelUpPopup : MonoBehaviour
         SetCardInteraction(false);
         int newLevel = UpgradeRuntimeChipset(selected.id);
         selected.level = newLevel;
+
+        Sprite icon = GetIconSprite(selected.id, selected.iconKey);
+        Sprite frame = GetGameplayLeverFrameSprite(selected.tier);
+
+        equippedRuntimeChips[selected.id] = new RuntimeEquippedChipEntry
+        {
+            id = selected.id,
+            name = selected.chipName,
+            iconKey = selected.iconKey,
+            level = newLevel,
+            tier = selected.tier,
+            iconSprite = icon,
+            frameSprite = frame
+        };
+
         OnRuntimeChipsetSelected?.Invoke(selected.Clone(), newLevel);
 
         if (transitionRoutine != null) StopCoroutine(transitionRoutine);
@@ -425,48 +481,86 @@ public class ChipsetLevelUpPopup : MonoBehaviour
 
     private Sprite GetIconSprite(string key)
     {
+        return GetIconSprite(0, key);
+    }
+
+    private Sprite GetIconSprite(int chipId, string key)
+    {
         Sprite[] availableIcons = visualLibrary != null && visualLibrary.primaryChipIcons != null && visualLibrary.primaryChipIcons.Length > 0
             ? visualLibrary.primaryChipIcons
             : chipIcons;
-        return FindMatchingIcon(availableIcons, key);
+        return FindMatchingIcon(availableIcons, chipId, key);
+    }
+
+    public static Sprite FindMatchingIcon(Sprite[] availableIcons, int chipId, string key)
+    {
+        if (availableIcons == null || availableIcons.Length == 0) return null;
+
+        int targetId = chipId;
+        if (targetId < 1 || targetId > PrimaryChipsetCount)
+        {
+            targetId = ResolveChipIdFromKey(key);
+        }
+
+        // 1. Direct 1-based index mapping if availableIcons has >= targetId items
+        if (targetId >= 1 && targetId <= availableIcons.Length && availableIcons[targetId - 1] != null)
+        {
+            return availableIcons[targetId - 1];
+        }
+
+        // 2. Bilingual name / slug / alias matching
+        if (!string.IsNullOrWhiteSpace(key))
+        {
+            string cleanKey = NormalizeSpriteName(key);
+            Sprite match = availableIcons.FirstOrDefault(sprite => sprite != null && (
+                string.Equals(sprite.name, key, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(NormalizeSpriteName(sprite.name), cleanKey, StringComparison.Ordinal) ||
+                NormalizeSpriteName(sprite.name).StartsWith(cleanKey, StringComparison.Ordinal) ||
+                cleanKey.StartsWith(NormalizeSpriteName(sprite.name), StringComparison.Ordinal) ||
+                NormalizeSpriteName(sprite.name).Contains(cleanKey)
+            ));
+            if (match != null) return match;
+        }
+
+        return availableIcons.FirstOrDefault(s => s != null);
     }
 
     public static Sprite FindMatchingIcon(Sprite[] availableIcons, string key)
     {
-        if (availableIcons == null || availableIcons.Length == 0) return null;
-        if (string.IsNullOrWhiteSpace(key)) return availableIcons.FirstOrDefault(sprite => sprite != null);
+        return FindMatchingIcon(availableIcons, 0, key);
+    }
 
-        string cleanKey = NormalizeSpriteName(key);
+    public static int ResolveChipIdFromKey(string key)
+    {
+        if (string.IsNullOrWhiteSpace(key)) return 0;
+        string clean = NormalizeSpriteName(key);
 
-        // The source atlas uses bilingual names such as "Rifle (Súng Trường)", while
-        // gameplay keys are short slugs such as "rifle". Match the normalized prefix too.
-        Sprite match = availableIcons.FirstOrDefault(sprite => sprite != null && (
-            string.Equals(sprite.name, key, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(NormalizeSpriteName(sprite.name), cleanKey, StringComparison.Ordinal) ||
-            NormalizeSpriteName(sprite.name).StartsWith(cleanKey, StringComparison.Ordinal)
-        ));
-        if (match != null) return match;
-
-        // 2. Numeric sub-sprite mapping for icon chipset (1..10)
-        string numKey = null;
-        if (cleanKey.Contains("highexplosive") || cleanKey.Contains("mine") && !cleanKey.Contains("blackhole") && !cleanKey.Contains("biochemical")) numKey = "1";
-        else if (cleanKey.Contains("energyjumper") || cleanKey.Contains("jumpercable")) numKey = "2";
-        else if (cleanKey.Contains("shotgun")) numKey = "3";
-        else if (cleanKey.Contains("spiky") || cleanKey.Contains("discus") || cleanKey.Contains("spicky")) numKey = "4";
-        else if (cleanKey.Contains("gunturret") || cleanKey.Equals("turret")) numKey = "5";
-        else if (cleanKey.Contains("multigun")) numKey = "6";
-        else if (cleanKey.Contains("spinningblade") || cleanKey.Contains("blade")) numKey = "7";
-        else if (cleanKey.Contains("rocketpunch") || cleanKey.Contains("punch")) numKey = "8";
-        else if (cleanKey.Contains("standardgun") || cleanKey.Equals("gun") || cleanKey.Equals("pistol")) numKey = "9";
-        else if (cleanKey.Contains("rifle") || cleanKey.Contains("assault")) numKey = "10";
-
-        if (!string.IsNullOrEmpty(numKey))
+        if (int.TryParse(clean, out int parsedNum) && parsedNum >= 1 && parsedNum <= PrimaryChipsetCount)
         {
-            match = availableIcons.FirstOrDefault(s => s != null && s.name == numKey);
-            if (match != null) return match;
+            return parsedNum;
         }
 
-        return availableIcons[0];
+        if (clean.StartsWith("chipset"))
+        {
+            string suffix = clean.Substring(7);
+            if (int.TryParse(suffix, out int cIdx) && cIdx >= 0 && cIdx < PrimaryChipsetCount)
+            {
+                return cIdx + 1;
+            }
+        }
+
+        if (clean.Contains("standard") || clean.Equals("gun") || clean.Equals("pistol") || clean.Contains("tieuchuan")) return 1;
+        if (clean.Contains("rifle") || clean.Contains("truong") || clean.Contains("assault")) return 2;
+        if (clean.Contains("rocket") || clean.Contains("punch") || clean.Contains("tenlua") || clean.Contains("dam")) return 3;
+        if (clean.Contains("blade") || clean.Contains("spinning") || clean.Contains("xoay") || clean.Contains("luoidao")) return 4;
+        if (clean.Contains("multigun") || clean.Contains("multi") || clean.Contains("datia")) return 5;
+        if (clean.Contains("turret") || clean.Contains("thapsung")) return 6;
+        if (clean.Contains("discus") || clean.Contains("spiky") || clean.Contains("spicky") || clean.Contains("diagai")) return 7;
+        if (clean.Contains("shotgun") || clean.Contains("sungsan")) return 8;
+        if (clean.Contains("jumper") || clean.Contains("cable") || clean.Contains("hoimau")) return 9;
+        if (clean.Contains("mine") || clean.Contains("explosive") || clean.Contains("minno")) return 10;
+
+        return 0;
     }
 
     private static string NormalizeSpriteName(string value)

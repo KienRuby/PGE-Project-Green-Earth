@@ -263,7 +263,10 @@ public class PauseModalTests
         Assert.That(pauseCtrl.RuntimeEquippedChips.Count, Is.GreaterThanOrEqualTo(1));
         Assert.That(pauseCtrl.RuntimeEquippedChips[0].id, Is.EqualTo(1));
         Assert.That(pauseCtrl.RuntimeEquippedChips[0].level, Is.EqualTo(1));
-        Assert.That(label.text, Is.EqualTo("LV.01"));
+        Transform migratedFrame = cardTemplate.transform.Find("IconFrameAssetSlot");
+        Assert.That(migratedFrame, Is.Not.Null);
+        Assert.That(migratedFrame.Find("ChipIcon"), Is.Not.Null);
+        Assert.That(lvlBadge.activeSelf, Is.False, "Badge chữ cũ phải ẩn khi dùng level pips của khung chipset.");
 
         Object.DestroyImmediate(root);
     }
@@ -312,15 +315,16 @@ public class PauseModalTests
         GameObject rifleCard = pauseCtrl.SpawnedChipCards[0];
         Assert.That(rifleCard.activeSelf, Is.True);
 
-        TMPro.TMP_Text badgeText = rifleCard.transform.Find("LvlBadge")?.GetComponentInChildren<TMPro.TMP_Text>();
-        Assert.That(badgeText, Is.Not.Null);
-        Assert.That(badgeText.text, Is.EqualTo("LV.01"));
+        Transform rifleFrame = rifleCard.transform.Find("IconFrameAssetSlot");
+        Assert.That(rifleFrame, Is.Not.Null);
+        Assert.That(rifleFrame.Find("ChipIcon"), Is.Not.Null);
+        Assert.That(rifleFrame.Find("RuntimeLevelPip_1"), Is.Not.Null);
 
         // Player picks Rifle again to upgrade to LV.02
         pauseCtrl.RegisterOrUpdateRuntimeChip(2, "Rifle", "rifle", 2, ChipTier.Magic);
         pauseCtrl.RefreshEquippedChips();
 
-        Assert.That(badgeText.text, Is.EqualTo("LV.02"));
+        Assert.That(pauseCtrl.RuntimeEquippedChips[1].level, Is.EqualTo(2));
 
         Object.DestroyImmediate(root);
     }
@@ -374,5 +378,132 @@ public class PauseModalTests
 
         Object.DestroyImmediate(root);
     }
-}
 
+    [Test]
+    public void PauseModalController_EquippedChipsets_RetainsDistinctIconsAndTierFramesFromLevelUp()
+    {
+        GameObject root = new GameObject("PauseModalRoot", typeof(RectTransform));
+        GameObject chipPanel = new GameObject("ChipsetPanel", typeof(RectTransform));
+        chipPanel.transform.SetParent(root.transform);
+
+        GameObject cardTemplate = new GameObject("EquippedChipCard", typeof(RectTransform), typeof(Image));
+        cardTemplate.transform.SetParent(chipPanel.transform);
+
+        GameObject iconFrame = new GameObject("IconFrame", typeof(RectTransform), typeof(Image));
+        iconFrame.transform.SetParent(cardTemplate.transform);
+        Image frameImg = iconFrame.GetComponent<Image>();
+
+        GameObject gunIcon = new GameObject("GunIcon", typeof(RectTransform), typeof(Image));
+        gunIcon.transform.SetParent(cardTemplate.transform);
+        Image iconImg = gunIcon.GetComponent<Image>();
+
+        GameObject lvlBadge = new GameObject("LvlBadge", typeof(RectTransform), typeof(Image));
+        lvlBadge.transform.SetParent(cardTemplate.transform);
+        GameObject labelObj = new GameObject("Label", typeof(RectTransform));
+        labelObj.transform.SetParent(lvlBadge.transform);
+        labelObj.AddComponent<TMPro.TextMeshProUGUI>();
+
+        PauseModalController pauseCtrl = root.AddComponent<PauseModalController>();
+        pauseCtrl.ResetRuntimeEquippedChipsForTesting();
+        pauseCtrl.SetReferencesForTesting(
+            root, null, null, null, null, null,
+            null, chipPanel, null,
+            null, null, null,
+            null, null, null,
+            null, null, null
+        );
+        pauseCtrl.SetChipsetCardTemplateForTesting(cardTemplate);
+
+        // Create distinct dummy sprites
+        Sprite gunIconSprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 1, 1), Vector2.zero);
+        gunIconSprite.name = "StandardGunIcon";
+        Sprite rifleIconSprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 1, 1), Vector2.zero);
+        rifleIconSprite.name = "RifleIcon";
+        Sprite shotgunIconSprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 1, 1), Vector2.zero);
+        shotgunIconSprite.name = "ShotgunIcon";
+
+        Sprite magicFrameSprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 1, 1), Vector2.zero);
+        magicFrameSprite.name = "MagicFrame";
+        Sprite rareFrameSprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 1, 1), Vector2.zero);
+        rareFrameSprite.name = "RareFrame";
+        Sprite uniqueFrameSprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 1, 1), Vector2.zero);
+        uniqueFrameSprite.name = "UniqueFrame";
+
+        // Register 3 chips with custom icons and frames (representing choice from Level Up)
+        pauseCtrl.RegisterOrUpdateRuntimeChip(1, "Standard Gun", "standard-gun", 1, ChipTier.Magic, gunIconSprite, magicFrameSprite);
+        pauseCtrl.RegisterOrUpdateRuntimeChip(2, "Rifle", "rifle", 2, ChipTier.Rare, rifleIconSprite, rareFrameSprite);
+        pauseCtrl.RegisterOrUpdateRuntimeChip(8, "Shotgun", "shotgun", 1, ChipTier.Unique, shotgunIconSprite, uniqueFrameSprite);
+
+        pauseCtrl.SelectMainTab(1);
+
+        // Slot 0 (Standard Gun)
+        Assert.That(pauseCtrl.RuntimeEquippedChips[0].cachedIconSprite, Is.EqualTo(gunIconSprite));
+        Assert.That(pauseCtrl.RuntimeEquippedChips[0].cachedFrameSprite, Is.EqualTo(magicFrameSprite));
+        Assert.That(frameImg.sprite, Is.EqualTo(magicFrameSprite));
+        Assert.That(iconImg.sprite, Is.EqualTo(gunIconSprite));
+
+        // Slot 1 (Rifle)
+        Assert.That(pauseCtrl.SpawnedChipCards.Count, Is.GreaterThanOrEqualTo(2));
+        GameObject card1 = pauseCtrl.SpawnedChipCards[0];
+        Image card1Frame = card1.transform.Find("IconFrameAssetSlot")?.GetComponent<Image>();
+        Image card1Icon = card1.transform.Find("IconFrameAssetSlot/ChipIcon")?.GetComponent<Image>();
+        Assert.That(card1Frame, Is.Not.Null);
+        Assert.That(card1Icon, Is.Not.Null);
+        Assert.That(card1Frame.sprite, Is.EqualTo(rareFrameSprite));
+        Assert.That(card1Icon.sprite, Is.EqualTo(rifleIconSprite));
+
+        // Slot 2 (Shotgun)
+        GameObject card2 = pauseCtrl.SpawnedChipCards[1];
+        Image card2Frame = card2.transform.Find("IconFrameAssetSlot")?.GetComponent<Image>();
+        Image card2Icon = card2.transform.Find("IconFrameAssetSlot/ChipIcon")?.GetComponent<Image>();
+        Assert.That(card2Frame, Is.Not.Null);
+        Assert.That(card2Icon, Is.Not.Null);
+        Assert.That(card2Frame.sprite, Is.EqualTo(uniqueFrameSprite));
+        Assert.That(card2Icon.sprite, Is.EqualTo(shotgunIconSprite));
+
+        Assert.That(card2Icon.rectTransform.rect.width, Is.LessThan(card2Frame.rectTransform.rect.width));
+        Assert.That(card2Icon.rectTransform.rect.height, Is.LessThan(card2Frame.rectTransform.rect.height));
+
+        Object.DestroyImmediate(root);
+        Object.DestroyImmediate(gunIconSprite);
+        Object.DestroyImmediate(rifleIconSprite);
+        Object.DestroyImmediate(shotgunIconSprite);
+        Object.DestroyImmediate(magicFrameSprite);
+        Object.DestroyImmediate(rareFrameSprite);
+        Object.DestroyImmediate(uniqueFrameSprite);
+    }
+
+    [Test]
+    public void PauseModalController_ChipIcon_MatchesTargetTransform()
+    {
+        GameObject root = new GameObject("PauseModalRoot");
+        PauseModalController pauseCtrl = root.AddComponent<PauseModalController>();
+
+        GameObject chipPanel = new GameObject("ChipsetPanel");
+        chipPanel.transform.SetParent(root.transform);
+
+        GameObject cardTemplate = new GameObject("EquippedChipCard", typeof(RectTransform), typeof(Image));
+        cardTemplate.transform.SetParent(chipPanel.transform);
+
+        pauseCtrl.SetChipsetCardTemplateForTesting(cardTemplate);
+
+        pauseCtrl.RegisterOrUpdateRuntimeChip(1, "Standard Gun", "standard-gun", 1, ChipTier.Magic, null, null);
+        pauseCtrl.SelectMainTab(1);
+
+        Transform iconTr = cardTemplate.transform.Find("IconFrameAssetSlot/ChipIcon");
+        Assert.That(iconTr, Is.Not.Null);
+        RectTransform iconRt = iconTr.GetComponent<RectTransform>();
+        Assert.That(iconRt, Is.Not.Null);
+
+        Assert.That(iconRt.anchoredPosition.x, Is.EqualTo(-0.5f).Within(0.01f));
+        Assert.That(iconRt.anchoredPosition.y, Is.EqualTo(20.1f).Within(0.01f));
+        Assert.That(iconRt.sizeDelta.x, Is.EqualTo(93.6f).Within(0.01f));
+        Assert.That(iconRt.sizeDelta.y, Is.EqualTo(72f).Within(0.01f));
+        Assert.That(iconRt.anchorMin, Is.EqualTo(new Vector2(0.5f, 0.5f)));
+        Assert.That(iconRt.anchorMax, Is.EqualTo(new Vector2(0.5f, 0.5f)));
+        Assert.That(iconRt.pivot, Is.EqualTo(new Vector2(0.5f, 0.5f)));
+        Assert.That(iconRt.localScale, Is.EqualTo(Vector3.one));
+
+        Object.DestroyImmediate(root);
+    }
+}

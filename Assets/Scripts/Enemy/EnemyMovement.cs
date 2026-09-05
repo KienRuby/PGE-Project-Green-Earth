@@ -34,11 +34,11 @@ public class EnemyMovement : MonoBehaviour, IPoolable
     private Transform player;
     private PlayerMovement playerMovement;
     private float nextPlayerSearchTime;
+    private Vector3 basePrefabScale = Vector3.one;
     private Vector3 initialScale;
     private bool isFacingRight = true;
     private float stunTimer = 0f;
 
-    // Shared static buffer để quét quái xung quanh không tạo rác GC
     private static readonly Collider2D[] sharedCollidersBuffer = new Collider2D[16];
     private ContactFilter2D contactFilter;
     private float baseMoveSpeed;
@@ -51,6 +51,19 @@ public class EnemyMovement : MonoBehaviour, IPoolable
 
     public bool IsStunned => stunTimer > 0f;
     public Transform CurrentTarget => player;
+
+    public void SetScaleMultiplier(float multiplier)
+    {
+        if (multiplier <= 0f) return;
+        if (basePrefabScale == Vector3.zero)
+        {
+            basePrefabScale = transform.localScale != Vector3.zero ? transform.localScale : Vector3.one;
+        }
+        initialScale = basePrefabScale * multiplier;
+        float sign = (isFacingRight ^ initialFacingLeft) ? 1f : -1f;
+        transform.localScale = new Vector3(Mathf.Abs(initialScale.x) * sign, initialScale.y, initialScale.z);
+    }
+
 
     public void ApplyStun(float duration)
     {
@@ -87,7 +100,8 @@ public class EnemyMovement : MonoBehaviour, IPoolable
         rb = GetComponent<Rigidbody2D>();
         rb.gravityScale = 0f;
         rb.freezeRotation = true;
-        initialScale = transform.localScale;
+        basePrefabScale = transform.localScale != Vector3.zero ? transform.localScale : Vector3.one;
+        initialScale = basePrefabScale;
         isFacingRight = !initialFacingLeft;
 
         if (enemyLayer.value == 0)
@@ -374,6 +388,11 @@ public class EnemyMovement : MonoBehaviour, IPoolable
         moveSpeed = BaseMoveSpeed;
         stunTimer = 0f;
         cachedSeparationForce = Vector2.zero;
+        if (basePrefabScale != Vector3.zero)
+        {
+            initialScale = basePrefabScale;
+            transform.localScale = basePrefabScale;
+        }
         if (rb != null)
         {
             rb.velocity = Vector2.zero;

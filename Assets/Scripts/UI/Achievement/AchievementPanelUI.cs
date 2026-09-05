@@ -116,35 +116,47 @@ public class AchievementPanelUI : MonoBehaviour
         }
     }
 
-    private void EnsureSpawnedItemsCapacity(int count)
+    public IReadOnlyList<AchievementItemUI> SpawnedItems => spawnedItems;
+
+    public void EnsureSpawnedItemsCapacity(int count)
     {
         if (contentContainer == null) return;
 
         if (spawnedItems == null) spawnedItems = new List<AchievementItemUI>();
 
-        // Nếu danh sách spawnedItems chưa có, tìm các item sẵn có trong contentContainer
-        if (spawnedItems.Count == 0)
+        // 1. Loại bỏ các phần tử null khỏi danh sách
+        spawnedItems.RemoveAll(item => item == null);
+
+        // 2. Tìm kiếm và nạp tất cả AchievementItemUI sẵn có trong contentContainer mà chưa có trong danh sách
+        AchievementItemUI[] existing = contentContainer.GetComponentsInChildren<AchievementItemUI>(true);
+        if (existing != null && existing.Length > 0)
         {
-            AchievementItemUI[] existing = contentContainer.GetComponentsInChildren<AchievementItemUI>(true);
-            if (existing != null && existing.Length > 0)
+            foreach (var item in existing)
             {
-                spawnedItems.AddRange(existing);
+                if (item != null && !spawnedItems.Contains(item))
+                {
+                    spawnedItems.Add(item);
+                }
             }
         }
 
+        // 3. Sắp xếp theo đúng thứ tự sibling index trong Hierarchy
+        spawnedItems.Sort((a, b) => a.transform.GetSiblingIndex().CompareTo(b.transform.GetSiblingIndex()));
+
+        // 4. Nếu vẫn chưa đủ số lượng mục cần hiển thị, tự động instantiate thêm
         while (spawnedItems.Count < count)
         {
             if (achievementItemPrefab != null)
             {
                 GameObject obj = Instantiate(achievementItemPrefab, contentContainer);
                 AchievementItemUI item = obj.GetComponent<AchievementItemUI>();
-                spawnedItems.Add(item);
+                if (item != null) spawnedItems.Add(item);
             }
             else if (spawnedItems.Count > 0 && spawnedItems[0] != null)
             {
                 GameObject obj = Instantiate(spawnedItems[0].gameObject, contentContainer);
                 AchievementItemUI item = obj.GetComponent<AchievementItemUI>();
-                spawnedItems.Add(item);
+                if (item != null) spawnedItems.Add(item);
             }
             else
             {

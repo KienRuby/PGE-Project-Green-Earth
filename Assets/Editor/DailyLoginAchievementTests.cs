@@ -348,4 +348,169 @@ public class DailyLoginAchievementTests
 
         UnityEngine.Object.DestroyImmediate(popupGo);
     }
+
+    [Test]
+    public void Popup_TabSwitching_SwapsActiveAndInactiveSprites()
+    {
+        GameObject popupGo = new GameObject("RewardPopupTest_Sprites");
+        RewardPopupController popup = popupGo.AddComponent<RewardPopupController>();
+
+        GameObject dailyBtnGo = new GameObject("DailyLoginTab");
+        dailyBtnGo.transform.SetParent(popupGo.transform);
+        Button dailyBtn = dailyBtnGo.AddComponent<Button>();
+        Image dailyBg = dailyBtnGo.AddComponent<Image>();
+
+        GameObject achBtnGo = new GameObject("AchievementTab");
+        achBtnGo.transform.SetParent(popupGo.transform);
+        Button achBtn = achBtnGo.AddComponent<Button>();
+        Image achBg = achBtnGo.AddComponent<Image>();
+
+        Sprite dailyActive = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), Vector2.zero);
+        dailyActive.name = "DailyActive";
+        Sprite dailyInactive = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), Vector2.zero);
+        dailyInactive.name = "DailyInactive";
+        Sprite achActive = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), Vector2.zero);
+        achActive.name = "AchActive";
+        Sprite achInactive = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), Vector2.zero);
+        achInactive.name = "AchInactive";
+
+        popup.SetReferencesForBuilder(
+            popupGo, null, null,
+            dailyBtn, dailyBg, null, null,
+            achBtn, achBg, null, null,
+            null, null, null, null,
+            dailyActive, dailyInactive, achActive, achInactive
+        );
+
+        // When Daily Login is selected (tab 0): Daily is Active, Achievements is Inactive
+        popup.SwitchTab(0, animated: false);
+        Assert.That(dailyBg.sprite, Is.EqualTo(dailyActive));
+        Assert.That(achBg.sprite, Is.EqualTo(achInactive));
+
+        // When Achievements is selected (tab 1): Daily is Inactive, Achievements is Active
+        popup.SwitchTab(1, animated: false);
+        Assert.That(dailyBg.sprite, Is.EqualTo(dailyInactive));
+        Assert.That(achBg.sprite, Is.EqualTo(achActive));
+
+        // Switch back to Daily Login: Daily is Active, Achievements is Inactive
+        popup.SwitchTab(0, animated: false);
+        Assert.That(dailyBg.sprite, Is.EqualTo(dailyActive));
+        Assert.That(achBg.sprite, Is.EqualTo(achInactive));
+
+        UnityEngine.Object.DestroyImmediate(dailyActive);
+        UnityEngine.Object.DestroyImmediate(dailyInactive);
+        UnityEngine.Object.DestroyImmediate(achActive);
+        UnityEngine.Object.DestroyImmediate(achInactive);
+        UnityEngine.Object.DestroyImmediate(popupGo);
+    }
+
+    [Test]
+    public void AchievementItemUI_EnsureReferences_SetsButtonTextToNotAchievedWhenInProgress()
+    {
+        GameObject itemGo = new GameObject("TestItemUI");
+        AchievementItemUI itemUI = itemGo.AddComponent<AchievementItemUI>();
+
+        GameObject btnGo = new GameObject("ActionButton");
+        btnGo.transform.SetParent(itemGo.transform);
+        Button btn = btnGo.AddComponent<Button>();
+        Image btnImg = btnGo.AddComponent<Image>();
+
+        GameObject txtGo = new GameObject("Text");
+        txtGo.transform.SetParent(btnGo.transform);
+        TextMeshProUGUI txt = txtGo.AddComponent<TextMeshProUGUI>();
+        txt.text = "Get"; // Default scene placeholder
+
+        // Before update, button text is "Get"
+        Assert.That(txt.text, Is.EqualTo("Get"));
+
+        // When InProgress -> Must change to "Not achieved" and be disabled
+        itemUI.UpdateState(AchievementState.InProgress);
+        Assert.That(itemUI.ActionButtonText, Is.Not.Null);
+        Assert.That(itemUI.ActionButtonText.text, Is.EqualTo("Not achieved"));
+        Assert.That(btn.interactable, Is.False);
+
+        // When Completed -> Must change to "Get" and be interactable
+        itemUI.UpdateState(AchievementState.Completed);
+        Assert.That(itemUI.ActionButtonText.text, Is.EqualTo("Get"));
+        Assert.That(btn.interactable, Is.True);
+
+        UnityEngine.Object.DestroyImmediate(itemGo);
+    }
+
+    [Test]
+    public void AchievementPanelUI_EnsureCapacity_PurgesNullsAndDiscoversExisting()
+    {
+        GameObject panelGo = new GameObject("TestPanel");
+        AchievementPanelUI panel = panelGo.AddComponent<AchievementPanelUI>();
+
+        GameObject containerGo = new GameObject("ContentContainer");
+        containerGo.transform.SetParent(panelGo.transform);
+
+        GameObject item1Go = new GameObject("Item_0");
+        item1Go.transform.SetParent(containerGo.transform);
+        AchievementItemUI item1 = item1Go.AddComponent<AchievementItemUI>();
+
+        GameObject item2Go = new GameObject("Item_1");
+        item2Go.transform.SetParent(containerGo.transform);
+        AchievementItemUI item2 = item2Go.AddComponent<AchievementItemUI>();
+
+        GameObject item3Go = new GameObject("Item_2");
+        item3Go.transform.SetParent(containerGo.transform);
+        AchievementItemUI item3 = item3Go.AddComponent<AchievementItemUI>();
+
+        // Simulate corrupted spawnedItems: 1 valid item + 4 nulls (exactly like MainMenu.unity had!)
+        List<AchievementItemUI> corruptedList = new List<AchievementItemUI>
+        {
+            item1,
+            null,
+            null,
+            null,
+            null
+        };
+
+        panel.SetReferencesForBuilder(null, containerGo.transform, corruptedList, null, null, null);
+
+        // EnsureSpawnedItemsCapacity should purge nulls and discover all 3 children
+        panel.EnsureSpawnedItemsCapacity(3);
+
+        Assert.That(panel.SpawnedItems, Is.Not.Null);
+        Assert.That(panel.SpawnedItems.Count, Is.EqualTo(3));
+        Assert.That(panel.SpawnedItems[0], Is.EqualTo(item1));
+        Assert.That(panel.SpawnedItems[1], Is.EqualTo(item2));
+        Assert.That(panel.SpawnedItems[2], Is.EqualTo(item3));
+
+        UnityEngine.Object.DestroyImmediate(panelGo);
+    }
+
+    [Test]
+    public void AchievementManager_SyncExistingProgress_UpdatesDailyLoginAndChapters()
+    {
+        GameObject mgrGo = new GameObject("SyncTestMgr");
+        AchievementManager mgr = mgrGo.AddComponent<AchievementManager>();
+        mgr.EnsureDatabaseLoaded();
+
+        // Simulate existing login claims (Day 1 and Day 2 bitmask = 3)
+        PlayerPrefs.SetInt(DailyLoginManager.ClaimedMaskKey, 3);
+        PlayerPrefs.SetInt(DailyLoginManager.CycleCountKey, 0);
+
+        // Simulate chapter 3 unlocked -> 2 chapters cleared
+        PlayerPrefs.SetInt(PlayerDataService.UnlockedChapterIndexKey, 2);
+        PlayerPrefs.Save();
+
+        // Clear existing achievement progress to 0
+        mgr.SetProgress("login_reward_2", 0);
+        mgr.SetProgress("chapter_clear_5", 0);
+
+        mgr.SyncExistingProgress();
+
+        Assert.That(mgr.GetProgress("login_reward_2"), Is.EqualTo(2), "Phải tự động đồng bộ 2 ngày điểm danh.");
+        Assert.That(mgr.GetProgress("chapter_clear_5"), Is.EqualTo(2), "Phải tự động đồng bộ 2 chapters đã clear.");
+
+        // Clean up
+        PlayerPrefs.DeleteKey(DailyLoginManager.ClaimedMaskKey);
+        PlayerPrefs.DeleteKey(PlayerDataService.UnlockedChapterIndexKey);
+        PlayerPrefs.Save();
+        UnityEngine.Object.DestroyImmediate(mgrGo);
+    }
 }
+

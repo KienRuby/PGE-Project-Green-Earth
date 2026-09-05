@@ -491,7 +491,7 @@ public class BuddyController : MonoBehaviour
         if (droneModeBtn != null) droneModeBtn.onClick.AddListener(() => ShowToast("Drone Hangar Active"));
         if (robotPetModeBtn != null) robotPetModeBtn.onClick.AddListener(() => ShowToast("Robot Pet unlocks at Chapter 12!"));
 
-        if (detailCloseBtn != null) detailCloseBtn.onClick.AddListener(() => detailModal.SetActive(false));
+        if (detailCloseBtn != null) detailCloseBtn.onClick.AddListener(() => UIDissolveController.HideWithEffect(detailModal));
         if (detailEnhanceBtn != null) detailEnhanceBtn.onClick.AddListener(EnhanceSelectedBuddy);
         if (detailAdvanceTierBtn != null) detailAdvanceTierBtn.onClick.AddListener(AdvanceTierSelectedBuddy);
         if (detailEquipBtn != null) detailEquipBtn.onClick.AddListener(ToggleEquipSelectedBuddy);
@@ -877,7 +877,7 @@ public class BuddyController : MonoBehaviour
         if (buddy == null || detailModal == null) return;
         selectedDetailBuddy = buddy;
         RefreshDetailModal();
-        detailModal.SetActive(true);
+        UIDissolveController.ShowInstant(detailModal);
     }
 
     public void RefreshDetailModal()

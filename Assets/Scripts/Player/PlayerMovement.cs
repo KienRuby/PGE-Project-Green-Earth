@@ -36,6 +36,7 @@ public class PlayerMovement : MonoBehaviour
 
     private Vector2 moveInput;
     private Vector2 keyboardInput;
+    private float nextJoystickSearchTime = 0f;
 
     private static readonly Collider2D[] nearbyEnemiesBuffer = new Collider2D[24];
 
@@ -81,8 +82,9 @@ public class PlayerMovement : MonoBehaviour
 
         ReadKeyboard();
 
-        if (joystick == null)
+        if (joystick == null && Time.time >= nextJoystickSearchTime)
         {
+            nextJoystickSearchTime = Time.time + 2.0f;
             joystick = FindObjectOfType<VirtualJoystick>(true);
         }
 

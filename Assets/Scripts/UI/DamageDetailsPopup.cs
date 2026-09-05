@@ -81,7 +81,7 @@ public sealed class DamageDetailsPopup : MonoBehaviour
         if (closeButton != null)
         {
             closeButton.onClick.RemoveListener(Hide);
-            closeButton.onClick.AddListener(Hide);
+            closeButton.gameObject.SetActive(false);
         }
         if (backgroundCloseButton != null)
         {
@@ -94,7 +94,7 @@ public sealed class DamageDetailsPopup : MonoBehaviour
     {
         if (popupRoot != null)
         {
-            popupRoot.SetActive(true);
+            UIDissolveController.ShowInstant(popupRoot);
             popupRoot.transform.SetAsLastSibling();
         }
         Refresh();
@@ -102,7 +102,7 @@ public sealed class DamageDetailsPopup : MonoBehaviour
 
     public void Hide()
     {
-        if (popupRoot != null) popupRoot.SetActive(false);
+        if (popupRoot != null) UIDissolveController.HideWithEffect(popupRoot);
     }
 
     public void Refresh()
@@ -362,20 +362,6 @@ public sealed class DamageDetailsPopup : MonoBehaviour
         titleText.alignment = TextAlignmentOptions.Center;
         SetRect(titleText.rectTransform, Vector2.zero, new Vector2(400f, 60f));
 
-        // Close Button 'X'
-        GameObject closeObj = new GameObject("CloseButton", typeof(RectTransform), typeof(Image), typeof(Button));
-        closeObj.transform.SetParent(frameObj.transform, false);
-        SetRect(closeObj.GetComponent<RectTransform>(), new Vector2(365f, 475f), new Vector2(54f, 54f));
-        Image closeImg = closeObj.GetComponent<Image>();
-        closeImg.color = new Color32(24, 48, 62, 255);
-        Button closeBtn = closeObj.GetComponent<Button>();
-        TMP_Text closeText = CreateRuntimeText("Label", closeObj.transform, "X", 32f, Color.white, font);
-        RectTransform closeTextRt = closeText.GetComponent<RectTransform>();
-        closeTextRt.anchorMin = Vector2.zero;
-        closeTextRt.anchorMax = Vector2.one;
-        closeTextRt.offsetMin = Vector2.zero;
-        closeTextRt.offsetMax = Vector2.zero;
-
         // Table Header
         GameObject headerRow = new GameObject("TableHeader", typeof(RectTransform), typeof(Image));
         headerRow.transform.SetParent(frameObj.transform, false);
@@ -445,7 +431,7 @@ public sealed class DamageDetailsPopup : MonoBehaviour
         popup.popupCanvasGroup = root.GetComponent<CanvasGroup>();
         popup.modalFrame = frameRt;
         popup.rowsContainer = content.transform;
-        popup.closeButton = closeBtn;
+        popup.closeButton = null;
         popup.backgroundCloseButton = bgCloseBtn;
         popup.titleText = titleText;
 

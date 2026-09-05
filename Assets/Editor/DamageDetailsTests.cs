@@ -116,15 +116,43 @@ public class DamageDetailsTests
         DamageDetailsPopup popup = popupGo.GetComponent<DamageDetailsPopup>();
 
         popup.Hide();
-        Assert.That(popup.IsVisible, Is.False);
+        Assert.That(popup.IsVisible, Is.True, "Popup phải còn active trong lúc shader đang tan.");
+        Assert.That(popupGo.GetComponent<UIDissolveController>().CurrentState,
+            Is.EqualTo(UIDissolveController.TransitionState.Hiding));
 
         popup.Show();
         Assert.That(popup.IsVisible, Is.True);
 
         popup.Hide();
-        Assert.That(popup.IsVisible, Is.False);
+        Assert.That(popup.IsVisible, Is.True);
+        Assert.That(popupGo.GetComponent<UIDissolveController>().CurrentState,
+            Is.EqualTo(UIDissolveController.TransitionState.Hiding));
 
         Object.DestroyImmediate(popupGo);
+    }
+
+    [Test]
+    public void DamageDetailsPopup_RuntimeModal_HasBackgroundCloseAndNoCloseIcon()
+    {
+        GameObject canvasGo = new GameObject("Canvas", typeof(RectTransform), typeof(Canvas));
+        try
+        {
+            DamageDetailsPopup popup = DamageDetailsPopup.CreateRuntimeModal(canvasGo.transform);
+            Transform root = popup.transform;
+
+            Assert.That(root.Find("BackgroundCloseBtn"), Is.Not.Null);
+            Assert.That(root.Find("MainFrame/CloseButton"), Is.Null);
+
+            popup.Show();
+            root.Find("BackgroundCloseBtn").GetComponent<Button>().onClick.Invoke();
+            Assert.That(popup.IsVisible, Is.True);
+            Assert.That(root.GetComponent<UIDissolveController>().CurrentState,
+                Is.EqualTo(UIDissolveController.TransitionState.Hiding));
+        }
+        finally
+        {
+            Object.DestroyImmediate(canvasGo);
+        }
     }
 
     [Test]
@@ -158,7 +186,7 @@ public class DamageDetailsTests
     }
 
     [Test]
-    public void PauseModalController_EnsureDamageDetailsComponents_CreatesButtonAndPopup()
+    public void PauseModalController_EnsureDamageDetailsComponents_DoesNotCreateDetailsForPause()
     {
         GameObject canvasGo = new GameObject("Canvas", typeof(RectTransform), typeof(Canvas));
         GameObject modalRoot = new GameObject("PauseModal", typeof(RectTransform));
@@ -171,34 +199,47 @@ public class DamageDetailsTests
 
         pauseCtrl.EnsureDamageDetailsComponents();
 
-        Assert.That(pauseCtrl.DamageDetailsButton, Is.Not.Null, "EnsureDamageDetailsComponents phải tự động tìm hoặc tạo DamageDetailsButton.");
-        Assert.That(pauseCtrl.DamageDetailsPopup, Is.Not.Null, "EnsureDamageDetailsComponents phải tự động tìm hoặc tạo DamageDetailsPopup trên Canvas.");
+        Assert.That(pauseCtrl.DamageDetailsButton, Is.Null, "Pause không được tự tạo nút Damage Details.");
+        Assert.That(pauseCtrl.DamageDetailsPopup, Is.Null, "Pause không được tự tạo Damage Details popup.");
 
         Object.DestroyImmediate(canvasGo);
     }
 
     [Test]
-    public void PauseModalController_DamageDetailsButton_OpensPopup()
+    public void PauseModalController_EnsureDamageDetailsComponents_AppliesReferenceBottomBarLayout()
     {
         GameObject canvasGo = new GameObject("Canvas", typeof(RectTransform), typeof(Canvas));
         GameObject modalRoot = new GameObject("PauseModal", typeof(RectTransform));
         modalRoot.transform.SetParent(canvasGo.transform, false);
 
+        Button resume = CreateButton("ResumeButton", modalRoot.transform);
+        Button settings = CreateButton("Setting", modalRoot.transform);
+        Button home = CreateButton("HomeButton", modalRoot.transform);
+        Button details = CreateButton("DamageDetailsButton", modalRoot.transform);
+
         PauseModalController pauseCtrl = modalRoot.AddComponent<PauseModalController>();
-        var serialized = new UnityEditor.SerializedObject(pauseCtrl);
-        serialized.FindProperty("modalRoot").objectReferenceValue = modalRoot;
-        serialized.ApplyModifiedPropertiesWithoutUndo();
+        pauseCtrl.SetReferencesForTesting(
+            modalRoot, resume, home, null, null, null,
+            null, null, null, null, null, null,
+            null, null, null, null, null, null,
+            dmgDetailsBtn: details, setBtn: settings);
 
         pauseCtrl.EnsureDamageDetailsComponents();
-        Assert.That(pauseCtrl.DamageDetailsPopup.IsVisible, Is.False);
 
-        pauseCtrl.OnDamageDetailsButtonClicked();
-        Assert.That(pauseCtrl.DamageDetailsPopup.IsVisible, Is.True, "Bấm DamageDetailsButton phải mở hiển thị DamageDetailsPopup.");
-
-        pauseCtrl.ResumeGame();
-        Assert.That(pauseCtrl.DamageDetailsPopup.IsVisible, Is.False, "ResumeGame phải tự động ẩn DamageDetailsPopup.");
+        Assert.That(resume.gameObject.activeSelf, Is.True, "Nút Resume phải hiện theo mẫu Pause tham chiếu.");
+        Assert.That(details.gameObject.activeSelf, Is.False, "Nút Damage Details phải bị ẩn khỏi Pause.");
+        Assert.That(resume.GetComponent<RectTransform>().anchoredPosition, Is.EqualTo(new Vector2(-246f, -680f)));
+        Assert.That(settings.GetComponent<RectTransform>().anchoredPosition, Is.EqualTo(new Vector2(11f, -680f)));
+        Assert.That(home.GetComponent<RectTransform>().anchoredPosition, Is.EqualTo(new Vector2(259f, -680f)));
 
         Object.DestroyImmediate(canvasGo);
+    }
+
+    private static Button CreateButton(string name, Transform parent)
+    {
+        GameObject buttonObject = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button));
+        buttonObject.transform.SetParent(parent, false);
+        return buttonObject.GetComponent<Button>();
     }
 
     [Test]

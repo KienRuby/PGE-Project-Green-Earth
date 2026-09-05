@@ -237,16 +237,16 @@ public static class ChipsetBattleStats
     {
         switch (chipsetId)
         {
-            case 1: return "9"; // standard gun sub-sprite index 9
-            case 2: return "10"; // rifle sub-sprite index 10
-            case 3: return "8"; // rocket punch
-            case 4: return "7"; // spinning blade
-            case 5: return "6"; // multigun
-            case 6: return "5"; // gun turret
-            case 7: return "4"; // spiky discus
-            case 8: return "3"; // shotgun
-            case 9: return "2"; // energy jumper cable
-            case 10: return "1"; // high explosive mine
+            case 1: return "standard-gun";
+            case 2: return "rifle";
+            case 3: return "rocket-punch";
+            case 4: return "spinning-blade";
+            case 5: return "multigun";
+            case 6: return "gun-turret";
+            case 7: return "spiky-discus";
+            case 8: return "shotgun";
+            case 9: return "energy-jumper-cables";
+            case 10: return "high-explosive-mine";
             default: return chipsetId.ToString();
         }
     }

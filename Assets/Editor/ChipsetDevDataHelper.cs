@@ -20,13 +20,13 @@ public static class ChipsetDevDataHelper
             PlayerPrefs.DeleteKey($"{pfx}EnhanceCost");
         }
 
-        // Lưu Standard Gun khởi đầu ở Level 1, Tier Magic, 3 mảnh thẻ (sẵn sàng trang bị)
-        PlayerDataService.SaveChipsetItemData(1, 1, 1, 3, 3, false);
+        // Lưu Standard Gun khởi đầu ở Level 1, Tier Magic, 5 mảnh thẻ (sẵn sàng trang bị)
+        PlayerDataService.SaveChipsetItemData(1, 1, 1, 5, 5, false);
 
         // Đưa các chip còn lại (2 đến 24) về Level 1, Tier Magic, 0 mảnh thẻ
         for (int id = 2; id <= 24; id++)
         {
-            PlayerDataService.SaveChipsetItemData(id, 1, 1, 0, 3, false);
+            PlayerDataService.SaveChipsetItemData(id, 1, 1, 0, 5, false);
         }
 
         PlayerPrefs.Save();

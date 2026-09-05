@@ -670,7 +670,7 @@ public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
     }
 }
 
-internal static class ChipsetFrameShimmerMaterial
+public static class ChipsetFrameShimmerMaterial
 {
     private static readonly Dictionary<int, Material> MaterialsBySprite = new Dictionary<int, Material>();
     private static readonly int UnscaledTimeId = Shader.PropertyToID("_ChipsetUnscaledTime");

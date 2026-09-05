@@ -114,6 +114,7 @@ public class PlayerChipsetSkillManager : MonoBehaviour
                 playerAutoShooter.ApplyChipsetWeaponUpgrade(1, runtimeLevel);
                 Debug.Log($"[PlayerChipsetSkillManager] Standard Gun cấp {runtimeLevel} đã tăng trực tiếp khẩu súng mặc định.");
             }
+            ChipsetBattleStats.RegisterChipset(1, runtimeLevel, 20);
             return;
         }
 
@@ -125,6 +126,7 @@ public class PlayerChipsetSkillManager : MonoBehaviour
                 playerAutoShooter.ApplyChipsetWeaponUpgrade(2, runtimeLevel);
                 Debug.Log($"[PlayerChipsetSkillManager] Rifle cấp {runtimeLevel} đã tăng trực tiếp khẩu súng mặc định.");
             }
+            ChipsetBattleStats.RegisterChipset(2, runtimeLevel, 25);
             return;
         }
 
@@ -136,6 +138,7 @@ public class PlayerChipsetSkillManager : MonoBehaviour
                 playerAutoShooter.ApplyChipsetWeaponUpgrade(8, runtimeLevel);
                 Debug.Log($"[PlayerChipsetSkillManager] Shotgun cấp {runtimeLevel} đã tăng trực tiếp khẩu súng mặc định.");
             }
+            ChipsetBattleStats.RegisterChipset(8, runtimeLevel, 40);
             return;
         }
 
@@ -147,6 +150,7 @@ public class PlayerChipsetSkillManager : MonoBehaviour
                 playerAutoShooter.ApplyChipsetWeaponUpgrade(5, runtimeLevel);
                 Debug.Log($"[PlayerChipsetSkillManager] Multigun cấp {runtimeLevel} đã tăng trực tiếp khẩu súng mặc định.");
             }
+            ChipsetBattleStats.RegisterChipset(5, runtimeLevel, 15);
             return;
         }
 

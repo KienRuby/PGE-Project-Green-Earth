@@ -2152,6 +2152,125 @@ public class PGEGameLogicTests
         Object.DestroyImmediate(detailModalGo);
         Object.DestroyImmediate(controllerGo);
     }
+
+    [Test]
+    public void Chipset_TierAdvanceCosts_MatchesRequestedRules()
+    {
+        // Kiểm tra đúng yêu cầu:
+        // Xanh lá -> Xanh dương: 5 mảnh
+        // Xanh dương -> Tím: 10 mảnh
+        // Tím -> Vàng: 15 mảnh
+        // Vàng -> Đỏ: 20 mảnh + 100 đá đỏ
+        bool originalTestMode = ChipManager.IsTestMode;
+        int originalRedGems = ChipManager.RedGems;
+        int originalStoredRedGems = PlayerDataService.RedGems;
+
+        try
+        {
+            ChipManager.IsTestMode = false;
+
+            // 1. Magic (Xanh lá) -> Rare (Xanh dương): 5 mảnh
+            ChipItemData greenChip = new ChipItemData
+            {
+                id = 301,
+                chipName = "Green Advance Test",
+                tier = ChipTier.Magic,
+                level = 6,
+                count = 5,
+                tierEnhanceCount = 10
+            };
+            greenChip.ConfigureTierUnlockRules(10, 5, 10, 15, 100, 20);
+            Assert.That(greenChip.CurrentAdvanceCost, Is.EqualTo(5));
+            Assert.That(greenChip.requiredCount, Is.EqualTo(5));
+            Assert.That(greenChip.CanAdvanceTier, Is.True);
+            Assert.That(greenChip.AdvanceTier(), Is.True);
+            Assert.That(greenChip.tier, Is.EqualTo(ChipTier.Rare));
+            Assert.That(greenChip.count, Is.Zero);
+            Assert.That(greenChip.requiredCount, Is.EqualTo(10), "Sang phẩm Rare, requiredCount phải là 10 mảnh.");
+
+            // 2. Rare (Xanh dương) -> Unique (Tím): 10 mảnh
+            ChipItemData blueChip = new ChipItemData
+            {
+                id = 302,
+                chipName = "Blue Advance Test",
+                tier = ChipTier.Rare,
+                level = 9,
+                count = 10,
+                tierEnhanceCount = 10
+            };
+            blueChip.ConfigureTierUnlockRules(10, 5, 10, 15, 100, 20);
+            Assert.That(blueChip.CurrentAdvanceCost, Is.EqualTo(10));
+            Assert.That(blueChip.requiredCount, Is.EqualTo(10));
+            Assert.That(blueChip.CanAdvanceTier, Is.True);
+            Assert.That(blueChip.AdvanceTier(), Is.True);
+            Assert.That(blueChip.tier, Is.EqualTo(ChipTier.Unique));
+            Assert.That(blueChip.count, Is.Zero);
+            Assert.That(blueChip.requiredCount, Is.EqualTo(15), "Sang phẩm Unique, requiredCount phải là 15 mảnh.");
+
+            // 3. Unique (Tím) -> Epic (Vàng): 15 mảnh
+            ChipItemData purpleChip = new ChipItemData
+            {
+                id = 303,
+                chipName = "Purple Advance Test",
+                tier = ChipTier.Unique,
+                level = 14,
+                count = 15,
+                tierEnhanceCount = 10
+            };
+            purpleChip.ConfigureTierUnlockRules(10, 5, 10, 15, 100, 20);
+            Assert.That(purpleChip.CurrentAdvanceCost, Is.EqualTo(15));
+            Assert.That(purpleChip.requiredCount, Is.EqualTo(15));
+            Assert.That(purpleChip.CanAdvanceTier, Is.True);
+            Assert.That(purpleChip.AdvanceTier(), Is.True);
+            Assert.That(purpleChip.tier, Is.EqualTo(ChipTier.Epic));
+            Assert.That(purpleChip.count, Is.Zero);
+            Assert.That(purpleChip.requiredCount, Is.EqualTo(20), "Sang phẩm Epic, requiredCount phải là 20 mảnh.");
+
+            // 4. Epic (Vàng) -> Holographic (Đỏ): 20 mảnh + 100 đá đỏ
+            ChipItemData yellowChip = new ChipItemData
+            {
+                id = 304,
+                chipName = "Yellow Advance Test",
+                tier = ChipTier.Epic,
+                level = 18,
+                count = 20,
+                tierEnhanceCount = 10
+            };
+            yellowChip.ConfigureTierUnlockRules(10, 5, 10, 15, 100, 20);
+            Assert.That(yellowChip.CurrentAdvanceCost, Is.EqualTo(20));
+            Assert.That(yellowChip.YellowToRedDataChipCost, Is.EqualTo(100));
+            Assert.That(yellowChip.requiredCount, Is.EqualTo(20));
+
+            // Thiếu đá đỏ (chỉ có 50 đá đỏ) -> Không đột phá được
+            ChipManager.RedGems = 50;
+            Assert.That(yellowChip.HasAdvanceCurrency, Is.False);
+            Assert.That(yellowChip.CanAdvanceTier, Is.False);
+            Assert.That(yellowChip.AdvanceTier(), Is.False);
+
+            // Thiếu mảnh (chỉ có 19 mảnh, đủ 100 đá đỏ) -> Không đột phá được
+            ChipManager.RedGems = 100;
+            yellowChip.count = 19;
+            Assert.That(yellowChip.HasAdvanceCurrency, Is.False);
+            Assert.That(yellowChip.CanAdvanceTier, Is.False);
+            Assert.That(yellowChip.AdvanceTier(), Is.False);
+
+            // Đủ cả 20 mảnh VÀ 100 đá đỏ -> Đột phá thành công lên Holographic (Đỏ)
+            yellowChip.count = 25;
+            ChipManager.RedGems = 150;
+            Assert.That(yellowChip.HasAdvanceCurrency, Is.True);
+            Assert.That(yellowChip.CanAdvanceTier, Is.True);
+            Assert.That(yellowChip.AdvanceTier(), Is.True);
+            Assert.That(yellowChip.tier, Is.EqualTo(ChipTier.Holographic));
+            Assert.That(yellowChip.count, Is.EqualTo(5), "Vàng -> Đỏ phải trừ đúng 20 mảnh (còn lại 5 mảnh).");
+            Assert.That(ChipManager.RedGems, Is.EqualTo(50), "Vàng -> Đỏ phải trừ đúng 100 đá đỏ (còn lại 50).");
+        }
+        finally
+        {
+            PlayerDataService.RedGems = originalStoredRedGems;
+            ChipManager.IsTestMode = originalTestMode;
+            ChipManager.RedGems = originalRedGems;
+        }
+    }
 }
 
 

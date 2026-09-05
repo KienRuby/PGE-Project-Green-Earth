@@ -248,6 +248,55 @@ public class SettingsPanelTests
     }
 
     [Test]
+    public void Settings_BackgroundClick_ClosesSettingsPanel()
+    {
+        GameObject canvasObject = new GameObject("Canvas", typeof(RectTransform), typeof(Canvas));
+        try
+        {
+            SettingsPanelController panel = SettingsPanelController.CreateRuntimePanel(
+                canvasObject.GetComponent<RectTransform>());
+            panel.Open();
+
+            panel.OnPointerClick(null);
+
+            Assert.That(panel.IsOpen, Is.True, "Panel phải còn active trong lúc shader đang tan.");
+            Assert.That(panel.GetComponent<UIDissolveController>().CurrentState,
+                Is.EqualTo(UIDissolveController.TransitionState.Hiding));
+        }
+        finally
+        {
+            Object.DestroyImmediate(canvasObject);
+        }
+    }
+
+    [Test]
+    public void Settings_BackgroundClick_WhenLanguageOptionsOpen_ClosesOnlyLanguageOptions()
+    {
+        GameObject canvasObject = new GameObject("Canvas", typeof(RectTransform), typeof(Canvas));
+        try
+        {
+            SettingsPanelController panel = SettingsPanelController.CreateRuntimePanel(
+                canvasObject.GetComponent<RectTransform>());
+            panel.Open();
+            panel.ToggleLanguageOptions();
+
+            Transform options = panel.transform.Find("SafeContent/LanguageOptionsPanel");
+            Assert.That(options.gameObject.activeSelf, Is.True);
+
+            panel.OnPointerClick(null);
+
+            Assert.That(options.gameObject.activeSelf, Is.True, "Bảng ngôn ngữ chỉ tắt sau khi dissolve hoàn tất.");
+            Assert.That(options.GetComponent<UIDissolveController>().CurrentState,
+                Is.EqualTo(UIDissolveController.TransitionState.Hiding));
+            Assert.That(panel.IsOpen, Is.True);
+        }
+        finally
+        {
+            Object.DestroyImmediate(canvasObject);
+        }
+    }
+
+    [Test]
     public void Settings_ScreenShake_DisabledStateReturnsZeroOffset()
     {
         bool hadKey = PlayerPrefs.HasKey(GameSettings.ScreenShakeKey);

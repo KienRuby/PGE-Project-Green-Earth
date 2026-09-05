@@ -55,6 +55,9 @@ public static class RewardPopupSceneBuilder
     private static Sprite energySprite;
     private static Sprite redGemSprite;
     private static Sprite dataChipSprite;
+    private static Sprite btnGetSprite;
+    private static Sprite btnClaimAgainSprite;
+    private static Sprite btnObtainedSprite;
 
     [MenuItem("PGE/UI/Build Daily Login & Achievement Popup")]
     public static void BuildFromMenu()
@@ -166,6 +169,25 @@ public static class RewardPopupSceneBuilder
             redGemSprite = Array.Find(sprites, s => s.name == "red") ?? sprites[0];
             dataChipSprite = Array.Find(sprites, s => s.name == "data") ?? sprites[0];
         }
+
+        btnGetSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Reward/Extracted/Btn_Get.png");
+        btnClaimAgainSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Reward/Extracted/Btn_Claim_Again.png");
+        btnObtainedSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Reward/Extracted/Btn_Obtained.png");
+
+        if (btnGetSprite == null || btnClaimAgainSprite == null || btnObtainedSprite == null)
+        {
+            Sprite[] loginSprites = AssetDatabase.LoadAllAssetsAtPath("Assets/Sprites/UI/Reward/nút daily login.png")
+                ?.OfType<Sprite>().ToArray();
+            if (loginSprites != null)
+            {
+                foreach (var s in loginSprites)
+                {
+                    if (btnGetSprite == null && s.name == "Btn_Get") btnGetSprite = s;
+                    else if (btnClaimAgainSprite == null && s.name == "Btn_Claim_Again") btnClaimAgainSprite = s;
+                    else if (btnObtainedSprite == null && s.name == "Btn_Obtained") btnObtainedSprite = s;
+                }
+            }
+        }
     }
 
     public static GameObject BuildRewardPopup(RectTransform canvasParent)
@@ -252,6 +274,7 @@ public static class RewardPopupSceneBuilder
         );
 
         // Mặc định ban đầu hiển thị Tab Daily Login
+        popupCtrl.EnsureTabSpritesLoaded();
         popupCtrl.SwitchTab(0);
         popupObj.SetActive(false); // Ẩn mặc định khi vào game
 
@@ -362,10 +385,26 @@ public static class RewardPopupSceneBuilder
         stateRight.anchoredPosition = new Vector2(-25f, 0f);
         stateRight.sizeDelta = new Vector2(280f, 120f);
 
-        // Button Get
-        GameObject getBtnObj = CreateButton("ClaimButton", stateRight, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-120f, -42.5f), new Vector2(120f, 42.5f), "Get", 36f, GetBtnColor, WindowBorderColor, out _);
+        // Button Get / Claim Again / Obtained
+        GameObject getBtnObj = new GameObject("ClaimButton", typeof(RectTransform), typeof(Image), typeof(Button));
+        getBtnObj.transform.SetParent(stateRight, false);
+        RectTransform btnRect = getBtnObj.GetComponent<RectTransform>();
+        btnRect.anchorMin = new Vector2(0.5f, 0.5f);
+        btnRect.anchorMax = new Vector2(0.5f, 0.5f);
+        btnRect.pivot = new Vector2(0.5f, 0.5f);
+        btnRect.anchoredPosition = Vector2.zero;
+        btnRect.sizeDelta = new Vector2(240f, 105f);
+
+        Image btnImg = getBtnObj.GetComponent<Image>();
+        btnImg.sprite = btnGetSprite;
+        btnImg.preserveAspect = true;
+        btnImg.color = Color.white;
+
         Button claimBtn = getBtnObj.GetComponent<Button>();
-        TMP_Text claimBtnTxt = getBtnObj.transform.Find("Label")?.GetComponent<TMP_Text>();
+        claimBtn.targetGraphic = btnImg;
+        var colors = claimBtn.colors;
+        colors.disabledColor = Color.white;
+        claimBtn.colors = colors;
 
         // Obtained Tag
         GameObject obtainedRoot = CreateFrame("ObtainedRoot", stateRight, ObtainedBtnColor, new Color32(45, 65, 80, 255), out _);
@@ -397,7 +436,7 @@ public static class RewardPopupSceneBuilder
             dayNumber,
             rewardsTr,
             claimBtn,
-            claimBtnTxt,
+            null,
             obtainedRoot,
             obtainedTxt,
             countRoot,
@@ -405,7 +444,10 @@ public static class RewardPopupSceneBuilder
             countTxt,
             bg,
             border,
-            cg
+            cg,
+            btnGetSprite,
+            btnClaimAgainSprite,
+            btnObtainedSprite
         );
 
         return itemUI;

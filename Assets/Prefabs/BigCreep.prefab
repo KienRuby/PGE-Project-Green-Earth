@@ -191,8 +191,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 0.8
-  stoppingDistance: 0.5
-  separationRadius: 0.6
+  stoppingDistance: 0.3
+  separationRadius: 0.4
   separationWeight: 2
   enemyLayer:
     serializedVersion: 2

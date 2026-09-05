@@ -107,6 +107,7 @@ public sealed class AchievementManager : MonoBehaviour
         }
 
         EnsureDatabaseLoaded();
+        SyncExistingProgress();
         SubscribeToGameplayEvents();
     }
 
@@ -133,6 +134,72 @@ public sealed class AchievementManager : MonoBehaviour
                 database = ScriptableObject.CreateInstance<AchievementDatabase>();
                 database.PopulateDefaultAchievements();
             }
+
+            SyncExistingProgress();
+        }
+    }
+
+    /// <summary>
+    /// Đồng bộ hóa tiến độ từ các nguồn dữ liệu đã lưu sẵn của game (DailyLogin, Chapters)
+    /// mà người chơi có thể đã hoàn thành trước đó.
+    /// </summary>
+    public void SyncExistingProgress()
+    {
+        if (database == null) return;
+
+        bool anyChanged = false;
+
+        // 1. Đồng bộ số ngày Daily Login đã nhận thưởng (login_reward_2)
+        int claimedMask = PlayerPrefs.GetInt(DailyLoginManager.ClaimedMaskKey, 0);
+        int cycleCount = PlayerPrefs.GetInt(DailyLoginManager.CycleCountKey, 0);
+        int totalDailyClaims = 0;
+        for (int i = 0; i < 7; i++)
+        {
+            if ((claimedMask & (1 << i)) != 0)
+            {
+                totalDailyClaims++;
+            }
+        }
+        totalDailyClaims += cycleCount * 7;
+
+        if (totalDailyClaims > 0 && database.Achievements != null)
+        {
+            foreach (var def in database.Achievements)
+            {
+                if (def != null && def.type == AchievementType.LoginRewardClaimed)
+                {
+                    int cur = GetProgress(def.id);
+                    if (totalDailyClaims > cur)
+                    {
+                        SetProgress(def.id, totalDailyClaims);
+                        anyChanged = true;
+                    }
+                }
+            }
+        }
+
+        // 2. Đồng bộ số Chapter đã clear (chapter_clear_5)
+        // Index 0 = Chapter 1 đang mở khóa. Nếu UnlockedChapterIndex > 0, nghĩa là đã vượt qua UnlockedChapterIndex chapters.
+        int unlockedChapterIndex = PlayerPrefs.GetInt(PlayerDataService.UnlockedChapterIndexKey, 0);
+        if (unlockedChapterIndex > 0 && database.Achievements != null)
+        {
+            foreach (var def in database.Achievements)
+            {
+                if (def != null && def.type == AchievementType.ChapterCleared)
+                {
+                    int cur = GetProgress(def.id);
+                    if (unlockedChapterIndex > cur)
+                    {
+                        SetProgress(def.id, unlockedChapterIndex);
+                        anyChanged = true;
+                    }
+                }
+            }
+        }
+
+        if (anyChanged)
+        {
+            OnAchievementUpdated?.Invoke();
         }
     }
 

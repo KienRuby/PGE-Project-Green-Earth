@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -38,6 +39,19 @@ public class RewardPopupController : MonoBehaviour
     [SerializeField] private TMP_Text achievementTabText;
     [SerializeField] private GameObject achievementTabBadge;
 
+    [Header("Tab Button Sprites (Active / Inactive)")]
+    [SerializeField] private Sprite dailyTabActiveSprite;
+    [SerializeField] private Sprite dailyTabInactiveSprite;
+    [SerializeField] private Sprite achievementTabActiveSprite;
+    [SerializeField] private Sprite achievementTabInactiveSprite;
+
+    public Sprite DailyTabActiveSprite => dailyTabActiveSprite;
+    public Sprite DailyTabInactiveSprite => dailyTabInactiveSprite;
+    public Sprite AchievementTabActiveSprite => achievementTabActiveSprite;
+    public Sprite AchievementTabInactiveSprite => achievementTabInactiveSprite;
+    public Image DailyTabBg => dailyTabBg;
+    public Image AchievementTabBg => achievementTabBg;
+
     [Header("Panels")]
     [SerializeField] private GameObject dailyLoginPanel;
     [SerializeField] private GameObject achievementPanel;
@@ -46,6 +60,7 @@ public class RewardPopupController : MonoBehaviour
     [SerializeField] private AchievementPanelUI achievementPanelUI;
 
     [Header("UX Motion Settings (Matching BottomNavigation)")]
+    [SerializeField] private bool lockTabTransforms = true;
     [SerializeField] private float tabSelectedYOffset = 6f;
     [SerializeField] private float tabPressYOffset = -2.5f;
     [SerializeField] private float tabPressScaleX = 1.03f;
@@ -95,6 +110,8 @@ public class RewardPopupController : MonoBehaviour
 
     private void Start()
     {
+        EnsureAnimationComponentsCached();
+        ApplyInstantTabState(currentTab);
         UpdateNotificationBadges();
     }
 
@@ -105,6 +122,8 @@ public class RewardPopupController : MonoBehaviour
         AchievementManager.OnAchievementUpdated += HandleNotificationUpdate;
         AchievementManager.OnAchievementClaimed += HandleAchievementClaimed;
 
+        EnsureAnimationComponentsCached();
+        ApplyInstantTabState(currentTab);
         UpdateNotificationBadges();
     }
 
@@ -159,6 +178,50 @@ public class RewardPopupController : MonoBehaviour
         }
     }
 
+    public void SetTabSprites(Sprite dailyActive, Sprite dailyInactive, Sprite achActive, Sprite achInactive)
+    {
+        dailyTabActiveSprite = dailyActive;
+        dailyTabInactiveSprite = dailyInactive;
+        achievementTabActiveSprite = achActive;
+        achievementTabInactiveSprite = achInactive;
+    }
+
+    public void EnsureTabSpritesLoaded()
+    {
+        if (dailyTabActiveSprite != null && dailyTabInactiveSprite != null &&
+            achievementTabActiveSprite != null && achievementTabInactiveSprite != null)
+            return;
+
+#if UNITY_EDITOR
+        if (dailyTabActiveSprite == null || dailyTabInactiveSprite == null ||
+            achievementTabActiveSprite == null || achievementTabInactiveSprite == null)
+        {
+            Sprite[] sprites = UnityEditor.AssetDatabase.LoadAllAssetsAtPath("Assets/Sprites/UI/Reward/nút khung daily login.png")
+                ?.OfType<Sprite>().ToArray();
+
+            if (sprites != null && sprites.Length > 0)
+            {
+                foreach (var s in sprites)
+                {
+                    if (dailyTabActiveSprite == null && s.name == "Tab_Daily_Login_Active") dailyTabActiveSprite = s;
+                    else if (dailyTabInactiveSprite == null && s.name == "Tab_Daily_Login_Inactive") dailyTabInactiveSprite = s;
+                    else if (achievementTabActiveSprite == null && s.name == "Tab_Achievements_Active") achievementTabActiveSprite = s;
+                    else if (achievementTabInactiveSprite == null && s.name == "Tab_Achievements_Inactive") achievementTabInactiveSprite = s;
+                }
+            }
+
+            if (dailyTabActiveSprite == null)
+                dailyTabActiveSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Reward/Extracted/Tab_Daily_Login_Active.png");
+            if (dailyTabInactiveSprite == null)
+                dailyTabInactiveSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Reward/Extracted/Tab_Daily_Login_Inactive.png");
+            if (achievementTabActiveSprite == null)
+                achievementTabActiveSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Reward/Extracted/Tab_Achievements_Active.png");
+            if (achievementTabInactiveSprite == null)
+                achievementTabInactiveSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Reward/Extracted/Tab_Achievements_Inactive.png");
+        }
+#endif
+    }
+
     private void EnsureAnimationComponentsCached()
     {
         if (popupRoot != null)
@@ -179,8 +242,17 @@ public class RewardPopupController : MonoBehaviour
             }
         }
 
-        if (dailyTabButton != null && dailyTabRect == null) dailyTabRect = dailyTabButton.transform as RectTransform;
-        if (achievementTabButton != null && achTabRect == null) achTabRect = achievementTabButton.transform as RectTransform;
+        if (dailyTabButton != null)
+        {
+            if (dailyTabRect == null) dailyTabRect = dailyTabButton.transform as RectTransform;
+            if (dailyTabBg == null) dailyTabBg = dailyTabButton.GetComponent<Image>();
+        }
+
+        if (achievementTabButton != null)
+        {
+            if (achTabRect == null) achTabRect = achievementTabButton.transform as RectTransform;
+            if (achievementTabBg == null) achievementTabBg = achievementTabButton.GetComponent<Image>();
+        }
 
         if (dailyLoginPanel != null)
         {
@@ -193,6 +265,8 @@ public class RewardPopupController : MonoBehaviour
             if (achPanelRect == null) achPanelRect = achievementPanel.transform as RectTransform;
             if (achPanelCanvasGroup == null) achPanelCanvasGroup = achievementPanel.GetComponent<CanvasGroup>() ?? achievementPanel.AddComponent<CanvasGroup>();
         }
+
+        EnsureTabSpritesLoaded();
     }
 
     // =========================================================================
@@ -205,6 +279,12 @@ public class RewardPopupController : MonoBehaviour
 
         if (popupOpenCloseRoutine != null) StopCoroutine(popupOpenCloseRoutine);
         if (popupRoot != null) popupRoot.SetActive(true);
+
+        UIDissolveController dissolve = (popupRoot != null ? popupRoot : gameObject).GetComponent<UIDissolveController>();
+        if (dissolve != null)
+        {
+            dissolve.ResetDissolve();
+        }
 
         SwitchTab(defaultTab, animated: false);
         UpdateNotificationBadges();
@@ -220,6 +300,14 @@ public class RewardPopupController : MonoBehaviour
         EnsureAnimationComponentsCached();
 
         if (popupOpenCloseRoutine != null) StopCoroutine(popupOpenCloseRoutine);
+
+        UIDissolveController dissolve = (popupRoot != null ? popupRoot : gameObject).GetComponent<UIDissolveController>();
+        if (dissolve != null && isActiveAndEnabled && popupRoot != null && popupRoot.activeInHierarchy)
+        {
+            dissolve.Hide();
+            UpdateNotificationBadges();
+            return;
+        }
 
         if (isActiveAndEnabled && popupRoot != null && popupRoot.activeInHierarchy)
         {
@@ -303,15 +391,18 @@ public class RewardPopupController : MonoBehaviour
 
         ApplyTabHeaderColors(tabIndex);
 
-        if (dailyTabRect != null)
+        if (!lockTabTransforms)
         {
-            dailyTabRect.anchoredPosition = new Vector2(dailyTabRect.anchoredPosition.x, isDaily ? tabSelectedYOffset : 0f);
-            dailyTabRect.localScale = Vector3.one;
-        }
-        if (achTabRect != null)
-        {
-            achTabRect.anchoredPosition = new Vector2(achTabRect.anchoredPosition.x, !isDaily ? tabSelectedYOffset : 0f);
-            achTabRect.localScale = Vector3.one;
+            if (dailyTabRect != null)
+            {
+                dailyTabRect.anchoredPosition = new Vector2(dailyTabRect.anchoredPosition.x, isDaily ? tabSelectedYOffset : 0f);
+                dailyTabRect.localScale = Vector3.one;
+            }
+            if (achTabRect != null)
+            {
+                achTabRect.anchoredPosition = new Vector2(achTabRect.anchoredPosition.x, !isDaily ? tabSelectedYOffset : 0f);
+                achTabRect.localScale = Vector3.one;
+            }
         }
     }
 
@@ -319,14 +410,73 @@ public class RewardPopupController : MonoBehaviour
     {
         bool isDaily = (tabIndex == 0);
 
-        if (dailyTabBg != null) dailyTabBg.color = isDaily ? ActiveTabBgColor : InactiveTabBgColor;
+        if (dailyTabBg == null && dailyTabButton != null) dailyTabBg = dailyTabButton.GetComponent<Image>();
+        if (achievementTabBg == null && achievementTabButton != null) achievementTabBg = achievementTabButton.GetComponent<Image>();
+
+        EnsureTabSpritesLoaded();
+
+        if (dailyTabBg != null)
+        {
+            if (isDaily)
+            {
+                if (dailyTabActiveSprite != null)
+                {
+                    dailyTabBg.sprite = dailyTabActiveSprite;
+                    dailyTabBg.color = Color.white;
+                }
+                else
+                {
+                    dailyTabBg.color = ActiveTabBgColor;
+                }
+            }
+            else
+            {
+                if (dailyTabInactiveSprite != null)
+                {
+                    dailyTabBg.sprite = dailyTabInactiveSprite;
+                    dailyTabBg.color = Color.white;
+                }
+                else
+                {
+                    dailyTabBg.color = InactiveTabBgColor;
+                }
+            }
+        }
+
+        if (achievementTabBg != null)
+        {
+            if (!isDaily)
+            {
+                if (achievementTabActiveSprite != null)
+                {
+                    achievementTabBg.sprite = achievementTabActiveSprite;
+                    achievementTabBg.color = Color.white;
+                }
+                else
+                {
+                    achievementTabBg.color = ActiveTabBgColor;
+                }
+            }
+            else
+            {
+                if (achievementTabInactiveSprite != null)
+                {
+                    achievementTabBg.sprite = achievementTabInactiveSprite;
+                    achievementTabBg.color = Color.white;
+                }
+                else
+                {
+                    achievementTabBg.color = InactiveTabBgColor;
+                }
+            }
+        }
+
         if (dailyTabText != null)
         {
             dailyTabText.color = isDaily ? ActiveTabTextColor : InactiveTabTextColor;
             dailyTabText.fontStyle = isDaily ? FontStyles.Bold : FontStyles.Normal;
         }
 
-        if (achievementTabBg != null) achievementTabBg.color = !isDaily ? ActiveTabBgColor : InactiveTabBgColor;
         if (achievementTabText != null)
         {
             achievementTabText.color = !isDaily ? ActiveTabTextColor : InactiveTabTextColor;
@@ -416,7 +566,7 @@ public class RewardPopupController : MonoBehaviour
         RectTransform inactiveTabRect = isDaily ? achTabRect : dailyTabRect;
 
         // Layer 1 - Touch Squash (~0.05s)
-        if (activeTabRect != null)
+        if (!lockTabTransforms && activeTabRect != null)
         {
             Vector3 startScale = activeTabRect.localScale;
             Vector3 pressedScale = new Vector3(tabPressScaleX, tabPressScaleY, 1f);
@@ -462,17 +612,20 @@ public class RewardPopupController : MonoBehaviour
             float normalized = Mathf.Clamp01(elapsedTotal / transitionDuration);
             float easeOut = 1f - (1f - normalized) * (1f - normalized);
 
-            if (activeTabRect != null)
+            if (!lockTabTransforms)
             {
-                float tabY = Mathf.Lerp(tabPressYOffset, tabSelectedYOffset, easeOut);
-                activeTabRect.anchoredPosition = new Vector2(activeTabRect.anchoredPosition.x, tabY);
-                activeTabRect.localScale = Vector3.Lerp(new Vector3(tabPressScaleX, tabPressScaleY, 1f), Vector3.one, easeOut);
-            }
-            if (inactiveTabRect != null)
-            {
-                float inactY = Mathf.Lerp(inactiveTabRect.anchoredPosition.y, 0f, easeOut);
-                inactiveTabRect.anchoredPosition = new Vector2(inactiveTabRect.anchoredPosition.x, inactY);
-                inactiveTabRect.localScale = Vector3.Lerp(inactiveTabRect.localScale, Vector3.one, easeOut);
+                if (activeTabRect != null)
+                {
+                    float tabY = Mathf.Lerp(tabPressYOffset, tabSelectedYOffset, easeOut);
+                    activeTabRect.anchoredPosition = new Vector2(activeTabRect.anchoredPosition.x, tabY);
+                    activeTabRect.localScale = Vector3.Lerp(new Vector3(tabPressScaleX, tabPressScaleY, 1f), Vector3.one, easeOut);
+                }
+                if (inactiveTabRect != null)
+                {
+                    float inactY = Mathf.Lerp(inactiveTabRect.anchoredPosition.y, 0f, easeOut);
+                    inactiveTabRect.anchoredPosition = new Vector2(inactiveTabRect.anchoredPosition.x, inactY);
+                    inactiveTabRect.localScale = Vector3.Lerp(inactiveTabRect.localScale, Vector3.one, easeOut);
+                }
             }
 
             if (enterRect != null) enterRect.anchoredPosition = Vector2.LerpUnclamped(enterStartPos, Vector2.zero, easeOut);
@@ -490,8 +643,11 @@ public class RewardPopupController : MonoBehaviour
         if (exitRect != null) exitRect.anchoredPosition = Vector2.zero;
         if (exitCg != null) exitCg.alpha = 1f;
 
-        if (activeTabRect != null) activeTabRect.anchoredPosition = new Vector2(activeTabRect.anchoredPosition.x, tabSelectedYOffset);
-        if (inactiveTabRect != null) inactiveTabRect.anchoredPosition = new Vector2(inactiveTabRect.anchoredPosition.x, 0f);
+        if (!lockTabTransforms)
+        {
+            if (activeTabRect != null) activeTabRect.anchoredPosition = new Vector2(activeTabRect.anchoredPosition.x, tabSelectedYOffset);
+            if (inactiveTabRect != null) inactiveTabRect.anchoredPosition = new Vector2(inactiveTabRect.anchoredPosition.x, 0f);
+        }
 
         tabSwitchRoutine = null;
     }
@@ -554,7 +710,11 @@ public class RewardPopupController : MonoBehaviour
         GameObject dPanel,
         GameObject aPanel,
         DailyLoginPanelUI dPanelUI,
-        AchievementPanelUI aPanelUI)
+        AchievementPanelUI aPanelUI,
+        Sprite dTabActive = null,
+        Sprite dTabInactive = null,
+        Sprite aTabActive = null,
+        Sprite aTabInactive = null)
     {
         popupRoot = root;
         dimBackgroundButton = dimBg;
@@ -571,6 +731,11 @@ public class RewardPopupController : MonoBehaviour
         achievementPanel = aPanel;
         dailyPanelUI = dPanelUI;
         achievementPanelUI = aPanelUI;
+
+        if (dTabActive != null) dailyTabActiveSprite = dTabActive;
+        if (dTabInactive != null) dailyTabInactiveSprite = dTabInactive;
+        if (aTabActive != null) achievementTabActiveSprite = aTabActive;
+        if (aTabInactive != null) achievementTabInactiveSprite = aTabInactive;
 
         SetupListeners();
     }
@@ -797,6 +962,7 @@ public class RewardPopupController : MonoBehaviour
 
         DailyLoginItemUI itemUI = itemObj.AddComponent<DailyLoginItemUI>();
         itemUI.SetReferencesForBuilder(dayLabel, dayNumber, rewardsTr, claimBtn, claimBtnTxt, obtainedRoot, obtainedTxt, countRoot, countLbl, countTxt, bg, border, cg);
+        itemUI.EnsureButtonSpritesLoaded();
         return itemUI;
     }
 

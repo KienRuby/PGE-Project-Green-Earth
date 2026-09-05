@@ -498,7 +498,20 @@ public class EnemySpawner : MonoBehaviour
 
         if (!isCustomBoss)
         {
-            bossObj.transform.localScale *= 1.8f;
+            EnemyMovement em = bossObj.GetComponent<EnemyMovement>();
+            BossMovement bm = bossObj.GetComponent<BossMovement>();
+            if (em != null)
+            {
+                em.SetScaleMultiplier(1.8f);
+            }
+            else if (bm != null)
+            {
+                bm.SetScaleMultiplier(1.8f);
+            }
+            else
+            {
+                bossObj.transform.localScale *= 1.8f;
+            }
 
             // Đổi màu viền đỏ/cam dữ dội cho Super Boss
             SpriteRenderer sr = bossObj.GetComponentInChildren<SpriteRenderer>();

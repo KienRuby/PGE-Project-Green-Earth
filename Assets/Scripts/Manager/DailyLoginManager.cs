@@ -55,6 +55,7 @@ public sealed class DailyLoginManager : MonoBehaviour
     public const string CurrentDayKey = "PGE.DailyLogin.CurrentDay";
     public const string LastLoginDateUtcKey = "PGE.DailyLogin.LastLoginDateUtc";
     public const string LastClaimDateUtcKey = "PGE.DailyLogin.LastClaimDateUtc";
+    public const string LastAdClaimDateUtcKey = "PGE.DailyLogin.LastAdClaimDateUtc";
     public const string ClaimedMaskKey = "PGE.DailyLogin.ClaimedMask";
     public const string CycleCountKey = "PGE.DailyLogin.CycleCount";
 
@@ -201,6 +202,19 @@ public sealed class DailyLoginManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Chuỗi ngày claim thêm qua xem quảng cáo gần nhất theo định dạng "yyyy-MM-dd".
+    /// </summary>
+    public string LastAdClaimDateUtc
+    {
+        get => PlayerPrefs.GetString(LastAdClaimDateUtcKey, string.Empty);
+        private set
+        {
+            PlayerPrefs.SetString(LastAdClaimDateUtcKey, value ?? string.Empty);
+            PlayerPrefs.Save();
+        }
+    }
+
+    /// <summary>
     /// Chuỗi ngày login gần nhất theo định dạng "yyyy-MM-dd".
     /// </summary>
     public string LastLoginDateUtc
@@ -308,14 +322,9 @@ public sealed class DailyLoginManager : MonoBehaviour
     {
         int current = CurrentLoginDay;
 
-        if (IsDayClaimed(dayIndex))
-        {
-            return DailyLoginState.Obtained;
-        }
-
         if (dayIndex == current)
         {
-            if (HasClaimedToday())
+            if (HasClaimedToday() || IsDayClaimed(dayIndex))
             {
                 return DailyLoginState.CurrentDayWaiting;
             }
@@ -324,7 +333,7 @@ public sealed class DailyLoginManager : MonoBehaviour
 
         if (dayIndex < current)
         {
-            // Các ngày trước đó mà chưa nhận -> coi như đã qua hoặc bị lỡ
+            // Các ngày trước đó coi như đã nhận (hoặc đã qua)
             return DailyLoginState.Obtained;
         }
 
@@ -474,6 +483,58 @@ public sealed class DailyLoginManager : MonoBehaviour
         }
     }
 
+    public bool HasClaimedAdToday()
+    {
+        string todayStr = GetEffectiveDateStringUtc();
+        return string.Equals(LastAdClaimDateUtc, todayStr, StringComparison.OrdinalIgnoreCase);
+    }
+
+    public void MarkAdClaimedToday()
+    {
+        LastAdClaimDateUtc = GetEffectiveDateStringUtc();
+        PlayerPrefs.Save();
+        OnDailyLoginStateChanged?.Invoke();
+    }
+
+    /// <summary>
+    /// Nhận thêm phần thưởng của ngày hôm nay sau khi xem quảng cáo (Claim Again).
+    /// </summary>
+    public bool TryClaimAgainWithAd()
+    {
+        if (isProcessingClaim) return false;
+
+        if (HasClaimedAdToday())
+        {
+            Debug.LogWarning("[DailyLoginManager] ⚠️ Hôm nay đã nhận phần thưởng quảng cáo (Claim Again) rồi!");
+            return false;
+        }
+
+        int current = CurrentLoginDay;
+        EnsureDatabaseLoaded();
+        DailyLoginDayData dayData = database != null ? database.GetDayData(current) : null;
+
+        if (dayData == null || dayData.rewards == null || dayData.rewards.Length == 0)
+        {
+            Debug.LogError($"[DailyLoginManager] Không tìm thấy dữ liệu phần thưởng cho Day {current}!");
+            return false;
+        }
+
+        isProcessingClaim = true;
+        try
+        {
+            RewardService.GrantRewards(dayData.rewards);
+            MarkAdClaimedToday();
+            Debug.Log($"[DailyLoginManager] 🎬🎁 Đã nhận thêm phần thưởng Day {current:00} qua xem quảng cáo!");
+            OnDailyRewardClaimed?.Invoke(current, dayData.rewards);
+            OnDailyLoginStateChanged?.Invoke();
+            return true;
+        }
+        finally
+        {
+            isProcessingClaim = false;
+        }
+    }
+
     // =========================================================================
     // IN-EDITOR DEBUG CONTEXT CHEATS
     // =========================================================================
@@ -485,6 +546,7 @@ public sealed class DailyLoginManager : MonoBehaviour
         PlayerPrefs.DeleteKey(CurrentDayKey);
         PlayerPrefs.DeleteKey(LastLoginDateUtcKey);
         PlayerPrefs.DeleteKey(LastClaimDateUtcKey);
+        PlayerPrefs.DeleteKey(LastAdClaimDateUtcKey);
         PlayerPrefs.DeleteKey(ClaimedMaskKey);
         PlayerPrefs.DeleteKey(CycleCountKey);
         PlayerPrefs.Save();
@@ -510,7 +572,9 @@ public sealed class DailyLoginManager : MonoBehaviour
         }
         // Giả lập claim của ngày trước
         DateTime fakePrevDate = GetEffectiveDateUtc().AddDays(-1);
-        LastClaimDateUtc = fakePrevDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        string prevDateStr = fakePrevDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        LastClaimDateUtc = prevDateStr;
+        LastAdClaimDateUtc = prevDateStr;
         LastLoginDateUtc = GetEffectiveDateStringUtc();
         PlayerPrefs.Save();
 
@@ -524,6 +588,7 @@ public sealed class DailyLoginManager : MonoBehaviour
         int current = CurrentLoginDay;
         ClaimedMask &= ~(1 << (current - 1));
         LastClaimDateUtc = string.Empty;
+        LastAdClaimDateUtc = string.Empty;
         PlayerPrefs.Save();
         OnDailyLoginStateChanged?.Invoke();
         Debug.Log($"[DailyLoginManager] 🔓 Đã mở khóa Day {current:00} sang trạng thái Available.");
