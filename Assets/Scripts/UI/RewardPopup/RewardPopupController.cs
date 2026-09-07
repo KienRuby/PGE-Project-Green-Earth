@@ -75,6 +75,9 @@ public class RewardPopupController : MonoBehaviour
     private static readonly Color ActiveTabTextColor = new Color32(255, 255, 255, 255); // White with dark outline
     private static readonly Color InactiveTabTextColor = new Color32(140, 200, 205, 255); // Muted teal
 
+    [Header("Runtime State & Auto Close")]
+    [SerializeField] private bool autoCloseOnPlay = false;
+
     private int currentTab = 0; // 0 = Daily, 1 = Achievements
 
     private RectTransform windowRect;
@@ -88,6 +91,13 @@ public class RewardPopupController : MonoBehaviour
     private CanvasGroup achPanelCanvasGroup;
     private Coroutine popupOpenCloseRoutine;
     private Coroutine tabSwitchRoutine;
+
+    private Vector2 dailyPanelBasePos;
+    private Vector2 achPanelBasePos;
+    private Vector2 dailyTabBasePos;
+    private Vector2 achTabBasePos;
+    private Vector2 windowBasePos;
+    private bool basePositionsCached = false;
 
     public bool IsOpen => popupRoot != null && popupRoot.activeSelf;
     public int CurrentTab => currentTab;
@@ -106,6 +116,11 @@ public class RewardPopupController : MonoBehaviour
 
         EnsureAnimationComponentsCached();
         SetupListeners();
+
+        if (Application.isPlaying && autoCloseOnPlay && popupRoot != null)
+        {
+            popupRoot.SetActive(false);
+        }
     }
 
     private void Start()
@@ -266,6 +281,16 @@ public class RewardPopupController : MonoBehaviour
             if (achPanelCanvasGroup == null) achPanelCanvasGroup = achievementPanel.GetComponent<CanvasGroup>() ?? achievementPanel.AddComponent<CanvasGroup>();
         }
 
+        if (!basePositionsCached)
+        {
+            if (windowRect != null) windowBasePos = windowRect.anchoredPosition;
+            if (dailyPanelRect != null) dailyPanelBasePos = dailyPanelRect.anchoredPosition;
+            if (achPanelRect != null) achPanelBasePos = achPanelRect.anchoredPosition;
+            if (dailyTabRect != null) dailyTabBasePos = dailyTabRect.anchoredPosition;
+            if (achTabRect != null) achTabBasePos = achTabRect.anchoredPosition;
+            basePositionsCached = true;
+        }
+
         EnsureTabSpritesLoaded();
     }
 
@@ -377,7 +402,7 @@ public class RewardPopupController : MonoBehaviour
         {
             dailyLoginPanel.SetActive(isDaily);
             if (isDaily && dailyPanelUI != null) dailyPanelUI.RefreshAll();
-            if (dailyPanelRect != null) dailyPanelRect.anchoredPosition = Vector2.zero;
+            if (dailyPanelRect != null) dailyPanelRect.anchoredPosition = dailyPanelBasePos;
             if (dailyPanelCanvasGroup != null) dailyPanelCanvasGroup.alpha = 1f;
         }
 
@@ -385,7 +410,7 @@ public class RewardPopupController : MonoBehaviour
         {
             achievementPanel.SetActive(!isDaily);
             if (!isDaily && achievementPanelUI != null) achievementPanelUI.RefreshAll();
-            if (achPanelRect != null) achPanelRect.anchoredPosition = Vector2.zero;
+            if (achPanelRect != null) achPanelRect.anchoredPosition = achPanelBasePos;
             if (achPanelCanvasGroup != null) achPanelCanvasGroup.alpha = 1f;
         }
 
@@ -395,12 +420,12 @@ public class RewardPopupController : MonoBehaviour
         {
             if (dailyTabRect != null)
             {
-                dailyTabRect.anchoredPosition = new Vector2(dailyTabRect.anchoredPosition.x, isDaily ? tabSelectedYOffset : 0f);
+                dailyTabRect.anchoredPosition = dailyTabBasePos + new Vector2(0f, isDaily ? tabSelectedYOffset : 0f);
                 dailyTabRect.localScale = Vector3.one;
             }
             if (achTabRect != null)
             {
-                achTabRect.anchoredPosition = new Vector2(achTabRect.anchoredPosition.x, !isDaily ? tabSelectedYOffset : 0f);
+                achTabRect.anchoredPosition = achTabBasePos + new Vector2(0f, !isDaily ? tabSelectedYOffset : 0f);
                 achTabRect.localScale = Vector3.one;
             }
         }
@@ -564,6 +589,8 @@ public class RewardPopupController : MonoBehaviour
         bool isDaily = (nextTab == 0);
         RectTransform activeTabRect = isDaily ? dailyTabRect : achTabRect;
         RectTransform inactiveTabRect = isDaily ? achTabRect : dailyTabRect;
+        Vector2 activeBasePos = isDaily ? dailyTabBasePos : achTabBasePos;
+        Vector2 inactiveBasePos = isDaily ? achTabBasePos : dailyTabBasePos;
 
         // Layer 1 - Touch Squash (~0.05s)
         if (!lockTabTransforms && activeTabRect != null)
@@ -571,7 +598,7 @@ public class RewardPopupController : MonoBehaviour
             Vector3 startScale = activeTabRect.localScale;
             Vector3 pressedScale = new Vector3(tabPressScaleX, tabPressScaleY, 1f);
             Vector2 startPos = activeTabRect.anchoredPosition;
-            Vector2 pressedPos = new Vector2(startPos.x, tabPressYOffset);
+            Vector2 pressedPos = activeBasePos + new Vector2(0f, tabPressYOffset);
 
             float elapsed = 0f;
             while (elapsed < tabPressDuration)
@@ -592,6 +619,8 @@ public class RewardPopupController : MonoBehaviour
         CanvasGroup exitCg = isDaily ? achPanelCanvasGroup : dailyPanelCanvasGroup;
         RectTransform enterRect = isDaily ? dailyPanelRect : achPanelRect;
         RectTransform exitRect = isDaily ? achPanelRect : dailyPanelRect;
+        Vector2 enterBasePos = isDaily ? dailyPanelBasePos : achPanelBasePos;
+        Vector2 exitBasePos = isDaily ? achPanelBasePos : dailyPanelBasePos;
 
         if (isDaily && dailyPanelUI != null) dailyPanelUI.RefreshAll();
         if (!isDaily && achievementPanelUI != null) achievementPanelUI.RefreshAll();
@@ -600,8 +629,8 @@ public class RewardPopupController : MonoBehaviour
         if (exitPanel != null) exitPanel.SetActive(true);
 
         float dir = (nextTab > prevTab) ? 1f : -1f;
-        Vector2 enterStartPos = new Vector2(dir * panelSlideDistance, 0f);
-        Vector2 exitEndPos = new Vector2(-dir * panelSlideDistance, 0f);
+        Vector2 enterStartPos = enterBasePos + new Vector2(dir * panelSlideDistance, 0f);
+        Vector2 exitEndPos = exitBasePos + new Vector2(-dir * panelSlideDistance, 0f);
 
         float transitionDuration = panelTransitionDuration;
         float elapsedTotal = 0f;
@@ -616,37 +645,37 @@ public class RewardPopupController : MonoBehaviour
             {
                 if (activeTabRect != null)
                 {
-                    float tabY = Mathf.Lerp(tabPressYOffset, tabSelectedYOffset, easeOut);
-                    activeTabRect.anchoredPosition = new Vector2(activeTabRect.anchoredPosition.x, tabY);
+                    float tabY = activeBasePos.y + Mathf.Lerp(tabPressYOffset, tabSelectedYOffset, easeOut);
+                    activeTabRect.anchoredPosition = new Vector2(activeBasePos.x, tabY);
                     activeTabRect.localScale = Vector3.Lerp(new Vector3(tabPressScaleX, tabPressScaleY, 1f), Vector3.one, easeOut);
                 }
                 if (inactiveTabRect != null)
                 {
-                    float inactY = Mathf.Lerp(inactiveTabRect.anchoredPosition.y, 0f, easeOut);
-                    inactiveTabRect.anchoredPosition = new Vector2(inactiveTabRect.anchoredPosition.x, inactY);
+                    float inactY = Mathf.Lerp(inactiveTabRect.anchoredPosition.y, inactiveBasePos.y, easeOut);
+                    inactiveTabRect.anchoredPosition = new Vector2(inactiveBasePos.x, inactY);
                     inactiveTabRect.localScale = Vector3.Lerp(inactiveTabRect.localScale, Vector3.one, easeOut);
                 }
             }
 
-            if (enterRect != null) enterRect.anchoredPosition = Vector2.LerpUnclamped(enterStartPos, Vector2.zero, easeOut);
+            if (enterRect != null) enterRect.anchoredPosition = Vector2.LerpUnclamped(enterStartPos, enterBasePos, easeOut);
             if (enterCg != null) enterCg.alpha = easeOut;
 
-            if (exitRect != null) exitRect.anchoredPosition = Vector2.LerpUnclamped(Vector2.zero, exitEndPos, normalized);
+            if (exitRect != null) exitRect.anchoredPosition = Vector2.LerpUnclamped(exitBasePos, exitEndPos, normalized);
             if (exitCg != null) exitCg.alpha = 1f - normalized;
 
             yield return null;
         }
 
         if (exitPanel != null) exitPanel.SetActive(false);
-        if (enterRect != null) enterRect.anchoredPosition = Vector2.zero;
+        if (enterRect != null) enterRect.anchoredPosition = enterBasePos;
         if (enterCg != null) enterCg.alpha = 1f;
-        if (exitRect != null) exitRect.anchoredPosition = Vector2.zero;
+        if (exitRect != null) exitRect.anchoredPosition = exitBasePos;
         if (exitCg != null) exitCg.alpha = 1f;
 
         if (!lockTabTransforms)
         {
-            if (activeTabRect != null) activeTabRect.anchoredPosition = new Vector2(activeTabRect.anchoredPosition.x, tabSelectedYOffset);
-            if (inactiveTabRect != null) inactiveTabRect.anchoredPosition = new Vector2(inactiveTabRect.anchoredPosition.x, 0f);
+            if (activeTabRect != null) activeTabRect.anchoredPosition = activeBasePos + new Vector2(0f, tabSelectedYOffset);
+            if (inactiveTabRect != null) inactiveTabRect.anchoredPosition = inactiveBasePos;
         }
 
         tabSwitchRoutine = null;
@@ -736,6 +765,14 @@ public class RewardPopupController : MonoBehaviour
         if (dTabInactive != null) dailyTabInactiveSprite = dTabInactive;
         if (aTabActive != null) achievementTabActiveSprite = aTabActive;
         if (aTabInactive != null) achievementTabInactiveSprite = aTabInactive;
+
+        basePositionsCached = false;
+        dailyPanelRect = null;
+        achPanelRect = null;
+        dailyTabRect = null;
+        achTabRect = null;
+        windowRect = null;
+        EnsureAnimationComponentsCached();
 
         SetupListeners();
     }
@@ -1154,9 +1191,6 @@ public class RewardPopupController : MonoBehaviour
         GameObject bgObj = CreateRuntimeImage("Background", root.transform, fillColor, false);
         background = bgObj.GetComponent<Image>();
         StretchRect(bgObj.GetComponent<RectTransform>(), Vector2.zero, Vector2.one, new Vector2(4f, 4f), new Vector2(-4f, -4f));
-
-        GameObject topHighlight = CreateRuntimeImage("TopHighlight", root.transform, new Color32(151, 240, 226, 75), false);
-        StretchRect(topHighlight.GetComponent<RectTransform>(), new Vector2(0.04f, 0.92f), new Vector2(0.96f, 0.96f), Vector2.zero, Vector2.zero);
 
         return root;
     }

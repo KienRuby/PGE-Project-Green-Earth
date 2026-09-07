@@ -77,47 +77,47 @@ public class DailyLoginDatabase : ScriptableObject
     {
         days = new List<DailyLoginDayData>
         {
-            // DAY 01: Energy x30, RedGem x300, DataChip x1000
+            // DAY 01: Energy x30, DataChip x300, RedGem x1000
             new DailyLoginDayData(1,
                 new RewardData(RewardType.Energy, 30),
-                new RewardData(RewardType.RedGem, 300),
-                new RewardData(RewardType.DataChip, 1000)),
+                new RewardData(RewardType.DataChip, 300),
+                new RewardData(RewardType.RedGem, 1000)),
 
-            // DAY 02: Energy x30, RedGem x300, DataChip x1000
+            // DAY 02: Energy x30, DataChip x300, RedGem x1000
             new DailyLoginDayData(2,
                 new RewardData(RewardType.Energy, 30),
-                new RewardData(RewardType.RedGem, 300),
-                new RewardData(RewardType.DataChip, 1000)),
+                new RewardData(RewardType.DataChip, 300),
+                new RewardData(RewardType.RedGem, 1000)),
 
-            // DAY 03: Energy x60, RedGem x500, DataChip x3000
+            // DAY 03: Energy x30, DataChip x300, RedGem x1000
             new DailyLoginDayData(3,
-                new RewardData(RewardType.Energy, 60),
-                new RewardData(RewardType.RedGem, 500),
-                new RewardData(RewardType.DataChip, 3000)),
+                new RewardData(RewardType.Energy, 30),
+                new RewardData(RewardType.DataChip, 300),
+                new RewardData(RewardType.RedGem, 1000)),
 
-            // DAY 04: Energy x30, RedGem x300, DataChip x1000
+            // DAY 04: Energy x30, DataChip x300, RedGem x1000
             new DailyLoginDayData(4,
                 new RewardData(RewardType.Energy, 30),
-                new RewardData(RewardType.RedGem, 300),
-                new RewardData(RewardType.DataChip, 1000)),
+                new RewardData(RewardType.DataChip, 300),
+                new RewardData(RewardType.RedGem, 1000)),
 
-            // DAY 05: Energy x30, RedGem x300, DataChip x1000
+            // DAY 05: Energy x30, DataChip x300, RedGem x1000
             new DailyLoginDayData(5,
                 new RewardData(RewardType.Energy, 30),
-                new RewardData(RewardType.RedGem, 300),
-                new RewardData(RewardType.DataChip, 1000)),
+                new RewardData(RewardType.DataChip, 300),
+                new RewardData(RewardType.RedGem, 1000)),
 
-            // DAY 06: Energy x60, RedGem x500, DataChip x3000
+            // DAY 06: Energy x30, DataChip x300, RedGem x1000
             new DailyLoginDayData(6,
-                new RewardData(RewardType.Energy, 60),
-                new RewardData(RewardType.RedGem, 500),
-                new RewardData(RewardType.DataChip, 3000)),
+                new RewardData(RewardType.Energy, 30),
+                new RewardData(RewardType.DataChip, 300),
+                new RewardData(RewardType.RedGem, 1000)),
 
-            // DAY 07: Energy x90, RedGem x500, DataChip x7000
+            // DAY 07: Energy x30, DataChip x300, RedGem x1000
             new DailyLoginDayData(7,
-                new RewardData(RewardType.Energy, 90),
-                new RewardData(RewardType.RedGem, 500),
-                new RewardData(RewardType.DataChip, 7000))
+                new RewardData(RewardType.Energy, 30),
+                new RewardData(RewardType.DataChip, 300),
+                new RewardData(RewardType.RedGem, 1000))
         };
     }
 

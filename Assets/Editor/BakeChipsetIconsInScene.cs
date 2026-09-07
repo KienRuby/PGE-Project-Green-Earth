@@ -14,7 +14,7 @@ public static class BakeChipsetIconsInScene
 {
     static BakeChipsetIconsInScene()
     {
-        EditorApplication.delayCall += ExecuteBakeIfOpen;
+        // Available via menu: PGE > Bake All Panels In Scene
     }
 
     private static void ExecuteBakeIfOpen()

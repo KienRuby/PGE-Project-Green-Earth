@@ -535,9 +535,6 @@ public static class ChapterMenuSceneBuilder
         background = CreateImage("Background", root, fillColor, false);
         Stretch(background.rectTransform, Vector2.zero, Vector2.one, new Vector2(4f, 4f), new Vector2(-4f, -4f));
 
-        Image topHighlight = CreateImage("TopHighlight", root, new Color32(151, 240, 226, 100), false);
-        Stretch(topHighlight.rectTransform, new Vector2(0.04f, 0.88f), new Vector2(0.96f, 0.94f), Vector2.zero, Vector2.zero);
-
         return root.gameObject;
     }
 

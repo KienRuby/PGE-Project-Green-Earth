@@ -37,7 +37,7 @@ public static class LabSlotConfigurator
 
     static LabSlotConfigurator()
     {
-        EditorApplication.delayCall += ConfigureAllSlots;
+        // One-time configure available via PGE > UI > Configure All 16 Lab Slots Like Slot 1
     }
 
     [MenuItem("PGE/UI/Configure All 16 Lab Slots Like Slot 1")]
@@ -123,13 +123,18 @@ public static class LabSlotConfigurator
 
         for (int i = 0; i < 16; i++)
         {
-            string slotName = $"Slot{i + 1:02d}";
-            Transform slotTr = upgradeGrid.Find(slotName);
+            string slotName = $"Slot{i + 1:D2}";
+            Transform slotTr = upgradeGrid.Find(slotName)
+                ?? upgradeGrid.Find($"Slot{i + 1}")
+                ?? upgradeGrid.Find($"Slot{i + 1:02d}")
+                ?? (i < upgradeGrid.childCount ? upgradeGrid.GetChild(i) : null);
+
             if (slotTr == null)
             {
-                Debug.LogWarning($"[LabSlotConfigurator] {slotName} not found in UpgradeGrid.");
                 continue;
             }
+
+            slotTr.name = slotName;
 
             string expectedSpriteName = StatSpriteNames[i];
             statMap.TryGetValue(expectedSpriteName, out Sprite cardSprite);

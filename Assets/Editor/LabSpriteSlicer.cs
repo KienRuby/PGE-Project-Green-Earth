@@ -14,7 +14,7 @@ public static class LabSpriteSlicer
 
     static LabSpriteSlicer()
     {
-        EditorApplication.delayCall += SliceLabTexture;
+        // Available via menu: PGE > UI > Slice Lab Texture 1
     }
 
     [MenuItem("PGE/UI/Slice Lab Texture 1")]

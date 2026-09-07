@@ -40,16 +40,28 @@ public class AchievementItemUI : MonoBehaviour
     [SerializeField] private Image itemBorder;
     [SerializeField] private Image itemBackground;
 
+    [Header("Button & Banner Sprites")]
+    [SerializeField] private Sprite btnGetSprite;
+    [SerializeField] private Sprite btnNotAchievedSprite;
+    [SerializeField] private Sprite btnObtainedSprite;
+    [SerializeField] private Sprite cardBannerSprite;
+    [SerializeField] private Sprite progressBarBgSprite;
+    [SerializeField] private Sprite progressBarFillSprite;
+
     private string achievementId;
     private Action<string> onClaimCallback;
     private bool isClaimable = false;
 
     // Button Colors matching Image 1
     private static readonly Color GetButtonColor = new Color32(56, 189, 248, 255);        // Cyan bright
-    private static readonly Color NotAchievedButtonColor = new Color32(65, 80, 95, 255);  // Gray
-    private static readonly Color ObtainedButtonColor = new Color32(35, 50, 65, 255);     // Dark gray
+    private static readonly Color GetBorderColor = new Color32(94, 213, 205, 255);        // Cyan border
+    private static readonly Color InProgressButtonColor = new Color32(23, 68, 88, 255);   // Dark teal matching Image 1
+    private static readonly Color InProgressBorderColor = new Color32(11, 35, 48, 255);   // Dark border
+    private static readonly Color ObtainedButtonColor = new Color32(78, 140, 147, 255);  // Grayish teal matching Image 1
+    private static readonly Color ObtainedBorderColor = new Color32(38, 77, 85, 255);   // Grayish border
     private static readonly Color TextWhite = new Color32(245, 255, 255, 255);
-    private static readonly Color TextGray = new Color32(160, 180, 195, 255);
+    private static readonly Color TextInProgress = new Color32(35, 95, 120, 255);         // Dim dark teal text matching Image 1
+    private static readonly Color TextObtained = new Color32(35, 80, 95, 255);            // Dim dark cyan text matching Image 1
 
     public void EnsureUIReferences()
     {
@@ -104,6 +116,105 @@ public class AchievementItemUI : MonoBehaviour
             Transform dot = actionButton.transform.Find("NotificationDot") ?? actionButton.transform.Find("RedDot") ?? transform.Find("NotificationDot");
             if (dot != null) buttonNotificationDot = dot.gameObject;
         }
+
+        EnsureSpritesLoaded();
+    }
+
+    public void EnsureSpritesLoaded()
+    {
+#if UNITY_EDITOR
+        if (btnGetSprite == null)
+            btnGetSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Reward/Extracted/Btn_Get.png");
+        if (btnNotAchievedSprite == null)
+            btnNotAchievedSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Reward/Extracted/Btn_Not_Achieved.png");
+        if (btnObtainedSprite == null)
+            btnObtainedSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Reward/Extracted/Btn_Obtained.png");
+        if (cardBannerSprite == null)
+            cardBannerSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Reward/Extracted/Row_Banner_Achievement.png");
+        if (progressBarBgSprite == null)
+            progressBarBgSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Reward/Extracted/Progress_Bar_Bg.png");
+        if (progressBarFillSprite == null)
+            progressBarFillSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Reward/Extracted/Progress_Bar_Fill.png");
+
+        if (btnGetSprite == null || btnNotAchievedSprite == null || cardBannerSprite == null)
+        {
+            var sps = UnityEditor.AssetDatabase.LoadAllAssetsAtPath("Assets/Sprites/UI/Reward/nút màn achievements.png");
+            if (sps != null)
+            {
+                foreach (var obj in sps)
+                {
+                    if (obj is Sprite sp)
+                    {
+                        if (btnGetSprite == null && sp.name == "Btn_Get") btnGetSprite = sp;
+                        if (btnNotAchievedSprite == null && sp.name == "Btn_Not_Achieved") btnNotAchievedSprite = sp;
+                        if (cardBannerSprite == null && sp.name == "Row_Banner_Achievement") cardBannerSprite = sp;
+                        if (progressBarBgSprite == null && sp.name == "Progress_Bar_Bg") progressBarBgSprite = sp;
+                        if (progressBarFillSprite == null && sp.name == "Progress_Bar_Fill") progressBarFillSprite = sp;
+                    }
+                }
+            }
+        }
+
+        if (btnObtainedSprite == null || btnGetSprite == null)
+        {
+            var sps = UnityEditor.AssetDatabase.LoadAllAssetsAtPath("Assets/Sprites/UI/Reward/nút daily login.png");
+            if (sps != null)
+            {
+                foreach (var obj in sps)
+                {
+                    if (obj is Sprite sp)
+                    {
+                        if (btnObtainedSprite == null && sp.name == "Btn_Obtained") btnObtainedSprite = sp;
+                        if (btnGetSprite == null && sp.name == "Btn_Get") btnGetSprite = sp;
+                    }
+                }
+            }
+        }
+#endif
+    }
+
+    public void SetSprites(
+        Sprite getSp,
+        Sprite notSp,
+        Sprite obSp,
+        Sprite bannerSp = null,
+        Sprite barBgSp = null,
+        Sprite barFillSp = null)
+    {
+        if (getSp != null) btnGetSprite = getSp;
+        if (notSp != null) btnNotAchievedSprite = notSp;
+        if (obSp != null) btnObtainedSprite = obSp;
+        if (bannerSp != null) cardBannerSprite = bannerSp;
+        if (barBgSp != null) progressBarBgSprite = barBgSp;
+        if (barFillSp != null) progressBarFillSprite = barFillSp;
+
+        ApplyStaticVisualSprites();
+    }
+
+    public void ApplyStaticVisualSprites()
+    {
+        if (cardBannerSprite != null)
+        {
+            if (itemBackground != null)
+            {
+                itemBackground.sprite = cardBannerSprite;
+                itemBackground.color = Color.white;
+            }
+            if (itemBorder != null)
+            {
+                itemBorder.color = Color.white;
+            }
+        }
+        if (progressBarBgSprite != null && progressBgImage != null)
+        {
+            progressBgImage.sprite = progressBarBgSprite;
+            progressBgImage.color = Color.white;
+        }
+        if (progressBarFillSprite != null && progressFillImage != null)
+        {
+            progressFillImage.sprite = progressBarFillSprite;
+            progressFillImage.color = Color.white;
+        }
     }
 
     public TMP_Text ActionButtonText => actionButtonText;
@@ -112,6 +223,7 @@ public class AchievementItemUI : MonoBehaviour
     private void Awake()
     {
         EnsureUIReferences();
+        ApplyStaticVisualSprites();
         if (actionButton != null)
         {
             actionButton.onClick.RemoveListener(OnActionButtonClicked);
@@ -135,6 +247,7 @@ public class AchievementItemUI : MonoBehaviour
         Func<RewardType, Sprite> iconResolver)
     {
         EnsureUIReferences();
+        ApplyStaticVisualSprites();
         if (definition == null) return;
 
         achievementId = definition.id;
@@ -185,7 +298,18 @@ public class AchievementItemUI : MonoBehaviour
     {
         if (rewardsContainer == null || rewards == null) return;
 
-        for (int i = rewardsContainer.childCount - 1; i >= 0; i--)
+        HorizontalLayoutGroup rLayout = rewardsContainer.GetComponent<HorizontalLayoutGroup>();
+        if (rLayout != null && rLayout.enabled)
+        {
+            rLayout.spacing = (rewards.Length == 2) ? 180f : 45f;
+            rLayout.childAlignment = TextAnchor.MiddleLeft;
+            rLayout.childControlWidth = false;
+            rLayout.childControlHeight = false;
+        }
+
+        // Tái sử dụng các badge đã được thiết lập sẵn trong scene/hierarchy để giữ nguyên 100% Transform (X, Y, size)
+        int rewardIndex = 0;
+        for (int i = 0; i < rewardsContainer.childCount; i++)
         {
             Transform child = rewardsContainer.GetChild(i);
             if (rewardBadgePrefab != null && child.gameObject == rewardBadgePrefab)
@@ -193,28 +317,54 @@ public class AchievementItemUI : MonoBehaviour
                 child.gameObject.SetActive(false);
                 continue;
             }
-            if (Application.isPlaying)
+
+            if (rewardIndex < rewards.Length)
             {
-                Destroy(child.gameObject);
+                child.gameObject.SetActive(true);
+                RewardData reward = rewards[rewardIndex];
+
+                Image iconImg = child.Find("Icon")?.GetComponent<Image>()
+                    ?? child.GetComponentInChildren<Image>();
+                TMP_Text amountTxt = child.Find("AmountText")?.GetComponent<TMP_Text>()
+                    ?? child.GetComponentInChildren<TMP_Text>();
+
+                if (iconImg != null)
+                {
+                    Sprite icon = reward.customIcon != null ? reward.customIcon : (iconResolver != null ? iconResolver(reward.type) : null);
+                    if (icon != null)
+                    {
+                        iconImg.sprite = icon;
+                        iconImg.enabled = true;
+                    }
+                }
+
+                if (amountTxt != null)
+                {
+                    amountTxt.text = RewardService.FormatRewardAmount(reward.amount);
+                }
+
+                rewardIndex++;
             }
             else
             {
-                DestroyImmediate(child.gameObject);
+                child.gameObject.SetActive(false);
             }
         }
 
-        foreach (var reward in rewards)
+        // Nếu số lượng phần thưởng nhiều hơn số badge sẵn có, mới tạo thêm
+        while (rewardIndex < rewards.Length)
         {
+            RewardData reward = rewards[rewardIndex];
             GameObject badgeObj;
             if (rewardBadgePrefab != null)
             {
                 badgeObj = Instantiate(rewardBadgePrefab, rewardsContainer);
-                badgeObj.SetActive(true);
             }
             else
             {
                 badgeObj = CreateFallbackRewardBadge(rewardsContainer);
             }
+            badgeObj.SetActive(true);
 
             Image iconImg = badgeObj.transform.Find("Icon")?.GetComponent<Image>()
                 ?? badgeObj.GetComponentInChildren<Image>();
@@ -235,27 +385,51 @@ public class AchievementItemUI : MonoBehaviour
             {
                 amountTxt.text = RewardService.FormatRewardAmount(reward.amount);
             }
+
+            rewardIndex++;
         }
     }
 
     public void UpdateState(AchievementState state)
     {
         EnsureUIReferences();
+        EnsureSpritesLoaded();
+        ApplyStaticVisualSprites();
         isClaimable = (state == AchievementState.Completed);
+
+        Image border = actionButton != null ? actionButton.GetComponent<Image>() : null;
 
         if (state == AchievementState.Completed)
         {
-            // Trạng thái hoàn thành -> Nút "Get" sáng cyan
+            // Trạng thái hoàn thành -> Nút "Get"
             if (actionButton != null)
             {
                 actionButton.interactable = true;
+                var cols = actionButton.colors;
+                cols.disabledColor = Color.white;
+                actionButton.colors = cols;
             }
+
             if (actionButtonImage != null)
             {
-                actionButtonImage.color = GetButtonColor;
+                if (btnGetSprite != null)
+                {
+                    actionButtonImage.sprite = btnGetSprite;
+                    actionButtonImage.preserveAspect = true;
+                    actionButtonImage.color = Color.white;
+                }
+                else
+                {
+                    actionButtonImage.color = GetButtonColor;
+                }
+            }
+            if (border != null)
+            {
+                border.color = (btnGetSprite != null) ? Color.clear : GetBorderColor;
             }
             if (actionButtonText != null)
             {
+                actionButtonText.gameObject.SetActive(btnGetSprite == null);
                 actionButtonText.text = "Get";
                 actionButtonText.color = TextWhite;
             }
@@ -268,19 +442,38 @@ public class AchievementItemUI : MonoBehaviour
 
         if (state == AchievementState.InProgress)
         {
-            // Trạng thái đang thực hiện -> Nút "Not achieved" xám
+            // Trạng thái đang thực hiện -> Nút "Not Achieved" / "Get" tối màu
             if (actionButton != null)
             {
                 actionButton.interactable = false;
+                var cols = actionButton.colors;
+                cols.disabledColor = Color.white;
+                actionButton.colors = cols;
             }
+
+            Sprite inactiveSprite = btnNotAchievedSprite ?? btnGetSprite;
             if (actionButtonImage != null)
             {
-                actionButtonImage.color = NotAchievedButtonColor;
+                if (inactiveSprite != null)
+                {
+                    actionButtonImage.sprite = inactiveSprite;
+                    actionButtonImage.preserveAspect = true;
+                    actionButtonImage.color = (btnNotAchievedSprite != null) ? Color.white : new Color(1f, 1f, 1f, 0.5f);
+                }
+                else
+                {
+                    actionButtonImage.color = InProgressButtonColor;
+                }
+            }
+            if (border != null)
+            {
+                border.color = (inactiveSprite != null) ? Color.clear : InProgressBorderColor;
             }
             if (actionButtonText != null)
             {
-                actionButtonText.text = "Not achieved";
-                actionButtonText.color = TextGray;
+                actionButtonText.gameObject.SetActive(inactiveSprite == null);
+                actionButtonText.text = "Get";
+                actionButtonText.color = TextInProgress;
             }
             if (buttonNotificationDot != null)
             {
@@ -291,19 +484,37 @@ public class AchievementItemUI : MonoBehaviour
 
         if (state == AchievementState.Claimed)
         {
-            // Trạng thái đã nhận -> Nút "Obtained" tối
+            // Trạng thái đã nhận -> Nút "Obtained"
             if (actionButton != null)
             {
                 actionButton.interactable = false;
+                var cols = actionButton.colors;
+                cols.disabledColor = Color.white;
+                actionButton.colors = cols;
             }
+
             if (actionButtonImage != null)
             {
-                actionButtonImage.color = ObtainedButtonColor;
+                if (btnObtainedSprite != null)
+                {
+                    actionButtonImage.sprite = btnObtainedSprite;
+                    actionButtonImage.preserveAspect = true;
+                    actionButtonImage.color = Color.white;
+                }
+                else
+                {
+                    actionButtonImage.color = ObtainedButtonColor;
+                }
+            }
+            if (border != null)
+            {
+                border.color = (btnObtainedSprite != null) ? Color.clear : ObtainedBorderColor;
             }
             if (actionButtonText != null)
             {
+                actionButtonText.gameObject.SetActive(btnObtainedSprite == null);
                 actionButtonText.text = "Obtained";
-                actionButtonText.color = TextGray;
+                actionButtonText.color = TextObtained;
             }
             if (buttonNotificationDot != null)
             {
@@ -362,8 +573,10 @@ public class AchievementItemUI : MonoBehaviour
         GameObject badge = new GameObject("RewardBadge", typeof(RectTransform), typeof(Image));
         badge.transform.SetParent(parent, false);
         RectTransform rt = badge.GetComponent<RectTransform>();
-        rt.sizeDelta = new Vector2(85f, 85f);
-        badge.GetComponent<Image>().color = new Color32(11, 45, 60, 240);
+        rt.sizeDelta = new Vector2(75f, 75f);
+        Image badgeImg = badge.GetComponent<Image>();
+        badgeImg.color = new Color32(11, 45, 60, 255);
+        badgeImg.raycastTarget = false;
 
         GameObject iconObj = new GameObject("Icon", typeof(RectTransform), typeof(Image));
         iconObj.transform.SetParent(badge.transform, false);
@@ -372,19 +585,23 @@ public class AchievementItemUI : MonoBehaviour
         iconRt.anchorMax = new Vector2(0.5f, 0.5f);
         iconRt.anchoredPosition = new Vector2(0f, 10f);
         iconRt.sizeDelta = new Vector2(46f, 46f);
-        iconObj.GetComponent<Image>().preserveAspect = true;
+        Image iconImg = iconObj.GetComponent<Image>();
+        iconImg.preserveAspect = true;
+        iconImg.raycastTarget = false;
 
         GameObject textObj = new GameObject("AmountText", typeof(RectTransform), typeof(TextMeshProUGUI));
         textObj.transform.SetParent(badge.transform, false);
         RectTransform textRt = textObj.GetComponent<RectTransform>();
         textRt.anchorMin = new Vector2(0f, 0f);
-        textRt.anchorMax = new Vector2(1f, 0.35f);
+        textRt.anchorMax = new Vector2(1f, 0.38f);
         textRt.offsetMin = Vector2.zero;
         textRt.offsetMax = Vector2.zero;
         TMP_Text txt = textObj.GetComponent<TMP_Text>();
-        txt.fontSize = 18f;
+        txt.fontSize = 20f;
+        txt.fontStyle = FontStyles.Bold;
         txt.alignment = TextAlignmentOptions.Center;
         txt.color = Color.white;
+        txt.raycastTarget = false;
 
         return badge;
     }

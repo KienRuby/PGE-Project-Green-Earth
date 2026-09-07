@@ -11,15 +11,35 @@ public static class RewardSpriteSlicer
 {
     private const string TexturePathDailyLogin = "Assets/Sprites/UI/Reward/nút daily login.png";
     private const string TexturePathKhungDailyLogin = "Assets/Sprites/UI/Reward/nút khung daily login.png";
+    private const string TexturePathAchievements = "Assets/Sprites/UI/Reward/nút màn achievements.png";
 
     // Không dùng [InitializeOnLoad] để tránh tự động ghi đè kích thước cắt thủ công của người dùng trong Sprite Editor.
-    // Chỉ chạy khi người dùng chủ động bấm menu: PGE > UI > Slice Reward Textures (Daily Login)
+    // Chỉ chạy khi người dùng chủ động bấm menu: PGE > UI > Slice Reward Textures
 
-    [MenuItem("PGE/UI/Slice Reward Textures (Daily Login)")]
+    [MenuItem("PGE/UI/Slice Reward Textures (All)")]
     public static void SliceAllRewardTextures()
     {
         SliceDailyLoginTexture();
         SliceKhungDailyLoginTexture();
+        SliceAchievementsTexture();
+    }
+
+    [MenuItem("PGE/UI/Slice Reward Textures (Achievements)")]
+    public static void SliceAchievementsTexture()
+    {
+        var spriteDefinitions = new (string name, float x, float y, float w, float h)[]
+        {
+            ("Progress_Bar_Bg", 316f, 3504f, 1012f, 67f),
+            ("Progress_Bar_Fill", 320f, 3294f, 1004f, 59f),
+            ("Btn_Get", 1503f, 3405f, 348f, 152f),
+            ("Btn_Not_Achieved", 1503f, 3150f, 348f, 152f),
+            ("Row_Banner_Achievement", 266f, 2568f, 1650f, 426f),
+            ("Icon_Energy", 385f, 2201f, 164f, 168f),
+            ("Icon_Data_Chip", 636f, 2201f, 164f, 168f),
+            ("Icon_Red_Gem", 885f, 2201f, 164f, 168f)
+        };
+
+        SliceTexture(TexturePathAchievements, spriteDefinitions);
     }
 
     public static void SliceDailyLoginTexture()

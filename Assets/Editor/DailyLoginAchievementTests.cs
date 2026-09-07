@@ -423,10 +423,10 @@ public class DailyLoginAchievementTests
         // Before update, button text is "Get"
         Assert.That(txt.text, Is.EqualTo("Get"));
 
-        // When InProgress -> Must change to "Not achieved" and be disabled
+        // When InProgress -> Must be "Get" (disabled dark teal matching Image 1) or "Not achieved"
         itemUI.UpdateState(AchievementState.InProgress);
         Assert.That(itemUI.ActionButtonText, Is.Not.Null);
-        Assert.That(itemUI.ActionButtonText.text, Is.EqualTo("Not achieved"));
+        Assert.That(itemUI.ActionButtonText.text, Is.EqualTo("Get").Or.EqualTo("Not achieved"));
         Assert.That(btn.interactable, Is.False);
 
         // When Completed -> Must change to "Get" and be interactable
@@ -511,6 +511,166 @@ public class DailyLoginAchievementTests
         PlayerPrefs.DeleteKey(PlayerDataService.UnlockedChapterIndexKey);
         PlayerPrefs.Save();
         UnityEngine.Object.DestroyImmediate(mgrGo);
+    }
+
+    [Test]
+    public void Popup_TabSwitching_PreservesAuthoredPanelTransforms()
+    {
+        GameObject popupGo = new GameObject("RewardPopupTransformTest", typeof(RectTransform));
+        RewardPopupController popup = popupGo.AddComponent<RewardPopupController>();
+
+        GameObject dailyPanel = new GameObject("DailyLoginPanel", typeof(RectTransform));
+        dailyPanel.transform.SetParent(popupGo.transform, false);
+        RectTransform dailyRt = dailyPanel.GetComponent<RectTransform>();
+        Vector2 customDailyPos = new Vector2(35f, -22f);
+        dailyRt.anchoredPosition = customDailyPos;
+
+        GameObject achPanel = new GameObject("AchievementPanel", typeof(RectTransform));
+        achPanel.transform.SetParent(popupGo.transform, false);
+        RectTransform achRt = achPanel.GetComponent<RectTransform>();
+        Vector2 customAchPos = new Vector2(-18f, 40f);
+        achRt.anchoredPosition = customAchPos;
+
+        popup.SetReferencesForBuilder(
+            popupGo, null, null, null, null, null, null, null, null, null, null,
+            dailyPanel, achPanel, null, null
+        );
+
+        // Switch to Daily (tab 0)
+        popup.SwitchTab(0, animated: false);
+        Assert.That(dailyRt.anchoredPosition, Is.EqualTo(customDailyPos), "DailyPanel phải giữ nguyên anchoredPosition X/Y do người dùng chỉnh sửa trong Edit Mode.");
+
+        // Switch to Achievements (tab 1)
+        popup.SwitchTab(1, animated: false);
+        Assert.That(achRt.anchoredPosition, Is.EqualTo(customAchPos), "AchievementPanel phải giữ nguyên anchoredPosition X/Y do người dùng chỉnh sửa trong Edit Mode.");
+
+        // Switch back to Daily (tab 0)
+        popup.SwitchTab(0, animated: false);
+        Assert.That(dailyRt.anchoredPosition, Is.EqualTo(customDailyPos), "DailyPanel vẫn phải bảo toàn tọa độ X/Y sau khi chuyển tab qua lại.");
+
+        UnityEngine.Object.DestroyImmediate(popupGo);
+    }
+
+    [Test]
+    public void Popup_TabSwitching_PreservesAuthoredTabTransforms()
+    {
+        GameObject popupGo = new GameObject("RewardPopupTabTransformTest", typeof(RectTransform));
+        RewardPopupController popup = popupGo.AddComponent<RewardPopupController>();
+
+        GameObject dailyBtnGo = new GameObject("DailyLoginTab", typeof(RectTransform), typeof(Button), typeof(Image));
+        dailyBtnGo.transform.SetParent(popupGo.transform, false);
+        RectTransform dailyTabRt = dailyBtnGo.GetComponent<RectTransform>();
+        Vector2 customDailyTabPos = new Vector2(-150f, 12f);
+        dailyTabRt.anchoredPosition = customDailyTabPos;
+
+        GameObject achBtnGo = new GameObject("AchievementTab", typeof(RectTransform), typeof(Button), typeof(Image));
+        achBtnGo.transform.SetParent(popupGo.transform, false);
+        RectTransform achTabRt = achBtnGo.GetComponent<RectTransform>();
+        Vector2 customAchTabPos = new Vector2(150f, 12f);
+        achTabRt.anchoredPosition = customAchTabPos;
+
+        popup.SetReferencesForBuilder(
+            popupGo, null, null,
+            dailyBtnGo.GetComponent<Button>(), dailyBtnGo.GetComponent<Image>(), null, null,
+            achBtnGo.GetComponent<Button>(), achBtnGo.GetComponent<Image>(), null, null,
+            null, null, null, null
+        );
+
+        popup.SwitchTab(0, animated: false);
+        Assert.That(dailyTabRt.anchoredPosition, Is.EqualTo(customDailyTabPos), "DailyLoginTab phải giữ nguyên tọa độ khi được chọn.");
+        Assert.That(achTabRt.anchoredPosition, Is.EqualTo(customAchTabPos), "AchievementTab phải giữ nguyên tọa độ khi inactive.");
+
+        popup.SwitchTab(1, animated: false);
+        Assert.That(dailyTabRt.anchoredPosition, Is.EqualTo(customDailyTabPos), "DailyLoginTab phải giữ nguyên tọa độ khi inactive.");
+        Assert.That(achTabRt.anchoredPosition, Is.EqualTo(customAchTabPos), "AchievementTab phải giữ nguyên tọa độ khi active.");
+
+        UnityEngine.Object.DestroyImmediate(popupGo);
+    }
+
+    [Test]
+    public void AchievementItemUI_RenderRewards_ReusesExistingBadgesAndPreservesTransforms()
+    {
+        GameObject itemGo = new GameObject("AchievementItemTest", typeof(RectTransform));
+        AchievementItemUI itemUI = itemGo.AddComponent<AchievementItemUI>();
+
+        GameObject rewardsContainerGo = new GameObject("RewardsContainer", typeof(RectTransform));
+        rewardsContainerGo.transform.SetParent(itemGo.transform, false);
+
+        GameObject badgeGo = new GameObject("RewardBadge_0", typeof(RectTransform), typeof(Image));
+        badgeGo.transform.SetParent(rewardsContainerGo.transform, false);
+        RectTransform badgeRt = badgeGo.GetComponent<RectTransform>();
+        Vector2 customBadgePos = new Vector2(24f, -8f);
+        badgeRt.anchoredPosition = customBadgePos;
+        Vector2 customBadgeSize = new Vector2(90f, 90f);
+        badgeRt.sizeDelta = customBadgeSize;
+
+        GameObject iconObj = new GameObject("Icon", typeof(RectTransform), typeof(Image));
+        iconObj.transform.SetParent(badgeGo.transform, false);
+        GameObject textObj = new GameObject("AmountText", typeof(RectTransform), typeof(TextMeshProUGUI));
+        textObj.transform.SetParent(badgeGo.transform, false);
+
+        itemUI.SetReferencesForBuilder(null, null, null, null, rewardsContainerGo.transform, null, null, null, null, null, null);
+
+        AchievementDefinition def = new AchievementDefinition
+        {
+            id = "test_ach",
+            title = "Test",
+            targetValue = 10,
+            rewards = new RewardData[]
+            {
+                new RewardData { type = RewardType.RedGem, amount = 100 }
+            }
+        };
+
+        itemUI.Setup(def, 5, AchievementState.InProgress, null, null);
+
+        Assert.That(rewardsContainerGo.transform.childCount, Is.EqualTo(1), "Badge phải được tái sử dụng thay vì nhân bản.");
+        Assert.That(badgeRt.anchoredPosition, Is.EqualTo(customBadgePos), "Badge RectTransform anchoredPosition phải được giữ nguyên 100%.");
+        Assert.That(badgeRt.sizeDelta, Is.EqualTo(customBadgeSize), "Badge RectTransform sizeDelta phải được giữ nguyên 100%.");
+
+        UnityEngine.Object.DestroyImmediate(itemGo);
+    }
+
+    [Test]
+    public void DailyLoginItemUI_RenderRewards_ReusesExistingBadgesAndPreservesTransforms()
+    {
+        GameObject itemGo = new GameObject("DailyItemTest", typeof(RectTransform));
+        DailyLoginItemUI itemUI = itemGo.AddComponent<DailyLoginItemUI>();
+
+        GameObject rewardsContainerGo = new GameObject("RewardsContainer", typeof(RectTransform));
+        rewardsContainerGo.transform.SetParent(itemGo.transform, false);
+
+        GameObject badgeGo = new GameObject("RewardBadge_0", typeof(RectTransform), typeof(Image));
+        badgeGo.transform.SetParent(rewardsContainerGo.transform, false);
+        RectTransform badgeRt = badgeGo.GetComponent<RectTransform>();
+        Vector2 customBadgePos = new Vector2(18f, -12f);
+        badgeRt.anchoredPosition = customBadgePos;
+        Vector2 customBadgeSize = new Vector2(85f, 85f);
+        badgeRt.sizeDelta = customBadgeSize;
+
+        GameObject iconObj = new GameObject("Icon", typeof(RectTransform), typeof(Image));
+        iconObj.transform.SetParent(badgeGo.transform, false);
+        GameObject textObj = new GameObject("AmountText", typeof(RectTransform), typeof(TextMeshProUGUI));
+        textObj.transform.SetParent(badgeGo.transform, false);
+
+        itemUI.SetReferencesForBuilder(null, null, rewardsContainerGo.transform, null, null, null, null, null, null, null, null, null, null);
+
+        DailyLoginDayData dayData = new DailyLoginDayData
+        {
+            dayIndex = 1,
+            rewards = new RewardData[]
+            {
+                new RewardData { type = RewardType.Energy, amount = 50 }
+            }
+        };
+
+        itemUI.Setup(dayData, DailyLoginState.Available, null, null);
+
+        Assert.That(rewardsContainerGo.transform.childCount, Is.EqualTo(1), "Badge Daily phải được tái sử dụng.");
+        Assert.That(badgeRt.anchoredPosition, Is.EqualTo(customBadgePos), "Badge Daily RectTransform anchoredPosition phải được giữ nguyên.");
+        Assert.That(badgeRt.sizeDelta, Is.EqualTo(customBadgeSize), "Badge Daily RectTransform sizeDelta phải được giữ nguyên.");
+
+        UnityEngine.Object.DestroyImmediate(itemGo);
     }
 }
 

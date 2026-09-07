@@ -56,6 +56,8 @@ public class DailyLoginItemUI : MonoBehaviour
     [SerializeField] private Image cardBackground;
     [SerializeField] private Image cardBorder;
     [SerializeField] private CanvasGroup itemCanvasGroup;
+    [SerializeField] private Sprite cardBannerBlue;
+    [SerializeField] private Sprite cardBannerGrey;
 
     private int currentDayIndex = 1;
     private Action<int> onClaimCallback;
@@ -134,9 +136,16 @@ public class DailyLoginItemUI : MonoBehaviour
                     if (btnGetSprite == null && s.name == "Btn_Get") btnGetSprite = s;
                     else if (btnClaimAgainSprite == null && s.name == "Btn_Claim_Again") btnClaimAgainSprite = s;
                     else if (btnObtainedSprite == null && s.name == "Btn_Obtained") btnObtainedSprite = s;
+                    else if (cardBannerBlue == null && s.name == "Row_Banner_Blue") cardBannerBlue = s;
+                    else if (cardBannerGrey == null && s.name == "Row_Banner_Grey") cardBannerGrey = s;
                 }
             }
         }
+
+        if (cardBannerBlue == null)
+            cardBannerBlue = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Reward/Extracted/Row_Banner_Blue.png");
+        if (cardBannerGrey == null)
+            cardBannerGrey = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Reward/Extracted/Row_Banner_Grey.png");
 #endif
     }
 
@@ -176,8 +185,9 @@ public class DailyLoginItemUI : MonoBehaviour
     {
         if (rewardsContainer == null || rewards == null) return;
 
-        // Xóa hoặc ẩn các badge cũ
-        for (int i = rewardsContainer.childCount - 1; i >= 0; i--)
+        // Tái sử dụng các badge đã được thiết lập sẵn trong scene/hierarchy để giữ nguyên 100% Transform (X, Y, size)
+        int rewardIndex = 0;
+        for (int i = 0; i < rewardsContainer.childCount; i++)
         {
             Transform child = rewardsContainer.GetChild(i);
             if (rewardBadgePrefab != null && child.gameObject == rewardBadgePrefab)
@@ -185,31 +195,55 @@ public class DailyLoginItemUI : MonoBehaviour
                 child.gameObject.SetActive(false);
                 continue;
             }
-            if (Application.isPlaying)
+
+            if (rewardIndex < rewards.Length)
             {
-                Destroy(child.gameObject);
+                child.gameObject.SetActive(true);
+                RewardData reward = rewards[rewardIndex];
+
+                Image iconImg = child.Find("Icon")?.GetComponent<Image>()
+                    ?? child.GetComponentInChildren<Image>();
+                TMP_Text amountTxt = child.Find("AmountText")?.GetComponent<TMP_Text>()
+                    ?? child.GetComponentInChildren<TMP_Text>();
+
+                if (iconImg != null)
+                {
+                    Sprite icon = reward.customIcon != null ? reward.customIcon : (iconResolver != null ? iconResolver(reward.type) : null);
+                    if (icon != null)
+                    {
+                        iconImg.sprite = icon;
+                        iconImg.enabled = true;
+                    }
+                }
+
+                if (amountTxt != null)
+                {
+                    amountTxt.text = RewardService.FormatRewardAmount(reward.amount);
+                }
+
+                rewardIndex++;
             }
             else
             {
-                DestroyImmediate(child.gameObject);
+                child.gameObject.SetActive(false);
             }
         }
 
-        // Tạo badge mới cho từng reward
-        foreach (var reward in rewards)
+        // Nếu số lượng phần thưởng nhiều hơn số badge sẵn có, mới tạo thêm
+        while (rewardIndex < rewards.Length)
         {
+            RewardData reward = rewards[rewardIndex];
             GameObject badgeObj;
             if (rewardBadgePrefab != null)
             {
                 badgeObj = Instantiate(rewardBadgePrefab, rewardsContainer);
-                badgeObj.SetActive(true);
             }
             else
             {
                 badgeObj = CreateFallbackRewardBadge(rewardsContainer);
             }
+            badgeObj.SetActive(true);
 
-            // Bind icon & text
             Image iconImg = badgeObj.transform.Find("Icon")?.GetComponent<Image>()
                 ?? badgeObj.GetComponentInChildren<Image>();
             TMP_Text amountTxt = badgeObj.transform.Find("AmountText")?.GetComponent<TMP_Text>()
@@ -229,6 +263,8 @@ public class DailyLoginItemUI : MonoBehaviour
             {
                 amountTxt.text = RewardService.FormatRewardAmount(reward.amount);
             }
+
+            rewardIndex++;
         }
     }
 
@@ -341,14 +377,29 @@ public class DailyLoginItemUI : MonoBehaviour
         if (obtainedRoot != null) obtainedRoot.SetActive(false);
         if (countdownRoot != null) countdownRoot.SetActive(false);
 
-        // A. Trạng thái Obtained (Các ngày trước đã nhận)
+        // Quy tắc: Chỉ ngày nào đã nhận rồi (Obtained) thì mới TỐI, còn ngày nào chưa nhận thì SÁNG
         if (state == DailyLoginState.Obtained)
         {
-            SetButtonVisual(DailyButtonState.Obtained);
+            if (cardBackground != null && cardBannerGrey != null)
+            {
+                cardBackground.sprite = cardBannerGrey;
+                cardBackground.color = Color.white;
+            }
+            if (cardBorder != null) cardBorder.color = Color.clear;
             if (itemCanvasGroup != null) itemCanvasGroup.alpha = 0.55f;
-            if (cardBorder != null) cardBorder.color = NormalBorderColor;
+
+            SetButtonVisual(DailyButtonState.Obtained);
             return;
         }
+
+        // TẤT CẢ các ngày chưa nhận đều SÁNG (Row_Banner_Blue, alpha 1.0f)
+        if (cardBackground != null && cardBannerBlue != null)
+        {
+            cardBackground.sprite = cardBannerBlue;
+            cardBackground.color = Color.white;
+        }
+        if (cardBorder != null) cardBorder.color = Color.clear;
+        if (itemCanvasGroup != null) itemCanvasGroup.alpha = 1.0f;
 
         // B. Trạng thái CurrentDayWaiting (Hôm nay đã nhận Get, chờ claim lại bằng Ad hoặc reset ngày)
         if (state == DailyLoginState.CurrentDayWaiting)
@@ -366,9 +417,6 @@ public class DailyLoginItemUI : MonoBehaviour
                 // Không có mạng wifi hoặc đã xem quảng cáo rồi -> hiện nút Obtained (không cho bấm)
                 SetButtonVisual(DailyButtonState.Obtained);
             }
-
-            if (itemCanvasGroup != null) itemCanvasGroup.alpha = 1.0f;
-            if (cardBorder != null) cardBorder.color = AvailableBorderColor;
             return;
         }
 
@@ -376,17 +424,15 @@ public class DailyLoginItemUI : MonoBehaviour
         if (state == DailyLoginState.Available)
         {
             SetButtonVisual(DailyButtonState.Get);
-            if (itemCanvasGroup != null) itemCanvasGroup.alpha = 1.0f;
-            if (cardBorder != null) cardBorder.color = AvailableBorderColor;
+            if (claimButton != null) claimButton.interactable = true;
             return;
         }
 
-        // D. Trạng thái Locked (Ngày tương lai)
+        // D. Trạng thái Locked (Ngày tương lai chưa nhận -> Vẫn SÁNG và hiện nút Get theo đúng mẫu)
         if (state == DailyLoginState.Locked)
         {
-            SetButtonVisual(DailyButtonState.Hidden);
-            if (itemCanvasGroup != null) itemCanvasGroup.alpha = 0.85f;
-            if (cardBorder != null) cardBorder.color = LockedBorderColor;
+            SetButtonVisual(DailyButtonState.Get);
+            if (claimButton != null) claimButton.interactable = false;
         }
     }
 

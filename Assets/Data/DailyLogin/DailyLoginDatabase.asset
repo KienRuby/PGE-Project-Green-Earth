@@ -21,10 +21,10 @@ MonoBehaviour:
     - type: 0
       amount: 30
       customIcon: {fileID: 0}
-    - type: 2
+    - type: 1
       amount: 300
       customIcon: {fileID: 0}
-    - type: 1
+    - type: 2
       amount: 1000
       customIcon: {fileID: 0}
   - dayIndex: 2
@@ -32,32 +32,32 @@ MonoBehaviour:
     - type: 0
       amount: 30
       customIcon: {fileID: 0}
-    - type: 2
+    - type: 1
       amount: 300
       customIcon: {fileID: 0}
-    - type: 1
+    - type: 2
       amount: 1000
       customIcon: {fileID: 0}
   - dayIndex: 3
     rewards:
     - type: 0
-      amount: 60
-      customIcon: {fileID: 0}
-    - type: 2
-      amount: 500
+      amount: 30
       customIcon: {fileID: 0}
     - type: 1
-      amount: 3000
+      amount: 300
+      customIcon: {fileID: 0}
+    - type: 2
+      amount: 1000
       customIcon: {fileID: 0}
   - dayIndex: 4
     rewards:
     - type: 0
       amount: 30
       customIcon: {fileID: 0}
-    - type: 2
+    - type: 1
       amount: 300
       customIcon: {fileID: 0}
-    - type: 1
+    - type: 2
       amount: 1000
       customIcon: {fileID: 0}
   - dayIndex: 5
@@ -65,31 +65,31 @@ MonoBehaviour:
     - type: 0
       amount: 30
       customIcon: {fileID: 0}
-    - type: 2
+    - type: 1
       amount: 300
       customIcon: {fileID: 0}
-    - type: 1
+    - type: 2
       amount: 1000
       customIcon: {fileID: 0}
   - dayIndex: 6
     rewards:
     - type: 0
-      amount: 60
-      customIcon: {fileID: 0}
-    - type: 2
-      amount: 500
+      amount: 30
       customIcon: {fileID: 0}
     - type: 1
-      amount: 3000
+      amount: 300
+      customIcon: {fileID: 0}
+    - type: 2
+      amount: 1000
       customIcon: {fileID: 0}
   - dayIndex: 7
     rewards:
     - type: 0
-      amount: 90
-      customIcon: {fileID: 0}
-    - type: 2
-      amount: 500
+      amount: 30
       customIcon: {fileID: 0}
     - type: 1
-      amount: 7000
+      amount: 300
+      customIcon: {fileID: 0}
+    - type: 2
+      amount: 1000
       customIcon: {fileID: 0}

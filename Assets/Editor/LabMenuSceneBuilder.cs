@@ -3435,9 +3435,6 @@ public static class LabMenuSceneBuilder
 
         background = CreateImage("Background", root, fillColor, false);
         Stretch(background.rectTransform, Vector2.zero, Vector2.one, new Vector2(7f, 7f), new Vector2(-7f, -7f));
-
-        Image topHighlight = CreateImage("TopHighlight", root, new Color32(151, 240, 226, 120), false);
-        Stretch(topHighlight.rectTransform, new Vector2(0.04f, 0.9f), new Vector2(0.96f, 0.94f), Vector2.zero, Vector2.zero);
         return root.gameObject;
     }
 

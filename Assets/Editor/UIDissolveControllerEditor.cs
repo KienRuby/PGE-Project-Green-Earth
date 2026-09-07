@@ -39,8 +39,14 @@ public class UIDissolveControllerEditor : Editor
             }
             else
             {
-                controller.gameObject.SetActive(true);
-                controller.ResetDissolve();
+                EditorApplication.delayCall += () =>
+                {
+                    if (controller != null)
+                    {
+                        controller.gameObject.SetActive(true);
+                        controller.ResetDissolve();
+                    }
+                };
             }
         }
 

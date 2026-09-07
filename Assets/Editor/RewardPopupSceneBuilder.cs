@@ -19,8 +19,30 @@ using UnityEngine.UI;
 /// 
 /// Menu: PGE > UI > Build Daily Login & Achievement Popup
 /// </summary>
+[InitializeOnLoad]
 public static class RewardPopupSceneBuilder
 {
+    private const string AutoBuildFlagPath = "Temp/RunRewardPopupBuild.flag";
+
+    static RewardPopupSceneBuilder()
+    {
+        EditorApplication.delayCall += CheckAutoBuildFlag;
+    }
+
+    private static void CheckAutoBuildFlag()
+    {
+        if (File.Exists(AutoBuildFlagPath))
+        {
+            try
+            {
+                File.Delete(AutoBuildFlagPath);
+            }
+            catch {}
+
+            BuildRewardPopupScene();
+        }
+    }
+
     private const string ScenePath = "Assets/Scenes/MainMenu.unity";
     private const string DailyLoginDbPath = "Assets/Data/DailyLogin/DailyLoginDatabase.asset";
     private const string AchievementDbPath = "Assets/Data/Achievements/AchievementDatabase.asset";
@@ -58,6 +80,12 @@ public static class RewardPopupSceneBuilder
     private static Sprite btnGetSprite;
     private static Sprite btnClaimAgainSprite;
     private static Sprite btnObtainedSprite;
+    private static Sprite btnNotAchievedSprite;
+    private static Sprite achievementBannerSprite;
+    private static Sprite dailyBannerBlue;
+    private static Sprite dailyBannerGrey;
+    private static Sprite progressBarBgSprite;
+    private static Sprite progressBarFillSprite;
 
     [MenuItem("PGE/UI/Build Daily Login & Achievement Popup")]
     public static void BuildFromMenu()
@@ -170,9 +198,22 @@ public static class RewardPopupSceneBuilder
             dataChipSprite = Array.Find(sprites, s => s.name == "data") ?? sprites[0];
         }
 
+        Sprite redGemExtracted = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Reward/Extracted/Icon_Red_Gem.png");
+        if (redGemExtracted != null) redGemSprite = redGemExtracted;
+        Sprite dataChipExtracted = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Reward/Extracted/Icon_Data_Chip.png");
+        if (dataChipExtracted != null) dataChipSprite = dataChipExtracted;
+        Sprite energyExtracted = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Reward/Extracted/Icon_Energy.png");
+        if (energyExtracted != null) energySprite = energyExtracted;
+
         btnGetSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Reward/Extracted/Btn_Get.png");
         btnClaimAgainSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Reward/Extracted/Btn_Claim_Again.png");
         btnObtainedSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Reward/Extracted/Btn_Obtained.png");
+        btnNotAchievedSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Reward/Extracted/Btn_Not_Achieved.png");
+        achievementBannerSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Reward/Extracted/Row_Banner_Achievement.png");
+        dailyBannerBlue = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Reward/Extracted/Row_Banner_Blue.png");
+        dailyBannerGrey = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Reward/Extracted/Row_Banner_Grey.png");
+        progressBarBgSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Reward/Extracted/Progress_Bar_Bg.png");
+        progressBarFillSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Reward/Extracted/Progress_Bar_Fill.png");
 
         if (btnGetSprite == null || btnClaimAgainSprite == null || btnObtainedSprite == null)
         {
@@ -239,19 +280,23 @@ public static class RewardPopupSceneBuilder
         tabsHeader.anchoredPosition = new Vector2(0f, -2f);
         tabsHeader.sizeDelta = new Vector2(-30f, 85f);
 
-        // Tab 1: Daily Login Tab Button (Left half)
-        GameObject dailyTabObj = CreateTabButton("DailyLoginTab", tabsHeader, new Vector2(0f, 0f), new Vector2(0.5f, 1f), new Vector2(0f, 0f), new Vector2(-6f, 0f), "Daily Login Reward", 32f, ActiveTabBg, WindowBorderColor, out Image dailyTabBg, out TMP_Text dailyTabTxt, out GameObject dailyTabDot);
+        // Tab 1: Daily Login Tab Button (Left half) - Inactive
+        GameObject dailyTabObj = CreateTabButton("DailyLoginTab", tabsHeader, new Vector2(0f, 0f), new Vector2(0.5f, 1f), new Vector2(0f, 0f), new Vector2(-6f, 0f), "Daily Login", 32f, InactiveTabBg, WindowBorderColor, out Image dailyTabBg, out TMP_Text dailyTabTxt, out GameObject dailyTabDot);
+        dailyTabTxt.color = InactiveTabText;
         Button dailyTabBtn = dailyTabObj.GetComponent<Button>();
 
-        // Tab 2: Achievements Tab Button (Right half)
-        GameObject achTabObj = CreateTabButton("AchievementTab", tabsHeader, new Vector2(0.5f, 0f), new Vector2(1f, 1f), new Vector2(6f, 0f), new Vector2(0f, 0f), "Achievements", 32f, InactiveTabBg, WindowBorderColor, out Image achTabBg, out TMP_Text achTabTxt, out GameObject achTabDot);
+        // Tab 2: Achievements Tab Button (Right half) - Active theo đúng Image 1
+        GameObject achTabObj = CreateTabButton("AchievementTab", tabsHeader, new Vector2(0.5f, 0f), new Vector2(1f, 1f), new Vector2(6f, 0f), new Vector2(0f, 0f), "Achievements", 32f, ActiveTabBg, WindowBorderColor, out Image achTabBg, out TMP_Text achTabTxt, out GameObject achTabDot);
+        achTabTxt.color = ActiveTabText;
         Button achTabBtn = achTabObj.GetComponent<Button>();
 
-        // E. Daily Login Panel
+        // E. Daily Login Panel (Inactive theo Image 1)
         GameObject dailyPanelObj = BuildDailyLoginPanel(windowObj.transform, out DailyLoginPanelUI dailyPanelUI);
+        dailyPanelObj.SetActive(false);
 
-        // F. Achievements Panel
+        // F. Achievements Panel (Active theo Image 1)
         GameObject achPanelObj = BuildAchievementPanel(windowObj.transform, out AchievementPanelUI achPanelUI);
+        achPanelObj.SetActive(true);
 
         // G. Gắn Controller chính RewardPopupController
         RewardPopupController popupCtrl = popupObj.GetComponent<RewardPopupController>() ?? popupObj.AddComponent<RewardPopupController>();
@@ -273,10 +318,10 @@ public static class RewardPopupSceneBuilder
             achPanelUI
         );
 
-        // Mặc định ban đầu hiển thị Tab Daily Login
+        // Mặc định ban đầu hiển thị Tab Achievements theo Image 1
         popupCtrl.EnsureTabSpritesLoaded();
-        popupCtrl.SwitchTab(0);
-        popupObj.SetActive(false); // Ẩn mặc định khi vào game
+        popupCtrl.SwitchTab(1, animated: false);
+        popupObj.SetActive(true); // Hiển thị trong Edit mode để xem trước giống y đúc Image 1
 
         return popupObj;
     }
@@ -346,6 +391,20 @@ public static class RewardPopupSceneBuilder
 
         CanvasGroup cg = itemObj.AddComponent<CanvasGroup>();
         Image border = itemObj.GetComponent<Image>();
+        if (dayIndex == 1 && dailyBannerGrey != null)
+        {
+            bg.sprite = dailyBannerGrey;
+            bg.color = Color.white;
+            if (border != null) border.color = Color.clear;
+            cg.alpha = 0.55f; // Ngày đã nhận thì TỐI
+        }
+        else if (dailyBannerBlue != null)
+        {
+            bg.sprite = dailyBannerBlue;
+            bg.color = Color.white;
+            if (border != null) border.color = Color.clear;
+            cg.alpha = 1.0f; // Ngày chưa nhận thì SÁNG
+        }
 
         // 1. Day Header Container (Bên trái)
         RectTransform dayHeader = CreateRect("DayHeader", itemObj.transform);
@@ -372,10 +431,53 @@ public static class RewardPopupSceneBuilder
         rewardsTr.sizeDelta = new Vector2(-460f, 120f);
 
         HorizontalLayoutGroup rLayout = rewardsTr.gameObject.AddComponent<HorizontalLayoutGroup>();
-        rLayout.spacing = 14f;
+        rLayout.spacing = 18f;
         rLayout.childAlignment = TextAnchor.MiddleLeft;
         rLayout.childControlWidth = false;
         rLayout.childControlHeight = false;
+
+        // Thứ tự & số lượng chuẩn 100% theo ảnh mẫu (Pin x30, Chip x300, Gem x1000)
+        (Sprite sprite, string amount)[] defaultRewards = new[]
+        {
+            (energySprite, "x30"),
+            (dataChipSprite, "x300"),
+            (redGemSprite, "x1000")
+        };
+
+        for (int r = 0; r < defaultRewards.Length; r++)
+        {
+            var rw = defaultRewards[r];
+            GameObject badge = new GameObject($"RewardBadge_{r}", typeof(RectTransform), typeof(Image));
+            badge.transform.SetParent(rewardsTr, false);
+            RectTransform badgeRt = badge.GetComponent<RectTransform>();
+            badgeRt.sizeDelta = new Vector2(75f, 75f);
+            Image badgeBg = badge.GetComponent<Image>();
+            badgeBg.color = new Color32(11, 45, 60, 255);
+            badgeBg.raycastTarget = false;
+
+            // Icon
+            GameObject iconObj = new GameObject("Icon", typeof(RectTransform), typeof(Image));
+            iconObj.transform.SetParent(badge.transform, false);
+            RectTransform iconRt = iconObj.GetComponent<RectTransform>();
+            iconRt.anchorMin = new Vector2(0.5f, 0.5f);
+            iconRt.anchorMax = new Vector2(0.5f, 0.5f);
+            iconRt.pivot = new Vector2(0.5f, 0.5f);
+            iconRt.anchoredPosition = new Vector2(0f, 8f);
+            iconRt.sizeDelta = new Vector2(45f, 45f);
+            Image iconImg = iconObj.GetComponent<Image>();
+            iconImg.sprite = rw.sprite;
+            iconImg.preserveAspect = true;
+            iconImg.raycastTarget = false;
+
+            // Amount Text
+            TMP_Text amtTxt = CreateText("AmountText", badge.transform, rw.amount, 20f, TextWhite, TextAlignmentOptions.Center);
+            amtTxt.rectTransform.anchorMin = new Vector2(0f, 0f);
+            amtTxt.rectTransform.anchorMax = new Vector2(1f, 0f);
+            amtTxt.rectTransform.pivot = new Vector2(0.5f, 0f);
+            amtTxt.rectTransform.anchoredPosition = new Vector2(0f, -22f);
+            amtTxt.rectTransform.sizeDelta = new Vector2(90f, 24f);
+            amtTxt.fontStyle = FontStyles.Bold;
+        }
 
         // 3. Action / State Container (Bên phải)
         RectTransform stateRight = CreateRect("StateRight", itemObj.transform);
@@ -396,7 +498,6 @@ public static class RewardPopupSceneBuilder
         btnRect.sizeDelta = new Vector2(240f, 105f);
 
         Image btnImg = getBtnObj.GetComponent<Image>();
-        btnImg.sprite = btnGetSprite;
         btnImg.preserveAspect = true;
         btnImg.color = Color.white;
 
@@ -405,6 +506,24 @@ public static class RewardPopupSceneBuilder
         var colors = claimBtn.colors;
         colors.disabledColor = Color.white;
         claimBtn.colors = colors;
+
+        if (dayIndex == 1)
+        {
+            btnImg.sprite = btnObtainedSprite;
+            claimBtn.interactable = false;
+        }
+        else if (dayIndex == 3)
+        {
+            // Day 03 hiển thị nút Claim again theo đúng ảnh mẫu
+            btnImg.sprite = btnClaimAgainSprite != null ? btnClaimAgainSprite : btnGetSprite;
+            claimBtn.interactable = true;
+        }
+        else
+        {
+            // Day 02, Day 04..07 hiển thị nút Get theo đúng ảnh mẫu
+            btnImg.sprite = btnGetSprite;
+            claimBtn.interactable = true;
+        }
 
         // Obtained Tag
         GameObject obtainedRoot = CreateFrame("ObtainedRoot", stateRight, ObtainedBtnColor, new Color32(45, 65, 80, 255), out _);
@@ -453,6 +572,17 @@ public static class RewardPopupSceneBuilder
         return itemUI;
     }
 
+    private struct AchievementPreviewData
+    {
+        public string id;
+        public string title;
+        public int current;
+        public int target;
+        public string progressText;
+        public (Sprite sprite, string amount)[] rewards;
+        public bool isClaimed;
+    }
+
     private static GameObject BuildAchievementPanel(Transform parent, out AchievementPanelUI panelUI)
     {
         GameObject panelObj = CreateRect("AchievementPanel", parent).gameObject;
@@ -491,11 +621,85 @@ public static class RewardPopupSceneBuilder
         ContentSizeFitter fitter = content.gameObject.AddComponent<ContentSizeFitter>();
         fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-        // Tạo 5 Achievement Item mẫu
-        List<AchievementItemUI> items = new List<AchievementItemUI>();
-        for (int i = 0; i < 5; i++)
+        // Định nghĩa chính xác 5 thẻ Achievement theo đúng Image 1
+        AchievementPreviewData[] previewItems = new AchievementPreviewData[]
         {
-            items.Add(CreateAchievementItem(content, i));
+            new AchievementPreviewData
+            {
+                id = "chapter_play_15",
+                title = "Play chapter 15 time(s)",
+                current = 13,
+                target = 15,
+                progressText = "13/15",
+                rewards = new (Sprite, string)[]
+                {
+                    (redGemSprite, "X200"),
+                    (dataChipSprite, "X800")
+                },
+                isClaimed = false
+            },
+            new AchievementPreviewData
+            {
+                id = "enemy_kill_2500",
+                title = "Kill 2500 enemies",
+                current = 1406,
+                target = 2500,
+                progressText = "1406/2500",
+                rewards = new (Sprite, string)[]
+                {
+                    (redGemSprite, "X200"),
+                    (dataChipSprite, "X1.200")
+                },
+                isClaimed = false
+            },
+            new AchievementPreviewData
+            {
+                id = "chapter_clear_5",
+                title = "Clear chapter 5",
+                current = 2,
+                target = 5,
+                progressText = "2/5",
+                rewards = new (Sprite, string)[]
+                {
+                    (redGemSprite, "X200"),
+                    (dataChipSprite, "X2.000"),
+                    (energySprite, "X10")
+                },
+                isClaimed = false
+            },
+            new AchievementPreviewData
+            {
+                id = "login_reward_2",
+                title = "Get 2 times log in reward",
+                current = 5,
+                target = 2,
+                progressText = "5/2",
+                rewards = new (Sprite, string)[]
+                {
+                    (redGemSprite, "X200")
+                },
+                isClaimed = true
+            },
+            new AchievementPreviewData
+            {
+                id = "drone_upgrade_3",
+                title = "Advance Drone Tier 3 time(s)",
+                current = 3,
+                target = 3,
+                progressText = "3/3",
+                rewards = new (Sprite, string)[]
+                {
+                    (redGemSprite, "X200"),
+                    (dataChipSprite, "X1.000")
+                },
+                isClaimed = true
+            }
+        };
+
+        List<AchievementItemUI> items = new List<AchievementItemUI>();
+        for (int i = 0; i < previewItems.Length; i++)
+        {
+            items.Add(CreateAchievementItem(content, i, previewItems[i]));
         }
 
         panelUI = panelObj.AddComponent<AchievementPanelUI>();
@@ -504,9 +708,14 @@ public static class RewardPopupSceneBuilder
         return panelObj;
     }
 
-    private static AchievementItemUI CreateAchievementItem(Transform parent, int index)
+    private static AchievementItemUI CreateAchievementItem(Transform parent, int index, AchievementPreviewData preview)
     {
         GameObject itemObj = CreateFrame($"AchievementItem_{index}", parent, CardBgColor, CardBorderColor, out Image bg);
+        if (achievementBannerSprite != null)
+        {
+            bg.sprite = achievementBannerSprite;
+            bg.color = Color.white;
+        }
         RectTransform rect = itemObj.GetComponent<RectTransform>();
         rect.sizeDelta = new Vector2(920f, 210f);
         LayoutElement le = itemObj.AddComponent<LayoutElement>();
@@ -514,9 +723,13 @@ public static class RewardPopupSceneBuilder
         le.minHeight = 210f;
 
         Image border = itemObj.GetComponent<Image>();
+        if (achievementBannerSprite != null && border != null)
+        {
+            border.color = Color.white;
+        }
 
         // 1. Title Text
-        TMP_Text title = CreateText("TitleText", itemObj.transform, "Kill 2500 enemies", 36f, TextWhite, TextAlignmentOptions.Left);
+        TMP_Text title = CreateText("TitleText", itemObj.transform, preview.title, 36f, TextWhite, TextAlignmentOptions.Left);
         title.rectTransform.anchorMin = new Vector2(0f, 1f);
         title.rectTransform.anchorMax = new Vector2(1f, 1f);
         title.rectTransform.pivot = new Vector2(0f, 1f);
@@ -525,6 +738,11 @@ public static class RewardPopupSceneBuilder
 
         // 2. Progress Bar
         GameObject barBgObj = CreateFrame("ProgressBarBg", itemObj.transform, ProgressBgColor, WindowBorderColor, out Image barBg);
+        if (progressBarBgSprite != null)
+        {
+            barBg.sprite = progressBarBgSprite;
+            barBg.color = Color.white;
+        }
         RectTransform barRect = barBgObj.GetComponent<RectTransform>();
         barRect.anchorMin = new Vector2(0f, 1f);
         barRect.anchorMax = new Vector2(0f, 1f);
@@ -536,10 +754,19 @@ public static class RewardPopupSceneBuilder
         GameObject fillObj = CreateImage("ProgressFill", barBgObj.transform, ProgressFillColor, false).gameObject;
         RectTransform fillRect = fillObj.GetComponent<RectTransform>();
         Image fillImg = fillObj.GetComponent<Image>();
-        Stretch(fillRect, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        if (progressBarFillSprite != null)
+        {
+            fillImg.sprite = progressBarFillSprite;
+            fillImg.color = Color.white;
+        }
+        float fillRatio = Mathf.Clamp01((float)preview.current / preview.target);
+        fillRect.anchorMin = Vector2.zero;
+        fillRect.anchorMax = new Vector2(fillRatio, 1f);
+        fillRect.offsetMin = Vector2.zero;
+        fillRect.offsetMax = Vector2.zero;
 
-        // Progress Text (2025/2500)
-        TMP_Text progressTxt = CreateText("ProgressText", itemObj.transform, "2025/2500", 26f, TextWhite, TextAlignmentOptions.Center);
+        // Progress Text
+        TMP_Text progressTxt = CreateText("ProgressText", itemObj.transform, preview.progressText, 26f, TextWhite, TextAlignmentOptions.Center);
         progressTxt.rectTransform.anchorMin = new Vector2(0f, 1f);
         progressTxt.rectTransform.anchorMax = new Vector2(0f, 1f);
         progressTxt.rectTransform.pivot = new Vector2(0.5f, 1f);
@@ -555,21 +782,90 @@ public static class RewardPopupSceneBuilder
         rewardsTr.sizeDelta = new Vector2(560f, 65f);
 
         HorizontalLayoutGroup rLayout = rewardsTr.gameObject.AddComponent<HorizontalLayoutGroup>();
-        rLayout.spacing = 14f;
+        rLayout.spacing = preview.rewards.Length == 2 ? 180f : 45f;
         rLayout.childAlignment = TextAnchor.MiddleLeft;
         rLayout.childControlWidth = false;
         rLayout.childControlHeight = false;
 
-        // 4. Action Button (Bên phải)
-        GameObject btnObj = CreateButton("ActionButton", itemObj.transform, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-280f, -47.5f), new Vector2(-30f, 47.5f), "Get", 38f, GetBtnColor, WindowBorderColor, out Image btnImg);
+        for (int r = 0; r < preview.rewards.Length; r++)
+        {
+            var rw = preview.rewards[r];
+            GameObject badge = new GameObject($"RewardBadge_{r}", typeof(RectTransform), typeof(Image));
+            badge.transform.SetParent(rewardsTr, false);
+            RectTransform badgeRt = badge.GetComponent<RectTransform>();
+            badgeRt.sizeDelta = new Vector2(75f, 75f);
+            Image badgeBg = badge.GetComponent<Image>();
+            badgeBg.color = new Color32(11, 45, 60, 255);
+            badgeBg.raycastTarget = false;
+
+            // Icon
+            GameObject iconObj = new GameObject("Icon", typeof(RectTransform), typeof(Image));
+            iconObj.transform.SetParent(badge.transform, false);
+            RectTransform iconRt = iconObj.GetComponent<RectTransform>();
+            iconRt.anchorMin = new Vector2(0.5f, 0.5f);
+            iconRt.anchorMax = new Vector2(0.5f, 0.5f);
+            iconRt.pivot = new Vector2(0.5f, 0.5f);
+            iconRt.anchoredPosition = new Vector2(0f, 10f);
+            iconRt.sizeDelta = new Vector2(46f, 46f);
+            Image iconImg = iconObj.GetComponent<Image>();
+            iconImg.sprite = rw.sprite;
+            iconImg.preserveAspect = true;
+            iconImg.raycastTarget = false;
+
+            // AmountText
+            GameObject textObj = new GameObject("AmountText", typeof(RectTransform), typeof(TextMeshProUGUI));
+            textObj.transform.SetParent(badge.transform, false);
+            RectTransform textRt = textObj.GetComponent<RectTransform>();
+            textRt.anchorMin = new Vector2(0f, 0f);
+            textRt.anchorMax = new Vector2(1f, 0.38f);
+            textRt.offsetMin = Vector2.zero;
+            textRt.offsetMax = Vector2.zero;
+            TextMeshProUGUI txt = textObj.GetComponent<TextMeshProUGUI>();
+            if (font != null) txt.font = font;
+            txt.text = rw.amount;
+            txt.fontSize = 20f;
+            txt.fontStyle = FontStyles.Bold;
+            txt.alignment = TextAlignmentOptions.Center;
+            txt.color = Color.white;
+            txt.raycastTarget = false;
+        }
+
+        // 4. Action Button (Bên phải theo Image 1)
+        Color btnFill = preview.isClaimed ? new Color32(78, 140, 147, 255) : new Color32(23, 68, 88, 255);
+        Color btnBorderColor = preview.isClaimed ? new Color32(38, 77, 85, 255) : new Color32(11, 35, 48, 255);
+        string btnLabel = preview.isClaimed ? "Obtained" : "Get";
+        Color btnTextColor = preview.isClaimed ? new Color32(35, 80, 95, 255) : new Color32(35, 95, 120, 255);
+
+        GameObject btnObj = CreateButton("ActionButton", itemObj.transform,
+            new Vector2(1f, 0.5f), new Vector2(1f, 0.5f),
+            new Vector2(-280f, -47.5f), new Vector2(-30f, 47.5f),
+            btnLabel, 38f, btnFill, btnBorderColor, out Image btnImg);
         RectTransform btnRect = btnObj.GetComponent<RectTransform>();
         btnRect.anchorMin = new Vector2(1f, 0.5f);
         btnRect.anchorMax = new Vector2(1f, 0.5f);
         btnRect.pivot = new Vector2(1f, 0.5f);
         btnRect.anchoredPosition = new Vector2(-30f, 0f);
+        btnRect.sizeDelta = new Vector2(250f, 95f);
 
         Button actBtn = btnObj.GetComponent<Button>();
+        actBtn.interactable = false;
+
         TMP_Text btnTxt = btnObj.transform.Find("Label")?.GetComponent<TMP_Text>();
+        Sprite initialBtnSp = preview.isClaimed ? btnObtainedSprite : (preview.current >= preview.target ? btnGetSprite : (btnNotAchievedSprite ?? btnGetSprite));
+        if (initialBtnSp != null)
+        {
+            btnImg.sprite = initialBtnSp;
+            btnImg.color = Color.white;
+            btnImg.preserveAspect = true;
+            if (btnTxt != null) btnTxt.gameObject.SetActive(false);
+            if (btnObj.TryGetComponent<Image>(out var borderImg)) borderImg.color = Color.clear;
+        }
+        else if (btnTxt != null)
+        {
+            btnTxt.gameObject.SetActive(true);
+            btnTxt.text = btnLabel;
+            btnTxt.color = btnTextColor;
+        }
 
         // Dot notification trên button
         GameObject dot = CreateImage("NotificationDot", btnObj.transform, new Color32(235, 60, 60, 255), false).gameObject;
@@ -594,6 +890,14 @@ public static class RewardPopupSceneBuilder
             dot,
             border,
             bg
+        );
+        itemUI.SetSprites(
+            btnGetSprite,
+            btnNotAchievedSprite,
+            btnObtainedSprite,
+            achievementBannerSprite,
+            progressBarBgSprite,
+            progressBarFillSprite
         );
 
         return itemUI;
@@ -704,9 +1008,6 @@ public static class RewardPopupSceneBuilder
 
         background = CreateImage("Background", root, fillColor, false);
         Stretch(background.rectTransform, Vector2.zero, Vector2.one, new Vector2(4f, 4f), new Vector2(-4f, -4f));
-
-        Image topHighlight = CreateImage("TopHighlight", root, new Color32(151, 240, 226, 75), false);
-        Stretch(topHighlight.rectTransform, new Vector2(0.04f, 0.92f), new Vector2(0.96f, 0.96f), Vector2.zero, Vector2.zero);
 
         return root.gameObject;
     }
