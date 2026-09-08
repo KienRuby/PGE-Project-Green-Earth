@@ -67,6 +67,7 @@ public class PlayerArtifactInventory : MonoBehaviour
     public float TotalTurretAtkSpeedPercentBonus { get; private set; }
     public float TotalWeaponDamagePercentBonus { get; private set; }
     public float TotalMoveSpeedPercentBonus { get; private set; }
+    public float TotalDamageReductionBonus { get; private set; }
 
     private void Awake()
     {
@@ -122,6 +123,7 @@ public class PlayerArtifactInventory : MonoBehaviour
         TotalTurretAtkSpeedPercentBonus = 0f;
         TotalWeaponDamagePercentBonus = 0f;
         TotalMoveSpeedPercentBonus = 0f;
+        TotalDamageReductionBonus = 0f;
 
         if (equippedArtifacts != null)
         {
@@ -145,6 +147,9 @@ public class PlayerArtifactInventory : MonoBehaviour
                         break;
                     case ArtifactStatType.MoveSpeedPercent:
                         TotalMoveSpeedPercentBonus += art.statValue;
+                        break;
+                    case ArtifactStatType.DamageReduction:
+                        TotalDamageReductionBonus += art.statValue;
                         break;
                 }
             }
@@ -171,6 +176,9 @@ public class PlayerArtifactInventory : MonoBehaviour
 
             // 2. Áp dụng buff Kháng đánh xa (Ranged DEF +X%) - Ví dụ: Carbon Scales
             playerHealth.RangedDefenseBonusPercent = TotalRangedDefPercentBonus;
+
+            // 3. Áp dụng buff Giảm trừ sát thương trực tiếp (DEF +X) - Ví dụ: Titanium Fabric
+            playerHealth.SetDamageReduction(Mathf.RoundToInt(TotalDamageReductionBonus));
         }
 
         // 3. Áp dụng buff Sát thương mọi vũ khí (All Weapons' ATK +X%) - Ví dụ: Kung Fu Data USB
