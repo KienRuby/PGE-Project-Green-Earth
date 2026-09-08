@@ -10,30 +10,28 @@ namespace PGE.EditorTools
 {
     public static class ApplyRewardPopupAssets
     {
-        [InitializeOnLoadMethod]
-        private static void RunOnceOnLoad()
-        {
-            if (!SessionState.GetBool("PGE_AppliedRewardAssets_V4_ExactMockup", false))
-            {
-                SessionState.SetBool("PGE_AppliedRewardAssets_V4_ExactMockup", true);
-                EditorApplication.delayCall += ApplyAssetsToScene;
-            }
-        }
-
         [MenuItem("PGE/UI/Apply Real Sliced Assets to Popup")]
         public static void ApplyAssetsToScene()
         {
-            if (EditorApplication.isCompiling || EditorApplication.isUpdating)
+            if (EditorApplication.isCompiling || EditorApplication.isUpdating || EditorApplication.isPlaying || EditorApplication.isPlayingOrWillChangePlaymode)
             {
                 EditorApplication.delayCall += ApplyAssetsToScene;
                 return;
             }
 
-            Scene scene = SceneManager.GetActiveScene();
+            Scene currentScene = EditorSceneManager.GetActiveScene();
+            if (currentScene.isDirty)
+            {
+                EditorSceneManager.SaveScene(currentScene);
+            }
+
+            Scene scene = currentScene;
             if (scene.path != "Assets/Scenes/MainMenu.unity")
             {
                 scene = EditorSceneManager.OpenScene("Assets/Scenes/MainMenu.unity", OpenSceneMode.Single);
             }
+
+            Debug.Log($"[ApplyRewardPopupAssets] Target Scene: '{scene.name}' (Path: '{scene.path}', rootCount={scene.rootCount})");
 
             // 1. Load sliced sprites from sprite sheets and Extracted folder
             Sprite btnGetAch = LoadSprite("Assets/Sprites/UI/Reward/Extracted/Btn_Get.png", "Assets/Sprites/UI/Reward/nút màn achievements.png", "Btn_Get");
@@ -50,8 +48,30 @@ namespace PGE.EditorTools
             Sprite bannerDailyBlue = LoadSprite("Assets/Sprites/UI/Reward/Extracted/Row_Banner_Blue.png", "Assets/Sprites/UI/Reward/nút daily login.png", "Row_Banner_Blue");
             Sprite bannerDailyGrey = LoadSprite("Assets/Sprites/UI/Reward/Extracted/Row_Banner_Grey.png", "Assets/Sprites/UI/Reward/nút daily login.png", "Row_Banner_Grey");
 
-            // 2. Process Achievement Items
-            var achItems = Object.FindObjectsOfType<AchievementItemUI>(true);
+            // 2. Thu thập danh sách items qua Root GameObjects và fallback Resources
+            var rootObjects = scene.GetRootGameObjects();
+            var achItemsList = new System.Collections.Generic.List<AchievementItemUI>();
+            var dailyItemsList = new System.Collections.Generic.List<DailyLoginItemUI>();
+            foreach (var root in rootObjects)
+            {
+                achItemsList.AddRange(root.GetComponentsInChildren<AchievementItemUI>(true));
+                dailyItemsList.AddRange(root.GetComponentsInChildren<DailyLoginItemUI>(true));
+            }
+
+            if (dailyItemsList.Count == 0)
+            {
+                dailyItemsList.AddRange(Resources.FindObjectsOfTypeAll<DailyLoginItemUI>()
+                    .Where(x => !EditorUtility.IsPersistent(x.gameObject) && x.gameObject.scene == scene));
+            }
+            if (achItemsList.Count == 0)
+            {
+                achItemsList.AddRange(Resources.FindObjectsOfTypeAll<AchievementItemUI>()
+                    .Where(x => !EditorUtility.IsPersistent(x.gameObject) && x.gameObject.scene == scene));
+            }
+
+            var achItems = achItemsList.ToArray();
+            var dailyItems = dailyItemsList.OrderBy(d => d.name).ToArray();
+            Debug.Log($"[ApplyRewardPopupAssets] Found {achItems.Length} Achievement items, {dailyItems.Length} Daily Login items.");
             foreach (var item in achItems)
             {
                 SerializedObject so = new SerializedObject(item);
@@ -144,6 +164,21 @@ namespace PGE.EditorTools
                     for (int i = 0; i < rewardsContainer.childCount; i++)
                     {
                         Transform badge = rewardsContainer.GetChild(i);
+                        if (badge.TryGetComponent<Image>(out var badgeImg))
+                        {
+                            SerializedObject soImg = new SerializedObject(badgeImg);
+                            SerializedProperty colProp = soImg.FindProperty("m_Color");
+                            if (colProp != null)
+                            {
+                                Color c = colProp.colorValue;
+                                colProp.colorValue = new Color(c.r, c.g, c.b, 0f);
+                                soImg.ApplyModifiedProperties();
+                            }
+                            badgeImg.color = new Color(badgeImg.color.r, badgeImg.color.g, badgeImg.color.b, 0f);
+                            EditorUtility.SetDirty(badgeImg);
+                            EditorUtility.SetDirty(badge.gameObject);
+                        }
+
                         Transform iconTr = badge.Find("Icon");
                         if (iconTr != null && iconTr.TryGetComponent<Image>(out var iconImg))
                         {
@@ -162,7 +197,6 @@ namespace PGE.EditorTools
             }
 
             // 3. Process Daily Login Items
-            var dailyItems = Object.FindObjectsOfType<DailyLoginItemUI>(true).OrderBy(d => d.name).ToArray();
             for (int d = 0; d < dailyItems.Length; d++)
             {
                 var item = dailyItems[d];
@@ -174,36 +208,91 @@ namespace PGE.EditorTools
 
                 Transform rewardsTr = item.transform.Find("RewardsContainer") ?? item.transform.Find("Rewards");
 
-                SerializedObject so = new SerializedObject(item);
-                so.FindProperty("btnGetSprite").objectReferenceValue = btnGetAch;
-                so.FindProperty("btnClaimAgainSprite").objectReferenceValue = btnClaimAgain;
-                so.FindProperty("btnObtainedSprite").objectReferenceValue = btnObtained;
-                if (rewardsTr != null)
-                {
-                    so.FindProperty("rewardsContainer").objectReferenceValue = rewardsTr;
-                }
-                so.ApplyModifiedProperties();
-
                 // 3.1 Background Banner & Brightness
                 Transform bgTr = item.transform.Find("Background");
-                if (bgTr != null && bgTr.TryGetComponent<Image>(out var bgImg))
+                Image bgImg = null;
+                if (bgTr != null && bgTr.TryGetComponent<Image>(out bgImg))
                 {
-                    if (dayNumber == 1 && bannerDailyGrey != null)
-                    {
-                        bgImg.sprite = bannerDailyGrey;
-                        bgImg.color = Color.white;
-                    }
-                    else if (bannerDailyBlue != null)
+                    // Nút sáng (Row_Banner_Blue) LUÔN LUÔN là background chính cho TẤT CẢ các ngày, KHÔNG BAO GIỜ bị thay thế
+                    if (bannerDailyBlue != null)
                     {
                         bgImg.sprite = bannerDailyBlue;
                         bgImg.color = Color.white;
                     }
                 }
 
-                // Ngày nào nhận rồi (Day 01) thì mới TỐI, còn ngày nào chưa nhận (Day 02..07) thì SÁNG
+                // Tạo hoặc tìm DarkOverlay đè lên Background (dùng sprite Row_Banner_Grey)
+                Transform overlayTr = (bgTr != null ? bgTr.Find("DarkOverlay") : null) ?? item.transform.Find("DarkOverlay");
+                if (overlayTr == null && bgTr != null)
+                {
+                    GameObject overlayObj = new GameObject("DarkOverlay", typeof(RectTransform), typeof(Image));
+                    overlayObj.transform.SetParent(bgTr, false);
+                    overlayTr = overlayObj.transform;
+                }
+
+                if (overlayTr != null)
+                {
+                    RectTransform overlayRt = overlayTr.GetComponent<RectTransform>();
+                    overlayRt.anchorMin = Vector2.zero;
+                    overlayRt.anchorMax = Vector2.one;
+                    overlayRt.offsetMin = Vector2.zero;
+                    overlayRt.offsetMax = Vector2.zero;
+                    overlayRt.localScale = Vector3.one;
+                    overlayRt.SetAsLastSibling();
+
+                    if (overlayTr.TryGetComponent<Image>(out var overlayImg))
+                    {
+                        overlayImg.sprite = bannerDailyGrey;
+                        overlayImg.color = Color.white;
+                        overlayImg.raycastTarget = false;
+                    }
+                }
+
+                // 3.2 Action Button (ClaimButton)
+                Transform btnTr = item.transform.Find("StateRight/ClaimButton") ?? item.transform.Find("ClaimButton");
+                Image btnImg = btnTr != null ? btnTr.GetComponent<Image>() : null;
+                Button btn = btnTr != null ? btnTr.GetComponent<Button>() : null;
+
+                // Xác định trạng thái Obtained:
+                // Cả 2 ngày đã nhận (Day 01 và Day 02 theo ảnh thực tế) phải ở trạng thái Obtained
+                bool isDayObtained = (dayNumber == 1 || dayNumber == 2);
+                if (btnImg != null && btnImg.sprite != null && btnImg.sprite.name.IndexOf("Obtained", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    isDayObtained = true;
+                }
+
+                if (overlayTr != null)
+                {
+                    // Chỉ ngày nào đã nhận rồi (Day 01, Day 02) thì mới TỐI (bật overlay đè lên nút sáng)
+                    // Tất cả các ngày chưa nhận (Day 03..07) thì TẮT overlay (SÁNG)
+                    overlayTr.gameObject.SetActive(isDayObtained);
+                }
+
+                if (btnTr != null && btnImg != null)
+                {
+                    btnTr.gameObject.SetActive(true);
+                    btnImg.color = Color.white;
+                    btnImg.preserveAspect = true;
+
+                    Transform labelTr = btnTr.Find("Label");
+                    if (labelTr != null) labelTr.gameObject.SetActive(false);
+
+                    if (isDayObtained)
+                    {
+                        btnImg.sprite = btnObtained;
+                        if (btn != null) btn.interactable = false;
+                    }
+                    else
+                    {
+                        btnImg.sprite = btnGetAch;
+                        if (btn != null) btn.interactable = true;
+                    }
+                }
+
+                // Cả ngày đã nhận và chưa nhận đều giữ alpha = 1.0f để chữ, icon, nút không bị xỉn màu
                 if (item.TryGetComponent<CanvasGroup>(out var cg))
                 {
-                    cg.alpha = (dayNumber == 1) ? 0.55f : 1.0f;
+                    cg.alpha = 1.0f;
                 }
 
                 // Hide border on item root if present so banner is clean
@@ -212,41 +301,21 @@ namespace PGE.EditorTools
                     rootImg.color = Color.clear;
                 }
 
-                // 3.2 Action Button (ClaimButton)
-                Transform btnTr = item.transform.Find("StateRight/ClaimButton") ?? item.transform.Find("ClaimButton");
-                if (btnTr != null)
+                SerializedObject so = new SerializedObject(item);
+                so.FindProperty("btnGetSprite").objectReferenceValue = btnGetAch;
+                so.FindProperty("btnClaimAgainSprite").objectReferenceValue = btnClaimAgain;
+                so.FindProperty("btnObtainedSprite").objectReferenceValue = btnObtained;
+                so.FindProperty("cardBannerBlue").objectReferenceValue = bannerDailyBlue;
+                so.FindProperty("cardBannerGrey").objectReferenceValue = bannerDailyGrey;
+                if (bgImg != null) so.FindProperty("cardBackground").objectReferenceValue = bgImg;
+                if (overlayTr != null) so.FindProperty("darkOverlay").objectReferenceValue = overlayTr.gameObject;
+                if (btnImg != null) so.FindProperty("claimButtonImage").objectReferenceValue = btnImg;
+                if (btn != null) so.FindProperty("claimButton").objectReferenceValue = btn;
+                if (rewardsTr != null)
                 {
-                    btnTr.gameObject.SetActive(true);
-
-                    if (btnTr.TryGetComponent<Image>(out var btnImg))
-                    {
-                        btnImg.color = Color.white;
-                        btnImg.preserveAspect = true;
-
-                        Transform labelTr = btnTr.Find("Label");
-                        if (labelTr != null) labelTr.gameObject.SetActive(false);
-
-                        Button btn = btnTr.GetComponent<Button>();
-
-                        if (dayNumber == 1)
-                        {
-                            btnImg.sprite = btnObtained;
-                            if (btn != null) btn.interactable = false;
-                        }
-                        else if (dayNumber == 3)
-                        {
-                            // Day 03 hiển thị nút Claim again theo đúng ảnh mẫu
-                            btnImg.sprite = btnClaimAgain != null ? btnClaimAgain : btnGetAch;
-                            if (btn != null) btn.interactable = true;
-                        }
-                        else
-                        {
-                            // Day 02, Day 04..07 hiển thị nút Get sáng theo đúng ảnh mẫu
-                            btnImg.sprite = btnGetAch;
-                            if (btn != null) btn.interactable = true;
-                        }
-                    }
+                    so.FindProperty("rewardsContainer").objectReferenceValue = rewardsTr;
                 }
+                so.ApplyModifiedProperties();
 
                 // 3.3 Rewards Container & Badges
                 if (rewardsTr != null)
@@ -273,7 +342,7 @@ namespace PGE.EditorTools
                             RectTransform badgeRt = badge.GetComponent<RectTransform>();
                             badgeRt.sizeDelta = new Vector2(75f, 75f);
                             Image badgeBg = badge.GetComponent<Image>();
-                            badgeBg.color = new Color32(11, 45, 60, 255);
+                            badgeBg.color = new Color32(11, 45, 60, 0); // alpha = 0 theo yêu cầu người dùng
                             badgeBg.raycastTarget = false;
 
                             // Icon
@@ -311,27 +380,73 @@ namespace PGE.EditorTools
                     }
                     else
                     {
-                        // Badges exist -> update sprites and amounts without altering authored positions
-                        for (int r = 0; r < rewardsTr.childCount && r < dayRewards.Length; r++)
+                        // Badges exist -> update sprites, amounts, and set alpha = 0 on all RewardBadge backgrounds
+                        for (int r = 0; r < rewardsTr.childCount; r++)
                         {
-                            var rw = dayRewards[r];
                             Transform badge = rewardsTr.GetChild(r);
-                            Transform iconTr = badge.Find("Icon");
-                            if (iconTr != null && iconTr.TryGetComponent<Image>(out var iconImg))
+                            if (badge.TryGetComponent<Image>(out var badgeImg))
                             {
-                                iconImg.sprite = rw.sprite;
-                                iconImg.preserveAspect = true;
+                                SerializedObject soImg = new SerializedObject(badgeImg);
+                                SerializedProperty colProp = soImg.FindProperty("m_Color");
+                                if (colProp != null)
+                                {
+                                    Color c = colProp.colorValue;
+                                    colProp.colorValue = new Color(c.r, c.g, c.b, 0f);
+                                    soImg.ApplyModifiedProperties();
+                                }
+                                badgeImg.color = new Color(badgeImg.color.r, badgeImg.color.g, badgeImg.color.b, 0f); // alpha = 0
+                                EditorUtility.SetDirty(badgeImg);
+                                EditorUtility.SetDirty(badge.gameObject);
                             }
-                            Transform amtTr = badge.Find("AmountText");
-                            if (amtTr != null && amtTr.TryGetComponent<TMP_Text>(out var amtTxt))
+
+                            if (r < dayRewards.Length)
                             {
-                                amtTxt.text = rw.amount;
+                                var rw = dayRewards[r];
+                                Transform iconTr = badge.Find("Icon");
+                                if (iconTr != null && iconTr.TryGetComponent<Image>(out var iconImg))
+                                {
+                                    iconImg.sprite = rw.sprite;
+                                    iconImg.preserveAspect = true;
+                                }
+                                Transform amtTr = badge.Find("AmountText");
+                                if (amtTr != null && amtTr.TryGetComponent<TMP_Text>(out var amtTxt))
+                                {
+                                    amtTxt.text = rw.amount;
+                                }
                             }
                         }
                     }
                 }
 
                 EditorUtility.SetDirty(item.gameObject);
+            }
+
+            // 4. Quét toàn bộ GameObject RewardBadge trong toàn Scene: đảm bảo alpha = 0 trên Image component
+            foreach (var root in rootObjects)
+            {
+                foreach (var badgeImg in root.GetComponentsInChildren<Image>(true))
+                {
+                    if (badgeImg.gameObject.name.IndexOf("RewardBadge", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        SerializedObject soImg = new SerializedObject(badgeImg);
+                        SerializedProperty colProp = soImg.FindProperty("m_Color");
+                        if (colProp != null)
+                        {
+                            Color c = colProp.colorValue;
+                            if (c.a != 0f)
+                            {
+                                colProp.colorValue = new Color(c.r, c.g, c.b, 0f);
+                                soImg.ApplyModifiedProperties();
+                            }
+                        }
+                        if (badgeImg.color.a != 0f)
+                        {
+                            badgeImg.color = new Color(badgeImg.color.r, badgeImg.color.g, badgeImg.color.b, 0f);
+                        }
+                        EditorUtility.SetDirty(badgeImg);
+                        EditorUtility.SetDirty(badgeImg.gameObject);
+                    }
+                }
             }
 
             EditorSceneManager.MarkSceneDirty(scene);

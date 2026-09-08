@@ -89,6 +89,31 @@ public class PauseModalController : MonoBehaviour
     public IReadOnlyList<RuntimeEquippedChipData> RuntimeEquippedChips => runtimeEquippedChips;
     public IReadOnlyList<GameObject> SpawnedChipCards => spawnedChipCards;
 
+    [Header("3c. Artifact Panel & Icon Slots (Design Pixel)")]
+    [Tooltip("Danh sách các ô icon Cổ Vật (Artifact) trong Scene. Vị trí và kích thước được giữ nguyên 100% khi sang Play Mode.")]
+    [SerializeField] private List<GameObject> artifactIconSlots = new List<GameObject>();
+    [Tooltip("Nếu bật, trong Play Mode các ô chưa trang bị Cổ Vật sẽ tạm thời ẩn đi.")]
+    [SerializeField] private bool hideUnusedArtifactSlots = true;
+
+    public IReadOnlyList<GameObject> ArtifactIconSlots => artifactIconSlots;
+    public bool HideUnusedArtifactSlots { get => hideUnusedArtifactSlots; set => hideUnusedArtifactSlots = value; }
+
+    [Header("3d. Artifact Detail Dialog (Popup Chi Tiết Cổ Vật)")]
+    [Tooltip("Panel hộp thoại chi tiết Cổ Vật khi click vào icon.")]
+    [SerializeField] private GameObject artifactDetailPanel;
+    [SerializeField] private Image artifactDetailIcon;
+    [SerializeField] private TMP_Text artifactDetailNameText;
+    [SerializeField] private TMP_Text artifactDetailLoreText;
+    [SerializeField] private TMP_Text artifactDetailStatText;
+    [SerializeField] private Button artifactDetailOkButton;
+
+    public GameObject ArtifactDetailPanel => artifactDetailPanel;
+    public Image ArtifactDetailIcon => artifactDetailIcon;
+    public TMP_Text ArtifactDetailNameText => artifactDetailNameText;
+    public TMP_Text ArtifactDetailLoreText => artifactDetailLoreText;
+    public TMP_Text ArtifactDetailStatText => artifactDetailStatText;
+    public Button ArtifactDetailOkButton => artifactDetailOkButton;
+
     [Header("4. Stats Sub-Tabs")]
     [SerializeField] private Button defSubTabButton;
     [SerializeField] private Button attackSubTabButton;
@@ -196,6 +221,7 @@ public class PauseModalController : MonoBehaviour
     private void Awake()
     {
         AutoWireTabButtonsAndSettings();
+        AutoWireArtifactDetailDialog();
         EnsureDamageDetailsComponents();
         BindButtons();
         LocatePlayerReferences();
@@ -205,6 +231,7 @@ public class PauseModalController : MonoBehaviour
     private void OnEnable()
     {
         AutoWireTabButtonsAndSettings();
+        AutoWireArtifactDetailDialog();
         BindButtons();
         ChipsetLevelUpPopup.OnRuntimeChipsetSelected -= HandleChipsetSelected;
         ChipsetLevelUpPopup.OnRuntimeChipsetSelected += HandleChipsetSelected;
@@ -230,6 +257,10 @@ public class PauseModalController : MonoBehaviour
         if (quitConfirmPanel != null)
         {
             quitConfirmPanel.SetActive(false);
+        }
+        if (artifactDetailPanel != null)
+        {
+            artifactDetailPanel.SetActive(false);
         }
         RefreshEquippedChips();
     }
@@ -309,6 +340,11 @@ public class PauseModalController : MonoBehaviour
             damageDetailsButton.onClick.RemoveListener(OnDamageDetailsButtonClicked);
             damageDetailsButton.onClick.AddListener(OnDamageDetailsButtonClicked);
         }
+        if (artifactDetailOkButton != null)
+        {
+            artifactDetailOkButton.onClick.RemoveListener(HideArtifactDetail);
+            artifactDetailOkButton.onClick.AddListener(HideArtifactDetail);
+        }
     }
 
     private void LocatePlayerReferences()
@@ -361,6 +397,7 @@ public class PauseModalController : MonoBehaviour
         {
             quitConfirmPanel.SetActive(false);
         }
+        HideArtifactDetail();
     }
 
     public void ResumeGame()
@@ -377,6 +414,8 @@ public class PauseModalController : MonoBehaviour
         {
             quitConfirmPanel.SetActive(false);
         }
+
+        HideArtifactDetail();
 
         UIDissolveController dissolve = modalRoot != null ? modalRoot.GetComponent<UIDissolveController>() : null;
         if (dissolve != null && modalRoot != null && modalRoot.activeSelf)
@@ -458,6 +497,7 @@ public class PauseModalController : MonoBehaviour
     public void SelectMainTab(int index)
     {
         CurrentMainTab = index;
+        HideArtifactDetail();
 
         // 1. Activate main content panels
         if (statsPanel != null) statsPanel.SetActive(index == 0);
@@ -467,6 +507,10 @@ public class PauseModalController : MonoBehaviour
         if (index == 1)
         {
             RefreshEquippedChips();
+        }
+        else if (index == 2)
+        {
+            RefreshEquippedArtifacts();
         }
 
         // 2. Ensure sprites are loaded
@@ -879,6 +923,12 @@ public class PauseModalController : MonoBehaviour
             if (chipPnl != null) chipsetPanel = chipPnl;
         }
 
+        if (artifactPanel == null)
+        {
+            GameObject artPnl = FindTabObject(searchRoot, "ArtifactPanel", "Artifact_Panel", "ArtifactContent", "ArtifactTabPanel");
+            if (artPnl != null) artifactPanel = artPnl;
+        }
+
         if (equippedChipCardTemplate == null && chipsetPanel != null)
         {
             Transform found = chipsetPanel.transform.Find("EquippedChipCard");
@@ -890,6 +940,52 @@ public class PauseModalController : MonoBehaviour
         AlignTabPosition(statsOn, statsOff);
         AlignTabPosition(chipsetOn, chipsetOff);
         AlignTabPosition(artifactOn, artifactOff);
+
+        AutoWireArtifactIconSlots();
+    }
+
+    public void AutoWireArtifactIconSlots()
+    {
+        if (artifactPanel == null) return;
+
+        artifactIconSlots.RemoveAll(x => x == null);
+        if (artifactIconSlots.Count > 0) return;
+
+        // 1. Tìm container con nếu có (ví dụ "ArtifactIcons", "ArtifactSlots", "Icons", "Slots")
+        Transform container = artifactPanel.transform.Find("ArtifactIcons")
+                           ?? artifactPanel.transform.Find("ArtifactSlots")
+                           ?? artifactPanel.transform.Find("Icons")
+                           ?? artifactPanel.transform.Find("Slots");
+
+        Transform searchParent = container != null ? container : artifactPanel.transform;
+
+        for (int i = 0; i < searchParent.childCount; i++)
+        {
+            Transform child = searchParent.GetChild(i);
+            if (child == null) continue;
+
+            string childName = child.name;
+            if (childName.Equals("ArtifactMessage", StringComparison.OrdinalIgnoreCase) ||
+                childName.Equals("ArtifactHint", StringComparison.OrdinalIgnoreCase) ||
+                childName.Equals("Viewport", StringComparison.OrdinalIgnoreCase) ||
+                childName.Equals("Scrollbar", StringComparison.OrdinalIgnoreCase) ||
+                childName.Equals("EmptyNotice", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            if (container != null ||
+                childName.StartsWith("ArtifactIcon", StringComparison.OrdinalIgnoreCase) ||
+                childName.StartsWith("ArtifactSlot", StringComparison.OrdinalIgnoreCase) ||
+                childName.StartsWith("Slot", StringComparison.OrdinalIgnoreCase) ||
+                childName.StartsWith("Icon", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!artifactIconSlots.Contains(child.gameObject))
+                {
+                    artifactIconSlots.Add(child.gameObject);
+                }
+            }
+        }
     }
 
     public void LoadTabSpritesIfMissing()
@@ -1534,6 +1630,656 @@ public class PauseModalController : MonoBehaviour
     {
         equippedChipCardTemplate = template;
         visualLibrary = lib;
+    }
+
+    private readonly List<GameObject> spawnedArtifactCards = new List<GameObject>();
+
+    /// <summary>
+    /// Hiển thị danh sách Cổ Vật (Artifact) đã nhặt trong run khi người chơi mở tab ARTIFACT ở Pause Menu.
+    /// Ưu tiên hiển thị trên các ô icon Artifact đã được xếp và chỉnh kích thước trong Edit Mode,
+    /// bảo toàn 100% vị trí (AnchoredPosition) và kích thước (SizeDelta) đã thiết kế.
+    /// </summary>
+    public void RefreshEquippedArtifacts()
+    {
+        if (artifactPanel == null) return;
+
+        AutoWireArtifactIconSlots();
+
+        Transform msgTr = artifactPanel.transform.Find("ArtifactMessage")
+            ?? artifactPanel.transform.Find("ArtifactHint");
+
+        bool hasArtifacts = PlayerArtifactInventory.Instance != null && PlayerArtifactInventory.Instance.EquippedArtifacts.Count > 0;
+        var equippedArtifacts = PlayerArtifactInventory.Instance != null ? PlayerArtifactInventory.Instance.EquippedArtifacts : null;
+
+        // Trường hợp 1: Có các ô ArtifactIcon trong Hierarchy (được xếp trong Edit Mode)
+        if (artifactIconSlots != null && artifactIconSlots.Count > 0)
+        {
+            // Trong Play Mode: chỉ hiện thông báo hướng dẫn khi chưa có artifact nào
+            if (msgTr != null)
+            {
+                if (Application.isPlaying)
+                {
+                    msgTr.gameObject.SetActive(!hasArtifacts);
+                }
+                else
+                {
+                    // Trong Edit Mode, ẩn message để không che khuất các icon đang chỉnh
+                    msgTr.gameObject.SetActive(false);
+                }
+            }
+
+            // Nếu số lượng artifact nhặt được nhiều hơn số slot dựng sẵn trong Hierarchy,
+            // tự động nhân bản (spawn) thêm các slot tiếp theo theo lưới 4 cột / hàng
+            int totalSlotsNeeded = hasArtifacts && equippedArtifacts != null ? equippedArtifacts.Count : artifactIconSlots.Count;
+            while (artifactIconSlots.Count < totalSlotsNeeded && artifactPanel != null)
+            {
+                GameObject templateSlot = artifactIconSlots[0];
+                GameObject newSlot = Instantiate(templateSlot, artifactPanel.transform);
+                newSlot.name = $"ArtifactIcon_{artifactIconSlots.Count + 1}";
+
+                int newIdx = artifactIconSlots.Count;
+                int col = newIdx % 4;
+                int row = newIdx / 4;
+                RectTransform rt = newSlot.GetComponent<RectTransform>();
+                if (rt != null)
+                {
+                    rt.anchorMin = new Vector2(0.5f, 0.5f);
+                    rt.anchorMax = new Vector2(0.5f, 0.5f);
+                    rt.pivot = new Vector2(0.5f, 0.5f);
+                    rt.anchoredPosition = new Vector2(-307.5f + (col * 205f), 360f - (row * 200f));
+                    rt.sizeDelta = new Vector2(150f, 175f);
+                }
+                artifactIconSlots.Add(newSlot);
+            }
+
+            for (int i = 0; i < artifactIconSlots.Count; i++)
+            {
+                GameObject slot = artifactIconSlots[i];
+                if (slot == null) continue;
+
+                // Trong Edit Mode: Luôn bật toàn bộ slot và gán preview để người dùng có thể căn chỉnh vị trí & kích thước
+                if (!Application.isPlaying)
+                {
+                    slot.SetActive(true);
+                    UpdateArtifactSlotVisualInEditor(slot, i);
+                    WireSlotButtonClick(slot, i, null);
+                    continue;
+                }
+
+                // Trong Play Mode:
+                if (hasArtifacts && equippedArtifacts != null && i < equippedArtifacts.Count)
+                {
+                    ArtifactData art = equippedArtifacts[i];
+                    slot.SetActive(true);
+                    UpdateArtifactSlotVisual(slot, art);
+                    WireSlotButtonClick(slot, i, art);
+                }
+                else
+                {
+                    if (hideUnusedArtifactSlots)
+                    {
+                        slot.SetActive(false);
+                    }
+                    else
+                    {
+                        slot.SetActive(true);
+                        ClearArtifactSlotVisual(slot);
+                    }
+                }
+            }
+            return;
+        }
+
+        // Trường hợp 2: Fallback cho scene/test cũ không có sẵn icon slots (giữ tương thích với Test08)
+        foreach (var c in spawnedArtifactCards)
+        {
+            if (c != null)
+            {
+                if (Application.isPlaying) Destroy(c);
+                else DestroyImmediate(c);
+            }
+        }
+        spawnedArtifactCards.Clear();
+
+        if (msgTr != null)
+        {
+            msgTr.gameObject.SetActive(!hasArtifacts);
+        }
+
+        Transform viewportTr = artifactPanel.transform.Find("Viewport");
+        Transform contentTr = null;
+        if (viewportTr != null)
+        {
+            contentTr = viewportTr.Find("Content");
+        }
+        else
+        {
+            contentTr = artifactPanel.transform.Find("Content");
+        }
+
+        if (contentTr == null)
+        {
+            ScrollRect scroll = artifactPanel.GetComponent<ScrollRect>() ?? artifactPanel.AddComponent<ScrollRect>();
+            scroll.horizontal = false;
+            scroll.vertical = true;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+
+            GameObject vpObj = new GameObject("Viewport", typeof(RectTransform), typeof(RectMask2D));
+            vpObj.transform.SetParent(artifactPanel.transform, false);
+            RectTransform vpRt = vpObj.GetComponent<RectTransform>();
+            vpRt.anchorMin = Vector2.zero;
+            vpRt.anchorMax = Vector2.one;
+            vpRt.offsetMin = new Vector2(20f, 20f);
+            vpRt.offsetMax = new Vector2(-20f, -20f);
+
+            GameObject cntObj = new GameObject("Content", typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
+            cntObj.transform.SetParent(vpObj.transform, false);
+            RectTransform cntRt = cntObj.GetComponent<RectTransform>();
+            cntRt.anchorMin = new Vector2(0f, 1f);
+            cntRt.anchorMax = new Vector2(1f, 1f);
+            cntRt.pivot = new Vector2(0.5f, 1f);
+            cntRt.anchoredPosition = Vector2.zero;
+
+            VerticalLayoutGroup vlg = cntObj.GetComponent<VerticalLayoutGroup>();
+            vlg.spacing = 14f;
+            vlg.childAlignment = TextAnchor.UpperCenter;
+            vlg.childControlWidth = true;
+            vlg.childControlHeight = false;
+            vlg.childForceExpandWidth = true;
+            vlg.childForceExpandHeight = false;
+
+            ContentSizeFitter csf = cntObj.GetComponent<ContentSizeFitter>();
+            csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            scroll.viewport = vpRt;
+            scroll.content = cntRt;
+
+            contentTr = cntObj.transform;
+        }
+
+        if (!hasArtifacts)
+        {
+            if (msgTr == null)
+            {
+                GameObject emptyObj = new GameObject("EmptyNotice", typeof(RectTransform), typeof(TextMeshProUGUI));
+                emptyObj.transform.SetParent(contentTr, false);
+                RectTransform ert = emptyObj.GetComponent<RectTransform>();
+                ert.sizeDelta = new Vector2(600f, 100f);
+                TextMeshProUGUI etxt = emptyObj.GetComponent<TextMeshProUGUI>();
+                etxt.text = "You can get it from a\nshiny box in the field.";
+                etxt.fontSize = 32f;
+                etxt.alignment = TextAlignmentOptions.Center;
+                etxt.color = new Color(1f, 1f, 1f, 0.6f);
+                spawnedArtifactCards.Add(emptyObj);
+            }
+            return;
+        }
+
+        foreach (var art in PlayerArtifactInventory.Instance.EquippedArtifacts)
+        {
+            if (art == null) continue;
+
+            GameObject card = new GameObject($"ArtifactCard_{art.id}", typeof(RectTransform), typeof(Image));
+            card.transform.SetParent(contentTr, false);
+            RectTransform crt = card.GetComponent<RectTransform>();
+            crt.sizeDelta = new Vector2(860f, 130f);
+
+            Image cardBg = card.GetComponent<Image>();
+            cardBg.color = new Color32(14, 48, 68, 235);
+
+            GameObject iconFrame = new GameObject("IconFrame", typeof(RectTransform), typeof(Image));
+            iconFrame.transform.SetParent(card.transform, false);
+            RectTransform ifrt = iconFrame.GetComponent<RectTransform>();
+            ifrt.anchorMin = new Vector2(0f, 0.5f);
+            ifrt.anchorMax = new Vector2(0f, 0.5f);
+            ifrt.pivot = new Vector2(0f, 0.5f);
+            ifrt.anchoredPosition = new Vector2(20f, 0f);
+            ifrt.sizeDelta = new Vector2(96f, 96f);
+            Image ifImg = iconFrame.GetComponent<Image>();
+            ifImg.color = art.badgeBorderColor.a > 0.1f ? art.badgeBorderColor : new Color32(46, 229, 240, 255);
+
+            GameObject iconObj = new GameObject("Icon", typeof(RectTransform), typeof(Image));
+            iconObj.transform.SetParent(iconFrame.transform, false);
+            RectTransform iconRt = iconObj.GetComponent<RectTransform>();
+            iconRt.anchorMin = new Vector2(0.5f, 0.5f);
+            iconRt.anchorMax = new Vector2(0.5f, 0.5f);
+            iconRt.pivot = new Vector2(0.5f, 0.5f);
+            iconRt.sizeDelta = new Vector2(72f, 72f);
+            Image iconImg = iconObj.GetComponent<Image>();
+            if (art.icon != null)
+            {
+                iconImg.sprite = art.icon;
+                iconImg.color = Color.white;
+            }
+            else
+            {
+                iconImg.color = art.statType == ArtifactStatType.MaxHealthPercent ? new Color32(235, 60, 60, 255)
+                    : (art.statType == ArtifactStatType.RangedDefensePercent ? new Color32(90, 180, 230, 255)
+                    : (art.statType == ArtifactStatType.TurretAttackSpeedPercent ? new Color32(240, 180, 30, 255)
+                    : new Color32(180, 90, 240, 255)));
+            }
+
+            GameObject nameObj = new GameObject("Name", typeof(RectTransform), typeof(TextMeshProUGUI));
+            nameObj.transform.SetParent(card.transform, false);
+            RectTransform nameRt = nameObj.GetComponent<RectTransform>();
+            nameRt.anchorMin = new Vector2(0f, 1f);
+            nameRt.anchorMax = new Vector2(0f, 1f);
+            nameRt.pivot = new Vector2(0f, 1f);
+            nameRt.anchoredPosition = new Vector2(135f, -14f);
+            nameRt.sizeDelta = new Vector2(450f, 38f);
+            TextMeshProUGUI nameTxt = nameObj.GetComponent<TextMeshProUGUI>();
+            nameTxt.text = art.artifactName;
+            nameTxt.fontSize = 30f;
+            nameTxt.fontStyle = FontStyles.Bold;
+            nameTxt.color = new Color32(255, 184, 28, 255);
+
+            GameObject loreObj = new GameObject("Lore", typeof(RectTransform), typeof(TextMeshProUGUI));
+            loreObj.transform.SetParent(card.transform, false);
+            RectTransform loreRt = loreObj.GetComponent<RectTransform>();
+            loreRt.anchorMin = new Vector2(0f, 0f);
+            loreRt.anchorMax = new Vector2(0f, 0f);
+            loreRt.pivot = new Vector2(0f, 0f);
+            loreRt.anchoredPosition = new Vector2(135f, 14f);
+            loreRt.sizeDelta = new Vector2(450f, 55f);
+            TextMeshProUGUI loreTxt = loreObj.GetComponent<TextMeshProUGUI>();
+            loreTxt.text = art.loreDescription;
+            loreTxt.fontSize = 20f;
+            loreTxt.color = new Color32(210, 210, 210, 255);
+
+            GameObject statObj = new GameObject("Stat", typeof(RectTransform), typeof(TextMeshProUGUI));
+            statObj.transform.SetParent(card.transform, false);
+            RectTransform statRt = statObj.GetComponent<RectTransform>();
+            statRt.anchorMin = new Vector2(1f, 0.5f);
+            statRt.anchorMax = new Vector2(1f, 0.5f);
+            statRt.pivot = new Vector2(1f, 0.5f);
+            statRt.anchoredPosition = new Vector2(-25f, 0f);
+            statRt.sizeDelta = new Vector2(250f, 60f);
+            TextMeshProUGUI statTxt = statObj.GetComponent<TextMeshProUGUI>();
+            statTxt.text = art.GetFormattedStatText();
+            statTxt.fontSize = 28f;
+            statTxt.fontStyle = FontStyles.Bold;
+            statTxt.alignment = TextAlignmentOptions.Right;
+            Button cardBtn = card.GetComponent<Button>() ?? card.AddComponent<Button>();
+            ArtifactData currentArt = art;
+            cardBtn.onClick.RemoveAllListeners();
+            cardBtn.onClick.AddListener(() => ShowArtifactDetail(currentArt));
+
+            spawnedArtifactCards.Add(card);
+        }
+    }
+
+    private void UpdateArtifactSlotVisual(GameObject slot, ArtifactData art)
+    {
+        if (slot == null || art == null) return;
+
+        Image iconImg = GetSlotImage(slot);
+        if (iconImg != null)
+        {
+            iconImg.enabled = true;
+            if (art.icon != null)
+            {
+                iconImg.sprite = art.icon;
+                iconImg.color = Color.white;
+            }
+            else
+            {
+                Sprite fallback = GetArtifactFallbackSprite(art.statType);
+                if (fallback != null)
+                {
+                    iconImg.sprite = fallback;
+                    iconImg.color = Color.white;
+                }
+                else
+                {
+                    iconImg.color = art.badgeBorderColor.a > 0.1f ? art.badgeBorderColor : new Color32(46, 229, 240, 255);
+                }
+            }
+            iconImg.preserveAspect = true;
+        }
+
+        TMP_Text nameTxt = slot.transform.Find("Name")?.GetComponent<TMP_Text>();
+        if (nameTxt != null) nameTxt.text = art.artifactName;
+
+        TMP_Text statTxt = slot.transform.Find("Stat")?.GetComponent<TMP_Text>();
+        if (statTxt != null) statTxt.text = art.GetFormattedStatText();
+    }
+
+    private void UpdateArtifactSlotVisualInEditor(GameObject slot, int index)
+    {
+        if (slot == null) return;
+        Image iconImg = GetSlotImage(slot);
+        if (iconImg != null)
+        {
+            iconImg.enabled = true;
+            if (iconImg.sprite == null)
+            {
+                iconImg.sprite = GetArtifactFallbackByIndex(index);
+            }
+            if (iconImg.color.a < 0.1f)
+            {
+                iconImg.color = Color.white;
+            }
+            iconImg.preserveAspect = true;
+        }
+    }
+
+    private void ClearArtifactSlotVisual(GameObject slot)
+    {
+        if (slot == null) return;
+        Image iconImg = GetSlotImage(slot);
+        if (iconImg != null)
+        {
+            iconImg.color = new Color(1f, 1f, 1f, 0.25f);
+        }
+    }
+
+    private Image GetSlotImage(GameObject slot)
+    {
+        if (slot == null) return null;
+        Transform iconChild = slot.transform.Find("Icon")
+                           ?? slot.transform.Find("ArtifactIcon")
+                           ?? slot.transform.Find("Image");
+        if (iconChild != null)
+        {
+            Image img = iconChild.GetComponent<Image>();
+            if (img != null) return img;
+        }
+        return slot.GetComponent<Image>() ?? slot.GetComponentInChildren<Image>(true);
+    }
+
+    private Sprite GetArtifactFallbackSprite(ArtifactStatType statType)
+    {
+        switch (statType)
+        {
+            case ArtifactStatType.MaxHealthPercent:
+                return LoadArtifactSprite("spare_battery");
+            case ArtifactStatType.RangedDefensePercent:
+                return LoadArtifactSprite("carbon_scales");
+            case ArtifactStatType.TurretAttackSpeedPercent:
+                return LoadArtifactSprite("strong_cooler");
+            case ArtifactStatType.AllWeaponsDamagePercent:
+                return LoadArtifactSprite("kung_fu_usb");
+            default:
+                return LoadArtifactSprite("artifact_slot_5");
+        }
+    }
+
+    private Sprite GetArtifactFallbackByIndex(int index)
+    {
+        string[] names = new string[]
+        {
+            "spare_battery",
+            "carbon_scales",
+            "strong_cooler",
+            "kung_fu_usb",
+            "artifact_slot_5",
+            "artifact_slot_6",
+            "artifact_slot_7"
+        };
+        int idx = Mathf.Clamp(index, 0, names.Length - 1);
+        return LoadArtifactSprite(names[idx]);
+    }
+
+    private Sprite LoadArtifactSprite(string spriteName)
+    {
+#if UNITY_EDITOR
+        string path = $"Assets/Sprites/UI/Artifact/{spriteName}.png";
+        Sprite s = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(path);
+        if (s != null) return s;
+#endif
+        return Resources.Load<Sprite>($"Artifacts/{spriteName}") ?? Resources.Load<Sprite>(spriteName);
+    }
+
+    public void SetArtifactIconSlotsForTesting(params GameObject[] slots)
+    {
+        artifactIconSlots.Clear();
+        if (slots != null)
+        {
+            artifactIconSlots.AddRange(slots);
+        }
+    }
+
+    public void AutoWireArtifactDetailDialog()
+    {
+        if (artifactDetailPanel == null && modalRoot != null)
+        {
+            Transform found = modalRoot.transform.Find("ArtifactDetailDialog")
+                           ?? modalRoot.transform.Find("ArtifactDetailPopup")
+                           ?? modalRoot.transform.Find("ArtifactDetailPanel")
+                           ?? modalRoot.transform.Find("DetailDialog");
+            if (found == null && transform.parent != null)
+            {
+                found = transform.parent.Find("ArtifactDetailDialog")
+                     ?? transform.parent.Find("ArtifactDetailPopup");
+            }
+            if (found != null)
+            {
+                artifactDetailPanel = found.gameObject;
+            }
+        }
+
+        if (artifactDetailPanel != null)
+        {
+            if (artifactDetailOkButton == null)
+            {
+                artifactDetailOkButton = artifactDetailPanel.GetComponentsInChildren<Button>(true)
+                    .FirstOrDefault(b => b.name.IndexOf("ok", StringComparison.OrdinalIgnoreCase) >= 0);
+            }
+
+            if (artifactDetailIcon == null)
+            {
+                Transform iconTr = artifactDetailPanel.transform.Find("DetailCard/IconFrame/Icon")
+                                ?? artifactDetailPanel.transform.Find("Card/IconFrame/Icon")
+                                ?? artifactDetailPanel.transform.Find("IconFrame/Icon")
+                                ?? artifactDetailPanel.transform.Find("Icon");
+                if (iconTr != null)
+                {
+                    artifactDetailIcon = iconTr.GetComponent<Image>();
+                }
+                else
+                {
+                    artifactDetailIcon = artifactDetailPanel.GetComponentsInChildren<Image>(true)
+                        .FirstOrDefault(img => img.name.IndexOf("icon", StringComparison.OrdinalIgnoreCase) >= 0 &&
+                                               img.name.IndexOf("frame", StringComparison.OrdinalIgnoreCase) < 0 &&
+                                               img.name.IndexOf("bg", StringComparison.OrdinalIgnoreCase) < 0 &&
+                                               img.name.IndexOf("card", StringComparison.OrdinalIgnoreCase) < 0);
+                }
+            }
+
+            if (artifactDetailNameText == null)
+            {
+                artifactDetailNameText = artifactDetailPanel.GetComponentsInChildren<TMP_Text>(true)
+                    .FirstOrDefault(t => t.name.IndexOf("name", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                         t.name.IndexOf("title", StringComparison.OrdinalIgnoreCase) >= 0);
+            }
+
+            if (artifactDetailLoreText == null)
+            {
+                artifactDetailLoreText = artifactDetailPanel.GetComponentsInChildren<TMP_Text>(true)
+                    .FirstOrDefault(t => t.name.IndexOf("lore", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                         t.name.IndexOf("desc", StringComparison.OrdinalIgnoreCase) >= 0);
+            }
+
+            if (artifactDetailStatText == null)
+            {
+                artifactDetailStatText = artifactDetailPanel.GetComponentsInChildren<TMP_Text>(true)
+                    .FirstOrDefault(t => t.name.IndexOf("stat", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                         t.name.IndexOf("buff", StringComparison.OrdinalIgnoreCase) >= 0);
+            }
+
+            if (artifactDetailOkButton != null)
+            {
+                artifactDetailOkButton.onClick.RemoveListener(HideArtifactDetail);
+                artifactDetailOkButton.onClick.AddListener(HideArtifactDetail);
+            }
+        }
+    }
+
+    public void ShowArtifactDetail(ArtifactData data)
+    {
+        if (data == null) return;
+        AutoWireArtifactDetailDialog();
+
+        if (artifactDetailIcon != null)
+        {
+            artifactDetailIcon.enabled = true;
+            Sprite spr = data.icon;
+            if (spr == null)
+            {
+                spr = GetArtifactFallbackSprite(data.statType);
+            }
+            artifactDetailIcon.sprite = spr;
+            artifactDetailIcon.preserveAspect = true;
+            artifactDetailIcon.color = Color.white;
+        }
+
+        if (artifactDetailNameText != null)
+        {
+            artifactDetailNameText.text = data.artifactName;
+            artifactDetailNameText.color = new Color32(255, 184, 28, 255);
+        }
+
+        if (artifactDetailLoreText != null)
+        {
+            artifactDetailLoreText.text = data.loreDescription;
+        }
+
+        if (artifactDetailStatText != null)
+        {
+            artifactDetailStatText.text = data.GetFormattedStatText();
+        }
+
+        if (artifactDetailPanel != null)
+        {
+            artifactDetailPanel.SetActive(true);
+        }
+    }
+
+    public void HideArtifactDetail()
+    {
+        if (artifactDetailPanel != null)
+        {
+            artifactDetailPanel.SetActive(false);
+        }
+    }
+
+    public void ArrangeArtifactSlotsGrid(int columns = 4)
+    {
+        AutoWireArtifactIconSlots();
+        if (artifactIconSlots == null || artifactIconSlots.Count == 0) return;
+        if (columns <= 0) columns = 4;
+
+        float spacingX = 205f;
+        float spacingY = 200f;
+        float startX = -((columns - 1) * 0.5f) * spacingX;
+        float startY = 360f;
+
+        for (int i = 0; i < artifactIconSlots.Count; i++)
+        {
+            GameObject slot = artifactIconSlots[i];
+            if (slot == null) continue;
+
+            RectTransform rt = slot.GetComponent<RectTransform>();
+            if (rt != null)
+            {
+                int col = i % columns;
+                int row = i / columns;
+                float posX = startX + (col * spacingX);
+                float posY = startY - (row * spacingY);
+
+                rt.anchorMin = new Vector2(0.5f, 0.5f);
+                rt.anchorMax = new Vector2(0.5f, 0.5f);
+                rt.pivot = new Vector2(0.5f, 0.5f);
+                rt.anchoredPosition = new Vector2(posX, posY);
+            }
+        }
+    }
+
+    public void WireSlotButtonClick(GameObject slot, int index, ArtifactData art)
+    {
+        if (slot == null) return;
+        Button btn = slot.GetComponent<Button>();
+        if (btn == null)
+        {
+            btn = slot.AddComponent<Button>();
+        }
+        Graphic g = slot.GetComponent<Graphic>() ?? slot.GetComponentInChildren<Graphic>(true);
+        if (g != null)
+        {
+            g.raycastTarget = true;
+            if (btn.targetGraphic == null) btn.targetGraphic = g;
+        }
+
+        btn.onClick.RemoveAllListeners();
+        if (art != null)
+        {
+            ArtifactData clickedArt = art;
+            btn.onClick.AddListener(() => ShowArtifactDetail(clickedArt));
+        }
+        else
+        {
+            int slotIdx = index;
+            btn.onClick.AddListener(() =>
+            {
+                ArtifactData previewArt = CreatePreviewArtifactData(slotIdx);
+                ShowArtifactDetail(previewArt);
+            });
+        }
+    }
+
+    public ArtifactData CreatePreviewArtifactData(int index)
+    {
+        ArtifactData temp = ScriptableObject.CreateInstance<ArtifactData>();
+        string[] names = { "Spare Battery", "Carbon Scales", "Strong Cooler", "Kung Fu Data USB", "Titanium Fabric", "Artifact Slot 6", "Artifact Slot 7" };
+        string[] lores = {
+            "Eco-friendly product you can recharge.",
+            "Vinyl 1, it likes me.\nVinyl 2, it doesn't like me.",
+            "Cools down Turrets when they overheat.",
+            "Does it actually have the Epic tome of Kung Fu in it?",
+            "Sturdy titanium. Covers the body.",
+            "Mysterious high-tech component found in the ruins.",
+            "Ancient core radiating pure elemental energy."
+        };
+        ArtifactStatType[] types = {
+            ArtifactStatType.MaxHealthPercent,
+            ArtifactStatType.RangedDefensePercent,
+            ArtifactStatType.TurretAttackSpeedPercent,
+            ArtifactStatType.AllWeaponsDamagePercent,
+            ArtifactStatType.DamageReduction,
+            ArtifactStatType.CritRatePercent,
+            ArtifactStatType.MoveSpeedPercent
+        };
+        float[] vals = { 15f, 10f, 20f, 9f, 10f, 12f, 10f };
+
+        int idx = Mathf.Clamp(index, 0, names.Length - 1);
+        temp.id = $"preview_{idx}";
+        temp.artifactName = names[idx];
+        temp.loreDescription = lores[idx];
+        temp.statType = types[idx];
+        temp.statValue = vals[idx];
+        temp.icon = GetArtifactFallbackByIndex(index);
+        return temp;
+    }
+
+    public void SetArtifactDetailDialogForTesting(
+        GameObject panel,
+        Image icon,
+        TMP_Text nameTxt,
+        TMP_Text loreTxt,
+        TMP_Text statTxt,
+        Button okBtn)
+    {
+        artifactDetailPanel = panel;
+        artifactDetailIcon = icon;
+        artifactDetailNameText = nameTxt;
+        artifactDetailLoreText = loreTxt;
+        artifactDetailStatText = statTxt;
+        artifactDetailOkButton = okBtn;
+        if (artifactDetailOkButton != null)
+        {
+            artifactDetailOkButton.onClick.RemoveListener(HideArtifactDetail);
+            artifactDetailOkButton.onClick.AddListener(HideArtifactDetail);
+        }
     }
 
 #if UNITY_EDITOR

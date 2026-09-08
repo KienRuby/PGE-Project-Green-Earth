@@ -124,6 +124,20 @@ public class DamageNumber : MonoBehaviour, IPoolable
         EnsureComponents();
     }
 
+    public static string GetResolvedSortingLayer(string preferredLayer)
+    {
+        if (!string.IsNullOrEmpty(preferredLayer) && SortingLayer.NameToID(preferredLayer) != 0)
+        {
+            return preferredLayer;
+        }
+
+        if (SortingLayer.NameToID("UI") != 0) return "UI";
+        if (SortingLayer.NameToID("VFX ") != 0) return "VFX ";
+        if (SortingLayer.NameToID("Player") != 0) return "Player";
+
+        return "Default";
+    }
+
     public void EnsureComponents()
     {
         if (textComponent == null)
@@ -150,7 +164,8 @@ public class DamageNumber : MonoBehaviour, IPoolable
 
         if (meshRenderer != null)
         {
-            meshRenderer.sortingLayerName = sortingLayerName;
+            string resolvedLayer = GetResolvedSortingLayer(sortingLayerName);
+            meshRenderer.sortingLayerName = resolvedLayer;
             meshRenderer.sortingOrder = sortingOrder;
         }
 
@@ -165,12 +180,13 @@ public class DamageNumber : MonoBehaviour, IPoolable
 
     public void SetSorting(string layerName, int order)
     {
-        sortingLayerName = layerName;
+        string resolvedLayer = GetResolvedSortingLayer(layerName);
+        sortingLayerName = resolvedLayer;
         sortingOrder = order;
         if (meshRenderer == null) meshRenderer = GetComponent<MeshRenderer>();
         if (meshRenderer != null)
         {
-            meshRenderer.sortingLayerName = layerName;
+            meshRenderer.sortingLayerName = resolvedLayer;
             meshRenderer.sortingOrder = order;
         }
     }

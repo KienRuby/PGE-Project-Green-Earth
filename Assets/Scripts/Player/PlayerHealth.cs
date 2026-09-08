@@ -257,9 +257,30 @@ public class PlayerHealth : MonoBehaviour, IDamageable
         OnHealthChanged?.Invoke(CurrentHealth, maxHealth);
     }
 
+    [Header("Artifact Bonuses")]
+    [SerializeField] private float rangedDefenseBonusPercent = 0f;
+    public float RangedDefenseBonusPercent
+    {
+        get => rangedDefenseBonusPercent;
+        set => rangedDefenseBonusPercent = Mathf.Clamp(value, 0f, 90f);
+    }
+
     public void SetDamageReduction(int reduction)
     {
         damageReduction = Mathf.Max(0, reduction);
+    }
+
+    /// <summary>
+    /// Nhận sát thương tầm xa (đạn/chiêu bắn xa của quái), tự động áp dụng % giảm sát thương từ Artifact.
+    /// </summary>
+    public void TakeRangedDamage(int damage)
+    {
+        if (rangedDefenseBonusPercent > 0f)
+        {
+            float reductionMultiplier = 1f - (rangedDefenseBonusPercent / 100f);
+            damage = Mathf.Max(1, Mathf.RoundToInt(damage * reductionMultiplier));
+        }
+        TakeDamage(damage);
     }
 
     private void Update()

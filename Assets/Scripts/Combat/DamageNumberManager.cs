@@ -80,6 +80,12 @@ public class DamageNumberManager : MonoBehaviour
             return;
         }
 
+        // Đảm bảo ShowDamage luôn bật theo mặc định nếu bị PlayerPrefs vô tình lưu là 0
+        if (!PlayerPrefs.HasKey(GameSettings.ShowDamageKey) || PlayerPrefs.GetInt(GameSettings.ShowDamageKey, 1) == 0)
+        {
+            GameSettings.ShowDamage = true;
+        }
+
         InitializePool();
     }
 
@@ -263,7 +269,8 @@ public class DamageNumberManager : MonoBehaviour
             tmp.fontSize = defaultFontSize;
             tmp.fontStyle = FontStyles.Bold;
             tmp.enableWordWrapping = false;
-            tmp.sortingLayerID = SortingLayer.NameToID(sortingLayerName);
+            string resolvedLayer = DamageNumber.GetResolvedSortingLayer(sortingLayerName);
+            tmp.sortingLayerID = SortingLayer.NameToID(resolvedLayer);
             tmp.sortingOrder = sortingOrder;
 
             if (fontAsset != null)

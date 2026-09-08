@@ -1,3 +1,4 @@
+using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.UI;
@@ -506,4 +507,235 @@ public class PauseModalTests
 
         Object.DestroyImmediate(root);
     }
+
+    [Test]
+    public void PauseModalController_ArtifactIconSlots_PreservesPositionAndSize_WhenRefreshing()
+    {
+        GameObject root = new GameObject("PauseModalRoot");
+        PauseModalController pauseCtrl = root.AddComponent<PauseModalController>();
+
+        GameObject artPanel = new GameObject("ArtifactPanel", typeof(RectTransform));
+        artPanel.transform.SetParent(root.transform);
+
+        GameObject slot1 = new GameObject("ArtifactIcon_1", typeof(RectTransform), typeof(Image));
+        slot1.transform.SetParent(artPanel.transform);
+        RectTransform rt1 = slot1.GetComponent<RectTransform>();
+        rt1.anchoredPosition = new Vector2(123.4f, -456.7f);
+        rt1.sizeDelta = new Vector2(85.5f, 95.5f);
+        rt1.localScale = new Vector3(1.2f, 1.2f, 1.2f);
+
+        GameObject slot2 = new GameObject("ArtifactIcon_2", typeof(RectTransform), typeof(Image));
+        slot2.transform.SetParent(artPanel.transform);
+        RectTransform rt2 = slot2.GetComponent<RectTransform>();
+        rt2.anchoredPosition = new Vector2(200f, 100f);
+        rt2.sizeDelta = new Vector2(64f, 64f);
+
+        pauseCtrl.SetArtifactIconSlotsForTesting(slot1, slot2);
+
+        // Call RefreshEquippedArtifacts
+        pauseCtrl.RefreshEquippedArtifacts();
+
+        // 1. Check that RectTransform properties are 100% PRESERVED
+        Assert.That(rt1.anchoredPosition.x, Is.EqualTo(123.4f).Within(0.01f));
+        Assert.That(rt1.anchoredPosition.y, Is.EqualTo(-456.7f).Within(0.01f));
+        Assert.That(rt1.sizeDelta.x, Is.EqualTo(85.5f).Within(0.01f));
+        Assert.That(rt1.sizeDelta.y, Is.EqualTo(95.5f).Within(0.01f));
+        Assert.That(rt1.localScale.x, Is.EqualTo(1.2f).Within(0.01f));
+
+        Assert.That(rt2.anchoredPosition.x, Is.EqualTo(200f).Within(0.01f));
+        Assert.That(rt2.anchoredPosition.y, Is.EqualTo(100f).Within(0.01f));
+        Assert.That(rt2.sizeDelta.x, Is.EqualTo(64f).Within(0.01f));
+        Assert.That(rt2.sizeDelta.y, Is.EqualTo(64f).Within(0.01f));
+
+        Object.DestroyImmediate(root);
+    }
+
+    [Test]
+    public void PauseModalController_ArtifactIconSlots_AutoWiresChildrenFromArtifactPanel()
+    {
+        GameObject root = new GameObject("PauseModalRoot");
+        PauseModalController pauseCtrl = root.AddComponent<PauseModalController>();
+
+        GameObject artPanel = new GameObject("ArtifactPanel", typeof(RectTransform));
+        artPanel.transform.SetParent(root.transform);
+
+        GameObject msgObj = new GameObject("ArtifactMessage", typeof(RectTransform));
+        msgObj.transform.SetParent(artPanel.transform);
+
+        GameObject slot1 = new GameObject("ArtifactIcon_1", typeof(RectTransform), typeof(Image));
+        slot1.transform.SetParent(artPanel.transform);
+
+        GameObject slot2 = new GameObject("ArtifactIcon_2", typeof(RectTransform), typeof(Image));
+        slot2.transform.SetParent(artPanel.transform);
+
+        GameObject slot3 = new GameObject("ArtifactIcon_3", typeof(RectTransform), typeof(Image));
+        slot3.transform.SetParent(artPanel.transform);
+
+        // AutoWire
+        pauseCtrl.AutoWireArtifactIconSlots();
+
+        Assert.That(pauseCtrl.ArtifactIconSlots.Count, Is.EqualTo(3));
+        Assert.That(pauseCtrl.ArtifactIconSlots[0], Is.EqualTo(slot1));
+        Assert.That(pauseCtrl.ArtifactIconSlots[1], Is.EqualTo(slot2));
+        Assert.That(pauseCtrl.ArtifactIconSlots[2], Is.EqualTo(slot3));
+        Assert.That(pauseCtrl.ArtifactIconSlots.Contains(msgObj), Is.False, "ArtifactMessage should never be treated as an icon slot");
+
+        Object.DestroyImmediate(root);
+    }
+
+    [Test]
+    public void PauseModalController_ArrangeArtifactSlotsGrid_Arranges4PerRow()
+    {
+        GameObject root = new GameObject("PauseModalRoot");
+        PauseModalController pauseCtrl = root.AddComponent<PauseModalController>();
+
+        GameObject artPanel = new GameObject("ArtifactPanel", typeof(RectTransform));
+        artPanel.transform.SetParent(root.transform);
+
+        System.Collections.Generic.List<GameObject> slots = new System.Collections.Generic.List<GameObject>();
+        for (int i = 0; i < 8; i++)
+        {
+            GameObject slot = new GameObject($"ArtifactIcon_{i + 1}", typeof(RectTransform), typeof(Image));
+            slot.transform.SetParent(artPanel.transform);
+            slots.Add(slot);
+        }
+
+        pauseCtrl.SetArtifactIconSlotsForTesting(slots.ToArray());
+        pauseCtrl.ArrangeArtifactSlotsGrid(4);
+
+        RectTransform rt0 = slots[0].GetComponent<RectTransform>();
+        RectTransform rt1 = slots[1].GetComponent<RectTransform>();
+        RectTransform rt2 = slots[2].GetComponent<RectTransform>();
+        RectTransform rt3 = slots[3].GetComponent<RectTransform>();
+        RectTransform rt4 = slots[4].GetComponent<RectTransform>();
+        RectTransform rt7 = slots[7].GetComponent<RectTransform>();
+
+        // Check Row 0 Y positions are identical
+        Assert.That(rt0.anchoredPosition.y, Is.EqualTo(rt1.anchoredPosition.y).Within(0.001f));
+        Assert.That(rt1.anchoredPosition.y, Is.EqualTo(rt2.anchoredPosition.y).Within(0.001f));
+        Assert.That(rt2.anchoredPosition.y, Is.EqualTo(rt3.anchoredPosition.y).Within(0.001f));
+
+        // Check Row 1 Y positions are identical and below Row 0
+        Assert.That(rt4.anchoredPosition.y, Is.EqualTo(rt7.anchoredPosition.y).Within(0.001f));
+        Assert.That(rt4.anchoredPosition.y, Is.LessThan(rt0.anchoredPosition.y));
+
+        // Check Column 0 X positions (Slot 0 and Slot 4) are identical
+        Assert.That(rt0.anchoredPosition.x, Is.EqualTo(rt4.anchoredPosition.x).Within(0.001f));
+
+        // Check Column 3 X positions (Slot 3 and Slot 7) are identical
+        Assert.That(rt3.anchoredPosition.x, Is.EqualTo(rt7.anchoredPosition.x).Within(0.001f));
+
+        // Check spacing between columns is uniform
+        float step01 = rt1.anchoredPosition.x - rt0.anchoredPosition.x;
+        float step12 = rt2.anchoredPosition.x - rt1.anchoredPosition.x;
+        float step23 = rt3.anchoredPosition.x - rt2.anchoredPosition.x;
+        Assert.That(step01, Is.EqualTo(step12).Within(0.001f));
+        Assert.That(step12, Is.EqualTo(step23).Within(0.001f));
+
+        Object.DestroyImmediate(root);
+    }
+
+    [Test]
+    public void PauseModalController_ShowArtifactDetail_PopulatesFieldsAndActivates()
+    {
+        GameObject root = new GameObject("PauseModalRoot");
+        PauseModalController pauseCtrl = root.AddComponent<PauseModalController>();
+
+        GameObject detailPanel = new GameObject("ArtifactDetailDialog", typeof(RectTransform));
+        detailPanel.transform.SetParent(root.transform);
+        detailPanel.SetActive(false);
+
+        GameObject iconObj = new GameObject("Icon", typeof(RectTransform), typeof(Image));
+        iconObj.transform.SetParent(detailPanel.transform);
+        Image iconImg = iconObj.GetComponent<Image>();
+
+        GameObject nameObj = new GameObject("NameText", typeof(RectTransform));
+        nameObj.transform.SetParent(detailPanel.transform);
+        TMPro.TMP_Text nameText = nameObj.AddComponent<TMPro.TextMeshProUGUI>();
+
+        GameObject loreObj = new GameObject("LoreText", typeof(RectTransform));
+        loreObj.transform.SetParent(detailPanel.transform);
+        TMPro.TMP_Text loreText = loreObj.AddComponent<TMPro.TextMeshProUGUI>();
+
+        GameObject statObj = new GameObject("StatText", typeof(RectTransform));
+        statObj.transform.SetParent(detailPanel.transform);
+        TMPro.TMP_Text statText = statObj.AddComponent<TMPro.TextMeshProUGUI>();
+
+        GameObject okBtnObj = new GameObject("OkButton", typeof(RectTransform), typeof(Button));
+        okBtnObj.transform.SetParent(detailPanel.transform);
+        Button okBtn = okBtnObj.GetComponent<Button>();
+
+        pauseCtrl.SetArtifactDetailDialogForTesting(detailPanel, iconImg, nameText, loreText, statText, okBtn);
+
+        Sprite testSprite = Sprite.Create(new Texture2D(2, 2), new Rect(0, 0, 2, 2), Vector2.zero);
+        ArtifactData testData = ScriptableObject.CreateInstance<ArtifactData>();
+        testData.artifactName = "Titanium Fabric";
+        testData.statType = ArtifactStatType.DamageReduction;
+        testData.statValue = 10f;
+        testData.loreDescription = "Sturdy titanium. Covers the body.";
+        testData.icon = testSprite;
+
+        // Show detail
+        pauseCtrl.ShowArtifactDetail(testData);
+
+        Assert.That(detailPanel.activeSelf, Is.True, "Detail panel should be active after ShowArtifactDetail");
+        Assert.That(nameText.text, Is.EqualTo("Titanium Fabric"));
+        Assert.That(statText.text, Is.EqualTo("DEF +10"));
+        Assert.That(loreText.text, Is.EqualTo("Sturdy titanium. Covers the body."));
+        Assert.That(iconImg.sprite, Is.EqualTo(testSprite));
+
+        // Hide detail
+        pauseCtrl.HideArtifactDetail();
+        Assert.That(detailPanel.activeSelf, Is.False, "Detail panel should be inactive after HideArtifactDetail");
+
+        Object.DestroyImmediate(testData);
+        Object.DestroyImmediate(root);
+    }
+
+    [Test]
+    public void PauseModalController_ClickArtifactSlot_OpensDetailDialog()
+    {
+        GameObject root = new GameObject("PauseModalRoot");
+        PauseModalController pauseCtrl = root.AddComponent<PauseModalController>();
+
+        GameObject detailPanel = new GameObject("ArtifactDetailDialog", typeof(RectTransform));
+        detailPanel.transform.SetParent(root.transform);
+        detailPanel.SetActive(false);
+
+        GameObject iconObj = new GameObject("Icon", typeof(RectTransform), typeof(Image));
+        Image iconImg = iconObj.GetComponent<Image>();
+        TMPro.TMP_Text nameText = new GameObject("NameText").AddComponent<TMPro.TextMeshProUGUI>();
+        TMPro.TMP_Text loreText = new GameObject("LoreText").AddComponent<TMPro.TextMeshProUGUI>();
+        TMPro.TMP_Text statText = new GameObject("StatText").AddComponent<TMPro.TextMeshProUGUI>();
+        Button okBtn = new GameObject("OkBtn").AddComponent<Button>();
+
+        pauseCtrl.SetArtifactDetailDialogForTesting(detailPanel, iconImg, nameText, loreText, statText, okBtn);
+
+        GameObject slotObj = new GameObject("Slot_1", typeof(RectTransform), typeof(Image), typeof(Button));
+        Button slotBtn = slotObj.GetComponent<Button>();
+
+        ArtifactData data = ScriptableObject.CreateInstance<ArtifactData>();
+        data.artifactName = "Emergency Repair Kit";
+        data.statType = ArtifactStatType.MaxHealthPercent;
+        data.statValue = 25f;
+        data.loreDescription = "Military field emergency unit.";
+
+        pauseCtrl.WireSlotButtonClick(slotObj, 0, data);
+
+        // Click slot button
+        slotBtn.onClick.Invoke();
+
+        Assert.That(detailPanel.activeSelf, Is.True);
+        Assert.That(nameText.text, Is.EqualTo("Emergency Repair Kit"));
+        Assert.That(statText.text, Is.EqualTo("HP +25%"));
+        Assert.That(loreText.text, Is.EqualTo("Military field emergency unit."));
+
+        // Click OK button to close
+        okBtn.onClick.Invoke();
+        Assert.That(detailPanel.activeSelf, Is.False);
+
+        Object.DestroyImmediate(data);
+        Object.DestroyImmediate(root);
+    }
 }
+

@@ -43,6 +43,11 @@ public class GunTurret : MonoBehaviour, IPoolable, IDamageable
     [Tooltip("Tốc độ bắn: số phát mỗi giây.")]
     [SerializeField] private float fireRate = 3f;
 
+    /// <summary>
+    /// Hệ số tốc độ bắn toàn cục của Trụ súng, được điều chỉnh bởi Artifact (ví dụ Strong Cooler).
+    /// </summary>
+    public static float GlobalTurretFireRateMultiplier = 1f;
+
     [Tooltip("Vận tốc bay của viên đạn (mét/giây).")]
     [SerializeField] private float bulletSpeed = 12f;
 
@@ -340,9 +345,8 @@ public class GunTurret : MonoBehaviour, IPoolable, IDamageable
 
         if (Time.time < nextFireTime) return;
 
-        Shoot();
-
-        nextFireTime = Time.time + (1f / fireRate);
+        float effectiveFireRate = Mathf.Max(0.1f, fireRate * GlobalTurretFireRateMultiplier);
+        nextFireTime = Time.time + (1f / effectiveFireRate);
     }
 
     private void Shoot()

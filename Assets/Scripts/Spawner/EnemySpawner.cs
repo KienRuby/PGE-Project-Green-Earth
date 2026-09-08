@@ -108,18 +108,21 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] private List<WaveConfig> waves = new List<WaveConfig>();
 
     [Header("Spawn Area (Ring around Player)")]
-    [Tooltip("Bán kính tối thiểu (ngoài tầm nhìn camera để quái không hiện đột ngột trên màn hình).")]
-    [SerializeField] private float minSpawnRadius = 6f;
+    [Tooltip("Bán kính tối thiểu (khoảng cách tối thiểu ngoài camera). Mặc định 3m.")]
+    [SerializeField] private float minSpawnRadius = 3f;
 
-    [Tooltip("Bán kính tối đa để sinh quái vật xung quanh người chơi.")]
-    [SerializeField] private float maxSpawnRadius = 9f;
+    [Tooltip("Bán kính tối đa để sinh quái vật xung quanh người chơi. Mặc định 5m.")]
+    [SerializeField] private float maxSpawnRadius = 5f;
 
     [Header("Despawn / Optimization")]
-    [Tooltip("Khoảng cách tối đa so với Player, quái thường đi quá xa sẽ tự thu hồi về Pool để spawn lại gần (Boss không bị despawn).")]
-    [SerializeField] private float maxDespawnDistance = 20f;
+    [Tooltip("Khoảng cách tối đa so với Player, quái vật đi xa hơn khoảng cách này sẽ tự động được thu hồi để tối ưu hiệu năng. Mặc định 10m.")]
+    [SerializeField] private float maxDespawnDistance = 10f;
 
-    [Tooltip("Chu kỳ kiểm tra thu hồi quái ở quá xa người chơi (giây).")]
-    [SerializeField] private float despawnCheckInterval = 1.5f;
+    [Tooltip("Chu kỳ kiểm tra thu hồi quái ở quá xa người chơi (giây). Mặc định 2.0s.")]
+    [SerializeField] private float despawnCheckInterval = 2.0f;
+
+    [Tooltip("Thời gian chờ trước khi quái bắt đầu xuất hiện ở đầu mỗi Wave (giây). Mặc định 1.0s.")]
+    [SerializeField] private float initialWaveSpawnDelay = 1.0f;
 
     [Header("Debug & Diagnostics")]
     [Tooltip("Bật in log tọa độ tính toán và tọa độ thực tế khi spawn quái vật để kiểm tra lỗi dồn quái.")]
@@ -132,7 +135,78 @@ public class EnemySpawner : MonoBehaviour
     [Tooltip("Red Gems nhận được khi hoàn thành chapter.")]
     [Min(0)] [SerializeField] private int stageVictoryRedGemReward = 10;
 
+    [Header("Artifact Drop Settings")]
+    [Tooltip("Tổng số Hộp Mù Cổ Vật xuất hiện ngẫu nhiên trên bản đồ trong 1 Chapter (mặc định 5, có thể tùy chỉnh).")]
+    [Min(0)] [SerializeField] private int maxArtifactDropsPerChapter = 5;
+
+    [Tooltip("Khoảng cách tối thiểu so với Player khi xuất hiện hộp trên bản đồ (mặc định 8m, ngoài tầm nhìn camera để hiện chỉ báo dấu '?').")]
+    [SerializeField] private float minArtifactSpawnDistance = 8f;
+
+    [Tooltip("Khoảng cách tối đa so với Player khi không tìm thấy MapBoundary.")]
+    [SerializeField] private float maxArtifactSpawnDistance = 18f;
+
+    [Tooltip("Tự động phân bổ sinh Hộp Cổ Vật ngẫu nhiên trên bản đồ xuyên suốt các Wave trong Chapter.")]
+    [SerializeField] private bool autoDistributeArtifactSpawnsAcrossWaves = false;
+
+    [Header("Artifact Timed Spawning")]
+    [Tooltip("Bật cơ chế sinh Hộp Cổ Vật ngẫu nhiên theo thời gian (10-15s đầu trận, sau đó 20-60s mỗi lần). Mặc định BẬT.")]
+    [SerializeField] private bool useTimedArtifactSpawning = true;
+
+    [Tooltip("Thời gian tối thiểu chờ Hộp Cổ Vật đầu tiên xuất hiện khi vào trận đấu (giây). Mặc định 10s.")]
+    [SerializeField] private float minInitialArtifactDelay = 10f;
+
+    [Tooltip("Thời gian tối đa chờ Hộp Cổ Vật đầu tiên xuất hiện khi vào trận đấu (giây). Mặc định 15s.")]
+    [SerializeField] private float maxInitialArtifactDelay = 15f;
+
+    [Tooltip("Thời gian chờ tối thiểu để xuất hiện lại Hộp Cổ Vật tiếp theo (giây). Mặc định 20s.")]
+    [SerializeField] private float minArtifactRespawnInterval = 20f;
+
+    [Tooltip("Thời gian chờ tối đa để xuất hiện lại Hộp Cổ Vật tiếp theo (giây). Mặc định 60s.")]
+    [SerializeField] private float maxArtifactRespawnInterval = 60f;
+
+    [Tooltip("Chờ người chơi nhặt hộp hiện tại rồi mới đếm ngược 20-60s để xuất hiện hộp tiếp theo.")]
+    [SerializeField] private bool waitPickupBeforeRespawnTimer = true;
+
+    [Tooltip("Số lượng Hộp Cổ Vật tối đa cùng tồn tại đồng thời trên bản đồ chưa được nhặt.")]
+    [SerializeField] private int maxConcurrentActiveArtifactBoxes = 1;
+
+    [Tooltip("Tỷ lệ rơi Hộp Mù Cổ Vật khi tiêu diệt Boss (mặc định 1.0 = 100%).")]
+    [Range(0f, 1f)] [SerializeField] private float bossArtifactDropChance = 1.0f;
+
+    [Tooltip("Tỷ lệ rơi Hộp Mù Cổ Vật khi tiêu diệt quái Tinh Anh (Elite Creep). Mặc định 25%.")]
+    [Range(0f, 1f)] [SerializeField] private float eliteArtifactDropChance = 0.25f;
+
+    [Tooltip("Tỷ lệ rơi Hộp Mù Cổ Vật ngẫu nhiên từ quái thường (Creep). Mặc định 0.5% (1/200 con).")]
+    [Range(0f, 1f)] [SerializeField] private float normalCreepArtifactDropChance = 0.005f;
+
+    [Tooltip("Tự động sinh 1 Hộp Mù Cổ Vật gần Player khi hoàn thành mỗi Wave.")]
+    [SerializeField] private bool dropArtifactOnWaveClear = false;
+
+    public int MaxArtifactDropsPerChapter { get => maxArtifactDropsPerChapter; set => maxArtifactDropsPerChapter = Mathf.Max(0, value); }
+    public float MinArtifactSpawnDistance { get => minArtifactSpawnDistance; set => minArtifactSpawnDistance = Mathf.Max(1f, value); }
+    public float MaxArtifactSpawnDistance { get => maxArtifactSpawnDistance; set => maxArtifactSpawnDistance = Mathf.Max(minArtifactSpawnDistance, value); }
+    public bool AutoDistributeArtifactSpawnsAcrossWaves { get => autoDistributeArtifactSpawnsAcrossWaves; set => autoDistributeArtifactSpawnsAcrossWaves = value; }
+    public bool UseTimedArtifactSpawning { get => useTimedArtifactSpawning; set => useTimedArtifactSpawning = value; }
+    public float MinInitialArtifactDelay { get => minInitialArtifactDelay; set => minInitialArtifactDelay = Mathf.Max(0f, value); }
+    public float MaxInitialArtifactDelay { get => maxInitialArtifactDelay; set => maxInitialArtifactDelay = Mathf.Max(minInitialArtifactDelay, value); }
+    public float MinArtifactRespawnInterval { get => minArtifactRespawnInterval; set => minArtifactRespawnInterval = Mathf.Max(0f, value); }
+    public float MaxArtifactRespawnInterval { get => maxArtifactRespawnInterval; set => maxArtifactRespawnInterval = Mathf.Max(minArtifactRespawnInterval, value); }
+    public bool WaitPickupBeforeRespawnTimer { get => waitPickupBeforeRespawnTimer; set => waitPickupBeforeRespawnTimer = value; }
+    public int MaxConcurrentActiveArtifactBoxes { get => maxConcurrentActiveArtifactBoxes; set => maxConcurrentActiveArtifactBoxes = Mathf.Max(1, value); }
+    public float ArtifactSpawnTimer => artifactSpawnTimer;
+    public bool IsInitialArtifactSpawn => isInitialArtifactSpawn;
+    public float BossArtifactDropChance { get => bossArtifactDropChance; set => bossArtifactDropChance = Mathf.Clamp01(value); }
+    public float EliteArtifactDropChance { get => eliteArtifactDropChance; set => eliteArtifactDropChance = Mathf.Clamp01(value); }
+    public float NormalCreepArtifactDropChance { get => normalCreepArtifactDropChance; set => normalCreepArtifactDropChance = Mathf.Clamp01(value); }
+    public bool DropArtifactOnWaveClear { get => dropArtifactOnWaveClear; set => dropArtifactOnWaveClear = value; }
+    public int ArtifactsSpawnedInChapter => artifactsSpawnedInChapter;
+
     // Runtime tracking
+    private int artifactsSpawnedInChapter = 0;
+    private readonly HashSet<int> artifactSpawnedWaveIndices = new HashSet<int>();
+    private float artifactSpawnTimer = -1f;
+    private bool isInitialArtifactSpawn = true;
+    private bool isArtifactRespawnTimerActive = false;
     private int currentWaveIndex = 0;
     private int enemiesSpawnedInWave = 0;
     private int enemiesKilledInWave = 0;
@@ -184,6 +258,11 @@ public class EnemySpawner : MonoBehaviour
     public int StageVictoryDataChipReward => stageVictoryDataChipReward;
     public int StageVictoryRedGemReward => stageVictoryRedGemReward;
     public IReadOnlyList<WaveConfig> Waves => waves;
+    public float MinSpawnRadius { get => minSpawnRadius; set => minSpawnRadius = Mathf.Max(0.5f, value); }
+    public float MaxSpawnRadius { get => maxSpawnRadius; set => maxSpawnRadius = Mathf.Max(minSpawnRadius, value); }
+    public float MaxDespawnDistance { get => maxDespawnDistance; set => maxDespawnDistance = Mathf.Max(maxSpawnRadius, value); }
+    public float DespawnCheckInterval { get => despawnCheckInterval; set => despawnCheckInterval = Mathf.Max(0.1f, value); }
+    public float InitialWaveSpawnDelay { get => initialWaveSpawnDelay; set => initialWaveSpawnDelay = Mathf.Max(0f, value); }
 
     public void StopSpawner()
     {
@@ -296,6 +375,8 @@ public class EnemySpawner : MonoBehaviour
             }
         }
 
+        ResetArtifactChapterCount();
+
         if (useWaveSystem && waves != null && waves.Count > 0)
         {
             StartWave(0);
@@ -314,11 +395,24 @@ public class EnemySpawner : MonoBehaviour
         gameTimer += Time.deltaTime;
         despawnCheckTimer -= Time.deltaTime;
 
+        if (useTimedArtifactSpawning)
+        {
+            UpdateTimedArtifactSpawning();
+        }
+
         if (despawnCheckTimer <= 0f)
         {
             despawnCheckTimer = despawnCheckInterval;
             CheckAndDespawnFarEnemies();
         }
+
+#if UNITY_EDITOR
+        // Phím tắt thử nghiệm nhanh trong Unity Editor: Nhấn 'B' để tạo ngay 1 Hộp Cổ Vật ngẫu nhiên trên bản đồ
+        if (Input.GetKeyDown(KeyCode.B))
+        {
+            SpawnRandomArtifactOnMap(bypassChapterLimit: true);
+        }
+#endif
 
         if (!useWaveSystem)
         {
@@ -396,7 +490,7 @@ public class EnemySpawner : MonoBehaviour
         bossesSpawnedInWave = 0;
         bossesKilledInWave = 0;
         waveElapsedTime = 0f;
-        spawnTimer = 0.2f; // Spawn ngay lượt đầu tiên sau 0.2s
+        spawnTimer = initialWaveSpawnDelay; // Quái bắt đầu xuất hiện ngay sau 1 giây khi Wave bắt đầu
         bossSpawnTimer = config.bossSpawnDelay;
 
         currentState = config.isBossWave ? WaveState.BossFight : WaveState.InWave;
@@ -405,6 +499,13 @@ public class EnemySpawner : MonoBehaviour
 
         OnWaveStarted?.Invoke(currentWaveIndex + 1, waves.Count);
         NotifyWaveProgress();
+
+        // Kiểm tra cơ chế sinh Hộp Cổ Vật ngẫu nhiên trên bản đồ theo tiến trình Wave (khi không dùng timed spawning)
+        if (!useTimedArtifactSpawning && ShouldSpawnArtifactOnWave(currentWaveIndex))
+        {
+            artifactSpawnedWaveIndices.Add(currentWaveIndex);
+            SpawnRandomArtifactOnMap();
+        }
     }
 
     private void StartNextWave()
@@ -597,6 +698,23 @@ public class EnemySpawner : MonoBehaviour
             activeEnemies.Remove(enemy);
             enemiesKilledInWave++;
             NotifyWaveProgress();
+
+            TryDropArtifactFromEnemy(enemy);
+        }
+    }
+
+    private void TryDropArtifactFromEnemy(EnemyHealth enemy)
+    {
+        if (enemy == null) return;
+
+        Enemy enemyComponent = enemy.GetComponent<Enemy>();
+        bool isElite = enemyComponent != null && enemyComponent.Type == EnemyType.EliteCreep;
+
+        float chance = isElite ? eliteArtifactDropChance : normalCreepArtifactDropChance;
+        if (chance > 0f && Random.value <= chance)
+        {
+            DropTable.SpawnArtifactBox(enemy.transform.position);
+            Debug.Log($"[EnemySpawner] 🎁 Quái {(isElite ? "Elite" : "Thường")} đã rơi Hộp Cổ Vật (Artifact Box) tại {enemy.transform.position}!");
         }
     }
 
@@ -610,6 +728,12 @@ public class EnemySpawner : MonoBehaviour
 
             Debug.Log($"[EnemySpawner] 🎉 BOSS ĐÃ BỊ TIÊU DIỆT!");
             OnBossDefeated?.Invoke();
+
+            if (Random.value <= bossArtifactDropChance)
+            {
+                DropTable.SpawnArtifactBox(boss.transform.position);
+                Debug.Log($"[EnemySpawner] 🎁 Boss đã rơi Hộp Cổ Vật (Artifact Box) tại {boss.transform.position}!");
+            }
         }
     }
 
@@ -642,6 +766,13 @@ public class EnemySpawner : MonoBehaviour
         Debug.Log($"[EnemySpawner] ✅ Hoàn thành {config.waveName} (Wave {currentWaveIndex + 1}/{waves.Count})!");
         OnWaveCompleted?.Invoke(currentWaveIndex + 1);
 
+        if (dropArtifactOnWaveClear && playerTransform != null)
+        {
+            Vector3 dropPos = playerTransform.position + (Vector3)Random.insideUnitCircle.normalized * 3.5f;
+            DropTable.SpawnArtifactBox(dropPos);
+            Debug.Log($"[EnemySpawner] 🎁 Hoàn thành Wave {currentWaveIndex + 1} - Đã rơi Hộp Cổ Vật tại {dropPos}!");
+        }
+
         if (currentWaveIndex + 1 >= waves.Count)
         {
             TriggerStageVictory();
@@ -652,6 +783,213 @@ public class EnemySpawner : MonoBehaviour
             breakTimer = config.breakDurationAfterWave;
         }
     }
+
+    #region Artifact Chapter Map Spawning
+    /// <summary>
+    /// Tính toán tọa độ ngẫu nhiên trên bản đồ (MapBoundary) cách xa Player tối thiểu minArtifactSpawnDistance
+    /// để Hộp Cổ Vật xuất hiện ngoài màn hình và kích hoạt vòng tròn chỉ hướng dấu '?'.
+    /// </summary>
+    public Vector3 CalculateRandomArtifactMapPosition()
+    {
+        Vector3 playerPos = playerTransform != null ? playerTransform.position : Vector3.zero;
+
+        if (MapBoundary.Instance != null)
+        {
+            Vector2 min = MapBoundary.Instance.MinBounds + Vector2.one * (MapBoundary.Instance.PlayerPadding + 1.5f);
+            Vector2 max = MapBoundary.Instance.MaxBounds - Vector2.one * (MapBoundary.Instance.PlayerPadding + 1.5f);
+
+            if (min.x > max.x) { float temp = min.x; min.x = max.x; max.x = temp; }
+            if (min.y > max.y) { float temp = min.y; min.y = max.y; max.y = temp; }
+
+            for (int attempt = 0; attempt < 15; attempt++)
+            {
+                float rx = Random.Range(min.x, max.x);
+                float ry = Random.Range(min.y, max.y);
+                Vector3 candidate = new Vector3(rx, ry, 0f);
+
+                if (Vector3.Distance(candidate, playerPos) >= minArtifactSpawnDistance)
+                {
+                    return candidate;
+                }
+            }
+
+            Vector2 clamped = MapBoundary.Instance.ClampSpawnPosition(playerPos + (Vector3)(Random.insideUnitCircle.normalized * minArtifactSpawnDistance), MapBoundary.Instance.PlayerPadding);
+            return new Vector3(clamped.x, clamped.y, 0f);
+        }
+
+        Vector2 randomDir = Random.insideUnitCircle.normalized;
+        if (randomDir == Vector2.zero) randomDir = Vector2.right;
+        float dist = Random.Range(minArtifactSpawnDistance, maxArtifactSpawnDistance);
+        return playerPos + (Vector3)(randomDir * dist);
+    }
+
+    /// <summary>
+    /// Sinh một Hộp Mù Cổ Vật ngẫu nhiên trên bản đồ, có kiểm soát tổng số lượng rơi trong 1 Chapter (mặc định là 5).
+    /// </summary>
+    public GameObject SpawnRandomArtifactOnMap(bool bypassChapterLimit = false)
+    {
+        if (!bypassChapterLimit && artifactsSpawnedInChapter >= maxArtifactDropsPerChapter)
+        {
+            Debug.Log($"[EnemySpawner] ℹ️ Đã đạt giới hạn tối đa {maxArtifactDropsPerChapter} Hộp Cổ Vật trong Chapter này ({artifactsSpawnedInChapter}/{maxArtifactDropsPerChapter}).");
+            return null;
+        }
+
+        Vector3 spawnPos = CalculateRandomArtifactMapPosition();
+        GameObject boxObj = DropTable.SpawnArtifactBox(spawnPos);
+        artifactsSpawnedInChapter++;
+
+        Debug.Log($"[EnemySpawner] 🎁 Đã sinh Hộp Cổ Vật ngẫu nhiên trên bản đồ ({artifactsSpawnedInChapter}/{maxArtifactDropsPerChapter}) tại {spawnPos}. Vòng tròn dấu '?' sẽ hiển thị ở mép màn hình!");
+        return boxObj;
+    }
+
+    /// <summary>
+    /// Kiểm tra xem Wave hiện tại có nằm trong lịch trình phân bổ sinh Hộp Cổ Vật không.
+    /// </summary>
+    public bool ShouldSpawnArtifactOnWave(int waveIndex)
+    {
+        if (!autoDistributeArtifactSpawnsAcrossWaves || maxArtifactDropsPerChapter <= 0) return false;
+        if (artifactsSpawnedInChapter >= maxArtifactDropsPerChapter) return false;
+        if (artifactSpawnedWaveIndices.Contains(waveIndex)) return false;
+
+        int totalWaves = waves != null && waves.Count > 0 ? waves.Count : 10;
+        if (maxArtifactDropsPerChapter >= totalWaves)
+        {
+            return true;
+        }
+
+        float step = (float)totalWaves / maxArtifactDropsPerChapter;
+        for (int i = 0; i < maxArtifactDropsPerChapter; i++)
+        {
+            int targetWave = Mathf.FloorToInt(i * step);
+            if (targetWave == waveIndex) return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Đặt lại biến đếm số lượng Hộp Cổ Vật khi bắt đầu Chapter mới hoặc bắt đầu trận đấu.
+    /// Khởi tạo thời gian đếm ngược 10 - 15 giây cho lần xuất hiện đầu tiên.
+    /// </summary>
+    public void ResetArtifactChapterCount()
+    {
+        artifactsSpawnedInChapter = 0;
+        artifactSpawnedWaveIndices.Clear();
+        isInitialArtifactSpawn = true;
+        isArtifactRespawnTimerActive = false;
+
+        if (useTimedArtifactSpawning)
+        {
+            artifactSpawnTimer = Random.Range(minInitialArtifactDelay, maxInitialArtifactDelay);
+            Debug.Log($"[EnemySpawner] ⏱️ Hộp Cổ Vật đầu tiên sẽ xuất hiện sau {artifactSpawnTimer:F1}s (khoảng {minInitialArtifactDelay}-{maxInitialArtifactDelay}s).");
+        }
+        else
+        {
+            artifactSpawnTimer = -1f;
+        }
+    }
+
+    /// <summary>
+    /// Cập nhật logic sinh Hộp Cổ Vật theo thời gian:
+    /// - Khi vào trận đấu: đợi khoảng 10 - 15 giây mới xuất hiện lần đầu.
+    /// - Sau đó muốn xuất hiện lại: đợi 20 - 60 giây.
+    /// </summary>
+    public void UpdateTimedArtifactSpawning(float? customDeltaTime = null)
+    {
+        if (!useTimedArtifactSpawning || isStageCompleted) return;
+        if (artifactsSpawnedInChapter >= maxArtifactDropsPerChapter) return;
+
+        float dt = customDeltaTime ?? Time.deltaTime;
+
+        // 1. Trường hợp lần đầu vào trận đấu (chờ 10 - 15 giây)
+        if (isInitialArtifactSpawn)
+        {
+            if (artifactSpawnTimer < 0f)
+            {
+                artifactSpawnTimer = Random.Range(minInitialArtifactDelay, maxInitialArtifactDelay);
+            }
+
+            artifactSpawnTimer -= dt;
+            if (artifactSpawnTimer <= 0f)
+            {
+                isInitialArtifactSpawn = false;
+                SpawnRandomArtifactOnMap();
+
+                // Chuẩn bị cho các lần xuất hiện tiếp theo (20 - 60s)
+                if (waitPickupBeforeRespawnTimer)
+                {
+                    isArtifactRespawnTimerActive = false;
+                    artifactSpawnTimer = -1f; // Chờ người chơi nhặt hộp xong mới bắt đầu đếm 20-60s
+                }
+                else
+                {
+                    artifactSpawnTimer = Random.Range(minArtifactRespawnInterval, maxArtifactRespawnInterval);
+                    isArtifactRespawnTimerActive = true;
+                }
+            }
+            return;
+        }
+
+        // 2. Trường hợp các lần xuất hiện tiếp theo (chờ 20 - 60 giây)
+        int activeBoxCount = ArtifactBoxPickup.ActiveBoxes != null ? ArtifactBoxPickup.ActiveBoxes.Count : 0;
+
+        if (waitPickupBeforeRespawnTimer)
+        {
+            // Nếu vẫn còn hộp trên map chưa nhặt thì tiếp tục chờ người chơi nhặt
+            if (activeBoxCount >= maxConcurrentActiveArtifactBoxes)
+            {
+                isArtifactRespawnTimerActive = false;
+                artifactSpawnTimer = -1f;
+                return;
+            }
+
+            // Hộp trên bản đồ đã được nhặt (hoặc số hộp < giới hạn cùng lúc): bắt đầu đếm ngược 20-60s
+            if (!isArtifactRespawnTimerActive)
+            {
+                artifactSpawnTimer = Random.Range(minArtifactRespawnInterval, maxArtifactRespawnInterval);
+                isArtifactRespawnTimerActive = true;
+                Debug.Log($"[EnemySpawner] ⏱️ Hộp Cổ Vật tiếp theo sẽ xuất hiện lại sau {artifactSpawnTimer:F1}s (khoảng {minArtifactRespawnInterval}-{maxArtifactRespawnInterval}s).");
+            }
+
+            artifactSpawnTimer -= dt;
+            if (artifactSpawnTimer <= 0f)
+            {
+                isArtifactRespawnTimerActive = false;
+                SpawnRandomArtifactOnMap();
+            }
+        }
+        else
+        {
+            if (!isArtifactRespawnTimerActive)
+            {
+                artifactSpawnTimer = Random.Range(minArtifactRespawnInterval, maxArtifactRespawnInterval);
+                isArtifactRespawnTimerActive = true;
+            }
+
+            artifactSpawnTimer -= dt;
+            if (artifactSpawnTimer <= 0f)
+            {
+                if (activeBoxCount < maxConcurrentActiveArtifactBoxes)
+                {
+                    isArtifactRespawnTimerActive = false;
+                    SpawnRandomArtifactOnMap();
+                    artifactSpawnTimer = Random.Range(minArtifactRespawnInterval, maxArtifactRespawnInterval);
+                    isArtifactRespawnTimerActive = true;
+                }
+            }
+        }
+    }
+
+    public void SetArtifactTimersForTesting(float initialMin, float initialMax, float respawnMin, float respawnMax, bool waitPickup = true)
+    {
+        useTimedArtifactSpawning = true;
+        minInitialArtifactDelay = initialMin;
+        maxInitialArtifactDelay = initialMax;
+        minArtifactRespawnInterval = respawnMin;
+        maxArtifactRespawnInterval = respawnMax;
+        waitPickupBeforeRespawnTimer = waitPickup;
+        ResetArtifactChapterCount();
+    }
+    #endregion
 
     public void TriggerStageVictory()
     {

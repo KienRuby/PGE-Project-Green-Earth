@@ -56,6 +56,7 @@ public class DailyLoginItemUI : MonoBehaviour
     [SerializeField] private Image cardBackground;
     [SerializeField] private Image cardBorder;
     [SerializeField] private CanvasGroup itemCanvasGroup;
+    [SerializeField] private GameObject darkOverlay;
     [SerializeField] private Sprite cardBannerBlue;
     [SerializeField] private Sprite cardBannerGrey;
 
@@ -72,6 +73,10 @@ public class DailyLoginItemUI : MonoBehaviour
     public DailyButtonState CurrentButtonState => currentButtonState;
     public Button ClaimButton => claimButton;
     public Image ClaimButtonImage => claimButtonImage;
+    public GameObject DarkOverlay => darkOverlay;
+    public Image CardBackground => cardBackground;
+    public Sprite CardBannerBlue => cardBannerBlue;
+    public Sprite CardBannerGrey => cardBannerGrey;
     public Sprite BtnGetSprite => btnGetSprite;
     public Sprite BtnClaimAgainSprite => btnClaimAgainSprite;
     public Sprite BtnObtainedSprite => btnObtainedSprite;
@@ -84,13 +89,160 @@ public class DailyLoginItemUI : MonoBehaviour
             claimButton.onClick.RemoveListener(OnClaimButtonClicked);
             claimButton.onClick.AddListener(OnClaimButtonClicked);
         }
+        SyncVisualFromCurrentState();
     }
+
+    private void Start()
+    {
+        SyncVisualFromCurrentState();
+    }
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        UnityEditor.EditorApplication.delayCall += () =>
+        {
+            if (this != null)
+            {
+                if (cardBackground != null && cardBackground.sprite != null)
+                {
+                    cardBannerBlue = cardBackground.sprite;
+                }
+                SyncVisualFromCurrentState();
+            }
+        };
+    }
+#endif
 
     private void OnDestroy()
     {
         if (claimButton != null)
         {
             claimButton.onClick.RemoveListener(OnClaimButtonClicked);
+        }
+    }
+
+    /// <summary>
+    /// Đồng bộ visual (nút bấm và DarkOverlay) dựa theo trạng thái hiện tại.
+    /// Nếu nút đang hiển thị là Obtained, tự động kích hoạt DarkOverlay đè lên background xanh.
+    /// Nếu nút là Get hoặc Claim Again, tắt DarkOverlay để giữ sáng.
+    /// </summary>
+    public void SyncVisualFromCurrentState()
+    {
+        EnsureButtonSpritesLoaded();
+
+        bool isObtained = (currentButtonState == DailyButtonState.Obtained);
+        if (claimButtonImage != null && claimButtonImage.sprite != null)
+        {
+            if (claimButtonImage.sprite == btnObtainedSprite ||
+                claimButtonImage.sprite.name.IndexOf("Obtained", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                isObtained = true;
+            }
+        }
+
+        // Tôn trọng 100% background mà người dùng đã thiết lập ở Edit Mode (không ghi đè nếu đã có sprite)
+        if (cardBackground != null)
+        {
+            if (cardBackground.sprite == null && cardBannerBlue != null)
+            {
+                cardBackground.sprite = cardBannerBlue;
+            }
+            cardBackground.color = Color.white;
+        }
+
+        if (isObtained)
+        {
+            var overlay = EnsureDarkOverlayCreated();
+            if (overlay != null) overlay.SetActive(true);
+            if (claimButton != null) claimButton.interactable = false;
+        }
+        else
+        {
+            if (darkOverlay != null) darkOverlay.SetActive(false);
+        }
+
+        // Toàn bộ các object RewardBadge của toàn bộ các icon: đặt alpha = 0 theo yêu cầu người dùng
+        Transform rContainer = rewardsContainer != null ? rewardsContainer : (transform.Find("RewardsContainer") ?? transform.Find("Rewards"));
+        if (rContainer != null)
+        {
+            for (int i = 0; i < rContainer.childCount; i++)
+            {
+                Transform child = rContainer.GetChild(i);
+                if (child.TryGetComponent<Image>(out var badgeImg))
+                {
+                    Color c = badgeImg.color;
+                    if (c.a != 0f)
+                    {
+                        badgeImg.color = new Color(c.r, c.g, c.b, 0f);
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Đảm bảo GameObject DarkOverlay luôn tồn tại và được cấu hình đúng chuẩn:
+    /// - Nằm đè lên Background (Row_Banner_Blue)
+    /// - Stretch full size (anchor 0..1, offset 0)
+    /// - RaycastTarget = false (không cản tương tác)
+    /// - Gán sprite Row_Banner_Grey (với fallback màu chuẩn Color32(7, 7, 7, 101))
+    /// </summary>
+    public GameObject EnsureDarkOverlayCreated()
+    {
+        EnsureButtonSpritesLoaded();
+
+        if (darkOverlay != null)
+        {
+            ValidateDarkOverlayComponent(darkOverlay);
+            return darkOverlay;
+        }
+
+        Transform found = (cardBackground != null ? cardBackground.transform.Find("DarkOverlay") : null)
+            ?? transform.Find("Background/DarkOverlay")
+            ?? transform.Find("DarkOverlay");
+
+        if (found != null)
+        {
+            darkOverlay = found.gameObject;
+            ValidateDarkOverlayComponent(darkOverlay);
+            return darkOverlay;
+        }
+
+        // Tự động sinh GameObject DarkOverlay nếu chưa tồn tại trong Hierarchy
+        Transform parent = cardBackground != null ? cardBackground.transform : (transform.Find("Background") ?? transform);
+        GameObject overlayObj = new GameObject("DarkOverlay", typeof(RectTransform), typeof(Image));
+        overlayObj.transform.SetParent(parent, false);
+
+        RectTransform rt = overlayObj.GetComponent<RectTransform>();
+        rt.anchorMin = Vector2.zero;
+        rt.anchorMax = Vector2.one;
+        rt.offsetMin = Vector2.zero;
+        rt.offsetMax = Vector2.zero;
+        rt.localScale = Vector3.one;
+        rt.SetAsLastSibling();
+
+        ValidateDarkOverlayComponent(overlayObj);
+
+        darkOverlay = overlayObj;
+        return darkOverlay;
+    }
+
+    private void ValidateDarkOverlayComponent(GameObject overlayObj)
+    {
+        if (overlayObj == null) return;
+        if (overlayObj.TryGetComponent<Image>(out var img))
+        {
+            img.raycastTarget = false;
+            if (cardBannerGrey != null)
+            {
+                img.sprite = cardBannerGrey;
+                img.color = Color.white;
+            }
+            else
+            {
+                img.color = new Color32(7, 7, 7, 101); // Màu xám mờ chuẩn 40% của Row_Banner_Grey
+            }
         }
     }
 
@@ -114,7 +266,24 @@ public class DailyLoginItemUI : MonoBehaviour
             claimButtonImage = claimButton.GetComponent<Image>();
         }
 
-        if (btnGetSprite != null && btnClaimAgainSprite != null && btnObtainedSprite != null)
+        if (cardBackground == null)
+        {
+            Transform bgTr = transform.Find("Background");
+            if (bgTr != null) cardBackground = bgTr.GetComponent<Image>();
+        }
+
+        if (cardBackground != null && cardBackground.sprite != null && cardBannerBlue == null)
+        {
+            cardBannerBlue = cardBackground.sprite;
+        }
+
+        if (darkOverlay == null)
+        {
+            Transform found = transform.Find("Background/DarkOverlay") ?? transform.Find("DarkOverlay");
+            if (found != null) darkOverlay = found.gameObject;
+        }
+
+        if (btnGetSprite != null && btnClaimAgainSprite != null && btnObtainedSprite != null && cardBannerBlue != null && cardBannerGrey != null)
             return;
 
 #if UNITY_EDITOR
@@ -125,7 +294,7 @@ public class DailyLoginItemUI : MonoBehaviour
         if (btnObtainedSprite == null)
             btnObtainedSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Reward/Extracted/Btn_Obtained.png");
 
-        if (btnGetSprite == null || btnClaimAgainSprite == null || btnObtainedSprite == null)
+        if (btnGetSprite == null || btnClaimAgainSprite == null || btnObtainedSprite == null || cardBannerBlue == null || cardBannerGrey == null)
         {
             Sprite[] sprites = UnityEditor.AssetDatabase.LoadAllAssetsAtPath("Assets/Sprites/UI/Reward/nút daily login.png")
                 ?.OfType<Sprite>().ToArray();
@@ -200,6 +369,12 @@ public class DailyLoginItemUI : MonoBehaviour
             {
                 child.gameObject.SetActive(true);
                 RewardData reward = rewards[rewardIndex];
+
+                if (child.TryGetComponent<Image>(out var badgeImg))
+                {
+                    Color c = badgeImg.color;
+                    badgeImg.color = new Color(c.r, c.g, c.b, 0f);
+                }
 
                 Image iconImg = child.Find("Icon")?.GetComponent<Image>()
                     ?? child.GetComponentInChildren<Image>();
@@ -292,6 +467,7 @@ public class DailyLoginItemUI : MonoBehaviour
         switch (state)
         {
             case DailyButtonState.Get:
+                if (darkOverlay != null) darkOverlay.SetActive(false);
                 claimButton.gameObject.SetActive(true);
                 claimButton.interactable = true;
                 if (claimButtonImage != null)
@@ -314,6 +490,7 @@ public class DailyLoginItemUI : MonoBehaviour
                 break;
 
             case DailyButtonState.ClaimAgain:
+                if (darkOverlay != null) darkOverlay.SetActive(false);
                 claimButton.gameObject.SetActive(true);
                 claimButton.interactable = true;
                 if (claimButtonImage != null)
@@ -337,6 +514,9 @@ public class DailyLoginItemUI : MonoBehaviour
                 break;
 
             case DailyButtonState.Obtained:
+                var overlay = EnsureDarkOverlayCreated();
+                if (overlay != null) overlay.SetActive(true);
+
                 claimButton.gameObject.SetActive(true);
                 claimButton.interactable = false; // "nút obtainer ko cho phép bấm"
                 if (claimButtonImage != null)
@@ -360,6 +540,7 @@ public class DailyLoginItemUI : MonoBehaviour
 
             case DailyButtonState.Hidden:
             default:
+                if (darkOverlay != null) darkOverlay.SetActive(false);
                 claimButton.gameObject.SetActive(false);
                 break;
         }
@@ -377,29 +558,34 @@ public class DailyLoginItemUI : MonoBehaviour
         if (obtainedRoot != null) obtainedRoot.SetActive(false);
         if (countdownRoot != null) countdownRoot.SetActive(false);
 
-        // Quy tắc: Chỉ ngày nào đã nhận rồi (Obtained) thì mới TỐI, còn ngày nào chưa nhận thì SÁNG
+        // Tôn trọng 100% background mà người dùng đã thiết lập ở Edit Mode (không ghi đè nếu đã có sprite)
+        if (cardBackground != null)
+        {
+            if (cardBackground.sprite == null && cardBannerBlue != null)
+            {
+                cardBackground.sprite = cardBannerBlue;
+            }
+            cardBackground.color = Color.white;
+        }
+        if (cardBorder != null) cardBorder.color = Color.clear;
+        if (itemCanvasGroup != null) itemCanvasGroup.alpha = 1.0f;
+
+        // A. Ngày nào đã nhận rồi (Obtained) thì mới TỐI:
+        // ĐÈ nút tối (Row_Banner_Grey) lên nút sáng (Row_Banner_Blue), chứ KHÔNG thay thế sprite gốc!
         if (state == DailyLoginState.Obtained)
         {
-            if (cardBackground != null && cardBannerGrey != null)
-            {
-                cardBackground.sprite = cardBannerGrey;
-                cardBackground.color = Color.white;
-            }
-            if (cardBorder != null) cardBorder.color = Color.clear;
-            if (itemCanvasGroup != null) itemCanvasGroup.alpha = 0.55f;
+            var overlay = EnsureDarkOverlayCreated();
+            if (overlay != null) overlay.SetActive(true);
 
             SetButtonVisual(DailyButtonState.Obtained);
             return;
         }
 
-        // TẤT CẢ các ngày chưa nhận đều SÁNG (Row_Banner_Blue, alpha 1.0f)
-        if (cardBackground != null && cardBannerBlue != null)
+        // TẤT CẢ các ngày chưa nhận đều SÁNG (tắt darkOverlay)
+        if (darkOverlay != null)
         {
-            cardBackground.sprite = cardBannerBlue;
-            cardBackground.color = Color.white;
+            darkOverlay.SetActive(false);
         }
-        if (cardBorder != null) cardBorder.color = Color.clear;
-        if (itemCanvasGroup != null) itemCanvasGroup.alpha = 1.0f;
 
         // B. Trạng thái CurrentDayWaiting (Hôm nay đã nhận Get, chờ claim lại bằng Ad hoặc reset ngày)
         if (state == DailyLoginState.CurrentDayWaiting)
@@ -409,20 +595,24 @@ public class DailyLoginItemUI : MonoBehaviour
 
             if (!hasClaimedAd && isNetworkAvailable)
             {
-                // Có mạng và chưa nhận quà quảng cáo hôm nay -> hiện nút Claim again
+                // Có mạng và chưa nhận quà quảng cáo hôm nay -> hiện nút Claim again (vẫn SÁNG)
+                if (darkOverlay != null) darkOverlay.SetActive(false);
                 SetButtonVisual(DailyButtonState.ClaimAgain);
             }
             else
             {
-                // Không có mạng wifi hoặc đã xem quảng cáo rồi -> hiện nút Obtained (không cho bấm)
+                // Không có mạng wifi hoặc đã xem quảng cáo rồi -> hiện nút Obtained (TỐI)
+                var waitOverlay = EnsureDarkOverlayCreated();
+                if (waitOverlay != null) waitOverlay.SetActive(true);
                 SetButtonVisual(DailyButtonState.Obtained);
             }
             return;
         }
 
-        // C. Trạng thái Available (Hôm nay chưa nhận -> Hiện nút Get)
+        // C. Trạng thái Available (Hôm nay chưa nhận -> Hiện nút Get, card SÁNG)
         if (state == DailyLoginState.Available)
         {
+            if (darkOverlay != null) darkOverlay.SetActive(false);
             SetButtonVisual(DailyButtonState.Get);
             if (claimButton != null) claimButton.interactable = true;
             return;
@@ -431,6 +621,7 @@ public class DailyLoginItemUI : MonoBehaviour
         // D. Trạng thái Locked (Ngày tương lai chưa nhận -> Vẫn SÁNG và hiện nút Get theo đúng mẫu)
         if (state == DailyLoginState.Locked)
         {
+            if (darkOverlay != null) darkOverlay.SetActive(false);
             SetButtonVisual(DailyButtonState.Get);
             if (claimButton != null) claimButton.interactable = false;
         }
@@ -579,7 +770,7 @@ public class DailyLoginItemUI : MonoBehaviour
         badge.transform.SetParent(parent, false);
         RectTransform rt = badge.GetComponent<RectTransform>();
         rt.sizeDelta = new Vector2(100f, 100f);
-        badge.GetComponent<Image>().color = new Color32(11, 45, 60, 240);
+        badge.GetComponent<Image>().color = new Color32(11, 45, 60, 0);
 
         GameObject iconObj = new GameObject("Icon", typeof(RectTransform), typeof(Image));
         iconObj.transform.SetParent(badge.transform, false);
@@ -621,7 +812,8 @@ public class DailyLoginItemUI : MonoBehaviour
         CanvasGroup cg,
         Sprite getSprite = null,
         Sprite claimAgainSprite = null,
-        Sprite obtainedSprite = null)
+        Sprite obtainedSprite = null,
+        GameObject overlay = null)
     {
         dayLabelText = dayLabel;
         dayNumberText = dayNumber;
@@ -636,6 +828,7 @@ public class DailyLoginItemUI : MonoBehaviour
         cardBackground = bg;
         cardBorder = border;
         itemCanvasGroup = cg;
+        if (overlay != null) darkOverlay = overlay;
 
         if (getSprite != null) btnGetSprite = getSprite;
         if (claimAgainSprite != null) btnClaimAgainSprite = claimAgainSprite;

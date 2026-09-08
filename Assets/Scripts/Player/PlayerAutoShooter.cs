@@ -132,9 +132,16 @@ public class PlayerAutoShooter : MonoBehaviour
     private readonly Collider2D[] enemyColliderBuffer = new Collider2D[64];
     private ContactFilter2D contactFilter;
 
+    private float artifactDamageMultiplier = 1f;
+    public float ArtifactDamageMultiplier
+    {
+        get => artifactDamageMultiplier;
+        set => artifactDamageMultiplier = Mathf.Max(0.1f, value);
+    }
+
     public WeaponData CurrentEquippedWeapon => currentEquippedWeapon;
     public bool IsAttacking { get; private set; }
-    public int CurrentDamage => currentDamage + bonusDamage;
+    public int CurrentDamage => Mathf.RoundToInt((currentDamage + bonusDamage) * artifactDamageMultiplier);
     public float CurrentFireRate => fireRate + bonusFireRate;
     public int CurrentBulletsPerShot => currentBulletsPerShot;
     public float CurrentSpreadAngle => currentSpreadAngle;
@@ -776,7 +783,7 @@ public class PlayerAutoShooter : MonoBehaviour
         float baseAngle = Mathf.Atan2(baseDirection.y, baseDirection.x) * Mathf.Rad2Deg;
         int level = GetChipsetWeaponLevel(chipsetId);
         int projectileCount = GetChipsetWeaponProjectileCount(chipsetId);
-        int damage = GetChipsetWeaponDamage(chipsetId) + bonusDamage;
+        int damage = Mathf.RoundToInt((GetChipsetWeaponDamage(chipsetId) + bonusDamage) * artifactDamageMultiplier);
         float spread = 0f;
         float speed = chipsetId == 2 ? 18f : 16f;
         float range = chipsetId == 8 ? 9f : 12f;
@@ -924,7 +931,7 @@ public class PlayerAutoShooter : MonoBehaviour
             position,
             direction,
             angle,
-            currentDamage + bonusDamage,
+            Mathf.RoundToInt((currentDamage + bonusDamage) * artifactDamageMultiplier),
             currentBulletSpeed + bonusBulletSpeed,
             currentAttackRange + bonusAttackRange,
             critChance,

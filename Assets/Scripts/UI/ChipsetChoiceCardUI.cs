@@ -43,6 +43,8 @@ public class ChipsetChoiceCardUI : MonoBehaviour
     private Material defaultBackgroundMaterial;
     private Color defaultBackgroundColor;
     private bool hasCapturedDefaultBackgroundVisual;
+    private Color defaultBorderColor;
+    private bool hasCapturedDefaultBorderVisual;
     private bool redShimmerEnabled;
 
     public ChipItemData BoundData => boundData;
@@ -54,6 +56,7 @@ public class ChipsetChoiceCardUI : MonoBehaviour
         if (canvasGroup == null) canvasGroup = GetComponent<CanvasGroup>();
         CaptureDefaultFrameMaterial();
         CaptureDefaultBackgroundVisual();
+        CaptureDefaultBorderVisual();
     }
 
     private void Update()
@@ -370,6 +373,12 @@ public class ChipsetChoiceCardUI : MonoBehaviour
                 break;
         }
 
+        CaptureDefaultBorderVisual();
+        if (hasCapturedDefaultBorderVisual)
+        {
+            border.a = (byte)Mathf.RoundToInt(defaultBorderColor.a * 255f);
+        }
+
         if (borderImage != null) borderImage.color = border;
         if (backgroundImage != null) backgroundImage.color = background;
         if (titleText != null) titleText.color = new Color32(255, 177, 31, 255);
@@ -397,6 +406,8 @@ public class ChipsetChoiceCardUI : MonoBehaviour
         CaptureDefaultFrameMaterial();
         hasCapturedDefaultBackgroundVisual = false;
         CaptureDefaultBackgroundVisual();
+        hasCapturedDefaultBorderVisual = false;
+        CaptureDefaultBorderVisual();
     }
 
     private void CaptureDefaultFrameMaterial()
@@ -414,6 +425,14 @@ public class ChipsetChoiceCardUI : MonoBehaviour
         defaultBackgroundMaterial = backgroundImage.material;
         defaultBackgroundColor = backgroundImage.color;
         hasCapturedDefaultBackgroundVisual = true;
+    }
+
+    private void CaptureDefaultBorderVisual()
+    {
+        if (hasCapturedDefaultBorderVisual || borderImage == null) return;
+
+        defaultBorderColor = borderImage.color;
+        hasCapturedDefaultBorderVisual = true;
     }
 
     private void SetRedTierBackgroundEffect(bool enabled)

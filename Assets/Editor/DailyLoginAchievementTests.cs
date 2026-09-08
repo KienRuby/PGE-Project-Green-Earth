@@ -672,5 +672,230 @@ public class DailyLoginAchievementTests
 
         UnityEngine.Object.DestroyImmediate(itemGo);
     }
+
+    [Test]
+    public void DailyLoginItemUI_ObtainedState_KeepsBlueBannerAndOverlaysGreyBanner()
+    {
+        GameObject itemGo = new GameObject("DailyItemTest_Overlay", typeof(RectTransform), typeof(CanvasGroup));
+        DailyLoginItemUI itemUI = itemGo.AddComponent<DailyLoginItemUI>();
+        CanvasGroup cg = itemGo.GetComponent<CanvasGroup>();
+
+        GameObject bgObj = new GameObject("Background", typeof(RectTransform), typeof(Image));
+        bgObj.transform.SetParent(itemGo.transform, false);
+        Image bgImg = bgObj.GetComponent<Image>();
+
+        GameObject overlayObj = new GameObject("DarkOverlay", typeof(RectTransform), typeof(Image));
+        overlayObj.transform.SetParent(bgObj.transform, false);
+        Image overlayImg = overlayObj.GetComponent<Image>();
+
+        Sprite blueBanner = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), Vector2.zero);
+        blueBanner.name = "Row_Banner_Blue";
+        Sprite greyBanner = Sprite.Create(Texture2D.blackTexture, new Rect(0, 0, 4, 4), Vector2.zero);
+        greyBanner.name = "Row_Banner_Grey";
+
+        itemUI.SetReferencesForBuilder(
+            null, null, null, null, null, null, null, null, null, null,
+            bgImg, null, cg, null, null, null, overlayObj
+        );
+
+        var so = new UnityEditor.SerializedObject(itemUI);
+        so.FindProperty("cardBannerBlue").objectReferenceValue = blueBanner;
+        so.FindProperty("cardBannerGrey").objectReferenceValue = greyBanner;
+        so.ApplyModifiedProperties();
+
+        // 1. Trạng thái Obtained: Phải giữ sprite nút sáng (blue), overlay (grey) phải được BẬT
+        itemUI.UpdateState(DailyLoginState.Obtained);
+
+        Assert.That(bgImg.sprite, Is.EqualTo(blueBanner), "Nút sáng Row_Banner_Blue LUÔN là background chính, KHÔNG được thay thế.");
+        Assert.That(overlayObj.activeSelf, Is.True, "DarkOverlay phải được bật đè lên nút sáng khi ngày đã nhận.");
+        Assert.That(overlayImg.sprite, Is.EqualTo(greyBanner), "DarkOverlay phải dùng sprite Row_Banner_Grey.");
+        Assert.That(cg.alpha, Is.EqualTo(1.0f), "CanvasGroup alpha phải giữ 1.0f để các chi tiết không bị xỉn.");
+
+        // 2. Trạng thái Available: DarkOverlay phải được TẮT
+        itemUI.UpdateState(DailyLoginState.Available);
+
+        Assert.That(bgImg.sprite, Is.EqualTo(blueBanner), "Background chính vẫn là Row_Banner_Blue.");
+        Assert.That(overlayObj.activeSelf, Is.False, "DarkOverlay phải bị tắt khi ngày chưa nhận (sáng).");
+        Assert.That(cg.alpha, Is.EqualTo(1.0f), "CanvasGroup alpha vẫn giữ 1.0f.");
+
+        UnityEngine.Object.DestroyImmediate(itemGo);
+    }
+
+    [Test]
+    public void DailyLoginItemUI_ObtainedState_DynamicallyCreatesDarkOverlayIfMissing()
+    {
+        // Kiểm tra trường hợp đặc biệt quan trọng: Scene chưa có sẵn GameObject DarkOverlay
+        GameObject itemGo = new GameObject("DailyItemTest_AutoCreate", typeof(RectTransform));
+        DailyLoginItemUI itemUI = itemGo.AddComponent<DailyLoginItemUI>();
+
+        GameObject bgObj = new GameObject("Background", typeof(RectTransform), typeof(Image));
+        bgObj.transform.SetParent(itemGo.transform, false);
+        Image bgImg = bgObj.GetComponent<Image>();
+
+        Sprite blueBanner = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), Vector2.zero);
+        blueBanner.name = "Row_Banner_Blue";
+        Sprite greyBanner = Sprite.Create(Texture2D.blackTexture, new Rect(0, 0, 4, 4), Vector2.zero);
+        greyBanner.name = "Row_Banner_Grey";
+
+        itemUI.SetReferencesForBuilder(
+            null, null, null, null, null, null, null, null, null, null,
+            bgImg, null, null, null, null, null, null
+        );
+
+        var so = new UnityEditor.SerializedObject(itemUI);
+        so.FindProperty("cardBannerBlue").objectReferenceValue = blueBanner;
+        so.FindProperty("cardBannerGrey").objectReferenceValue = greyBanner;
+        so.ApplyModifiedProperties();
+
+        Assert.That(itemUI.DarkOverlay, Is.Null, "Ban đầu item chưa có DarkOverlay.");
+
+        // Khi chuyển sang Obtained -> Phải TỰ ĐỘNG sinh ra DarkOverlay và kích hoạt
+        itemUI.UpdateState(DailyLoginState.Obtained);
+
+        Assert.That(itemUI.DarkOverlay, Is.Not.Null, "DarkOverlay phải được tự động sinh ra khi chuyển sang Obtained.");
+        Assert.That(itemUI.DarkOverlay.activeSelf, Is.True, "DarkOverlay phải được SetActive(true).");
+        Assert.That(itemUI.DarkOverlay.transform.parent, Is.EqualTo(bgObj.transform), "DarkOverlay phải là con của Background.");
+        Assert.That(bgImg.sprite, Is.EqualTo(blueBanner), "Background chính phải luôn là Row_Banner_Blue.");
+
+        Image createdImg = itemUI.DarkOverlay.GetComponent<Image>();
+        Assert.That(createdImg, Is.Not.Null);
+        Assert.That(createdImg.sprite, Is.EqualTo(greyBanner), "DarkOverlay phải mang sprite Row_Banner_Grey.");
+        Assert.That(createdImg.raycastTarget, Is.False, "DarkOverlay không được chặn raycast.");
+
+        // Khi chuyển sang Available -> DarkOverlay phải tự động tắt
+        itemUI.UpdateState(DailyLoginState.Available);
+        Assert.That(itemUI.DarkOverlay.activeSelf, Is.False, "DarkOverlay phải tắt khi ngày chuyển sang Available.");
+
+        UnityEngine.Object.DestroyImmediate(itemGo);
+    }
+
+    [Test]
+    public void DailyLoginItemUI_SetButtonVisual_Obtained_ControlsDarkOverlay()
+    {
+        GameObject itemGo = new GameObject("DailyItemTest_ButtonVisual", typeof(RectTransform));
+        DailyLoginItemUI itemUI = itemGo.AddComponent<DailyLoginItemUI>();
+
+        GameObject bgObj = new GameObject("Background", typeof(RectTransform), typeof(Image));
+        bgObj.transform.SetParent(itemGo.transform, false);
+        Image bgImg = bgObj.GetComponent<Image>();
+
+        GameObject btnGo = new GameObject("ClaimButton", typeof(RectTransform), typeof(Button), typeof(Image));
+        btnGo.transform.SetParent(itemGo.transform, false);
+        Button claimBtn = btnGo.GetComponent<Button>();
+
+        Sprite blueBanner = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), Vector2.zero);
+        blueBanner.name = "Row_Banner_Blue";
+        Sprite greyBanner = Sprite.Create(Texture2D.blackTexture, new Rect(0, 0, 4, 4), Vector2.zero);
+        greyBanner.name = "Row_Banner_Grey";
+        Sprite obtSprite = Sprite.Create(Texture2D.blackTexture, new Rect(0, 0, 4, 4), Vector2.zero);
+        obtSprite.name = "Btn_Obtained";
+
+        itemUI.SetReferencesForBuilder(
+            null, null, null, claimBtn, null, null, null, null, null, null,
+            bgImg, null, null, null, null, obtSprite, null
+        );
+
+        var so = new UnityEditor.SerializedObject(itemUI);
+        so.FindProperty("cardBannerBlue").objectReferenceValue = blueBanner;
+        so.FindProperty("cardBannerGrey").objectReferenceValue = greyBanner;
+        so.ApplyModifiedProperties();
+
+        // 1. SetButtonVisual(Obtained) -> DarkOverlay phải được bật
+        itemUI.SetButtonVisual(DailyButtonState.Obtained);
+        Assert.That(itemUI.DarkOverlay, Is.Not.Null);
+        Assert.That(itemUI.DarkOverlay.activeSelf, Is.True, "Nút Obtained phải bật DarkOverlay đè lên background.");
+
+        // 2. SetButtonVisual(Get) -> DarkOverlay phải được tắt
+        itemUI.SetButtonVisual(DailyButtonState.Get);
+        Assert.That(itemUI.DarkOverlay.activeSelf, Is.False, "Nút Get phải tắt DarkOverlay.");
+
+        // 3. SetButtonVisual(ClaimAgain) -> DarkOverlay phải được tắt
+        itemUI.SetButtonVisual(DailyButtonState.ClaimAgain);
+        Assert.That(itemUI.DarkOverlay.activeSelf, Is.False, "Nút Claim Again phải tắt DarkOverlay.");
+
+        UnityEngine.Object.DestroyImmediate(itemGo);
+    }
+
+    [Test]
+    public void DailyLoginItemUI_CustomBackgroundSetInEditMode_IsPreservedDuringPlayModeAndStateUpdates()
+    {
+        GameObject itemGo = new GameObject("DailyItemTest_CustomBg", typeof(RectTransform));
+        DailyLoginItemUI itemUI = itemGo.AddComponent<DailyLoginItemUI>();
+
+        GameObject bgObj = new GameObject("Background", typeof(RectTransform), typeof(Image));
+        bgObj.transform.SetParent(itemGo.transform, false);
+        Image bgImg = bgObj.GetComponent<Image>();
+
+        // Giả lập người dùng thay thế một sprite background tùy chỉnh trong Edit Mode
+        Sprite customUserBg = Sprite.Create(Texture2D.redTexture, new Rect(0, 0, 4, 4), Vector2.zero);
+        customUserBg.name = "Custom_User_Background";
+        bgImg.sprite = customUserBg;
+
+        Sprite defaultBlue = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), Vector2.zero);
+        defaultBlue.name = "Row_Banner_Blue";
+        Sprite defaultGrey = Sprite.Create(Texture2D.blackTexture, new Rect(0, 0, 4, 4), Vector2.zero);
+        defaultGrey.name = "Row_Banner_Grey";
+
+        itemUI.SetReferencesForBuilder(
+            null, null, null, null, null, null, null, null, null, null,
+            bgImg, null, null, null, null, null, null
+        );
+
+        var so = new UnityEditor.SerializedObject(itemUI);
+        so.FindProperty("cardBannerBlue").objectReferenceValue = defaultBlue;
+        so.FindProperty("cardBannerGrey").objectReferenceValue = defaultGrey;
+        so.ApplyModifiedProperties();
+
+        // 1. Khi vào Play Mode (chạy SyncVisualFromCurrentState hoặc UpdateState)
+        itemUI.SyncVisualFromCurrentState();
+        Assert.That(bgImg.sprite, Is.EqualTo(customUserBg), "Sprite tùy chỉnh người dùng gán ở Edit Mode phải được GIỮ NGUYÊN khi SyncVisual.");
+
+        // 2. Khi chạy UpdateState(Available)
+        itemUI.UpdateState(DailyLoginState.Available);
+        Assert.That(bgImg.sprite, Is.EqualTo(customUserBg), "UpdateState(Available) KHÔNG ĐƯỢC ghi đè sprite của người dùng.");
+        Assert.That(itemUI.DarkOverlay.activeSelf, Is.False, "DarkOverlay phải tắt.");
+
+        // 3. Khi chạy UpdateState(Obtained)
+        itemUI.UpdateState(DailyLoginState.Obtained);
+        Assert.That(bgImg.sprite, Is.EqualTo(customUserBg), "UpdateState(Obtained) background gốc vẫn giữ nguyên sprite người dùng.");
+        Assert.That(itemUI.DarkOverlay.activeSelf, Is.True, "DarkOverlay chỉ phủ đè lên trên, không thay thế background gốc.");
+
+        UnityEngine.Object.DestroyImmediate(itemGo);
+    }
+
+    [Test]
+    public void DailyLoginItemUI_RewardBadges_AlphaIsZeroForAllDaysAndIcons()
+    {
+        GameObject itemGo = new GameObject("DailyItemTest_BadgeAlpha", typeof(RectTransform));
+        DailyLoginItemUI itemUI = itemGo.AddComponent<DailyLoginItemUI>();
+
+        GameObject rewardsContainer = new GameObject("RewardsContainer", typeof(RectTransform));
+        rewardsContainer.transform.SetParent(itemGo.transform, false);
+
+        // Tạo 3 badge mẫu với alpha != 0
+        for (int i = 0; i < 3; i++)
+        {
+            GameObject badge = new GameObject($"RewardBadge_{i}", typeof(RectTransform), typeof(Image));
+            badge.transform.SetParent(rewardsContainer.transform, false);
+            badge.GetComponent<Image>().color = new Color32(11, 45, 60, 255);
+        }
+
+        itemUI.SetReferencesForBuilder(
+            null, null, rewardsContainer.transform, null, null, null, null, null, null, null,
+            null, null, null, null, null, null, null
+        );
+
+        // Gọi SyncVisualFromCurrentState -> Toàn bộ RewardBadge background phải có alpha = 0
+        itemUI.SyncVisualFromCurrentState();
+
+        for (int i = 0; i < 3; i++)
+        {
+            Image badgeImg = rewardsContainer.transform.GetChild(i).GetComponent<Image>();
+            Assert.That(badgeImg.color.a, Is.EqualTo(0f), $"RewardBadge_{i} background Image alpha phải bằng 0.");
+        }
+
+        UnityEngine.Object.DestroyImmediate(itemGo);
+    }
 }
+
 

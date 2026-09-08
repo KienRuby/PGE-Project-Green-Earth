@@ -215,7 +215,34 @@ public class AchievementItemUI : MonoBehaviour
             progressFillImage.sprite = progressBarFillSprite;
             progressFillImage.color = Color.white;
         }
+
+        if (rewardsContainer != null)
+        {
+            for (int i = 0; i < rewardsContainer.childCount; i++)
+            {
+                if (rewardsContainer.GetChild(i).TryGetComponent<Image>(out var badgeImg))
+                {
+                    if (badgeImg.color.a != 0f)
+                    {
+                        badgeImg.color = new Color(badgeImg.color.r, badgeImg.color.g, badgeImg.color.b, 0f);
+                    }
+                }
+            }
+        }
     }
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        UnityEditor.EditorApplication.delayCall += () =>
+        {
+            if (this != null)
+            {
+                ApplyStaticVisualSprites();
+            }
+        };
+    }
+#endif
 
     public TMP_Text ActionButtonText => actionButtonText;
     public Button ActionButton => actionButton;
@@ -298,15 +325,6 @@ public class AchievementItemUI : MonoBehaviour
     {
         if (rewardsContainer == null || rewards == null) return;
 
-        HorizontalLayoutGroup rLayout = rewardsContainer.GetComponent<HorizontalLayoutGroup>();
-        if (rLayout != null && rLayout.enabled)
-        {
-            rLayout.spacing = (rewards.Length == 2) ? 180f : 45f;
-            rLayout.childAlignment = TextAnchor.MiddleLeft;
-            rLayout.childControlWidth = false;
-            rLayout.childControlHeight = false;
-        }
-
         // Tái sử dụng các badge đã được thiết lập sẵn trong scene/hierarchy để giữ nguyên 100% Transform (X, Y, size)
         int rewardIndex = 0;
         for (int i = 0; i < rewardsContainer.childCount; i++)
@@ -322,6 +340,15 @@ public class AchievementItemUI : MonoBehaviour
             {
                 child.gameObject.SetActive(true);
                 RewardData reward = rewards[rewardIndex];
+
+                if (child.TryGetComponent<Image>(out var badgeImg))
+                {
+                    Color c = badgeImg.color;
+                    if (c.a != 0f)
+                    {
+                        badgeImg.color = new Color(c.r, c.g, c.b, 0f);
+                    }
+                }
 
                 Image iconImg = child.Find("Icon")?.GetComponent<Image>()
                     ?? child.GetComponentInChildren<Image>();
@@ -575,7 +602,7 @@ public class AchievementItemUI : MonoBehaviour
         RectTransform rt = badge.GetComponent<RectTransform>();
         rt.sizeDelta = new Vector2(75f, 75f);
         Image badgeImg = badge.GetComponent<Image>();
-        badgeImg.color = new Color32(11, 45, 60, 255);
+        badgeImg.color = new Color32(11, 45, 60, 0);
         badgeImg.raycastTarget = false;
 
         GameObject iconObj = new GameObject("Icon", typeof(RectTransform), typeof(Image));

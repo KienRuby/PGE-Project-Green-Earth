@@ -61,4 +61,29 @@ public static class DropTable
         GemPickup gem = gemObj.GetComponent<GemPickup>();
         gem.Initialize(type, value, position);
     }
+
+    /// <summary>
+    /// Sinh một Hộp mù Cổ vật (Artifact Box) tại vị trí chỉ định.
+    /// </summary>
+    public static GameObject SpawnArtifactBox(Vector3 position, ArtifactData specificArtifact = null)
+    {
+        GameObject boxObj = new GameObject("ArtifactBoxDrop");
+        boxObj.transform.position = position;
+
+        CircleCollider2D col = boxObj.AddComponent<CircleCollider2D>();
+        col.isTrigger = true;
+        col.radius = 0.8f;
+
+        Rigidbody2D rb = boxObj.AddComponent<Rigidbody2D>();
+        rb.bodyType = RigidbodyType2D.Kinematic;
+        rb.simulated = true;
+
+        ArtifactBoxPickup pickup = boxObj.AddComponent<ArtifactBoxPickup>();
+        pickup.SetSpawnPosition(position);
+        if (specificArtifact != null)
+        {
+            pickup.SetArtifact(specificArtifact);
+        }
+        return boxObj;
+    }
 }

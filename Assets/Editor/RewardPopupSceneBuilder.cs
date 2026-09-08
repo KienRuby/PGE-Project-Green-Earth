@@ -390,21 +390,27 @@ public static class RewardPopupSceneBuilder
         le.minHeight = 150f;
 
         CanvasGroup cg = itemObj.AddComponent<CanvasGroup>();
+        cg.alpha = 1.0f;
         Image border = itemObj.GetComponent<Image>();
-        if (dayIndex == 1 && dailyBannerGrey != null)
-        {
-            bg.sprite = dailyBannerGrey;
-            bg.color = Color.white;
-            if (border != null) border.color = Color.clear;
-            cg.alpha = 0.55f; // Ngày đã nhận thì TỐI
-        }
-        else if (dailyBannerBlue != null)
+        if (border != null) border.color = Color.clear;
+
+        // Nút sáng (dailyBannerBlue) LUÔN LUÔN là background chính cho mọi ngày
+        if (dailyBannerBlue != null)
         {
             bg.sprite = dailyBannerBlue;
             bg.color = Color.white;
-            if (border != null) border.color = Color.clear;
-            cg.alpha = 1.0f; // Ngày chưa nhận thì SÁNG
         }
+
+        // Tạo DarkOverlay đè lên Background bằng dailyBannerGrey
+        GameObject overlayObj = new GameObject("DarkOverlay", typeof(RectTransform), typeof(Image));
+        overlayObj.transform.SetParent(bg.transform, false);
+        RectTransform overlayRt = overlayObj.GetComponent<RectTransform>();
+        Stretch(overlayRt, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        Image overlayImg = overlayObj.GetComponent<Image>();
+        overlayImg.sprite = dailyBannerGrey;
+        overlayImg.color = Color.white;
+        overlayImg.raycastTarget = false;
+        overlayObj.SetActive(dayIndex == 1 || dayIndex == 2);
 
         // 1. Day Header Container (Bên trái)
         RectTransform dayHeader = CreateRect("DayHeader", itemObj.transform);
@@ -452,7 +458,7 @@ public static class RewardPopupSceneBuilder
             RectTransform badgeRt = badge.GetComponent<RectTransform>();
             badgeRt.sizeDelta = new Vector2(75f, 75f);
             Image badgeBg = badge.GetComponent<Image>();
-            badgeBg.color = new Color32(11, 45, 60, 255);
+            badgeBg.color = new Color32(11, 45, 60, 0); // alpha = 0 theo yêu cầu người dùng
             badgeBg.raycastTarget = false;
 
             // Icon
@@ -507,7 +513,7 @@ public static class RewardPopupSceneBuilder
         colors.disabledColor = Color.white;
         claimBtn.colors = colors;
 
-        if (dayIndex == 1)
+        if (dayIndex == 1 || dayIndex == 2)
         {
             btnImg.sprite = btnObtainedSprite;
             claimBtn.interactable = false;
@@ -520,7 +526,7 @@ public static class RewardPopupSceneBuilder
         }
         else
         {
-            // Day 02, Day 04..07 hiển thị nút Get theo đúng ảnh mẫu
+            // Day 04..07 hiển thị nút Get theo đúng ảnh mẫu
             btnImg.sprite = btnGetSprite;
             claimBtn.interactable = true;
         }
@@ -566,7 +572,8 @@ public static class RewardPopupSceneBuilder
             cg,
             btnGetSprite,
             btnClaimAgainSprite,
-            btnObtainedSprite
+            btnObtainedSprite,
+            overlayObj
         );
 
         return itemUI;
@@ -795,7 +802,7 @@ public static class RewardPopupSceneBuilder
             RectTransform badgeRt = badge.GetComponent<RectTransform>();
             badgeRt.sizeDelta = new Vector2(75f, 75f);
             Image badgeBg = badge.GetComponent<Image>();
-            badgeBg.color = new Color32(11, 45, 60, 255);
+            badgeBg.color = new Color32(11, 45, 60, 0); // alpha = 0 theo yêu cầu người dùng
             badgeBg.raycastTarget = false;
 
             // Icon

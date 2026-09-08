@@ -40,6 +40,11 @@ public class WaveHUDController : MonoBehaviour
     [Tooltip("Slider kinh nghiệm (tùy chọn thay thế cho expFillImage).")]
     [SerializeField] private Slider expSlider;
 
+    [Header("2b. Equipped Artifact Slots (Under Level Bar)")]
+    [Tooltip("Container chứa các icon Artifact đã trang bị trong run (nằm ngay dưới thanh Level).")]
+    [SerializeField] private RectTransform equippedArtifactsContainer;
+    private readonly System.Collections.Generic.List<GameObject> spawnedArtifactSlots = new System.Collections.Generic.List<GameObject>();
+
     [Header("3. Pause Control (Top-Right)")]
     [Tooltip("Nút tạm dừng game ở góc trên bên phải.")]
     [SerializeField] private Button pauseButton;
@@ -111,12 +116,41 @@ public class WaveHUDController : MonoBehaviour
     [Tooltip("Tốc độ nhịp phóng to nhẹ của chỉ báo Boss. Đặt 0 để tắt nhịp.")]
     [Min(0f)] [SerializeField] private float bossIndicatorPulseSpeed = 4f;
 
+    [Header("8. Chỉ báo Hộp Cổ Vật ngoài màn hình")]
+    [Tooltip("Sprite hình tròn có dấu ? dùng để chỉ vị trí Hộp Cổ Vật ngoài màn hình. Nếu để trống sẽ tự sinh đồ họa.")]
+    [SerializeField] private Sprite artifactBoxOffscreenSprite;
+
+    [Tooltip("Kích thước hình tròn chỉ báo Hộp Cổ Vật trên Canvas.")]
+    [SerializeField] private Vector2 artifactBoxIndicatorSize = new Vector2(130f, 130f);
+
+    [Tooltip("Tự động tính kích thước chỉ báo Hộp Cổ Vật theo tỉ lệ cạnh ngắn của màn hình.")]
+    [SerializeField] private bool useResponsiveArtifactBoxIndicatorSize = true;
+
+    [Tooltip("Đường kính chỉ báo so với cạnh ngắn màn hình.")]
+    [Range(0.06f, 0.25f)] [SerializeField] private float artifactBoxIndicatorScreenRatio = 0.11f;
+
+    [Tooltip("Khoảng cách giữa chỉ báo Hộp Cổ Vật và mép màn hình.")]
+    [Range(0f, 0.1f)] [SerializeField] private float artifactBoxIndicatorEdgePaddingRatio = 0.008f;
+
+    [Tooltip("Vùng đệm trong viewport để chỉ báo không nhấp nháy khi hộp đứng sát mép camera.")]
+    [Range(0f, 0.15f)] [SerializeField] private float artifactBoxViewportMargin = 0.02f;
+
+    [Tooltip("Tốc độ nhịp phóng to nhẹ của chỉ báo Hộp Cổ Vật.")]
+    [Min(0f)] [SerializeField] private float artifactBoxIndicatorPulseSpeed = 4f;
+
     private Coroutine bannerCoroutine;
     private Coroutine bossWarningCoroutine;
     private bool isPaused;
     private RectTransform bossIndicatorRect;
     private Image bossIndicatorImage;
     private Camera worldCamera;
+
+    private RectTransform artifactBoxIndicatorRect;
+    private Image artifactBoxIndicatorImage;
+    private TMP_Text artifactBoxQuestionMarkText;
+
+    public RectTransform ArtifactBoxIndicatorRect => artifactBoxIndicatorRect;
+    public bool IsArtifactBoxIndicatorVisible => artifactBoxIndicatorRect != null && artifactBoxIndicatorRect.gameObject.activeSelf;
 
     private void Awake()
     {
@@ -136,6 +170,9 @@ public class WaveHUDController : MonoBehaviour
         }
 
         CreateBossOffscreenIndicator();
+        CreateArtifactBoxOffscreenIndicator();
+        ArtifactFoundModalController.EnsureModalInScene(GetComponentInParent<Canvas>() ?? FindObjectOfType<Canvas>());
+        _ = PlayerArtifactInventory.Instance;
 
         if (pauseButton != null)
         {
@@ -165,10 +202,17 @@ public class WaveHUDController : MonoBehaviour
         if (bossWarningPanel != null) bossWarningPanel.SetActive(false);
         if (stageVictoryPanel != null) stageVictoryPanel.SetActive(false);
         if (pausePanel != null) pausePanel.SetActive(false);
+
+        EnsureArtifactSlotContainer();
     }
 
     private void Start()
     {
+        if (PlayerArtifactInventory.Instance != null)
+        {
+            PlayerArtifactInventory.Instance.OnArtifactEquipped += HandleArtifactEquipped;
+            RefreshArtifactSlots();
+        }
         if (enemySpawner != null)
         {
             enemySpawner.OnWaveStarted -= HandleWaveStarted;
@@ -230,7 +274,103 @@ public class WaveHUDController : MonoBehaviour
         if (quitToMenuButton != null) quitToMenuButton.onClick.RemoveListener(OnReturnToMenuClicked);
         if (returnToMenuButton != null) returnToMenuButton.onClick.RemoveListener(OnReturnToMenuClicked);
 
+        if (PlayerArtifactInventory.Instance != null)
+        {
+            PlayerArtifactInventory.Instance.OnArtifactEquipped -= HandleArtifactEquipped;
+        }
+
         Time.timeScale = 1f;
+    }
+
+    private void EnsureArtifactSlotContainer()
+    {
+        if (equippedArtifactsContainer != null) return;
+
+        Transform parentTarget = expFillImage != null ? expFillImage.transform.parent : transform;
+        GameObject containerObj = new GameObject("EquippedArtifactsContainer", typeof(RectTransform), typeof(HorizontalLayoutGroup));
+        containerObj.transform.SetParent(parentTarget, false);
+
+        equippedArtifactsContainer = containerObj.GetComponent<RectTransform>();
+        equippedArtifactsContainer.anchorMin = new Vector2(0.5f, 1f);
+        equippedArtifactsContainer.anchorMax = new Vector2(0.5f, 1f);
+        equippedArtifactsContainer.pivot = new Vector2(0.5f, 1f);
+        equippedArtifactsContainer.anchoredPosition = new Vector2(0f, -95f);
+        equippedArtifactsContainer.sizeDelta = new Vector2(400f, 50f);
+
+        HorizontalLayoutGroup hlg = containerObj.GetComponent<HorizontalLayoutGroup>();
+        hlg.spacing = 12f;
+        hlg.childAlignment = TextAnchor.MiddleCenter;
+        hlg.childControlWidth = false;
+        hlg.childControlHeight = false;
+        hlg.childForceExpandWidth = false;
+        hlg.childForceExpandHeight = false;
+    }
+
+    private void HandleArtifactEquipped(ArtifactData artifact)
+    {
+        RefreshArtifactSlots();
+    }
+
+    public void RefreshArtifactSlots()
+    {
+        EnsureArtifactSlotContainer();
+        if (equippedArtifactsContainer == null) return;
+
+        foreach (var slot in spawnedArtifactSlots)
+        {
+            if (slot != null) Destroy(slot);
+        }
+        spawnedArtifactSlots.Clear();
+
+        if (PlayerArtifactInventory.Instance == null) return;
+
+        foreach (var art in PlayerArtifactInventory.Instance.EquippedArtifacts)
+        {
+            if (art == null) continue;
+
+            GameObject slot = new GameObject($"ArtifactSlot_{art.id}", typeof(RectTransform), typeof(Image));
+            slot.transform.SetParent(equippedArtifactsContainer, false);
+            RectTransform rt = slot.GetComponent<RectTransform>();
+            rt.sizeDelta = new Vector2(46f, 46f);
+
+            Image bgImg = slot.GetComponent<Image>();
+            bgImg.color = art.badgeBorderColor;
+
+            GameObject inner = new GameObject("Inner", typeof(RectTransform), typeof(Image));
+            inner.transform.SetParent(slot.transform, false);
+            RectTransform innerRt = inner.GetComponent<RectTransform>();
+            innerRt.anchorMin = Vector2.zero;
+            innerRt.anchorMax = Vector2.one;
+            innerRt.offsetMin = new Vector2(3f, 3f);
+            innerRt.offsetMax = new Vector2(-3f, -3f);
+
+            Image innerImg = inner.GetComponent<Image>();
+            innerImg.color = art.badgeBgColor;
+
+            GameObject iconObj = new GameObject("Icon", typeof(RectTransform), typeof(Image));
+            iconObj.transform.SetParent(inner.transform, false);
+            RectTransform iconRt = iconObj.GetComponent<RectTransform>();
+            iconRt.anchorMin = new Vector2(0.5f, 0.5f);
+            iconRt.anchorMax = new Vector2(0.5f, 0.5f);
+            iconRt.pivot = new Vector2(0.5f, 0.5f);
+            iconRt.sizeDelta = new Vector2(30f, 30f);
+
+            Image iconImg = iconObj.GetComponent<Image>();
+            if (art.icon != null)
+            {
+                iconImg.sprite = art.icon;
+                iconImg.color = Color.white;
+            }
+            else
+            {
+                iconImg.color = art.statType == ArtifactStatType.MaxHealthPercent ? new Color32(235, 60, 60, 255)
+                    : (art.statType == ArtifactStatType.RangedDefensePercent ? new Color32(90, 180, 230, 255)
+                    : (art.statType == ArtifactStatType.TurretAttackSpeedPercent ? new Color32(240, 180, 30, 255)
+                    : new Color32(180, 90, 240, 255)));
+            }
+
+            spawnedArtifactSlots.Add(slot);
+        }
     }
 
     private void HandleWaveStarted(int currentWave, int totalWaves)
@@ -285,6 +425,7 @@ public class WaveHUDController : MonoBehaviour
     private void LateUpdate()
     {
         UpdateBossOffscreenIndicator();
+        UpdateArtifactBoxOffscreenIndicator();
     }
 
     private void CreateBossOffscreenIndicator()
@@ -405,6 +546,256 @@ public class WaveHUDController : MonoBehaviour
         if (bossIndicatorRect != null && bossIndicatorRect.gameObject.activeSelf != visible)
         {
             bossIndicatorRect.gameObject.SetActive(visible);
+        }
+    }
+
+    private void CreateArtifactBoxOffscreenIndicator()
+    {
+        if (artifactBoxIndicatorRect != null)
+        {
+            return;
+        }
+
+        GameObject indicator = new GameObject(
+            "ArtifactBoxOffscreenIndicator",
+            typeof(RectTransform),
+            typeof(CanvasRenderer),
+            typeof(Image));
+        indicator.transform.SetParent(transform, false);
+        indicator.transform.SetAsLastSibling();
+
+        artifactBoxIndicatorRect = indicator.GetComponent<RectTransform>();
+        artifactBoxIndicatorRect.anchorMin = artifactBoxIndicatorRect.anchorMax = new Vector2(0.5f, 0.5f);
+        artifactBoxIndicatorRect.pivot = new Vector2(0.5f, 0.5f);
+        artifactBoxIndicatorRect.sizeDelta = artifactBoxIndicatorSize;
+
+        artifactBoxIndicatorImage = indicator.GetComponent<Image>();
+        artifactBoxIndicatorImage.preserveAspect = true;
+        artifactBoxIndicatorImage.raycastTarget = false;
+
+        if (artifactBoxOffscreenSprite != null)
+        {
+            artifactBoxIndicatorImage.sprite = artifactBoxOffscreenSprite;
+        }
+        else
+        {
+            artifactBoxIndicatorImage.sprite = CreateProceduralCircleBadgeSprite();
+        }
+
+        // Tạo Text dấu hỏi "?" ở tâm hình tròn
+        GameObject textObj = new GameObject("QuestionMarkText", typeof(RectTransform), typeof(TextMeshProUGUI));
+        textObj.transform.SetParent(indicator.transform, false);
+        RectTransform textRect = textObj.GetComponent<RectTransform>();
+        textRect.anchorMin = Vector2.zero;
+        textRect.anchorMax = Vector2.one;
+        textRect.offsetMin = Vector2.zero;
+        textRect.offsetMax = Vector2.zero;
+
+        artifactBoxQuestionMarkText = textObj.GetComponent<TextMeshProUGUI>();
+        artifactBoxQuestionMarkText.text = "?";
+        artifactBoxQuestionMarkText.alignment = TextAlignmentOptions.Center;
+        artifactBoxQuestionMarkText.fontSize = 58;
+        artifactBoxQuestionMarkText.fontStyle = FontStyles.Bold;
+        artifactBoxQuestionMarkText.color = new Color32(255, 225, 40, 255); // Màu vàng kim nổi bật
+        artifactBoxQuestionMarkText.raycastTarget = false;
+
+        if (artifactBoxQuestionMarkText.font == null)
+        {
+            if (waveNumberText != null && waveNumberText.font != null)
+            {
+                artifactBoxQuestionMarkText.font = waveNumberText.font;
+            }
+            else
+            {
+                artifactBoxQuestionMarkText.font = TMP_Settings.defaultFontAsset;
+            }
+        }
+
+        if (artifactBoxOffscreenSprite != null)
+        {
+            artifactBoxQuestionMarkText.gameObject.SetActive(false);
+        }
+
+        indicator.SetActive(false);
+    }
+
+    private Sprite CreateProceduralCircleBadgeSprite()
+    {
+        int size = 128;
+        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        tex.filterMode = FilterMode.Bilinear;
+        Vector2 center = new Vector2((size - 1) * 0.5f, (size - 1) * 0.5f);
+        float outerRadius = 60f;
+        float outerRingInner = 52f;
+        float innerRingOuter = 49f;
+        float innerRingInner = 43f;
+
+        Color32 cyanGlow = new Color32(46, 229, 240, 255);    // Cyan viền ngoài
+        Color32 goldRing = new Color32(255, 204, 0, 255);     // Vàng kim viền trong
+        Color32 darkBg = new Color32(14, 26, 42, 235);        // Nền tối xanh than
+        Color32 ringGap = new Color32(8, 16, 26, 255);
+
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                float dist = Vector2.Distance(new Vector2(x, y), center);
+                if (dist > outerRadius + 1.5f)
+                {
+                    tex.SetPixel(x, y, Color.clear);
+                }
+                else if (dist > outerRadius)
+                {
+                    float alpha = Mathf.Clamp01(outerRadius + 1.5f - dist) / 1.5f;
+                    Color c = cyanGlow;
+                    c.a = alpha;
+                    tex.SetPixel(x, y, c);
+                }
+                else if (dist >= outerRingInner)
+                {
+                    tex.SetPixel(x, y, cyanGlow);
+                }
+                else if (dist > innerRingOuter)
+                {
+                    tex.SetPixel(x, y, ringGap);
+                }
+                else if (dist >= innerRingInner)
+                {
+                    tex.SetPixel(x, y, goldRing);
+                }
+                else
+                {
+                    tex.SetPixel(x, y, darkBg);
+                }
+            }
+        }
+        tex.Apply();
+        return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 100f);
+    }
+
+    private void UpdateArtifactBoxOffscreenIndicator()
+    {
+        if (artifactBoxIndicatorRect == null)
+        {
+            CreateArtifactBoxOffscreenIndicator();
+        }
+
+        if (artifactBoxIndicatorRect == null)
+        {
+            return;
+        }
+
+        var activeBoxes = ArtifactBoxPickup.ActiveBoxes;
+        if (activeBoxes == null || activeBoxes.Count == 0)
+        {
+            SetArtifactBoxIndicatorVisible(false);
+            return;
+        }
+
+        if (worldCamera == null) worldCamera = Camera.main;
+        if (worldCamera == null)
+        {
+            SetArtifactBoxIndicatorVisible(false);
+            return;
+        }
+
+        ArtifactBoxPickup offscreenBox = null;
+        Vector3 selectedViewportPosition = Vector3.zero;
+        float nearestViewportDistance = float.MaxValue;
+
+        for (int i = 0; i < activeBoxes.Count; i++)
+        {
+            ArtifactBoxPickup box = activeBoxes[i];
+            if (box == null || !box.gameObject.activeInHierarchy)
+            {
+                continue;
+            }
+
+            Vector3 viewportPosition = worldCamera.WorldToViewportPoint(box.transform.position);
+            if (IsViewportPositionVisible(viewportPosition, artifactBoxViewportMargin))
+            {
+                continue;
+            }
+
+            float viewportDistance = ((Vector2)viewportPosition - new Vector2(0.5f, 0.5f)).sqrMagnitude;
+            if (viewportDistance < nearestViewportDistance)
+            {
+                nearestViewportDistance = viewportDistance;
+                offscreenBox = box;
+                selectedViewportPosition = viewportPosition;
+            }
+        }
+
+        if (offscreenBox == null)
+        {
+            SetArtifactBoxIndicatorVisible(false);
+            return;
+        }
+
+        RectTransform canvasRect = transform as RectTransform;
+        if (canvasRect == null)
+        {
+            SetArtifactBoxIndicatorVisible(false);
+            return;
+        }
+
+        float shortestCanvasSide = Mathf.Min(canvasRect.rect.width, canvasRect.rect.height);
+        float responsiveDiameter = shortestCanvasSide * artifactBoxIndicatorScreenRatio;
+        Vector2 currentIndicatorSize = useResponsiveArtifactBoxIndicatorSize
+            ? Vector2.one * responsiveDiameter
+            : new Vector2(Mathf.Abs(artifactBoxIndicatorSize.x), Mathf.Abs(artifactBoxIndicatorSize.y));
+        float currentEdgePadding = shortestCanvasSide * artifactBoxIndicatorEdgePaddingRatio;
+        artifactBoxIndicatorRect.sizeDelta = currentIndicatorSize;
+
+        Vector2 indicatorPosition = CalculateBossIndicatorPosition(
+            selectedViewportPosition,
+            canvasRect.rect.size,
+            currentIndicatorSize,
+            currentEdgePadding);
+
+        float minimumY = -canvasRect.rect.height * 0.5f
+            + currentIndicatorSize.y * 0.5f
+            + bossIndicatorBottomSafePadding;
+        float maximumY = canvasRect.rect.height * 0.5f
+            - currentIndicatorSize.y * 0.5f
+            - bossIndicatorTopSafePadding;
+        indicatorPosition.y = minimumY <= maximumY
+            ? Mathf.Clamp(indicatorPosition.y, minimumY, maximumY)
+            : 0f;
+
+        // Tránh đè lên chỉ báo Boss nếu cả hai cùng ở cùng một góc/mép màn hình
+        if (bossIndicatorRect != null && bossIndicatorRect.gameObject.activeSelf)
+        {
+            float dist = Vector2.Distance(indicatorPosition, bossIndicatorRect.anchoredPosition);
+            float minSpacing = (currentIndicatorSize.x + bossIndicatorRect.sizeDelta.x) * 0.52f;
+            if (dist < minSpacing && minSpacing > 0.01f)
+            {
+                Vector2 tangent = new Vector2(-indicatorPosition.y, indicatorPosition.x);
+                if (tangent.sqrMagnitude > 0.0001f)
+                {
+                    tangent.Normalize();
+                    indicatorPosition += tangent * (minSpacing - dist);
+                    indicatorPosition.y = minimumY <= maximumY
+                        ? Mathf.Clamp(indicatorPosition.y, minimumY, maximumY)
+                        : 0f;
+                }
+            }
+        }
+
+        artifactBoxIndicatorRect.anchoredPosition = indicatorPosition;
+
+        float pulse = artifactBoxIndicatorPulseSpeed > 0f
+            ? 1f + Mathf.Sin(Time.unscaledTime * artifactBoxIndicatorPulseSpeed) * 0.05f
+            : 1f;
+        artifactBoxIndicatorRect.localScale = Vector3.one * pulse;
+        SetArtifactBoxIndicatorVisible(true);
+    }
+
+    private void SetArtifactBoxIndicatorVisible(bool visible)
+    {
+        if (artifactBoxIndicatorRect != null && artifactBoxIndicatorRect.gameObject.activeSelf != visible)
+        {
+            artifactBoxIndicatorRect.gameObject.SetActive(visible);
         }
     }
 
