@@ -44,6 +44,23 @@ public class PlayerMovement : MonoBehaviour
     public float MoveSpeed => EffectiveSpeed;
     public float EffectiveSpeed => Mathf.Max(3.5f, moveSpeed) + moveSpeedBonus;
 
+    public float MoveSpeedBonus
+    {
+        get => moveSpeedBonus;
+        set => moveSpeedBonus = value;
+    }
+
+    public void AddMoveSpeedBonus(float bonus)
+    {
+        moveSpeedBonus += bonus;
+    }
+
+    public void AddMoveSpeedPercent(float percent)
+    {
+        float bonus = Mathf.Max(3.5f, moveSpeed) * (percent / 100f);
+        moveSpeedBonus += bonus;
+    }
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();

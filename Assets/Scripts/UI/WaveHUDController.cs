@@ -172,6 +172,7 @@ public class WaveHUDController : MonoBehaviour
         CreateBossOffscreenIndicator();
         CreateArtifactBoxOffscreenIndicator();
         ArtifactFoundModalController.EnsureModalInScene(GetComponentInParent<Canvas>() ?? FindObjectOfType<Canvas>());
+        GameplayEventModalController.EnsureModalInScene(GetComponentInParent<Canvas>() ?? FindObjectOfType<Canvas>());
         _ = PlayerArtifactInventory.Instance;
 
         if (pauseButton != null)
@@ -686,7 +687,11 @@ public class WaveHUDController : MonoBehaviour
         }
 
         var activeBoxes = ArtifactBoxPickup.ActiveBoxes;
-        if (activeBoxes == null || activeBoxes.Count == 0)
+        var activeEvents = GameplayEventPickup.ActiveEvents;
+        int boxCount = activeBoxes != null ? activeBoxes.Count : 0;
+        int eventCount = activeEvents != null ? activeEvents.Count : 0;
+
+        if (boxCount == 0 && eventCount == 0)
         {
             SetArtifactBoxIndicatorVisible(false);
             return;
@@ -699,34 +704,65 @@ public class WaveHUDController : MonoBehaviour
             return;
         }
 
-        ArtifactBoxPickup offscreenBox = null;
+        bool foundOffscreen = false;
         Vector3 selectedViewportPosition = Vector3.zero;
         float nearestViewportDistance = float.MaxValue;
 
-        for (int i = 0; i < activeBoxes.Count; i++)
+        // 1. Kiểm tra các điểm Sự kiện tương tác trên bản đồ (Gameplay Event)
+        if (activeEvents != null)
         {
-            ArtifactBoxPickup box = activeBoxes[i];
-            if (box == null || !box.gameObject.activeInHierarchy)
+            for (int i = 0; i < activeEvents.Count; i++)
             {
-                continue;
-            }
+                var ev = activeEvents[i];
+                if (ev == null || !ev.gameObject.activeInHierarchy)
+                {
+                    continue;
+                }
 
-            Vector3 viewportPosition = worldCamera.WorldToViewportPoint(box.transform.position);
-            if (IsViewportPositionVisible(viewportPosition, artifactBoxViewportMargin))
-            {
-                continue;
-            }
+                Vector3 viewportPosition = worldCamera.WorldToViewportPoint(ev.transform.position);
+                if (IsViewportPositionVisible(viewportPosition, artifactBoxViewportMargin))
+                {
+                    continue;
+                }
 
-            float viewportDistance = ((Vector2)viewportPosition - new Vector2(0.5f, 0.5f)).sqrMagnitude;
-            if (viewportDistance < nearestViewportDistance)
-            {
-                nearestViewportDistance = viewportDistance;
-                offscreenBox = box;
-                selectedViewportPosition = viewportPosition;
+                float viewportDistance = ((Vector2)viewportPosition - new Vector2(0.5f, 0.5f)).sqrMagnitude;
+                if (viewportDistance < nearestViewportDistance)
+                {
+                    nearestViewportDistance = viewportDistance;
+                    foundOffscreen = true;
+                    selectedViewportPosition = viewportPosition;
+                }
             }
         }
 
-        if (offscreenBox == null)
+        // 2. Kiểm tra các Hộp Cổ Vật (Artifact Box)
+        if (activeBoxes != null)
+        {
+            for (int i = 0; i < activeBoxes.Count; i++)
+            {
+                ArtifactBoxPickup box = activeBoxes[i];
+                if (box == null || !box.gameObject.activeInHierarchy)
+                {
+                    continue;
+                }
+
+                Vector3 viewportPosition = worldCamera.WorldToViewportPoint(box.transform.position);
+                if (IsViewportPositionVisible(viewportPosition, artifactBoxViewportMargin))
+                {
+                    continue;
+                }
+
+                float viewportDistance = ((Vector2)viewportPosition - new Vector2(0.5f, 0.5f)).sqrMagnitude;
+                if (viewportDistance < nearestViewportDistance)
+                {
+                    nearestViewportDistance = viewportDistance;
+                    foundOffscreen = true;
+                    selectedViewportPosition = viewportPosition;
+                }
+            }
+        }
+
+        if (!foundOffscreen)
         {
             SetArtifactBoxIndicatorVisible(false);
             return;

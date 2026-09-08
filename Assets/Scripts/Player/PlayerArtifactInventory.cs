@@ -56,6 +56,12 @@ public class PlayerArtifactInventory : MonoBehaviour
     public IReadOnlyList<ArtifactData> EquippedArtifacts => equippedArtifacts;
     public int EquippedCount => equippedArtifacts != null ? equippedArtifacts.Count : 0;
 
+    public bool HasArtifact(string id)
+    {
+        if (equippedArtifacts == null || string.IsNullOrEmpty(id)) return false;
+        return equippedArtifacts.Exists(a => a != null && string.Equals(a.id, id, StringComparison.OrdinalIgnoreCase));
+    }
+
     /// <summary>
     /// Sự kiện thông báo khi một Artifact mới được nhặt và trang bị thành công.
     /// </summary>

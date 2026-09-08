@@ -201,12 +201,47 @@ public class EnemySpawner : MonoBehaviour
     public bool DropArtifactOnWaveClear { get => dropArtifactOnWaveClear; set => dropArtifactOnWaveClear = value; }
     public int ArtifactsSpawnedInChapter => artifactsSpawnedInChapter;
 
+    [Header("Gameplay Event Settings")]
+    [Tooltip("Tổng số Sự Kiện Gameplay xuất hiện ngẫu nhiên trên bản đồ trong 1 Chapter (mặc định 3).")]
+    [Min(0)] [SerializeField] private int maxGameplayEventsPerChapter = 3;
+
+    [Tooltip("Bật cơ chế sinh Sự Kiện Gameplay ngẫu nhiên theo thời gian. Mặc định BẬT.")]
+    [SerializeField] private bool useTimedGameplayEventSpawning = true;
+
+    [Tooltip("Thời gian tối thiểu chờ Sự Kiện đầu tiên xuất hiện (giây). Mặc định 25s.")]
+    [SerializeField] private float minInitialGameplayEventDelay = 25f;
+
+    [Tooltip("Thời gian tối đa chờ Sự Kiện đầu tiên xuất hiện (giây). Mặc định 40s.")]
+    [SerializeField] private float maxInitialGameplayEventDelay = 40f;
+
+    [Tooltip("Thời gian chờ tối thiểu để xuất hiện Sự Kiện tiếp theo (giây). Mặc định 50s.")]
+    [SerializeField] private float minGameplayEventRespawnInterval = 50f;
+
+    [Tooltip("Thời gian chờ tối đa để xuất hiện Sự Kiện tiếp theo (giây). Mặc định 90s.")]
+    [SerializeField] private float maxGameplayEventRespawnInterval = 90f;
+
+    [Tooltip("Chờ người chơi tương tác xong sự kiện hiện tại rồi mới đếm ngược để xuất hiện sự kiện tiếp theo.")]
+    [SerializeField] private bool waitEventCompleteBeforeRespawnTimer = true;
+
+    [Tooltip("Số lượng Sự Kiện tối đa cùng tồn tại đồng thời trên bản đồ chưa được tương tác.")]
+    [SerializeField] private int maxConcurrentActiveGameplayEvents = 1;
+
+    public int MaxGameplayEventsPerChapter { get => maxGameplayEventsPerChapter; set => maxGameplayEventsPerChapter = Mathf.Max(0, value); }
+    public bool UseTimedGameplayEventSpawning { get => useTimedGameplayEventSpawning; set => useTimedGameplayEventSpawning = value; }
+    public int GameplayEventsSpawnedInChapter => gameplayEventsSpawnedInChapter;
+    public float GameplayEventSpawnTimer => gameplayEventSpawnTimer;
+
     // Runtime tracking
     private int artifactsSpawnedInChapter = 0;
     private readonly HashSet<int> artifactSpawnedWaveIndices = new HashSet<int>();
     private float artifactSpawnTimer = -1f;
     private bool isInitialArtifactSpawn = true;
     private bool isArtifactRespawnTimerActive = false;
+
+    private int gameplayEventsSpawnedInChapter = 0;
+    private float gameplayEventSpawnTimer = -1f;
+    private bool isInitialGameplayEventSpawn = true;
+    private bool isGameplayEventRespawnTimerActive = false;
     private int currentWaveIndex = 0;
     private int enemiesSpawnedInWave = 0;
     private int enemiesKilledInWave = 0;
@@ -400,6 +435,11 @@ public class EnemySpawner : MonoBehaviour
             UpdateTimedArtifactSpawning();
         }
 
+        if (useTimedGameplayEventSpawning)
+        {
+            UpdateTimedGameplayEventSpawning();
+        }
+
         if (despawnCheckTimer <= 0f)
         {
             despawnCheckTimer = despawnCheckInterval;
@@ -411,6 +451,11 @@ public class EnemySpawner : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.B))
         {
             SpawnRandomArtifactOnMap(bypassChapterLimit: true);
+        }
+        // Nhấn 'E' để tạo ngay 1 Sự Kiện Gameplay ngẫu nhiên trên bản đồ
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            SpawnRandomEventOnMap(bypassChapterLimit: true);
         }
 #endif
 
@@ -988,6 +1033,148 @@ public class EnemySpawner : MonoBehaviour
         maxArtifactRespawnInterval = respawnMax;
         waitPickupBeforeRespawnTimer = waitPickup;
         ResetArtifactChapterCount();
+    }
+
+    /// <summary>
+    /// Sinh một Sự Kiện Gameplay ngẫu nhiên trên bản đồ, có kiểm soát tổng số lượng rơi trong 1 Chapter (mặc định 3).
+    /// </summary>
+    public GameObject SpawnRandomEventOnMap(GameplayEventData specificEvent = null, bool bypassChapterLimit = false)
+    {
+        if (!bypassChapterLimit && gameplayEventsSpawnedInChapter >= maxGameplayEventsPerChapter)
+        {
+            Debug.Log($"[EnemySpawner] ℹ️ Đã đạt giới hạn tối đa {maxGameplayEventsPerChapter} Sự Kiện Gameplay trong Chapter này ({gameplayEventsSpawnedInChapter}/{maxGameplayEventsPerChapter}).");
+            return null;
+        }
+
+        Vector3 spawnPos = CalculateRandomArtifactMapPosition();
+        GameObject eventObj = new GameObject("GameplayEventPoint", typeof(CircleCollider2D), typeof(GameplayEventPickup));
+        eventObj.transform.position = spawnPos;
+
+        GameplayEventPickup pickup = eventObj.GetComponent<GameplayEventPickup>();
+        if (specificEvent != null)
+        {
+            pickup.AssignedEvent = specificEvent;
+        }
+        else
+        {
+            pickup.AssignedEvent = GameplayEventDatabase.Instance.GetRandomEvent();
+        }
+        pickup.SetSpawnPosition(spawnPos);
+
+        gameplayEventsSpawnedInChapter++;
+        Debug.Log($"[EnemySpawner] ❓ Đã sinh Sự Kiện Gameplay ({pickup.AssignedEvent?.eventTitle ?? "Random"}) ({gameplayEventsSpawnedInChapter}/{maxGameplayEventsPerChapter}) tại {spawnPos}. Vòng tròn dấu '?' sẽ hiển thị ở mép màn hình!");
+        return eventObj;
+    }
+
+    public void ResetGameplayEventChapterCount()
+    {
+        gameplayEventsSpawnedInChapter = 0;
+        isInitialGameplayEventSpawn = true;
+        isGameplayEventRespawnTimerActive = false;
+
+        if (useTimedGameplayEventSpawning)
+        {
+            gameplayEventSpawnTimer = Random.Range(minInitialGameplayEventDelay, maxInitialGameplayEventDelay);
+            Debug.Log($"[EnemySpawner] ⏱️ Sự Kiện Gameplay đầu tiên sẽ xuất hiện sau {gameplayEventSpawnTimer:F1}s.");
+        }
+        else
+        {
+            gameplayEventSpawnTimer = -1f;
+        }
+    }
+
+    public void UpdateTimedGameplayEventSpawning(float? customDeltaTime = null)
+    {
+        if (!useTimedGameplayEventSpawning || isStageCompleted) return;
+        if (gameplayEventsSpawnedInChapter >= maxGameplayEventsPerChapter) return;
+
+        float dt = customDeltaTime ?? Time.deltaTime;
+
+        if (isInitialGameplayEventSpawn)
+        {
+            if (gameplayEventSpawnTimer < 0f)
+            {
+                gameplayEventSpawnTimer = Random.Range(minInitialGameplayEventDelay, maxInitialGameplayEventDelay);
+            }
+
+            gameplayEventSpawnTimer -= dt;
+            if (gameplayEventSpawnTimer <= 0f)
+            {
+                isInitialGameplayEventSpawn = false;
+                SpawnRandomEventOnMap();
+
+                if (waitEventCompleteBeforeRespawnTimer)
+                {
+                    isGameplayEventRespawnTimerActive = false;
+                    gameplayEventSpawnTimer = -1f;
+                }
+                else
+                {
+                    gameplayEventSpawnTimer = Random.Range(minGameplayEventRespawnInterval, maxGameplayEventRespawnInterval);
+                    isGameplayEventRespawnTimerActive = true;
+                }
+            }
+            return;
+        }
+
+        int activeCount = GameplayEventPickup.ActiveEvents != null ? GameplayEventPickup.ActiveEvents.Count : 0;
+
+        if (waitEventCompleteBeforeRespawnTimer)
+        {
+            if (activeCount >= maxConcurrentActiveGameplayEvents)
+            {
+                isGameplayEventRespawnTimerActive = false;
+                gameplayEventSpawnTimer = -1f;
+                return;
+            }
+
+            if (!isGameplayEventRespawnTimerActive)
+            {
+                gameplayEventSpawnTimer = Random.Range(minGameplayEventRespawnInterval, maxGameplayEventRespawnInterval);
+                isGameplayEventRespawnTimerActive = true;
+                Debug.Log($"[EnemySpawner] ⏱️ Sự Kiện Gameplay tiếp theo sẽ xuất hiện lại sau {gameplayEventSpawnTimer:F1}s.");
+            }
+
+            gameplayEventSpawnTimer -= dt;
+            if (gameplayEventSpawnTimer <= 0f)
+            {
+                isGameplayEventRespawnTimerActive = false;
+                SpawnRandomEventOnMap();
+            }
+        }
+        else
+        {
+            if (activeCount >= maxConcurrentActiveGameplayEvents) return;
+
+            if (!isGameplayEventRespawnTimerActive)
+            {
+                gameplayEventSpawnTimer = Random.Range(minGameplayEventRespawnInterval, maxGameplayEventRespawnInterval);
+                isGameplayEventRespawnTimerActive = true;
+            }
+
+            gameplayEventSpawnTimer -= dt;
+            if (gameplayEventSpawnTimer <= 0f)
+            {
+                if (activeCount < maxConcurrentActiveGameplayEvents)
+                {
+                    isGameplayEventRespawnTimerActive = false;
+                    SpawnRandomEventOnMap();
+                    gameplayEventSpawnTimer = Random.Range(minGameplayEventRespawnInterval, maxGameplayEventRespawnInterval);
+                    isGameplayEventRespawnTimerActive = true;
+                }
+            }
+        }
+    }
+
+    public void SetGameplayEventTimersForTesting(float initialMin, float initialMax, float respawnMin, float respawnMax, bool waitComplete = true)
+    {
+        useTimedGameplayEventSpawning = true;
+        minInitialGameplayEventDelay = initialMin;
+        maxInitialGameplayEventDelay = initialMax;
+        minGameplayEventRespawnInterval = respawnMin;
+        maxGameplayEventRespawnInterval = respawnMax;
+        waitEventCompleteBeforeRespawnTimer = waitComplete;
+        ResetGameplayEventChapterCount();
     }
     #endregion
 

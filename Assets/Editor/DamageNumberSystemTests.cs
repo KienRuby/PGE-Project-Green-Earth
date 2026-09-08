@@ -21,7 +21,8 @@ public class DamageNumberSystemTests
     public void TearDown()
     {
         if (managerGameObject != null)
-        {
+        {0
+        6
             Object.DestroyImmediate(managerGameObject);
         }
     }
