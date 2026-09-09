@@ -18,7 +18,7 @@ public static class BuddyScreenReferenceApplier
     private const string MainMenuScenePath = "Assets/Scenes/MainMenu.unity";
     private const string IconSheetPath = "Assets/Sprites/UI/Buddy/icon buddy.png";
     private const string ButtonSheetPath = "Assets/Sprites/UI/Buddy/nút màn buddy.png";
-    private const string AppliedKey = "PGE.BuddyScreenReferenceApplier.v3";
+    private const string AppliedKey = "PGE.BuddyScreenReferenceApplier.v5";
 
     static BuddyScreenReferenceApplier()
     {
@@ -27,6 +27,13 @@ public static class BuddyScreenReferenceApplier
 
     [MenuItem("PGE/UI/Apply Buddy Reference Screen")]
     public static void ApplyFromMenu()
+    {
+        EditorPrefs.DeleteKey(AppliedKey);
+        ApplyOnce();
+    }
+
+    [MenuItem("PGE/UI/Apply Buddy Progress Fill in Scene")]
+    public static void ApplyProgressFillFromMenu()
     {
         EditorPrefs.DeleteKey(AppliedKey);
         ApplyOnce();
@@ -156,14 +163,17 @@ public static class BuddyScreenReferenceApplier
 
         foreach (BuddyCardUI card in controller.GetComponentsInChildren<BuddyCardUI>(true))
         {
-            Transform bottomBar = card.transform.Find("NormalContentGroup/BottomBar");
-            if (bottomBar != null && bottomBar.TryGetComponent(out Image bottomBarImage))
+            Transform track = card.transform.Find("Fill_Track") ?? card.transform.Find("FillTrack");
+            if (track != null)
             {
-                bottomBarImage.color = new Color(1f, 1f, 1f, 0f);
+                UnityEngine.Object.DestroyImmediate(track.gameObject);
             }
 
-            TMP_Text level = card.transform.Find("NormalContentGroup/LevelText")?.GetComponent<TMP_Text>();
-            TMP_Text progress = card.transform.Find("NormalContentGroup/BottomBar/ProgressText")?.GetComponent<TMP_Text>();
+            card.EnsureProgressBar();
+            card.UpdateProgressFromText();
+
+            TMP_Text level = card.transform.Find("NormalContentGroup/LevelText")?.GetComponent<TMP_Text>() ?? card.transform.Find("Level")?.GetComponent<TMP_Text>();
+            TMP_Text progress = card.transform.Find("NormalContentGroup/BottomBar/ProgressText")?.GetComponent<TMP_Text>() ?? card.transform.Find("Quantity")?.GetComponent<TMP_Text>();
             if (level != null)
             {
                 level.color = Color.white;
@@ -171,9 +181,12 @@ public static class BuddyScreenReferenceApplier
             }
             if (progress != null)
             {
-                progress.color = Color.black;
+                progress.color = Color.white;
                 progress.fontSize = 27f;
             }
+
+            EditorUtility.SetDirty(card);
+            if (card.ProgressFillImage != null) EditorUtility.SetDirty(card.ProgressFillImage.gameObject);
         }
     }
 
