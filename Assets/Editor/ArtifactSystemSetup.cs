@@ -221,6 +221,8 @@ public static class ArtifactSystemSetup
         EditorUtility.SetDirty(db);
     }
 
+    [MenuItem("PGE/UI/3. Replace Old Artifact Assets with New Sliced Sprites", false, 60)]
+    [MenuItem("Tools/PGE/3. Replace Old Artifact Assets with New Sliced Sprites", false, 60)]
     [MenuItem("PGE/Setup Artifact Icons in Pause Modal", false, 121)]
     public static void SetupArtifactIconsMenu()
     {
@@ -247,16 +249,21 @@ public static class ArtifactSystemSetup
     {
         if (artifactPanel == null) return;
 
-        string[] spriteNames = new string[]
+        string sheetPath = "Assets/Sprites/UI/nút artifact.png";
+        Dictionary<string, Sprite> sheetSprites = AssetDatabase.LoadAllAssetsAtPath(sheetPath)
+            .OfType<Sprite>()
+            .GroupBy(s => s.name, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+
+        string[] newSpriteKeys = new string[]
         {
-            "titanium_fabric",
-            "spare_battery",
-            "carbon_scales",
-            "strong_cooler",
-            "kung_fu_usb",
-            "artifact_slot_5",
-            "artifact_slot_6",
-            "artifact_slot_7"
+            "Artifact_CD",      // 1. Data Disc (Crit Rate +10%)
+            "Artifact_Lego",    // 2. Modular Brick (DEF +12)
+            "Artifact_USB",     // 3. Kung Fu USB (All Weapons DMG +10%)
+            "Artifact_Butter",  // 4. Energy Butter (Max HP +15%)
+            "Artifact_Cooler",  // 5. Strong Cooler (Turret Atk Spd +15%)
+            "Artifact_Rocket",  // 6. Signal Rocket (Move Speed +10%)
+            "Artifact_Chip"     // 7. Quantum Chip (Ranged DEF +15%)
         };
 
         const int columns = 4;
@@ -286,7 +293,7 @@ public static class ArtifactSystemSetup
                 rt.anchorMax = new Vector2(0.5f, 0.5f);
                 rt.pivot = new Vector2(0.5f, 0.5f);
                 rt.anchoredPosition = pos;
-                rt.sizeDelta = new Vector2(150f, 175f);
+                rt.sizeDelta = new Vector2(150f, 180f);
             }
             else
             {
@@ -298,31 +305,34 @@ public static class ArtifactSystemSetup
                     rt.anchorMax = new Vector2(0.5f, 0.5f);
                     rt.pivot = new Vector2(0.5f, 0.5f);
                     rt.anchoredPosition = pos;
-                    rt.sizeDelta = new Vector2(150f, 175f);
+                    rt.sizeDelta = new Vector2(150f, 180f);
                 }
             }
 
-            slotObj.SetActive(true);
-            var btn = slotObj.GetComponent<UnityEngine.UI.Button>();
-            if (btn == null)
+            if (i < newSpriteKeys.Length)
             {
-                btn = slotObj.AddComponent<UnityEngine.UI.Button>();
-            }
-
-            UnityEngine.UI.Image img = slotObj.GetComponent<UnityEngine.UI.Image>();
-            if (img != null)
-            {
-                if (i < spriteNames.Length)
+                slotObj.SetActive(true);
+                var btn = slotObj.GetComponent<UnityEngine.UI.Button>() ?? slotObj.AddComponent<UnityEngine.UI.Button>();
+                UnityEngine.UI.Image img = slotObj.GetComponent<UnityEngine.UI.Image>();
+                if (img != null)
                 {
-                    string path = $"Assets/Sprites/UI/Artifact/{spriteNames[i]}.png";
-                    Sprite s = AssetDatabase.LoadAssetAtPath<Sprite>(path);
-                    if (s != null) img.sprite = s;
+                    string key = newSpriteKeys[i];
+                    if (sheetSprites.TryGetValue(key, out Sprite spr))
+                    {
+                        img.sprite = spr;
+                    }
+                    img.color = Color.white;
+                    img.preserveAspect = true;
+                    btn.targetGraphic = img;
+                    EditorUtility.SetDirty(img);
                 }
-                img.color = Color.white;
-                img.preserveAspect = true;
-                btn.targetGraphic = img;
-                EditorUtility.SetDirty(img);
             }
+            else
+            {
+                // Slot thứ 8 không cần thiết vì hiện tại có 7 Cổ vật
+                slotObj.SetActive(false);
+            }
+
             EditorUtility.SetDirty(slotObj);
         }
 
@@ -334,7 +344,7 @@ public static class ArtifactSystemSetup
         }
 
         UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
-        Debug.Log("[ArtifactSystemSetup] ✅ Đã thiết lập lưới 4 icon/hàng cho Artifact trong Pause Modal thành công!");
+        Debug.Log("[ArtifactSystemSetup] ✅ Đã cập nhật 7 Cổ vật mới (CD, Lego, USB, Butter, Cooler, Rocket, Chip) vào Pause Modal thành công!");
     }
 
     public static void SetupArtifactDetailDialogInScene(PauseModalController pauseCtrl)
@@ -424,8 +434,10 @@ public static class ArtifactSystemSetup
             UnityEngine.UI.Image icImg = iconObj.GetComponent<UnityEngine.UI.Image>();
             icImg.preserveAspect = true;
             icImg.color = Color.white;
-            string iconPath = "Assets/Sprites/UI/Artifact/titanium_fabric.png";
-            Sprite icSpr = AssetDatabase.LoadAssetAtPath<Sprite>(iconPath);
+            string sheetPath = "Assets/Sprites/UI/nút artifact.png";
+            Sprite icSpr = AssetDatabase.LoadAllAssetsAtPath(sheetPath)
+                .OfType<Sprite>()
+                .FirstOrDefault(s => s.name == "Artifact_CD" || s.name == "Artifact_Lego");
             if (icSpr != null) icImg.sprite = icSpr;
 
             // 4. NameText

@@ -1071,21 +1071,142 @@ public class EnemySpawner : MonoBehaviour
         return reusableAvailableEntries[0].enemyPrefab;
     }
 
-    private Vector2 GetRandomSpawnPositionAroundPlayer()
+    private Camera cachedMainCamera;
+
+    private Camera GetActiveCamera()
     {
-        Vector2 playerPos = playerTransform != null ? (Vector2)playerTransform.position : Vector2.zero;
-        float randomAngle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
-        float randomRadius = Random.Range(minSpawnRadius, maxSpawnRadius);
-
-        Vector2 offset = new Vector2(Mathf.Cos(randomAngle), Mathf.Sin(randomAngle)) * randomRadius;
-        Vector2 rawSpawnPos = playerPos + offset;
-
-        if (MapBoundary.Instance != null)
+        if (cachedMainCamera == null || !cachedMainCamera.isActiveAndEnabled)
         {
-            return MapBoundary.Instance.ClampSpawnPosition(rawSpawnPos);
+            cachedMainCamera = Camera.main;
+            if (cachedMainCamera == null)
+            {
+                cachedMainCamera = FindObjectOfType<Camera>();
+            }
+        }
+        return cachedMainCamera;
+    }
+
+    /// <summary>
+    /// Kiểm tra một tọa độ có đang nằm trong khung nhìn của Camera (trên màn hình) hay không.
+    /// </summary>
+    public bool IsPositionInsideCameraView(Vector2 worldPos, float padding = 0.4f)
+    {
+        Camera cam = GetActiveCamera();
+        if (cam == null)
+        {
+            Vector2 pPos = playerTransform != null ? (Vector2)playerTransform.position : Vector2.zero;
+            return Mathf.Abs(worldPos.x - pPos.x) <= (3.2f + padding) && Mathf.Abs(worldPos.y - pPos.y) <= (5.5f + padding);
         }
 
-        return rawSpawnPos;
+        Vector2 camPos = (Vector2)cam.transform.position;
+        float halfH = cam.orthographic ? cam.orthographicSize : 5.0f;
+        float halfW = halfH * (cam.aspect > 0.01f ? cam.aspect : (9f / 16f));
+
+        float minX = camPos.x - halfW - padding;
+        float maxX = camPos.x + halfW + padding;
+        float minY = camPos.y - halfH - padding;
+        float maxY = camPos.y + halfH + padding;
+
+        return worldPos.x >= minX && worldPos.x <= maxX && worldPos.y >= minY && worldPos.y <= maxY;
+    }
+
+    /// <summary>
+    /// Tính toán vị trí sinh quái đảm bảo 100% NGOÀI MÀN HÌNH (không bao giờ sinh trong tầm mắt người chơi).
+    /// </summary>
+    private Vector2 GetRandomSpawnPositionAroundPlayer()
+    {
+        Camera cam = GetActiveCamera();
+        Vector2 camPos = cam != null ? (Vector2)cam.transform.position : (playerTransform != null ? (Vector2)playerTransform.position : Vector2.zero);
+
+        float halfH = cam != null && cam.orthographic ? cam.orthographicSize : 5.0f;
+        float halfW = halfH * (cam != null && cam.aspect > 0.01f ? cam.aspect : (9f / 16f));
+
+        // Khoảng cách an toàn ngoài mép màn hình: tối thiểu 1.0m, tối đa 2.5m
+        float minMargin = 1.0f;
+        float maxMargin = 2.5f;
+
+        // Xáo trộn ngẫu nhiên 4 hướng: 0=Trên, 1=Dưới, 2=Trái, 3=Phải
+        int[] sides = new int[] { 0, 1, 2, 3 };
+        for (int i = 0; i < sides.Length; i++)
+        {
+            int r = Random.Range(i, sides.Length);
+            int tmp = sides[i];
+            sides[i] = sides[r];
+            sides[r] = tmp;
+        }
+
+        Vector2 selectedPos = Vector2.zero;
+        bool foundValid = false;
+
+        for (int attempt = 0; attempt < 8; attempt++)
+        {
+            int side = sides[attempt % sides.Length];
+            float margin = Random.Range(minMargin, maxMargin);
+            Vector2 candidate = Vector2.zero;
+
+            switch (side)
+            {
+                case 0: // Phía TRÊN màn hình
+                    candidate.x = camPos.x + Random.Range(-halfW - margin, halfW + margin);
+                    candidate.y = camPos.y + halfH + margin;
+                    break;
+                case 1: // Phía DƯỚI màn hình
+                    candidate.x = camPos.x + Random.Range(-halfW - margin, halfW + margin);
+                    candidate.y = camPos.y - halfH - margin;
+                    break;
+                case 2: // Phía TRÁI màn hình
+                    candidate.x = camPos.x - halfW - margin;
+                    candidate.y = camPos.y + Random.Range(-halfH - margin, halfH + margin);
+                    break;
+                case 3: // Phía PHẢI màn hình
+                    candidate.x = camPos.x + halfW + margin;
+                    candidate.y = camPos.y + Random.Range(-halfH - margin, halfH + margin);
+                    break;
+            }
+
+            // Nếu có MapBoundary, clamp vào map
+            if (MapBoundary.Instance != null)
+            {
+                candidate = MapBoundary.Instance.ClampSpawnPosition(candidate, 0.5f);
+            }
+
+            // KIỂM TRA BẮT BUỘC: Điểm sau khi giới hạn có thực sự nằm NGOÀI màn hình không?
+            if (!IsPositionInsideCameraView(candidate, 0.3f))
+            {
+                selectedPos = candidate;
+                foundValid = true;
+                break;
+            }
+        }
+
+        if (!foundValid)
+        {
+            // Trường hợp người chơi đứng sát góc bản đồ khiến 1-2 hướng bị clamp vào trong màn hình:
+            // Tìm hướng đối diện với mép bản đồ gần nhất (hướng vào sâu trong lòng map)
+            Vector2 playerPos = playerTransform != null ? (Vector2)playerTransform.position : camPos;
+            Vector2 safeDir = Vector2.up;
+            if (MapBoundary.Instance != null)
+            {
+                safeDir = (MapBoundary.Instance.MapCenter - playerPos).normalized;
+                if (safeDir == Vector2.zero) safeDir = Vector2.up;
+            }
+
+            float safeRadius = Mathf.Max(halfH, halfW) + 2.0f;
+            Vector2 fallback = camPos + safeDir * safeRadius;
+            if (MapBoundary.Instance != null)
+            {
+                fallback = MapBoundary.Instance.ClampSpawnPosition(fallback, 0.5f);
+            }
+
+            if (IsPositionInsideCameraView(fallback, 0.2f))
+            {
+                fallback = camPos + safeDir * (Mathf.Max(halfH, halfW) + 1.5f);
+            }
+
+            selectedPos = fallback;
+        }
+
+        return selectedPos;
     }
 
     private void CheckAndDespawnFarEnemies()
@@ -1093,7 +1214,8 @@ public class EnemySpawner : MonoBehaviour
         if (playerTransform == null) return;
 
         Vector2 playerPos = playerTransform.position;
-        float maxDistSqr = maxDespawnDistance * maxDespawnDistance;
+        float effectiveDespawnDist = Mathf.Max(maxDespawnDistance, 18.0f);
+        float maxDistSqr = effectiveDespawnDist * effectiveDespawnDist;
 
         for (int i = activeEnemies.Count - 1; i >= 0; i--)
         {
@@ -1210,22 +1332,19 @@ public class EnemySpawner : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        Transform target = playerTransform;
-#if UNITY_EDITOR
-        if (target == null)
-        {
-            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-            if (playerObj != null) target = playerObj.transform;
-        }
-#endif
-        if (target == null) target = transform;
+        Camera cam = GetActiveCamera();
+        Vector3 center = cam != null ? cam.transform.position : (playerTransform != null ? playerTransform.position : transform.position);
+        center.z = 0f;
 
-        // Vòng tròn xanh lá: Bán kính sinh quái tối thiểu (ngoài tầm nhìn camera)
-        Gizmos.color = new Color(0f, 1f, 0f, 0.85f);
-        Gizmos.DrawWireSphere(target.position, minSpawnRadius);
+        float halfH = cam != null && cam.orthographic ? cam.orthographicSize : 5.0f;
+        float halfW = halfH * (cam != null && cam.aspect > 0.01f ? cam.aspect : (9f / 16f));
 
-        // Vòng tròn đỏ: Bán kính sinh quái tối đa xung quanh Player
-        Gizmos.color = new Color(1f, 0.2f, 0.2f, 0.85f);
-        Gizmos.DrawWireSphere(target.position, maxSpawnRadius);
+        // Khung nhìn màn hình Camera (Màu đỏ: Vùng cấm sinh quái - Tuyệt đối không sinh quái ở đây)
+        Gizmos.color = new Color(1f, 0.15f, 0.15f, 0.9f);
+        Gizmos.DrawWireCube(center, new Vector3(halfW * 2f, halfH * 2f, 0f));
+
+        // Vùng sinh quái an toàn ngoài màn hình (Màu xanh lá)
+        Gizmos.color = new Color(0f, 1f, 0.4f, 0.85f);
+        Gizmos.DrawWireCube(center, new Vector3((halfW + 2.5f) * 2f, (halfH + 2.5f) * 2f, 0f));
     }
 }

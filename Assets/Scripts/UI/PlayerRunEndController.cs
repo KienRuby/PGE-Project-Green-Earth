@@ -28,6 +28,8 @@ public sealed class PlayerRunEndController : MonoBehaviour
 
     [Header("Game Over Panel")]
     [SerializeField] private GameObject gameOverPanel;
+    [SerializeField] private CanvasGroup gameOverCanvasGroup;
+    [SerializeField] private RectTransform gameOverContent;
     [SerializeField] private TMP_Text chapterText;
     [SerializeField] private TMP_Text wavesText;
     [SerializeField] private TMP_Text progressText;
@@ -55,6 +57,7 @@ public sealed class PlayerRunEndController : MonoBehaviour
     private bool waitingForRewardedAd;
     private float timeScaleBeforePrompt = 1f;
     private Coroutine reviveRevealRoutine;
+    private Coroutine gameOverRevealRoutine;
     private int pendingDataChipReward;
     private int pendingRedGemReward;
 
@@ -337,6 +340,31 @@ public sealed class PlayerRunEndController : MonoBehaviour
         SetPanelActive(revivePanel, false);
         PopulateGameOverResult();
         SetPanelActive(gameOverPanel, true);
+        if (gameOverRevealRoutine != null) StopCoroutine(gameOverRevealRoutine);
+        gameOverRevealRoutine = StartCoroutine(PlayGameOverReveal());
+    }
+
+    private IEnumerator PlayGameOverReveal()
+    {
+        if (gameOverCanvasGroup != null) gameOverCanvasGroup.alpha = 0f;
+        if (gameOverContent != null) gameOverContent.localScale = Vector3.one * 0.78f;
+
+        const float duration = 0.35f;
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            float eased = 1f - Mathf.Pow(1f - t, 3f);
+            float overshoot = Mathf.Sin(t * Mathf.PI) * (1f - t) * 0.12f;
+            if (gameOverCanvasGroup != null) gameOverCanvasGroup.alpha = eased;
+            if (gameOverContent != null) gameOverContent.localScale = Vector3.one * (Mathf.Lerp(0.78f, 1f, eased) + overshoot);
+            yield return null;
+        }
+
+        if (gameOverCanvasGroup != null) gameOverCanvasGroup.alpha = 1f;
+        if (gameOverContent != null) gameOverContent.localScale = Vector3.one;
+        gameOverRevealRoutine = null;
     }
 
     private void PopulateGameOverResult()
@@ -359,8 +387,8 @@ public sealed class PlayerRunEndController : MonoBehaviour
         if (chapterText != null) chapterText.text = $"CHAPTER. {chapterNumber:00}";
         if (wavesText != null) wavesText.text = $"{Mathf.Clamp(currentWaveIndex + 1, 1, totalWaves):00} / {totalWaves:00} WAVES";
         if (progressText != null) progressText.text = $"STAGE PROGRESS  {Mathf.RoundToInt(stageProgress * 100f)}%";
-        if (dataChipRewardText != null) dataChipRewardText.text = $"Get {pendingDataChipReward:N0}";
-        if (redGemRewardText != null) redGemRewardText.text = $"Get {pendingRedGemReward:N0}";
+        if (dataChipRewardText != null) dataChipRewardText.text = $"Get {pendingDataChipReward}";
+        if (redGemRewardText != null) redGemRewardText.text = $"Get {pendingRedGemReward}";
         if (gameOverFeedbackText != null) gameOverFeedbackText.text = string.Empty;
         if (getRewardButton != null) getRewardButton.interactable = true;
         if (vipTripleButton != null) vipTripleButton.interactable = true;
@@ -383,43 +411,10 @@ public sealed class PlayerRunEndController : MonoBehaviour
     {
         if (gameOverPanel != null)
         {
-            Transform content = gameOverPanel.transform.Find("GameOverContent") ?? gameOverPanel.transform;
-
-            // 1. Dịch chuyển DataChipReward và RedGemReward sang trái
-            Transform dataRow = content.Find("DataChipReward");
-            if (dataRow != null)
-            {
-                RectTransform dataRt = dataRow.GetComponent<RectTransform>();
-                if (Mathf.Abs(dataRt.anchoredPosition.x) < 20f)
-                {
-                    dataRt.anchoredPosition = new Vector2(-110f, 135f);
-                    dataRt.sizeDelta = new Vector2(340f, 118f);
-                    Transform icon = dataRow.Find("Icon");
-                    if (icon != null) icon.GetComponent<RectTransform>().anchoredPosition = new Vector2(-95f, 0f);
-                    Transform val = dataRow.Find("Value");
-                    if (val != null) val.GetComponent<RectTransform>().anchoredPosition = new Vector2(55f, 0f);
-                }
-            }
-
-            Transform gemRow = content.Find("RedGemReward");
-            if (gemRow != null)
-            {
-                RectTransform gemRt = gemRow.GetComponent<RectTransform>();
-                if (Mathf.Abs(gemRt.anchoredPosition.x) < 20f)
-                {
-                    gemRt.anchoredPosition = new Vector2(-110f, 10f);
-                    gemRt.sizeDelta = new Vector2(340f, 118f);
-                    Transform icon = gemRow.Find("Icon");
-                    if (icon != null) icon.GetComponent<RectTransform>().anchoredPosition = new Vector2(-95f, 0f);
-                    Transform val = gemRow.Find("Value");
-                    if (val != null) val.GetComponent<RectTransform>().anchoredPosition = new Vector2(55f, 0f);
-                }
-            }
-
-            // 2. Tìm hoặc tạo nút DetailsButton
             if (detailsButton == null)
             {
-                Transform existingBtn = content.Find("DetailsButton");
+                Transform content = gameOverPanel.transform.Find("GameOverContent") ?? gameOverPanel.transform;
+                Transform existingBtn = gameOverPanel.transform.Find("DetailsButton") ?? content.Find("DetailsButton");
                 if (existingBtn != null)
                 {
                     detailsButton = existingBtn.GetComponent<Button>();

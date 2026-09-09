@@ -110,7 +110,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: "n\xFAt chapter complete_0"
+      name: complete
       rect:
         serializedVersion: 2
         x: 483
@@ -118,7 +118,7 @@ TextureImporter:
         width: 1237
         height: 1213
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -131,7 +131,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: "n\xFAt chapter complete_1"
+      name: Detail
       rect:
         serializedVersion: 2
         x: 1502
@@ -139,7 +139,7 @@ TextureImporter:
         width: 268
         height: 297
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -152,7 +152,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: "n\xFAt chapter complete_2"
+      name: Get
       rect:
         serializedVersion: 2
         x: 776
@@ -160,7 +160,7 @@ TextureImporter:
         width: 642
         height: 327
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -173,7 +173,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: "n\xFAt chapter complete_3"
+      name: Get x3
       rect:
         serializedVersion: 2
         x: 772
@@ -181,7 +181,7 @@ TextureImporter:
         width: 646
         height: 327
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -204,10 +204,10 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      "n\xFAt chapter complete_0": -746438810
-      "n\xFAt chapter complete_1": -53812470
-      "n\xFAt chapter complete_2": -1812748131
-      "n\xFAt chapter complete_3": 1103806426
+      Detail: -53812470
+      Get: -1812748131
+      Get x3: 1103806426
+      complete: -746438810
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

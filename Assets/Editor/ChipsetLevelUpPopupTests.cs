@@ -221,4 +221,51 @@ public class ChipsetLevelUpPopupTests
             UnityEngine.Object.DestroyImmediate(popupObject);
         }
     }
+
+    [Test]
+    public void GetOfferDescription_ReturnsEnglish_WhenLanguageIsEnglish()
+    {
+        string savedLang = GameSettings.Language;
+        try
+        {
+            GameSettings.Language = GameSettings.EnglishLanguage;
+
+            ChipItemData shotgun = new ChipItemData { id = 8, level = 1, iconKey = "shotgun" };
+            string desc = ChipsetLevelUpPopup.GetOfferDescription(shotgun);
+
+            Assert.That(desc, Does.Contain("close-range damage").Or.Contain("shells"));
+            Assert.That(desc, Does.Not.Contain("Bắn ra cụm đạn"));
+
+            ChipItemData standardGun = new ChipItemData { id = 1, level = 1, iconKey = "standard-gun" };
+            string standardDesc = ChipsetLevelUpPopup.GetOfferDescription(standardGun);
+            Assert.That(standardDesc, Is.EqualTo("Always auto-fires support shots."));
+        }
+        finally
+        {
+            GameSettings.Language = savedLang;
+        }
+    }
+
+    [Test]
+    public void GetOfferDescription_ReturnsVietnamese_WhenLanguageIsVietnamese()
+    {
+        string savedLang = GameSettings.Language;
+        try
+        {
+            GameSettings.Language = GameSettings.VietnameseLanguage;
+
+            ChipItemData shotgun = new ChipItemData { id = 8, level = 1, iconKey = "shotgun" };
+            string desc = ChipsetLevelUpPopup.GetOfferDescription(shotgun);
+
+            Assert.That(desc, Is.EqualTo("Bắn ra cụm đạn sát thương cực lớn ở cự ly gần."));
+
+            ChipItemData standardGun = new ChipItemData { id = 1, level = 1, iconKey = "standard-gun" };
+            string standardDesc = ChipsetLevelUpPopup.GetOfferDescription(standardGun);
+            Assert.That(standardDesc, Is.EqualTo("Luôn tự động bắn hỗ trợ."));
+        }
+        finally
+        {
+            GameSettings.Language = savedLang;
+        }
+    }
 }

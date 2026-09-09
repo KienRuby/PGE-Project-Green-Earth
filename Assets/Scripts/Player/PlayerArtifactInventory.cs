@@ -68,6 +68,7 @@ public class PlayerArtifactInventory : MonoBehaviour
     public float TotalWeaponDamagePercentBonus { get; private set; }
     public float TotalMoveSpeedPercentBonus { get; private set; }
     public float TotalDamageReductionBonus { get; private set; }
+    public float TotalCritRatePercentBonus { get; private set; }
 
     private void Awake()
     {
@@ -124,6 +125,7 @@ public class PlayerArtifactInventory : MonoBehaviour
         TotalWeaponDamagePercentBonus = 0f;
         TotalMoveSpeedPercentBonus = 0f;
         TotalDamageReductionBonus = 0f;
+        TotalCritRatePercentBonus = 0f;
 
         if (equippedArtifacts != null)
         {
@@ -151,11 +153,14 @@ public class PlayerArtifactInventory : MonoBehaviour
                     case ArtifactStatType.DamageReduction:
                         TotalDamageReductionBonus += art.statValue;
                         break;
+                    case ArtifactStatType.CritRatePercent:
+                        TotalCritRatePercentBonus += art.statValue;
+                        break;
                 }
             }
         }
 
-        // 1. Áp dụng buff Máu tối đa (HP +X%) - Ví dụ: Spare Battery
+        // 1. Áp dụng buff Máu tối đa (HP +X%) - Ví dụ: Spare Battery, Energy Butter
         if (playerHealth != null)
         {
             int baseHp = playerHealth.BaseMaxHealth;
@@ -174,17 +179,18 @@ public class PlayerArtifactInventory : MonoBehaviour
                 }
             }
 
-            // 2. Áp dụng buff Kháng đánh xa (Ranged DEF +X%) - Ví dụ: Carbon Scales
+            // 2. Áp dụng buff Kháng đánh xa (Ranged DEF +X%) - Ví dụ: Quantum Microchip
             playerHealth.RangedDefenseBonusPercent = TotalRangedDefPercentBonus;
 
-            // 3. Áp dụng buff Giảm trừ sát thương trực tiếp (DEF +X) - Ví dụ: Titanium Fabric
+            // 3. Áp dụng buff Giảm trừ sát thương trực tiếp (DEF +X) - Ví dụ: Modular Brick
             playerHealth.SetDamageReduction(Mathf.RoundToInt(TotalDamageReductionBonus));
         }
 
-        // 3. Áp dụng buff Sát thương mọi vũ khí (All Weapons' ATK +X%) - Ví dụ: Kung Fu Data USB
+        // 3. Áp dụng buff Sát thương mọi vũ khí & Tỉ lệ chí mạng (All Weapons' ATK +X%, Crit Rate +X%) - Ví dụ: Kung Fu Data USB, Data Disc
         if (playerAutoShooter != null)
         {
             playerAutoShooter.ArtifactDamageMultiplier = 1f + (TotalWeaponDamagePercentBonus / 100f);
+            playerAutoShooter.ArtifactCritBonus = TotalCritRatePercentBonus / 100f;
         }
 
         // 4. Áp dụng buff Tốc độ đánh trụ súng (Turret ATK Speed +X%) - Ví dụ: Strong Cooler

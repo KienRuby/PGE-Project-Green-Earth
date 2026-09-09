@@ -17,6 +17,8 @@ public static class PlayerRunEndSceneBuilder
     private const string GameOverPanelPath = "Assets/Sprites/UI/UI Player/popup game over.png";
     private const string RewardButtonsPath = "Assets/Sprites/UI/UI Player/nút màn chapter complete_game over.png";
     private const string DetailsChartIconPath = "Assets/Sprites/UI/icon-damage-details.png";
+    private const string GameOverSpritePath = "Assets/Sprites/UI/nút game over.png";
+    private const string RewardStrokeMaterialPath = "Assets/Fonts/Nunito/Nunito SDF - RewardStroke.mat";
 
     private static readonly Color Dim = new Color32(5, 12, 10, 220);
     private static readonly Color Dark = new Color32(18, 28, 34, 255);
@@ -31,6 +33,19 @@ public static class PlayerRunEndSceneBuilder
 
     private static TMP_FontAsset font;
     private static Material fontMaterial;
+    private static Material rewardFontMaterial;
+
+    [InitializeOnLoadMethod]
+    private static void AutoBuildOnCompile()
+    {
+        EditorApplication.delayCall += () =>
+        {
+            if (!EditorApplication.isPlayingOrWillChangePlaymode)
+            {
+                BuildGameOverOnly();
+            }
+        };
+    }
 
     [MenuItem("PGE/UI/Build Revive & Game Over")]
     public static void BuildFromMenu()
@@ -117,6 +132,7 @@ public static class PlayerRunEndSceneBuilder
 
         font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath);
         fontMaterial = AssetDatabase.LoadAssetAtPath<Material>(FontMaterialPath);
+        rewardFontMaterial = AssetDatabase.LoadAssetAtPath<Material>(RewardStrokeMaterialPath);
         RemoveExisting(canvas.transform, "GameOverPanel");
         RemoveExisting(canvas.transform, "DamageDetailsModal");
 
@@ -124,6 +140,8 @@ public static class PlayerRunEndSceneBuilder
 
         GameObject gameOverPanel = BuildGameOverPanel(
             canvas.transform,
+            out CanvasGroup gameOverCanvasGroup,
+            out RectTransform gameOverContent,
             out TMP_Text chipRewardText,
             out TMP_Text gemRewardText,
             out Button detailsButton,
@@ -140,6 +158,8 @@ public static class PlayerRunEndSceneBuilder
 
         SerializedObject serialized = new SerializedObject(controller);
         serialized.FindProperty("gameOverPanel").objectReferenceValue = gameOverPanel;
+        serialized.FindProperty("gameOverCanvasGroup").objectReferenceValue = gameOverCanvasGroup;
+        serialized.FindProperty("gameOverContent").objectReferenceValue = gameOverContent;
         serialized.FindProperty("chapterText").objectReferenceValue = null;
         serialized.FindProperty("wavesText").objectReferenceValue = null;
         serialized.FindProperty("progressText").objectReferenceValue = null;
@@ -186,6 +206,7 @@ public static class PlayerRunEndSceneBuilder
 
         font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath);
         fontMaterial = AssetDatabase.LoadAssetAtPath<Material>(FontMaterialPath);
+        rewardFontMaterial = AssetDatabase.LoadAssetAtPath<Material>(RewardStrokeMaterialPath);
         RemoveExisting(canvas.transform, "RevivePanel");
         RemoveExisting(canvas.transform, "GameOverPanel");
         RemoveExisting(canvas.transform, "DamageDetailsModal");
@@ -205,6 +226,8 @@ public static class PlayerRunEndSceneBuilder
             out TMP_Text reviveFeedback);
         GameObject gameOverPanel = BuildGameOverPanel(
             canvas.transform,
+            out CanvasGroup gameOverCanvasGroup,
+            out RectTransform gameOverContent,
             out TMP_Text chipRewardText,
             out TMP_Text gemRewardText,
             out Button detailsButton,
@@ -227,6 +250,8 @@ public static class PlayerRunEndSceneBuilder
         serialized.FindProperty("reviveFeedbackText").objectReferenceValue = reviveFeedback;
         serialized.FindProperty("reviveGemCost").intValue = 200;
         serialized.FindProperty("gameOverPanel").objectReferenceValue = gameOverPanel;
+        serialized.FindProperty("gameOverCanvasGroup").objectReferenceValue = gameOverCanvasGroup;
+        serialized.FindProperty("gameOverContent").objectReferenceValue = gameOverContent;
         serialized.FindProperty("chapterText").objectReferenceValue = null;
         serialized.FindProperty("wavesText").objectReferenceValue = null;
         serialized.FindProperty("progressText").objectReferenceValue = null;
@@ -312,19 +337,25 @@ public static class PlayerRunEndSceneBuilder
         return button;
     }
 
-    private static RectTransform BuildRewardRow(Transform parent, string name, Vector2 position, Sprite iconSprite, out TMP_Text rewardText)
+    private static RectTransform BuildRewardRow(Transform parent, string name, Vector2 position, Sprite iconSprite, string defaultText, out TMP_Text rewardText)
     {
         GameObject row = new GameObject(name, typeof(RectTransform));
         row.transform.SetParent(parent, false);
         RectTransform rowRect = row.GetComponent<RectTransform>();
-        SetRect(rowRect, position, new Vector2(340f, 118f));
+        SetRect(rowRect, position, new Vector2(440f, 110f));
 
         Image icon = CreateSpriteImage("Icon", row.transform, iconSprite);
-        SetRect(icon.rectTransform, new Vector2(-95f, 0f), new Vector2(88f, 88f));
+        icon.preserveAspect = true;
+        icon.raycastTarget = false;
+        SetRect(icon.rectTransform, new Vector2(-130f, 0f), new Vector2(96f, 96f));
 
-        rewardText = CreateText("Value", row.transform, "Get 0", 44f, Color.white);
+        Material mat = rewardFontMaterial != null ? rewardFontMaterial : fontMaterial;
+        rewardText = CreateText("Value", row.transform, defaultText, 68f, Color.white, mat);
         rewardText.alignment = TextAlignmentOptions.Left;
-        SetRect(rewardText.rectTransform, new Vector2(55f, 0f), new Vector2(210f, 95f));
+        rewardText.fontStyle = FontStyles.Bold;
+        rewardText.fontWeight = FontWeight.Bold;
+        rewardText.extraPadding = true;
+        SetRect(rewardText.rectTransform, new Vector2(55f, 0f), new Vector2(290f, 100f));
         return rowRect;
     }
 
@@ -344,6 +375,8 @@ public static class PlayerRunEndSceneBuilder
 
     private static GameObject BuildGameOverPanel(
         Transform parent,
+        out CanvasGroup canvasGroup,
+        out RectTransform contentRect,
         out TMP_Text chipRewardText,
         out TMP_Text gemRewardText,
         out Button detailsButton,
@@ -351,15 +384,17 @@ public static class PlayerRunEndSceneBuilder
         out Button tripleButton,
         out TMP_Text feedbackText)
     {
-        Sprite panelSprite = LoadSprite(GameOverPanelPath, "Game over");
-        Sprite normalButtonSprite = LoadSpriteBySuffix(RewardButtonsPath, "_0");
-        Sprite tripleButtonSprite = LoadSpriteBySuffix(RewardButtonsPath, "_1");
+        Sprite gameOverCrestSprite = LoadSprite(GameOverSpritePath, "GameOver");
+        Sprite detailsButtonSprite = LoadSprite(GameOverSpritePath, "Details");
+        Sprite normalButtonSprite = LoadSprite(GameOverSpritePath, "Get reward");
+        Sprite tripleButtonSprite = LoadSprite(GameOverSpritePath, "get x3 reward");
         Sprite dataIcon = LoadSprite(CurrencyAtlasPath, "data");
         Sprite gemIcon = LoadSprite(CurrencyAtlasPath, "red");
-        Sprite chartSprite = LoadSprite(DetailsChartIconPath, "icon-damage-details");
 
-        if (panelSprite == null || normalButtonSprite == null || tripleButtonSprite == null)
+        if (gameOverCrestSprite == null || detailsButtonSprite == null || normalButtonSprite == null || tripleButtonSprite == null)
         {
+            canvasGroup = null;
+            contentRect = null;
             chipRewardText = null;
             gemRewardText = null;
             detailsButton = null;
@@ -370,36 +405,38 @@ public static class PlayerRunEndSceneBuilder
         }
 
         GameObject root = CreateOverlay("GameOverPanel", parent);
-        root.GetComponent<Image>().color = new Color32(4, 9, 13, 176);
+        root.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.45f);
+        canvasGroup = root.AddComponent<CanvasGroup>();
 
-        Image panel = CreateSpriteImage("GameOverContent", root.transform, panelSprite);
-        SetRect(panel.rectTransform, new Vector2(0f, -8f), new Vector2(780f, 1218f));
+        // 1. Huy hiệu GameOver lớn ở trên cùng (Crest: 1168 x 978)
+        GameObject panelObject = CreateSpriteImage("GameOverContent", root.transform, gameOverCrestSprite).gameObject;
+        contentRect = panelObject.GetComponent<RectTransform>();
+        SetRect(contentRect, new Vector2(0f, 390f), new Vector2(720f, 603f));
 
-        BuildRewardRow(panel.transform, "DataChipReward", new Vector2(-110f, 135f), dataIcon, out chipRewardText);
-        BuildRewardRow(panel.transform, "RedGemReward", new Vector2(-110f, 10f), gemIcon, out gemRewardText);
+        // 2. Dòng thưởng Data Chip (Icon tím DATA + chữ Get 0 font đậm viền đen dày chuẩn mẫu)
+        RectTransform dataRow = BuildRewardRow(
+            root.transform, "DataChipReward", new Vector2(-15f, 25f), dataIcon, "Get 0", out chipRewardText);
 
-        // Details Button (Icon biểu đồ + Chữ Details màu cam)
-        GameObject detailsBtnObj = new GameObject("DetailsButton", typeof(RectTransform), typeof(Image), typeof(Button));
-        detailsBtnObj.transform.SetParent(panel.transform, false);
-        SetRect(detailsBtnObj.GetComponent<RectTransform>(), new Vector2(175f, 72f), new Vector2(140f, 180f));
-        Image detailsBtnImg = detailsBtnObj.GetComponent<Image>();
-        detailsBtnImg.color = Color.clear;
-        detailsBtnImg.raycastTarget = true;
-        detailsButton = detailsBtnObj.GetComponent<Button>();
+        // 3. Dòng thưởng Red Gem (Icon ngọc đỏ + chữ Get 0 font đậm viền đen dày chuẩn mẫu)
+        RectTransform redGemRow = BuildRewardRow(
+            root.transform, "RedGemReward", new Vector2(-15f, -90f), gemIcon, "Get 0", out gemRewardText);
 
-        Image detailsIcon = CreateSpriteImage("Icon", detailsBtnObj.transform, chartSprite);
-        SetRect(detailsIcon.rectTransform, new Vector2(0f, 28f), new Vector2(72f, 72f));
+        // 4. Nút Details (biểu đồ + chữ Details) đặt lệch sang bên phải ngay cạnh dòng Red Gem
+        detailsButton = CreateSpriteButton(
+            "DetailsButton", root.transform, detailsButtonSprite, new Vector2(275f, -65f), new Vector2(120f, 137f));
 
-        TMP_Text detailsLabel = CreateText("Label", detailsBtnObj.transform, "Details", 30f, Orange);
-        SetRect(detailsLabel.rectTransform, new Vector2(0f, -34f), new Vector2(140f, 40f));
-
+        // 5. Nút Get reward (xanh dương bo tròn)
         getRewardButton = CreateSpriteButton(
-            "GetRewardButton", panel.transform, normalButtonSprite, new Vector2(0f, -230f), new Vector2(320f, 158f));
-        tripleButton = CreateSpriteButton(
-            "VipTripleButton", panel.transform, tripleButtonSprite, new Vector2(0f, -405f), new Vector2(320f, 158f));
+            "GetRewardButton", root.transform, normalButtonSprite, new Vector2(0f, -270f), new Vector2(440f, 226f));
 
-        feedbackText = CreateText("FeedbackText", panel.transform, string.Empty, 24f, new Color32(255, 240, 116, 255));
-        SetRect(feedbackText.rectTransform, new Vector2(0f, -535f), new Vector2(600f, 52f));
+        // 6. Nút Get x3 reward (xanh lá bo tròn)
+        tripleButton = CreateSpriteButton(
+            "VipTripleButton", root.transform, tripleButtonSprite, new Vector2(0f, -475f), new Vector2(440f, 226f));
+
+        // 7. Feedback text
+        feedbackText = CreateText("FeedbackText", root.transform, string.Empty, 24f, new Color32(255, 240, 116, 255));
+        SetRect(feedbackText.rectTransform, new Vector2(0f, -610f), new Vector2(600f, 40f));
+
         return root;
     }
 
@@ -652,13 +689,14 @@ public static class PlayerRunEndSceneBuilder
         return border;
     }
 
-    private static TMP_Text CreateText(string name, Transform parent, string value, float size, Color color)
+    private static TMP_Text CreateText(string name, Transform parent, string value, float size, Color color, Material customMaterial = null)
     {
         GameObject go = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
         go.transform.SetParent(parent, false);
         TMP_Text text = go.GetComponent<TMP_Text>();
         text.font = font;
-        if (fontMaterial != null) text.fontSharedMaterial = fontMaterial;
+        Material mat = customMaterial != null ? customMaterial : fontMaterial;
+        if (mat != null) text.fontSharedMaterial = mat;
         text.text = value;
         text.fontSize = size;
         text.fontStyle = FontStyles.Bold;

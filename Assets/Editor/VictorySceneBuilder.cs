@@ -12,16 +12,28 @@ public static class VictorySceneBuilder
     private const string ScenePath = "Assets/Scenes/GamePlay.unity";
     private const string FontPath = "Assets/Fonts/Nunito/Nunito SDF.asset";
     private const string FontMaterialPath = "Assets/Fonts/Nunito/Nunito SDF - Stroke.mat";
+    private const string RewardStrokeMaterialPath = "Assets/Fonts/Nunito/Nunito SDF - RewardStroke.mat";
+    private const string CompleteSpritePath = "Assets/Sprites/UI/nút chapter complete.png";
     private const string CurrencyAtlasPath = "Assets/Sprites/UI/icon tài nguyên.png";
-    private const string CompletePanelPath = "Assets/Sprites/UI/UI Player/popup chapter complete.png";
-    private const string CompleteButtonsPath = "Assets/Sprites/UI/UI Player/nút màn chapter complete_game over.png";
 
-    private static readonly Color Dim = new Color32(4, 9, 13, 176);
-    private static readonly Color White = new Color32(255, 255, 255, 255);
+    private static readonly Color Dim = new Color(0f, 0f, 0f, 0.45f);
     private static readonly Color Feedback = new Color32(255, 240, 116, 255);
 
     private static TMP_FontAsset font;
     private static Material fontMaterial;
+    private static Material rewardFontMaterial;
+
+    [InitializeOnLoadMethod]
+    private static void AutoBuildOnCompile()
+    {
+        EditorApplication.delayCall += () =>
+        {
+            if (!EditorApplication.isPlayingOrWillChangePlaymode)
+            {
+                Build();
+            }
+        };
+    }
 
     [MenuItem("PGE/UI/Build Victory Panel")]
     public static void Build()
@@ -46,12 +58,21 @@ public static class VictorySceneBuilder
 
         font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath);
         fontMaterial = AssetDatabase.LoadAssetAtPath<Material>(FontMaterialPath);
-        Sprite completePanelSprite = LoadSprite(CompletePanelPath, "Complete!");
-        Sprite normalButtonSprite = LoadSpriteBySuffix(CompleteButtonsPath, "_0");
-        Sprite tripleButtonSprite = LoadSpriteBySuffix(CompleteButtonsPath, "_1");
-        if (font == null || completePanelSprite == null || normalButtonSprite == null || tripleButtonSprite == null)
+        rewardFontMaterial = AssetDatabase.LoadAssetAtPath<Material>(RewardStrokeMaterialPath);
+
+        // Load 4 sprite chuẩn từ sheet nút chapter complete.png theo đúng ảnh mẫu (Image 2)
+        Sprite completeCrestSprite = LoadSprite(CompleteSpritePath, "complete");
+        Sprite detailsButtonSprite = LoadSprite(CompleteSpritePath, "Detail");
+        Sprite normalButtonSprite = LoadSprite(CompleteSpritePath, "Get");
+        Sprite tripleButtonSprite = LoadSprite(CompleteSpritePath, "Get x3");
+
+        // Load 2 sprite icon tiền tệ từ icon tài nguyên.png
+        Sprite dataChipSprite = LoadSprite(CurrencyAtlasPath, "data");
+        Sprite redGemSprite = LoadSprite(CurrencyAtlasPath, "red");
+
+        if (completeCrestSprite == null || detailsButtonSprite == null || normalButtonSprite == null || tripleButtonSprite == null)
         {
-            Debug.LogError("[VictorySceneBuilder] Thiếu font hoặc sprite Complete. Kiểm tra Assets/Sprites/UI/UI Player.");
+            Debug.LogError("[VictorySceneBuilder] Thiếu sprite trong 'Assets/Sprites/UI/nút chapter complete.png'.");
             if (openedAdditively) EditorSceneManager.CloseScene(scene, true);
             return;
         }
@@ -60,46 +81,44 @@ public static class VictorySceneBuilder
         VictoryPanelController oldController = canvas.GetComponent<VictoryPanelController>();
         if (oldController != null) UnityEngine.Object.DestroyImmediate(oldController);
 
+        // Khung nền tối mờ phủ toàn màn hình (cho phép thấy gameplay phía sau như ảnh mẫu)
         GameObject victoryPanel = CreateOverlay("VictoryPanel", canvas.transform);
         CanvasGroup canvasGroup = victoryPanel.AddComponent<CanvasGroup>();
 
+        // Hiệu ứng pháo hoa giấy chúc mừng
         GameObject confettiObject = new GameObject("ConfettiRoot", typeof(RectTransform));
         confettiObject.transform.SetParent(victoryPanel.transform, false);
         RectTransform confettiRoot = confettiObject.GetComponent<RectTransform>();
         Stretch(confettiRoot);
 
-        GameObject panelObject = CreateImage("CompletePanel", victoryPanel.transform, completePanelSprite);
+        // 1. Huy hiệu chiến thắng có cánh vàng lớn ở trên cùng (Crest: 1237 x 1213)
+        GameObject panelObject = CreateImage("CompletePanel", victoryPanel.transform, completeCrestSprite);
         RectTransform resultCard = panelObject.GetComponent<RectTransform>();
-        SetRect(resultCard, new Vector2(0f, -8f), new Vector2(780f, 1218f));
+        SetRect(resultCard, new Vector2(0f, 390f), new Vector2(720f, 706f));
 
-        RectTransform dataRow = BuildRewardRow(panelObject.transform, "DataChipReward", new Vector2(-110f, 135f),
-            LoadSprite(CurrencyAtlasPath, "data"), out TMP_Text dataRewardText);
-        RectTransform gemRow = BuildRewardRow(panelObject.transform, "RedGemReward", new Vector2(-110f, 10f),
-            LoadSprite(CurrencyAtlasPath, "red"), out TMP_Text gemRewardText);
+        // 2. Dòng thưởng Data Chip (Icon tím DATA + chữ Get 1758 font đậm viền đen dày chuẩn mẫu)
+        RectTransform dataRow = BuildRewardRow(
+            victoryPanel.transform, "DataChipReward", new Vector2(-15f, 25f), dataChipSprite, "Get 1758", out TMP_Text dataChipRewardText);
 
-        // Details Button (Icon biểu đồ + Chữ Details màu cam)
-        GameObject detailsBtnObj = new GameObject("DetailsButton", typeof(RectTransform), typeof(Image), typeof(Button));
-        detailsBtnObj.transform.SetParent(panelObject.transform, false);
-        SetRect(detailsBtnObj.GetComponent<RectTransform>(), new Vector2(175f, 72f), new Vector2(140f, 180f));
-        Image detailsBtnImg = detailsBtnObj.GetComponent<Image>();
-        detailsBtnImg.color = Color.clear;
-        detailsBtnImg.raycastTarget = true;
-        Button detailsButton = detailsBtnObj.GetComponent<Button>();
+        // 3. Dòng thưởng Red Gem (Icon ngọc đỏ + chữ Get 20 font đậm viền đen dày chuẩn mẫu)
+        RectTransform redGemRow = BuildRewardRow(
+            victoryPanel.transform, "RedGemReward", new Vector2(-15f, -90f), redGemSprite, "Get 20", out TMP_Text redGemRewardText);
 
-        Sprite chartSprite = LoadSprite("Assets/Sprites/UI/icon-damage-details.png", "icon-damage-details");
-        GameObject chartIconObj = CreateImage("Icon", detailsBtnObj.transform, chartSprite);
-        SetRect(chartIconObj.GetComponent<RectTransform>(), new Vector2(0f, 28f), new Vector2(72f, 72f));
+        // 4. Nút Details (biểu đồ + chữ Details) đặt lệch sang bên phải ngay cạnh dòng Red Gem
+        Button detailsButton = CreateSpriteButton(
+            "DetailsButton", victoryPanel.transform, detailsButtonSprite, new Vector2(275f, -65f), new Vector2(120f, 133f));
 
-        TMP_Text detailsLabel = CreateText("Label", detailsBtnObj.transform, "Details", 30f, new Color32(255, 160, 32, 255));
-        SetRect(detailsLabel.rectTransform, new Vector2(0f, -34f), new Vector2(140f, 40f));
-
+        // 5. Nút Get reward (xanh dương bo tròn có chữ Get reward)
         Button normalButton = CreateSpriteButton(
-            "GetRewardButton", panelObject.transform, normalButtonSprite, new Vector2(0f, -230f), new Vector2(320f, 158f));
-        Button tripleButton = CreateSpriteButton(
-            "VipTripleButton", panelObject.transform, tripleButtonSprite, new Vector2(0f, -405f), new Vector2(320f, 158f));
+            "GetRewardButton", victoryPanel.transform, normalButtonSprite, new Vector2(0f, -270f), new Vector2(440f, 224f));
 
-        TMP_Text feedbackText = CreateText("FeedbackText", panelObject.transform, string.Empty, 24f, Feedback);
-        SetRect(feedbackText.rectTransform, new Vector2(0f, -535f), new Vector2(600f, 52f));
+        // 6. Nút Get x3 reward (xanh lá bo tròn có chữ Get x3 reward)
+        Button tripleButton = CreateSpriteButton(
+            "VipTripleButton", victoryPanel.transform, tripleButtonSprite, new Vector2(0f, -475f), new Vector2(440f, 224f));
+
+        // Text thông báo ẩn khi cần (feedback)
+        TMP_Text feedbackText = CreateText("FeedbackText", victoryPanel.transform, string.Empty, 24f, Feedback);
+        SetRect(feedbackText.rectTransform, new Vector2(0f, -610f), new Vector2(600f, 40f));
 
         DamageDetailsPopup damageDetailsPopup = canvas.GetComponentInChildren<DamageDetailsPopup>(true);
         if (damageDetailsPopup == null)
@@ -115,8 +134,8 @@ public static class VictorySceneBuilder
         serialized.FindProperty("panelCanvasGroup").objectReferenceValue = canvasGroup;
         serialized.FindProperty("resultCard").objectReferenceValue = resultCard;
         serialized.FindProperty("confettiRoot").objectReferenceValue = confettiRoot;
-        serialized.FindProperty("dataChipRewardText").objectReferenceValue = dataRewardText;
-        serialized.FindProperty("redGemRewardText").objectReferenceValue = gemRewardText;
+        serialized.FindProperty("dataChipRewardText").objectReferenceValue = dataChipRewardText;
+        serialized.FindProperty("redGemRewardText").objectReferenceValue = redGemRewardText;
         serialized.FindProperty("detailsButton").objectReferenceValue = detailsButton;
         serialized.FindProperty("damageDetailsPopup").objectReferenceValue = damageDetailsPopup;
         serialized.FindProperty("feedbackText").objectReferenceValue = feedbackText;
@@ -126,8 +145,8 @@ public static class VictorySceneBuilder
         SerializedProperty stagedItems = serialized.FindProperty("stagedRevealItems");
         stagedItems.arraySize = 5;
         stagedItems.GetArrayElementAtIndex(0).objectReferenceValue = dataRow;
-        stagedItems.GetArrayElementAtIndex(1).objectReferenceValue = gemRow;
-        stagedItems.GetArrayElementAtIndex(2).objectReferenceValue = detailsBtnObj.GetComponent<RectTransform>();
+        stagedItems.GetArrayElementAtIndex(1).objectReferenceValue = redGemRow;
+        stagedItems.GetArrayElementAtIndex(2).objectReferenceValue = detailsButton.GetComponent<RectTransform>();
         stagedItems.GetArrayElementAtIndex(3).objectReferenceValue = normalButton.GetComponent<RectTransform>();
         stagedItems.GetArrayElementAtIndex(4).objectReferenceValue = tripleButton.GetComponent<RectTransform>();
         serialized.ApplyModifiedPropertiesWithoutUndo();
@@ -141,25 +160,29 @@ public static class VictorySceneBuilder
         EditorSceneManager.SaveScene(scene);
         AssetDatabase.SaveAssets();
         if (openedAdditively) EditorSceneManager.CloseScene(scene, true);
-        Debug.Log("[VictorySceneBuilder] Đã setup popup COMPLETE theo reference và liên kết reward buttons.");
+        Debug.Log("[VictorySceneBuilder] Đã dựng VictoryPanel hoàn toàn theo ảnh mẫu Image 2 (Crest cánh vàng + Data/Gem rows + Details + 2 nút Get Reward).");
     }
 
-    private static RectTransform BuildRewardRow(Transform parent, string name, Vector2 position, Sprite iconSprite, out TMP_Text rewardText)
+    private static RectTransform BuildRewardRow(Transform parent, string name, Vector2 position, Sprite iconSprite, string defaultText, out TMP_Text rewardText)
     {
         GameObject row = new GameObject(name, typeof(RectTransform));
         row.transform.SetParent(parent, false);
         RectTransform rowRect = row.GetComponent<RectTransform>();
-        SetRect(rowRect, position, new Vector2(340f, 118f));
+        SetRect(rowRect, position, new Vector2(440f, 110f));
 
         GameObject iconObject = CreateImage("Icon", row.transform, iconSprite);
         Image icon = iconObject.GetComponent<Image>();
         icon.preserveAspect = true;
         icon.raycastTarget = false;
-        SetRect(icon.rectTransform, new Vector2(-95f, 0f), new Vector2(88f, 88f));
+        SetRect(icon.rectTransform, new Vector2(-130f, 0f), new Vector2(96f, 96f));
 
-        rewardText = CreateText("Value", row.transform, "Get 0", 44f, White);
+        Material mat = rewardFontMaterial != null ? rewardFontMaterial : fontMaterial;
+        rewardText = CreateText("Value", row.transform, defaultText, 68f, Color.white, mat);
         rewardText.alignment = TextAlignmentOptions.Left;
-        SetRect(rewardText.rectTransform, new Vector2(55f, 0f), new Vector2(210f, 95f));
+        rewardText.fontStyle = FontStyles.Bold;
+        rewardText.fontWeight = FontWeight.Bold;
+        rewardText.extraPadding = true;
+        SetRect(rewardText.rectTransform, new Vector2(55f, 0f), new Vector2(290f, 100f));
         return rowRect;
     }
 
@@ -202,17 +225,20 @@ public static class VictorySceneBuilder
         return go;
     }
 
-    private static TMP_Text CreateText(string name, Transform parent, string value, float size, Color color)
+    private static TMP_Text CreateText(string name, Transform parent, string value, float size, Color color, Material customMaterial = null)
     {
         GameObject go = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
         go.transform.SetParent(parent, false);
         TMP_Text text = go.GetComponent<TMP_Text>();
         text.font = font;
-        if (fontMaterial != null) text.fontSharedMaterial = fontMaterial;
+        Material mat = customMaterial != null ? customMaterial : fontMaterial;
+        if (mat != null) text.fontSharedMaterial = mat;
         text.text = value;
         text.fontSize = size;
         text.fontStyle = FontStyles.Bold;
+        text.fontWeight = FontWeight.Bold;
         text.color = color;
+        text.extraPadding = true;
         text.alignment = TextAlignmentOptions.Center;
         return text;
     }
@@ -232,27 +258,19 @@ public static class VictorySceneBuilder
         UnityEngine.Object[] assets = AssetDatabase.LoadAllAssetsAtPath(path);
         for (int i = 0; i < assets.Length; i++)
         {
-            if (assets[i] is Sprite sprite && sprite.name.EndsWith(suffix, StringComparison.Ordinal)) return sprite;
+            if (assets[i] is Sprite sprite && sprite.name.EndsWith(suffix, StringComparison.OrdinalIgnoreCase)) return sprite;
         }
         return null;
     }
 
-    private static void SetRect(RectTransform rect, Vector2 position, Vector2 size)
+    private static GameObject FindRootObject(Scene scene, string name)
     {
-        rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
-        rect.pivot = new Vector2(0.5f, 0.5f);
-        rect.anchoredPosition = position;
-        rect.sizeDelta = size;
-        rect.localScale = Vector3.one;
-    }
-
-    private static void Stretch(RectTransform rect)
-    {
-        rect.anchorMin = Vector2.zero;
-        rect.anchorMax = Vector2.one;
-        rect.offsetMin = Vector2.zero;
-        rect.offsetMax = Vector2.zero;
-        rect.localScale = Vector3.one;
+        GameObject[] roots = scene.GetRootGameObjects();
+        for (int i = 0; i < roots.Length; i++)
+        {
+            if (roots[i].name == name) return roots[i];
+        }
+        return null;
     }
 
     private static void RemoveExisting(Transform parent, string name)
@@ -261,15 +279,22 @@ public static class VictorySceneBuilder
         if (child != null) UnityEngine.Object.DestroyImmediate(child.gameObject);
     }
 
-    private static GameObject FindRootObject(Scene scene, string objectName)
+    private static void Stretch(RectTransform rect)
     {
-        if (!scene.IsValid()) return null;
-        GameObject[] roots = scene.GetRootGameObjects();
-        for (int i = 0; i < roots.Length; i++)
-        {
-            if (roots[i].name == objectName) return roots[i];
-        }
-        return null;
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+    }
+
+    private static void SetRect(RectTransform rect, Vector2 position, Vector2 size)
+    {
+        rect.anchorMin = new Vector2(0.5f, 0.5f);
+        rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = position;
+        rect.sizeDelta = size;
+        rect.localScale = Vector3.one;
     }
 }
 #endif

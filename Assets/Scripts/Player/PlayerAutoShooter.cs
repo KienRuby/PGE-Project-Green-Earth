@@ -139,6 +139,13 @@ public class PlayerAutoShooter : MonoBehaviour
         set => artifactDamageMultiplier = Mathf.Max(0.1f, value);
     }
 
+    private float artifactCritBonus = 0f;
+    public float ArtifactCritBonus
+    {
+        get => artifactCritBonus;
+        set => artifactCritBonus = Mathf.Max(0f, value);
+    }
+
     public WeaponData CurrentEquippedWeapon => currentEquippedWeapon;
     public bool IsAttacking { get; private set; }
     public int CurrentDamage => Mathf.RoundToInt((currentDamage + bonusDamage) * artifactDamageMultiplier);
@@ -979,7 +986,8 @@ public class PlayerAutoShooter : MonoBehaviour
             if (projectileScript != null)
             {
                 int finalDamage = Mathf.Max(1, damage);
-                if (sourceCritChance > 0f && Random.value < Mathf.Clamp01(sourceCritChance))
+                float totalCrit = Mathf.Clamp01(sourceCritChance + artifactCritBonus);
+                if (totalCrit > 0f && Random.value < totalCrit)
                 {
                     finalDamage = Mathf.RoundToInt(finalDamage * 1.5f);
                 }

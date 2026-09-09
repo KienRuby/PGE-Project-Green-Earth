@@ -127,6 +127,16 @@ public class ChipsetChoiceCardUI : MonoBehaviour
         if (selectButton != null) selectButton.interactable = enabled && boundData != null;
     }
 
+    public void UpdateDescription(string newDescription)
+    {
+        if (descriptionText != null)
+        {
+            descriptionText.text = string.IsNullOrWhiteSpace(newDescription)
+                ? boundData?.description ?? string.Empty
+                : newDescription;
+        }
+    }
+
     private void HandleClicked()
     {
         if (boundData != null) onSelected?.Invoke(boundData);

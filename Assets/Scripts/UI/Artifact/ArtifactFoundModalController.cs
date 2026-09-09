@@ -77,11 +77,40 @@ public class ArtifactFoundModalController : MonoBehaviour
     [Tooltip("Nút nhận cổ vật (Get).")]
     [SerializeField] private Button getButton;
 
+    public void ConfigureReferences(
+        GameObject root,
+        Image dimBg,
+        SunburstRayEffect sunburst,
+        TMP_Text title,
+        Image frame,
+        Image icon,
+        TMP_Text label,
+        TMP_Text nameTxt,
+        TMP_Text lore,
+        TMP_Text stat,
+        Button throwBtn,
+        Button getBtn)
+    {
+        modalRoot = root;
+        dimBackground = dimBg;
+        sunburstEffect = sunburst;
+        titleText = title;
+        badgeFrame = frame;
+        iconImage = icon;
+        artifactLabelText = label;
+        artifactNameText = nameTxt;
+        loreText = lore;
+        statBuffText = stat;
+        throwAwayButton = throwBtn;
+        getButton = getBtn;
+    }
+
     private float previousTimeScale = 1f;
     private bool ownsTimeScale = false;
     private Action onGetCallback;
     private Action onThrowAwayCallback;
     private ArtifactData currentArtifact;
+    private bool isShowing = false;
 
     private void Awake()
     {
@@ -107,8 +136,8 @@ public class ArtifactFoundModalController : MonoBehaviour
             getButton.onClick.AddListener(OnGetClicked);
         }
 
-        // Mặc định ẩn popup khi bắt đầu game
-        if (modalRoot != null)
+        // Chỉ ẩn nếu không phải đang trong quá trình Show()
+        if (modalRoot != null && !isShowing)
         {
             modalRoot.SetActive(false);
         }
@@ -138,6 +167,13 @@ public class ArtifactFoundModalController : MonoBehaviour
         {
             Debug.LogError("[ArtifactFoundModalController] Gọi Show với Artifact null!");
             return;
+        }
+
+        isShowing = true;
+
+        if (modalRoot == null)
+        {
+            modalRoot = gameObject;
         }
 
         currentArtifact = artifact;
@@ -190,6 +226,7 @@ public class ArtifactFoundModalController : MonoBehaviour
             {
                 EnsurePlaceholderIcon(iconImage, artifact);
             }
+            iconImage.preserveAspect = true;
         }
 
         // Cập nhật màu sắc viền thẻ
@@ -198,17 +235,37 @@ public class ArtifactFoundModalController : MonoBehaviour
             badgeFrame.color = artifact.badgeBorderColor;
         }
 
-        // 3. Kích hoạt Modal
-        if (modalRoot != null)
+        // Đảm bảo các nút bấm luôn bắt sự kiện
+        if (throwAwayButton != null)
         {
-            modalRoot.transform.SetAsLastSibling();
-            modalRoot.SetActive(true);
+            throwAwayButton.onClick.RemoveAllListeners();
+            throwAwayButton.onClick.AddListener(OnThrowAwayClicked);
+        }
+
+        if (getButton != null)
+        {
+            getButton.onClick.RemoveAllListeners();
+            getButton.onClick.AddListener(OnGetClicked);
+        }
+
+        // 3. Kích hoạt Modal
+        modalRoot.transform.SetAsLastSibling();
+        modalRoot.SetActive(true);
+
+        CanvasGroup cg = modalRoot.GetComponent<CanvasGroup>();
+        if (cg != null)
+        {
+            cg.alpha = 1f;
+            cg.interactable = true;
+            cg.blocksRaycasts = true;
         }
 
         if (sunburstEffect != null)
         {
             sunburstEffect.EnsureRayGraphic();
         }
+
+        Debug.Log($"[ArtifactFoundModalController] 🎉 ĐÃ MỞ BẢNG CỔ VẬT: {artifact.artifactName} - {artifact.GetFormattedStatText()}");
     }
 
     /// <summary>
@@ -263,6 +320,7 @@ public class ArtifactFoundModalController : MonoBehaviour
     /// </summary>
     public void Hide()
     {
+        isShowing = false;
         if (modalRoot != null)
         {
             modalRoot.SetActive(false);
@@ -311,6 +369,17 @@ public class ArtifactFoundModalController : MonoBehaviour
         {
             Debug.LogError("[ArtifactFoundModalController] Không tìm thấy Canvas để khởi tạo Modal!");
             return null;
+        }
+
+        GameObject prefab = Resources.Load<GameObject>("UI/ArtifactFoundModal");
+        if (prefab != null)
+        {
+            GameObject instance = Instantiate(prefab, targetCanvas.transform, false);
+            instance.name = "ArtifactFoundModal";
+            ArtifactFoundModalController ctrl = instance.GetComponent<ArtifactFoundModalController>();
+            runtimeInstance = ctrl;
+            instance.SetActive(false);
+            return ctrl;
         }
 
         return CreateRuntimeModal(targetCanvas.transform as RectTransform);

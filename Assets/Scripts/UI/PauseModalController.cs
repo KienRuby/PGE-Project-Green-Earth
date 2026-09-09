@@ -1947,13 +1947,24 @@ public class PauseModalController : MonoBehaviour
     private void UpdateArtifactSlotVisualInEditor(GameObject slot, int index)
     {
         if (slot == null) return;
+        int maxSlots = ArtifactDatabase.Instance != null && ArtifactDatabase.Instance.artifacts != null && ArtifactDatabase.Instance.artifacts.Count > 0
+            ? ArtifactDatabase.Instance.artifacts.Count
+            : 7;
+
+        if (index >= maxSlots)
+        {
+            slot.SetActive(false);
+            return;
+        }
+
         Image iconImg = GetSlotImage(slot);
         if (iconImg != null)
         {
             iconImg.enabled = true;
-            if (iconImg.sprite == null)
+            Sprite fallback = GetArtifactFallbackByIndex(index);
+            if (fallback != null)
             {
-                iconImg.sprite = GetArtifactFallbackByIndex(index);
+                iconImg.sprite = fallback;
             }
             if (iconImg.color.a < 0.1f)
             {
@@ -1989,45 +2000,61 @@ public class PauseModalController : MonoBehaviour
 
     private Sprite GetArtifactFallbackSprite(ArtifactStatType statType)
     {
-        switch (statType)
+        if (ArtifactDatabase.Instance != null && ArtifactDatabase.Instance.artifacts != null)
         {
-            case ArtifactStatType.MaxHealthPercent:
-                return LoadArtifactSprite("spare_battery");
-            case ArtifactStatType.RangedDefensePercent:
-                return LoadArtifactSprite("carbon_scales");
-            case ArtifactStatType.TurretAttackSpeedPercent:
-                return LoadArtifactSprite("strong_cooler");
-            case ArtifactStatType.AllWeaponsDamagePercent:
-                return LoadArtifactSprite("kung_fu_usb");
-            default:
-                return LoadArtifactSprite("artifact_slot_5");
+            var matched = ArtifactDatabase.Instance.artifacts.Find(a => a != null && a.statType == statType);
+            if (matched != null && matched.icon != null)
+            {
+                return matched.icon;
+            }
         }
+        return GetArtifactFallbackByIndex(0);
     }
 
     private Sprite GetArtifactFallbackByIndex(int index)
     {
+        if (ArtifactDatabase.Instance != null && ArtifactDatabase.Instance.artifacts != null && ArtifactDatabase.Instance.artifacts.Count > 0)
+        {
+            int safeIdx = Mathf.Clamp(index, 0, ArtifactDatabase.Instance.artifacts.Count - 1);
+            if (ArtifactDatabase.Instance.artifacts[safeIdx] != null && ArtifactDatabase.Instance.artifacts[safeIdx].icon != null)
+            {
+                return ArtifactDatabase.Instance.artifacts[safeIdx].icon;
+            }
+        }
+
         string[] names = new string[]
         {
-            "spare_battery",
-            "carbon_scales",
-            "strong_cooler",
-            "kung_fu_usb",
-            "artifact_slot_5",
-            "artifact_slot_6",
-            "artifact_slot_7"
+            "Artifact_CD",
+            "Artifact_Lego",
+            "Artifact_USB",
+            "Artifact_Butter",
+            "Artifact_Cooler",
+            "Artifact_Rocket",
+            "Artifact_Chip"
         };
         int idx = Mathf.Clamp(index, 0, names.Length - 1);
-        return LoadArtifactSprite(names[idx]);
+        return LoadArtifactSpriteFromSheet(names[idx]);
+    }
+
+    private Sprite LoadArtifactSpriteFromSheet(string spriteName)
+    {
+#if UNITY_EDITOR
+        string path = "Assets/Sprites/UI/nút artifact.png";
+        var sprites = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(path);
+        foreach (var obj in sprites)
+        {
+            if (obj is Sprite s && string.Equals(s.name, spriteName, StringComparison.OrdinalIgnoreCase))
+            {
+                return s;
+            }
+        }
+#endif
+        return null;
     }
 
     private Sprite LoadArtifactSprite(string spriteName)
     {
-#if UNITY_EDITOR
-        string path = $"Assets/Sprites/UI/Artifact/{spriteName}.png";
-        Sprite s = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(path);
-        if (s != null) return s;
-#endif
-        return Resources.Load<Sprite>($"Artifacts/{spriteName}") ?? Resources.Load<Sprite>(spriteName);
+        return LoadArtifactSpriteFromSheet(spriteName);
     }
 
     public void SetArtifactIconSlotsForTesting(params GameObject[] slots)
