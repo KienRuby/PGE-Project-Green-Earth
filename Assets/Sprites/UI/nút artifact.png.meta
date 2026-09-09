@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 46057652adfb23646b92e7503cbcbebb
+guid: ccc3b1339ec55ce4e90b81b63d9b4329
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -69,7 +69,7 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 3
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 2048
+    maxTextureSize: 4096
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -110,13 +110,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: openLocke
+      name: Artifact_CD
       rect:
         serializedVersion: 2
-        x: 195
-        y: 2282
-        width: 282
-        height: 352
+        x: 496
+        y: 2903
+        width: 700
+        height: 842
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -124,20 +124,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: e9e3f5ba40c125944b5b9ef2141c87c1
-      internalID: -1237631593
+      spriteID: 3bfbe96f12574474dbc50d2c1f1c2256
+      internalID: -1940148266
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: drone-spider
+      name: Artifact_Lego
       rect:
         serializedVersion: 2
-        x: 935
-        y: 2434
-        width: 192
-        height: 192
+        x: 1266
+        y: 2903
+        width: 700
+        height: 842
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -145,20 +145,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: e7d4c9c47e8bbf64387daf843eea9111
-      internalID: -436103723
+      spriteID: 5dd5255c74f44534a9e15579320ef694
+      internalID: -151499625
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: drone-cross-visor
+      name: Artifact_USB
       rect:
         serializedVersion: 2
-        x: 1827
-        y: 2434
-        width: 192
-        height: 192
+        x: 496
+        y: 2003
+        width: 700
+        height: 842
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -166,20 +166,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 3f5e2aa7f635d044783d1d1f857f3b67
-      internalID: -326532469
+      spriteID: 373051bfa1d048c48a0b871fc7b9a75b
+      internalID: -1402166991
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: drone-antenna-eye
+      name: Artifact_Butter
       rect:
         serializedVersion: 2
-        x: 1559
-        y: 2434
-        width: 192
-        height: 192
+        x: 1266
+        y: 2003
+        width: 700
+        height: 842
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -187,20 +187,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: bf02ed1fef5396242b019e3fbe9fcfcc
-      internalID: -40828008
+      spriteID: 9954ac81de5fae44982edc4f3835c11e
+      internalID: 552983822
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: drone-snowflake
+      name: Artifact_Cooler
       rect:
         serializedVersion: 2
-        x: 603
-        y: 2434
-        width: 192
-        height: 192
+        x: 496
+        y: 1101
+        width: 700
+        height: 842
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -208,20 +208,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 9bd7f6c896807504fad7c633ba62ff2b
-      internalID: 1258304572
+      spriteID: d226dff843d69ab40a8128be3d998424
+      internalID: 125025782
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: drone-stealth-wing
+      name: Artifact_Rocket
       rect:
         serializedVersion: 2
-        x: 1226
-        y: 2434
-        width: 192
-        height: 192
+        x: 1257
+        y: 1101
+        width: 700
+        height: 842
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -229,20 +229,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: d017165f245ae9643809c77db754d086
-      internalID: 701475079
+      spriteID: ed562350fe3a93340987212d26e028a3
+      internalID: -1126293469
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Quantity
+      name: Btn_ThrowAway
       rect:
         serializedVersion: 2
-        x: 227
-        y: 2141
-        width: 222
-        height: 47
+        x: 298
+        y: 616
+        width: 654
+        height: 298
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -250,20 +250,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: b928847ca2ad0e94d87a65917912eaa7
-      internalID: 136814939
+      spriteID: 81b807162faeb4a46bd30f0155d1a63a
+      internalID: 1205750065
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Locke
+      name: Btn_Get
       rect:
         serializedVersion: 2
-        x: 195
-        y: 1476
-        width: 282
-        height: 352
+        x: 298
+        y: 219
+        width: 652
+        height: 298
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -271,8 +271,29 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: d4e07d130c78f1a4ca2e73450b078b95
-      internalID: -882864043
+      spriteID: 36da85e54d32809449f08a5611bd5b39
+      internalID: 1332071254
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Artifact_Chip
+      rect:
+        serializedVersion: 2
+        x: 1277
+        y: 217
+        width: 700
+        height: 842
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 03bd19bb6e6391e4f9de9d46c5094bd4
+      internalID: -1560817711
       vertices: []
       indices: 
       edges: []
@@ -288,59 +309,15 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      Locke: -882864043
-      Quantity: 136814939
-      drone-antenna-eye: -40828008
-      drone-cross-visor: -326532469
-      drone-snowflake: 1258304572
-      drone-spider: -436103723
-      drone-stealth-wing: 701475079
-      icon buddy_0: 886653792
-      icon buddy_1: -1408744375
-      icon buddy_10: 1846278327
-      icon buddy_11: -1336192251
-      icon buddy_13: -2118763683
-      icon buddy_14: 377583473
-      icon buddy_15: -1993745384
-      icon buddy_16: 1724976412
-      icon buddy_18: -980981747
-      icon buddy_19: 1330242444
-      icon buddy_2: 1092701132
-      icon buddy_20: -542502410
-      icon buddy_21: -1150169329
-      icon buddy_24: -1814747745
-      icon buddy_25: 269679120
-      icon buddy_26: 1633380472
-      icon buddy_27: 93535324
-      icon buddy_28: 500901293
-      icon buddy_29: 475954212
-      icon buddy_3: 640743852
-      icon buddy_30: -1322598505
-      icon buddy_31: -876594304
-      icon buddy_32: -1427987182
-      icon buddy_33: -948011835
-      icon buddy_34: -1220282141
-      icon buddy_35: 1574671913
-      icon buddy_36: -1375586118
-      icon buddy_37: -322896965
-      icon buddy_38: -118520979
-      icon buddy_39: -2073562968
-      icon buddy_4: 3188880
-      icon buddy_40: 2015315018
-      icon buddy_42: 1979466763
-      icon buddy_43: -797014701
-      icon buddy_44: -617458147
-      icon buddy_45: -1863570749
-      icon buddy_46: -1418073576
-      icon buddy_48: 1217088615
-      icon buddy_49: -271256728
-      icon buddy_5: 1579849190
-      icon buddy_50: 231556257
-      icon buddy_51: -443249448
-      icon buddy_52: 1470943459
-      icon buddy_7: 1929381126
-      icon buddy_8: -120313313
-      openLocke: -1237631593
+      CD: -1940148266
+      Chip: -1560817711
+      LEGO: -151499625
+      Phao: -1126293469
+      Phomai: 552983822
+      Quat: 125025782
+      USB: -1402166991
+      "n\xFAt artifact_6": 1205750065
+      "n\xFAt artifact_7": 1332071254
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

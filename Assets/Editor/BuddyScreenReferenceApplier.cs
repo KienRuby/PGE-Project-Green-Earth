@@ -18,7 +18,7 @@ public static class BuddyScreenReferenceApplier
     private const string MainMenuScenePath = "Assets/Scenes/MainMenu.unity";
     private const string IconSheetPath = "Assets/Sprites/UI/Buddy/icon buddy.png";
     private const string ButtonSheetPath = "Assets/Sprites/UI/Buddy/nút màn buddy.png";
-    private const string AppliedKey = "PGE.BuddyScreenReferenceApplier.v5";
+    private const string AppliedKey = "PGE.BuddyScreenReferenceApplier.v6";
 
     static BuddyScreenReferenceApplier()
     {
@@ -46,7 +46,6 @@ public static class BuddyScreenReferenceApplier
         AssetDatabase.ImportAsset(IconSheetPath, ImportAssetOptions.ForceSynchronousImport);
         AssetDatabase.ImportAsset(ButtonSheetPath, ImportAssetOptions.ForceSynchronousImport);
 
-        // Import đồng bộ có thể kéo dài đủ lâu để người dùng bấm Play giữa chừng.
         if (EditorApplication.isPlayingOrWillChangePlaymode) return;
 
         Dictionary<string, Sprite> sourceIcons = LoadSprites(IconSheetPath);
@@ -83,6 +82,9 @@ public static class BuddyScreenReferenceApplier
             {
                 ApplyControllerSprites(controller, sourceIcons, sourceButtons);
                 ApplyHierarchyVisuals(controller, sourceIcons, sourceButtons);
+                controller.AutoWireSlotIconBuddyIfMissing();
+                controller.AutoWireDetailModalReferencesIfMissing();
+                controller.InitializeDatabase();
                 EditorUtility.SetDirty(controller);
             }
 
@@ -123,14 +125,34 @@ public static class BuddyScreenReferenceApplier
             icons.GetArrayElementAtIndex(i).objectReferenceValue = sprite;
         }
 
+        // Frame Sprites: 6 tiers: Common (Green), Magic (Blue), Rare (Purple), Unique (Yellow), Epic (Yellow), Holographic (Red)
+        Sprite frameGreen = sourceIcons.TryGetValue("openLocke", out var g) ? g : null;
+        Sprite frameBlue = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Buddy/openLocke_Blue.png") ?? frameGreen;
+        Sprite framePurple = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Buddy/openLocke_Purple.png") ?? frameGreen;
+        Sprite frameYellow = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Buddy/openLocke_Yellow.png") ?? frameGreen;
+        Sprite frameRed = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Buddy/openLocke_Red.png") ?? frameGreen;
+
         SerializedProperty frames = serialized.FindProperty("frameSprites");
-        frames.arraySize = 4;
-        frames.GetArrayElementAtIndex(0).objectReferenceValue = sourceIcons["openLocke"];
-        frames.GetArrayElementAtIndex(1).objectReferenceValue = sourceIcons["openLocke"];
-        frames.GetArrayElementAtIndex(2).objectReferenceValue = sourceIcons["openLocke"];
-        frames.GetArrayElementAtIndex(3).objectReferenceValue = sourceIcons["openLocke"];
+        frames.arraySize = 6;
+        frames.GetArrayElementAtIndex(0).objectReferenceValue = frameGreen;
+        frames.GetArrayElementAtIndex(1).objectReferenceValue = frameBlue;
+        frames.GetArrayElementAtIndex(2).objectReferenceValue = framePurple;
+        frames.GetArrayElementAtIndex(3).objectReferenceValue = frameYellow;
+        frames.GetArrayElementAtIndex(4).objectReferenceValue = frameYellow;
+        frames.GetArrayElementAtIndex(5).objectReferenceValue = frameRed;
+
         serialized.FindProperty("emptySlotFrameSprite").objectReferenceValue = sourceButtons["Empty"];
         serialized.FindProperty("lockedSlotFrameSprite").objectReferenceValue = sourceIcons["Locke"];
+
+        // Tier Lock Sprites
+        string chipsetPath = "Assets/Sprites/UI/Chipset/khung chipset.png";
+        var csSprites = AssetDatabase.LoadAllAssetsAtPath(chipsetPath).OfType<Sprite>().ToArray();
+        SerializedProperty lockTierProps = serialized.FindProperty("lockTierSprites");
+        lockTierProps.arraySize = 4;
+        lockTierProps.GetArrayElementAtIndex(0).objectReferenceValue = csSprites?.FirstOrDefault(s => s.name.Equals("Lock_Blue", StringComparison.OrdinalIgnoreCase));
+        lockTierProps.GetArrayElementAtIndex(1).objectReferenceValue = csSprites?.FirstOrDefault(s => s.name.Equals("Lock_Purple", StringComparison.OrdinalIgnoreCase));
+        lockTierProps.GetArrayElementAtIndex(2).objectReferenceValue = csSprites?.FirstOrDefault(s => s.name.Equals("Lock_Yellow", StringComparison.OrdinalIgnoreCase));
+        lockTierProps.GetArrayElementAtIndex(3).objectReferenceValue = csSprites?.FirstOrDefault(s => s.name.Equals("Lock_Red", StringComparison.OrdinalIgnoreCase));
 
         SetImageSprite(serialized.FindProperty("droneModeBg").objectReferenceValue as Image, sourceButtons["Drone"]);
         SetImageSprite(serialized.FindProperty("robotPetModeBg").objectReferenceValue as Image, sourceButtons["Robot Pet On"]);
@@ -142,6 +164,119 @@ public static class BuddyScreenReferenceApplier
         ClearText(serialized.FindProperty("preset1Text").objectReferenceValue as TMP_Text);
         ClearText(serialized.FindProperty("preset2Text").objectReferenceValue as TMP_Text);
         ClearText(serialized.FindProperty("preset3Text").objectReferenceValue as TMP_Text);
+
+        // Update Drone 1 in allBuddies to Sloy (Rare, LV.8, 8/9, 3500 cost)
+        SerializedProperty allBuddiesProp = serialized.FindProperty("allBuddies");
+        if (allBuddiesProp != null && allBuddiesProp.arraySize > 0)
+        {
+            SerializedProperty drone0 = allBuddiesProp.GetArrayElementAtIndex(0);
+            drone0.FindPropertyRelative("buddyName").stringValue = "Sloy";
+            drone0.FindPropertyRelative("iconKey").stringValue = "drone-snowflake";
+            drone0.FindPropertyRelative("tier").enumValueIndex = (int)BuddyTier.Common;
+            drone0.FindPropertyRelative("level").intValue = 8;
+            drone0.FindPropertyRelative("count").intValue = 8;
+            drone0.FindPropertyRelative("requiredCount").intValue = 9;
+            drone0.FindPropertyRelative("enhanceCost").intValue = 3500;
+            drone0.FindPropertyRelative("description").stringValue = "Fires shells that slow down enemies.";
+            drone0.FindPropertyRelative("baseStatText").stringValue = "Drone ATK 20.4, Slow ATK Speed";
+        }
+
+        // Auto-wire SlotIconBuddy (5 slots)
+        Transform slotIconBuddy = FindDeep(controller.transform, "SlotIconBuddy");
+        if (slotIconBuddy != null)
+        {
+            serialized.FindProperty("slotIconBuddyContainer").objectReferenceValue = slotIconBuddy;
+            SerializedProperty equippedSlotsProp = serialized.FindProperty("equippedSlots");
+            equippedSlotsProp.arraySize = 5;
+
+            string[] slotNames = { "drone-snowflake", "drone-spider", "drone-stealth-wing", "drone-antenna-eye", "drone-cross-visor" };
+            for (int i = 0; i < 5; i++)
+            {
+                Transform slotT = slotIconBuddy.Find(slotNames[i]);
+                if (slotT == null && i < slotIconBuddy.childCount) slotT = slotIconBuddy.GetChild(i);
+                if (slotT != null)
+                {
+                    BuddyCardUI card = slotT.GetComponent<BuddyCardUI>() ?? slotT.gameObject.AddComponent<BuddyCardUI>();
+                    Button btn = slotT.GetComponent<Button>() ?? slotT.gameObject.AddComponent<Button>();
+                    equippedSlotsProp.GetArrayElementAtIndex(i).objectReferenceValue = card;
+                }
+            }
+        }
+
+        // Auto-wire BuddyDetailModal
+        Transform detailModalT = FindDeep(controller.transform, "BuddyDetailModal") ?? FindDeep(controller.transform.root, "BuddyDetailModal");
+        if (detailModalT != null)
+        {
+            serialized.FindProperty("detailModal").objectReferenceValue = detailModalT.gameObject;
+            Transform modalBox = detailModalT.Find("ModalBox") ?? detailModalT;
+
+            // TopCard / IconFrame
+            Transform topCardT = modalBox.Find("TopCard") ?? modalBox.Find("IconFrame");
+            if (topCardT != null)
+            {
+                var oldChipset = topCardT.GetComponent<ChipsetCardUI>();
+                if (oldChipset != null) UnityEngine.Object.DestroyImmediate(oldChipset);
+                BuddyCardUI card = topCardT.GetComponent<BuddyCardUI>() ?? topCardT.gameObject.AddComponent<BuddyCardUI>();
+                card.EnsureProgressBar();
+                serialized.FindProperty("detailTopCard").objectReferenceValue = card;
+            }
+
+            // Texts
+            Transform nameT = modalBox.Find("Name");
+            if (nameT != null) serialized.FindProperty("detailNameText").objectReferenceValue = nameT.GetComponent<TMP_Text>();
+
+            Transform tierT = modalBox.Find("Tier");
+            if (tierT != null) serialized.FindProperty("detailTierText").objectReferenceValue = tierT.GetComponent<TMP_Text>();
+
+            Transform descT = modalBox.Find("Description");
+            if (descT != null) serialized.FindProperty("detailDescText").objectReferenceValue = descT.GetComponent<TMP_Text>();
+
+            Transform statT = modalBox.Find("BaseStat") ?? modalBox.Find("StatsBox/StatText") ?? modalBox.Find("StatsBox");
+            if (statT != null) serialized.FindProperty("detailBaseStatText").objectReferenceValue = statT.GetComponent<TMP_Text>();
+
+            // Buttons
+            Transform eqBtnT = modalBox.Find("EquipBtn");
+            if (eqBtnT != null)
+            {
+                serialized.FindProperty("detailEquipBtn").objectReferenceValue = eqBtnT.GetComponent<Button>();
+                serialized.FindProperty("detailEquipBtnText").objectReferenceValue = eqBtnT.GetComponentInChildren<TMP_Text>(true);
+            }
+
+            Transform enhBtnT = modalBox.Find("EnhanceBtn");
+            if (enhBtnT != null)
+            {
+                serialized.FindProperty("detailEnhanceBtn").objectReferenceValue = enhBtnT.GetComponent<Button>();
+                serialized.FindProperty("detailEnhanceCostText").objectReferenceValue = enhBtnT.Find("Cost")?.GetComponent<TMP_Text>() ?? enhBtnT.GetComponentInChildren<TMP_Text>(true);
+            }
+
+            Transform advBtnT = modalBox.Find("AdvanceTierBtn");
+            if (advBtnT != null)
+            {
+                serialized.FindProperty("detailAdvanceTierBtn").objectReferenceValue = advBtnT.GetComponent<Button>();
+                serialized.FindProperty("detailAdvanceTierText").objectReferenceValue = advBtnT.Find("Label")?.GetComponent<TMP_Text>() ?? advBtnT.GetComponentInChildren<TMP_Text>(true);
+            }
+
+            Transform closeBtnT = modalBox.Find("CloseBtn") ?? modalBox.Find("Close");
+            if (closeBtnT != null) serialized.FindProperty("detailCloseBtn").objectReferenceValue = closeBtnT.GetComponent<Button>();
+
+            // Perk rows
+            SerializedProperty perkIconsProp = serialized.FindProperty("perkRowIcons");
+            SerializedProperty perkTextsProp = serialized.FindProperty("perkRowTexts");
+            perkIconsProp.arraySize = 4;
+            perkTextsProp.arraySize = 4;
+            for (int i = 0; i < 4; i++)
+            {
+                Transform rowT = modalBox.Find($"PerkRow_{i}");
+                if (rowT != null)
+                {
+                    Transform iconT = rowT.Find("LockIcon");
+                    if (iconT != null) perkIconsProp.GetArrayElementAtIndex(i).objectReferenceValue = iconT.GetComponent<Image>();
+                    Transform textT = rowT.Find("PerkText");
+                    if (textT != null) perkTextsProp.GetArrayElementAtIndex(i).objectReferenceValue = textT.GetComponent<TMP_Text>();
+                }
+            }
+        }
+
         serialized.ApplyModifiedPropertiesWithoutUndo();
     }
 
@@ -155,38 +290,30 @@ public static class BuddyScreenReferenceApplier
         HideChildren(droneTab, "Label", "Wave");
         HideChildren(robotTab, "Label", "Lock");
 
-        Transform equippedRow = FindDeep(controller.transform, "EquippedRow");
-        if (equippedRow != null && equippedRow.TryGetComponent(out HorizontalLayoutGroup equippedLayout))
+        // Ensure TopCard has BuddyCardUI component if missing, preserving all RectTransform positions & sizes
+        Transform detailModalT = FindDeep(controller.transform, "BuddyDetailModal") ?? FindDeep(controller.transform.root, "BuddyDetailModal");
+        if (detailModalT != null)
         {
-            equippedLayout.spacing = 28f;
-        }
-
-        foreach (BuddyCardUI card in controller.GetComponentsInChildren<BuddyCardUI>(true))
-        {
-            Transform track = card.transform.Find("Fill_Track") ?? card.transform.Find("FillTrack");
-            if (track != null)
+            Transform modalBox = detailModalT.Find("ModalBox") ?? detailModalT;
+            Transform topCardT = modalBox.Find("TopCard") ?? modalBox.Find("IconFrame");
+            if (topCardT != null)
             {
-                UnityEngine.Object.DestroyImmediate(track.gameObject);
-            }
+                var oldChipset = topCardT.GetComponent<ChipsetCardUI>();
+                if (oldChipset != null) UnityEngine.Object.DestroyImmediate(oldChipset);
+                BuddyCardUI cardUI = topCardT.GetComponent<BuddyCardUI>();
+                if (cardUI == null) cardUI = topCardT.gameObject.AddComponent<BuddyCardUI>();
+                cardUI.EnsureProgressBar();
 
-            card.EnsureProgressBar();
-            card.UpdateProgressFromText();
-
-            TMP_Text level = card.transform.Find("NormalContentGroup/LevelText")?.GetComponent<TMP_Text>() ?? card.transform.Find("Level")?.GetComponent<TMP_Text>();
-            TMP_Text progress = card.transform.Find("NormalContentGroup/BottomBar/ProgressText")?.GetComponent<TMP_Text>() ?? card.transform.Find("Quantity")?.GetComponent<TMP_Text>();
-            if (level != null)
-            {
-                level.color = Color.white;
-                level.fontSize = 30f;
+                Transform iconT = topCardT.Find("NormalContentGroup/Icon") ?? topCardT.Find("Icon");
+                if (iconT != null)
+                {
+                    Image iconImg = iconT.GetComponent<Image>();
+                    if (iconImg != null && sourceIcons != null && sourceIcons.TryGetValue("drone-snowflake", out Sprite snowSprite))
+                    {
+                        SetImageSprite(iconImg, snowSprite);
+                    }
+                }
             }
-            if (progress != null)
-            {
-                progress.color = Color.white;
-                progress.fontSize = 27f;
-            }
-
-            EditorUtility.SetDirty(card);
-            if (card.ProgressFillImage != null) EditorUtility.SetDirty(card.ProgressFillImage.gameObject);
         }
     }
 

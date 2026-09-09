@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 339741499f5c4a6439c07f3015880e1a, type: 3}
-  m_Name: Strong_Cooler
+  m_Name: Signal_Rocket
   m_EditorClassIdentifier: 
-  id: strong_cooler
-  artifactName: Strong Cooler
-  loreDescription: Cools down Turrets when they overheat.
-  icon: {fileID: 125025782, guid: ccc3b1339ec55ce4e90b81b63d9b4329, type: 3}
+  id: signal_rocket
+  artifactName: Signal Rocket
+  loreDescription: Miniature rocket propulsion unit. Boosts overall movement speed.
+  icon: {fileID: -1126293469, guid: ccc3b1339ec55ce4e90b81b63d9b4329, type: 3}
   badgeBorderColor: {r: 0.18039216, g: 0.8980392, b: 0.9411765, a: 1}
   badgeBgColor: {r: 0.043137256, g: 0.1764706, b: 0.23529412, a: 1}
-  statType: 2
-  statValue: 20
+  statType: 4
+  statValue: 12

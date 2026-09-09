@@ -109,8 +109,9 @@ public class BuddyController : MonoBehaviour
     [SerializeField] private Sprite preset3YellowSprite;
     [SerializeField] private Sprite preset3RedSprite;
 
-    [Header("Equipped Slots (3 Slots)")]
-    [SerializeField] private BuddyCardUI[] equippedSlots = new BuddyCardUI[3];
+    [Header("Equipped Slots (5 Slots)")]
+    [SerializeField] private BuddyCardUI[] equippedSlots = new BuddyCardUI[5];
+    [SerializeField] private Transform slotIconBuddyContainer;
 
     [Header("Sort Buttons")]
     [SerializeField] private Button byTierBtn;
@@ -151,6 +152,10 @@ public class BuddyController : MonoBehaviour
     [SerializeField] private TMP_Text detailEquipBtnText;
     [SerializeField] private Button detailCloseBtn;
 
+    [Header("Notices")]
+    [SerializeField] private GameObject notEnoughFragmentsNotice;
+    [SerializeField] private GameObject notEnoughChipsNotice;
+
     [Header("Toast Message")]
     [SerializeField] private GameObject toastRoot;
     [SerializeField] private TMP_Text toastText;
@@ -171,7 +176,7 @@ public class BuddyController : MonoBehaviour
 
     [SerializeField] private List<BuddyItemData> allBuddies = new List<BuddyItemData>();
     private int[][] deckEquippedIds = new int[3][];
-    private bool[] slotUnlocked = new bool[] { true, true, true };
+    private bool[] slotUnlocked = new bool[] { true, true, true, true, true };
     private List<BuddyCardUI> spawnedInventoryCards = new List<BuddyCardUI>();
 
     private static readonly Color SelectedPresetColor = new Color32(255, 203, 73, 255);
@@ -184,10 +189,14 @@ public class BuddyController : MonoBehaviour
     private void Awake()
     {
         InitializeDatabase();
+        AutoWireSlotIconBuddyIfMissing();
+        AutoWireDetailModalReferencesIfMissing();
     }
 
     private void Start()
     {
+        AutoWireSlotIconBuddyIfMissing();
+        AutoWireDetailModalReferencesIfMissing();
         SetupEventListeners();
         RefreshTopBar();
         RefreshPresetButtons();
@@ -220,6 +229,8 @@ public class BuddyController : MonoBehaviour
                 if (this == null) return;
                 AutoWirePresetButtonsIfMissing();
                 AutoWireSortButtonsIfMissing();
+                AutoWireSlotIconBuddyIfMissing();
+                AutoWireDetailModalReferencesIfMissing();
                 InitializeDatabase();
                 RefreshPresetButtons();
                 RefreshSortButtons();
@@ -241,27 +252,59 @@ public class BuddyController : MonoBehaviour
 
     public void InitializeDatabase()
     {
-        if (allBuddies.Count > 0) return;
+        if (deckEquippedIds == null || deckEquippedIds.Length != 3)
+        {
+            deckEquippedIds = new int[3][];
+        }
+        for (int d = 0; d < 3; d++)
+        {
+            if (deckEquippedIds[d] == null || deckEquippedIds[d].Length != 5)
+            {
+                deckEquippedIds[d] = new int[] { 1, 2, 10, 3, 4 };
+            }
+        }
+        if (slotUnlocked == null || slotUnlocked.Length != 5)
+        {
+            slotUnlocked = new bool[] { true, true, true, true, true };
+        }
+
+        if (allBuddies.Count > 0)
+        {
+            foreach (var b in allBuddies)
+            {
+                if (b == null) continue;
+                b.count = 0;
+                b.requiredCount = 10;
+                if (b.id == 1 || b.iconKey == "drone-snowflake")
+                {
+                    b.buddyName = "Sloy";
+                    b.tier = BuddyTier.Common;
+                    b.description = "Fires shells that slow down enemies.";
+                    b.baseStatText = "Drone ATK 20.4, Slow ATK Speed";
+                }
+            }
+            return;
+        }
 
         allBuddies = new List<BuddyItemData>
         {
-            // 1. Drone Snowflake (Frost Sentinel)
+            // 1. Drone Snowflake (Sloy / Frost Sentinel)
             new BuddyItemData
             {
                 id = 1,
-                buddyName = "Frost Sentinel",
+                buddyName = "Sloy",
                 iconKey = "drone-snowflake",
                 tier = BuddyTier.Common,
-                level = 1,
-                count = 65,
-                requiredCount = 3,
-                enhanceCost = 500,
-                description = "Emits freezing pulses slowing hostile squads.",
-                baseStatText = "All Weapons' Slow Effect <color=#FFCB49>15%</color>",
-                magicPerkText = "Slow Duration +20%",
-                rarePerkText = "Frost Aura Radius +30%",
-                uniquePerkText = "Freeze Siphon +30%",
-                epicPerkText = "Blizzard Surge +30%"
+                level = 8,
+                count = 0,
+                requiredCount = 10,
+                enhanceCost = 3500,
+                description = "Fires shells that slow down enemies.",
+                baseStatText = "Drone ATK 20.4, Slow ATK Speed",
+                magicPerkText = "Frost Shell +20%",
+                rarePerkText = "Frost Shell +20%",
+                uniquePerkText = "Area Slow +30%",
+                epicPerkText = "Blizzard Blast +30%"
             },
             // 2. Drone Spider (Turret Buffer - As in user screenshot)
             new BuddyItemData
@@ -271,8 +314,8 @@ public class BuddyController : MonoBehaviour
                 iconKey = "drone-spider",
                 tier = BuddyTier.Common,
                 level = 1,
-                count = 79,
-                requiredCount = 3,
+                count = 0,
+                requiredCount = 10,
                 enhanceCost = 500,
                 description = "Improves the skills of all Turrets.",
                 baseStatText = "All Turrets' Duration <color=#FFCB49>10%</color>",
@@ -289,8 +332,8 @@ public class BuddyController : MonoBehaviour
                 iconKey = "drone-antenna-eye",
                 tier = BuddyTier.Common,
                 level = 1,
-                count = 67,
-                requiredCount = 3,
+                count = 0,
+                requiredCount = 10,
                 enhanceCost = 500,
                 description = "Scans hostiles and pinpoints critical weaknesses.",
                 baseStatText = "All Weapons' CRIT Rate <color=#FFCB49>+5%</color>",
@@ -307,8 +350,8 @@ public class BuddyController : MonoBehaviour
                 iconKey = "drone-cross-visor",
                 tier = BuddyTier.Common,
                 level = 1,
-                count = 60,
-                requiredCount = 3,
+                count = 0,
+                requiredCount = 10,
                 enhanceCost = 500,
                 description = "Continuous twin blaster providing direct firepower.",
                 baseStatText = "All Weapons' ATK <color=#FFCB49>+12%</color>",
@@ -325,8 +368,8 @@ public class BuddyController : MonoBehaviour
                 iconKey = "drone-capsule",
                 tier = BuddyTier.Common,
                 level = 1,
-                count = 58,
-                requiredCount = 3,
+                count = 0,
+                requiredCount = 10,
                 enhanceCost = 500,
                 description = "Dispatches automated nano-capsules to regenerate health.",
                 baseStatText = "Player HP Recovery <color=#FFCB49>+2 HP/s</color>",
@@ -343,8 +386,8 @@ public class BuddyController : MonoBehaviour
                 iconKey = "drone-spiky-mine",
                 tier = BuddyTier.Common,
                 level = 1,
-                count = 51,
-                requiredCount = 3,
+                count = 0,
+                requiredCount = 10,
                 enhanceCost = 500,
                 description = "Deploys cluster shrapnel mines around the player.",
                 baseStatText = "Mine AoE Range <color=#FFCB49>+15%</color>",
@@ -361,8 +404,8 @@ public class BuddyController : MonoBehaviour
                 iconKey = "drone-octagon-shield",
                 tier = BuddyTier.Common,
                 level = 1,
-                count = 51,
-                requiredCount = 3,
+                count = 0,
+                requiredCount = 10,
                 enhanceCost = 500,
                 description = "Projects a geometric barrier blocking incoming enemy fire.",
                 baseStatText = "Player Shield Defense <color=#FFCB49>+18%</color>",
@@ -379,8 +422,8 @@ public class BuddyController : MonoBehaviour
                 iconKey = "drone-claw-magnet",
                 tier = BuddyTier.Common,
                 level = 1,
-                count = 48,
-                requiredCount = 3,
+                count = 0,
+                requiredCount = 10,
                 enhanceCost = 500,
                 description = "Magnetically attracts dropped chips and energy cells.",
                 baseStatText = "Resource Vacuum Radius <color=#FFCB49>+35%</color>",
@@ -397,8 +440,8 @@ public class BuddyController : MonoBehaviour
                 iconKey = "drone-dual-rotor",
                 tier = BuddyTier.Common,
                 level = 1,
-                count = 46,
-                requiredCount = 3,
+                count = 0,
+                requiredCount = 10,
                 enhanceCost = 500,
                 description = "Executes aerial bombardment on congested monster waves.",
                 baseStatText = "Bombing Splash Damage <color=#FFCB49>+20%</color>",
@@ -415,8 +458,8 @@ public class BuddyController : MonoBehaviour
                 iconKey = "drone-stealth-wing",
                 tier = BuddyTier.Common,
                 level = 1,
-                count = 38,
-                requiredCount = 3,
+                count = 0,
+                requiredCount = 10,
                 enhanceCost = 500,
                 description = "Increase the ratio of\nAilment Resistance",
                 baseStatText = "Ailment Resistance 5%",
@@ -433,8 +476,8 @@ public class BuddyController : MonoBehaviour
                 iconKey = "drone-laser-sentry",
                 tier = BuddyTier.Rare,
                 level = 1,
-                count = 30,
-                requiredCount = 5,
+                count = 0,
+                requiredCount = 10,
                 enhanceCost = 750,
                 description = "Locks onto highest HP targets with continuous thermal beams.",
                 baseStatText = "Boss Target Damage <color=#FFCB49>+30%</color>",
@@ -451,8 +494,8 @@ public class BuddyController : MonoBehaviour
                 iconKey = "drone-plasma-orb",
                 tier = BuddyTier.Epic,
                 level = 1,
-                count = 24,
-                requiredCount = 7,
+                count = 0,
+                requiredCount = 10,
                 enhanceCost = 1000,
                 description = "Unleashes swirling electrical vortices annihilating crowds.",
                 baseStatText = "All Weapons' Lightning ATK <color=#FFCB49>+35%</color>",
@@ -463,10 +506,10 @@ public class BuddyController : MonoBehaviour
             }
         };
 
-        deckEquippedIds[0] = new int[] { 3, 2, 4 };
-        deckEquippedIds[1] = new int[] { 3, 2, 4 };
-        deckEquippedIds[2] = new int[] { 3, 2, 4 };
-        slotUnlocked = new bool[] { true, true, true };
+        deckEquippedIds[0] = new int[] { 1, 2, 10, 3, 4 };
+        deckEquippedIds[1] = new int[] { 1, 2, 10, 3, 4 };
+        deckEquippedIds[2] = new int[] { 1, 2, 10, 3, 4 };
+        slotUnlocked = new bool[] { true, true, true, true, true };
     }
 
     private void SetupEventListeners()
@@ -530,6 +573,215 @@ public class BuddyController : MonoBehaviour
         }
 
         LoadSortSpritesIfMissing();
+    }
+
+    public void AutoWireSlotIconBuddyIfMissing()
+    {
+        if (slotIconBuddyContainer == null)
+        {
+            slotIconBuddyContainer = transform.Find("SlotIconBuddy") ??
+                                     transform.Find("EquippedRow/SlotIconBuddy") ??
+                                     GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name.Equals("SlotIconBuddy", StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (slotIconBuddyContainer == null) return;
+
+        if (equippedSlots == null || equippedSlots.Length != 5)
+        {
+            equippedSlots = new BuddyCardUI[5];
+        }
+
+        string[] targetSlotNames = new string[5]
+        {
+            "drone-snowflake",
+            "drone-spider",
+            "drone-stealth-wing",
+            "drone-antenna-eye",
+            "drone-cross-visor"
+        };
+
+        for (int i = 0; i < 5; i++)
+        {
+            Transform child = slotIconBuddyContainer.Find(targetSlotNames[i]);
+            if (child == null && i < slotIconBuddyContainer.childCount)
+            {
+                child = slotIconBuddyContainer.GetChild(i);
+            }
+
+            if (child != null)
+            {
+                BuddyCardUI card = child.GetComponent<BuddyCardUI>();
+                if (card == null)
+                {
+                    card = child.gameObject.AddComponent<BuddyCardUI>();
+                }
+                Button btn = child.GetComponent<Button>();
+                if (btn == null)
+                {
+                    btn = child.gameObject.AddComponent<Button>();
+                }
+                card.EnsureProgressBar();
+                equippedSlots[i] = card;
+            }
+        }
+    }
+
+    public void AutoWireDetailModalReferencesIfMissing()
+    {
+        if (detailModal == null)
+        {
+            Transform modalT = transform.Find("BuddyDetailModal") ??
+                               transform.root.Find("Canvas/BuddyDetailModal") ??
+                               GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name.Equals("BuddyDetailModal", StringComparison.OrdinalIgnoreCase));
+            if (modalT != null) detailModal = modalT.gameObject;
+        }
+
+        if (detailModal == null) return;
+
+        Transform modalRoot = detailModal.transform.Find("ModalBox") ?? detailModal.transform;
+
+        // 1. Top Card
+        if (detailTopCard == null)
+        {
+            Transform topCardT = modalRoot.Find("TopCard") ?? modalRoot.Find("IconFrame");
+            if (topCardT != null)
+            {
+                detailTopCard = topCardT.GetComponent<BuddyCardUI>();
+                if (detailTopCard == null)
+                {
+                    var oldChipset = topCardT.GetComponent<ChipsetCardUI>();
+                    if (oldChipset != null)
+                    {
+                        if (Application.isPlaying) Destroy(oldChipset);
+                        else DestroyImmediate(oldChipset);
+                    }
+                    detailTopCard = topCardT.gameObject.AddComponent<BuddyCardUI>();
+                }
+            }
+        }
+
+        if (detailTopCard != null)
+        {
+            detailTopCard.EnsureProgressBar();
+        }
+
+        // 2. Texts
+        if (detailNameText == null)
+        {
+            Transform t = modalRoot.Find("Name");
+            if (t != null) detailNameText = t.GetComponent<TMP_Text>();
+        }
+        if (detailTierText == null)
+        {
+            Transform t = modalRoot.Find("Tier");
+            if (t != null) detailTierText = t.GetComponent<TMP_Text>();
+        }
+        if (detailDescText == null)
+        {
+            Transform t = modalRoot.Find("Description");
+            if (t != null) detailDescText = t.GetComponent<TMP_Text>();
+        }
+        if (detailBaseStatText == null)
+        {
+            Transform t = modalRoot.Find("BaseStat") ?? modalRoot.Find("StatsBox/StatText") ?? modalRoot.Find("StatsBox");
+            if (t != null) detailBaseStatText = t.GetComponent<TMP_Text>();
+        }
+
+        // 3. Perk rows
+        if (perkRowIcons == null || perkRowIcons.Length < 4) perkRowIcons = new Image[4];
+        if (perkRowTexts == null || perkRowTexts.Length < 4) perkRowTexts = new TMP_Text[4];
+
+        for (int i = 0; i < 4; i++)
+        {
+            if (perkRowIcons[i] == null || perkRowTexts[i] == null)
+            {
+                Transform row = modalRoot.Find($"PerkRow_{i}");
+                if (row != null)
+                {
+                    if (perkRowIcons[i] == null)
+                    {
+                        Transform iconT = row.Find("LockIcon");
+                        if (iconT != null) perkRowIcons[i] = iconT.GetComponent<Image>();
+                    }
+                    if (perkRowTexts[i] == null)
+                    {
+                        Transform textT = row.Find("PerkText");
+                        if (textT != null) perkRowTexts[i] = textT.GetComponent<TMP_Text>();
+                    }
+                }
+            }
+        }
+
+        // 4. Action Buttons
+        if (detailEquipBtn == null)
+        {
+            Transform t = modalRoot.Find("EquipBtn");
+            if (t != null)
+            {
+                detailEquipBtn = t.GetComponent<Button>();
+                if (detailEquipBtnText == null) detailEquipBtnText = t.GetComponentInChildren<TMP_Text>(true);
+            }
+        }
+
+        if (detailEnhanceBtn == null)
+        {
+            Transform t = modalRoot.Find("EnhanceBtn");
+            if (t != null)
+            {
+                detailEnhanceBtn = t.GetComponent<Button>();
+                if (detailEnhanceCostText == null) detailEnhanceCostText = t.Find("Cost")?.GetComponent<TMP_Text>() ?? t.GetComponentInChildren<TMP_Text>(true);
+            }
+        }
+
+        if (detailAdvanceTierBtn == null)
+        {
+            Transform t = modalRoot.Find("AdvanceTierBtn");
+            if (t != null)
+            {
+                detailAdvanceTierBtn = t.GetComponent<Button>();
+                if (detailAdvanceTierText == null) detailAdvanceTierText = t.Find("Label")?.GetComponent<TMP_Text>() ?? t.GetComponentInChildren<TMP_Text>(true);
+            }
+        }
+
+        if (detailCloseBtn == null)
+        {
+            Transform t = modalRoot.Find("CloseBtn") ?? modalRoot.Find("Close");
+            if (t != null) detailCloseBtn = t.GetComponent<Button>();
+        }
+
+        if (notEnoughFragmentsNotice == null)
+        {
+            Transform t = modalRoot.Find("NotEnoughFragmentsNotice") ?? detailModal.transform.Find("NotEnoughFragmentsNotice");
+            if (t != null) notEnoughFragmentsNotice = t.gameObject;
+        }
+
+        if (notEnoughChipsNotice == null)
+        {
+            Transform t = modalRoot.Find("NotEnoughChipsNotice") ?? detailModal.transform.Find("NotEnoughChipsNotice");
+            if (t != null) notEnoughChipsNotice = t.gameObject;
+        }
+
+        // Setup listeners if buttons are available
+        if (detailCloseBtn != null)
+        {
+            detailCloseBtn.onClick.RemoveAllListeners();
+            detailCloseBtn.onClick.AddListener(() => UIDissolveController.HideWithEffect(detailModal));
+        }
+        if (detailEnhanceBtn != null)
+        {
+            detailEnhanceBtn.onClick.RemoveAllListeners();
+            detailEnhanceBtn.onClick.AddListener(EnhanceSelectedBuddy);
+        }
+        if (detailAdvanceTierBtn != null)
+        {
+            detailAdvanceTierBtn.onClick.RemoveAllListeners();
+            detailAdvanceTierBtn.onClick.AddListener(AdvanceTierSelectedBuddy);
+        }
+        if (detailEquipBtn != null)
+        {
+            detailEquipBtn.onClick.RemoveAllListeners();
+            detailEquipBtn.onClick.AddListener(ToggleEquipSelectedBuddy);
+        }
     }
 
     public void LoadSortSpritesIfMissing()
@@ -652,7 +904,6 @@ public class BuddyController : MonoBehaviour
     {
         AutoWirePresetButtonsIfMissing();
 
-        // 1. Preset 1 (activeDeckIndex == 0 -> 1 Yellow, else -> 1 Red)
         if (preset1Bg != null)
         {
             Sprite s = activeDeckIndex == 0 ? preset1YellowSprite : preset1RedSprite;
@@ -667,7 +918,6 @@ public class BuddyController : MonoBehaviour
             }
         }
 
-        // 2. Preset 2 (activeDeckIndex == 1 -> 2 Yellow, else -> 2 Red)
         if (preset2Bg != null)
         {
             Sprite s = activeDeckIndex == 1 ? preset2YellowSprite : preset2RedSprite;
@@ -682,7 +932,6 @@ public class BuddyController : MonoBehaviour
             }
         }
 
-        // 3. Preset 3 (activeDeckIndex == 2 -> 3 Yellow, else -> 3 Red)
         if (preset3Bg != null)
         {
             Sprite s = activeDeckIndex == 2 ? preset3YellowSprite : preset3RedSprite;
@@ -697,7 +946,6 @@ public class BuddyController : MonoBehaviour
             }
         }
 
-        // Clear overlapping text
         if (preset1Text != null)
         {
             if (preset1YellowSprite != null) preset1Text.text = string.Empty;
@@ -721,9 +969,8 @@ public class BuddyController : MonoBehaviour
     {
         AutoWireSortButtonsIfMissing();
 
-        bool isByQuantity = sortByQuantity; // false = By Tier (By Tile), true = By Quantity
+        bool isByQuantity = sortByQuantity;
 
-        // 1. By Tier (By Tile): Khi chọn (!isByQuantity) -> Vàng (By TileYellow), khi không chọn -> Xanh (By Tile Green)
         if (byTierBg != null)
         {
             Sprite tierSprite = !isByQuantity ? byTierYellowSprite : byTierGreenSprite;
@@ -738,7 +985,6 @@ public class BuddyController : MonoBehaviour
             }
         }
 
-        // 2. By Quantity: Khi chọn (isByQuantity) -> Vàng (By QuantityYellow), khi không chọn -> Xanh (ByQuantityGreen)
         if (byQuantityBg != null)
         {
             Sprite qtySprite = isByQuantity ? byQuantityYellowSprite : byQuantityGreenSprite;
@@ -753,7 +999,6 @@ public class BuddyController : MonoBehaviour
             }
         }
 
-        // Nếu sprite đã có sẵn chữ pixel art, xóa text đè lên để tránh bị nhân đôi chữ
         if (byTierText != null)
         {
             if (byTierYellowSprite != null) byTierText.text = string.Empty;
@@ -769,34 +1014,41 @@ public class BuddyController : MonoBehaviour
 
     public void RefreshEquippedGrid()
     {
-        int[] currentDeck = deckEquippedIds[activeDeckIndex];
-        for (int i = 0; i < 3; i++)
+        AutoWireSlotIconBuddyIfMissing();
+
+        if (deckEquippedIds[activeDeckIndex] == null || deckEquippedIds[activeDeckIndex].Length != 5)
         {
-            if (i >= equippedSlots.Length || equippedSlots[i] == null) continue;
+            deckEquippedIds[activeDeckIndex] = new int[] { 1, 2, 10, 3, 4 };
+        }
+        int[] currentDeck = deckEquippedIds[activeDeckIndex];
+
+        for (int i = 0; i < equippedSlots.Length; i++)
+        {
+            if (equippedSlots[i] == null) continue;
 
             int buddyId = (currentDeck != null && i < currentDeck.Length) ? currentDeck[i] : -1;
             Sprite frame = GetFrameSprite(BuddyTier.Common);
 
-            if (buddyId == -2 || !slotUnlocked[i])
+            if (buddyId == -2 || (slotUnlocked != null && i < slotUnlocked.Length && !slotUnlocked[i]))
             {
-                equippedSlots[i].SetupLocked(frame, () => ShowToast($"Slot {i + 1} unlocks at Chapter 8!"));
+                equippedSlots[i].SetupLocked(frame, () => ShowToast($"Slot {i + 1} locked!"));
             }
             else if (buddyId == -1)
             {
-                equippedSlots[i].SetupEmpty(frame, () => ShowToast($"Slot {i + 1} is Empty. Select a drone from below to equip."));
+                equippedSlots[i].SetupEmpty(frame, () => ShowToast("Empty Slot! Please select a Drone below to equip."));
             }
             else
             {
                 BuddyItemData buddy = allBuddies.FirstOrDefault(b => b.id == buddyId);
                 if (buddy != null)
                 {
-                    Sprite icon = GetIconSprite(buddy.iconKey);
+                    Sprite icon = GetIconSprite(buddy);
                     Sprite buddyFrame = GetFrameSprite(buddy.tier);
-                    equippedSlots[i].Setup(buddy, icon, buddyFrame, OpenDetailModal, QuickUpgradeBuddy);
+                    equippedSlots[i].Setup(buddy, icon, buddyFrame, (b) => OpenDetailModal(b), QuickUpgradeBuddy);
                 }
                 else
                 {
-                    equippedSlots[i].SetupEmpty(frame);
+                    equippedSlots[i].SetupEmpty(frame, () => ShowToast("Empty Slot! Please select a Drone below to equip."));
                 }
             }
         }
@@ -855,9 +1107,9 @@ public class BuddyController : MonoBehaviour
             }
 
             BuddyItemData data = sortedList[i];
-            Sprite icon = GetIconSprite(data.iconKey);
+            Sprite icon = GetIconSprite(data);
             Sprite frame = GetFrameSprite(data.tier);
-            card.Setup(data, icon, frame, OpenDetailModal, QuickUpgradeBuddy);
+            card.Setup(data, icon, frame, (b) => OpenDetailModal(b), QuickUpgradeBuddy);
             card.gameObject.SetActive(true);
         }
 
@@ -883,26 +1135,64 @@ public class BuddyController : MonoBehaviour
     public void RefreshDetailModal()
     {
         if (selectedDetailBuddy == null) return;
+        AutoWireDetailModalReferencesIfMissing();
 
-        // 1. Top Card
+        // 1. Top Card (Clones exact visual from slot)
+        Sprite icon = GetIconSprite(selectedDetailBuddy);
+        Sprite frame = GetFrameSprite(selectedDetailBuddy.tier);
+
         if (detailTopCard != null)
         {
-            Sprite icon = GetIconSprite(selectedDetailBuddy.iconKey);
-            Sprite frame = GetFrameSprite(selectedDetailBuddy.tier);
             detailTopCard.Setup(selectedDetailBuddy, icon, frame);
+            if (detailTopCard.DroneIconImage != null)
+            {
+                detailTopCard.DroneIconImage.sprite = icon;
+                detailTopCard.DroneIconImage.color = Color.white;
+                detailTopCard.DroneIconImage.enabled = (icon != null);
+                detailTopCard.DroneIconImage.gameObject.SetActive(icon != null);
+            }
+        }
+        else if (detailModal != null)
+        {
+            Transform iconT = detailModal.transform.Find("ModalBox/TopCard/NormalContentGroup/Icon") ??
+                             detailModal.transform.Find("ModalBox/TopCard/Icon");
+            if (iconT != null)
+            {
+                Image img = iconT.GetComponent<Image>();
+                if (img != null && icon != null)
+                {
+                    img.sprite = icon;
+                    img.color = Color.white;
+                    img.enabled = true;
+                    img.gameObject.SetActive(true);
+                }
+            }
         }
 
-        // 2. Name & Tier
+        // 2. Name & Tier Label with color
         if (detailNameText != null) detailNameText.text = selectedDetailBuddy.buddyName;
-        if (detailTierText != null) detailTierText.text = selectedDetailBuddy.tier.ToString();
+        if (detailTierText != null)
+        {
+            string tierColorHex;
+            switch (selectedDetailBuddy.tier)
+            {
+                case BuddyTier.Magic: tierColorHex = "#38BDF8"; break;
+                case BuddyTier.Rare: tierColorHex = "#38BDF8"; break; // Blue as in requirements
+                case BuddyTier.Unique: tierColorHex = "#F472B6"; break; // Pink-Purple
+                case BuddyTier.Epic: tierColorHex = "#FACC15"; break; // Yellow
+                case BuddyTier.Holographic: tierColorHex = "#FB7185"; break; // Red
+                default: tierColorHex = "#22C55E"; break; // Common Green
+            }
+            detailTierText.text = $"<color={tierColorHex}>{selectedDetailBuddy.tier.ToString().ToUpper()}</color>";
+        }
 
         // 3. Description & Base Stat
         if (detailDescText != null) detailDescText.text = selectedDetailBuddy.description;
         if (detailBaseStatText != null) detailBaseStatText.text = selectedDetailBuddy.baseStatText;
 
-        // 4. 4 Tier Perk Rows with colored unlock tags
-        string[] tierNames = { "Magic", "Rare", "Unique", "Epic" };
-        string[] tierColors = { "#38BDF8", "#C084FC", "#FACC15", "#FB7185" };
+        // 4. 4 Tier Perk Rows with icons and active tags
+        string[] tierNames = { "Rare", "Unique", "Epic", "Holo" };
+        string[] tierColors = { "#38BDF8", "#F472B6", "#FACC15", "#FB7185" };
         string[] perkTexts = {
             selectedDetailBuddy.magicPerkText,
             selectedDetailBuddy.rarePerkText,
@@ -913,19 +1203,19 @@ public class BuddyController : MonoBehaviour
         for (int i = 0; i < 4; i++)
         {
             bool isUnlocked = (int)selectedDetailBuddy.tier > i;
-            if (i < perkRowIcons.Length && perkRowIcons[i] != null)
+            if (perkRowIcons != null && i < perkRowIcons.Length && perkRowIcons[i] != null)
             {
                 if (isUnlocked && unlockedCheckSprite != null)
                 {
                     perkRowIcons[i].sprite = unlockedCheckSprite;
                 }
-                else if (i < lockTierSprites.Length && lockTierSprites[i] != null)
+                else if (lockTierSprites != null && i < lockTierSprites.Length && lockTierSprites[i] != null)
                 {
                     perkRowIcons[i].sprite = lockTierSprites[i];
                 }
             }
 
-            if (i < perkRowTexts.Length && perkRowTexts[i] != null)
+            if (perkRowTexts != null && i < perkRowTexts.Length && perkRowTexts[i] != null)
             {
                 if (isUnlocked)
                 {
@@ -933,7 +1223,7 @@ public class BuddyController : MonoBehaviour
                 }
                 else
                 {
-                    perkRowTexts[i].text = $"{perkTexts[i]}(<color={tierColors[i]}>{tierNames[i]}</color>Unlock)";
+                    perkRowTexts[i].text = $"{perkTexts[i]} (<color={tierColors[i]}>{tierNames[i]}</color> Unlock)";
                 }
             }
         }
@@ -961,7 +1251,7 @@ public class BuddyController : MonoBehaviour
         }
 
         // 7. Equip / Unequip Button
-        bool isEquipped = deckEquippedIds[activeDeckIndex].Contains(selectedDetailBuddy.id);
+        bool isEquipped = deckEquippedIds[activeDeckIndex] != null && deckEquippedIds[activeDeckIndex].Contains(selectedDetailBuddy.id);
         if (detailEquipBtnText != null)
         {
             detailEquipBtnText.text = isEquipped ? "UNEQUIP" : "EQUIP";
@@ -973,6 +1263,13 @@ public class BuddyController : MonoBehaviour
         if (selectedDetailBuddy == null) return;
         if (!selectedDetailBuddy.CanEnhance)
         {
+            if (notEnoughChipsNotice != null)
+            {
+                notEnoughChipsNotice.SetActive(false);
+                notEnoughChipsNotice.SetActive(true);
+                CancelInvoke(nameof(HideNotices));
+                Invoke(nameof(HideNotices), 2.0f);
+            }
             ShowToast("Not enough Data Chips to enhance!");
             return;
         }
@@ -992,6 +1289,13 @@ public class BuddyController : MonoBehaviour
         if (selectedDetailBuddy == null) return;
         if (!selectedDetailBuddy.CanAdvanceTier)
         {
+            if (notEnoughFragmentsNotice != null)
+            {
+                notEnoughFragmentsNotice.SetActive(false);
+                notEnoughFragmentsNotice.SetActive(true);
+                CancelInvoke(nameof(HideNotices));
+                Invoke(nameof(HideNotices), 2.0f);
+            }
             ShowToast("Not enough fragments to advance tier!");
             return;
         }
@@ -1007,11 +1311,19 @@ public class BuddyController : MonoBehaviour
         }
     }
 
+    private void HideNotices()
+    {
+        if (notEnoughFragmentsNotice != null) notEnoughFragmentsNotice.SetActive(false);
+        if (notEnoughChipsNotice != null) notEnoughChipsNotice.SetActive(false);
+    }
+
     private void ToggleEquipSelectedBuddy()
     {
         if (selectedDetailBuddy == null) return;
 
         int[] currentDeck = deckEquippedIds[activeDeckIndex];
+        if (currentDeck == null) return;
+
         int indexInDeck = Array.IndexOf(currentDeck, selectedDetailBuddy.id);
 
         if (indexInDeck >= 0)
@@ -1024,7 +1336,7 @@ public class BuddyController : MonoBehaviour
             int emptyIndex = -1;
             for (int i = 0; i < currentDeck.Length; i++)
             {
-                if (currentDeck[i] == -1 && slotUnlocked[i])
+                if (currentDeck[i] == -1 && (i >= slotUnlocked.Length || slotUnlocked[i]))
                 {
                     emptyIndex = i;
                     break;
@@ -1048,14 +1360,26 @@ public class BuddyController : MonoBehaviour
         RefreshInventory();
     }
 
+    private static bool IsValidDroneSprite(Sprite s)
+    {
+        if (s == null) return false;
+        string n = s.name.ToLowerInvariant();
+        if (n.Contains("lock") || n.Contains("quantity") || n.Contains("empty") || n.Contains("button") || n.Contains("bg") || n.Contains("khung") || n.Contains("bar") || n.Contains("slot"))
+            return false;
+        return true;
+    }
+
     public void LoadDroneIconsIfMissing()
     {
-        if (droneIcons != null && droneIcons.Length > 0 && droneIcons.All(s => s != null))
+        if (droneIcons != null && droneIcons.Length > 0 && droneIcons.Any(s => IsValidDroneSprite(s)))
             return;
 
 #if UNITY_EDITOR
         string path = "Assets/Sprites/UI/Buddy/icon buddy.png";
-        Sprite[] sprites = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(path).OfType<Sprite>().ToArray();
+        Sprite[] sprites = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(path)
+            .OfType<Sprite>()
+            .Where(s => IsValidDroneSprite(s))
+            .ToArray();
         if (sprites != null && sprites.Length > 0)
         {
             droneIcons = sprites;
@@ -1063,18 +1387,94 @@ public class BuddyController : MonoBehaviour
 #endif
     }
 
+    public Sprite GetIconSprite(string key, int buddyId = -1)
+    {
+        LoadDroneIconsIfMissing();
+        if (droneIcons == null || droneIcons.Length == 0) return null;
+
+        var validDrones = droneIcons.Where(s => IsValidDroneSprite(s)).ToList();
+        if (validDrones.Count == 0)
+        {
+            validDrones = droneIcons.Where(s => s != null).ToList();
+            if (validDrones.Count == 0) return null;
+        }
+
+        if (!string.IsNullOrEmpty(key))
+        {
+            // 1. Exact name match
+            Sprite match = validDrones.FirstOrDefault(s => s.name.Equals(key, StringComparison.OrdinalIgnoreCase));
+            if (match != null) return match;
+
+            // 2. Normalized clean match (strip drone-, drone_, etc.)
+            string cleanKey = key.Replace("drone-", "").Replace("drone_", "").Replace("-", "").Replace("_", "").ToLowerInvariant();
+            match = validDrones.FirstOrDefault(s =>
+            {
+                string cleanName = s.name.Replace("drone-", "").Replace("drone_", "").Replace("-", "").Replace("_", "").ToLowerInvariant();
+                return cleanName.Equals(cleanKey, StringComparison.OrdinalIgnoreCase);
+            });
+            if (match != null) return match;
+
+            // 3. Substring matching
+            match = validDrones.FirstOrDefault(s => s.name.IndexOf(key, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                                   key.IndexOf(s.name, StringComparison.OrdinalIgnoreCase) >= 0);
+            if (match != null) return match;
+
+            // 4. Semantic keyword recognition for drone archetypes
+            if (cleanKey.Contains("spider") || cleanKey.Contains("mine"))
+                match = validDrones.FirstOrDefault(s => s.name.IndexOf("spider", StringComparison.OrdinalIgnoreCase) >= 0);
+            else if (cleanKey.Contains("snow") || cleanKey.Contains("flake") || cleanKey.Contains("ice") || cleanKey.Contains("freeze") || cleanKey.Contains("capsule") || cleanKey.Contains("healer"))
+                match = validDrones.FirstOrDefault(s => s.name.IndexOf("snowflake", StringComparison.OrdinalIgnoreCase) >= 0);
+            else if (cleanKey.Contains("stealth") || cleanKey.Contains("wing") || cleanKey.Contains("shadow") || cleanKey.Contains("shield") || cleanKey.Contains("missile"))
+                match = validDrones.FirstOrDefault(s => s.name.IndexOf("stealth", StringComparison.OrdinalIgnoreCase) >= 0);
+            else if (cleanKey.Contains("antenna") || cleanKey.Contains("eye") || cleanKey.Contains("seeker") || cleanKey.Contains("magnet"))
+                match = validDrones.FirstOrDefault(s => s.name.IndexOf("antenna", StringComparison.OrdinalIgnoreCase) >= 0);
+            else if (cleanKey.Contains("cross") || cleanKey.Contains("visor") || cleanKey.Contains("vulcan") || cleanKey.Contains("rotor") || cleanKey.Contains("laser"))
+                match = validDrones.FirstOrDefault(s => s.name.IndexOf("cross", StringComparison.OrdinalIgnoreCase) >= 0);
+
+            if (match != null) return match;
+        }
+
+        // 5. If buddyId is specified, cyclically map across available drone icons
+        if (buddyId > 0)
+        {
+            int idx = (buddyId - 1) % validDrones.Count;
+            return validDrones[idx];
+        }
+
+        // 6. Default to first valid drone sprite
+        return validDrones[0];
+    }
+
+    public Sprite GetIconSprite(BuddyItemData buddy)
+    {
+        if (buddy == null) return GetIconSprite(string.Empty);
+        return GetIconSprite(buddy.iconKey, buddy.id);
+    }
+
     public void LoadFrameSpritesIfMissing()
     {
 #if UNITY_EDITOR
-        if (frameSprites == null || frameSprites.Length == 0 || frameSprites.Any(s => s == null))
+        if (frameSprites == null || frameSprites.Length < 6 || frameSprites.Any(s => s == null))
         {
-            string framePath = "Assets/Sprites/UI/Buddy/nút màn buddy.png";
-            Sprite[] sprites = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(framePath).OfType<Sprite>().ToArray();
-            Sprite khung = sprites?.FirstOrDefault(s => s.name.Equals("khung", StringComparison.OrdinalIgnoreCase));
-            if (khung != null)
+            Sprite green = null;
+            string iconPath = "Assets/Sprites/UI/Buddy/icon buddy.png";
+            var iconSprites = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(iconPath).OfType<Sprite>().ToArray();
+            green = iconSprites?.FirstOrDefault(s => s.name.Equals("openLocke", StringComparison.OrdinalIgnoreCase));
+
+            Sprite blue = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Buddy/openLocke_Blue.png");
+            Sprite purple = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Buddy/openLocke_Purple.png");
+            Sprite yellow = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Buddy/openLocke_Yellow.png");
+            Sprite red = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Buddy/openLocke_Red.png");
+
+            frameSprites = new Sprite[6]
             {
-                frameSprites = new Sprite[] { khung, khung, khung, khung, khung, khung };
-            }
+                green,            // Common
+                blue ?? green,    // Magic
+                purple ?? green,  // Rare
+                yellow ?? green,  // Unique
+                yellow ?? green,  // Epic
+                red ?? green      // Holographic
+            };
         }
 
         if (emptySlotFrameSprite == null)
@@ -1083,23 +1483,32 @@ public class BuddyController : MonoBehaviour
             Sprite[] sprites = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(framePath).OfType<Sprite>().ToArray();
             emptySlotFrameSprite = sprites?.FirstOrDefault(s => s.name.Equals("Empty", StringComparison.OrdinalIgnoreCase));
         }
+
+        if (lockTierSprites == null || lockTierSprites.Length < 4 || lockTierSprites.Any(s => s == null))
+        {
+            string chipsetPath = "Assets/Sprites/UI/Chipset/khung chipset.png";
+            var csSprites = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(chipsetPath).OfType<Sprite>().ToArray();
+            lockTierSprites = new Sprite[4]
+            {
+                csSprites?.FirstOrDefault(s => s.name.Equals("Lock_Blue", StringComparison.OrdinalIgnoreCase)),
+                csSprites?.FirstOrDefault(s => s.name.Equals("Lock_Purple", StringComparison.OrdinalIgnoreCase)),
+                csSprites?.FirstOrDefault(s => s.name.Equals("Lock_Yellow", StringComparison.OrdinalIgnoreCase)),
+                csSprites?.FirstOrDefault(s => s.name.Equals("Lock_Red", StringComparison.OrdinalIgnoreCase))
+            };
+        }
 #endif
     }
 
-    private Sprite GetIconSprite(string key)
-    {
-        LoadDroneIconsIfMissing();
-        if (droneIcons == null || droneIcons.Length == 0) return null;
-        if (string.IsNullOrEmpty(key)) return droneIcons[0];
 
-        return droneIcons.FirstOrDefault(s => s != null && (s.name.Equals(key, StringComparison.OrdinalIgnoreCase) || s.name.IndexOf(key, StringComparison.OrdinalIgnoreCase) >= 0)) ?? droneIcons[0];
-    }
-
-    private Sprite GetFrameSprite(BuddyTier tier)
+    public Sprite GetFrameSprite(BuddyTier tier)
     {
         LoadFrameSpritesIfMissing();
-        if (frameSprites == null || frameSprites.Length == 0) return null;
-        return frameSprites[0];
+        int index = (int)tier;
+        if (frameSprites != null && index >= 0 && index < frameSprites.Length && frameSprites[index] != null)
+        {
+            return frameSprites[index];
+        }
+        return (frameSprites != null && frameSprites.Length > 0) ? frameSprites[0] : null;
     }
 
     private void ShowToast(string message)

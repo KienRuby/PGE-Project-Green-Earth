@@ -10,13 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 339741499f5c4a6439c07f3015880e1a, type: 3}
-  m_Name: Strong_Cooler
+  m_Name: Quantum_Microchip
   m_EditorClassIdentifier: 
-  id: strong_cooler
-  artifactName: Strong Cooler
-  loreDescription: Cools down Turrets when they overheat.
-  icon: {fileID: 125025782, guid: ccc3b1339ec55ce4e90b81b63d9b4329, type: 3}
+  id: quantum_chip
+  artifactName: Quantum Microchip
+  loreDescription: Advanced silicon processor that calculates incoming ranged projectile
+    vectors.
+  icon: {fileID: -1560817711, guid: ccc3b1339ec55ce4e90b81b63d9b4329, type: 3}
   badgeBorderColor: {r: 0.18039216, g: 0.8980392, b: 0.9411765, a: 1}
   badgeBgColor: {r: 0.043137256, g: 0.1764706, b: 0.23529412, a: 1}
-  statType: 2
-  statValue: 20
+  statType: 1
+  statValue: 15

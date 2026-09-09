@@ -1,22 +1,31 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 /// <summary>
-/// Công cụ Editor tự động tạo thư mục và các ScriptableObject mẫu cho hệ thống Artifact:
-/// - Spare Battery (HP +15%)
-/// - Carbon Scales (Ranged DEF +10%)
-/// - Strong Cooler (Turret ATK Speed +20%)
-/// - Kung Fu Data USB (All Weapons' ATK +9%)
+/// Công cụ Editor tự động tạo thư mục và các ScriptableObject cho hệ thống Artifact:
+/// - Data Disc (Artifact_CD)
+/// - Modular Brick (Artifact_Lego)
+/// - Kung Fu Data USB (Artifact_USB)
+/// - Energy Butter (Artifact_Butter)
+/// - Strong Cooler (Artifact_Cooler)
+/// - Signal Rocket (Artifact_Rocket)
+/// - Quantum Microchip (Artifact_Chip)
 /// - ArtifactDatabase.asset
 /// </summary>
 public static class ArtifactSystemSetup
 {
     private const string FolderPath = "Assets/Data/Artifacts";
     private const string ResourcesFolderPath = "Assets/Resources";
+    private const string SpriteSheetPath = "Assets/Sprites/UI/nút artifact.png";
 
     [InitializeOnLoadMethod]
     [MenuItem("PGE/Setup Artifact Database & Defaults", false, 120)]
+    [MenuItem("Tools/PGE/Setup Artifact Database & Defaults", false, 120)]
     public static void GenerateArtifactAssets()
     {
         if (!Directory.Exists(FolderPath))
@@ -29,8 +38,104 @@ public static class ArtifactSystemSetup
             Directory.CreateDirectory(ResourcesFolderPath);
         }
 
-        // 1. Spare Battery (HP +15%)
-        ArtifactData battery = CreateOrUpdateArtifact(
+        // Tải toàn bộ sprite đã cắt từ sprite sheet nút artifact.png
+        Dictionary<string, Sprite> sheetSprites = AssetDatabase.LoadAllAssetsAtPath(SpriteSheetPath)
+            .OfType<Sprite>()
+            .GroupBy(s => s.name, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+
+        Sprite GetSprite(string name)
+        {
+            sheetSprites.TryGetValue(name, out Sprite s);
+            return s;
+        }
+
+        // 1. Data Disc (CD) - Crit Rate +10%
+        ArtifactData disc = CreateOrUpdateArtifact(
+            "data_disc",
+            "Data Disc",
+            "Shiny optical disc storing lost battle simulations and ancient data.",
+            ArtifactStatType.CritRatePercent,
+            10f,
+            new Color32(46, 229, 240, 255),
+            new Color32(11, 45, 60, 255),
+            GetSprite("Artifact_CD")
+        );
+
+        // 2. Modular Brick (LEGO) - DEF +12
+        ArtifactData brick = CreateOrUpdateArtifact(
+            "modular_brick",
+            "Modular Brick",
+            "Interlocking plastic toy brick. Incredibly durable construction.",
+            ArtifactStatType.DamageReduction,
+            12f,
+            new Color32(46, 229, 240, 255),
+            new Color32(11, 45, 60, 255),
+            GetSprite("Artifact_Lego")
+        );
+
+        // 3. Kung Fu Data USB (USB) - All Weapons' ATK +9%
+        ArtifactData usb = CreateOrUpdateArtifact(
+            "kung_fu_usb",
+            "Kung Fu Data USB",
+            "Does it actually have the Epic tome of Kung Fu in it?",
+            ArtifactStatType.AllWeaponsDamagePercent,
+            9f,
+            new Color32(46, 229, 240, 255),
+            new Color32(11, 45, 60, 255),
+            GetSprite("Artifact_USB")
+        );
+
+        // 4. Energy Butter (Bơ / Phô mai) - HP +15%
+        ArtifactData butter = CreateOrUpdateArtifact(
+            "energy_butter",
+            "Energy Butter",
+            "High-calorie organic nutrient block that enhances biological vitality.",
+            ArtifactStatType.MaxHealthPercent,
+            15f,
+            new Color32(46, 229, 240, 255),
+            new Color32(11, 45, 60, 255),
+            GetSprite("Artifact_Butter")
+        );
+
+        // 5. Strong Cooler (Quạt tản nhiệt) - Turret ATK Speed +20%
+        ArtifactData cooler = CreateOrUpdateArtifact(
+            "strong_cooler",
+            "Strong Cooler",
+            "Cools down Turrets when they overheat.",
+            ArtifactStatType.TurretAttackSpeedPercent,
+            20f,
+            new Color32(46, 229, 240, 255),
+            new Color32(11, 45, 60, 255),
+            GetSprite("Artifact_Cooler")
+        );
+
+        // 6. Signal Rocket (Tên lửa / Pháo) - Move Speed +12%
+        ArtifactData rocket = CreateOrUpdateArtifact(
+            "signal_rocket",
+            "Signal Rocket",
+            "Miniature rocket propulsion unit. Boosts overall movement speed.",
+            ArtifactStatType.MoveSpeedPercent,
+            12f,
+            new Color32(46, 229, 240, 255),
+            new Color32(11, 45, 60, 255),
+            GetSprite("Artifact_Rocket")
+        );
+
+        // 7. Quantum Microchip (Chip vi mạch) - Ranged DEF +15%
+        ArtifactData chip = CreateOrUpdateArtifact(
+            "quantum_chip",
+            "Quantum Microchip",
+            "Advanced silicon processor that calculates incoming ranged projectile vectors.",
+            ArtifactStatType.RangedDefensePercent,
+            15f,
+            new Color32(46, 229, 240, 255),
+            new Color32(11, 45, 60, 255),
+            GetSprite("Artifact_Chip")
+        );
+
+        // Giữ lại Spare Battery để tương thích ngược cho các unit test cũ nếu có
+        ArtifactData legacyBattery = CreateOrUpdateArtifact(
             "spare_battery",
             "Spare Battery",
             "Eco-friendly product you can recharge.",
@@ -40,58 +145,14 @@ public static class ArtifactSystemSetup
             new Color32(11, 45, 60, 255)
         );
 
-        // 2. Carbon Scales (Ranged DEF +10%)
-        ArtifactData scales = CreateOrUpdateArtifact(
-            "carbon_scales",
-            "Carbon Scales",
-            "Vinyl 1, it likes me.\nVinyl 2, it doesn't like me.",
-            ArtifactStatType.RangedDefensePercent,
-            10f,
-            new Color32(46, 229, 240, 255),
-            new Color32(11, 45, 60, 255)
-        );
-
-        // 3. Strong Cooler (Turret ATK Speed +20%)
-        ArtifactData cooler = CreateOrUpdateArtifact(
-            "strong_cooler",
-            "Strong Cooler",
-            "Cools down Turrets when they overheat.",
-            ArtifactStatType.TurretAttackSpeedPercent,
-            20f,
-            new Color32(46, 229, 240, 255),
-            new Color32(11, 45, 60, 255)
-        );
-
-        // 4. Kung Fu Data USB (All Weapons' ATK +9%)
-        ArtifactData usb = CreateOrUpdateArtifact(
-            "kung_fu_usb",
-            "Kung Fu Data USB",
-            "Does it actually have the Epic tome of Kung Fu in it?",
-            ArtifactStatType.AllWeaponsDamagePercent,
-            9f,
-            new Color32(46, 229, 240, 255),
-            new Color32(11, 45, 60, 255)
-        );
-
-        // 5. Titanium Fabric (DEF +10) - matching reference image media_1788832655187.jpg
-        ArtifactData titaniumFabric = CreateOrUpdateArtifact(
-            "titanium_fabric",
-            "Titanium Fabric",
-            "Sturdy titanium. Covers the body.",
-            ArtifactStatType.DamageReduction,
-            10f,
-            new Color32(46, 229, 240, 255),
-            new Color32(11, 45, 60, 255)
-        );
-
-        // 6. ArtifactDatabase trong Data & Resources
-        CreateOrUpdateDatabase("Assets/Data/Artifacts/ArtifactDatabase.asset", battery, scales, cooler, usb, titaniumFabric);
-        CreateOrUpdateDatabase("Assets/Resources/ArtifactDatabase.asset", battery, scales, cooler, usb, titaniumFabric);
+        // 8. Cập nhật ArtifactDatabase trong Data & Resources với 7 Artifact mới
+        CreateOrUpdateDatabase("Assets/Data/Artifacts/ArtifactDatabase.asset", disc, brick, usb, butter, cooler, rocket, chip, legacyBattery);
+        CreateOrUpdateDatabase("Assets/Resources/ArtifactDatabase.asset", disc, brick, usb, butter, cooler, rocket, chip, legacyBattery);
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
 
-        Debug.Log("[ArtifactSystemSetup] ✅ Đã tạo hoàn tất các ScriptableObjects Cổ vật và ArtifactDatabase!");
+        Debug.Log("[ArtifactSystemSetup] ✅ Đã cập nhật hoàn tất 7 Cổ vật mới với Sprite cắt từ sheet và ArtifactDatabase!");
     }
 
     private static ArtifactData CreateOrUpdateArtifact(
@@ -101,7 +162,8 @@ public static class ArtifactSystemSetup
         ArtifactStatType statType,
         float statVal,
         Color borderColor,
-        Color bgColor)
+        Color bgColor,
+        Sprite sprite = null)
     {
         string path = $"{FolderPath}/{name.Replace(" ", "_").Replace("'", "")}.asset";
         ArtifactData data = AssetDatabase.LoadAssetAtPath<ArtifactData>(path);
@@ -120,11 +182,18 @@ public static class ArtifactSystemSetup
         data.badgeBorderColor = borderColor;
         data.badgeBgColor = bgColor;
 
-        string iconPath = $"Assets/Sprites/UI/Artifact/{id}.png";
-        Sprite spr = AssetDatabase.LoadAssetAtPath<Sprite>(iconPath);
-        if (spr != null)
+        if (sprite != null)
         {
-            data.icon = spr;
+            data.icon = sprite;
+        }
+        else
+        {
+            string iconPath = $"Assets/Sprites/UI/Artifact/{id}.png";
+            Sprite spr = AssetDatabase.LoadAssetAtPath<Sprite>(iconPath);
+            if (spr != null)
+            {
+                data.icon = spr;
+            }
         }
 
         EditorUtility.SetDirty(data);

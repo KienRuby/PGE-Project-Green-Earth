@@ -40,6 +40,8 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
     public BuddySlotState SlotState => slotState;
     public Image ProgressTrackImage => progressTrackImage;
     public Image ProgressFillImage => progressFillImage;
+    public Image DroneIconImage => droneIconImage;
+    public Image CardFrameImage => cardFrameImage;
 
     private void Awake()
     {
@@ -58,6 +60,14 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
         else
         {
             UpdateProgressFromText();
+        }
+    }
+
+    private void Update()
+    {
+        if (boundData != null && boundData.tier == BuddyTier.Holographic)
+        {
+            ChipsetFrameShimmerMaterial.UpdateUnscaledAnimationClock();
         }
     }
 
@@ -122,8 +132,24 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
         }
         if (droneIconImage == null)
         {
-            Transform t = transform.Find("NormalContentGroup/DroneIcon") ?? transform.Find("DroneIcon") ?? transform.Find("Icon");
+            Transform t = transform.Find("NormalContentGroup/DroneIcon")
+                ?? transform.Find("NormalContentGroup/Icon")
+                ?? transform.Find("DroneIcon")
+                ?? transform.Find("Icon");
             if (t != null) droneIconImage = t.GetComponent<Image>();
+            if (droneIconImage == null)
+            {
+                foreach (var img in GetComponentsInChildren<Image>(true))
+                {
+                    if (img == cardFrameImage || img == progressTrackImage || img == progressFillImage) continue;
+                    if (img.name.IndexOf("Icon", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                        img.name.IndexOf("Drone", StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        droneIconImage = img;
+                        break;
+                    }
+                }
+            }
         }
         if (levelText == null)
         {
@@ -132,8 +158,19 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
         }
         if (progressText == null)
         {
-            Transform t = transform.Find("NormalContentGroup/BottomBar/ProgressText") ?? transform.Find("BottomBar/ProgressText") ?? transform.Find("ProgressText") ?? transform.Find("Quantity");
+            Transform t = transform.Find("NormalContentGroup/BottomBar/ProgressText") ?? transform.Find("BottomBar/ProgressText") ?? transform.Find("ProgressText") ?? transform.Find("Quantity") ?? transform.Find("Quantiry");
             if (t != null) progressText = t.GetComponent<TMP_Text>();
+            if (progressText == null)
+            {
+                foreach (var tmp in GetComponentsInChildren<TMP_Text>(true))
+                {
+                    if (tmp != levelText)
+                    {
+                        progressText = tmp;
+                        break;
+                    }
+                }
+            }
         }
         if (upgradeArrowGroup == null)
         {
@@ -157,13 +194,6 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
                 progressFillImage = fillT.GetComponent<Image>();
             }
 
-            // Remove any dark background track if previously generated
-            Transform trackT = fillT.parent.Find(fillT.name + "_Track") ?? fillT.parent.Find("FillTrack") ?? fillT.parent.Find("Track");
-            if (trackT != null)
-            {
-                if (Application.isPlaying) Destroy(trackT.gameObject);
-                else DestroyImmediate(trackT.gameObject);
-            }
             progressTrackImage = null;
         }
         else
@@ -180,6 +210,21 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
                 else
                 {
                     progressFillImage = barT.GetComponent<Image>();
+                }
+            }
+        }
+
+        if (progressFillImage == null)
+        {
+            foreach (var img in GetComponentsInChildren<Image>(true))
+            {
+                if (img != cardFrameImage && img != droneIconImage && img != progressTrackImage)
+                {
+                    if (img.name.Equals("Fill", StringComparison.OrdinalIgnoreCase) || img.name.Equals("ProgressFill", StringComparison.OrdinalIgnoreCase))
+                    {
+                        progressFillImage = img;
+                        break;
+                    }
                 }
             }
         }
@@ -211,11 +256,21 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
             progressFillImage.fillOrigin = (int)Image.OriginHorizontal.Left;
             progressFillImage.fillClockwise = true;
             progressFillImage.fillAmount = fillRatio;
-            progressFillImage.enabled = fillRatio > 0.001f;
+            bool shouldShow = fillRatio > 0.001f;
+            progressFillImage.enabled = shouldShow;
+            if (progressText == null || progressFillImage.gameObject != progressText.transform.parent.gameObject)
+            {
+                progressFillImage.gameObject.SetActive(shouldShow);
+            }
+            else
+            {
+                progressFillImage.gameObject.SetActive(true);
+            }
         }
 
         if (progressText != null)
         {
+            progressText.color = fillRatio > 0.001f ? new Color(0.04f, 0.08f, 0.12f, 1f) : Color.white;
             progressText.transform.SetAsLastSibling();
         }
     }
@@ -224,7 +279,11 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
     {
         if (progressText == null) return;
         string t = progressText.text?.Trim();
-        if (string.IsNullOrEmpty(t)) return;
+        if (string.IsNullOrEmpty(t))
+        {
+            UpdateProgressBar(0f);
+            return;
+        }
 
         if (t.Equals("MAX", StringComparison.OrdinalIgnoreCase))
         {
@@ -240,6 +299,14 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
             {
                 UpdateProgressBar(cur / req);
             }
+            else
+            {
+                UpdateProgressBar(0f);
+            }
+        }
+        else
+        {
+            UpdateProgressBar(0f);
         }
     }
 
@@ -280,6 +347,14 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
         {
             cardFrameImage.raycastTarget = true;
             if (frameSprite != null) cardFrameImage.sprite = frameSprite;
+            if (data != null && data.tier == BuddyTier.Holographic)
+            {
+                cardFrameImage.material = ChipsetFrameShimmerMaterial.Get(cardFrameImage.sprite);
+            }
+            else
+            {
+                cardFrameImage.material = null;
+            }
         }
 
         if (droneIconImage != null)
@@ -287,6 +362,8 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
             if (iconSprite != null)
             {
                 droneIconImage.sprite = iconSprite;
+                droneIconImage.color = Color.white;
+                droneIconImage.enabled = true;
                 droneIconImage.gameObject.SetActive(true);
             }
             else
@@ -413,6 +490,18 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
 
         float ratio = boundData.requiredCount > 0 ? (float)boundData.count / boundData.requiredCount : 1f;
         UpdateProgressBar(ratio);
+
+        if (cardFrameImage != null)
+        {
+            if (boundData.tier == BuddyTier.Holographic)
+            {
+                cardFrameImage.material = ChipsetFrameShimmerMaterial.Get(cardFrameImage.sprite);
+            }
+            else
+            {
+                cardFrameImage.material = null;
+            }
+        }
 
         if (upgradeArrowGroup != null)
         {
