@@ -53,16 +53,16 @@ public class RocketPunchSkill : MonoBehaviour
     [SerializeField]
     private RocketPunchLevelConfig[] levelConfigs = new RocketPunchLevelConfig[]
     {
-        // Cấp 1: 70 dmg, CD 3.0s, AoE 2.5m
-        new RocketPunchLevelConfig { directDamage = 70, aoeDamage = 37, cooldown = 3.0f, aoeRadius = 2.5f, hasStun = false, stunDuration = 0f, hasLavaPool = false },
-        // Cấp 2: 100 dmg, CD 2.5s, AoE 3.0m
-        new RocketPunchLevelConfig { directDamage = 100, aoeDamage = 55, cooldown = 2.5f, aoeRadius = 3.0f, hasStun = false, stunDuration = 0f, hasLavaPool = false },
-        // Cấp 3: 140 dmg, CD 2.0s, AoE 4.0m
-        new RocketPunchLevelConfig { directDamage = 140, aoeDamage = 80, cooldown = 2.0f, aoeRadius = 4.0f, hasStun = false, stunDuration = 0f, hasLavaPool = false },
-        // Cấp 4: 190 dmg, CD 1.5s, AoE 4.0m, Stun 1.0s
-        new RocketPunchLevelConfig { directDamage = 190, aoeDamage = 115, cooldown = 1.5f, aoeRadius = 4.0f, hasStun = true, stunDuration = 1.0f, hasLavaPool = false },
-        // Cấp 5 (Tối thượng): 260 dmg, CD 1.0s, AoE 5.0m, Stun 1.0s, Dung nham 3s
-        new RocketPunchLevelConfig { directDamage = 260, aoeDamage = 160, cooldown = 1.0f, aoeRadius = 5.0f, hasStun = true, stunDuration = 1.0f, hasLavaPool = true }
+        // Cấp 1: 70 dmg, CD 2.0s, AoE 2.5m
+        new RocketPunchLevelConfig { directDamage = 70, aoeDamage = 37, cooldown = 2.0f, aoeRadius = 2.5f, hasStun = false, stunDuration = 0f, hasLavaPool = false },
+        // Cấp 2: 100 dmg, CD 1.7s, AoE 3.0m
+        new RocketPunchLevelConfig { directDamage = 100, aoeDamage = 55, cooldown = 1.7f, aoeRadius = 3.0f, hasStun = false, stunDuration = 0f, hasLavaPool = false },
+        // Cấp 3: 140 dmg, CD 1.4s, AoE 4.0m
+        new RocketPunchLevelConfig { directDamage = 140, aoeDamage = 80, cooldown = 1.4f, aoeRadius = 4.0f, hasStun = false, stunDuration = 0f, hasLavaPool = false },
+        // Cấp 4: 190 dmg, CD 1.1s, AoE 4.0m, Stun 1.0s
+        new RocketPunchLevelConfig { directDamage = 190, aoeDamage = 115, cooldown = 1.1f, aoeRadius = 4.0f, hasStun = true, stunDuration = 1.0f, hasLavaPool = false },
+        // Cấp 5 (Tối thượng): 260 dmg, CD 0.8s, AoE 5.0m, Stun 1.0s
+        new RocketPunchLevelConfig { directDamage = 260, aoeDamage = 160, cooldown = 0.8f, aoeRadius = 5.0f, hasStun = true, stunDuration = 1.0f, hasLavaPool = false }
     };
 
     [Header("Runtime State (Debug)")]

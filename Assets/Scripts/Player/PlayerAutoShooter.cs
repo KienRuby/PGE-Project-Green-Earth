@@ -104,7 +104,7 @@ public class PlayerAutoShooter : MonoBehaviour
 
     [Header("Chipset Damage By Runtime Level")]
     [Tooltip("Standard Gun ID 1 - sát thương mỗi viên ở cấp 1 đến 5.")]
-    [SerializeField] private int[] standardGunDamageByLevel = { 53, 65, 80, 100, 130 };
+    [SerializeField] private int[] standardGunDamageByLevel = { 10, 25, 30, 45, 50 };
     [Tooltip("Rifle ID 2 - sát thương mỗi viên ở cấp 1 đến 5.")]
     [SerializeField] private int[] rifleDamageByLevel = { 15, 20, 25, 30, 40 };
     [Tooltip("Multigun ID 5 - sát thương mỗi viên ở cấp 1 đến 5.")]
@@ -278,20 +278,26 @@ public class PlayerAutoShooter : MonoBehaviour
         {
             ChipTier tier = PlayerDataService.GetChipTier(2);
             float multiplier = 1f;
-            if (tier >= ChipTier.Rare) multiplier += 0.25f;
-            if (tier >= ChipTier.Epic) multiplier += 0.80f;
+            if (tier >= ChipTier.Rare) multiplier += 0.25f; // Rare ATK +25%
+            if (tier >= ChipTier.Epic) multiplier += 0.80f; // Legendary ATK +80%
+            if (tier == ChipTier.Holographic) multiplier += 0.85f; // Secret ATK +85%
             return Mathf.RoundToInt(GetLevelValue(rifleDamageByLevel, index) * multiplier);
         }
         if (chipsetId == 5)
         {
-            return GetLevelValue(multigunDamageByLevel, index);
+            ChipTier tier = PlayerDataService.GetChipTier(5);
+            float multiplier = 1f;
+            if (tier >= ChipTier.Rare) multiplier += 0.05f; // Rare ATK +5%
+            if (tier >= ChipTier.Epic) multiplier += 0.10f; // Legendary ATK +10%
+            return Mathf.RoundToInt(GetLevelValue(multigunDamageByLevel, index) * multiplier);
         }
         if (chipsetId == 8)
         {
             ChipTier tier = PlayerDataService.GetChipTier(8);
             float multiplier = 1f;
-            if (tier >= ChipTier.Rare) multiplier += 0.15f;
-            if (tier >= ChipTier.Unique) multiplier += 0.15f;
+            if (tier >= ChipTier.Rare) multiplier += 0.15f; // Rare ATK +15%
+            if (tier >= ChipTier.Unique) multiplier += 0.15f; // Epic ATK +15%
+            if (tier >= ChipTier.Epic) multiplier += 0.25f; // Legendary ATK +25%
             return Mathf.Max(1, Mathf.RoundToInt(GetLevelValue(shotgunTotalDamageByLevel, index) * multiplier / 5f));
         }
         return 0;
@@ -312,7 +318,7 @@ public class PlayerAutoShooter : MonoBehaviour
         if (chipsetId == 1)
         {
             float[] values = { 0.35f, 0.30f, 0.25f, 0.20f, 0.15f };
-            float speed = PlayerDataService.GetChipTier(1) >= ChipTier.Unique ? 1.15f : 1f;
+            float speed = PlayerDataService.GetChipTier(1) >= ChipTier.Unique ? 1.15f : 1f; // Epic ATK Speed +15%
             return values[index] / speed;
         }
         if (chipsetId == 2)
@@ -320,14 +326,17 @@ public class PlayerAutoShooter : MonoBehaviour
             float[] values = { 0.20f, 0.18f, 0.15f, 0.12f, 0.10f };
             ChipTier tier = PlayerDataService.GetChipTier(2);
             float speed = 1f;
-            if (tier >= ChipTier.Unique) speed += 0.20f;
-            if (tier == ChipTier.Holographic) speed += 0.35f;
+            if (tier >= ChipTier.Unique) speed += 0.20f; // Epic ATK Speed +20%
+            if (tier == ChipTier.Holographic) speed += 0.55f; // Secret ATK Speed +55%
             return values[index] / speed;
         }
         if (chipsetId == 5)
         {
             float[] values = { 1f, 0.8f, 0.6f, 0.4f, 0.2f };
-            return values[index];
+            ChipTier tier = PlayerDataService.GetChipTier(5);
+            float speed = 1f;
+            if (tier >= ChipTier.Unique) speed += 0.05f; // Epic ATK Speed +5%
+            return values[index] / speed;
         }
 
         float[] shotgunValues = { 1.5f, 1.3f, 1.1f, 0.9f, 0.7f };
@@ -341,14 +350,16 @@ public class PlayerAutoShooter : MonoBehaviour
         if (chipsetId == 1 || chipsetId == 2) return level >= 5 ? 2 : 1;
         if (chipsetId == 8) return level >= 5 || PlayerDataService.GetChipTier(8) == ChipTier.Holographic ? 10 : 5;
 
-        int[] shells = { 4, 5, 6, 9, 13 };
-        int count = shells[level - 1];
-        ChipTier tier = PlayerDataService.GetChipTier(5);
-        if (tier >= ChipTier.Rare) count += 1;
-        if (tier >= ChipTier.Unique) count += 1;
-        if (tier >= ChipTier.Epic) count += 3;
-        if (tier == ChipTier.Holographic) count += 4;
-        return count;
+        if (chipsetId == 5)
+        {
+            int[] shells = { 3, 3, 3, 5, 5 };
+            int count = shells[Mathf.Clamp(level - 1, 0, shells.Length - 1)];
+            ChipTier tier = PlayerDataService.GetChipTier(5);
+            if (tier == ChipTier.Holographic) count += 2; // Secret: Adds +2 shells
+            return count;
+        }
+
+        return 1;
     }
 
     /// <summary>

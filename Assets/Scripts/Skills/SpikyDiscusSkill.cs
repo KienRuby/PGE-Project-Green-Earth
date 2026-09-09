@@ -34,10 +34,10 @@ public class SpikyDiscusSkill : MonoBehaviour
     private DiscusLevelConfig[] levelConfigs = new DiscusLevelConfig[]
     {
         new DiscusLevelConfig { damage = 30, orbitSpeed = 90f, discusCount = 1, hasBleed = false, bleedDps = 0, bleedDuration = 0f, isGiantScale = false, destroyEnemyBullets = false },
-        new DiscusLevelConfig { damage = 45, orbitSpeed = 130f, discusCount = 2, hasBleed = false, bleedDps = 0, bleedDuration = 0f, isGiantScale = false, destroyEnemyBullets = false },
-        new DiscusLevelConfig { damage = 60, orbitSpeed = 170f, discusCount = 2, hasBleed = true, bleedDps = 5, bleedDuration = 3f, isGiantScale = false, destroyEnemyBullets = false },
-        new DiscusLevelConfig { damage = 80, orbitSpeed = 220f, discusCount = 3, hasBleed = true, bleedDps = 5, bleedDuration = 3f, isGiantScale = false, destroyEnemyBullets = false },
-        new DiscusLevelConfig { damage = 110, orbitSpeed = 280f, discusCount = 3, hasBleed = true, bleedDps = 5, bleedDuration = 3f, isGiantScale = true, destroyEnemyBullets = true }
+        new DiscusLevelConfig { damage = 45, orbitSpeed = 130f, discusCount = 1, hasBleed = false, bleedDps = 0, bleedDuration = 0f, isGiantScale = false, destroyEnemyBullets = false },
+        new DiscusLevelConfig { damage = 60, orbitSpeed = 160f, discusCount = 2, hasBleed = false, bleedDps = 0, bleedDuration = 0f, isGiantScale = false, destroyEnemyBullets = false },
+        new DiscusLevelConfig { damage = 80, orbitSpeed = 200f, discusCount = 2, hasBleed = false, bleedDps = 0, bleedDuration = 0f, isGiantScale = false, destroyEnemyBullets = false },
+        new DiscusLevelConfig { damage = 110, orbitSpeed = 260f, discusCount = 3, hasBleed = true, bleedDps = 5, bleedDuration = 5.0f, isGiantScale = true, destroyEnemyBullets = true }
     };
 
     [Header("Orbit Settings")]
@@ -134,7 +134,8 @@ public class SpikyDiscusSkill : MonoBehaviour
         }
         if (tier == ChipTier.Holographic)
         {
-            metaSpinSpeedMultiplier += 0.35f; // Spin Speed +35% (Tổng +65%)
+            metaDiscusCountBonus += 1; // +1 Discus (Secret: +1 Discus)
+            metaSpinSpeedMultiplier += 0.35f; // Spin Speed +35%
         }
     }
 
