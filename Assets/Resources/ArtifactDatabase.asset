@@ -13,11 +13,8 @@ MonoBehaviour:
   m_Name: ArtifactDatabase
   m_EditorClassIdentifier: 
   artifacts:
-  - {fileID: 11400000, guid: a94a3c9c0fe2b0f458784a38bbfc9ab2, type: 2}
-  - {fileID: 11400000, guid: 99cfa713c16e464468b87c9d051c5a7c, type: 2}
-  - {fileID: 11400000, guid: 8803823202fb6f04685b3ad42078155b, type: 2}
-  - {fileID: 11400000, guid: d51ef59a0c04c1d45ab17877fdba8805, type: 2}
-  - {fileID: 11400000, guid: 5c4b4bdb4ab7e7b45a215725b8ab0e63, type: 2}
-  - {fileID: 11400000, guid: 4570df28f837f204faab5cd07baa6218, type: 2}
-  - {fileID: 11400000, guid: e4234d83887a0264aa33bd2065b51693, type: 2}
   - {fileID: 11400000, guid: 14a76f6de98d21448aed5ebf4e7c9ebd, type: 2}
+  - {fileID: 11400000, guid: b062cee535a72f04e857aa16beaf444d, type: 2}
+  - {fileID: 11400000, guid: 5c4b4bdb4ab7e7b45a215725b8ab0e63, type: 2}
+  - {fileID: 11400000, guid: 8803823202fb6f04685b3ad42078155b, type: 2}
+  - {fileID: 11400000, guid: d59e66cf8153c694b9175c0bf02141bc, type: 2}

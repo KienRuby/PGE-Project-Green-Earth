@@ -45,6 +45,23 @@ public class PlayerMovement : MonoBehaviour
     public float MoveSpeed => EffectiveSpeed;
     public float EffectiveSpeed => (Mathf.Max(3.5f, moveSpeed) + moveSpeedBonus) * artifactSpeedMultiplier;
 
+    public float MoveSpeedBonus
+    {
+        get => moveSpeedBonus;
+        set => moveSpeedBonus = value;
+    }
+
+    public void AddMoveSpeedBonus(float bonus)
+    {
+        moveSpeedBonus += bonus;
+    }
+
+    public void AddMoveSpeedPercent(float percent)
+    {
+        float bonus = Mathf.Max(3.5f, moveSpeed) * (percent / 100f);
+        moveSpeedBonus += bonus;
+    }
+
     public void SetArtifactSpeedBonus(float percent)
     {
         artifactSpeedMultiplier = 1f + Mathf.Max(0f, percent) / 100f;

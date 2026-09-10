@@ -81,6 +81,12 @@ public class PlayerHealth : MonoBehaviour, IDamageable
     }
     private int baseMaxHealth;
 
+    public void AddMaxHealth(int amount)
+    {
+        maxHealth = Mathf.Max(1, maxHealth + amount);
+        currentHealth = Mathf.Clamp(currentHealth + amount, 1, maxHealth);
+    }
+
     [SerializeField] private int currentShield = 0;
     [SerializeField] private int maxShield = 0;
 

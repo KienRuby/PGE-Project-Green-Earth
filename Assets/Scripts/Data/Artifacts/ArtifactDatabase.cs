@@ -91,6 +91,15 @@ public class ArtifactDatabase : ScriptableObject
         titanium.statType = ArtifactStatType.DamageReduction;
         titanium.statValue = 10f;
         artifacts.Add(titanium);
+
+        // 6. Metal Band-aid (HP +12%)
+        ArtifactData bandAid = CreateInstance<ArtifactData>();
+        bandAid.id = "metal_band_aid";
+        bandAid.artifactName = "Metal Band-aid";
+        bandAid.loreDescription = "A specialized nanotech medical bandage found in abandoned bunkers.";
+        bandAid.statType = ArtifactStatType.MaxHealthPercent;
+        bandAid.statValue = 12f;
+        artifacts.Add(bandAid);
     }
 
     /// <summary>
