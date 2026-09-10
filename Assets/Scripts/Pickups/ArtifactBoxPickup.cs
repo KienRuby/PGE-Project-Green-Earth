@@ -171,6 +171,8 @@ public class ArtifactBoxPickup : MonoBehaviour
         spriteRenderer.sortingOrder = 100;
     }
 
+    private Transform playerTransform;
+
     private void Update()
     {
         if (isCollected) return;
@@ -184,13 +186,44 @@ public class ArtifactBoxPickup : MonoBehaviour
         // Hiệu ứng bay bập bềnh nhẹ trên không trung
         float newY = initialPosition.y + Mathf.Sin(Time.time * bobbingSpeed) * bobbingAmount;
         transform.position = new Vector3(initialPosition.x, newY, initialPosition.z);
+
+        // Kiểm tra khoảng cách trực tiếp đến Player (bảo đảm nhặt 100% ngay cả khi collider bị miss)
+        if (playerTransform == null)
+        {
+            GameObject pObj = GameObject.FindGameObjectWithTag("Player");
+            if (pObj != null) playerTransform = pObj.transform;
+            else
+            {
+                var pm = FindObjectOfType<PlayerMovement>();
+                if (pm != null) playerTransform = pm.transform;
+            }
+        }
+
+        if (playerTransform != null)
+        {
+            float dist = Vector2.Distance(transform.position, playerTransform.position);
+            if (dist <= Mathf.Max(triggerRadius, 1.1f))
+            {
+                TriggerOpenArtifact();
+            }
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (isCollected) return;
 
-        if (other.CompareTag("Player") || other.GetComponentInParent<PlayerHealth>() != null)
+        if (other.CompareTag("Player") || other.GetComponentInParent<PlayerHealth>() != null || other.GetComponentInParent<PlayerMovement>() != null)
+        {
+            TriggerOpenArtifact();
+        }
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (isCollected) return;
+
+        if (collision.collider.CompareTag("Player") || collision.collider.GetComponentInParent<PlayerHealth>() != null || collision.collider.GetComponentInParent<PlayerMovement>() != null)
         {
             TriggerOpenArtifact();
         }
@@ -217,7 +250,12 @@ public class ArtifactBoxPickup : MonoBehaviour
                 }
                 ownedIds = list;
             }
-            assignedArtifact = ArtifactDatabase.Instance.GetRandomArtifact(ownedIds);
+            assignedArtifact = ArtifactDatabase.Instance != null ? ArtifactDatabase.Instance.GetRandomArtifact(ownedIds) : null;
+        }
+
+        if (assignedArtifact == null && ArtifactDatabase.Instance != null && ArtifactDatabase.Instance.artifacts.Count > 0)
+        {
+            assignedArtifact = ArtifactDatabase.Instance.artifacts[0];
         }
 
         if (assignedArtifact == null)
@@ -234,6 +272,11 @@ public class ArtifactBoxPickup : MonoBehaviour
 
         // Mở Popup thông qua Controller
         ArtifactFoundModalController modal = ArtifactFoundModalController.Instance;
+        if (modal == null)
+        {
+            modal = ArtifactFoundModalController.EnsureModalInScene();
+        }
+
         if (modal != null)
         {
             modal.Show(assignedArtifact,
@@ -255,7 +298,7 @@ public class ArtifactBoxPickup : MonoBehaviour
         else
         {
             // Fallback nếu trong Scene chưa có modal controller, tự tạo hoặc nhận luôn
-            Debug.LogWarning("[ArtifactBoxPickup] ArtifactFoundModalController chưa được gắn trong Canvas!");
+            Debug.LogWarning("[ArtifactBoxPickup] Không tìm thấy ArtifactFoundModalController trong Canvas!");
             if (PlayerArtifactInventory.Instance != null)
             {
                 PlayerArtifactInventory.Instance.EquipArtifact(assignedArtifact);

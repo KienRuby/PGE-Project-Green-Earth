@@ -335,59 +335,9 @@ public sealed class VictoryPanelController : MonoBehaviour
         {
             Transform content = victoryPanel.transform.Find("CompletePanel") ?? victoryPanel.transform;
 
-            Transform dataRow = content.Find("DataChipReward");
-            if (dataRow != null)
-            {
-                RectTransform dataRt = dataRow.GetComponent<RectTransform>();
-                if (Mathf.Abs(dataRt.anchoredPosition.x) < 20f || dataRt.sizeDelta.x > 360f)
-                {
-                    dataRt.anchoredPosition = new Vector2(-110f, 135f);
-                    dataRt.sizeDelta = new Vector2(340f, 118f);
-                    Transform icon = dataRow.Find("Icon");
-                    if (icon != null)
-                    {
-                        RectTransform iconRt = icon.GetComponent<RectTransform>();
-                        iconRt.anchoredPosition = new Vector2(-95f, 0f);
-                        iconRt.sizeDelta = new Vector2(88f, 88f);
-                    }
-                    Transform val = dataRow.Find("Value");
-                    if (val != null)
-                    {
-                        RectTransform valRt = val.GetComponent<RectTransform>();
-                        valRt.anchoredPosition = new Vector2(55f, 0f);
-                        valRt.sizeDelta = new Vector2(210f, 95f);
-                    }
-                }
-            }
-
-            Transform gemRow = content.Find("RedGemReward");
-            if (gemRow != null)
-            {
-                RectTransform gemRt = gemRow.GetComponent<RectTransform>();
-                if (Mathf.Abs(gemRt.anchoredPosition.x) < 20f || gemRt.sizeDelta.x > 360f)
-                {
-                    gemRt.anchoredPosition = new Vector2(-110f, 10f);
-                    gemRt.sizeDelta = new Vector2(340f, 118f);
-                    Transform icon = gemRow.Find("Icon");
-                    if (icon != null)
-                    {
-                        RectTransform iconRt = icon.GetComponent<RectTransform>();
-                        iconRt.anchoredPosition = new Vector2(-95f, 0f);
-                        iconRt.sizeDelta = new Vector2(88f, 88f);
-                    }
-                    Transform val = gemRow.Find("Value");
-                    if (val != null)
-                    {
-                        RectTransform valRt = val.GetComponent<RectTransform>();
-                        valRt.anchoredPosition = new Vector2(55f, 0f);
-                        valRt.sizeDelta = new Vector2(210f, 95f);
-                    }
-                }
-            }
-
             if (detailsButton == null)
             {
-                Transform existingBtn = content.Find("DetailsButton");
+                Transform existingBtn = victoryPanel.transform.Find("DetailsButton") ?? content.Find("DetailsButton");
                 if (existingBtn != null)
                 {
                     detailsButton = existingBtn.GetComponent<Button>();
@@ -673,8 +623,8 @@ public sealed class VictoryPanelController : MonoBehaviour
 
     private void UpdateRewardTexts(int dataReward, int gemReward)
     {
-        if (dataChipRewardText != null) dataChipRewardText.text = $"Get {dataReward:N0}";
-        if (redGemRewardText != null) redGemRewardText.text = $"Get {gemReward:N0}";
+        if (dataChipRewardText != null) dataChipRewardText.text = $"Get {dataReward}";
+        if (redGemRewardText != null) redGemRewardText.text = $"Get {gemReward}";
     }
 
     private static void SetPanelActive(GameObject panel, bool active)

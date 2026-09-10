@@ -25,6 +25,7 @@ public static class LabMenuSceneBuilder
         EditorApplication.update += TryApplyRequestedUpgradeArrowLayout;
         EditorApplication.update += TryBuildRequestedBuddyPanel;
         EditorApplication.update += TryUpdateRequestedLabStats;
+        EditorApplication.update += TryCleanDuplicateModalsRequested;
     }
 
     private sealed class SlotView
@@ -63,6 +64,7 @@ public static class LabMenuSceneBuilder
     private const string ChipsetUpgradeArrowLayoutRequestPath = "Assets/Editor/PGE_ChipsetUpgradeArrowLayout_Request.txt";
     private const string BuddyBuildRequestPath = "Assets/Editor/PGE_BuddyUI_BuildRequest.txt";
     private const string LabStatsBuildRequestPath = "Assets/Editor/PGE_LabStats_BuildRequest.txt";
+    private const string CleanDuplicatesRequestPath = "Assets/Editor/PGE_CleanDuplicates_Request.txt";
     private const string FontPath = "Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset";
 
     private static readonly Color Navy = new Color32(8, 39, 69, 255);
@@ -146,6 +148,8 @@ public static class LabMenuSceneBuilder
         {
             UnityEngine.Object.DestroyImmediate(existingBuddyPanel.gameObject);
         }
+        DestroyChildrenNamed(canvas.transform, "BuddyDetailModal");
+        DestroyChildrenNamed(canvas.transform, "BuddyToastMessage");
 
         TopBarCurrencyController topBar = UnityEngine.Object.FindObjectOfType<TopBarCurrencyController>();
         TMP_Text energyText = null, chipText = null, redText = null;
@@ -219,6 +223,9 @@ public static class LabMenuSceneBuilder
         {
             UnityEngine.Object.DestroyImmediate(existingChipsetPanel.gameObject);
         }
+        DestroyChildrenNamed(canvas.transform, "ChipsetDetailModal");
+        DestroyChildrenNamed(canvas.transform, "BlastFurnaceModal");
+        DestroyChildrenNamed(canvas.transform, "ChipsetToastMessage");
 
         TopBarCurrencyController topBar = UnityEngine.Object.FindObjectOfType<TopBarCurrencyController>();
         TMP_Text energyText = null, chipText = null, redText = null;
@@ -670,6 +677,210 @@ public static class LabMenuSceneBuilder
         }
         catch {}
         AssetDatabase.Refresh();
+    }
+
+    private static void TryCleanDuplicateModalsRequested()
+    {
+        if (!File.Exists(CleanDuplicatesRequestPath) ||
+            EditorApplication.isPlayingOrWillChangePlaymode ||
+            EditorApplication.isCompiling ||
+            EditorApplication.isUpdating)
+        {
+            return;
+        }
+
+        CleanDuplicateModals();
+        try
+        {
+            File.Delete(CleanDuplicatesRequestPath);
+        }
+        catch {}
+        AssetDatabase.Refresh();
+    }
+
+    [MenuItem("PGE/UI/Clean Duplicate Modals in MainMenu")]
+    public static void CleanDuplicateModals()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling || EditorApplication.isUpdating)
+        {
+            Debug.LogWarning("[LabMenuSceneBuilder] Stop Play Mode before cleaning duplicate modals.");
+            return;
+        }
+
+        Scene scene = SceneManager.GetActiveScene();
+        if (!string.Equals(scene.path, ScenePath, StringComparison.OrdinalIgnoreCase))
+        {
+            scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+        }
+
+        Canvas canvas = UnityEngine.Object.FindObjectOfType<Canvas>();
+        if (canvas == null)
+        {
+            Debug.LogWarning("[LabMenuSceneBuilder] Canvas was not found in MainMenu.");
+            return;
+        }
+
+        Transform canvasT = canvas.transform;
+        int destroyedCount = 0;
+
+        // 1. Clean ChipsetDetailModal
+        ChipsetController chipsetCtrl = UnityEngine.Object.FindObjectOfType<ChipsetController>();
+        GameObject activeChipsetDetail = null;
+        if (chipsetCtrl != null)
+        {
+            SerializedObject so = new SerializedObject(chipsetCtrl);
+            activeChipsetDetail = so.FindProperty("detailModal")?.objectReferenceValue as GameObject;
+        }
+        destroyedCount += CleanDuplicatesFor(canvasT, "ChipsetDetailModal", ref activeChipsetDetail);
+        if (chipsetCtrl != null && activeChipsetDetail != null)
+        {
+            SerializedObject so = new SerializedObject(chipsetCtrl);
+            so.FindProperty("detailModal").objectReferenceValue = activeChipsetDetail;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            chipsetCtrl.AutoWireDetailModalIfMissing();
+        }
+
+        // 2. Clean BlastFurnaceModal
+        GameObject activeFurnace = null;
+        if (chipsetCtrl != null)
+        {
+            SerializedObject so = new SerializedObject(chipsetCtrl);
+            activeFurnace = so.FindProperty("furnaceModal")?.objectReferenceValue as GameObject;
+        }
+        destroyedCount += CleanDuplicatesFor(canvasT, "BlastFurnaceModal", ref activeFurnace);
+        if (chipsetCtrl != null && activeFurnace != null)
+        {
+            SerializedObject so = new SerializedObject(chipsetCtrl);
+            so.FindProperty("furnaceModal").objectReferenceValue = activeFurnace;
+            Transform closeBtnT = activeFurnace.transform.Find("CloseBtn") ?? activeFurnace.transform.Find("FurnaceBox/CloseBtn");
+            if (closeBtnT != null)
+                so.FindProperty("furnaceCloseBtn").objectReferenceValue = closeBtnT.GetComponent<Button>();
+            Transform dismBtnT = activeFurnace.transform.Find("DismantleBtn") ?? activeFurnace.transform.Find("FurnaceBox/DismantleBtn");
+            if (dismBtnT != null)
+                so.FindProperty("blastFurnaceDismantleBtn").objectReferenceValue = dismBtnT.GetComponent<Button>();
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        // 3. Clean BuddyDetailModal
+        BuddyController buddyCtrl = UnityEngine.Object.FindObjectOfType<BuddyController>();
+        GameObject activeBuddyDetail = null;
+        if (buddyCtrl != null)
+        {
+            SerializedObject so = new SerializedObject(buddyCtrl);
+            activeBuddyDetail = so.FindProperty("detailModal")?.objectReferenceValue as GameObject;
+        }
+        destroyedCount += CleanDuplicatesFor(canvasT, "BuddyDetailModal", ref activeBuddyDetail);
+        if (buddyCtrl != null && activeBuddyDetail != null)
+        {
+            SerializedObject so = new SerializedObject(buddyCtrl);
+            so.FindProperty("detailModal").objectReferenceValue = activeBuddyDetail;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            buddyCtrl.AutoWireDetailModalReferencesIfMissing();
+        }
+
+        // 4. Clean ToastMessage
+        GameObject activeChipsetToast = null;
+        if (chipsetCtrl != null)
+        {
+            SerializedObject so = new SerializedObject(chipsetCtrl);
+            activeChipsetToast = so.FindProperty("toastRoot")?.objectReferenceValue as GameObject;
+        }
+        GameObject activeBuddyToast = null;
+        if (buddyCtrl != null)
+        {
+            SerializedObject so = new SerializedObject(buddyCtrl);
+            activeBuddyToast = so.FindProperty("toastRoot")?.objectReferenceValue as GameObject;
+        }
+
+        List<GameObject> toasts = new List<GameObject>();
+        for (int i = 0; i < canvasT.childCount; i++)
+        {
+            Transform child = canvasT.GetChild(i);
+            if (child.name == "ToastMessage" || child.name == "ChipsetToastMessage" || child.name == "BuddyToastMessage")
+            {
+                toasts.Add(child.gameObject);
+            }
+        }
+
+        HashSet<GameObject> keepToasts = new HashSet<GameObject>();
+        if (activeChipsetToast != null && toasts.Contains(activeChipsetToast)) keepToasts.Add(activeChipsetToast);
+        if (activeBuddyToast != null && toasts.Contains(activeBuddyToast)) keepToasts.Add(activeBuddyToast);
+
+        if (keepToasts.Count == 0 && toasts.Count > 0)
+        {
+            keepToasts.Add(toasts[toasts.Count - 1]);
+        }
+
+        foreach (var toast in toasts)
+        {
+            if (!keepToasts.Contains(toast))
+            {
+                UnityEngine.Object.DestroyImmediate(toast);
+                destroyedCount++;
+            }
+        }
+
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        Debug.Log($"[LabMenuSceneBuilder] Successfully cleaned up {destroyedCount} duplicate modal GameObjects in MainMenu.");
+    }
+
+    private static int CleanDuplicatesFor(Transform parent, string targetName, ref GameObject keepObj)
+    {
+        List<GameObject> matches = new List<GameObject>();
+        for (int i = 0; i < parent.childCount; i++)
+        {
+            Transform child = parent.GetChild(i);
+            if (child.name == targetName)
+            {
+                matches.Add(child.gameObject);
+            }
+        }
+
+        if (matches.Count <= 1)
+        {
+            if (matches.Count == 1 && keepObj == null)
+            {
+                keepObj = matches[0];
+            }
+            return 0;
+        }
+
+        GameObject toKeep = keepObj;
+        if (toKeep == null || !matches.Contains(toKeep))
+        {
+            toKeep = matches.Last();
+            keepObj = toKeep;
+        }
+
+        int destroyed = 0;
+        foreach (var go in matches)
+        {
+            if (go != toKeep)
+            {
+                UnityEngine.Object.DestroyImmediate(go);
+                destroyed++;
+            }
+        }
+        return destroyed;
+    }
+
+    public static void DestroyChildrenNamed(Transform parent, string childName)
+    {
+        if (parent == null) return;
+        List<GameObject> toDestroy = new List<GameObject>();
+        for (int i = 0; i < parent.childCount; i++)
+        {
+            Transform child = parent.GetChild(i);
+            if (child.name == childName)
+            {
+                toDestroy.Add(child.gameObject);
+            }
+        }
+        foreach (GameObject go in toDestroy)
+        {
+            UnityEngine.Object.DestroyImmediate(go);
+        }
     }
 
     private static void RemoveLegacyContentLayout(RectTransform content)
@@ -1744,7 +1955,7 @@ public static class LabMenuSceneBuilder
         furnaceModal.SetActive(false);
 
         // 7. Toast Message
-        GameObject toastRoot = CreateToastRoot(canvasRect, out TMP_Text toastText);
+        GameObject toastRoot = CreateToastRoot(canvasRect, out TMP_Text toastText, "ChipsetToastMessage");
         toastRoot.SetActive(false);
 
         // Controller Setup
@@ -2036,7 +2247,7 @@ public static class LabMenuSceneBuilder
         detailModal.SetActive(false);
 
         // 6. Toast Message
-        GameObject toastRoot = CreateToastRoot(canvasRect, out TMP_Text toastText);
+        GameObject toastRoot = CreateToastRoot(canvasRect, out TMP_Text toastText, "BuddyToastMessage");
         toastRoot.SetActive(false);
 
         // Controller Setup
@@ -2275,6 +2486,7 @@ public static class LabMenuSceneBuilder
         out TMP_Text equipBtnText,
         out Button closeBtn)
     {
+        DestroyChildrenNamed(canvasRect, "BuddyDetailModal");
         RectTransform modalRoot = CreateRect("BuddyDetailModal", canvasRect);
         Stretch(modalRoot, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
         Image dim = modalRoot.gameObject.AddComponent<Image>();
@@ -2588,6 +2800,7 @@ public static class LabMenuSceneBuilder
         out TMP_Text equipBtnText,
         out Button closeBtn)
     {
+        DestroyChildrenNamed(canvasRect, "ChipsetDetailModal");
         RectTransform modalRoot = CreateRect("ChipsetDetailModal", canvasRect);
         Stretch(modalRoot, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
         Image dim = modalRoot.gameObject.AddComponent<Image>();
@@ -2768,6 +2981,7 @@ public static class LabMenuSceneBuilder
         out Button dismantleBtn,
         out Button closeBtn)
     {
+        DestroyChildrenNamed(canvasRect, "BlastFurnaceModal");
         RectTransform modalRoot = CreateRect("BlastFurnaceModal", canvasRect);
         Stretch(modalRoot, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
         Image dim = modalRoot.gameObject.AddComponent<Image>();
@@ -2805,9 +3019,10 @@ public static class LabMenuSceneBuilder
         return modalRoot.gameObject;
     }
 
-    private static GameObject CreateToastRoot(RectTransform canvasRect, out TMP_Text toastText)
+    private static GameObject CreateToastRoot(RectTransform canvasRect, out TMP_Text toastText, string toastName = "ToastMessage")
     {
-        RectTransform toast = CreateRect("ToastMessage", canvasRect);
+        DestroyChildrenNamed(canvasRect, toastName);
+        RectTransform toast = CreateRect(toastName, canvasRect);
         Anchor(toast, new Vector2(0.5f, 0.18f), Vector2.zero, new Vector2(800f, 75f));
         Image bg = toast.gameObject.AddComponent<Image>();
         bg.color = new Color32(8, 30, 48, 245);

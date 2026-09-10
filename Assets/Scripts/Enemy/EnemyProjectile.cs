@@ -63,7 +63,7 @@ public class EnemyProjectile : MonoBehaviour, IPoolable
         {
             if (!playerHealth.IsDead)
             {
-                playerHealth.TakeDamage(damage);
+                playerHealth.TakeRangedDamage(damage);
             }
             Despawn();
             return;

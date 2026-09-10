@@ -15,7 +15,7 @@ MonoBehaviour:
   id: kung_fu_usb
   artifactName: Kung Fu Data USB
   loreDescription: Does it actually have the Epic tome of Kung Fu in it?
-  icon: {fileID: 21300000, guid: 9d1f82932654458395b168eefb996185, type: 3}
+  icon: {fileID: -1402166991, guid: ccc3b1339ec55ce4e90b81b63d9b4329, type: 3}
   badgeBorderColor: {r: 0.18039216, g: 0.8980392, b: 0.9411765, a: 1}
   badgeBgColor: {r: 0.043137256, g: 0.1764706, b: 0.23529412, a: 1}
   statType: 3

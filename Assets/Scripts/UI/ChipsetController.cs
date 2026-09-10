@@ -556,11 +556,11 @@ public class ChipsetController : MonoBehaviour
                 requiredCount = 5,
                 enhanceCost = 500,
                 description = "Always equipped, even when it is not included in your deck.",
-                baseStatsSummary = "ATK <color=#FFCB49>53.13</color>\n<color=#FFCB49>Fast</color> ATK Speed",
+                baseStatsSummary = "ATK <color=#FFCB49>53</color>\n<color=#FFCB49>Fast</color> ATK Speed",
                 magicBonus = "ATK +15%",
                 rareBonus = "ATK Speed +15%",
                 uniqueBonus = "+5% Life Steal",
-                epicBonus = "Adds Penetration Skill"
+                epicBonus = "50% chance to ricochet again"
             },
             // 2. Rifle (Row 1 Col 2)
             new ChipItemData
@@ -578,7 +578,7 @@ public class ChipsetController : MonoBehaviour
                 magicBonus = "ATK +25%",
                 rareBonus = "ATK Speed +20%",
                 uniqueBonus = "ATK +80%",
-                epicBonus = "ATK Speed +35%"
+                epicBonus = "ATK Speed +55%\nATK +85%"
             },
             // 3. Rocket Punch (Row 1 Col 3)
             new ChipItemData
@@ -610,11 +610,11 @@ public class ChipsetController : MonoBehaviour
                 requiredCount = 5,
                 enhanceCost = 500,
                 description = "Throws a spinning blade that pierces enemies and returns to the player.",
-                baseStatsSummary = "ATK <color=#FFCB49>36</color>\n<color=#FFCB49>Fast</color> ATK Speed",
+                baseStatsSummary = "ATK <color=#FFCB49>36</color>\n<color=#FFCB49>Normal</color> ATK Speed",
                 magicBonus = "ATK Speed +9%",
-                rareBonus = "ATK Speed +18%",
+                rareBonus = "ATK Speed +18%\nGeneration speed -30%",
                 uniqueBonus = "Spin Speed +36%",
-                epicBonus = "ATK Speed +36%"
+                epicBonus = "ATK Speed +36%\nGeneration speed -36%\nGuaranteed Pierce (5s, CD 15s)"
             },
             // 5. Multigun (Row 1 Col 5)
             new ChipItemData
@@ -628,11 +628,11 @@ public class ChipsetController : MonoBehaviour
                 requiredCount = 5,
                 enhanceCost = 500,
                 description = "Fires a rain of bullets in multiple directions at once.",
-                baseStatsSummary = "ATK <color=#FFCB49>19</color> | 4 shells\n<color=#FFCB49>Slow</color> ATK Speed",
-                magicBonus = "Adds +1 shells",
-                rareBonus = "Adds +1 shells",
-                uniqueBonus = "Adds +3 shells",
-                epicBonus = "Adds +4 shells"
+                baseStatsSummary = "ATK <color=#FFCB49>19</color> | 3 shells\n<color=#FFCB49>Slow</color> ATK Speed",
+                magicBonus = "ATK +5%",
+                rareBonus = "ATK Speed +5%",
+                uniqueBonus = "ATK +10%",
+                epicBonus = "Adds +2 shells\n360° Bullet Storm (5s, CD 115s)"
             },
             // 6. Gun Turret (Row 2 Col 1)
             new ChipItemData
@@ -646,11 +646,11 @@ public class ChipsetController : MonoBehaviour
                 requiredCount = 5,
                 enhanceCost = 500,
                 description = "Deploys a turret that fires standard rounds.",
-                baseStatsSummary = "ATK <color=#FFCB49>27</color> | Duration 14.4s | CD 8.4s\n<color=#FFCB49>Fast</color> ATK Speed",
+                baseStatsSummary = "Turret ATK <color=#FFCB49>27</color> | Duration 10s | CD 8.4s\n<color=#FFCB49>Normal</color> ATK Speed",
                 magicBonus = "Turret Duration +20%",
-                rareBonus = "Turret Cooldown -30%",
+                rareBonus = "Turret Cooldown -30%\nATK +15%",
                 uniqueBonus = "Turret Duration +20%",
-                epicBonus = "Turret Duration +30%"
+                epicBonus = "Turret Duration +30%\nATK +30%"
             },
             // 7. Spiky Discus (Row 2 Col 2)
             new ChipItemData
@@ -664,11 +664,11 @@ public class ChipsetController : MonoBehaviour
                 requiredCount = 5,
                 enhanceCost = 500,
                 description = "Spins a spiky discus around the player to attack enemies.",
-                baseStatsSummary = "ATK <color=#FFCB49>30</color>\n<color=#FFCB49>Normal</color> Spin Speed",
+                baseStatsSummary = "Discus ATK <color=#FFCB49>30</color>\n<color=#FFCB49>Normal</color> Spin Speed",
                 magicBonus = "+1 Discus",
                 rareBonus = "Spin Speed +30%",
                 uniqueBonus = "+1 Discus",
-                epicBonus = "Spin Speed +35%"
+                epicBonus = "+1 Discus\nSpin Speed +35%"
             },
             // 8. Shotgun (Row 2 Col 3)
             new ChipItemData
@@ -685,7 +685,7 @@ public class ChipsetController : MonoBehaviour
                 baseStatsSummary = "ATK <color=#FFCB49>86</color>\n<color=#FFCB49>Slow</color> ATK Speed",
                 magicBonus = "ATK +15%",
                 rareBonus = "ATK +15%",
-                uniqueBonus = "Adds Penetration Skill",
+                uniqueBonus = "ATK +25%",
                 epicBonus = "Fires two times in a row"
             },
             // 9. Energy Jumper Cables (Row 2 Col 4)
@@ -703,9 +703,9 @@ public class ChipsetController : MonoBehaviour
                 description = "Steals life from enemies.",
                 baseStatsSummary = "Life Steal <color=#FFCB49>2.3%</color>",
                 magicBonus = "All Weapons' +1% Life Steal",
-                rareBonus = "All Weapons' +1% Life Steal",
-                uniqueBonus = "All Weapons' +1% Life Steal",
-                epicBonus = "All Weapons' +2% Life Steal"
+                rareBonus = "All Weapons' +5% Life Steal",
+                uniqueBonus = "All Weapons' +8% Life Steal",
+                epicBonus = "All Weapons' +10% Life Steal"
             },
             // 10. High-Explosive Mine (Row 2 Col 5)
             new ChipItemData

@@ -31,7 +31,7 @@ public class EnergyJumperCablesSkill : MonoBehaviour
     [SerializeField]
     private CablesLevelConfig[] levelConfigs = new CablesLevelConfig[]
     {
-        new CablesLevelConfig { lifeStealPercent = 0.020f, allWeapons = false, overhealToShield = false, doubleHealLowHp = false },
+        new CablesLevelConfig { lifeStealPercent = 0.010f, allWeapons = false, overhealToShield = false, doubleHealLowHp = false },
         new CablesLevelConfig { lifeStealPercent = 0.025f, allWeapons = false, overhealToShield = false, doubleHealLowHp = false },
         new CablesLevelConfig { lifeStealPercent = 0.035f, allWeapons = true, overhealToShield = false, doubleHealLowHp = false },
         new CablesLevelConfig { lifeStealPercent = 0.045f, allWeapons = true, overhealToShield = true, doubleHealLowHp = false },
@@ -69,11 +69,11 @@ public class EnergyJumperCablesSkill : MonoBehaviour
 
     /// <summary>
     /// Đọc cấp bậc Khung Thẻ Chipset Meta (Chip ID 9) từ PlayerDataService:
-    /// - Tier 1 (Magic): Life Steal 2.3%
-    /// - Tier 2 (Rare): All Weapons' +1% Life Steal
-    /// - Tier 3 (Unique): All Weapons' +1% Life Steal (Tổng +2%)
-    /// - Tier 4 (Epic): All Weapons' +1% Life Steal (Tổng +3%)
-    /// - Tier 5 (Holographic): All Weapons' +2% Life Steal (Tổng +5%)
+    /// - Common: Life Steal 2.3%
+    /// - Rare: All Weapons' +1% Life Steal
+    /// - Epic: All Weapons' +5% Life Steal
+    /// - Legendary: All Weapons' +8% Life Steal
+    /// - Secret: All Weapons' +10% Life Steal
     /// </summary>
     public void LoadMetaTierBonuses()
     {
@@ -87,15 +87,15 @@ public class EnergyJumperCablesSkill : MonoBehaviour
         }
         if (tier >= ChipTier.Unique)
         {
-            metaLifeStealBonus += 0.01f; // +1% Life Steal (Tổng +2%)
+            metaLifeStealBonus += 0.05f; // +5% Life Steal
         }
         if (tier >= ChipTier.Epic)
         {
-            metaLifeStealBonus += 0.01f; // +1% Life Steal (Tổng +3%)
+            metaLifeStealBonus += 0.08f; // +8% Life Steal
         }
         if (tier == ChipTier.Holographic)
         {
-            metaLifeStealBonus += 0.02f; // +2% Life Steal (Tổng +5%)
+            metaLifeStealBonus += 0.10f; // +10% Life Steal
         }
     }
 
@@ -138,8 +138,8 @@ public class EnergyJumperCablesSkill : MonoBehaviour
 
         float lifeStealRate = GetCalculatedLifeStealPercent();
 
-        // Cấp 5 (Tối thượng): Hồi sinh lực bùng nổ - Nhân đôi tỷ lệ hút máu khi HP dưới 20%
-        if (currentLevel >= 5 && playerHealth.CurrentHealth < playerHealth.MaxHealth * 0.20f)
+        // Cấp 5 (Tối thượng): Hồi sinh lực bùng nổ - Nhân đôi tỷ lệ hút máu khi HP dưới 15%
+        if (currentLevel >= 5 && playerHealth.CurrentHealth < playerHealth.MaxHealth * 0.15f)
         {
             lifeStealRate *= 2.0f;
         }

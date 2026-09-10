@@ -15,7 +15,7 @@ MonoBehaviour:
   id: strong_cooler
   artifactName: Strong Cooler
   loreDescription: Cools down Turrets when they overheat.
-  icon: {fileID: 21300000, guid: 024a30bee60044abbc634b549f635993, type: 3}
+  icon: {fileID: 125025782, guid: ccc3b1339ec55ce4e90b81b63d9b4329, type: 3}
   badgeBorderColor: {r: 0.18039216, g: 0.8980392, b: 0.9411765, a: 1}
   badgeBgColor: {r: 0.043137256, g: 0.1764706, b: 0.23529412, a: 1}
   statType: 2
