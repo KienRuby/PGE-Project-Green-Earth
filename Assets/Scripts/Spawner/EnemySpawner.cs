@@ -170,14 +170,14 @@ public class EnemySpawner : MonoBehaviour
     [Tooltip("Số lượng Hộp Cổ Vật tối đa cùng tồn tại đồng thời trên bản đồ chưa được nhặt.")]
     [SerializeField] private int maxConcurrentActiveArtifactBoxes = 1;
 
-    [Tooltip("Tỷ lệ rơi Hộp Mù Cổ Vật khi tiêu diệt Boss (mặc định 1.0 = 100%).")]
-    [Range(0f, 1f)] [SerializeField] private float bossArtifactDropChance = 1.0f;
+    [Tooltip("Tỷ lệ rơi Hộp Mù Cổ Vật khi tiêu diệt Boss. Mặc định 0 = Đã loại bỏ, Cổ Vật chỉ xuất hiện theo thời gian trận đấu.")]
+    [Range(0f, 1f)] [SerializeField] private float bossArtifactDropChance = 0f;
 
-    [Tooltip("Tỷ lệ rơi Hộp Mù Cổ Vật khi tiêu diệt quái Tinh Anh (Elite Creep). Mặc định 25%.")]
-    [Range(0f, 1f)] [SerializeField] private float eliteArtifactDropChance = 0.25f;
+    [Tooltip("Tỷ lệ rơi Hộp Mù Cổ Vật khi tiêu diệt quái Tinh Anh (Elite Creep). Mặc định 0 = Đã loại bỏ.")]
+    [Range(0f, 1f)] [SerializeField] private float eliteArtifactDropChance = 0f;
 
-    [Tooltip("Tỷ lệ rơi Hộp Mù Cổ Vật ngẫu nhiên từ quái thường (Creep). Mặc định 0.5% (1/200 con).")]
-    [Range(0f, 1f)] [SerializeField] private float normalCreepArtifactDropChance = 0.005f;
+    [Tooltip("Tỷ lệ rơi Hộp Mù Cổ Vật ngẫu nhiên từ quái thường (Creep). Mặc định 0 = Đã loại bỏ.")]
+    [Range(0f, 1f)] [SerializeField] private float normalCreepArtifactDropChance = 0f;
 
     [Tooltip("Tự động sinh 1 Hộp Mù Cổ Vật gần Player khi hoàn thành mỗi Wave.")]
     [SerializeField] private bool dropArtifactOnWaveClear = false;
@@ -774,7 +774,7 @@ public class EnemySpawner : MonoBehaviour
             Debug.Log($"[EnemySpawner] 🎉 BOSS ĐÃ BỊ TIÊU DIỆT!");
             OnBossDefeated?.Invoke();
 
-            if (Random.value <= bossArtifactDropChance)
+            if (bossArtifactDropChance > 0f && Random.value <= bossArtifactDropChance)
             {
                 DropTable.SpawnArtifactBox(boss.transform.position);
                 Debug.Log($"[EnemySpawner] 🎁 Boss đã rơi Hộp Cổ Vật (Artifact Box) tại {boss.transform.position}!");

@@ -198,10 +198,10 @@ public class PGE_ArtifactSystemTests
         GameObject spawnerObj = new GameObject("TestSpawner", typeof(EnemySpawner));
         EnemySpawner spawner = spawnerObj.GetComponent<EnemySpawner>();
 
-        // Verify default drop chances
-        Assert.AreEqual(1.0f, spawner.BossArtifactDropChance);
-        Assert.AreEqual(0.25f, spawner.EliteArtifactDropChance);
-        Assert.AreEqual(0.005f, spawner.NormalCreepArtifactDropChance);
+        // Verify default drop chances (Eliminated - 0f)
+        Assert.AreEqual(0f, spawner.BossArtifactDropChance);
+        Assert.AreEqual(0f, spawner.EliteArtifactDropChance);
+        Assert.AreEqual(0f, spawner.NormalCreepArtifactDropChance);
         Assert.IsFalse(spawner.DropArtifactOnWaveClear);
         Assert.AreEqual(5, spawner.MaxArtifactDropsPerChapter);
 
