@@ -109,6 +109,10 @@ public class DamageNumberManager : MonoBehaviour
         if (Instance == null)
         {
             GameObject managerObj = new GameObject("[DamageNumberManager]");
+            if (!Application.isPlaying)
+            {
+                managerObj.hideFlags = HideFlags.DontSave;
+            }
             Instance = managerObj.AddComponent<DamageNumberManager>();
         }
 

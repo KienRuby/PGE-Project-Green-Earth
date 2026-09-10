@@ -20,15 +20,26 @@ public static class ShopPanelBuilder
         EditorApplication.delayCall += CheckAndBuildIfMissing;
     }
 
+    private static GameObject FindInActiveScene(string name)
+    {
+        var currentScene = EditorSceneManager.GetActiveScene();
+        foreach (var root in currentScene.GetRootGameObjects())
+        {
+            var match = root.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name == name);
+            if (match != null) return match.gameObject;
+        }
+        return null;
+    }
+
     public static void CheckAndBuildIfMissing()
     {
         if (Application.isPlaying) return;
         var currentScene = EditorSceneManager.GetActiveScene();
         if (currentScene.path != MainMenuScenePath) return;
 
-        GameObject vip = GameObject.Find("Card_VIP_Package");
-        RectTransform dailyRt = GameObject.Find("Daily_Shop_Row")?.GetComponent<RectTransform>();
-        GameObject metaCarousel = GameObject.Find("Meta_Shop_Carousel");
+        GameObject vip = FindInActiveScene("Card_VIP_Package");
+        RectTransform dailyRt = FindInActiveScene("Daily_Shop_Row")?.GetComponent<RectTransform>();
+        GameObject metaCarousel = FindInActiveScene("Meta_Shop_Carousel");
         if (vip == null || dailyRt == null || dailyRt.sizeDelta.y < 200f || metaCarousel == null)
         {
             BuildFullShopPanel();
@@ -56,12 +67,12 @@ public static class ShopPanelBuilder
 
         Debug.Log($"[ShopPanelBuilder] Loaded {allSprites.Length} shop sprites from atlas.");
 
-        // 2. Find ShopPanel
-        GameObject shopPanel = GameObject.Find("ShopPanel (Scrollable)") ?? GameObject.Find("ShopPanel");
+        // 2. Find ShopPanel (including inactive)
+        GameObject shopPanel = FindInActiveScene("ShopPanel (Scrollable)") ?? FindInActiveScene("ShopPanel");
         if (shopPanel == null)
         {
             // Try searching under Canvas
-            GameObject canvas = GameObject.Find("Canvas");
+            GameObject canvas = FindInActiveScene("Canvas");
             if (canvas != null)
             {
                 Transform t = canvas.transform.Find("Content/ShopPanel (Scrollable)")
