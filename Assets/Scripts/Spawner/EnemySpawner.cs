@@ -129,11 +129,11 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] private bool enableSpawnDebugLogs = false;
 
     [Header("Stage Victory Default Rewards")]
-    [Tooltip("Data Chips nhận được khi hoàn thành chapter.")]
-    [Min(0)] [SerializeField] private int stageVictoryDataChipReward = 50;
+    [Tooltip("Data Chips nhận được khi hoàn thành chapter (Chapter 1 mặc định 1000, mỗi Chapter sau +20%).")]
+    [Min(0)] [SerializeField] private int stageVictoryDataChipReward = 1000;
 
-    [Tooltip("Red Gems nhận được khi hoàn thành chapter.")]
-    [Min(0)] [SerializeField] private int stageVictoryRedGemReward = 10;
+    [Tooltip("Red Gems nhận được khi hoàn thành chapter (Chapter 1 mặc định 20, mỗi Chapter sau +20%).")]
+    [Min(0)] [SerializeField] private int stageVictoryRedGemReward = 20;
 
     [Header("Artifact Drop Settings")]
     [Tooltip("Tổng số Hộp Mù Cổ Vật xuất hiện ngẫu nhiên trên bản đồ trong 1 Chapter (mặc định 5, có thể tùy chỉnh).")]
@@ -299,19 +299,32 @@ public class EnemySpawner : MonoBehaviour
         }
 
         int selectedIndex = PlayerDataService.SelectedChapterIndex;
+        ChapterData currentChapter = chapterDatabase != null ? chapterDatabase.GetChapter(selectedIndex) : null;
+
+        // Luôn nạp đúng phần thưởng Chapter: Chapter 1 cố định 1000 chips/20 gems, mỗi Chapter kế tiếp tăng 20%
+        if (currentChapter != null)
+        {
+            stageVictoryDataChipReward = currentChapter.GetCalculatedDataChipReward();
+            stageVictoryRedGemReward = currentChapter.GetCalculatedRedGemReward();
+        }
+        else
+        {
+            int chapterNum = selectedIndex + 1;
+            stageVictoryDataChipReward = Mathf.RoundToInt(1000f * Mathf.Pow(1.2f, chapterNum - 1));
+            stageVictoryRedGemReward = Mathf.RoundToInt(20f * Mathf.Pow(1.2f, chapterNum - 1));
+        }
+
         if (CustomWaveConfigManager.HasCustomWaves(selectedIndex))
         {
             var customWaves = CustomWaveConfigManager.GetActiveWaves(selectedIndex);
             if (customWaves != null && customWaves.Count > 0)
             {
                 waves = new List<WaveConfig>(customWaves);
-                Debug.Log($"[EnemySpawner] 🛠️ Đã nạp {waves.Count} Custom Waves được tùy chỉnh từ MainMenu cho Chapter {selectedIndex + 1}!");
+                Debug.Log($"[EnemySpawner] 🛠️ Đã nạp {waves.Count} Custom Waves được tùy chỉnh từ MainMenu cho Chapter {selectedIndex + 1}! (Thưởng vượt ải: +{stageVictoryDataChipReward} Chips, +{stageVictoryRedGemReward} Gems)");
             }
         }
         else
         {
-            ChapterData currentChapter = chapterDatabase != null ? chapterDatabase.GetChapter(selectedIndex) : null;
-
             if (currentChapter != null)
             {
                 if (currentChapter.waves == null || currentChapter.waves.Count == 0 || currentChapter.waves.Count != currentChapter.totalWaves)
@@ -332,15 +345,6 @@ public class EnemySpawner : MonoBehaviour
                 if (currentChapter.chapterBossPrefab != null && waves.Count > 0)
                 {
                     waves[waves.Count - 1].customBossPrefab = currentChapter.chapterBossPrefab;
-                }
-
-                if (currentChapter.victoryDataChipReward > 0)
-                {
-                    stageVictoryDataChipReward = currentChapter.victoryDataChipReward;
-                }
-                if (currentChapter.victoryRedGemReward > 0)
-                {
-                    stageVictoryRedGemReward = currentChapter.victoryRedGemReward;
                 }
 
                 Debug.Log($"[EnemySpawner] 🎮 Đã nạp thành công bộ Wave riêng của Chapter {currentChapter.chapterNumber}: '{currentChapter.chapterTitle}' ({waves.Count} waves, Thưởng vượt ải: +{stageVictoryDataChipReward} Chips, +{stageVictoryRedGemReward} Gems)!");
@@ -734,6 +738,9 @@ public class EnemySpawner : MonoBehaviour
                 DropTable.SpawnArtifactBox(boss.transform.position);
                 Debug.Log($"[EnemySpawner] 🎁 Boss đã rơi Hộp Cổ Vật (Artifact Box) tại {boss.transform.position}!");
             }
+
+            // Đồng loạt tiêu diệt toàn bộ enemy trên sàn đấu khi Boss bị tiêu diệt
+            KillAllActiveEnemies();
         }
     }
 
@@ -1001,6 +1008,9 @@ public class EnemySpawner : MonoBehaviour
 
         Debug.Log($"[EnemySpawner] 🏆🏆 CHIẾN THẮNG MÀN CHƠI (STAGE CLEAR)! TOÀN BỘ WAVE ĐÃ ĐƯỢC CHINH PHỤC!");
 
+        // Đồng loạt tiêu diệt toàn bộ quái vật còn lại trên bản đồ bằng animation Die & Fade out
+        KillAllActiveEnemies();
+
         // Mở khóa Chapter kế tiếp nếu đang chơi màn cao nhất
         int currentSelected = PlayerDataService.SelectedChapterIndex;
         if (currentSelected >= PlayerDataService.UnlockedChapterIndex)
@@ -1014,6 +1024,50 @@ public class EnemySpawner : MonoBehaviour
         ChipManager.AddRedGems(stageVictoryRedGemReward);
 
         OnStageVictory?.Invoke();
+    }
+
+    /// <summary>
+    /// Đồng loạt tiêu diệt toàn bộ quái vật và quái phụ trên sàn đấu bằng animation Die & Fade out.
+    /// Dùng khi Boss bị hạ gục hoặc khi hoàn thành ải / chiến thắng trận đấu.
+    /// </summary>
+    public void KillAllActiveEnemies()
+    {
+        // 1. Snapshot danh sách activeEnemies hiện tại để không bị lỗi collection modified
+        List<EnemyHealth> enemiesToKill = new List<EnemyHealth>(activeEnemies);
+        for (int i = 0; i < enemiesToKill.Count; i++)
+        {
+            EnemyHealth enemy = enemiesToKill[i];
+            if (enemy != null && !enemy.IsDead && enemy.gameObject.activeInHierarchy)
+            {
+                enemy.InstantKill(true);
+            }
+        }
+
+        // 2. Quét thêm bất kỳ quái nào trên Scene (phòng ngừa quái phụ/creep không nằm trong list)
+        EnemyHealth[] allSceneEnemies = FindObjectsOfType<EnemyHealth>();
+        for (int i = 0; i < allSceneEnemies.Length; i++)
+        {
+            EnemyHealth enemy = allSceneEnemies[i];
+            if (enemy != null && !enemy.IsDead && enemy.gameObject.activeInHierarchy)
+            {
+                // Nếu đang trong wave boss và boss còn sống khác thì không diệt nhầm boss trừ khi là StageVictory
+                if (currentState != WaveState.StageVictory && activeBosses.Contains(enemy))
+                {
+                    continue;
+                }
+                enemy.InstantKill(true);
+            }
+        }
+
+        // 3. Tiêu hủy các viên đạn của quái/boss đang bay trên màn hình để người chơi không bị dính sát thương oan
+        EnemyProjectile[] projectiles = FindObjectsOfType<EnemyProjectile>();
+        for (int i = 0; i < projectiles.Length; i++)
+        {
+            if (projectiles[i] != null && projectiles[i].gameObject.activeInHierarchy)
+            {
+                projectiles[i].Despawn();
+            }
+        }
     }
 
     private void NotifyWaveProgress()

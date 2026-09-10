@@ -80,7 +80,7 @@ public class EnemyProjectile : MonoBehaviour, IPoolable
         }
     }
 
-    private void Despawn()
+    public void Despawn()
     {
         PoolMember member = GetComponent<PoolMember>();
         if (member != null && member.Pool != null)

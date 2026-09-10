@@ -181,6 +181,12 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
         {
             upgradeButton = upgradeArrowGroup.GetComponent<Button>();
         }
+
+        if (droneIconImage != null) droneIconImage.raycastTarget = false;
+        if (progressFillImage != null) progressFillImage.raycastTarget = false;
+        if (progressTrackImage != null) progressTrackImage.raycastTarget = false;
+        if (levelText != null) levelText.raycastTarget = false;
+        if (progressText != null) progressText.raycastTarget = false;
     }
 
     public void EnsureProgressBar()
@@ -231,6 +237,7 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
 
         if (progressFillImage != null)
         {
+            progressFillImage.color = Color.white;
             progressFillImage.type = Image.Type.Filled;
             progressFillImage.fillMethod = Image.FillMethod.Horizontal;
             progressFillImage.fillOrigin = (int)Image.OriginHorizontal.Left;
@@ -251,6 +258,7 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
 
         if (progressFillImage != null)
         {
+            progressFillImage.color = Color.white;
             progressFillImage.type = Image.Type.Filled;
             progressFillImage.fillMethod = Image.FillMethod.Horizontal;
             progressFillImage.fillOrigin = (int)Image.OriginHorizontal.Left;
@@ -359,6 +367,7 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
 
         if (droneIconImage != null)
         {
+            droneIconImage.raycastTarget = false;
             if (iconSprite != null)
             {
                 droneIconImage.sprite = iconSprite;
@@ -372,9 +381,24 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
             }
         }
 
-        if (levelText != null && data != null)
+        if (levelText != null)
         {
-            levelText.text = $"LV.{data.level:00}";
+            levelText.gameObject.SetActive(data != null);
+            if (data != null)
+            {
+                levelText.text = $"LV.{data.level:00}";
+            }
+        }
+
+        if (progressFillImage != null)
+        {
+            progressFillImage.color = Color.white;
+            progressFillImage.gameObject.SetActive(data != null);
+        }
+
+        if (progressText != null)
+        {
+            progressText.gameObject.SetActive(data != null);
         }
 
         if (data != null)
@@ -399,7 +423,7 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
 
         if (upgradeArrowGroup != null)
         {
-            upgradeArrowGroup.SetActive(data != null && data.CanUpgrade);
+            upgradeArrowGroup.SetActive(false);
         }
 
         if (cardButton != null)
@@ -428,10 +452,21 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
         if (emptySlotGroup != null) emptySlotGroup.SetActive(true);
         if (lockedSlotGroup != null) lockedSlotGroup.SetActive(false);
 
+        if (normalContentGroup == null)
+        {
+            if (droneIconImage != null) droneIconImage.gameObject.SetActive(false);
+            if (levelText != null) levelText.gameObject.SetActive(false);
+            if (progressFillImage != null) progressFillImage.gameObject.SetActive(false);
+            if (progressText != null) progressText.gameObject.SetActive(false);
+        }
+
+        if (upgradeArrowGroup != null) upgradeArrowGroup.SetActive(false);
+
         if (cardFrameImage != null)
         {
             cardFrameImage.raycastTarget = true;
             if (frameSprite != null) cardFrameImage.sprite = frameSprite;
+            cardFrameImage.material = null;
         }
 
         if (cardButton != null)
@@ -453,10 +488,21 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
         if (emptySlotGroup != null) emptySlotGroup.SetActive(false);
         if (lockedSlotGroup != null) lockedSlotGroup.SetActive(true);
 
+        if (normalContentGroup == null)
+        {
+            if (droneIconImage != null) droneIconImage.gameObject.SetActive(false);
+            if (levelText != null) levelText.gameObject.SetActive(false);
+            if (progressFillImage != null) progressFillImage.gameObject.SetActive(false);
+            if (progressText != null) progressText.gameObject.SetActive(false);
+        }
+
+        if (upgradeArrowGroup != null) upgradeArrowGroup.SetActive(false);
+
         if (cardFrameImage != null)
         {
             cardFrameImage.raycastTarget = true;
             if (frameSprite != null) cardFrameImage.sprite = frameSprite;
+            cardFrameImage.material = null;
         }
 
         if (cardButton != null)

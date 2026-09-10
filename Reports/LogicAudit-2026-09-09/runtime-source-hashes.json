@@ -1,0 +1,562 @@
+[
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Audio\\AudioEnums.cs",
+    "Hash": "8191B71F3D1A69F2705442E379EF2D2E182FAB3698BE519C3E36E6A0913F317D"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Audio\\AudioManager.cs",
+    "Hash": "0607A915C45C35653F4E643AA03972313948DDBBF97B828F707F3A3826F805CF"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Audio\\PooledAudioSource.cs",
+    "Hash": "A204079188182D5D49DA381B79C8F7208E120E0FB6E69F59C86589E27F1B6A12"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Audio\\SoundData.cs",
+    "Hash": "D517DAD64D65811AE1CDF522A2FB0BA7CF04328A4EF131BD86660192B26334D6"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Audio\\SoundDatabase.cs",
+    "Hash": "65F09912808AB0B1D3122179AB909AE9BEEFC01690BBCB1F52F34F363FE604B1"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Audio\\SoundManager.cs",
+    "Hash": "BBCA4D289755940F299AC78DE2705E032AD04E80B05F4A0B3E1AE72A6E7284F8"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Audio\\UIAudioTrigger.cs",
+    "Hash": "DD4FCD59975DC116488F6B729662C454A0A8280C517A6F87257D4B94B434C7E8"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Audio\\VFXAudioEmitter.cs",
+    "Hash": "0D0352A60D9F5BA5453B16A48E5CCE2AC5D79DF24F598E7C5F1B69100473817F"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Auth\\AppleAuthManager.cs",
+    "Hash": "C14C7BFF62D511843CEB9643F6029D0C09E987313666DD80F3694E5D574CEA2B"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Auth\\CloudSaveSyncService.cs",
+    "Hash": "F4EF324606D02EE59FA43C4099384315D26B7BB837C350B4C3204A53F57A0836"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Auth\\GoogleAuthManager.cs",
+    "Hash": "05709746626DB50D9853011687BFA8EFFB100B560A893AB4CB04EC20D820F949"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Bullet\\Projectile.cs",
+    "Hash": "3F65F50A09AFF6727746C63EDD1E4EBA40AF18E46B731237ECF2AE53E4C80F04"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Camera\\CameraFollow.cs",
+    "Hash": "C04CDAFFF6781B32BA37A01A145F2A868F73FEAE69F6712028001F8E4D44A6B6"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Camera\\ScreenShakeService.cs",
+    "Hash": "50F7A2BB55F0D4C968EE5A7465A3E21F89CC16F944939BE405E98E4261267850"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Combat\\DamageNumber.cs",
+    "Hash": "EBF8EAF26A8A78F6BBC2F335EAFC9A887961BE8888EAF9429A31569777C6B260"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Combat\\DamageNumberManager.cs",
+    "Hash": "CECC4FEE65AEA2C8C77F1414C8A27D185C7F5A0FF58776F4EB84997B9F7BCFF6"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Combat\\DamageText.cs",
+    "Hash": "0D0FB3695A90EBA15456EF14E10603BA28A22C380E77E13D0957B39D7F013EC8"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Combat\\HealthSystem.cs",
+    "Hash": "C7681F7CA2DB255917880D759CFB645F23F08645F7884337F73D884D4EECED37"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Data\\AchievementDatabase.cs",
+    "Hash": "B0ABE285E3D87C8B83BB44F4B03772BEE3870E83374884E5E2BAEFDD55A9E3F4"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Data\\ChapterData.cs",
+    "Hash": "EEB8BD063E0870CC2B81753666548689091527335235C3F288696ABA8D3D5614"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Data\\ChapterDatabase.cs",
+    "Hash": "A28DE9B59CF4073894CBFCD198D11541DCCD90BB1F996D6E42EA1ED0FED1079D"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Data\\DailyLoginDatabase.cs",
+    "Hash": "604176527295EF3756A3693D3464C5F21363F0CCBCD37E5F57CB2D62ABA066A4"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Data\\QuestData.cs",
+    "Hash": "A8F93BD90FFF9673BB8F16543FC67BBCA59ECDEE51320FE56A0B03390DD44888"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Data\\RewardData.cs",
+    "Hash": "6E058D23D1D59442C6FBA63CEADF71657EE18307911C9368F833DE4C7FF20369"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Data\\Artifacts\\ArtifactData.cs",
+    "Hash": "443D660EBEC7189B6AEFB6357EC287D4E0743D8FBD8F5D61DABD48ED0512FF9C"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Data\\Artifacts\\ArtifactDatabase.cs",
+    "Hash": "D22B1B07A934E6516B2F48B4435B20BCC3263CB182365EEB8E00C75282403250"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Enemy\\BossEnemy.cs",
+    "Hash": "F1FB5651293EC8D70D2E7150DB1BF08A420981663A792E51B44DFF2A89586436"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Enemy\\BossMovement.cs",
+    "Hash": "43DDE88A951B0B50B43A85299370C05068142AE79C4B989635E64ED984F2AEE3"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Enemy\\BossRangedAttack.cs",
+    "Hash": "F5D7237FC8D15201C63532B1F1C78CC984A67129E0EB576B1E65C3DC630D2A99"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Enemy\\Creep.cs",
+    "Hash": "30DDD384915E1AAE5789FED6C7DE558E255EF538DD656CCE6F5F9E93A3EF1B81"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Enemy\\Enemy.cs",
+    "Hash": "F95AACE0FED556AF6AB7F4F5792B729C9896948DF8A84946EBF7223BF475CAAD"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Enemy\\EnemyContactDamage.cs",
+    "Hash": "0E5AE8F1A794DB4346512C67DF7179725042CBEA077DB6DA8D992729745A11E9"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Enemy\\EnemyHealth.cs",
+    "Hash": "CDA1A56B380C72766AD42826E196E5F956678F6E13F5697E34341165294FA8E7"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Enemy\\EnemyMovement.cs",
+    "Hash": "E19B5EAEE023EA70DC070147B164D28EE53980DE875A5E8F3FA6F48482E71163"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Enemy\\EnemyProjectile.cs",
+    "Hash": "C509C01C0B6966679A66F6D2F2560831A058EC395C0CAED43B8F4A1CF127935A"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Environment\\ChapterMapManager.cs",
+    "Hash": "3D02843789E078578E5404B56760459650ED8FCBBF7BAA1CDBBE247ACB7B8E9C"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Environment\\DesertPropSpawner.cs",
+    "Hash": "AC8F37162D9BC6274B815847CBBE9E012DFE611576A512AD139C121DA0F9C961"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Environment\\InfiniteTiledGround.cs",
+    "Hash": "7323F22EFF2F76DA2B30E9419A2737386E7E5AA5AD89D183903E69AD521B8CA0"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Environment\\MapBoundary.cs",
+    "Hash": "05A955836F3AFFD4B2EAE696983B94030404B50309E600598E20DE6E1C5D305F"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Events\\GameEvents.cs",
+    "Hash": "4CDB0B6F5B621970580510100330F7F3B194970E280A542D399BFADF743B319C"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Manager\\AchievementManager.cs",
+    "Hash": "CB2CA40173ACA7ED116CC919F5199AD9F17988566FDBCB11079B40A9BD9DFAD4"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Manager\\ChipManager.cs",
+    "Hash": "EB1DB3635C373CEFFD8832C276D44A45E2E3F31AB9D86EB7B750FDB3894C7983"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Manager\\DailyLoginManager.cs",
+    "Hash": "BCF39D1977097B0551C7CD13D23629C845AD43B2763F080AB7ED7FE8E2372CEC"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Manager\\PerformanceManager.cs",
+    "Hash": "E2E61F470474A9E2C91FE0C93FD89882AE6E590539B9F05F16AFCFD26A06DC3E"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Pickups\\ArtifactBoxPickup.cs",
+    "Hash": "67C9B767F0A12FE9DB74BC5E176EF2284E305F6E5348DE4D70E7B5DE4EC97CBD"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Pickups\\DropTable.cs",
+    "Hash": "C1F696B1DF910B83A548211B1710EBC38E9BABD026FB02743214DFA229A55FD8"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Pickups\\GemPickup.cs",
+    "Hash": "5184A4824E1E456BD8EEC651FC02B67CD5B7271529C64E35CB77DDDC80B0853C"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Pickups\\MagnetPickup.cs",
+    "Hash": "9F4084FE283549FD491B495BCB860462A94D2D1A2E37FEBD346C1AD4AFB47D5C"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Player\\ChipsetBattleStats.cs",
+    "Hash": "F131156CBB96F48B90F7EE2864B7B8704A05D14129B18C7D3ACFFBDF88FA6027"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Player\\PlayerAnimatorController.cs",
+    "Hash": "BA237A6E2F969F06EC5CEB77B737BF77538BF919AADA3716015C474CE0950400"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Player\\PlayerArtifactInventory.cs",
+    "Hash": "1B38125137473231FCF33EAABF1C4A9EEEF18D1030B84DDC49802F9324BA2534"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Player\\PlayerAutoShooter.cs",
+    "Hash": "2E5B035848F52678D30C55F46B73FA968AD144254D445971CC3374447F62EB7B"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Player\\PlayerChipsetSkillManager.cs",
+    "Hash": "F3E04D53CE411B691DC28B886A85D661CDAE998666B0FD4DAE25454E112D2C06"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Player\\PlayerDataService.cs",
+    "Hash": "D5EBE0C7EAC59302694EA0F657904FE3CB66B02EC1ECE5EA1705BB73CB2420BD"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Player\\PlayerDeathController.cs",
+    "Hash": "1772EF2DF43D846B92BAD324ABC548D0B77D73BFEDF91A6DBB3EB6F738CF5FBD"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Player\\PlayerHealth.cs",
+    "Hash": "7A7BD61B2FA46B765AD15A616D0F981768CAEABEAA40A66D31B3A4C442B1B1C5"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Player\\PlayerLevelController.cs",
+    "Hash": "63334843CB78E8E8D039669EE5E2BAB961862C4CB90113F21C9F12553ED55398"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Player\\PlayerMovement.cs",
+    "Hash": "4E489042A07C55153D43BD49DF9D8C689E7BAC4E0CDEF7C3AE7BA7B48E3D3CCD"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Player\\PlayerStatsManager.cs",
+    "Hash": "420D08EDC6094539F0FBFA3D8D83918D043B082B8C9C7738FAB5CFDEA46CBAEE"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Player\\PlayerWorldHealthBar.cs",
+    "Hash": "914E122DBD946C90A75DF59A964E5AF92FA0C49D62827A1D8BAFC2F348BC8C78"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Player\\VirtualJoystick.cs",
+    "Hash": "055FC82B8077061F2A06C9FF6CA6E7A31D47DA96F77AE76E222BB192E97CE218"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Pooling\\ObjectPool.cs",
+    "Hash": "B11540E723F88B4276A23617DC81B15C38E57BCC21F12FDE503816A702C7EBD5"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Pooling\\PoolManager.cs",
+    "Hash": "07B71ADC881CF7911B06684A5AC5D232C24F46357F22D5D614377B7FF46C38C0"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Services\\AdRewardService.cs",
+    "Hash": "5FD4484EBCAA03E448466ED6DC4998211DF48A70835083BBDF26411BDC62FD8A"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Services\\RewardService.cs",
+    "Hash": "FE0A9F48A852A9679E6E8F0AC5302AA74BCF3E83DF54A990526C9133F5BDF1E1"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Settings\\GameAudioSettingsRuntime.cs",
+    "Hash": "DD3381E4E4276C807C224824C576F1EA607D83301A69689C8FC6A9969E392ABF"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Settings\\GameSettings.cs",
+    "Hash": "F42437C4659064E5FD35F5EA71B031F2CB18848B897ADBCE6EABA335934CA69E"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Settings\\PGEGameLocalization.cs",
+    "Hash": "CD9EFFEC87E002B55FB9FE2678143534A6855099BCD09B38C40F662046F3DA15"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Settings\\SettingsPanelController.cs",
+    "Hash": "5FDC1D50D8C7A4F641D43B0B19B6B33917845177D614DBC9AD61D85EBE4050DB"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Skills\\EnergyJumperCablesSkill.cs",
+    "Hash": "2A9B78B33B08DA23A5336A51CE250AFC2B24B60D275FE29E4E00A176A46C1784"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Skills\\GunTurret.cs",
+    "Hash": "2C5C1AC07AB071C2732790C6276AA52FE366AF563AD1B197D53A71A843FE4163"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Skills\\GunTurretSkill.cs",
+    "Hash": "B9F39D6556CDCF60E21B04DEB33573EEDB3E89CA6FCBBC5555CCE0208BFB349B"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Skills\\HighExplosiveMine.cs",
+    "Hash": "BAE0A163EB943084500D25BEC945917DFC77DB4E0CBAB8A5FCAC5F886A5B486D"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Skills\\HighExplosiveMineSkill.cs",
+    "Hash": "39B34E979AF95F03C56873AC110DF35A5ED5EA691993DE7D7F1F5B90B20D4FA0"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Skills\\LavaHazardZone.cs",
+    "Hash": "5C602AB05595D457E3A9E9FD5880FD5ED95F723EC01709D6C9510B8B0EF9AF1D"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Skills\\MultigunProjectile.cs",
+    "Hash": "EE5DBFCE26F2854CF70431E8E2750688A6B57C714EB7408AF2542F13ED2A450E"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Skills\\MultigunSkill.cs",
+    "Hash": "2AAAA53D3E9E2F12E2E004D68DFE88611150D3B11AE80F172CF9424CBCE460E3"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Skills\\RifleProjectile.cs",
+    "Hash": "5F7529C7C6ADB6B4012D95BB3B92AA00E8D120B640ED9F001912688D6A33B7CE"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Skills\\RifleSkill.cs",
+    "Hash": "D3FC8D2F44EDD2CF588686EF58AE83A0392C9CA14E698374F839A104F1C9B8A8"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Skills\\RocketPunchProjectile.cs",
+    "Hash": "93B82297F834C83548AEA123CC02BF6CFE69BCCD3CAC01638AA0980F46D658D9"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Skills\\RocketPunchSkill.cs",
+    "Hash": "03C32CEFB659BF5530448CF97644390E743D8D05DBFF56A27E792753A206B78D"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Skills\\ShotgunProjectile.cs",
+    "Hash": "4DFA3D7A29E76A508EB39121820168058DD628E21D3C07969D839D92719A385D"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Skills\\ShotgunSkill.cs",
+    "Hash": "C0B03074CD909D38F80C403D6137C7D38B65C61034764D6C7D809337EFE08D10"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Skills\\SpikyDiscusProjectile.cs",
+    "Hash": "101E832BD9766BDB336CEB04672F0F60E2D8319C692554CF6665A13BC21BF238"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Skills\\SpikyDiscusSkill.cs",
+    "Hash": "91DD7793BC625EF092954B5EE26F741FF68A889F3DE18EEE1097AFC7A9E2B7F9"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Skills\\SpinningBladeProjectile.cs",
+    "Hash": "A00D63E755B39C7D0D9E77F4311DE152430348F277BA9DAEFA8E60A0294D0D8B"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Skills\\SpinningBladeSkill.cs",
+    "Hash": "7D8255A117C202EA37340194F0B4E339CD2E3F5B5D7799D54F3294C29B01EB04"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Skills\\StandardGunProjectile.cs",
+    "Hash": "06050EE790A8608666D8DC69807102FFD86DC3FE76F506BA1696E8EB55E83662"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Skills\\StandardGunSkill.cs",
+    "Hash": "41574E982CC7839D66AF277EB4805434C9DBAE8E36D435651759093584F244F7"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Spawner\\EnemySpawner.cs",
+    "Hash": "CEA2EE855EA79D0944F89DE5A54DC036B85F1027FB4300CCEA56683C4B1E4F96"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\BossHealthBarUI.cs",
+    "Hash": "FAD03922F565D49296C294283C7F464B6E3BA7A24C823FBC9363639265F0760D"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\BottomNavigationController.cs",
+    "Hash": "C0B6E6EE142A80C1086746AF0E3645C6A12CC556066220DD4494966EBA9ABDE0"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\BuddyCardUI.cs",
+    "Hash": "7DC07BCB9A29DDF543F4A449EA17D350C724DC7B7B946BE352A2AC08CE702957"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\BuddyController.cs",
+    "Hash": "EEFB3E8B5F1A88765BF313B5E10E03D834380807EF3E371B2519011713AB4F05"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\ChapterController.cs",
+    "Hash": "08AE2974F3418BB977BAC3E8117A520E1A6FF0501B79888F6A2B1DE1507F7235"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\ChapterScreenController.cs",
+    "Hash": "DE98E8D1D6757580FAD0994F12C06994CB1327F946D00A9B97614AD6FE6A1B4A"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\ChipsetCardUI.cs",
+    "Hash": "C8A4C32946DE824A8DF31B9C825BA46E77CA0819269E19C8749F666021005B4B"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\ChipsetChoiceCardUI.cs",
+    "Hash": "0AD07E5C906FA1B9DD03E482C24CF3B14CE2FA6833E590602BAB28687DF334BA"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\ChipsetController.cs",
+    "Hash": "0FBB0E99434AD5DBEE0E392A65012B427E072F5DEFBBCE97F9F8151BACDE1A17"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\ChipsetLevelUpParticleField.cs",
+    "Hash": "43484FDA64C30A9104172595469E9C828F93BB09A03B11D7FDBA85081F00DF5D"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\ChipsetLevelUpPopup.cs",
+    "Hash": "71C89D007586A557040AAB1719B907C92079F757E175D4D8E48CBE4A6BA401E8"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\ChipsetLevelVisualLibrary.cs",
+    "Hash": "1A3264A8223E4DED43265597BB22A269B97C379216C9746991DB71B8FAFFA6B9"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\DamageDetailRowUI.cs",
+    "Hash": "41342E81AB24A77148B3193E6BB24942A38A78434B36CA068D931FEF46CEFB98"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\DamageDetailsPopup.cs",
+    "Hash": "BAF8A268987C1CC4B9C7D1CCF055B8CBA3443694EB3BC310E5F3775843B65AC6"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\FPSDisplay.cs",
+    "Hash": "A5FBFFF537D0E9C26F51BE4A00490D8ED63AD8E695596FC7C48C2BB7D85B3E8E"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\GrowthFundWidgetController.cs",
+    "Hash": "E045A6264C96E8DA871C85EFD2B7DB90250230E598BC8BB40E590B239C3BBF95"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\LabStatTooltip.cs",
+    "Hash": "330DBAAA6E2B576FF215D7015F8BDF11DDC967132BDCA067E0160E5E12D00414"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\LabUpgradeController.cs",
+    "Hash": "6AAA15527837C3DD1AA0E462279F2FB24A4AAEA0A34A72E4CED7DFCAF93F446E"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\LevelUpPopupController.cs",
+    "Hash": "BCE102895975C84D441DADDB65E6FE0CB342DC6617AB830FD7695ADC082E5F62"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\MainMenuController.cs",
+    "Hash": "5A37E818B6A1B054D16FE74C37C11C2B9BAFA1FD03838001E4A7DBD20AE8DC31"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\PauseModalController.cs",
+    "Hash": "4DE02DE6C674B96DB9BF7836BB0F50C3626F2AB1029E2064E6E6CA23AFCC7E8B"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\PityGuaranteeController.cs",
+    "Hash": "52EC82F2CC5C67FF318DEB33CFF47A3DBBFA48FE03D145558834CFF8049B376F"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\PlayerHealthUI.cs",
+    "Hash": "C5606F1C79CB59B483E682F23C8B77EBECB308C4F884AAB5B6AC5F8AC836350F"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\PlayerRunEndController.cs",
+    "Hash": "BBF0AD65EAE611D56B771A36D57E2A9B5BD4BDD43F6FC672673A7C69C69DC6A8"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\QuestWidgetController.cs",
+    "Hash": "37B4476BE046F8B4B47FCDA2C12D42A2ABA5F3FCE5A7AEDB63488B395739C3C8"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\ShopController.cs",
+    "Hash": "79CF2EAE8E10627BA555F1C864616401CE95C91EEA2225B46DCEE32626A036AD"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\TopBarCurrencyController.cs",
+    "Hash": "71469FDD704128775025EC3F580035C9CCB867F14A5DF7D0F283CBFF83EE6BC0"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\UIPanelTransition.cs",
+    "Hash": "0ACCB59178A09E3910B40373B73D5F512A7DBF7A999654FC5C97B748DCA82AC6"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\VictoryPanelController.cs",
+    "Hash": "6743FD2D6B99DA484C57456904957126EDEE86B8CCE0A1ACABBEB1420880A1B7"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\WaveHUDController.cs",
+    "Hash": "A255DE600520F5181F56258518A5A2D479E479807524CB78D5F2F5D2ACD43ED9"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\WorldHealthBar.cs",
+    "Hash": "B1E5D68A366815670D2E08F60BD0F95B236EB0B9FF1F244574E448DB88853B6D"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\Achievement\\AchievementItemUI.cs",
+    "Hash": "975EA12D98EF8EC5014B498EBC9115C345E07749C7531E776FEDC96A77A46C21"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\Achievement\\AchievementPanelUI.cs",
+    "Hash": "B1432E4148F8AD0D3A906323BE00948BEFB7F54C0AE6F2008D029F9F43CFB6FD"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\Artifact\\ArtifactFoundModalController.cs",
+    "Hash": "3E611131BEA52FA56FEB621CDA1A71C8809105E4DB8AA0B6C00227A28235CBA7"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\Artifact\\SunburstRayEffect.cs",
+    "Hash": "F5D6ABD5F6EB50EBC0210A578E5D3844338E3A78880F0E236FF7E84613E0E516"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\DailyLogin\\DailyLoginItemUI.cs",
+    "Hash": "4631E4B4426765B2DAB116D138A81E41F89103A4708BA76D93AD052E93753ECB"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\DailyLogin\\DailyLoginPanelUI.cs",
+    "Hash": "146DDFC05CCF597DFC16782BD91A079C27850C1BA83F031E5ABC9E4EA466A3B0"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\Dissolve\\UIDissolveAutoInstaller.cs",
+    "Hash": "21B566B552B3AF47DB3445B4C77995F6339F693412F34D08EFAD2C9EBBE72267"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\Dissolve\\UIDissolveController.cs",
+    "Hash": "8BB98A56EE3847E3A2D5C310BEDF6CBB5310ED0EAF104B82BA30A7E05927797C"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\Dissolve\\UIDissolveGroup.cs",
+    "Hash": "84DC07C9E081C1E3109A584CFA061B07E533E8E60B023DF4D4A70C8F976D14A6"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\Dissolve\\UIDissolveParticle.cs",
+    "Hash": "63CB913AB4B218973F8D1FC3A87E078E80427E0661924A6E588557462B95E48B"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\Pity\\PityGuaranteePanel.cs",
+    "Hash": "BCD906DBE1806DCBC6595096E4FFE7428075897BE21E5A68815756D8179DC033"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\Pity\\PityProgressRow.cs",
+    "Hash": "ECA75ABCE007409760341607856DB1DDC10CEEB73127EE40D069A55A4E22DF32"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\UI\\RewardPopup\\RewardPopupController.cs",
+    "Hash": "8A7FF2E4F9FD740AE5647BE7554441C5F1901ADFD43A36FA1B52A54EBB7DA151"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\VFX\\AutoDestroyVFX.cs",
+    "Hash": "4B6CDD5E2C624C1D064FAF4A2690E849528201AA2C86007F6A26421372593DE7"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\VFX\\ReviveVFX.cs",
+    "Hash": "298096BFFB139CD2B574AFD44A276770AF6C3C2E2AB124B3AE0B67C13478E08A"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\VFX\\SpriteHitFlash.cs",
+    "Hash": "2F698E4013B74CA46AF2DD61923712104E35A821E56D5EE95F1CF63FFD458208"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\VFX\\VFXBoom.cs",
+    "Hash": "8B54A6F765483FD85F229BDFC5FFF860C9AA8CA14CE6F0331668F923A2FF27BE"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Weapon\\GatlingSpinner.cs",
+    "Hash": "3B1831EA87C850AFF3CF1EA21E2E5ECEB4A3E4EBCB58992F22A7B801432F0439"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Assets\\Scripts\\Weapon\\WeaponData.cs",
+    "Hash": "7F54CAB030A8A493D9671757668A12F739616AD94C5CE03E2E89751DF2233974"
+  }
+]

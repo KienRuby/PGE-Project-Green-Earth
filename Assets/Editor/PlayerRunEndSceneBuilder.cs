@@ -342,12 +342,12 @@ public static class PlayerRunEndSceneBuilder
         GameObject row = new GameObject(name, typeof(RectTransform));
         row.transform.SetParent(parent, false);
         RectTransform rowRect = row.GetComponent<RectTransform>();
-        SetRect(rowRect, position, new Vector2(440f, 110f));
+        SetRect(rowRect, position, new Vector2(520f, 110f));
 
         Image icon = CreateSpriteImage("Icon", row.transform, iconSprite);
         icon.preserveAspect = true;
         icon.raycastTarget = false;
-        SetRect(icon.rectTransform, new Vector2(-130f, 0f), new Vector2(96f, 96f));
+        SetRect(icon.rectTransform, new Vector2(-170f, 0f), new Vector2(96f, 96f));
 
         Material mat = rewardFontMaterial != null ? rewardFontMaterial : fontMaterial;
         rewardText = CreateText("Value", row.transform, defaultText, 68f, Color.white, mat);
@@ -355,7 +355,9 @@ public static class PlayerRunEndSceneBuilder
         rewardText.fontStyle = FontStyles.Bold;
         rewardText.fontWeight = FontWeight.Bold;
         rewardText.extraPadding = true;
-        SetRect(rewardText.rectTransform, new Vector2(55f, 0f), new Vector2(290f, 100f));
+        rewardText.enableWordWrapping = false;
+        rewardText.overflowMode = TextOverflowModes.Overflow;
+        SetRect(rewardText.rectTransform, new Vector2(80f, 0f), new Vector2(420f, 100f));
         return rowRect;
     }
 
@@ -413,13 +415,13 @@ public static class PlayerRunEndSceneBuilder
         contentRect = panelObject.GetComponent<RectTransform>();
         SetRect(contentRect, new Vector2(0f, 390f), new Vector2(720f, 603f));
 
-        // 2. Dòng thưởng Data Chip (Icon tím DATA + chữ Get 0 font đậm viền đen dày chuẩn mẫu)
+        // 2. Dòng thưởng Data Chip (Dịch sang trái x = -65f)
         RectTransform dataRow = BuildRewardRow(
-            root.transform, "DataChipReward", new Vector2(-15f, 25f), dataIcon, "Get 0", out chipRewardText);
+            root.transform, "DataChipReward", new Vector2(-65f, 25f), dataIcon, "Get 0", out chipRewardText);
 
-        // 3. Dòng thưởng Red Gem (Icon ngọc đỏ + chữ Get 0 font đậm viền đen dày chuẩn mẫu)
+        // 3. Dòng thưởng Red Gem (Dịch sang trái x = -65f)
         RectTransform redGemRow = BuildRewardRow(
-            root.transform, "RedGemReward", new Vector2(-15f, -90f), gemIcon, "Get 0", out gemRewardText);
+            root.transform, "RedGemReward", new Vector2(-65f, -90f), gemIcon, "Get 0", out gemRewardText);
 
         // 4. Nút Details (biểu đồ + chữ Details) đặt lệch sang bên phải ngay cạnh dòng Red Gem
         detailsButton = CreateSpriteButton(

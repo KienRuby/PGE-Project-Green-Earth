@@ -27,6 +27,8 @@ MonoBehaviour:
   gameplaySceneName: GamePlay
   levelConfigId: mutant_forest_1
   isLocked: 0
+  victoryDataChipReward: 1200
+  victoryRedGemReward: 24
   autoGenerateWaves: 1
   chapterDifficultyMultiplier: 1.25
   wavePowerGrowthRate: 0.08

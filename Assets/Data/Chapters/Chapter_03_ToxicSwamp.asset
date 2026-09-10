@@ -27,6 +27,8 @@ MonoBehaviour:
   gameplaySceneName: GamePlay
   levelConfigId: toxic_swamp_1
   isLocked: 0
+  victoryDataChipReward: 1440
+  victoryRedGemReward: 29
   autoGenerateWaves: 1
   chapterDifficultyMultiplier: 1.5
   wavePowerGrowthRate: 0.08

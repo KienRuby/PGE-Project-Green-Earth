@@ -70,6 +70,13 @@ public class PlayerArtifactInventory : MonoBehaviour
     public float TotalDamageReductionBonus { get; private set; }
     public float TotalCritRatePercentBonus { get; private set; }
 
+    // No lazy Instance lookup here: calculating damage must never create an inventory.
+    public static int ApplyWeaponDamageBonus(int damage)
+    {
+        float percent = runtimeInstance != null ? runtimeInstance.TotalWeaponDamagePercentBonus : 0f;
+        return Mathf.Max(0, Mathf.RoundToInt(damage * (1f + percent / 100f)));
+    }
+
     private void Awake()
     {
         if (runtimeInstance == null)
@@ -163,27 +170,13 @@ public class PlayerArtifactInventory : MonoBehaviour
         // 1. Áp dụng buff Máu tối đa (HP +X%) - Ví dụ: Spare Battery, Energy Butter
         if (playerHealth != null)
         {
-            int baseHp = playerHealth.BaseMaxHealth;
-            if (baseHp <= 0) baseHp = 100;
-
-            int bonusHp = Mathf.RoundToInt(baseHp * (TotalHpPercentBonus / 100f));
-            int newMaxHp = baseHp + bonusHp;
-
-            if (newMaxHp != playerHealth.MaxHealth)
-            {
-                int hpDiff = newMaxHp - playerHealth.MaxHealth;
-                playerHealth.SetMaxHealth(newMaxHp, false);
-                if (hpDiff > 0)
-                {
-                    playerHealth.Heal(hpDiff);
-                }
-            }
+            playerHealth.SetArtifactHealthBonus(TotalHpPercentBonus);
 
             // 2. Áp dụng buff Kháng đánh xa (Ranged DEF +X%) - Ví dụ: Quantum Microchip
             playerHealth.RangedDefenseBonusPercent = TotalRangedDefPercentBonus;
 
             // 3. Áp dụng buff Giảm trừ sát thương trực tiếp (DEF +X) - Ví dụ: Modular Brick
-            playerHealth.SetDamageReduction(Mathf.RoundToInt(TotalDamageReductionBonus));
+            playerHealth.SetArtifactDamageReduction(Mathf.RoundToInt(TotalDamageReductionBonus));
         }
 
         // 3. Áp dụng buff Sát thương mọi vũ khí & Tỉ lệ chí mạng (All Weapons' ATK +X%, Crit Rate +X%) - Ví dụ: Kung Fu Data USB, Data Disc
@@ -197,9 +190,9 @@ public class PlayerArtifactInventory : MonoBehaviour
         GunTurret.GlobalTurretFireRateMultiplier = 1f + (TotalTurretAtkSpeedPercentBonus / 100f);
 
         // 5. Áp dụng buff Tốc độ chạy (Move Speed +X%)
-        if (playerMovement != null && TotalMoveSpeedPercentBonus > 0f)
+        if (playerMovement != null)
         {
-            playerMovement.SetMoveSpeedBonus(TotalMoveSpeedPercentBonus * 0.05f);
+            playerMovement.SetArtifactSpeedBonus(TotalMoveSpeedPercentBonus);
         }
     }
 }

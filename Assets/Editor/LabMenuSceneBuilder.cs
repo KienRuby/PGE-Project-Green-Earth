@@ -536,7 +536,9 @@ public static class LabMenuSceneBuilder
                 UnityEngine.Object.DestroyImmediate(existingShopPanel.gameObject);
             }
 
-            shopPanel = CreateShopPanel(content, null, null, null);
+            ShopPanelBuilder.BuildFullShopPanel();
+            Transform rebuilt = content.Find("ShopPanel (Scrollable)") ?? content.Find("ShopPanel");
+            shopPanel = (rebuilt != null) ? rebuilt.gameObject : CreateShopPanel(content, null, null, null);
             shopPanel.name = "ShopPanel";
             shopPanel.SetActive(false);
         }

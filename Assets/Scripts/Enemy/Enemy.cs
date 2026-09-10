@@ -30,8 +30,10 @@ public class Enemy : MonoBehaviour, IDamageable, IPoolable
     [SerializeField] private float moveSpeed = 2.0f;
     [SerializeField] private int contactDamage = 10;
     [SerializeField] private int expReward = 10;
-    [SerializeField] private int dataChipReward = 1;
+    [SerializeField] private int dataChipReward = 5;
     [SerializeField] private int redGemReward = 0;
+    [Range(0f, 1f)] [SerializeField] private float randomRedGemDropChance = 0.05f;
+    [SerializeField] private int randomRedGemAmount = 1;
     [Range(0f, 1f)] [SerializeField] private float currencyDropChance = 1.0f;
 
     [Header("Components Cache")]
@@ -208,6 +210,10 @@ public class Enemy : MonoBehaviour, IDamageable, IPoolable
             {
                 if (dataChipReward > 0) ChipManager.AddDataChips(dataChipReward);
                 if (redGemReward > 0) ChipManager.AddRedGems(redGemReward);
+                if (randomRedGemDropChance > 0f && UnityEngine.Random.value <= randomRedGemDropChance)
+                {
+                    ChipManager.AddRedGems(randomRedGemAmount);
+                }
             }
 
             OnEnemyDeath?.Invoke();

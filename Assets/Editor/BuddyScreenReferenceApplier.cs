@@ -18,7 +18,7 @@ public static class BuddyScreenReferenceApplier
     private const string MainMenuScenePath = "Assets/Scenes/MainMenu.unity";
     private const string IconSheetPath = "Assets/Sprites/UI/Buddy/icon buddy.png";
     private const string ButtonSheetPath = "Assets/Sprites/UI/Buddy/nút màn buddy.png";
-    private const string AppliedKey = "PGE.BuddyScreenReferenceApplier.v6";
+    private const string AppliedKey = "PGE.BuddyScreenReferenceApplier.v7";
 
     static BuddyScreenReferenceApplier()
     {
@@ -39,6 +39,25 @@ public static class BuddyScreenReferenceApplier
         ApplyOnce();
     }
 
+    [MenuItem("PGE/UI/Rebuild Equipped Slots From Template")]
+    public static void RebuildEquippedSlotsFromMenu()
+    {
+        if (EditorApplication.isPlaying)
+        {
+            var controllers = UnityEngine.Object.FindObjectsOfType<BuddyController>(true);
+            foreach (var c in controllers)
+            {
+                c.EnsureEquippedSlotsMatchTemplate();
+                c.RefreshEquippedGrid();
+            }
+            Debug.Log($"[BuddyScreenReferenceApplier] Đã rebuild {controllers.Length} EquippedSlots trong Play mode.");
+            return;
+        }
+
+        EditorPrefs.DeleteKey(AppliedKey);
+        ApplyOnce();
+    }
+
     private static void ApplyOnce()
     {
         if (EditorApplication.isPlayingOrWillChangePlaymode || EditorPrefs.GetBool(AppliedKey, false)) return;
@@ -51,7 +70,7 @@ public static class BuddyScreenReferenceApplier
         Dictionary<string, Sprite> sourceIcons = LoadSprites(IconSheetPath);
         Dictionary<string, Sprite> sourceButtons = LoadSprites(ButtonSheetPath);
 
-        string[] requiredIconSprites = { "openLocke", "Locke", "1", "2", "3", "drone-snowflake", "drone-spider", "drone-antenna-eye", "drone-cross-visor", "drone-stealth-wing" };
+        string[] requiredIconSprites = { "openLocke", "Locke", "drone-snowflake", "drone-spider", "drone-antenna-eye", "drone-cross-visor", "drone-stealth-wing" };
         string[] requiredButtonSprites = { "Drone", "Robot Pet On", "Robot Pet OFF", "khung", "Empty" };
         if (requiredIconSprites.Any(name => !sourceIcons.ContainsKey(name)) ||
             requiredButtonSprites.Any(name => !sourceButtons.ContainsKey(name)))
@@ -157,15 +176,15 @@ public static class BuddyScreenReferenceApplier
         SetImageSprite(serialized.FindProperty("droneModeBg").objectReferenceValue as Image, sourceButtons["Drone"]);
         SetImageSprite(serialized.FindProperty("robotPetModeBg").objectReferenceValue as Image, sourceButtons["Robot Pet On"]);
 
-        SetImageSprite(serialized.FindProperty("preset1Bg").objectReferenceValue as Image, sourceIcons["1"]);
-        SetImageSprite(serialized.FindProperty("preset2Bg").objectReferenceValue as Image, sourceIcons["2"]);
-        SetImageSprite(serialized.FindProperty("preset3Bg").objectReferenceValue as Image, sourceIcons["3"]);
+        if (sourceIcons.TryGetValue("1", out Sprite s1)) SetImageSprite(serialized.FindProperty("preset1Bg").objectReferenceValue as Image, s1);
+        if (sourceIcons.TryGetValue("2", out Sprite s2)) SetImageSprite(serialized.FindProperty("preset2Bg").objectReferenceValue as Image, s2);
+        if (sourceIcons.TryGetValue("3", out Sprite s3)) SetImageSprite(serialized.FindProperty("preset3Bg").objectReferenceValue as Image, s3);
 
         ClearText(serialized.FindProperty("preset1Text").objectReferenceValue as TMP_Text);
         ClearText(serialized.FindProperty("preset2Text").objectReferenceValue as TMP_Text);
         ClearText(serialized.FindProperty("preset3Text").objectReferenceValue as TMP_Text);
 
-        // Update Drone 1 in allBuddies to Sloy (Rare, LV.8, 8/9, 3500 cost)
+        // Update Drone 1 in allBuddies to Sloy (Common, LV.8, 0/10, 3500 cost)
         SerializedProperty allBuddiesProp = serialized.FindProperty("allBuddies");
         if (allBuddiesProp != null && allBuddiesProp.arraySize > 0)
         {
@@ -174,33 +193,39 @@ public static class BuddyScreenReferenceApplier
             drone0.FindPropertyRelative("iconKey").stringValue = "drone-snowflake";
             drone0.FindPropertyRelative("tier").enumValueIndex = (int)BuddyTier.Common;
             drone0.FindPropertyRelative("level").intValue = 8;
-            drone0.FindPropertyRelative("count").intValue = 8;
-            drone0.FindPropertyRelative("requiredCount").intValue = 9;
+            drone0.FindPropertyRelative("count").intValue = 0;
+            drone0.FindPropertyRelative("requiredCount").intValue = 10;
             drone0.FindPropertyRelative("enhanceCost").intValue = 3500;
             drone0.FindPropertyRelative("description").stringValue = "Fires shells that slow down enemies.";
             drone0.FindPropertyRelative("baseStatText").stringValue = "Drone ATK 20.4, Slow ATK Speed";
         }
 
-        // Auto-wire SlotIconBuddy (5 slots)
-        Transform slotIconBuddy = FindDeep(controller.transform, "SlotIconBuddy");
-        if (slotIconBuddy != null)
+        // Auto-wire EquippedRow (3 slots) using exact clone of Buddy Card template
+        controller.EnsureEquippedSlotsMatchTemplate();
+        Transform equippedRow = FindDeep(controller.transform, "EquippedRow");
+        if (equippedRow != null)
         {
-            serialized.FindProperty("slotIconBuddyContainer").objectReferenceValue = slotIconBuddy;
             SerializedProperty equippedSlotsProp = serialized.FindProperty("equippedSlots");
-            equippedSlotsProp.arraySize = 5;
+            equippedSlotsProp.arraySize = 3;
 
-            string[] slotNames = { "drone-snowflake", "drone-spider", "drone-stealth-wing", "drone-antenna-eye", "drone-cross-visor" };
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 3; i++)
             {
-                Transform slotT = slotIconBuddy.Find(slotNames[i]);
-                if (slotT == null && i < slotIconBuddy.childCount) slotT = slotIconBuddy.GetChild(i);
+                Transform slotT = equippedRow.Find($"EquippedSlot_{i}");
+                if (slotT == null && i < equippedRow.childCount) slotT = equippedRow.GetChild(i);
                 if (slotT != null)
                 {
                     BuddyCardUI card = slotT.GetComponent<BuddyCardUI>() ?? slotT.gameObject.AddComponent<BuddyCardUI>();
                     Button btn = slotT.GetComponent<Button>() ?? slotT.gameObject.AddComponent<Button>();
+                    card.EnsureProgressBar();
                     equippedSlotsProp.GetArrayElementAtIndex(i).objectReferenceValue = card;
                 }
             }
+        }
+
+        Transform slotIconBuddy = FindDeep(controller.transform, "SlotIconBuddy");
+        if (slotIconBuddy != null)
+        {
+            serialized.FindProperty("slotIconBuddyContainer").objectReferenceValue = slotIconBuddy;
         }
 
         // Auto-wire BuddyDetailModal
@@ -246,7 +271,9 @@ public static class BuddyScreenReferenceApplier
             if (enhBtnT != null)
             {
                 serialized.FindProperty("detailEnhanceBtn").objectReferenceValue = enhBtnT.GetComponent<Button>();
-                serialized.FindProperty("detailEnhanceCostText").objectReferenceValue = enhBtnT.Find("Cost")?.GetComponent<TMP_Text>() ?? enhBtnT.GetComponentInChildren<TMP_Text>(true);
+                serialized.FindProperty("detailEnhanceCostText").objectReferenceValue = enhBtnT.Find("CostRow/CostValue")?.GetComponent<TMP_Text>()
+                    ?? enhBtnT.Find("CostValue")?.GetComponent<TMP_Text>()
+                    ?? enhBtnT.Find("Cost")?.GetComponent<TMP_Text>();
             }
 
             Transform advBtnT = modalBox.Find("AdvanceTierBtn");
@@ -295,6 +322,7 @@ public static class BuddyScreenReferenceApplier
         if (detailModalT != null)
         {
             Transform modalBox = detailModalT.Find("ModalBox") ?? detailModalT;
+            HideChildren(modalBox, "ModBadge");
             Transform topCardT = modalBox.Find("TopCard") ?? modalBox.Find("IconFrame");
             if (topCardT != null)
             {
@@ -313,6 +341,17 @@ public static class BuddyScreenReferenceApplier
                         SetImageSprite(iconImg, snowSprite);
                     }
                 }
+            }
+        }
+
+        // Reset all Fill / ProgressFill images to Color.white so they display their native asset colors without yellow tint
+        foreach (var img in controller.GetComponentsInChildren<Image>(true))
+        {
+            if (img.gameObject.name.Equals("Fill", StringComparison.OrdinalIgnoreCase) ||
+                img.gameObject.name.Equals("ProgressFill", StringComparison.OrdinalIgnoreCase))
+            {
+                img.color = Color.white;
+                EditorUtility.SetDirty(img);
             }
         }
     }

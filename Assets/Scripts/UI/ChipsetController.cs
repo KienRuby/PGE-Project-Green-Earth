@@ -65,9 +65,10 @@ public class ChipItemData
     public bool NeedsAdvanceStones => tier == ChipTier.Epic && IsAtTierCap;
     public int AdvanceStoneCost => NeedsAdvanceStones ? 10 : 0;
 
-    public int RequiredTierEnhances => requiredTierEnhances;
+    public int RequiredTierEnhances => Mathf.Min(requiredTierEnhances,
+        MaxLevel - (tier == ChipTier.Magic ? 1 : GetMaxLevelForTier((ChipTier)((int)tier - 1))));
     public bool IsTierUnlockReady => tierUnlockRulesEnabled
-        ? tierEnhanceCount >= requiredTierEnhances
+        ? tierEnhanceCount >= RequiredTierEnhances || IsAtTierCap
         : IsAtTierCap;
     public bool UsesRedDataChipForAdvance => tierUnlockRulesEnabled && tier == ChipTier.Epic;
     public int YellowToRedDataChipCost => yellowToRedDataChipCost;
@@ -113,7 +114,7 @@ public class ChipItemData
             }
             if (tierUnlockRulesEnabled)
             {
-                return tierEnhanceCount >= requiredTierEnhances || level >= MaxLevel;
+                return tierEnhanceCount >= RequiredTierEnhances || level >= MaxLevel;
             }
             return IsAtTierCap;
         }

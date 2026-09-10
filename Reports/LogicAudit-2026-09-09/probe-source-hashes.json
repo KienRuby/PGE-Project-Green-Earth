@@ -1,0 +1,30 @@
+[
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Reports\\LogicAudit-2026-09-09\\probes\\ArtifactData.cs",
+    "Hash": "443D660EBEC7189B6AEFB6357EC287D4E0743D8FBD8F5D61DABD48ED0512FF9C"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Reports\\LogicAudit-2026-09-09\\probes\\BuddyController.Domain.cs",
+    "Hash": "EE8B8675480495EA7EEAA64A7CD22BD960EBA510C0E50B23CBF722642A8E42BC"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Reports\\LogicAudit-2026-09-09\\probes\\ChipsetController.Domain.cs",
+    "Hash": "FE0B449BB6A45E7B44FE6DAB202A5CF45AFDFA57935047A82702FD157F6286D9"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Reports\\LogicAudit-2026-09-09\\probes\\CloudSaveSyncService.cs",
+    "Hash": "F4EF324606D02EE59FA43C4099384315D26B7BB837C350B4C3204A53F57A0836"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Reports\\LogicAudit-2026-09-09\\probes\\PlayerArtifactInventory.cs",
+    "Hash": "1B38125137473231FCF33EAABF1C4A9EEEF18D1030B84DDC49802F9324BA2534"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Reports\\LogicAudit-2026-09-09\\probes\\PlayerDataService.cs",
+    "Hash": "D5EBE0C7EAC59302694EA0F657904FE3CB66B02EC1ECE5EA1705BB73CB2420BD"
+  },
+  {
+    "Path": "C:\\Game 4\\PGE - Project Green Earth\\Reports\\LogicAudit-2026-09-09\\probes\\PlayerStatsManager.cs",
+    "Hash": "420D08EDC6094539F0FBFA3D8D83918D043B082B8C9C7738FAB5CFDEA46CBAEE"
+  }
+]

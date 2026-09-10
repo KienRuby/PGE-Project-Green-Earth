@@ -17,6 +17,7 @@ public class SunburstRayEffect : MonoBehaviour
 
     [Header("Visual Components")]
     [SerializeField] private Image rayImage;
+    [SerializeField] private Sprite customRaySprite;
 
     private RectTransform rectTransform;
 
@@ -42,9 +43,27 @@ public class SunburstRayEffect : MonoBehaviour
     /// </summary>
     public void EnsureRayGraphic()
     {
-        if (rayImage == null) rayImage = gameObject.AddComponent<Image>();
+        if (rayImage == null) rayImage = GetComponent<Image>() ?? gameObject.AddComponent<Image>();
 
-        if (rayImage.sprite == null)
+        if (customRaySprite == null && rayImage.sprite == null)
+        {
+            customRaySprite = Resources.Load<Sprite>("UI/sunburst_ray");
+        }
+
+        if (customRaySprite != null)
+        {
+            rayImage.sprite = customRaySprite;
+            rayImage.color = Color.white;
+            rayImage.preserveAspect = true;
+            return;
+        }
+
+        if (rayImage.sprite != null)
+        {
+            rayImage.color = Color.white;
+            rayImage.preserveAspect = true;
+            return;
+        }
         {
             int size = 256;
             Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);

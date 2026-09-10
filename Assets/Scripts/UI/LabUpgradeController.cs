@@ -1048,38 +1048,11 @@ public class LabUpgradeController : MonoBehaviour
 
     private void RecoverEnergyFromClock()
     {
-        DateTime now = DateTime.UtcNow;
-        if (ChipManager.Energy >= MaxEnergy)
-        {
-            nextEnergyRecoveryUtc = now.AddMinutes(1d);
-            PlayerPrefs.SetString(NextEnergyUtcKey, nextEnergyRecoveryUtc.ToString("o"));
-            PlayerPrefs.Save();
-            return;
-        }
-
-        if (now < nextEnergyRecoveryUtc)
-        {
-            return;
-        }
-
-        int elapsedRecoveryPoints = 1 + (int)Math.Floor((now - nextEnergyRecoveryUtc).TotalMinutes);
-        int recoveredPoints = Math.Min(MaxEnergy - ChipManager.Energy, elapsedRecoveryPoints);
-        if (recoveredPoints > 0)
-        {
-            ChipManager.AddEnergy(recoveredPoints);
-            currentEnergy = Mathf.Clamp(ChipManager.Energy, 0, MaxEnergy);
-        }
-        nextEnergyRecoveryUtc = nextEnergyRecoveryUtc.AddMinutes(recoveredPoints);
-
-        PlayerPrefs.SetString(NextEnergyUtcKey, nextEnergyRecoveryUtc.ToString("o"));
-        PlayerPrefs.Save();
-
-        if (energyBalanceText != null)
-        {
-            energyBalanceText.text = $"{currentEnergy}/{MaxEnergy}";
-        }
+        // The persistent currency service owns the clock, including while this panel is hidden.
+        if (!ChipManager.IsTestMode) PlayerDataService.RecoverEnergy(DateTime.UtcNow);
+        currentEnergy = Mathf.Clamp(ChipManager.Energy, 0, MaxEnergy);
+        if (energyBalanceText != null) energyBalanceText.text = $"{currentEnergy}/{MaxEnergy}";
     }
-
     private float GetTotalRarityWeight()
     {
         float totalWeight = 0f;
