@@ -102,11 +102,21 @@ public class SettingsPanelController : MonoBehaviour, IPointerClickHandler
 
     private void OnEnable()
     {
+        AuthenticationServiceManager.StateChanged -= RefreshLabels;
+        SaveSyncManager.StateChanged -= RefreshLabels;
+        AuthenticationServiceManager.StateChanged += RefreshLabels;
+        SaveSyncManager.StateChanged += RefreshLabels;
         AutoWireReferencesIfMissing();
         ApplyLayoutForCurrentScene();
         EnsureLanguageOptionsPanel();
         BindButtonListeners();
         RefreshLabels();
+    }
+
+    private void OnDisable()
+    {
+        AuthenticationServiceManager.StateChanged -= RefreshLabels;
+        SaveSyncManager.StateChanged -= RefreshLabels;
     }
 
     private void Start()
@@ -261,10 +271,6 @@ public class SettingsPanelController : MonoBehaviour, IPointerClickHandler
         {
             GoogleAuthManager.Instance.SignInWithGoogle((success, user) =>
             {
-                if (success)
-                {
-                    CloudSaveSyncService.LoadFromCloud();
-                }
                 RefreshLabels();
             });
         }
@@ -275,13 +281,7 @@ public class SettingsPanelController : MonoBehaviour, IPointerClickHandler
                 RefreshLabels();
             });
         }
-        else
-        {
-            GameSettings.GoogleAccount = string.IsNullOrEmpty(GameSettings.GoogleAccount)
-                ? $"Google_{GameSettings.LocalPlayerId.Substring(0, 6)}"
-                : string.Empty;
-            RefreshLabels();
-        }
+        else RefreshLabels();
     }
 
     private void OnAppleSignInClicked()
@@ -290,10 +290,6 @@ public class SettingsPanelController : MonoBehaviour, IPointerClickHandler
         {
             AppleAuthManager.Instance.SignInWithApple((success, user) =>
             {
-                if (success)
-                {
-                    CloudSaveSyncService.LoadFromCloud();
-                }
                 RefreshLabels();
             });
         }
@@ -304,13 +300,7 @@ public class SettingsPanelController : MonoBehaviour, IPointerClickHandler
                 RefreshLabels();
             });
         }
-        else
-        {
-            GameSettings.AppleAccount = string.IsNullOrEmpty(GameSettings.AppleAccount)
-                ? $"Apple_{GameSettings.LocalPlayerId.Substring(0, 6)}"
-                : string.Empty;
-            RefreshLabels();
-        }
+        else RefreshLabels();
     }
 
     public void RefreshLabels()
@@ -376,12 +366,15 @@ public class SettingsPanelController : MonoBehaviour, IPointerClickHandler
         SetButtonSprite(reviewButton, reviewOnSprite, reviewText, vi ? "VIẾT ĐÁNH GIÁ" : "Write a review", true);
 
         // 8. Google & Apple Buttons
-        bool isGoogleLoggedIn = (GoogleAuthManager.Instance != null && GoogleAuthManager.Instance.IsLoggedIn) || GameSettings.IsLoggedInGoogle;
-        bool isAppleLoggedIn = (AppleAuthManager.Instance != null && AppleAuthManager.Instance.IsLoggedIn) || GameSettings.IsLoggedInApple;
+        bool isGoogleLoggedIn = GoogleAuthManager.Instance != null && GoogleAuthManager.Instance.IsLoggedIn;
+        bool isAppleLoggedIn = AppleAuthManager.Instance != null && AppleAuthManager.Instance.IsLoggedIn;
+        bool isSigningIn = AuthenticationServiceManager.Instance != null && AuthenticationServiceManager.Instance.State == AuthenticationState.SigningIn;
 
         if (googleLoginButton != null)
         {
-            string googleLabel = isGoogleLoggedIn
+            string googleLabel = isSigningIn
+                ? (vi ? "ĐANG ĐĂNG NHẬP..." : "SIGNING IN...")
+                : isGoogleLoggedIn
                 ? (vi ? "GOOGLE: ĐÃ ĐĂNG NHẬP (LOGGED IN)" : "GOOGLE: LOGGED IN")
                 : (vi ? "ĐĂNG NHẬP GOOGLE" : "LOG IN WITH GOOGLE");
             if (googleLoginSprite != null)
@@ -392,7 +385,9 @@ public class SettingsPanelController : MonoBehaviour, IPointerClickHandler
 
         if (appleSignInButton != null)
         {
-            string appleLabel = isAppleLoggedIn
+            string appleLabel = isSigningIn
+                ? (vi ? "ĐANG ĐĂNG NHẬP..." : "SIGNING IN...")
+                : isAppleLoggedIn
                 ? (vi ? "APPLE: ĐÃ ĐĂNG NHẬP (SIGNED IN)" : "APPLE: SIGNED IN")
                 : (vi ? "ĐĂNG NHẬP APPLE" : "SIGN IN WITH APPLE");
             if (appleSignInSprite != null)
@@ -407,19 +402,17 @@ public class SettingsPanelController : MonoBehaviour, IPointerClickHandler
 
         if (saveStateText != null)
         {
-            if (isGoogleLoggedIn)
+            SaveSyncManager sync = SaveSyncManager.Instance;
+            if (isGoogleLoggedIn || isAppleLoggedIn)
             {
-                string userName = GoogleAuthManager.Instance?.CurrentUser?.displayName ?? "Google Account";
-                saveStateText.text = vi
-                    ? $"ĐỒNG BỘ ĐÁM MÂY GOOGLE  <color=#FFC236>BẬT</color>\n<size=23>{userName} • Đã lưu đám mây</size>"
-                    : $"GOOGLE CLOUD SYNC  <color=#FFC236>ON</color>\n<size=23>{userName} • Cloud secured</size>";
-            }
-            else if (isAppleLoggedIn)
-            {
-                string userName = AppleAuthManager.Instance?.CurrentUser?.displayName ?? "Apple ID";
-                saveStateText.text = vi
-                    ? $"ĐỒNG BỘ ĐÁM MÂY APPLE  <color=#FFC236>BẬT</color>\n<size=23>{userName} • Đã lưu đám mây</size>"
-                    : $"APPLE CLOUD SYNC  <color=#FFC236>ON</color>\n<size=23>{userName} • Cloud secured</size>";
+                string provider = isGoogleLoggedIn ? "GOOGLE" : "APPLE";
+                string status = sync != null ? sync.LastMessage : (vi ? "Đang kiểm tra cloud..." : "Checking cloud...");
+                string headline = sync != null && sync.State == SaveSyncState.CloudSynced
+                    ? (vi ? "ĐÃ ĐỒNG BỘ CLOUD" : "CLOUD SYNCED")
+                    : sync != null && sync.State == SaveSyncState.Syncing
+                        ? (vi ? "ĐANG ĐỒNG BỘ..." : "SYNCING...")
+                        : (vi ? "ĐÃ LƯU CỤC BỘ" : "SAVED LOCALLY");
+                saveStateText.text = $"{provider} • {headline}\n<size=23>{status}</size>";
             }
             else
             {

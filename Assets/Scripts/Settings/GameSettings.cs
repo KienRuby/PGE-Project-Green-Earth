@@ -53,8 +53,8 @@ public static class GameSettings
         }
     }
 
-    public static bool IsLoggedInGoogle => !string.IsNullOrEmpty(GoogleAccount);
-    public static bool IsLoggedInApple => !string.IsNullOrEmpty(AppleAccount);
+    public static bool IsLoggedInGoogle => PGE.Auth.GoogleAuthManager.Instance != null && PGE.Auth.GoogleAuthManager.Instance.IsLoggedIn;
+    public static bool IsLoggedInApple => PGE.Auth.AppleAuthManager.Instance != null && PGE.Auth.AppleAuthManager.Instance.IsLoggedIn;
 
     public static bool BgmEnabled
     {
