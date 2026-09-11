@@ -250,7 +250,7 @@ namespace PGE.Tests.Adversarial
             try
             {
                 // Pool with null prefab
-                ObjectPool nullPrefabPool = new ObjectPool(null, 5, true, container.transform);
+                ObjectPool nullPrefabPool = new ObjectPool(null, 5, true, container.transform, logWarnings: false);
                 nullPrefabPool.Initialize(container.transform);
 
                 GameObject spawnedNull = nullPrefabPool.Spawn(Vector3.zero, Quaternion.identity);
@@ -332,7 +332,12 @@ namespace PGE.Tests.Adversarial
 
             try
             {
-                ObjectPool pool = new ObjectPool(prefab, initialSize: 2, canGrow: false, container: container.transform);
+                ObjectPool pool = new ObjectPool(
+                    prefab,
+                    initialSize: 2,
+                    canGrow: false,
+                    container: container.transform,
+                    logWarnings: false);
                 pool.Initialize(container.transform);
 
                 GameObject obj1 = pool.Spawn(Vector3.zero, Quaternion.identity);

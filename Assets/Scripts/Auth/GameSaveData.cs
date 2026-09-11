@@ -63,6 +63,12 @@ namespace PGE.Auth
             "enemy_kill_2500", "chapter_clear_5"
         };
 
+        private static readonly string[] OnceOnlyShopPackageIds =
+        {
+            "vip-package", "welcome-package", "intermediate-pack",
+            "advanced-pack", "gun-pack", "drone-pack"
+        };
+
         public static GameSaveData Capture(string ownerPlayerId, long revision)
         {
             var data = new GameSaveData
@@ -102,7 +108,13 @@ namespace PGE.Auth
             {
                 data.AddExistingInt(PlayerDataService.BuddyLevelKeyPrefix + id);
                 data.AddExistingInt(PlayerDataService.BuddyTierKeyPrefix + id);
+                data.AddExistingInt(PlayerDataService.BuddyCountKeyPrefix + id);
+                data.AddExistingInt(PlayerDataService.BuddyRequiredCountKeyPrefix + id);
+                data.AddExistingInt(PlayerDataService.BuddyEnhanceCostKeyPrefix + id);
             }
+
+            foreach (string packageId in OnceOnlyShopPackageIds)
+                data.AddExistingInt("PGE.Shop.Purchased." + packageId);
 
             foreach (string id in AchievementIds)
             {
@@ -198,7 +210,13 @@ namespace PGE.Auth
             {
                 PlayerPrefs.DeleteKey(PlayerDataService.BuddyLevelKeyPrefix + id);
                 PlayerPrefs.DeleteKey(PlayerDataService.BuddyTierKeyPrefix + id);
+                PlayerPrefs.DeleteKey(PlayerDataService.BuddyCountKeyPrefix + id);
+                PlayerPrefs.DeleteKey(PlayerDataService.BuddyRequiredCountKeyPrefix + id);
+                PlayerPrefs.DeleteKey(PlayerDataService.BuddyEnhanceCostKeyPrefix + id);
             }
+
+            foreach (string packageId in OnceOnlyShopPackageIds)
+                PlayerPrefs.DeleteKey("PGE.Shop.Purchased." + packageId);
 
             foreach (string id in AchievementIds)
             {

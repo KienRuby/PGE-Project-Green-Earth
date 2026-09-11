@@ -212,6 +212,7 @@ public class BuddyController : MonoBehaviour
         ChipManager.OnDataChipsChanged += HandleCurrencyChanged;
         ChipManager.OnRedGemsChanged += HandleCurrencyChanged;
         ChipManager.OnEnergyChanged += HandleCurrencyChanged;
+        PlayerDataService.OnBuddyPiecesChanged += HandleBuddyPiecesChanged;
     }
 
     private void OnDisable()
@@ -219,6 +220,7 @@ public class BuddyController : MonoBehaviour
         ChipManager.OnDataChipsChanged -= HandleCurrencyChanged;
         ChipManager.OnRedGemsChanged -= HandleCurrencyChanged;
         ChipManager.OnEnergyChanged -= HandleCurrencyChanged;
+        PlayerDataService.OnBuddyPiecesChanged -= HandleBuddyPiecesChanged;
     }
 
 #if UNITY_EDITOR
@@ -252,6 +254,21 @@ public class BuddyController : MonoBehaviour
         }
     }
 
+    private void HandleBuddyPiecesChanged(int buddyId, int newCount)
+    {
+        BuddyItemData buddy = allBuddies.FirstOrDefault(item => item != null && item.id == buddyId);
+        if (buddy == null) return;
+
+        buddy.count = newCount;
+        RefreshEquippedGrid();
+        RefreshInventory();
+        if (detailModal != null && detailModal.activeSelf && selectedDetailBuddy != null && selectedDetailBuddy.id == buddyId)
+        {
+            selectedDetailBuddy.count = newCount;
+            RefreshDetailModal();
+        }
+    }
+
     public void InitializeDatabase()
     {
         activeDeckIndex = PlayerDataService.ActiveBuddyDeckIndex;
@@ -281,17 +298,11 @@ public class BuddyController : MonoBehaviour
             slotUnlocked = new bool[] { true, true, true };
         }
 
-        PlayerPrefs.DeleteKey("PGE.Buddy.1.Count");
-        PlayerPrefs.DeleteKey("PGE.Buddy.1.RequiredCount");
-        PlayerPrefs.Save();
-
         if (allBuddies.Count > 0)
         {
             foreach (var b in allBuddies)
             {
                 if (b == null) continue;
-                b.count = 0;
-                b.requiredCount = 10;
                 if (b.id == 1 || b.iconKey == "drone-snowflake")
                 {
                     b.buddyName = "Sloy";
@@ -299,6 +310,7 @@ public class BuddyController : MonoBehaviour
                     b.description = "Fires shells that slow down enemies.";
                     b.baseStatText = "Drone ATK 20.4, Slow ATK Speed";
                 }
+                PlayerDataService.LoadBuddyProgress(b);
             }
             return;
         }
@@ -522,6 +534,11 @@ public class BuddyController : MonoBehaviour
                 epicPerkText = "Supernova Surge +30%"
             }
         };
+
+        foreach (BuddyItemData buddy in allBuddies)
+        {
+            PlayerDataService.LoadBuddyProgress(buddy);
+        }
     }
 
     private void SetupEventListeners()
@@ -1511,6 +1528,7 @@ public class BuddyController : MonoBehaviour
 
         if (selectedDetailBuddy.Enhance())
         {
+            PlayerDataService.SaveBuddyProgress(selectedDetailBuddy);
             RefreshTopBar();
             RefreshEquippedGrid();
             RefreshInventory();
@@ -1537,6 +1555,7 @@ public class BuddyController : MonoBehaviour
 
         if (selectedDetailBuddy.AdvanceTier())
         {
+            PlayerDataService.SaveBuddyProgress(selectedDetailBuddy);
             RefreshTopBar();
             RefreshEquippedGrid();
             RefreshInventory();

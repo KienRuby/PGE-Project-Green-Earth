@@ -48,9 +48,15 @@ public static class AdRewardService
         }
         else
         {
-            // Chế độ mô phỏng khi chưa cắm SDK thật
-            Debug.Log("[AdRewardService] 🎬 Đang phát Rewarded Ad (Mô phỏng)...");
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            // Simulation is deliberately restricted to non-production builds. A release
+            // build must never issue a reward merely because the ads provider was omitted.
+            Debug.LogWarning("[AdRewardService] Simulating a rewarded ad in a non-production build.");
             onComplete?.Invoke(true);
+#else
+            Debug.LogError("[AdRewardService] Reward rejected: no rewarded-ad provider is configured.");
+            onComplete?.Invoke(false);
+#endif
         }
     }
 }

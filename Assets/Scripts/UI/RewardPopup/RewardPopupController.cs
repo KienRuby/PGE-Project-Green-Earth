@@ -929,6 +929,8 @@ public class RewardPopupController : MonoBehaviour
         RectTransform rect = itemObj.GetComponent<RectTransform>();
         rect.sizeDelta = new Vector2(920f, 150f);
         LayoutElement le = itemObj.AddComponent<LayoutElement>();
+        le.preferredWidth = 948f;
+        le.minWidth = 948f;
         le.preferredHeight = 150f;
         le.minHeight = 150f;
 
@@ -1057,6 +1059,8 @@ public class RewardPopupController : MonoBehaviour
         RectTransform rect = itemObj.GetComponent<RectTransform>();
         rect.sizeDelta = new Vector2(920f, 210f);
         LayoutElement le = itemObj.AddComponent<LayoutElement>();
+        le.preferredWidth = 948f;
+        le.minWidth = 948f;
         le.preferredHeight = 210f;
         le.minHeight = 210f;
 

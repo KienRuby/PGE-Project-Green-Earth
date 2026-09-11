@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -62,6 +62,20 @@ public static class AutoCleanMainMenuGarbage
         else
         {
             Debug.Log("[AutoClean] Scene MainMenu đã hoàn toàn sạch sẽ, không còn đối tượng rác nào.");
+        }
+
+        // Tự động gắn các nút Info và Modal tỷ lệ mở hộp nếu chưa có
+        GameObject chipCard = null;
+        foreach (var r in scene.GetRootGameObjects())
+        {
+            var match = System.Linq.Enumerable.FirstOrDefault(r.GetComponentsInChildren<Transform>(true), t => t.name == "Box_Chipset_1x");
+            if (match != null) { chipCard = match.gameObject; break; }
+        }
+
+        if (chipCard != null && chipCard.transform.Find("Button_Info") == null)
+        {
+            Debug.Log("[AutoClean] Đang tự động gắn nút Info và Bảng tỷ lệ mở hộp vào ShopPanel...");
+            ShopPanelBuilder.BuildFullShopPanel();
         }
     }
 }

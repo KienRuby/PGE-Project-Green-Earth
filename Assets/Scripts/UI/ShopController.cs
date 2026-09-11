@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -18,6 +19,7 @@ public sealed class ShopController : MonoBehaviour
     private const string ChipsetBoxCountKey = PlayerDataService.ChipsetBoxesKey;
     private const string DroneBoxCountKey = PlayerDataService.DroneBoxesKey;
     private const int MaxAllowedRewardAmount = 1_000_000;
+    private const int PackageItemPieces = 7;
 
     public enum CurrencyType
     {
@@ -49,6 +51,18 @@ public sealed class ShopController : MonoBehaviour
         public bool oncePerDay;
     }
 
+    private sealed class DevelopmentPack
+    {
+        public string Id;
+        public int RedGems;
+        public int DataChips;
+        public int[] ChipsetIds;
+        public int[] BuddyIds;
+        public bool OnceOnly;
+        public bool GrantsVip;
+        public string SuccessMessage;
+    }
+
     [Header("Balances and Header UI")]
     [SerializeField] private TMP_Text energyText;
     [SerializeField] private TMP_Text dataChipText;
@@ -72,6 +86,17 @@ public sealed class ShopController : MonoBehaviour
 
     private bool isProcessingTransaction;
     private float lastTransactionTime = -10f;
+    private System.Random boxRandom = new System.Random();
+    private List<ShopBoxDropRoller.Drop> lastBoxDrops = new List<ShopBoxDropRoller.Drop>();
+
+    private sealed class BoxDropSnapshot
+    {
+        public RewardType Reward;
+        public ShopBoxDropRoller.Drop[] Drops;
+        public ChipItemData[] Chipsets;
+        public bool[] ChipsetsExisted;
+        public int[] BuddyPieces;
+    }
 
     public bool IsProcessingTransaction => isProcessingTransaction;
     public float TransactionCooldown
@@ -80,6 +105,7 @@ public sealed class ShopController : MonoBehaviour
         set => transactionCooldown = Mathf.Max(0f, value);
     }
     public Offer[] Offers => offers;
+    public IReadOnlyList<ShopBoxDropRoller.Drop> LastBoxDrops => lastBoxDrops;
 
     private void Awake()
     {
@@ -245,7 +271,7 @@ public sealed class ShopController : MonoBehaviour
             float elapsed = Time.unscaledTime - lastTransactionTime;
             if (elapsed < transactionCooldown)
             {
-                Debug.LogWarning($"[SHOP] Purchase rejected: Rapid click detected. Cooldown remaining: {transactionCooldown - elapsed:F2}s");
+                Debug.Log($"[SHOP] Purchase rejected: Rapid click detected. Cooldown remaining: {transactionCooldown - elapsed:F2}s");
                 return false;
             }
         }
@@ -271,9 +297,33 @@ public sealed class ShopController : MonoBehaviour
             return false;
         }
 
+        if (TryGetDevelopmentPack(offer, out DevelopmentPack developmentPack))
+        {
+            return ExecuteDevelopmentPackPurchase(offer, developmentPack);
+        }
+
         // 2. Snapshot trước giao dịch (cho audit & rollback)
         int redGemsBefore = ChipManager.RedGems;
         int rewardBalanceBefore = GetRewardBalance(offer.reward);
+        BoxDropSnapshot boxDropSnapshot = null;
+        lastBoxDrops = new List<ShopBoxDropRoller.Drop>();
+
+        if (IsShopBoxOpeningOffer(offer))
+        {
+            lastBoxDrops = ShopBoxDropRoller.Roll(
+                offer.reward == RewardType.ChipsetBox
+                    ? ShopBoxDropRoller.BoxCategory.Chipset
+                    : ShopBoxDropRoller.BoxCategory.Buddy,
+                offer.rewardAmount,
+                boxRandom);
+            boxDropSnapshot = CaptureBoxDropSnapshot(offer.reward, lastBoxDrops);
+            if (!CanApplyBoxDrops(boxDropSnapshot))
+            {
+                lastBoxDrops.Clear();
+                ShowMessage("ITEM PIECE LIMIT REACHED");
+                return false;
+            }
+        }
 
         // 3. Phase 1: Khấu trừ tiền tệ
         bool deducted = false;
@@ -290,7 +340,14 @@ public sealed class ShopController : MonoBehaviour
         // 4. Phase 2: Trao thưởng & Lưu dữ liệu (với Rollback nếu phát sinh lỗi)
         try
         {
-            GrantReward(offer.reward, offer.rewardAmount);
+            if (boxDropSnapshot != null)
+            {
+                ApplyBoxDrops(boxDropSnapshot);
+            }
+            else
+            {
+                GrantReward(offer.reward, offer.rewardAmount);
+            }
 
             if (offer.oncePerDay)
             {
@@ -306,6 +363,11 @@ public sealed class ShopController : MonoBehaviour
             if (deducted && offer.currency == CurrencyType.RedGem)
             {
                 ChipManager.AddRedGems(offer.price);
+            }
+            if (boxDropSnapshot != null)
+            {
+                RestoreBoxDropSnapshot(boxDropSnapshot);
+                lastBoxDrops.Clear();
             }
             ShowMessage("TRANSACTION FAILED");
             return false;
@@ -327,8 +389,102 @@ public sealed class ShopController : MonoBehaviour
                   $"  QuantityAfter: {rewardBalanceAfter}\n" +
                   $"  TransactionSuccess: true");
 
-        ShowMessage(BuildSuccessMessage(offer));
+        ShowMessage(BuildSuccessMessage(offer, lastBoxDrops));
         return true;
+    }
+
+    private static bool IsShopBoxOpeningOffer(Offer offer)
+    {
+        if (offer == null || string.IsNullOrWhiteSpace(offer.id)) return false;
+
+        if (offer.reward == RewardType.ChipsetBox)
+        {
+            return offer.id.StartsWith("chipset-box-", StringComparison.OrdinalIgnoreCase);
+        }
+
+        if (offer.reward == RewardType.DroneBox)
+        {
+            return offer.id.StartsWith("drone-box-", StringComparison.OrdinalIgnoreCase) ||
+                   offer.id.StartsWith("daily-drone-", StringComparison.OrdinalIgnoreCase);
+        }
+
+        return false;
+    }
+
+    private static BoxDropSnapshot CaptureBoxDropSnapshot(
+        RewardType reward,
+        List<ShopBoxDropRoller.Drop> drops)
+    {
+        var snapshot = new BoxDropSnapshot
+        {
+            Reward = reward,
+            Drops = drops.ToArray()
+        };
+
+        if (reward == RewardType.ChipsetBox)
+        {
+            snapshot.Chipsets = new ChipItemData[drops.Count];
+            snapshot.ChipsetsExisted = new bool[drops.Count];
+            for (int i = 0; i < drops.Count; i++)
+            {
+                snapshot.ChipsetsExisted[i] = PlayerDataService.HasChipsetItemData(drops[i].ItemId);
+                snapshot.Chipsets[i] = GetSavedChipsetSnapshot(drops[i].ItemId);
+            }
+        }
+        else
+        {
+            snapshot.BuddyPieces = new int[drops.Count];
+            for (int i = 0; i < drops.Count; i++)
+            {
+                snapshot.BuddyPieces[i] = PlayerDataService.GetBuddyPieceCount(drops[i].ItemId);
+            }
+        }
+
+        return snapshot;
+    }
+
+    private static bool CanApplyBoxDrops(BoxDropSnapshot snapshot)
+    {
+        for (int i = 0; i < snapshot.Drops.Length; i++)
+        {
+            int current = snapshot.Reward == RewardType.ChipsetBox
+                ? snapshot.Chipsets[i].count
+                : snapshot.BuddyPieces[i];
+            if (!CanAdd(current, snapshot.Drops[i].Pieces)) return false;
+        }
+        return true;
+    }
+
+    private static void ApplyBoxDrops(BoxDropSnapshot snapshot)
+    {
+        for (int i = 0; i < snapshot.Drops.Length; i++)
+        {
+            ShopBoxDropRoller.Drop drop = snapshot.Drops[i];
+            if (snapshot.Reward == RewardType.ChipsetBox)
+            {
+                SaveChipsetPieces(snapshot.Chipsets[i], drop.Pieces);
+            }
+            else
+            {
+                PlayerDataService.AddBuddyPieces(drop.ItemId, drop.Pieces);
+            }
+        }
+    }
+
+    private static void RestoreBoxDropSnapshot(BoxDropSnapshot snapshot)
+    {
+        for (int i = 0; i < snapshot.Drops.Length; i++)
+        {
+            if (snapshot.Reward == RewardType.ChipsetBox)
+            {
+                RestoreChipsetSnapshot(snapshot.Chipsets[i], snapshot.ChipsetsExisted[i]);
+            }
+            else
+            {
+                PlayerDataService.SetBuddyPieceCount(snapshot.Drops[i].ItemId, snapshot.BuddyPieces[i]);
+            }
+        }
+        PlayerPrefs.Save();
     }
 
     private bool ValidateOffer(Offer offer, out string failureReason)
@@ -365,9 +521,23 @@ public sealed class ShopController : MonoBehaviour
             return false;
         }
 
-        // VND / IAP: Fail-closed an toàn
+        if (TryGetDevelopmentPack(offer, out DevelopmentPack developmentPack) &&
+            developmentPack.OnceOnly && WasPurchasedOnce(offer.id))
+        {
+            failureReason = $"{offer.displayName} ALREADY PURCHASED";
+            return false;
+        }
+
+        // Chỉ giả lập riêng Welcome Package trong Editor/Development Build.
+        // Bản release vẫn fail-closed cho đến khi tích hợp thanh toán cửa hàng thật.
         if (offer.currency == CurrencyType.VND)
         {
+            if (developmentPack != null && IsDevelopmentPurchaseAvailable)
+            {
+                failureReason = string.Empty;
+                return true;
+            }
+
             failureReason = "IAP PAYMENT COMING SOON";
             return false;
         }
@@ -400,6 +570,251 @@ public sealed class ShopController : MonoBehaviour
 
         failureReason = string.Empty;
         return true;
+    }
+
+    private bool ExecuteDevelopmentPackPurchase(Offer offer, DevelopmentPack pack)
+    {
+        int displayedRedGemsBefore = ChipManager.RedGems;
+        int displayedDataChipsBefore = ChipManager.DataChips;
+        int savedRedGemsBefore = PlayerDataService.RedGems;
+        int savedDataChipsBefore = PlayerDataService.DataChips;
+        bool vipOwnedBefore = PlayerDataService.IsVipOwned;
+        int[] chipsetIds = pack.ChipsetIds ?? Array.Empty<int>();
+        int[] buddyIds = pack.BuddyIds ?? Array.Empty<int>();
+        ChipItemData[] chipsetBefore = new ChipItemData[chipsetIds.Length];
+        bool[] chipsetExisted = new bool[chipsetIds.Length];
+        int[] buddyPiecesBefore = new int[buddyIds.Length];
+
+        for (int i = 0; i < chipsetIds.Length; i++)
+        {
+            chipsetExisted[i] = PlayerDataService.HasChipsetItemData(chipsetIds[i]);
+            chipsetBefore[i] = GetSavedChipsetSnapshot(chipsetIds[i]);
+        }
+
+        for (int i = 0; i < buddyIds.Length; i++)
+        {
+            buddyPiecesBefore[i] = PlayerDataService.GetBuddyPieceCount(buddyIds[i]);
+        }
+
+        if (!CanAdd(displayedRedGemsBefore, pack.RedGems) ||
+            !CanAdd(displayedDataChipsBefore, pack.DataChips) ||
+            !CanAdd(savedRedGemsBefore, pack.RedGems) ||
+            !CanAdd(savedDataChipsBefore, pack.DataChips) ||
+            HasChipsetOverflow(chipsetBefore) ||
+            HasBuddyOverflow(buddyPiecesBefore))
+        {
+            ShowMessage("PACKAGE INVENTORY LIMIT REACHED");
+            return false;
+        }
+
+        try
+        {
+            GrantPackageCurrency(pack.RedGems, pack.DataChips);
+            for (int i = 0; i < chipsetBefore.Length; i++)
+            {
+                SaveChipsetPieces(chipsetBefore[i], PackageItemPieces);
+            }
+            for (int i = 0; i < buddyIds.Length; i++)
+            {
+                PlayerDataService.AddBuddyPieces(buddyIds[i], PackageItemPieces);
+            }
+            if (pack.GrantsVip) PlayerDataService.IsVipOwned = true;
+            if (pack.OnceOnly) PlayerPrefs.SetInt(GetPurchasedOnceKey(offer.id), 1);
+            PlayerPrefs.Save();
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"[SHOP] Development package grant failed. Rolling back. Error: {ex}");
+            RestorePackageCurrency(
+                displayedRedGemsBefore,
+                displayedDataChipsBefore,
+                savedRedGemsBefore,
+                savedDataChipsBefore);
+            for (int i = 0; i < chipsetBefore.Length; i++)
+            {
+                RestoreChipsetSnapshot(chipsetBefore[i], chipsetExisted[i]);
+            }
+            for (int i = 0; i < buddyIds.Length; i++)
+            {
+                PlayerDataService.SetBuddyPieceCount(buddyIds[i], buddyPiecesBefore[i]);
+            }
+            PlayerDataService.IsVipOwned = vipOwnedBefore;
+            PlayerPrefs.DeleteKey(GetPurchasedOnceKey(offer.id));
+            PlayerPrefs.Save();
+            ShowMessage("TRANSACTION FAILED");
+            return false;
+        }
+
+        RefreshView();
+        Debug.Log($"[SHOP] Development Purchase Success:\n" +
+                  $"  ItemID: {offer.id}\n" +
+                  $"  Reward: {pack.SuccessMessage}\n" +
+                  $"  TransactionSuccess: true");
+        ShowMessage(pack.SuccessMessage);
+        return true;
+    }
+
+    private static bool IsDevelopmentPurchaseAvailable => Application.isEditor || Debug.isDebugBuild;
+
+    private static bool TryGetDevelopmentPack(Offer offer, out DevelopmentPack pack)
+    {
+        pack = null;
+        if (offer == null || offer.currency != CurrencyType.VND) return false;
+
+        switch (offer.id)
+        {
+            case "vip-package":
+                pack = new DevelopmentPack { Id = offer.id, RedGems = 10_000, OnceOnly = true, GrantsVip = true, SuccessMessage = "VIP UNLOCKED • 10,000 GEMS RECEIVED" };
+                break;
+            case "welcome-package":
+                pack = new DevelopmentPack { Id = offer.id, RedGems = 3_000, DataChips = 30_000, ChipsetIds = new[] { 1, 3 }, OnceOnly = true, SuccessMessage = "3,000 GEMS • 30,000 DATA CHIPS • STANDARD GUN x7 • ROCKET PUNCH x7" };
+                break;
+            case "intermediate-pack":
+                pack = new DevelopmentPack { Id = offer.id, RedGems = 3_000, DataChips = 50_000, ChipsetIds = new[] { 6, 8 }, OnceOnly = true, SuccessMessage = "3,000 GEMS • 50,000 DATA CHIPS • GUN TURRET x7 • SHOTGUN x7" };
+                break;
+            case "advanced-pack":
+                pack = new DevelopmentPack { Id = offer.id, RedGems = 3_000, DataChips = 70_000, ChipsetIds = new[] { 10, 7 }, OnceOnly = true, SuccessMessage = "3,000 GEMS • 70,000 DATA CHIPS • HIGH-EXPLOSIVE MINE x7 • SPIKY DISCUS x7" };
+                break;
+            case "gun-pack":
+                pack = new DevelopmentPack { Id = offer.id, RedGems = 3_000, ChipsetIds = new[] { 1, 8, 2 }, OnceOnly = true, SuccessMessage = "3,000 GEMS • STANDARD GUN x7 • SHOTGUN x7 • RIFLE x7" };
+                break;
+            case "drone-pack":
+                pack = new DevelopmentPack { Id = offer.id, RedGems = 3_000, BuddyIds = new[] { 1, 6, 10 }, OnceOnly = true, SuccessMessage = "3,000 GEMS • SLOY x7 • MINE MAKER x7 • PURIFYING DRONE x7" };
+                break;
+            case "gem-1": pack = GemPack(offer.id, 160); break;
+            case "gem-2": pack = GemPack(offer.id, 1_000); break;
+            case "gem-3": pack = GemPack(offer.id, 2_400); break;
+            case "gem-4": pack = GemPack(offer.id, 5_000); break;
+            case "gem-5": pack = GemPack(offer.id, 13_000); break;
+            case "gem-6": pack = GemPack(offer.id, 28_000); break;
+        }
+
+        return pack != null;
+    }
+
+    private static DevelopmentPack GemPack(string id, int amount)
+    {
+        return new DevelopmentPack { Id = id, RedGems = amount, SuccessMessage = $"RECEIVED {amount:N0} GEMS" };
+    }
+
+    private static bool CanAdd(int current, int amount)
+    {
+        return current >= 0 && amount >= 0 && (long)current + amount <= int.MaxValue;
+    }
+
+    private static bool HasChipsetOverflow(ChipItemData[] chipsets)
+    {
+        for (int i = 0; i < chipsets.Length; i++)
+        {
+            if (!CanAdd(chipsets[i].count, PackageItemPieces)) return true;
+        }
+        return false;
+    }
+
+    private static bool HasBuddyOverflow(int[] pieceCounts)
+    {
+        for (int i = 0; i < pieceCounts.Length; i++)
+        {
+            if (!CanAdd(pieceCounts[i], PackageItemPieces)) return true;
+        }
+        return false;
+    }
+
+    private static void GrantPackageCurrency(int redGems, int dataChips)
+    {
+        if (ChipManager.IsTestMode)
+        {
+            PlayerDataService.RedGems += redGems;
+            PlayerDataService.DataChips += dataChips;
+        }
+
+        ChipManager.AddRedGems(redGems);
+        ChipManager.AddDataChips(dataChips);
+    }
+
+    private static void RestorePackageCurrency(
+        int displayedRedGems,
+        int displayedDataChips,
+        int savedRedGems,
+        int savedDataChips)
+    {
+        PlayerDataService.RedGems = savedRedGems;
+        PlayerDataService.DataChips = savedDataChips;
+
+        if (ChipManager.IsTestMode)
+        {
+            ChipManager.RedGems = displayedRedGems;
+            ChipManager.DataChips = displayedDataChips;
+        }
+    }
+
+    private static ChipItemData GetSavedChipsetSnapshot(int chipsetId)
+    {
+        ChipItemData snapshot = null;
+        var defaults = ChipsetController.CreateDefaultDatabase();
+        for (int i = 0; i < defaults.Count; i++)
+        {
+            if (defaults[i] != null && defaults[i].id == chipsetId)
+            {
+                snapshot = defaults[i].Clone();
+                break;
+            }
+        }
+
+        if (snapshot == null)
+        {
+            throw new InvalidOperationException($"Missing chipset definition for ID {chipsetId}.");
+        }
+
+        if (PlayerDataService.LoadChipsetItemData(
+                chipsetId,
+                out int level,
+                out int tier,
+                out int count,
+                out int requiredCount,
+                out bool hasStar))
+        {
+            snapshot.level = level;
+            snapshot.tier = (ChipTier)tier;
+            snapshot.count = count;
+            snapshot.requiredCount = requiredCount;
+            snapshot.hasStar = hasStar;
+        }
+
+        return snapshot;
+    }
+
+    private static void SaveChipsetPieces(ChipItemData chipset, int amount)
+    {
+        PlayerDataService.SaveChipsetItemData(
+            chipset.id,
+            chipset.level,
+            (int)chipset.tier,
+            chipset.count + amount,
+            chipset.requiredCount,
+            chipset.hasStar);
+    }
+
+    private static void RestoreChipsetSnapshot(ChipItemData chipset, bool existed)
+    {
+        if (existed)
+        {
+            PlayerDataService.SaveChipsetItemData(
+                chipset.id,
+                chipset.level,
+                (int)chipset.tier,
+                chipset.count,
+                chipset.requiredCount,
+                chipset.hasStar);
+            return;
+        }
+
+        string prefix = PlayerDataService.GetChipItemPrefix(chipset.id);
+        PlayerPrefs.DeleteKey($"{prefix}Level");
+        PlayerPrefs.DeleteKey($"{prefix}Tier");
+        PlayerPrefs.DeleteKey($"{prefix}Count");
+        PlayerPrefs.DeleteKey($"{prefix}ReqCount");
+        PlayerPrefs.DeleteKey($"{prefix}HasStar");
     }
 
     private void GrantReward(RewardType reward, int amount)
@@ -441,7 +856,7 @@ public sealed class ShopController : MonoBehaviour
         }
     }
 
-    private string BuildSuccessMessage(Offer offer)
+    private string BuildSuccessMessage(Offer offer, IReadOnlyList<ShopBoxDropRoller.Drop> boxDrops)
     {
         switch (offer.reward)
         {
@@ -452,10 +867,28 @@ public sealed class ShopController : MonoBehaviour
             case RewardType.Energy:
                 return $"RESTORED {offer.rewardAmount:N0} ENERGY";
             case RewardType.ChipsetBox:
+                if (boxDrops != null && boxDrops.Count > 0)
+                    return BuildBoxDropMessage("CHIPSET", boxDrops);
                 return $"OPENED {offer.rewardAmount:N0} CHIPSET BOXES  •  TOTAL {chipsetBoxes:N0}";
             default:
+                if (boxDrops != null && boxDrops.Count > 0)
+                    return BuildBoxDropMessage("BUDDY", boxDrops);
                 return $"OPENED {offer.rewardAmount:N0} DRONE BOXES  •  TOTAL {droneBoxes:N0}";
         }
+    }
+
+    private static string BuildBoxDropMessage(
+        string category,
+        IReadOnlyList<ShopBoxDropRoller.Drop> drops)
+    {
+        int totalPieces = 0;
+        for (int i = 0; i < drops.Count; i++) totalPieces += drops[i].Pieces;
+        return $"{category} BOX OPENED • {totalPieces:N0} PIECES ADDED";
+    }
+
+    public void SetBoxRandomSeedForTesting(int seed)
+    {
+        boxRandom = new System.Random(seed);
     }
 
     public void SetOffersForTesting(Offer[] testOffers)
@@ -489,6 +922,10 @@ public sealed class ShopController : MonoBehaviour
                 if (offer == null) continue;
 
                 bool claimed = offer.oncePerDay && WasClaimedToday(offer.id);
+                if (TryGetDevelopmentPack(offer, out DevelopmentPack developmentPack) && developmentPack.OnceOnly)
+                {
+                    claimed |= WasPurchasedOnce(offer.id);
+                }
                 if (offer.button != null)
                 {
                     offer.button.interactable = !claimed;
@@ -545,6 +982,17 @@ public sealed class ShopController : MonoBehaviour
         return $"PGE.Shop.Daily.{offerId}";
     }
 
+    public static bool WasPurchasedOnce(string offerId)
+    {
+        return !string.IsNullOrWhiteSpace(offerId) &&
+               PlayerPrefs.GetInt(GetPurchasedOnceKey(offerId), 0) == 1;
+    }
+
+    private static string GetPurchasedOnceKey(string offerId)
+    {
+        return $"PGE.Shop.Purchased.{offerId}";
+    }
+
     [ContextMenu("Reset Daily Shop Claims")]
     public void ResetDailyShopClaims()
     {
@@ -561,5 +1009,66 @@ public sealed class ShopController : MonoBehaviour
         PlayerPrefs.Save();
         RefreshView();
         Debug.Log("[ShopController] All daily shop claims have been reset!");
+    }
+}
+
+/// <summary>
+/// Pure, deterministic drop logic for Shop boxes. Persistence is handled by ShopController.
+/// </summary>
+public static class ShopBoxDropRoller
+{
+    public enum BoxCategory
+    {
+        Chipset,
+        Buddy
+    }
+
+    public readonly struct Drop
+    {
+        public Drop(int itemId, int pieces)
+        {
+            ItemId = itemId;
+            Pieces = pieces;
+        }
+
+        public int ItemId { get; }
+        public int Pieces { get; }
+    }
+
+    private static readonly int[] ChipsetIds = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+    private static readonly int[] BuddyIds = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
+
+    public static List<Drop> Roll(BoxCategory category, int boxCount, System.Random random)
+    {
+        if (boxCount <= 0) throw new ArgumentOutOfRangeException(nameof(boxCount));
+        if (random == null) throw new ArgumentNullException(nameof(random));
+
+        int[] itemIds = category == BoxCategory.Chipset ? ChipsetIds : BuddyIds;
+        var totalsById = new Dictionary<int, int>();
+        var orderedIds = new List<int>();
+
+        for (int i = 0; i < boxCount; i++)
+        {
+            int rateRoll = random.Next(100);
+            int pieces = rateRoll < 7 ? 7 : rateRoll < 30 ? 3 : 1;
+            int itemId = itemIds[random.Next(itemIds.Length)];
+
+            if (!totalsById.ContainsKey(itemId))
+            {
+                totalsById[itemId] = 0;
+                orderedIds.Add(itemId);
+            }
+
+            totalsById[itemId] += pieces;
+        }
+
+        var results = new List<Drop>(orderedIds.Count);
+        for (int i = 0; i < orderedIds.Count; i++)
+        {
+            int itemId = orderedIds[i];
+            results.Add(new Drop(itemId, totalsById[itemId]));
+        }
+
+        return results;
     }
 }

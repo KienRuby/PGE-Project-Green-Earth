@@ -27,6 +27,9 @@ public static class PlayerDataService
     public const string VipOwnedKey = "PGE.Account.VipOwned";
     public const string ChipsetBoxesKey = "PGE.Shop.Inventory.ChipsetBoxes";
     public const string DroneBoxesKey = "PGE.Shop.Inventory.DroneBoxes";
+    public const string BuddyCountKeyPrefix = "PGE.Buddy.Count.";
+    public const string BuddyRequiredCountKeyPrefix = "PGE.Buddy.RequiredCount.";
+    public const string BuddyEnhanceCostKeyPrefix = "PGE.Buddy.EnhanceCost.";
 
     // =========================================================================
     // INITIALIZATION: TARGET FRAMERATE
@@ -55,6 +58,8 @@ public static class PlayerDataService
     public static event Action<int> OnChipsetBoxesChanged;
     public static event Action<int> OnDroneBoxesChanged;
     public static event Action<string> OnSelectedWeaponChanged;
+    public static event Action<int, int> OnChipsetPiecesChanged;
+    public static event Action<int, int> OnBuddyPiecesChanged;
 
     // =========================================================================
     // PROPERTIES: TIỀN TỆ & NĂNG LƯỢNG
@@ -538,6 +543,7 @@ public static class PlayerDataService
         PlayerPrefs.SetInt($"{pfx}ReqCount", reqCount);
         PlayerPrefs.SetInt($"{pfx}HasStar", hasStar ? 1 : 0);
         PlayerPrefs.Save();
+        OnChipsetPiecesChanged?.Invoke(id, Mathf.Max(0, count));
     }
 
     public static void SaveChipsetTierEnhanceCount(int id, int enhanceCount)
@@ -651,6 +657,9 @@ public static class PlayerDataService
         if (data == null) return;
         data.level = Mathf.Max(1, PlayerPrefs.GetInt($"{BuddyLevelKeyPrefix}{data.id}", data.level));
         data.tier = (BuddyTier)PlayerPrefs.GetInt($"{BuddyTierKeyPrefix}{data.id}", (int)data.tier);
+        data.count = GetBuddyPieceCount(data.id, data.count);
+        data.requiredCount = Mathf.Max(1, PlayerPrefs.GetInt($"{BuddyRequiredCountKeyPrefix}{data.id}", data.requiredCount));
+        data.enhanceCost = Mathf.Max(0, PlayerPrefs.GetInt($"{BuddyEnhanceCostKeyPrefix}{data.id}", data.enhanceCost));
     }
 
     public static void SaveBuddyProgress(BuddyItemData data)
@@ -658,6 +667,29 @@ public static class PlayerDataService
         if (data == null) return;
         PlayerPrefs.SetInt($"{BuddyLevelKeyPrefix}{data.id}", Mathf.Max(1, data.level));
         PlayerPrefs.SetInt($"{BuddyTierKeyPrefix}{data.id}", (int)data.tier);
+        PlayerPrefs.SetInt($"{BuddyCountKeyPrefix}{data.id}", Mathf.Max(0, data.count));
+        PlayerPrefs.SetInt($"{BuddyRequiredCountKeyPrefix}{data.id}", Mathf.Max(1, data.requiredCount));
+        PlayerPrefs.SetInt($"{BuddyEnhanceCostKeyPrefix}{data.id}", Mathf.Max(0, data.enhanceCost));
         PlayerPrefs.Save();
+    }
+
+    public static int GetBuddyPieceCount(int buddyId, int defaultValue = 0)
+    {
+        return Mathf.Max(0, PlayerPrefs.GetInt($"{BuddyCountKeyPrefix}{buddyId}", Mathf.Max(0, defaultValue)));
+    }
+
+    public static void SetBuddyPieceCount(int buddyId, int amount)
+    {
+        int clamped = Mathf.Max(0, amount);
+        PlayerPrefs.SetInt($"{BuddyCountKeyPrefix}{buddyId}", clamped);
+        PlayerPrefs.Save();
+        OnBuddyPiecesChanged?.Invoke(buddyId, clamped);
+    }
+
+    public static void AddBuddyPieces(int buddyId, int amount)
+    {
+        if (amount <= 0) return;
+        long total = (long)GetBuddyPieceCount(buddyId) + amount;
+        SetBuddyPieceCount(buddyId, (int)Math.Min(total, int.MaxValue));
     }
 }

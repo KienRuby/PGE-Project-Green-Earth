@@ -14,6 +14,7 @@ public static class ShopPanelBuilder
     private const string MainMenuScenePath = "Assets/Scenes/MainMenu.unity";
     private const string ShopAtlasPath = "Assets/Sprites/UI/Shop/khung màn shop.png";
     private const string DotSpritePath = "Assets/Sprites/UI/Shop/dot_white.png";
+    private const string InfoIconPath = "Assets/Sprites/UI/Shop/icon_info_cyan.png";
 
     static ShopPanelBuilder()
     {
@@ -64,6 +65,7 @@ public static class ShopPanelBuilder
         Sprite[] allSprites = AssetDatabase.LoadAllAssetsAtPath(ShopAtlasPath).OfType<Sprite>().ToArray();
         var spriteMap = allSprites.ToDictionary(s => s.name, StringComparer.OrdinalIgnoreCase);
         Sprite dotSprite = AssetDatabase.LoadAssetAtPath<Sprite>(DotSpritePath);
+        Sprite infoSprite = AssetDatabase.LoadAssetAtPath<Sprite>(InfoIconPath);
 
         Debug.Log($"[ShopPanelBuilder] Loaded {allSprites.Length} shop sprites from atlas.");
 
@@ -335,8 +337,10 @@ public static class ShopPanelBuilder
         GameObject rowChipBox = CreateHRow("Chipset_Box_Row", boxSecObj.transform, 980f, 410f, 20f);
         Sprite spChip1 = GetSprite(spriteMap, "Box_Chipset_1x");
         Sprite spChip10 = GetSprite(spriteMap, "Box_Chipset_10x");
-        CreateCardItem("Box_Chipset_1x", rowChipBox.transform, spChip1, 475f, 410f, out Button btnChip1);
-        CreateCardItem("Box_Chipset_10x", rowChipBox.transform, spChip10, 475f, 410f, out Button btnChip10);
+        GameObject cardChip1 = CreateCardItem("Box_Chipset_1x", rowChipBox.transform, spChip1, 475f, 410f, out Button btnChip1);
+        GameObject cardChip10 = CreateCardItem("Box_Chipset_10x", rowChipBox.transform, spChip10, 475f, 410f, out Button btnChip10);
+        AttachInfoButton(cardChip1, infoSprite, BoxDropRateInfoTrigger.BoxCategory.Chipset);
+        AttachInfoButton(cardChip10, infoSprite, BoxDropRateInfoTrigger.BoxCategory.Chipset);
         offerButtons.Add(btnChip1); offerNames.Add("chipset-box-1");
         offerButtons.Add(btnChip10); offerNames.Add("chipset-box-10");
 
@@ -344,8 +348,10 @@ public static class ShopPanelBuilder
         GameObject rowDroneBox = CreateHRow("Drone_Box_Row", boxSecObj.transform, 980f, 410f, 20f);
         Sprite spDrone1 = GetSprite(spriteMap, "Box_Drone_1x");
         Sprite spDrone10 = GetSprite(spriteMap, "Box_Drone_10x");
-        CreateCardItem("Box_Drone_1x", rowDroneBox.transform, spDrone1, 475f, 410f, out Button btnDrone1);
-        CreateCardItem("Box_Drone_10x", rowDroneBox.transform, spDrone10, 475f, 410f, out Button btnDrone10);
+        GameObject cardDrone1 = CreateCardItem("Box_Drone_1x", rowDroneBox.transform, spDrone1, 475f, 410f, out Button btnDrone1);
+        GameObject cardDrone10 = CreateCardItem("Box_Drone_10x", rowDroneBox.transform, spDrone10, 475f, 410f, out Button btnDrone10);
+        AttachInfoButton(cardDrone1, infoSprite, BoxDropRateInfoTrigger.BoxCategory.Drone);
+        AttachInfoButton(cardDrone10, infoSprite, BoxDropRateInfoTrigger.BoxCategory.Drone);
         offerButtons.Add(btnDrone1); offerNames.Add("drone-box-1");
         offerButtons.Add(btnDrone10); offerNames.Add("drone-box-10");
 
@@ -637,6 +643,17 @@ public static class ShopPanelBuilder
         LayoutRebuilder.ForceRebuildLayoutImmediate(contentRect);
         Canvas.ForceUpdateCanvases();
 
+        // Ensure Drop Rate Modal is ready in Canvas
+        GameObject canvasGo = FindInActiveScene("Canvas");
+        if (canvasGo != null)
+        {
+            Canvas mainCanvas = canvasGo.GetComponent<Canvas>();
+            if (mainCanvas != null)
+            {
+                BoxDropRateModalController.EnsureModalInCanvas(mainCanvas);
+            }
+        }
+
         EditorUtility.SetDirty(shopPanel);
         EditorSceneManager.SaveScene(currentScene);
 
@@ -728,6 +745,44 @@ public static class ShopPanelBuilder
         layout.childForceExpandHeight = false;
 
         return obj;
+    }
+
+    private static void AttachInfoButton(GameObject cardObj, Sprite infoSprite, BoxDropRateInfoTrigger.BoxCategory category)
+    {
+        if (cardObj == null) return;
+
+        // Xóa nút info cũ nếu có
+        Transform oldBtn = cardObj.transform.Find("Button_Info");
+        if (oldBtn != null)
+        {
+            UnityEngine.Object.DestroyImmediate(oldBtn.gameObject);
+        }
+
+        GameObject infoBtnObj = new GameObject("Button_Info", typeof(RectTransform), typeof(Image), typeof(Button), typeof(BoxDropRateInfoTrigger));
+        infoBtnObj.transform.SetParent(cardObj.transform, false);
+
+        RectTransform rt = infoBtnObj.GetComponent<RectTransform>();
+        rt.anchorMin = new Vector2(1f, 1f);
+        rt.anchorMax = new Vector2(1f, 1f);
+        rt.pivot = new Vector2(0.85f, 0.85f);
+        rt.anchoredPosition = new Vector2(0f, 0f);
+        rt.sizeDelta = new Vector2(56f, 56f);
+
+        Image img = infoBtnObj.GetComponent<Image>();
+        img.sprite = infoSprite;
+        img.preserveAspect = true;
+        img.raycastTarget = true;
+
+        Button btn = infoBtnObj.GetComponent<Button>();
+        btn.targetGraphic = img;
+        btn.transition = Selectable.Transition.ColorTint;
+        var cb = btn.colors;
+        cb.highlightedColor = new Color(1.15f, 1.15f, 1.15f, 1f);
+        cb.pressedColor = new Color(0.85f, 0.85f, 0.85f, 1f);
+        btn.colors = cb;
+
+        BoxDropRateInfoTrigger trigger = infoBtnObj.GetComponent<BoxDropRateInfoTrigger>();
+        trigger.category = category;
     }
 }
 #endif

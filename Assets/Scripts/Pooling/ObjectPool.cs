@@ -30,18 +30,27 @@ public class ObjectPool
     [Tooltip("Cho phép Pool tự động khởi tạo thêm đối tượng mới khi hàng đợi hết đối tượng có sẵn.")]
     [SerializeField] private bool canGrow = true;
 
+    [Tooltip("Ghi cảnh báo cấu hình Pool ra Console. Có thể tắt riêng trong stress test.")]
+    [SerializeField] private bool logWarnings = true;
+
     private Queue<GameObject> poolQueue;
     private HashSet<GameObject> inPoolSet;
     private Transform poolContainer;
 
     public GameObject Prefab => prefab;
 
-    public ObjectPool(GameObject prefab, int initialSize = 20, bool canGrow = true, Transform container = null)
+    public ObjectPool(
+        GameObject prefab,
+        int initialSize = 20,
+        bool canGrow = true,
+        Transform container = null,
+        bool logWarnings = true)
     {
         this.prefab = prefab;
         this.initialSize = initialSize;
         this.canGrow = canGrow;
         this.poolContainer = container;
+        this.logWarnings = logWarnings;
         EnsureQueueInitialized();
     }
 
@@ -64,7 +73,7 @@ public class ObjectPool
 
         if (prefab == null)
         {
-            Debug.LogWarning("[ObjectPool] Prefab chưa được gán trong Inspector!");
+            if (logWarnings) Debug.LogWarning("[ObjectPool] Prefab chưa được gán trong Inspector!");
             return;
         }
 
@@ -128,7 +137,7 @@ public class ObjectPool
             }
             else
             {
-                Debug.LogWarning($"[ObjectPool] Pool {prefab.name} đã đầy và canGrow = false!");
+                if (logWarnings) Debug.LogWarning($"[ObjectPool] Pool {prefab.name} đã đầy và canGrow = false!");
                 return null;
             }
         }

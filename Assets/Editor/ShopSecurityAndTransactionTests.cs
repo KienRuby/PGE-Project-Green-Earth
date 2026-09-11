@@ -26,6 +26,7 @@ public class ShopSecurityAndTransactionTests
         PlayerPrefs.DeleteKey("PGE_ChipsetBoxes");
         PlayerPrefs.DeleteKey("PGE_DroneBoxes");
         PlayerPrefs.DeleteKey("PGE.Shop.Daily.Item_Daily_Gem_Free");
+        DeleteDevelopmentPackageData();
         PlayerPrefs.Save();
 
         shopObj = new GameObject("Test_ShopPanel");
@@ -39,6 +40,9 @@ public class ShopSecurityAndTransactionTests
         {
             UnityEngine.Object.DestroyImmediate(shopObj);
         }
+
+        DeleteDevelopmentPackageData();
+        PlayerPrefs.Save();
     }
 
     [Test]
@@ -210,6 +214,104 @@ public class ShopSecurityAndTransactionTests
 
         bool success = shop.TryPurchase(vndOffer, bypassCooldown: true);
         Assert.That(success, Is.False, "VND purchase must fail-closed when native IAP unavailable");
+    }
+
+    [Test]
+    public void Test_09B_WelcomePackage_DevelopmentPurchase_GrantsExactBundleOnce()
+    {
+        PlayerDataService.RedGems = 100;
+        PlayerDataService.DataChips = 200;
+        var welcomeOffer = new ShopController.Offer
+        {
+            id = "welcome-package",
+            displayName = "WELCOME PACKAGE",
+            currency = ShopController.CurrencyType.VND,
+            reward = ShopController.RewardType.RedGem,
+            rewardAmount = 1
+        };
+
+        Assert.That(shop.TryPurchase(welcomeOffer, bypassCooldown: true), Is.True);
+        Assert.That(PlayerDataService.RedGems, Is.EqualTo(3100));
+        Assert.That(PlayerDataService.DataChips, Is.EqualTo(30200));
+        Assert.That(PlayerDataService.LoadChipsetItemData(1, out _, out _, out int standardGunCount, out _, out _), Is.True);
+        Assert.That(PlayerDataService.LoadChipsetItemData(3, out _, out _, out int rocketPunchCount, out _, out _), Is.True);
+        Assert.That(standardGunCount, Is.EqualTo(12), "Default Standard Gun has 5 pieces, then receives exactly 7 more.");
+        Assert.That(rocketPunchCount, Is.EqualTo(7));
+        Assert.That(ShopController.WasPurchasedOnce("welcome-package"), Is.True);
+
+        Assert.That(shop.TryPurchase(welcomeOffer, bypassCooldown: true), Is.False);
+        Assert.That(PlayerDataService.RedGems, Is.EqualTo(3100));
+        Assert.That(PlayerDataService.DataChips, Is.EqualTo(30200));
+    }
+
+    [TestCase("intermediate-pack", 50000, 6, 8)]
+    [TestCase("advanced-pack", 70000, 10, 7)]
+    public void Test_09C_ChipsetPackages_GrantEveryDisplayedRewardOnce(
+        string offerId,
+        int expectedDataChips,
+        int firstChipsetId,
+        int secondChipsetId)
+    {
+        PlayerDataService.RedGems = 0;
+        PlayerDataService.DataChips = 0;
+
+        Assert.That(shop.TryPurchase(CreateVndOffer(offerId), bypassCooldown: true), Is.True);
+        Assert.That(PlayerDataService.RedGems, Is.EqualTo(3000));
+        Assert.That(PlayerDataService.DataChips, Is.EqualTo(expectedDataChips));
+        Assert.That(GetChipsetPieceCount(firstChipsetId), Is.EqualTo(7));
+        Assert.That(GetChipsetPieceCount(secondChipsetId), Is.EqualTo(7));
+        Assert.That(shop.TryPurchase(CreateVndOffer(offerId), bypassCooldown: true), Is.False);
+    }
+
+    [Test]
+    public void Test_09D_GunPack_GrantsAllThreeDisplayedChipsets()
+    {
+        PlayerDataService.RedGems = 0;
+
+        Assert.That(shop.TryPurchase(CreateVndOffer("gun-pack"), bypassCooldown: true), Is.True);
+        Assert.That(PlayerDataService.RedGems, Is.EqualTo(3000));
+        Assert.That(GetChipsetPieceCount(1), Is.EqualTo(12));
+        Assert.That(GetChipsetPieceCount(8), Is.EqualTo(7));
+        Assert.That(GetChipsetPieceCount(2), Is.EqualTo(7));
+    }
+
+    [Test]
+    public void Test_09E_DronePack_GrantsAndPersistsAllThreeDisplayedDrones()
+    {
+        PlayerDataService.RedGems = 0;
+
+        Assert.That(shop.TryPurchase(CreateVndOffer("drone-pack"), bypassCooldown: true), Is.True);
+        Assert.That(PlayerDataService.RedGems, Is.EqualTo(3000));
+        Assert.That(PlayerDataService.GetBuddyPieceCount(1), Is.EqualTo(7));
+        Assert.That(PlayerDataService.GetBuddyPieceCount(6), Is.EqualTo(7));
+        Assert.That(PlayerDataService.GetBuddyPieceCount(10), Is.EqualTo(7));
+    }
+
+    [TestCase("gem-1", 160)]
+    [TestCase("gem-2", 1000)]
+    [TestCase("gem-3", 2400)]
+    [TestCase("gem-4", 5000)]
+    [TestCase("gem-5", 13000)]
+    [TestCase("gem-6", 28000)]
+    public void Test_09F_GemPacks_GrantDisplayedAmountAndRemainConsumable(string offerId, int amount)
+    {
+        PlayerDataService.RedGems = 0;
+
+        Assert.That(shop.TryPurchase(CreateVndOffer(offerId), bypassCooldown: true), Is.True);
+        Assert.That(shop.TryPurchase(CreateVndOffer(offerId), bypassCooldown: true), Is.True);
+        Assert.That(PlayerDataService.RedGems, Is.EqualTo(amount * 2));
+        Assert.That(ShopController.WasPurchasedOnce(offerId), Is.False);
+    }
+
+    [Test]
+    public void Test_09G_VipPackage_UnlocksVipAndGrantsTenThousandGemsOnce()
+    {
+        PlayerDataService.RedGems = 0;
+
+        Assert.That(shop.TryPurchase(CreateVndOffer("vip-package"), bypassCooldown: true), Is.True);
+        Assert.That(PlayerDataService.IsVipOwned, Is.True);
+        Assert.That(PlayerDataService.RedGems, Is.EqualTo(10000));
+        Assert.That(shop.TryPurchase(CreateVndOffer("vip-package"), bypassCooldown: true), Is.False);
     }
 
     [Test]
@@ -396,6 +498,217 @@ public class ShopSecurityAndTransactionTests
         string json = JsonUtility.ToJson(cloudData);
         Assert.That(json.Contains("\"chipsetBoxes\":42"), Is.True);
         Assert.That(json.Contains("\"droneBoxes\":99"), Is.True);
+    }
+
+    [Test]
+    public void Test_19_CloudSave_IncludesDronePiecesAndOnceOnlyPurchases()
+    {
+        PlayerDataService.SetBuddyPieceCount(6, 7);
+        PlayerPrefs.SetInt("PGE.Shop.Purchased.drone-pack", 1);
+
+        GameSaveData cloudData = GameSaveData.Capture("test-player", 1);
+
+        Assert.That(cloudData.values.Exists(value =>
+            value.key == PlayerDataService.BuddyCountKeyPrefix + "6" && value.intValue == 7), Is.True);
+        Assert.That(cloudData.values.Exists(value =>
+            value.key == "PGE.Shop.Purchased.drone-pack" && value.intValue == 1), Is.True);
+    }
+
+    [Test]
+    public void Test_20_BoxRoller_IsDeterministic_AndNeverMixesCatalogs()
+    {
+        var chipsetDropsA = ShopBoxDropRoller.Roll(
+            ShopBoxDropRoller.BoxCategory.Chipset, 100, new System.Random(2468));
+        var chipsetDropsB = ShopBoxDropRoller.Roll(
+            ShopBoxDropRoller.BoxCategory.Chipset, 100, new System.Random(2468));
+        var buddyDrops = ShopBoxDropRoller.Roll(
+            ShopBoxDropRoller.BoxCategory.Buddy, 100, new System.Random(1357));
+
+        Assert.That(chipsetDropsA.Count, Is.EqualTo(chipsetDropsB.Count));
+        for (int i = 0; i < chipsetDropsA.Count; i++)
+        {
+            Assert.That(chipsetDropsA[i].ItemId, Is.InRange(1, 10));
+            Assert.That(chipsetDropsA[i].ItemId, Is.EqualTo(chipsetDropsB[i].ItemId));
+            Assert.That(chipsetDropsA[i].Pieces, Is.EqualTo(chipsetDropsB[i].Pieces));
+        }
+
+        for (int i = 0; i < buddyDrops.Count; i++)
+        {
+            Assert.That(buddyDrops[i].ItemId, Is.InRange(1, 12));
+            Assert.That(buddyDrops[i].Pieces, Is.GreaterThan(0));
+        }
+
+        var boundaryDrops = ShopBoxDropRoller.Roll(
+            ShopBoxDropRoller.BoxCategory.Chipset,
+            4,
+            new SequenceRandom(6, 0, 7, 1, 29, 2, 30, 3));
+        Assert.That(boundaryDrops[0].Pieces, Is.EqualTo(7), "Rolls 0-6 are the 7% reward");
+        Assert.That(boundaryDrops[1].Pieces, Is.EqualTo(3), "Rolls 7-29 are the 23% reward");
+        Assert.That(boundaryDrops[2].Pieces, Is.EqualTo(3));
+        Assert.That(boundaryDrops[3].Pieces, Is.EqualTo(1), "Rolls 30-99 are the 70% reward");
+    }
+
+    [Test]
+    public void Test_21_ChipsetBox10_AddsExactRolledPieces_ToChipsetCards()
+    {
+        DeleteAllBoxDropData();
+        int[] before = GetAllChipsetPieceCounts();
+        PlayerDataService.RedGems = 3000;
+        shop.SetBoxRandomSeedForTesting(777);
+
+        var offer = new ShopController.Offer
+        {
+            id = "chipset-box-10",
+            currency = ShopController.CurrencyType.RedGem,
+            price = 2700,
+            reward = ShopController.RewardType.ChipsetBox,
+            rewardAmount = 10
+        };
+
+        Assert.That(shop.TryPurchase(offer, bypassCooldown: true), Is.True);
+        Assert.That(PlayerDataService.RedGems, Is.EqualTo(300));
+        Assert.That(PlayerDataService.ChipsetBoxes, Is.EqualTo(0), "Shop opens the boxes immediately");
+
+        int totalPieces = 0;
+        foreach (ShopBoxDropRoller.Drop drop in shop.LastBoxDrops)
+        {
+            Assert.That(drop.ItemId, Is.InRange(1, 10));
+            Assert.That(GetSavedChipsetPieceCount(drop.ItemId),
+                Is.EqualTo(before[drop.ItemId] + drop.Pieces));
+            totalPieces += drop.Pieces;
+        }
+        Assert.That(totalPieces, Is.InRange(10, 70));
+    }
+
+    [Test]
+    public void Test_22_DroneBox10_AddsExactRolledPieces_ToBuddyCards()
+    {
+        DeleteAllBoxDropData();
+        PlayerDataService.RedGems = 6000;
+        shop.SetBoxRandomSeedForTesting(888);
+
+        var offer = new ShopController.Offer
+        {
+            id = "drone-box-10",
+            currency = ShopController.CurrencyType.RedGem,
+            price = 5400,
+            reward = ShopController.RewardType.DroneBox,
+            rewardAmount = 10
+        };
+
+        Assert.That(shop.TryPurchase(offer, bypassCooldown: true), Is.True);
+        Assert.That(PlayerDataService.RedGems, Is.EqualTo(600));
+        Assert.That(PlayerDataService.DroneBoxes, Is.EqualTo(0), "Shop opens the boxes immediately");
+
+        int totalPieces = 0;
+        foreach (ShopBoxDropRoller.Drop drop in shop.LastBoxDrops)
+        {
+            Assert.That(drop.ItemId, Is.InRange(1, 12));
+            Assert.That(PlayerDataService.GetBuddyPieceCount(drop.ItemId), Is.EqualTo(drop.Pieces));
+            totalPieces += drop.Pieces;
+        }
+        Assert.That(totalPieces, Is.InRange(10, 70));
+    }
+
+    private static int[] GetAllChipsetPieceCounts()
+    {
+        int[] result = new int[11];
+        foreach (ChipItemData chip in ChipsetController.CreateSavedDatabase())
+        {
+            result[chip.id] = chip.count;
+        }
+        return result;
+    }
+
+    private static int GetSavedChipsetPieceCount(int id)
+    {
+        Assert.That(PlayerDataService.LoadChipsetItemData(id, out _, out _, out int count, out _, out _), Is.True);
+        return count;
+    }
+
+    private static void DeleteAllBoxDropData()
+    {
+        for (int id = 1; id <= 10; id++) DeleteChipsetItemData(id);
+        for (int id = 1; id <= 12; id++)
+        {
+            PlayerPrefs.DeleteKey($"{PlayerDataService.BuddyCountKeyPrefix}{id}");
+        }
+        PlayerPrefs.DeleteKey(PlayerDataService.ChipsetBoxesKey);
+        PlayerPrefs.DeleteKey(PlayerDataService.DroneBoxesKey);
+        PlayerPrefs.Save();
+    }
+
+    private static void DeleteChipsetItemData(int id)
+    {
+        string prefix = PlayerDataService.GetChipItemPrefix(id);
+        PlayerPrefs.DeleteKey($"{prefix}Level");
+        PlayerPrefs.DeleteKey($"{prefix}Tier");
+        PlayerPrefs.DeleteKey($"{prefix}Count");
+        PlayerPrefs.DeleteKey($"{prefix}ReqCount");
+        PlayerPrefs.DeleteKey($"{prefix}HasStar");
+    }
+
+    private static ShopController.Offer CreateVndOffer(string id)
+    {
+        return new ShopController.Offer
+        {
+            id = id,
+            displayName = id.ToUpperInvariant(),
+            currency = ShopController.CurrencyType.VND,
+            reward = ShopController.RewardType.RedGem,
+            rewardAmount = 1
+        };
+    }
+
+    private static int GetChipsetPieceCount(int id)
+    {
+        Assert.That(PlayerDataService.LoadChipsetItemData(id, out _, out _, out int count, out _, out _), Is.True);
+        return count;
+    }
+
+    private static void DeleteDevelopmentPackageData()
+    {
+        string[] onceOnlyIds =
+        {
+            "vip-package", "welcome-package", "intermediate-pack", "advanced-pack", "gun-pack", "drone-pack"
+        };
+        for (int i = 0; i < onceOnlyIds.Length; i++)
+        {
+            PlayerPrefs.DeleteKey($"PGE.Shop.Purchased.{onceOnlyIds[i]}");
+        }
+
+        int[] chipsetIds = { 1, 2, 3, 6, 7, 8, 10 };
+        for (int i = 0; i < chipsetIds.Length; i++) DeleteChipsetItemData(chipsetIds[i]);
+
+        int[] buddyIds = { 1, 6, 10 };
+        for (int i = 0; i < buddyIds.Length; i++)
+        {
+            PlayerPrefs.DeleteKey($"{PlayerDataService.BuddyCountKeyPrefix}{buddyIds[i]}");
+            PlayerPrefs.DeleteKey($"{PlayerDataService.BuddyRequiredCountKeyPrefix}{buddyIds[i]}");
+            PlayerPrefs.DeleteKey($"{PlayerDataService.BuddyEnhanceCostKeyPrefix}{buddyIds[i]}");
+        }
+
+        PlayerPrefs.DeleteKey(PlayerDataService.VipOwnedKey);
+        DeleteAllBoxDropData();
+    }
+
+    private sealed class SequenceRandom : System.Random
+    {
+        private readonly int[] values;
+        private int index;
+
+        public SequenceRandom(params int[] values)
+        {
+            this.values = values;
+        }
+
+        public override int Next(int maxValue)
+        {
+            if (index >= values.Length) throw new InvalidOperationException("No configured random value remains.");
+            int value = values[index++];
+            if (value < 0 || value >= maxValue) throw new InvalidOperationException("Configured random value is outside the requested range.");
+            return value;
+        }
     }
 }
 #endif

@@ -2832,7 +2832,7 @@ public static class LabMenuSceneBuilder
         GameObject modBadgeObj = CreateFrame("ModBadge", boxRect, new Color32(45, 35, 110, 255), new Color32(110, 95, 220, 255), out Image badgeBg);
         RectTransform badgeRect = modBadgeObj.GetComponent<RectTransform>();
         Anchor(badgeRect, new Vector2(0.5f, 0.96f), Vector2.zero, new Vector2(460f, 48f));
-        modBadgeText = CreateText("BadgeLabel", badgeRect, "🔧 Mod able (up to LV24) 🔧", 24f, Color.white, TextAlignmentOptions.Center);
+        modBadgeText = CreateText("BadgeLabel", badgeRect, "MOD • UP TO LV24", 24f, Color.white, TextAlignmentOptions.Center);
         Stretch(modBadgeText.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
         // 1. Top Card Display

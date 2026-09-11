@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System.Reflection;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -8,6 +9,35 @@ using UnityEngine.SceneManagement;
 public class GameplayChipsetConfigurationTests
 {
     private const string ScenePath = "Assets/Scenes/GamePlay.unity";
+
+    [Test]
+    public void ChipsetNotice_RuntimeCreation_DoesNotRequirePreassignedTmpMaterial()
+    {
+        GameObject controllerObject = new GameObject("Test_ChipsetController");
+        GameObject parentObject = new GameObject("Test_NoticeParent", typeof(RectTransform));
+
+        try
+        {
+            ChipsetController controller = controllerObject.AddComponent<ChipsetController>();
+            MethodInfo createNotice = typeof(ChipsetController).GetMethod(
+                "CreateNoticePanelRuntime",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+
+            Assert.That(createNotice, Is.Not.Null);
+            Assert.DoesNotThrow(() => createNotice.Invoke(controller, new object[]
+            {
+                parentObject.transform,
+                "Notice",
+                "Not enough Data Chips",
+                null
+            }));
+        }
+        finally
+        {
+            Object.DestroyImmediate(parentObject);
+            Object.DestroyImmediate(controllerObject);
+        }
+    }
 
     [Test]
     public void GamePlayPlayer_AllChipsetSkillsHaveBuildSafeRuntimeConfiguration()
