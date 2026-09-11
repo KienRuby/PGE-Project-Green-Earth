@@ -1345,6 +1345,71 @@ public class ChapterSystemTests
             Object.DestroyImmediate(enemyGo);
         }
     }
+
+    [Test]
+    public void ChapterRewardScaling_Chapter1To4_ScalesProperly()
+    {
+        // Kiểm tra logic tính thưởng: Chapter 1 cố định 1000 chips, 20 gems, các chapter sau +20%
+        ChapterData ch1 = ScriptableObject.CreateInstance<ChapterData>();
+        ch1.chapterNumber = 1;
+        ch1.victoryDataChipReward = 0; // Để auto-calculate
+        ch1.victoryRedGemReward = 0;
+        Assert.That(ch1.GetCalculatedDataChipReward(), Is.EqualTo(1000));
+        Assert.That(ch1.GetCalculatedRedGemReward(), Is.EqualTo(20));
+
+        ChapterData ch2 = ScriptableObject.CreateInstance<ChapterData>();
+        ch2.chapterNumber = 2;
+        ch2.victoryDataChipReward = 0;
+        ch2.victoryRedGemReward = 0;
+        Assert.That(ch2.GetCalculatedDataChipReward(), Is.EqualTo(1200));
+        Assert.That(ch2.GetCalculatedRedGemReward(), Is.EqualTo(24));
+
+        ChapterData ch3 = ScriptableObject.CreateInstance<ChapterData>();
+        ch3.chapterNumber = 3;
+        ch3.victoryDataChipReward = 0;
+        ch3.victoryRedGemReward = 0;
+        Assert.That(ch3.GetCalculatedDataChipReward(), Is.EqualTo(1440));
+        Assert.That(ch3.GetCalculatedRedGemReward(), Is.EqualTo(29));
+
+        ChapterData ch4 = ScriptableObject.CreateInstance<ChapterData>();
+        ch4.chapterNumber = 4;
+        ch4.victoryDataChipReward = 0;
+        ch4.victoryRedGemReward = 0;
+        Assert.That(ch4.GetCalculatedDataChipReward(), Is.EqualTo(1728));
+        Assert.That(ch4.GetCalculatedRedGemReward(), Is.EqualTo(35));
+
+        Object.DestroyImmediate(ch1);
+        Object.DestroyImmediate(ch2);
+        Object.DestroyImmediate(ch3);
+        Object.DestroyImmediate(ch4);
+    }
+
+    [Test]
+    public void EnemyDropRewards_DataChipsAndRandomRedGems_DropCorrectly()
+    {
+        int initialChips = ChipManager.DataChips;
+        int initialGems = ChipManager.RedGems;
+
+        GameObject enemyGo = new GameObject("TestEnemyDrop");
+        EnemyHealth health = enemyGo.AddComponent<EnemyHealth>();
+        health.SetDataChipReward(5);
+        health.SetRedGemReward(0);
+        health.SetRandomRedGemDropChance(1.0f); // 100% để test chắc chắn rơi
+        health.SetRandomRedGemAmount(1);
+
+        try
+        {
+            health.TakeDamage(health.MaxHealth + 9999);
+            Assert.That(ChipManager.DataChips, Is.EqualTo(initialChips + 5), "Creep chết phải cộng đúng 5 Data Chips.");
+            Assert.That(ChipManager.RedGems, Is.EqualTo(initialGems + 1), "Khi tỷ lệ rơi ngọc đỏ trúng phải cộng đúng 1 Red Gem.");
+        }
+        finally
+        {
+            ChipManager.DataChips = initialChips;
+            ChipManager.RedGems = initialGems;
+            Object.DestroyImmediate(enemyGo);
+        }
+    }
 }
 
 

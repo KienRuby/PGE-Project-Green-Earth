@@ -109,9 +109,10 @@ public class BuddyController : MonoBehaviour
     [SerializeField] private Sprite preset3YellowSprite;
     [SerializeField] private Sprite preset3RedSprite;
 
-    [Header("Equipped Slots (5 Slots)")]
-    [SerializeField] private BuddyCardUI[] equippedSlots = new BuddyCardUI[5];
+    [Header("Equipped Slots (3 Slots)")]
+    [SerializeField] private BuddyCardUI[] equippedSlots = new BuddyCardUI[3];
     [SerializeField] private Transform slotIconBuddyContainer;
+    [SerializeField] private List<BuddyCardUI> inventoryCards = new List<BuddyCardUI>();
 
     [Header("Sort Buttons")]
     [SerializeField] private Button byTierBtn;
@@ -173,10 +174,11 @@ public class BuddyController : MonoBehaviour
     private int activeDeckIndex = 0;
     private bool sortByQuantity = false;
     private BuddyItemData selectedDetailBuddy;
+    private int openedFromEquippedSlotIndex = -1;
 
     [SerializeField] private List<BuddyItemData> allBuddies = new List<BuddyItemData>();
     private int[][] deckEquippedIds = new int[3][];
-    private bool[] slotUnlocked = new bool[] { true, true, true, true, true };
+    private bool[] slotUnlocked = new bool[] { true, true, true };
     private List<BuddyCardUI> spawnedInventoryCards = new List<BuddyCardUI>();
 
     private static readonly Color SelectedPresetColor = new Color32(255, 203, 73, 255);
@@ -210,6 +212,7 @@ public class BuddyController : MonoBehaviour
         ChipManager.OnDataChipsChanged += HandleCurrencyChanged;
         ChipManager.OnRedGemsChanged += HandleCurrencyChanged;
         ChipManager.OnEnergyChanged += HandleCurrencyChanged;
+        PlayerDataService.OnBuddyPiecesChanged += HandleBuddyPiecesChanged;
     }
 
     private void OnDisable()
@@ -217,6 +220,7 @@ public class BuddyController : MonoBehaviour
         ChipManager.OnDataChipsChanged -= HandleCurrencyChanged;
         ChipManager.OnRedGemsChanged -= HandleCurrencyChanged;
         ChipManager.OnEnergyChanged -= HandleCurrencyChanged;
+        PlayerDataService.OnBuddyPiecesChanged -= HandleBuddyPiecesChanged;
     }
 
 #if UNITY_EDITOR
@@ -250,22 +254,48 @@ public class BuddyController : MonoBehaviour
         }
     }
 
+    private void HandleBuddyPiecesChanged(int buddyId, int newCount)
+    {
+        BuddyItemData buddy = allBuddies.FirstOrDefault(item => item != null && item.id == buddyId);
+        if (buddy == null) return;
+
+        buddy.count = newCount;
+        RefreshEquippedGrid();
+        RefreshInventory();
+        if (detailModal != null && detailModal.activeSelf && selectedDetailBuddy != null && selectedDetailBuddy.id == buddyId)
+        {
+            selectedDetailBuddy.count = newCount;
+            RefreshDetailModal();
+        }
+    }
+
     public void InitializeDatabase()
     {
+        activeDeckIndex = PlayerDataService.ActiveBuddyDeckIndex;
         if (deckEquippedIds == null || deckEquippedIds.Length != 3)
         {
             deckEquippedIds = new int[3][];
         }
         for (int d = 0; d < 3; d++)
         {
-            if (deckEquippedIds[d] == null || deckEquippedIds[d].Length != 5)
+            int[] loaded = PlayerDataService.LoadBuddyDeck(d, new int[] { -1, -1, -1 });
+            if (loaded == null || loaded.Length != 3)
             {
-                deckEquippedIds[d] = new int[] { 1, 2, 10, 3, 4 };
+                int[] fixedDeck = new int[3] { -1, -1, -1 };
+                if (loaded != null)
+                {
+                    for (int i = 0; i < Mathf.Min(loaded.Length, 3); i++)
+                    {
+                        fixedDeck[i] = loaded[i];
+                    }
+                }
+                loaded = fixedDeck;
             }
+            deckEquippedIds[d] = loaded;
         }
-        if (slotUnlocked == null || slotUnlocked.Length != 5)
+        if (slotUnlocked == null || slotUnlocked.Length != 3)
         {
-            slotUnlocked = new bool[] { true, true, true, true, true };
+            slotUnlocked = new bool[] { true, true, true };
         }
 
         if (allBuddies.Count > 0)
@@ -273,8 +303,6 @@ public class BuddyController : MonoBehaviour
             foreach (var b in allBuddies)
             {
                 if (b == null) continue;
-                b.count = 0;
-                b.requiredCount = 10;
                 if (b.id == 1 || b.iconKey == "drone-snowflake")
                 {
                     b.buddyName = "Sloy";
@@ -282,6 +310,7 @@ public class BuddyController : MonoBehaviour
                     b.description = "Fires shells that slow down enemies.";
                     b.baseStatText = "Drone ATK 20.4, Slow ATK Speed";
                 }
+                PlayerDataService.LoadBuddyProgress(b);
             }
             return;
         }
@@ -506,10 +535,10 @@ public class BuddyController : MonoBehaviour
             }
         };
 
-        deckEquippedIds[0] = new int[] { 1, 2, 10, 3, 4 };
-        deckEquippedIds[1] = new int[] { 1, 2, 10, 3, 4 };
-        deckEquippedIds[2] = new int[] { 1, 2, 10, 3, 4 };
-        slotUnlocked = new bool[] { true, true, true, true, true };
+        foreach (BuddyItemData buddy in allBuddies)
+        {
+            PlayerDataService.LoadBuddyProgress(buddy);
+        }
     }
 
     private void SetupEventListeners()
@@ -575,52 +604,172 @@ public class BuddyController : MonoBehaviour
         LoadSortSpritesIfMissing();
     }
 
-    public void AutoWireSlotIconBuddyIfMissing()
+    public void AutoWireEquippedSlotsIfMissing()
+    {
+        if (equippedSlots == null || equippedSlots.Length != 3)
+        {
+            equippedSlots = new BuddyCardUI[3];
+        }
+
+        Transform equippedRow = transform.Find("BoardBackground/EquippedRow") ??
+                                transform.Find("EquippedBoard/EquippedRow") ??
+                                transform.Find("EquippedRow") ??
+                                GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name.Equals("EquippedRow", StringComparison.OrdinalIgnoreCase));
+
+        if (equippedRow != null)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                Transform slotT = equippedRow.Find($"EquippedSlot_{i}");
+                if (slotT == null && i < equippedRow.childCount)
+                {
+                    slotT = equippedRow.GetChild(i);
+                }
+
+                if (slotT != null)
+                {
+                    BuddyCardUI card = slotT.GetComponent<BuddyCardUI>() ?? slotT.gameObject.AddComponent<BuddyCardUI>();
+                    if (slotT.GetComponent<Button>() == null)
+                    {
+                        slotT.gameObject.AddComponent<Button>();
+                    }
+                    card.EnsureProgressBar();
+                    equippedSlots[i] = card;
+                }
+            }
+        }
+    }
+
+    public void AutoWireInventoryContainerIfMissing()
     {
         if (slotIconBuddyContainer == null)
         {
-            slotIconBuddyContainer = transform.Find("SlotIconBuddy") ??
-                                     transform.Find("EquippedRow/SlotIconBuddy") ??
+            slotIconBuddyContainer = transform.Find("Content/SlotIconBuddy") ??
+                                     transform.Find("BoardBackground/SlotIconBuddy") ??
+                                     transform.Find("SlotIconBuddy") ??
                                      GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name.Equals("SlotIconBuddy", StringComparison.OrdinalIgnoreCase));
         }
 
-        if (slotIconBuddyContainer == null) return;
-
-        if (equippedSlots == null || equippedSlots.Length != 5)
+        if (slotIconBuddyContainer != null)
         {
-            equippedSlots = new BuddyCardUI[5];
+            inventoryCards.Clear();
+            string[] targetSlotNames = new string[5]
+            {
+                "drone-snowflake",
+                "drone-spider",
+                "drone-stealth-wing",
+                "drone-antenna-eye",
+                "drone-cross-visor"
+            };
+
+            for (int i = 0; i < targetSlotNames.Length; i++)
+            {
+                Transform child = slotIconBuddyContainer.Find(targetSlotNames[i]);
+                if (child == null && i < slotIconBuddyContainer.childCount)
+                {
+                    child = slotIconBuddyContainer.GetChild(i);
+                }
+
+                if (child != null)
+                {
+                    BuddyCardUI card = child.GetComponent<BuddyCardUI>() ?? child.gameObject.AddComponent<BuddyCardUI>();
+                    if (child.GetComponent<Button>() == null)
+                    {
+                        child.gameObject.AddComponent<Button>();
+                    }
+                    card.EnsureProgressBar();
+                    inventoryCards.Add(card);
+                }
+            }
+        }
+    }
+
+    public void AutoWireSlotIconBuddyIfMissing()
+    {
+        AutoWireEquippedSlotsIfMissing();
+        AutoWireInventoryContainerIfMissing();
+    }
+
+    public void EnsureEquippedSlotsMatchTemplate()
+    {
+        if (slotIconBuddyContainer == null)
+        {
+            slotIconBuddyContainer = transform.Find("Content/SlotIconBuddy") ??
+                                     transform.Find("SlotIconBuddy") ??
+                                     transform.Find("BoardBackground/SlotIconBuddy") ??
+                                     GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name.Equals("SlotIconBuddy", StringComparison.OrdinalIgnoreCase));
         }
 
-        string[] targetSlotNames = new string[5]
+        Transform template = null;
+        if (slotIconBuddyContainer != null && slotIconBuddyContainer.childCount > 0)
         {
-            "drone-snowflake",
-            "drone-spider",
-            "drone-stealth-wing",
-            "drone-antenna-eye",
-            "drone-cross-visor"
-        };
+            template = slotIconBuddyContainer.GetChild(0); // drone-snowflake clean template
+        }
+        else
+        {
+            template = transform.Find("Content/SlotIconBuddy/drone-snowflake") ??
+                       transform.Find("SlotIconBuddy/drone-snowflake") ??
+                       GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name.Equals("drone-snowflake", StringComparison.OrdinalIgnoreCase));
+        }
 
-        for (int i = 0; i < 5; i++)
+        Transform equippedRowT = transform.Find("BoardBackground/EquippedRow") ??
+                                 transform.Find("EquippedBoard/EquippedRow") ??
+                                 transform.Find("EquippedRow") ??
+                                 GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name.Equals("EquippedRow", StringComparison.OrdinalIgnoreCase));
+
+        if (template == null || equippedRowT == null) return;
+
+        for (int i = 0; i < 3; i++)
         {
-            Transform child = slotIconBuddyContainer.Find(targetSlotNames[i]);
-            if (child == null && i < slotIconBuddyContainer.childCount)
+            Transform existingSlot = equippedRowT.Find($"EquippedSlot_{i}");
+            if (existingSlot == null && i < equippedRowT.childCount)
             {
-                child = slotIconBuddyContainer.GetChild(i);
+                existingSlot = equippedRowT.GetChild(i);
             }
 
-            if (child != null)
+            bool needsRebuild = existingSlot == null ||
+                                existingSlot.Find("UpgradeArrowGroup") != null ||
+                                existingSlot.Find("NormalContentGroup") != null ||
+                                existingSlot.Find("EmptySlotGroup") != null ||
+                                existingSlot.Find("BottomBar") != null ||
+                                existingSlot.Find("Fill") == null;
+
+            if (needsRebuild)
             {
-                BuddyCardUI card = child.GetComponent<BuddyCardUI>();
-                if (card == null)
+                GameObject clone = Instantiate(template.gameObject, equippedRowT);
+                clone.name = $"EquippedSlot_{i}";
+                clone.transform.localScale = Vector3.one;
+                clone.transform.localRotation = Quaternion.identity;
+
+                RectTransform cloneRect = clone.GetComponent<RectTransform>();
+                RectTransform templateRect = template.GetComponent<RectTransform>();
+                if (cloneRect != null && templateRect != null)
                 {
-                    card = child.gameObject.AddComponent<BuddyCardUI>();
+                    cloneRect.sizeDelta = templateRect.sizeDelta;
                 }
-                Button btn = child.GetComponent<Button>();
-                if (btn == null)
+
+                if (existingSlot != null)
                 {
-                    btn = child.gameObject.AddComponent<Button>();
+                    clone.transform.SetSiblingIndex(existingSlot.GetSiblingIndex());
+                    if (Application.isPlaying) Destroy(existingSlot.gameObject);
+                    else DestroyImmediate(existingSlot.gameObject);
                 }
-                card.EnsureProgressBar();
+
+                existingSlot = clone.transform;
+            }
+
+            BuddyCardUI card = existingSlot.GetComponent<BuddyCardUI>() ?? existingSlot.gameObject.AddComponent<BuddyCardUI>();
+            if (existingSlot.GetComponent<Button>() == null)
+            {
+                existingSlot.gameObject.AddComponent<Button>();
+            }
+            card.EnsureProgressBar();
+            if (card.ProgressFillImage != null)
+            {
+                card.ProgressFillImage.color = Color.white;
+            }
+            if (i < equippedSlots.Length)
+            {
                 equippedSlots[i] = card;
             }
         }
@@ -639,6 +788,9 @@ public class BuddyController : MonoBehaviour
         if (detailModal == null) return;
 
         Transform modalRoot = detailModal.transform.Find("ModalBox") ?? detailModal.transform;
+
+        Transform modBadgeT = modalRoot.Find("ModBadge");
+        if (modBadgeT != null) modBadgeT.gameObject.SetActive(false);
 
         // 1. Top Card
         if (detailTopCard == null)
@@ -723,13 +875,25 @@ public class BuddyController : MonoBehaviour
             }
         }
 
-        if (detailEnhanceBtn == null)
+        Transform enhBtnT = modalRoot.Find("EnhanceBtn");
+        if (enhBtnT != null)
         {
-            Transform t = modalRoot.Find("EnhanceBtn");
-            if (t != null)
+            if (detailEnhanceBtn == null) detailEnhanceBtn = enhBtnT.GetComponent<Button>();
+            if (detailEnhanceCostText == null || detailEnhanceCostText.gameObject.name == "Label")
             {
-                detailEnhanceBtn = t.GetComponent<Button>();
-                if (detailEnhanceCostText == null) detailEnhanceCostText = t.Find("Cost")?.GetComponent<TMP_Text>() ?? t.GetComponentInChildren<TMP_Text>(true);
+                detailEnhanceCostText = enhBtnT.Find("CostRow/CostValue")?.GetComponent<TMP_Text>()
+                    ?? enhBtnT.Find("CostValue")?.GetComponent<TMP_Text>()
+                    ?? enhBtnT.Find("Cost")?.GetComponent<TMP_Text>();
+            }
+
+            Transform labelT = enhBtnT.Find("Label");
+            if (labelT != null)
+            {
+                TMP_Text labelText = labelT.GetComponent<TMP_Text>();
+                if (labelText != null && (string.IsNullOrEmpty(labelText.text) || int.TryParse(labelText.text, out _)))
+                {
+                    labelText.text = "Enhance";
+                }
             }
         }
 
@@ -809,6 +973,7 @@ public class BuddyController : MonoBehaviour
     public void SwitchDeck(int deckIndex)
     {
         activeDeckIndex = deckIndex;
+        PlayerDataService.ActiveBuddyDeckIndex = activeDeckIndex;
         RefreshPresetButtons();
         RefreshEquippedGrid();
         ShowToast($"Switched to Buddy Preset {deckIndex + 1}");
@@ -1014,28 +1179,30 @@ public class BuddyController : MonoBehaviour
 
     public void RefreshEquippedGrid()
     {
-        AutoWireSlotIconBuddyIfMissing();
+        EnsureEquippedSlotsMatchTemplate();
+        AutoWireEquippedSlotsIfMissing();
 
-        if (deckEquippedIds[activeDeckIndex] == null || deckEquippedIds[activeDeckIndex].Length != 5)
+        if (deckEquippedIds == null || activeDeckIndex >= deckEquippedIds.Length || deckEquippedIds[activeDeckIndex] == null || deckEquippedIds[activeDeckIndex].Length != 3)
         {
-            deckEquippedIds[activeDeckIndex] = new int[] { 1, 2, 10, 3, 4 };
+            InitializeDatabase();
         }
         int[] currentDeck = deckEquippedIds[activeDeckIndex];
 
-        for (int i = 0; i < equippedSlots.Length; i++)
+        for (int i = 0; i < equippedSlots.Length && i < 3; i++)
         {
             if (equippedSlots[i] == null) continue;
 
+            int slotIndex = i;
             int buddyId = (currentDeck != null && i < currentDeck.Length) ? currentDeck[i] : -1;
             Sprite frame = GetFrameSprite(BuddyTier.Common);
 
             if (buddyId == -2 || (slotUnlocked != null && i < slotUnlocked.Length && !slotUnlocked[i]))
             {
-                equippedSlots[i].SetupLocked(frame, () => ShowToast($"Slot {i + 1} locked!"));
+                equippedSlots[i].SetupLocked(frame, () => ShowToast($"Slot {slotIndex + 1} locked!"));
             }
-            else if (buddyId == -1)
+            else if (buddyId <= 0)
             {
-                equippedSlots[i].SetupEmpty(frame, () => ShowToast("Empty Slot! Please select a Drone below to equip."));
+                equippedSlots[i].SetupEmpty(emptySlotFrameSprite ?? frame, () => ShowToast("Empty Slot! Please select a Drone below to equip."));
             }
             else
             {
@@ -1044,11 +1211,11 @@ public class BuddyController : MonoBehaviour
                 {
                     Sprite icon = GetIconSprite(buddy);
                     Sprite buddyFrame = GetFrameSprite(buddy.tier);
-                    equippedSlots[i].Setup(buddy, icon, buddyFrame, (b) => OpenDetailModal(b), QuickUpgradeBuddy);
+                    equippedSlots[i].Setup(buddy, icon, buddyFrame, (b) => OpenDetailModalFromEquippedSlot(b, slotIndex), QuickUpgradeBuddy);
                 }
                 else
                 {
-                    equippedSlots[i].SetupEmpty(frame, () => ShowToast("Empty Slot! Please select a Drone below to equip."));
+                    equippedSlots[i].SetupEmpty(emptySlotFrameSprite ?? frame, () => ShowToast("Empty Slot! Please select a Drone below to equip."));
                 }
             }
         }
@@ -1077,45 +1244,77 @@ public class BuddyController : MonoBehaviour
 
     public void RefreshInventory()
     {
-        if (inventoryContent == null) return;
+        AutoWireInventoryContainerIfMissing();
 
-        EnsureInventoryCardsInitialized();
-
-        List<BuddyItemData> sortedList = new List<BuddyItemData>(allBuddies);
-        if (sortByQuantity)
+        // 1. Populate fixed inventory cards in SlotIconBuddy (always visible, never empty)
+        if (inventoryCards != null && inventoryCards.Count > 0)
         {
-            sortedList = sortedList.OrderByDescending(b => b.count).ThenByDescending(b => (int)b.tier).ToList();
-        }
-        else
-        {
-            sortedList = sortedList.OrderByDescending(b => (int)b.tier).ThenByDescending(b => b.level).ToList();
-        }
-
-        for (int i = 0; i < sortedList.Count; i++)
-        {
-            BuddyCardUI card;
-            if (i < spawnedInventoryCards.Count)
+            for (int i = 0; i < inventoryCards.Count; i++)
             {
-                card = spawnedInventoryCards[i];
+                BuddyCardUI card = inventoryCards[i];
+                if (card == null) continue;
+
+                string cardName = card.gameObject.name;
+                BuddyItemData data = allBuddies.FirstOrDefault(b =>
+                    (!string.IsNullOrEmpty(b.iconKey) && cardName.IndexOf(b.iconKey, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                    (!string.IsNullOrEmpty(b.buddyName) && cardName.IndexOf(b.buddyName, StringComparison.OrdinalIgnoreCase) >= 0));
+
+                if (data == null && i < allBuddies.Count)
+                {
+                    data = allBuddies[i];
+                }
+
+                if (data != null)
+                {
+                    Sprite icon = GetIconSprite(data);
+                    Sprite frame = GetFrameSprite(data.tier);
+                    card.Setup(data, icon, frame, (b) => OpenDetailModalFromInventory(b), QuickUpgradeBuddy);
+                    card.gameObject.SetActive(true);
+                }
+            }
+        }
+
+        // 2. Populate scroll view if active
+        if (inventoryContent != null && inventoryContent.gameObject.activeInHierarchy)
+        {
+            EnsureInventoryCardsInitialized();
+
+            List<BuddyItemData> sortedList = new List<BuddyItemData>(allBuddies);
+            if (sortByQuantity)
+            {
+                sortedList = sortedList.OrderByDescending(b => b.count).ThenByDescending(b => (int)b.tier).ToList();
             }
             else
             {
-                if (cardPrefab == null) break;
-                GameObject obj = Instantiate(cardPrefab, inventoryContent);
-                card = obj.GetComponent<BuddyCardUI>();
-                spawnedInventoryCards.Add(card);
+                sortedList = sortedList.OrderByDescending(b => (int)b.tier).ThenByDescending(b => b.level).ToList();
             }
 
-            BuddyItemData data = sortedList[i];
-            Sprite icon = GetIconSprite(data);
-            Sprite frame = GetFrameSprite(data.tier);
-            card.Setup(data, icon, frame, (b) => OpenDetailModal(b), QuickUpgradeBuddy);
-            card.gameObject.SetActive(true);
-        }
+            for (int i = 0; i < sortedList.Count; i++)
+            {
+                BuddyCardUI card;
+                if (i < spawnedInventoryCards.Count)
+                {
+                    card = spawnedInventoryCards[i];
+                }
+                else
+                {
+                    if (cardPrefab == null) break;
+                    GameObject obj = Instantiate(cardPrefab, inventoryContent);
+                    card = obj.GetComponent<BuddyCardUI>();
+                    spawnedInventoryCards.Add(card);
+                }
 
-        for (int i = sortedList.Count; i < spawnedInventoryCards.Count; i++)
-        {
-            spawnedInventoryCards[i].gameObject.SetActive(false);
+                BuddyItemData data = sortedList[i];
+                Sprite icon = GetIconSprite(data);
+                Sprite frame = GetFrameSprite(data.tier);
+                card.Setup(data, icon, frame, (b) => OpenDetailModalFromInventory(b), QuickUpgradeBuddy);
+                card.gameObject.SetActive(true);
+            }
+
+            for (int i = sortedList.Count; i < spawnedInventoryCards.Count; i++)
+            {
+                spawnedInventoryCards[i].gameObject.SetActive(false);
+            }
         }
     }
 
@@ -1124,12 +1323,27 @@ public class BuddyController : MonoBehaviour
         OpenDetailModal(buddy);
     }
 
+    public void OpenDetailModalFromEquippedSlot(BuddyItemData buddy, int slotIndex)
+    {
+        openedFromEquippedSlotIndex = slotIndex;
+        OpenDetailModal(buddy);
+    }
+
+    public void OpenDetailModalFromInventory(BuddyItemData buddy)
+    {
+        openedFromEquippedSlotIndex = -1;
+        OpenDetailModal(buddy);
+    }
+
     public void OpenDetailModal(BuddyItemData buddy)
     {
-        if (buddy == null || detailModal == null) return;
+        if (buddy == null) return;
         selectedDetailBuddy = buddy;
         RefreshDetailModal();
-        UIDissolveController.ShowInstant(detailModal);
+        if (detailModal != null)
+        {
+            UIDissolveController.ShowInstant(detailModal);
+        }
     }
 
     public void RefreshDetailModal()
@@ -1229,13 +1443,28 @@ public class BuddyController : MonoBehaviour
         }
 
         // 5. Enhance Button
-        if (detailEnhanceCostText != null)
-        {
-            detailEnhanceCostText.text = $"{selectedDetailBuddy.enhanceCost}";
-        }
         if (detailEnhanceBtn != null)
         {
             detailEnhanceBtn.interactable = selectedDetailBuddy.CanEnhance;
+            if (detailEnhanceCostText == null || detailEnhanceCostText.gameObject.name == "Label")
+            {
+                detailEnhanceCostText = detailEnhanceBtn.transform.Find("CostRow/CostValue")?.GetComponent<TMP_Text>()
+                    ?? detailEnhanceBtn.transform.Find("CostValue")?.GetComponent<TMP_Text>();
+            }
+
+            Transform labelT = detailEnhanceBtn.transform.Find("Label");
+            if (labelT != null)
+            {
+                TMP_Text labelText = labelT.GetComponent<TMP_Text>();
+                if (labelText != null && (string.IsNullOrEmpty(labelText.text) || int.TryParse(labelText.text, out _)))
+                {
+                    labelText.text = "Enhance";
+                }
+            }
+        }
+        if (detailEnhanceCostText != null)
+        {
+            detailEnhanceCostText.text = $"{selectedDetailBuddy.enhanceCost}";
         }
 
         // 6. Advance Tier Button
@@ -1251,10 +1480,33 @@ public class BuddyController : MonoBehaviour
         }
 
         // 7. Equip / Unequip Button
-        bool isEquipped = deckEquippedIds[activeDeckIndex] != null && deckEquippedIds[activeDeckIndex].Contains(selectedDetailBuddy.id);
+        int[] currentDeck = (deckEquippedIds != null && activeDeckIndex < deckEquippedIds.Length)
+            ? deckEquippedIds[activeDeckIndex]
+            : null;
+        bool isEquipped = currentDeck != null && currentDeck.Contains(selectedDetailBuddy.id);
+
         if (detailEquipBtnText != null)
         {
-            detailEquipBtnText.text = isEquipped ? "UNEQUIP" : "EQUIP";
+            if (openedFromEquippedSlotIndex >= 0)
+            {
+                detailEquipBtnText.text = "UNEQUIP";
+            }
+            else
+            {
+                detailEquipBtnText.text = isEquipped ? "EQUIPPED" : "EQUIP";
+            }
+        }
+
+        if (detailEquipBtn != null)
+        {
+            if (openedFromEquippedSlotIndex >= 0)
+            {
+                detailEquipBtn.interactable = true;
+            }
+            else
+            {
+                detailEquipBtn.interactable = !isEquipped;
+            }
         }
     }
 
@@ -1276,6 +1528,7 @@ public class BuddyController : MonoBehaviour
 
         if (selectedDetailBuddy.Enhance())
         {
+            PlayerDataService.SaveBuddyProgress(selectedDetailBuddy);
             RefreshTopBar();
             RefreshEquippedGrid();
             RefreshInventory();
@@ -1302,6 +1555,7 @@ public class BuddyController : MonoBehaviour
 
         if (selectedDetailBuddy.AdvanceTier())
         {
+            PlayerDataService.SaveBuddyProgress(selectedDetailBuddy);
             RefreshTopBar();
             RefreshEquippedGrid();
             RefreshInventory();
@@ -1321,42 +1575,74 @@ public class BuddyController : MonoBehaviour
     {
         if (selectedDetailBuddy == null) return;
 
-        int[] currentDeck = deckEquippedIds[activeDeckIndex];
+        int[] currentDeck = (deckEquippedIds != null && activeDeckIndex < deckEquippedIds.Length)
+            ? deckEquippedIds[activeDeckIndex]
+            : null;
         if (currentDeck == null) return;
 
-        int indexInDeck = Array.IndexOf(currentDeck, selectedDetailBuddy.id);
+        if (openedFromEquippedSlotIndex >= 0)
+        {
+            int slot = openedFromEquippedSlotIndex;
+            if (slot < currentDeck.Length)
+            {
+                currentDeck[slot] = -1;
+            }
+            PlayerDataService.SaveBuddyDeck(activeDeckIndex, currentDeck);
+            ShowToast($"Unequipped {selectedDetailBuddy.buddyName} from Slot {slot + 1}");
+            openedFromEquippedSlotIndex = -1;
 
+            if (detailModal != null)
+            {
+                UIDissolveController.HideWithEffect(detailModal);
+            }
+            RefreshEquippedGrid();
+            RefreshInventory();
+            return;
+        }
+
+        int indexInDeck = Array.IndexOf(currentDeck, selectedDetailBuddy.id);
         if (indexInDeck >= 0)
         {
             currentDeck[indexInDeck] = -1;
-            ShowToast($"Unequipped {selectedDetailBuddy.buddyName}");
+            PlayerDataService.SaveBuddyDeck(activeDeckIndex, currentDeck);
+            ShowToast($"Unequipped {selectedDetailBuddy.buddyName} from Slot {indexInDeck + 1}");
+            if (detailModal != null)
+            {
+                UIDissolveController.HideWithEffect(detailModal);
+            }
+            RefreshEquippedGrid();
+            RefreshInventory();
+            return;
+        }
+
+        // Equip to first empty slot (index 0, 1, 2)
+        int emptyIndex = -1;
+        for (int i = 0; i < currentDeck.Length; i++)
+        {
+            if (currentDeck[i] <= 0 && (slotUnlocked == null || i >= slotUnlocked.Length || slotUnlocked[i]))
+            {
+                emptyIndex = i;
+                break;
+            }
+        }
+
+        if (emptyIndex >= 0)
+        {
+            currentDeck[emptyIndex] = selectedDetailBuddy.id;
+            ShowToast($"Equipped {selectedDetailBuddy.buddyName} to Slot {emptyIndex + 1}");
         }
         else
         {
-            int emptyIndex = -1;
-            for (int i = 0; i < currentDeck.Length; i++)
-            {
-                if (currentDeck[i] == -1 && (i >= slotUnlocked.Length || slotUnlocked[i]))
-                {
-                    emptyIndex = i;
-                    break;
-                }
-            }
-
-            if (emptyIndex >= 0)
-            {
-                currentDeck[emptyIndex] = selectedDetailBuddy.id;
-                ShowToast($"Equipped {selectedDetailBuddy.buddyName} to Slot {emptyIndex + 1}");
-            }
-            else
-            {
-                currentDeck[0] = selectedDetailBuddy.id;
-                ShowToast($"Replaced Slot 1 with {selectedDetailBuddy.buddyName}");
-            }
+            currentDeck[0] = selectedDetailBuddy.id;
+            ShowToast($"Replaced Slot 1 with {selectedDetailBuddy.buddyName}");
         }
 
+        PlayerDataService.SaveBuddyDeck(activeDeckIndex, currentDeck);
+        if (detailModal != null)
+        {
+            UIDissolveController.HideWithEffect(detailModal);
+        }
         RefreshEquippedGrid();
-        RefreshDetailModal();
         RefreshInventory();
     }
 

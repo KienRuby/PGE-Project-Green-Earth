@@ -610,5 +610,59 @@ public class M3EnemySpawnerTests
             Object.DestroyImmediate(prefab2);
         }
     }
+    [Test]
+    public void M3_26_EnemySpawner_KillAllActiveEnemies_KillsAllActiveEnemiesSimultaneously()
+    {
+        GameObject spawnerObj = new GameObject("Spawner_KillAll", typeof(EnemySpawner));
+        GameObject enemy1 = new GameObject("Enemy1", typeof(EnemyHealth), typeof(BoxCollider2D));
+        GameObject enemy2 = new GameObject("Enemy2", typeof(EnemyHealth), typeof(BoxCollider2D));
+
+        try
+        {
+            EnemySpawner spawner = spawnerObj.GetComponent<EnemySpawner>();
+            EnemyHealth h1 = enemy1.GetComponent<EnemyHealth>();
+            EnemyHealth h2 = enemy2.GetComponent<EnemyHealth>();
+
+            Assert.That(h1.IsDead, Is.False);
+            Assert.That(h2.IsDead, Is.False);
+
+            spawner.KillAllActiveEnemies();
+
+            Assert.That(h1.IsDead, Is.True, "Enemy 1 must be dead after KillAllActiveEnemies.");
+            Assert.That(h2.IsDead, Is.True, "Enemy 2 must be dead after KillAllActiveEnemies.");
+            Assert.That(enemy1.GetComponent<BoxCollider2D>().enabled, Is.False, "Colliders must be disabled on death.");
+            Assert.That(enemy2.GetComponent<BoxCollider2D>().enabled, Is.False, "Colliders must be disabled on death.");
+        }
+        finally
+        {
+            Object.DestroyImmediate(spawnerObj);
+            Object.DestroyImmediate(enemy1);
+            Object.DestroyImmediate(enemy2);
+        }
+    }
+
+    [Test]
+    public void M3_27_PlayerHealth_IsInvulnerable_PreventsDamage()
+    {
+        GameObject playerObj = new GameObject("Player_Invuln", typeof(PlayerHealth));
+        try
+        {
+            PlayerHealth playerHealth = playerObj.GetComponent<PlayerHealth>();
+            int initialHp = playerHealth.CurrentHealth;
+
+            playerHealth.IsInvulnerable = true;
+            playerHealth.TakeDamage(50);
+
+            Assert.That(playerHealth.CurrentHealth, Is.EqualTo(initialHp), "Invulnerable player must not take damage.");
+
+            playerHealth.IsInvulnerable = false;
+            playerHealth.TakeDamage(20);
+            Assert.That(playerHealth.CurrentHealth, Is.LessThan(initialHp), "Normal player must take damage.");
+        }
+        finally
+        {
+            Object.DestroyImmediate(playerObj);
+        }
+    }
     #endregion
 }

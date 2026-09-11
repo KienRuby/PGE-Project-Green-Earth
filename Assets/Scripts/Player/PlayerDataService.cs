@@ -25,6 +25,11 @@ public static class PlayerDataService
     public const string ItemLevelKeyPrefix = "PGE.Lab.ItemLevel.";
     public const string SelectedWeaponIdKey = "SelectedWeaponId";
     public const string VipOwnedKey = "PGE.Account.VipOwned";
+    public const string ChipsetBoxesKey = "PGE.Shop.Inventory.ChipsetBoxes";
+    public const string DroneBoxesKey = "PGE.Shop.Inventory.DroneBoxes";
+    public const string BuddyCountKeyPrefix = "PGE.Buddy.Count.";
+    public const string BuddyRequiredCountKeyPrefix = "PGE.Buddy.RequiredCount.";
+    public const string BuddyEnhanceCostKeyPrefix = "PGE.Buddy.EnhanceCost.";
 
     // =========================================================================
     // INITIALIZATION: TARGET FRAMERATE
@@ -50,7 +55,11 @@ public static class PlayerDataService
     public static event Action<int> OnRedGemsChanged;
     public static event Action<int> OnEnergyChanged;
     public static event Action<int> OnAdvanceStonesChanged;
+    public static event Action<int> OnChipsetBoxesChanged;
+    public static event Action<int> OnDroneBoxesChanged;
     public static event Action<string> OnSelectedWeaponChanged;
+    public static event Action<int, int> OnChipsetPiecesChanged;
+    public static event Action<int, int> OnBuddyPiecesChanged;
 
     // =========================================================================
     // PROPERTIES: TIỀN TỆ & NĂNG LƯỢNG
@@ -110,6 +119,28 @@ public static class PlayerDataService
         }
     }
 
+    public static void RecoverEnergy(DateTime utcNow)
+    {
+        int balance = PlayerPrefs.GetInt(EnergyKey, 100);
+        if (balance >= 100) return;
+        string saved = PlayerPrefs.GetString(NextEnergyUtcKey, string.Empty);
+        if (!DateTime.TryParse(saved, System.Globalization.CultureInfo.InvariantCulture,
+            System.Globalization.DateTimeStyles.RoundtripKind, out DateTime next))
+        {
+            PlayerPrefs.SetString(NextEnergyUtcKey, utcNow.AddMinutes(1).ToString("o"));
+            PlayerPrefs.Save();
+            return;
+        }
+        if (utcNow < next.ToUniversalTime()) return;
+        int recovered = (int)Math.Min(100 - balance, 1d + Math.Floor((utcNow - next.ToUniversalTime()).TotalMinutes));
+        balance += recovered;
+        PlayerPrefs.SetInt(EnergyKey, balance);
+        if (balance >= 100) PlayerPrefs.DeleteKey(NextEnergyUtcKey);
+        else PlayerPrefs.SetString(NextEnergyUtcKey, next.ToUniversalTime().AddMinutes(recovered).ToString("o"));
+        PlayerPrefs.Save();
+        OnEnergyChanged?.Invoke(balance);
+    }
+
     /// <summary>
     /// Số lượng Đá Tiến Bậc (Advance Stones) dùng để đột phá các Chipset lên Tier 5 (Max LV.24).
     /// </summary>
@@ -122,6 +153,36 @@ public static class PlayerDataService
             PlayerPrefs.SetInt(AdvanceStonesKey, clamped);
             PlayerPrefs.Save();
             OnAdvanceStonesChanged?.Invoke(clamped);
+        }
+    }
+
+    /// <summary>
+    /// Số lượng Rương Chipset (Chipset Box) hiện có.
+    /// </summary>
+    public static int ChipsetBoxes
+    {
+        get => PlayerPrefs.GetInt(ChipsetBoxesKey, 0);
+        set
+        {
+            int clamped = Mathf.Max(0, value);
+            PlayerPrefs.SetInt(ChipsetBoxesKey, clamped);
+            PlayerPrefs.Save();
+            OnChipsetBoxesChanged?.Invoke(clamped);
+        }
+    }
+
+    /// <summary>
+    /// Số lượng Rương Drone (Drone Box) hiện có.
+    /// </summary>
+    public static int DroneBoxes
+    {
+        get => PlayerPrefs.GetInt(DroneBoxesKey, 0);
+        set
+        {
+            int clamped = Mathf.Max(0, value);
+            PlayerPrefs.SetInt(DroneBoxesKey, clamped);
+            PlayerPrefs.Save();
+            OnDroneBoxesChanged?.Invoke(clamped);
         }
     }
 
@@ -268,10 +329,12 @@ public static class PlayerDataService
     // TIỆN ÍCH QUẢN LÝ TIỀN TỆ (HELPER METHODS)
     // =========================================================================
 
-    public static bool HasEnoughDataChips(int amount) => DataChips >= amount;
-    public static bool HasEnoughRedGems(int amount) => RedGems >= amount;
-    public static bool HasEnoughEnergy(int amount) => Energy >= amount;
-    public static bool HasEnoughAdvanceStones(int amount) => AdvanceStones >= amount;
+    public static bool HasEnoughDataChips(int amount) => amount >= 0 && DataChips >= amount;
+    public static bool HasEnoughRedGems(int amount) => amount >= 0 && RedGems >= amount;
+    public static bool HasEnoughEnergy(int amount) => amount >= 0 && Energy >= amount;
+    public static bool HasEnoughAdvanceStones(int amount) => amount >= 0 && AdvanceStones >= amount;
+    public static bool HasEnoughChipsetBoxes(int amount) => amount >= 0 && ChipsetBoxes >= amount;
+    public static bool HasEnoughDroneBoxes(int amount) => amount >= 0 && DroneBoxes >= amount;
 
     public static bool TrySpendDataChips(int amount)
     {
@@ -298,6 +361,20 @@ public static class PlayerDataService
     {
         if (amount < 0 || AdvanceStones < amount) return false;
         AdvanceStones -= amount;
+        return true;
+    }
+
+    public static bool TrySpendChipsetBoxes(int amount)
+    {
+        if (amount < 0 || ChipsetBoxes < amount) return false;
+        ChipsetBoxes -= amount;
+        return true;
+    }
+
+    public static bool TrySpendDroneBoxes(int amount)
+    {
+        if (amount < 0 || DroneBoxes < amount) return false;
+        DroneBoxes -= amount;
         return true;
     }
 
@@ -334,6 +411,24 @@ public static class PlayerDataService
         {
             long sum = (long)AdvanceStones + amount;
             AdvanceStones = (int)Math.Min((long)int.MaxValue, sum);
+        }
+    }
+
+    public static void AddChipsetBoxes(int amount)
+    {
+        if (amount > 0)
+        {
+            long sum = (long)ChipsetBoxes + amount;
+            ChipsetBoxes = (int)Math.Min((long)int.MaxValue, sum);
+        }
+    }
+
+    public static void AddDroneBoxes(int amount)
+    {
+        if (amount > 0)
+        {
+            long sum = (long)DroneBoxes + amount;
+            DroneBoxes = (int)Math.Min((long)int.MaxValue, sum);
         }
     }
 
@@ -448,6 +543,7 @@ public static class PlayerDataService
         PlayerPrefs.SetInt($"{pfx}ReqCount", reqCount);
         PlayerPrefs.SetInt($"{pfx}HasStar", hasStar ? 1 : 0);
         PlayerPrefs.Save();
+        OnChipsetPiecesChanged?.Invoke(id, Mathf.Max(0, count));
     }
 
     public static void SaveChipsetTierEnhanceCount(int id, int enhanceCount)
@@ -498,5 +594,102 @@ public static class PlayerDataService
         string pfx = GetChipItemPrefix(id);
         int tierVal = PlayerPrefs.GetInt($"{pfx}Tier", 1);
         return (ChipTier)Mathf.Clamp(tierVal, 1, 5);
+    }
+
+    // =========================================================================
+    // BUDDY DECK & PROGRESS PERSISTENCE
+    // =========================================================================
+    public const string BuddyActiveDeckKey = "PGE.Buddy.ActiveDeck";
+    public const string BuddyDeckKeyPrefix = "PGE.Buddy.Deck.";
+    public const string BuddyLevelKeyPrefix = "PGE.Buddy.Level.";
+    public const string BuddyTierKeyPrefix = "PGE.Buddy.Tier.";
+
+    public static string GetBuddyDeckKey(int deckIndex) => $"{BuddyDeckKeyPrefix}{deckIndex}";
+
+    public static int ActiveBuddyDeckIndex
+    {
+        get => Mathf.Clamp(PlayerPrefs.GetInt(BuddyActiveDeckKey, 0), 0, 2);
+        set
+        {
+            PlayerPrefs.SetInt(BuddyActiveDeckKey, Mathf.Clamp(value, 0, 2));
+            PlayerPrefs.Save();
+        }
+    }
+
+    public static int[] LoadBuddyDeck(int deckIndex, int[] fallback = null)
+    {
+        string key = GetBuddyDeckKey(deckIndex);
+        if (!PlayerPrefs.HasKey(key))
+        {
+            return fallback ?? new int[] { -1, -1, -1 };
+        }
+        string raw = PlayerPrefs.GetString(key, string.Empty);
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return fallback ?? new int[] { -1, -1, -1 };
+        }
+        try
+        {
+            string[] parts = raw.Split(',');
+            int[] result = new int[parts.Length];
+            for (int i = 0; i < parts.Length; i++)
+            {
+                result[i] = int.TryParse(parts[i].Trim(), out int val) ? val : -1;
+            }
+            return result;
+        }
+        catch
+        {
+            return fallback ?? new int[] { -1, -1, -1 };
+        }
+    }
+
+    public static void SaveBuddyDeck(int deckIndex, int[] deck)
+    {
+        if (deck == null) return;
+        string raw = string.Join(",", deck);
+        PlayerPrefs.SetString(GetBuddyDeckKey(deckIndex), raw);
+        PlayerPrefs.Save();
+    }
+
+    public static void LoadBuddyProgress(BuddyItemData data)
+    {
+        if (data == null) return;
+        data.level = Mathf.Max(1, PlayerPrefs.GetInt($"{BuddyLevelKeyPrefix}{data.id}", data.level));
+        data.tier = (BuddyTier)PlayerPrefs.GetInt($"{BuddyTierKeyPrefix}{data.id}", (int)data.tier);
+        data.count = GetBuddyPieceCount(data.id, data.count);
+        data.requiredCount = Mathf.Max(1, PlayerPrefs.GetInt($"{BuddyRequiredCountKeyPrefix}{data.id}", data.requiredCount));
+        data.enhanceCost = Mathf.Max(0, PlayerPrefs.GetInt($"{BuddyEnhanceCostKeyPrefix}{data.id}", data.enhanceCost));
+    }
+
+    public static void SaveBuddyProgress(BuddyItemData data)
+    {
+        if (data == null) return;
+        PlayerPrefs.SetInt($"{BuddyLevelKeyPrefix}{data.id}", Mathf.Max(1, data.level));
+        PlayerPrefs.SetInt($"{BuddyTierKeyPrefix}{data.id}", (int)data.tier);
+        PlayerPrefs.SetInt($"{BuddyCountKeyPrefix}{data.id}", Mathf.Max(0, data.count));
+        PlayerPrefs.SetInt($"{BuddyRequiredCountKeyPrefix}{data.id}", Mathf.Max(1, data.requiredCount));
+        PlayerPrefs.SetInt($"{BuddyEnhanceCostKeyPrefix}{data.id}", Mathf.Max(0, data.enhanceCost));
+        PlayerPrefs.Save();
+    }
+
+    public static int GetBuddyPieceCount(int buddyId, int defaultValue = 0)
+    {
+        return Mathf.Max(0, PlayerPrefs.GetInt($"{BuddyCountKeyPrefix}{buddyId}", Mathf.Max(0, defaultValue)));
+    }
+
+    public static void SetBuddyPieceCount(int buddyId, int amount)
+    {
+        int clamped = Mathf.Max(0, amount);
+        PlayerPrefs.SetInt($"{BuddyCountKeyPrefix}{buddyId}", clamped);
+        PlayerPrefs.Save();
+        OnBuddyPiecesChanged?.Invoke(buddyId, clamped);
+    }
+
+    public static void AddBuddyPieces(int buddyId, int amount)
+    {
+        if (amount <= 0) return;
+        long total = (long)GetBuddyPieceCount(buddyId) + amount;
+        SetBuddyPieceCount(buddyId, (int)Math.Min(total, int.MaxValue));
     }
 }

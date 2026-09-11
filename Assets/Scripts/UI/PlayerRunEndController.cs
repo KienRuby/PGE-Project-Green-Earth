@@ -384,11 +384,23 @@ public sealed class PlayerRunEndController : MonoBehaviour
         pendingRedGemReward = completedWaves * redGemsPerCompletedWave;
         rewardsGranted = false;
 
+        EnsureRewardRowLayout();
+
         if (chapterText != null) chapterText.text = $"CHAPTER. {chapterNumber:00}";
         if (wavesText != null) wavesText.text = $"{Mathf.Clamp(currentWaveIndex + 1, 1, totalWaves):00} / {totalWaves:00} WAVES";
         if (progressText != null) progressText.text = $"STAGE PROGRESS  {Mathf.RoundToInt(stageProgress * 100f)}%";
-        if (dataChipRewardText != null) dataChipRewardText.text = $"Get {pendingDataChipReward}";
-        if (redGemRewardText != null) redGemRewardText.text = $"Get {pendingRedGemReward}";
+        if (dataChipRewardText != null)
+        {
+            dataChipRewardText.enableWordWrapping = false;
+            dataChipRewardText.overflowMode = TextOverflowModes.Overflow;
+            dataChipRewardText.text = $"Get\u00A0{pendingDataChipReward}";
+        }
+        if (redGemRewardText != null)
+        {
+            redGemRewardText.enableWordWrapping = false;
+            redGemRewardText.overflowMode = TextOverflowModes.Overflow;
+            redGemRewardText.text = $"Get\u00A0{pendingRedGemReward}";
+        }
         if (gameOverFeedbackText != null) gameOverFeedbackText.text = string.Empty;
         if (getRewardButton != null) getRewardButton.interactable = true;
         if (vipTripleButton != null) vipTripleButton.interactable = true;
@@ -575,5 +587,47 @@ public sealed class PlayerRunEndController : MonoBehaviour
     private static void SetPanelActive(GameObject panel, bool active)
     {
         if (panel != null) panel.SetActive(active);
+    }
+
+    public void EnsureRewardRowLayout()
+    {
+        AdjustRewardRow(dataChipRewardText, -65f, 25f);
+        AdjustRewardRow(redGemRewardText, -65f, -90f);
+    }
+
+    private void AdjustRewardRow(TMP_Text textComponent, float rowX, float rowY)
+    {
+        if (textComponent == null) return;
+        textComponent.enableWordWrapping = false;
+        textComponent.overflowMode = TextOverflowModes.Overflow;
+
+        RectTransform textRect = textComponent.rectTransform;
+        if (textRect != null)
+        {
+            textRect.anchoredPosition = new Vector2(80f, 0f);
+            textRect.sizeDelta = new Vector2(420f, 100f);
+        }
+
+        Transform row = textRect != null ? textRect.parent : null;
+        if (row != null)
+        {
+            RectTransform rowRect = row.GetComponent<RectTransform>();
+            if (rowRect != null)
+            {
+                rowRect.anchoredPosition = new Vector2(rowX, rowY);
+                rowRect.sizeDelta = new Vector2(520f, 110f);
+            }
+
+            Transform icon = row.Find("Icon");
+            if (icon != null)
+            {
+                RectTransform iconRect = icon.GetComponent<RectTransform>();
+                if (iconRect != null)
+                {
+                    iconRect.anchoredPosition = new Vector2(-170f, 0f);
+                    iconRect.sizeDelta = new Vector2(96f, 96f);
+                }
+            }
+        }
     }
 }

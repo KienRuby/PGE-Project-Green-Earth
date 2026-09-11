@@ -89,6 +89,8 @@ public class ChipsetLevelUpPopup : MonoBehaviour
 
     private void Awake()
     {
+        // This catalog describes one run, not the application's lifetime.
+        equippedRuntimeChips.Clear();
         random = new System.Random(Environment.TickCount);
         if (visualLibrary == null)
         {

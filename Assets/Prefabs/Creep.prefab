@@ -404,8 +404,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxHealth: 100
   expReward: 10
-  dataChipReward: 2
+  dataChipReward: 5
   redGemReward: 0
+  randomRedGemDropChance: 0.05
+  randomRedGemAmount: 1
   currencyDropChance: 1
   deathAnimationTrigger: Die
   deathAnimationState: Die

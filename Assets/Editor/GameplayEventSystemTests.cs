@@ -13,6 +13,7 @@ namespace PGE.Tests
         public void SetUp()
         {
             testContainer = new GameObject("TestContainer");
+            testContainer.hideFlags = HideFlags.DontSave;
             GameplayEventPickup.ClearActiveEventsForTesting();
         }
 
@@ -23,6 +24,10 @@ namespace PGE.Tests
             if (testContainer != null)
             {
                 Object.DestroyImmediate(testContainer);
+            }
+            if (DamageNumberManager.Instance != null && !Application.isPlaying)
+            {
+                Object.DestroyImmediate(DamageNumberManager.Instance.gameObject);
             }
             Time.timeScale = 1f;
         }

@@ -145,7 +145,22 @@ public class ArtifactDatabase : ScriptableObject
     /// </summary>
     public ArtifactData GetById(string id)
     {
-        if (artifacts == null) return null;
-        return artifacts.Find(a => a != null && a.id == id);
+        if (string.IsNullOrEmpty(id)) return null;
+        if (artifacts == null || artifacts.Count == 0) InitializeDefaults();
+
+        var found = artifacts.Find(a => a != null && a.id == id);
+        if (found != null) return found;
+
+        // Fallback: nếu chưa có trong asset database (ví dụ asset chưa được cập nhật từ code/event)
+        var fallbackDb = CreateInstance<ArtifactDatabase>();
+        fallbackDb.InitializeDefaults();
+        found = fallbackDb.artifacts.Find(a => a != null && a.id == id);
+        if (found != null)
+        {
+            artifacts.Add(found);
+            return found;
+        }
+
+        return null;
     }
 }

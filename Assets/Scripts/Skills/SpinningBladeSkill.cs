@@ -33,7 +33,7 @@ public class SpinningBladeSkill : MonoBehaviour
     [Header("Orbit Clustered Tuning (Bay ngay sát bên cạnh nhau)")]
     [Tooltip("Bán kính vòng quay quanh Player (mét).")]
     [Range(1.0f, 4.0f)]
-    [SerializeField] private float orbitRadius = 1.8f;
+    [SerializeField] private float orbitRadius = 1.85f;
 
     [Tooltip("Tốc độ bay xoay vòng quanh Player (độ/giây). Mặc định 80°/s (chậm rãi và dễ nhìn).")]
     [Range(10f, 360f)]
@@ -83,8 +83,29 @@ public class SpinningBladeSkill : MonoBehaviour
     public bool IsUnlocked => isUnlocked;
     public int CurrentSkillLevel => currentSkillLevel;
     public int ActiveBladeCount => activeBlades.Count;
-    public float OrbitRadius => orbitRadius;
+    public float OrbitRadius => GetEffectiveOrbitRadius();
+    public float RawOrbitRadius => orbitRadius;
     public float OrbitSpeed => orbitSpeed;
+
+    /// <summary>
+    /// Bán kính quỹ đạo thực tế. Nếu có Đĩa Gai (SpikyDiscusSkill) cùng hoạt động ở vòng trong,
+    /// Lưỡi Dao Xoay luôn bay ở vòng ngoài với khoảng cách tối thiểu 0.65m
+    /// để 2 chipset không bao giờ bị đè lên nhau.
+    /// </summary>
+    public float GetEffectiveOrbitRadius()
+    {
+        float radius = orbitRadius;
+        var discusSkill = GetComponent<SpikyDiscusSkill>();
+        if (discusSkill != null && discusSkill.IsUnlocked)
+        {
+            float discusRadius = discusSkill.RawOrbitRadius;
+            if (radius <= discusRadius + 0.5f)
+            {
+                radius = discusRadius + 0.65f;
+            }
+        }
+        return radius;
+    }
 
     private void Awake()
     {
@@ -140,6 +161,7 @@ public class SpinningBladeSkill : MonoBehaviour
         if (bladeCount > 0)
         {
             Vector3 playerPos = transform.position;
+            float effectiveRadius = GetEffectiveOrbitRadius();
 
             for (int i = 0; i < bladeCount; i++)
             {
@@ -149,7 +171,7 @@ public class SpinningBladeSkill : MonoBehaviour
                 // Dao thứ i nằm ngay sát sườn dao trước đó (cách nhau đúng bladeSpacingAngle, KHÔNG trượt tách rời)
                 float bladeAngle = baseOrbitAngle - (i * bladeSpacingAngle);
                 float rad = bladeAngle * Mathf.Deg2Rad;
-                Vector3 bladePos = playerPos + new Vector3(Mathf.Cos(rad) * orbitRadius, Mathf.Sin(rad) * orbitRadius, 0f);
+                Vector3 bladePos = playerPos + new Vector3(Mathf.Cos(rad) * effectiveRadius, Mathf.Sin(rad) * effectiveRadius, 0f);
 
                 blade.UpdateOrbitPosition(bladePos, bladeAngle);
             }
@@ -187,7 +209,8 @@ public class SpinningBladeSkill : MonoBehaviour
         int newIndex = activeBlades.Count;
         float bladeAngle = baseOrbitAngle - (newIndex * bladeSpacingAngle);
         float initRad = bladeAngle * Mathf.Deg2Rad;
-        Vector3 spawnPos = transform.position + new Vector3(Mathf.Cos(initRad) * orbitRadius, Mathf.Sin(initRad) * orbitRadius, 0f);
+        float spawnRadius = GetEffectiveOrbitRadius();
+        Vector3 spawnPos = transform.position + new Vector3(Mathf.Cos(initRad) * spawnRadius, Mathf.Sin(initRad) * spawnRadius, 0f);
         GameObject bladeObj;
 
         if (PoolManager.Instance != null)
@@ -291,6 +314,6 @@ public class SpinningBladeSkill : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.cyan;
-        Gizmos.DrawWireSphere(transform.position, orbitRadius);
+        Gizmos.DrawWireSphere(transform.position, GetEffectiveOrbitRadius());
     }
 }

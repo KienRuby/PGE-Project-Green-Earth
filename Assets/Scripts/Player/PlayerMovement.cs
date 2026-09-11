@@ -33,6 +33,7 @@ public class PlayerMovement : MonoBehaviour
     private Rigidbody2D rb;
     private PlayerHealth playerHealth;
     private float moveSpeedBonus;
+    private float artifactSpeedMultiplier = 1f;
 
     private Vector2 moveInput;
     private Vector2 keyboardInput;
@@ -42,7 +43,7 @@ public class PlayerMovement : MonoBehaviour
 
     public Vector2 MoveDirection => moveInput;
     public float MoveSpeed => EffectiveSpeed;
-    public float EffectiveSpeed => Mathf.Max(3.5f, moveSpeed) + moveSpeedBonus;
+    public float EffectiveSpeed => (Mathf.Max(3.5f, moveSpeed) + moveSpeedBonus) * artifactSpeedMultiplier;
 
     public float MoveSpeedBonus
     {
@@ -59,6 +60,11 @@ public class PlayerMovement : MonoBehaviour
     {
         float bonus = Mathf.Max(3.5f, moveSpeed) * (percent / 100f);
         moveSpeedBonus += bonus;
+    }
+
+    public void SetArtifactSpeedBonus(float percent)
+    {
+        artifactSpeedMultiplier = 1f + Mathf.Max(0f, percent) / 100f;
     }
 
     private void Awake()
@@ -315,4 +321,4 @@ public class PlayerMovement : MonoBehaviour
 
         keyboardInput = Vector2.ClampMagnitude(keyboardInput, 1f);
     }
-}
+}

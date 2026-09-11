@@ -41,9 +41,9 @@ public class SpikyDiscusSkill : MonoBehaviour
     };
 
     [Header("Orbit Settings")]
-    [Tooltip("Bán kính vòng quay quanh Player (mét).")]
-    [Range(1.0f, 4.0f)]
-    [SerializeField] private float orbitRadius = 1.8f;
+    [Tooltip("Bán kính vòng quay quanh Player (mét). Thu nhỏ lại gần Player để tạo khiên bảo vệ sát thân và không đè lên Lưỡi Dao Xoay.")]
+    [Range(0.6f, 3.0f)]
+    [SerializeField] private float orbitRadius = 1.15f;
 
     [Tooltip("Tốc độ tự xoay quanh trục của từng đĩa gai (độ/giây).")]
     [Range(120f, 1440f)]
@@ -65,6 +65,28 @@ public class SpikyDiscusSkill : MonoBehaviour
     public bool IsUnlocked => isUnlocked;
     public int CurrentLevel => currentLevel;
     public int ActiveDiscusCount => activeDiscusList.Count;
+    public float OrbitRadius => GetEffectiveOrbitRadius();
+    public float RawOrbitRadius => orbitRadius;
+
+    /// <summary>
+    /// Bán kính quỹ đạo thực tế. Nếu có Lưỡi Dao Xoay (SpinningBladeSkill) cùng hoạt động,
+    /// Đĩa Gai luôn giữ quỹ đạo vòng trong (gần Player) với khoảng cách tối thiểu 0.65m
+    /// để 2 chipset không bao giờ bị đè lên nhau.
+    /// </summary>
+    public float GetEffectiveOrbitRadius()
+    {
+        float radius = orbitRadius;
+        var bladeSkill = GetComponent<SpinningBladeSkill>();
+        if (bladeSkill != null && bladeSkill.IsUnlocked)
+        {
+            float bladeRadius = bladeSkill.RawOrbitRadius;
+            if (radius >= bladeRadius - 0.5f)
+            {
+                radius = Mathf.Max(0.9f, bladeRadius - 0.65f);
+            }
+        }
+        return radius;
+    }
 
     private void Awake()
     {
@@ -183,6 +205,7 @@ public class SpikyDiscusSkill : MonoBehaviour
         float angleStep = 360f / count;
         Vector3 playerPos = playerTransform.position;
 
+        float currentRadius = GetEffectiveOrbitRadius();
         for (int i = 0; i < count; i++)
         {
             SpikyDiscusProjectile discus = activeDiscusList[i];
@@ -191,7 +214,7 @@ public class SpikyDiscusSkill : MonoBehaviour
             float currentAngle = currentOrbitAngle + (i * angleStep);
             float rad = currentAngle * Mathf.Deg2Rad;
 
-            Vector3 offset = new Vector3(Mathf.Cos(rad), Mathf.Sin(rad), 0f) * orbitRadius;
+            Vector3 offset = new Vector3(Mathf.Cos(rad), Mathf.Sin(rad), 0f) * currentRadius;
             discus.transform.position = playerPos + offset;
         }
     }
@@ -312,5 +335,11 @@ public class SpikyDiscusSkill : MonoBehaviour
         int index = Mathf.Clamp(currentLevel - 1, 0, levelConfigs.Length - 1);
         float baseSpeed = levelConfigs[index].orbitSpeed;
         return baseSpeed * metaSpinSpeedMultiplier;
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawWireSphere(transform.position, GetEffectiveOrbitRadius());
     }
 }

@@ -64,11 +64,31 @@ public class ChapterData : ScriptableObject
     public bool isLocked = false;
 
     [Header("Chapter Victory Rewards (Phần thưởng khi vượt ải Chapter)")]
-    [Tooltip("Số Chip Xanh (Data Chips) thưởng khi hoàn thành toàn bộ Chapter này.")]
-    [Min(0)] public int victoryDataChipReward = 100;
+    [Tooltip("Số Chip Xanh (Data Chips) thưởng khi hoàn thành toàn bộ Chapter này (Chapter 1 mặc định 1000, mỗi Chapter sau +20%).")]
+    [Min(0)] public int victoryDataChipReward = 1000;
 
-    [Tooltip("Số Ngọc Đỏ (Red Gems) thưởng khi hoàn thành toàn bộ Chapter này.")]
-    [Min(0)] public int victoryRedGemReward = 10;
+    [Tooltip("Số Ngọc Đỏ (Red Gems) thưởng khi hoàn thành toàn bộ Chapter này (Chapter 1 mặc định 20, mỗi Chapter sau +20%).")]
+    [Min(0)] public int victoryRedGemReward = 20;
+
+    /// <summary>
+    /// Tính toán phần thưởng Data Chip theo cấp Chapter: Chapter 1 cố định là 1000, mỗi Chapter kế tiếp cao hơn 20%.
+    /// </summary>
+    public int GetCalculatedDataChipReward()
+    {
+        if (victoryDataChipReward > 0) return victoryDataChipReward;
+        int chapterIdx = Mathf.Max(1, chapterNumber);
+        return Mathf.RoundToInt(1000f * Mathf.Pow(1.2f, chapterIdx - 1));
+    }
+
+    /// <summary>
+    /// Tính toán phần thưởng Red Gem theo cấp Chapter: Chapter 1 cố định là 20, mỗi Chapter kế tiếp cao hơn 20%.
+    /// </summary>
+    public int GetCalculatedRedGemReward()
+    {
+        if (victoryRedGemReward > 0) return victoryRedGemReward;
+        int chapterIdx = Mathf.Max(1, chapterNumber);
+        return Mathf.RoundToInt(20f * Mathf.Pow(1.2f, chapterIdx - 1));
+    }
 
     [Header("Wave Progression & Auto-Generation")]
     [Tooltip("Tự động tạo và cập nhật danh sách Wave dựa trên totalWaves khi thay đổi trong Inspector.")]

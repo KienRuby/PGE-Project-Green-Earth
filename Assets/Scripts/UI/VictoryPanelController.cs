@@ -222,14 +222,31 @@ public sealed class VictoryPanelController : MonoBehaviour
         playerLevelController?.LockLevelUpsForVictory();
         chipsetLevelUpPopup?.CancelForVictory();
 
-        timeScaleBeforeVictory = Time.timeScale > 0f ? Time.timeScale : 1f;
-        ownsGameplayPause = true;
-        Time.timeScale = 0f;
+        // Khóa sát thương người chơi để bảo toàn HP sau chiến thắng
+        PlayerHealth playerHealth = FindObjectOfType<PlayerHealth>();
+        if (playerHealth != null)
+        {
+            playerHealth.IsInvulnerable = true;
+        }
 
         if (playerRunEndController != null)
         {
             playerRunEndController.ResolveWithVictory();
         }
+
+        StopVisualCoroutines();
+        revealRoutine = StartCoroutine(VictorySequenceRoutine());
+    }
+
+    private IEnumerator VictorySequenceRoutine()
+    {
+        // Chờ 1.2s trong thời gian gameplay bình thường (game KHÔNG dừng đột ngột)
+        // để người chơi chứng kiến toàn bộ enemy đồng loạt thực hiện animation Die & Fade out
+        yield return new WaitForSeconds(1.2f);
+
+        timeScaleBeforeVictory = Time.timeScale > 0f ? Time.timeScale : 1f;
+        ownsGameplayPause = true;
+        Time.timeScale = 0f;
 
         EnsureDetailsUiComponents();
         PopulateResult();
@@ -246,13 +263,14 @@ public sealed class VictoryPanelController : MonoBehaviour
         if (vipButtonText != null) vipButtonText.text = "Get x3 reward";
         if (feedbackText != null) feedbackText.text = string.Empty;
 
-        StopVisualCoroutines();
         revealRoutine = StartCoroutine(PlayReveal());
         confettiRoutine = StartCoroutine(PlayConfetti());
     }
 
     private void PopulateResult()
     {
+        EnsureRewardRowLayout();
+
         int chapterNumber = PlayerDataService.SelectedChapterIndex + 1;
         int waves = enemySpawner != null ? enemySpawner.TotalWavesCount : 1;
         int dataReward = GetBaseDataChipReward();
@@ -613,18 +631,70 @@ public sealed class VictoryPanelController : MonoBehaviour
 
     private int GetBaseDataChipReward()
     {
-        return enemySpawner != null ? enemySpawner.StageVictoryDataChipReward : 50;
+        return enemySpawner != null ? enemySpawner.StageVictoryDataChipReward : 1000;
     }
 
     private int GetBaseRedGemReward()
     {
-        return enemySpawner != null ? enemySpawner.StageVictoryRedGemReward : 10;
+        return enemySpawner != null ? enemySpawner.StageVictoryRedGemReward : 20;
     }
 
     private void UpdateRewardTexts(int dataReward, int gemReward)
     {
-        if (dataChipRewardText != null) dataChipRewardText.text = $"Get {dataReward}";
-        if (redGemRewardText != null) redGemRewardText.text = $"Get {gemReward}";
+        if (dataChipRewardText != null)
+        {
+            dataChipRewardText.enableWordWrapping = false;
+            dataChipRewardText.overflowMode = TextOverflowModes.Overflow;
+            dataChipRewardText.text = $"Get\u00A0{dataReward}";
+        }
+        if (redGemRewardText != null)
+        {
+            redGemRewardText.enableWordWrapping = false;
+            redGemRewardText.overflowMode = TextOverflowModes.Overflow;
+            redGemRewardText.text = $"Get\u00A0{gemReward}";
+        }
+    }
+
+    public void EnsureRewardRowLayout()
+    {
+        AdjustRewardRow(dataChipRewardText, -65f, 25f);
+        AdjustRewardRow(redGemRewardText, -65f, -90f);
+    }
+
+    private void AdjustRewardRow(TMP_Text textComponent, float rowX, float rowY)
+    {
+        if (textComponent == null) return;
+        textComponent.enableWordWrapping = false;
+        textComponent.overflowMode = TextOverflowModes.Overflow;
+
+        RectTransform textRect = textComponent.rectTransform;
+        if (textRect != null)
+        {
+            textRect.anchoredPosition = new Vector2(80f, 0f);
+            textRect.sizeDelta = new Vector2(420f, 100f);
+        }
+
+        Transform row = textRect != null ? textRect.parent : null;
+        if (row != null)
+        {
+            RectTransform rowRect = row.GetComponent<RectTransform>();
+            if (rowRect != null)
+            {
+                rowRect.anchoredPosition = new Vector2(rowX, rowY);
+                rowRect.sizeDelta = new Vector2(520f, 110f);
+            }
+
+            Transform icon = row.Find("Icon");
+            if (icon != null)
+            {
+                RectTransform iconRect = icon.GetComponent<RectTransform>();
+                if (iconRect != null)
+                {
+                    iconRect.anchoredPosition = new Vector2(-170f, 0f);
+                    iconRect.sizeDelta = new Vector2(96f, 96f);
+                }
+            }
+        }
     }
 
     private static void SetPanelActive(GameObject panel, bool active)

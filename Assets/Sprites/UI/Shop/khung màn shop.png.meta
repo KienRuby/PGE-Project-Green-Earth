@@ -1,0 +1,743 @@
+fileFormatVersion: 2
+guid: 1dd156dcf72ab3e4984b745060570d23
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 8192
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Card_VIP_Package
+      rect:
+        serializedVersion: 2
+        x: 178
+        y: 9015
+        width: 1813
+        height: 1164
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8b023cc782302fc4d987727da7c11bbc
+      internalID: 7534118322781563573
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Header_Special_Item
+      rect:
+        serializedVersion: 2
+        x: 173
+        y: 8545
+        width: 1818
+        height: 254
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e604dc51f24e251418e3e592c9f84fb3
+      internalID: -4329004298851880990
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Card_Welcome_Package
+      rect:
+        serializedVersion: 2
+        x: 178
+        y: 7254
+        width: 1907
+        height: 1143
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ee1a384a38c4de040830234794e5b5ff
+      internalID: -8334551884728063655
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Card_Intermediate_Pack
+      rect:
+        serializedVersion: 2
+        x: 178
+        y: 5908
+        width: 1907
+        height: 1143
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c80444303bbf81a4099fd0ece19007dc
+      internalID: 4639363144931780543
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Card_Advanced_Pack
+      rect:
+        serializedVersion: 2
+        x: 178
+        y: 4610
+        width: 1907
+        height: 1143
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3b6df77ad8d3635488d4747403856dff
+      internalID: 7059315241716233698
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Header_Daily_Shop
+      rect:
+        serializedVersion: 2
+        x: 173
+        y: 3938
+        width: 1818
+        height: 254
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 63df7a630189c6d488ae18ddc26655f1
+      internalID: 4202671230129758091
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_Daily_Gem_Free
+      rect:
+        serializedVersion: 2
+        x: 175
+        y: 3201
+        width: 615
+        height: 703
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0e8b59321484d0944826edbf047eb8a8
+      internalID: 2867055928722175004
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_Daily_Drone_Box_1
+      rect:
+        serializedVersion: 2
+        x: 801
+        y: 3201
+        width: 615
+        height: 703
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4d40a31efcbe3a742b38f9a368bbaf3f
+      internalID: 8103745526680803699
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_Daily_Drone_Box_2
+      rect:
+        serializedVersion: 2
+        x: 1431
+        y: 3201
+        width: 615
+        height: 703
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4f371fcea1aa7824ca16479295399545
+      internalID: -8639494378205355420
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Header_Box
+      rect:
+        serializedVersion: 2
+        x: 173
+        y: 2854
+        width: 1818
+        height: 254
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 639046f4a5bc5ec4da2d9fbb8c53884d
+      internalID: 5471896364202360781
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Box_Chipset_1x
+      rect:
+        serializedVersion: 2
+        x: 177
+        y: 2031
+        width: 897
+        height: 790
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3077ec94d8584fd48969595251e76de0
+      internalID: -7395076363003848058
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Box_Chipset_10x
+      rect:
+        serializedVersion: 2
+        x: 1133
+        y: 2031
+        width: 896
+        height: 786
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4954eb95e8ca08e46b62eb60afeb5f8a
+      internalID: -4372616547123246141
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Box_Drone_1x
+      rect:
+        serializedVersion: 2
+        x: 177
+        y: 1223
+        width: 897
+        height: 790
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 274ddb81f97f5c34183cd7f53f4b4836
+      internalID: 2870349338768695663
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Box_Drone_10x
+      rect:
+        serializedVersion: 2
+        x: 1133
+        y: 1224
+        width: 896
+        height: 789
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 02bea1ceb311f8449a54cff400d76c2a
+      internalID: 313943534634539960
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Header_Meta_Shop
+      rect:
+        serializedVersion: 2
+        x: 2173
+        y: 9391
+        width: 1818
+        height: 254
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0d91a06311b0e644e85ec642fa04c2ba
+      internalID: 717791913528255540
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Card_Gun_Pack
+      rect:
+        serializedVersion: 2
+        x: 2178
+        y: 8143
+        width: 1907
+        height: 1143
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 69e194c72fa5d6e43aba0d1200e8120c
+      internalID: 3512214129317286262
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Card_Drone_Pack
+      rect:
+        serializedVersion: 2
+        x: 2178
+        y: 6859
+        width: 1907
+        height: 1143
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 84b4398558d3e6a45a932f485db2cf6a
+      internalID: -174751220486842361
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Header_Data_Chip
+      rect:
+        serializedVersion: 2
+        x: 2180
+        y: 6388
+        width: 1818
+        height: 254
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5ca5343606210f5449d3f31f2f2f78b5
+      internalID: -5422111641689204127
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_Data_Chip_1
+      rect:
+        serializedVersion: 2
+        x: 2181
+        y: 5613
+        width: 559
+        height: 659
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e98cf48ea4d420d45825a122cfd10833
+      internalID: 5037782465391453883
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_Data_Chip_2
+      rect:
+        serializedVersion: 2
+        x: 2809
+        y: 5613
+        width: 559
+        height: 659
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7aaff7ec8c2718b4da9d1bf107b5cae5
+      internalID: 3776852780706418819
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_Data_Chip_3
+      rect:
+        serializedVersion: 2
+        x: 3437
+        y: 5613
+        width: 559
+        height: 659
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6480d84d561ab98449cd3dce9c4c854a
+      internalID: 5158790977786103109
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Header_Gem_Event
+      rect:
+        serializedVersion: 2
+        x: 2130
+        y: 5000
+        width: 1880
+        height: 288
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 593af934330230f4ca15a1e3891934a8
+      internalID: -8894522867088728228
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_Gem_1
+      rect:
+        serializedVersion: 2
+        x: 2193
+        y: 4238
+        width: 559
+        height: 659
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0a490c6172b24b9448b89e9f4df5adfd
+      internalID: -69407214110839070
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_Gem_2
+      rect:
+        serializedVersion: 2
+        x: 2823
+        y: 4238
+        width: 559
+        height: 659
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0b40ace784cab0a458267529af3fa148
+      internalID: 1491685026738565787
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_Gem_3
+      rect:
+        serializedVersion: 2
+        x: 3450
+        y: 4238
+        width: 559
+        height: 659
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8dc1d32c9202d924faf54eac5f2b9d3f
+      internalID: 8663713442728769644
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_Gem_4
+      rect:
+        serializedVersion: 2
+        x: 2193
+        y: 3507
+        width: 559
+        height: 659
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c5eda1df85a4eaf448af97787f4f77fc
+      internalID: -5705940206252992909
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_Gem_5
+      rect:
+        serializedVersion: 2
+        x: 2823
+        y: 3507
+        width: 559
+        height: 659
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d03fa8423fbda964fa76b8c244c92812
+      internalID: 1953268400004898411
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Item_Gem_6
+      rect:
+        serializedVersion: 2
+        x: 3450
+        y: 3507
+        width: 559
+        height: 659
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4fbcd480fa83d414f8a1add689e1c019
+      internalID: -1475807699081330268
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      Box_Chipset_10x: -4372616547123246141
+      Box_Chipset_1x: -7395076363003848058
+      Box_Drone_10x: 313943534634539960
+      Box_Drone_1x: 2870349338768695663
+      Card_Advanced_Pack: 7059315241716233698
+      Card_Drone_Pack: -174751220486842361
+      Card_Gun_Pack: 3512214129317286262
+      Card_Intermediate_Pack: 4639363144931780543
+      Card_VIP_Package: 7534118322781563573
+      Card_Welcome_Package: -8334551884728063655
+      Header_Box: 5471896364202360781
+      Header_Daily_Shop: 4202671230129758091
+      Header_Data_Chip: -5422111641689204127
+      Header_Gem_Event: -8894522867088728228
+      Header_Meta_Shop: 717791913528255540
+      Header_Special_Item: -4329004298851880990
+      Item_Daily_Drone_Box_1: 8103745526680803699
+      Item_Daily_Drone_Box_2: -8639494378205355420
+      Item_Daily_Gem_Free: 2867055928722175004
+      Item_Data_Chip_1: 5037782465391453883
+      Item_Data_Chip_2: 3776852780706418819
+      Item_Data_Chip_3: 5158790977786103109
+      Item_Gem_1: -69407214110839070
+      Item_Gem_2: 1491685026738565787
+      Item_Gem_3: 8663713442728769644
+      Item_Gem_4: -5705940206252992909
+      Item_Gem_5: 1953268400004898411
+      Item_Gem_6: -1475807699081330268
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

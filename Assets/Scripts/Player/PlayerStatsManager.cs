@@ -82,17 +82,17 @@ public class PlayerStatsManager : MonoBehaviour
         BonusBulletSpeed = bulletSpeedLevel * bulletSpeedBonusPerLevel;
         CritChance = Mathf.Clamp01(critRateLevel * critChancePerLevel);
 
-        if (playerHealth != null && BonusMaxHealth > 0)
+        if (playerHealth != null)
         {
-            playerHealth.SetMaxHealth(playerHealth.BaseMaxHealth + BonusMaxHealth, true);
+            playerHealth.SetLabHealthBonus(BonusMaxHealth, true);
         }
 
-        if (playerHealth != null && DamageReduction > 0)
+        if (playerHealth != null)
         {
             playerHealth.SetDamageReduction(DamageReduction);
         }
 
-        if (playerMovement != null && BonusSpeed > 0f)
+        if (playerMovement != null)
         {
             playerMovement.SetMoveSpeedBonus(BonusSpeed);
         }

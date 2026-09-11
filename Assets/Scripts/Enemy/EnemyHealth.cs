@@ -18,6 +18,12 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     [Tooltip("Số Ngọc Đỏ (Red Gems) thưởng cho người chơi khi tiêu diệt quái này (thích hợp cho Boss hoặc quái hiếm).")]
     [Min(0)] [SerializeField] private int redGemReward = 0;
 
+    [Tooltip("Tỷ lệ rơi ngọc đỏ ngẫu nhiên khi tiêu diệt quái (Mặc định: 5% = 0.05).")]
+    [Range(0f, 1f)] [SerializeField] private float randomRedGemDropChance = 0.05f;
+
+    [Tooltip("Số ngọc đỏ rơi khi kích hoạt tỷ lệ ngẫu nhiên.")]
+    [Min(1)] [SerializeField] private int randomRedGemAmount = 1;
+
     [Tooltip("Tỷ lệ rơi tiền khi quái chết (1 = 100% luôn rơi, 0.5 = 50% cơ hội).")]
     [Range(0f, 1f)] [SerializeField] private float currencyDropChance = 1f;
 
@@ -89,11 +95,15 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     public int RedGemReward => redGemReward;
     public int BaseRedGemReward => baseRedGemReward > 0 ? baseRedGemReward : redGemReward;
     public float CurrencyDropChance => currencyDropChance;
+    public float RandomRedGemDropChance => randomRedGemDropChance;
+    public int RandomRedGemAmount => randomRedGemAmount;
     public bool IsDead { get; private set; }
 
     public void SetDataChipReward(int amount) => dataChipReward = Mathf.Max(0, amount);
     public void SetRedGemReward(int amount) => redGemReward = Mathf.Max(0, amount);
     public void SetCurrencyDropChance(float chance) => currencyDropChance = Mathf.Clamp01(chance);
+    public void SetRandomRedGemDropChance(float chance) => randomRedGemDropChance = Mathf.Clamp01(chance);
+    public void SetRandomRedGemAmount(int amount) => randomRedGemAmount = Mathf.Max(1, amount);
 
     public event Action<int, int> OnHealthChanged;
     public event Action OnEnemyDeath;
@@ -341,7 +351,22 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
         }
     }
 
-    private void Die()
+    /// <summary>
+    /// Tiêu diệt quái tức thời (dùng khi Win game hoặc Boss bị tiêu diệt) với hiệu ứng chớp đỏ và animation chết.
+    /// </summary>
+    public void InstantKill(bool grantRewards = true)
+    {
+        if (IsDead) return;
+        TriggerDamageFlash();
+        Die(grantRewards);
+    }
+
+    public void Die()
+    {
+        Die(true);
+    }
+
+    public void Die(bool grantRewards)
     {
         if (IsDead)
             return;
@@ -372,31 +397,41 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
             animator.applyRootMotion = false;
         }
 
-        // 3. Cấp kinh nghiệm cho Player
-        if (PlayerLevelController.Instance != null && expReward > 0)
+        if (grantRewards)
         {
-            PlayerLevelController.Instance.AddEXP(expReward);
-        }
+            // 3. Cấp kinh nghiệm cho Player
+            if (PlayerLevelController.Instance != null && expReward > 0)
+            {
+                PlayerLevelController.Instance.AddEXP(expReward);
+            }
 
-        // 4. Cấp tiền tệ (Data Chips / Red Gems) cho Player
-        if (currencyDropChance >= 1f || UnityEngine.Random.value <= currencyDropChance)
-        {
-            if (dataChipReward > 0)
+            // 4. Cấp tiền tệ (Data Chips / Red Gems) cho Player
+            if (currencyDropChance >= 1f || UnityEngine.Random.value <= currencyDropChance)
             {
-                ChipManager.AddDataChips(dataChipReward);
+                if (dataChipReward > 0)
+                {
+                    ChipManager.AddDataChips(dataChipReward);
+                }
+                if (redGemReward > 0)
+                {
+                    ChipManager.AddRedGems(redGemReward);
+                }
+
+                // Tỷ lệ ngẫu nhiên 5% rơi Gem đỏ khi tiêu diệt enemy
+                if (randomRedGemDropChance > 0f && UnityEngine.Random.value <= randomRedGemDropChance)
+                {
+                    ChipManager.AddRedGems(randomRedGemAmount);
+                }
             }
-            if (redGemReward > 0)
-            {
-                ChipManager.AddRedGems(redGemReward);
-            }
+
+            GameEvents.RaiseEnemyKilled(expReward);
         }
 
         // 5. Phát sự kiện để Spawner và hệ thống Achievements ghi nhận tiêu diệt
         OnEnemyDeath?.Invoke();
         OnDeath?.Invoke(this);
-        GameEvents.RaiseEnemyKilled(expReward);
 
-        // 5. Khóa chặt vị trí và chạy animation Die trọn vẹn rồi mới thu hồi / destroy
+        // 6. Khóa chặt vị trí và chạy animation Die trọn vẹn rồi mới thu hồi / destroy
         if (deathRoutine != null)
         {
             StopCoroutine(deathRoutine);
@@ -423,6 +458,7 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
         if (animator != null && animator.gameObject.activeInHierarchy)
         {
             animator.applyRootMotion = false;
+            animator.updateMode = AnimatorUpdateMode.UnscaledTime;
             animator.speed = 1f;
 
             if (hasDeathTriggerParam)
@@ -458,7 +494,8 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
                 transform.localScale = lockedScale;
             }
 
-            elapsed += Time.deltaTime;
+            float dt = Time.timeScale > 0f ? Time.deltaTime : Time.unscaledDeltaTime;
+            elapsed += dt;
             yield return null;
         }
 
@@ -487,7 +524,8 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
                 transform.rotation = lockedRot;
                 transform.localScale = finalDeathScale;
 
-                fadeElapsed += Time.deltaTime;
+                float dt = Time.timeScale > 0f ? Time.deltaTime : Time.unscaledDeltaTime;
+                fadeElapsed += dt;
                 float t = Mathf.Clamp01(fadeElapsed / fadeOutDuration);
 
                 for (int i = 0; i < spriteRenderers.Length; i++)

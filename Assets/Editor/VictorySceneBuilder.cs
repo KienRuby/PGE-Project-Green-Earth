@@ -96,13 +96,13 @@ public static class VictorySceneBuilder
         RectTransform resultCard = panelObject.GetComponent<RectTransform>();
         SetRect(resultCard, new Vector2(0f, 390f), new Vector2(720f, 706f));
 
-        // 2. Dòng thưởng Data Chip (Icon tím DATA + chữ Get 1758 font đậm viền đen dày chuẩn mẫu)
+        // 2. Dòng thưởng Data Chip (Dịch sang trái x = -65f để chữ Get 1000 không bao giờ xuống dòng và không chạm nút Details)
         RectTransform dataRow = BuildRewardRow(
-            victoryPanel.transform, "DataChipReward", new Vector2(-15f, 25f), dataChipSprite, "Get 1758", out TMP_Text dataChipRewardText);
+            victoryPanel.transform, "DataChipReward", new Vector2(-65f, 25f), dataChipSprite, "Get 1000", out TMP_Text dataChipRewardText);
 
-        // 3. Dòng thưởng Red Gem (Icon ngọc đỏ + chữ Get 20 font đậm viền đen dày chuẩn mẫu)
+        // 3. Dòng thưởng Red Gem (Dịch sang trái x = -65f)
         RectTransform redGemRow = BuildRewardRow(
-            victoryPanel.transform, "RedGemReward", new Vector2(-15f, -90f), redGemSprite, "Get 20", out TMP_Text redGemRewardText);
+            victoryPanel.transform, "RedGemReward", new Vector2(-65f, -90f), redGemSprite, "Get 20", out TMP_Text redGemRewardText);
 
         // 4. Nút Details (biểu đồ + chữ Details) đặt lệch sang bên phải ngay cạnh dòng Red Gem
         Button detailsButton = CreateSpriteButton(
@@ -168,13 +168,13 @@ public static class VictorySceneBuilder
         GameObject row = new GameObject(name, typeof(RectTransform));
         row.transform.SetParent(parent, false);
         RectTransform rowRect = row.GetComponent<RectTransform>();
-        SetRect(rowRect, position, new Vector2(440f, 110f));
+        SetRect(rowRect, position, new Vector2(520f, 110f));
 
         GameObject iconObject = CreateImage("Icon", row.transform, iconSprite);
         Image icon = iconObject.GetComponent<Image>();
         icon.preserveAspect = true;
         icon.raycastTarget = false;
-        SetRect(icon.rectTransform, new Vector2(-130f, 0f), new Vector2(96f, 96f));
+        SetRect(icon.rectTransform, new Vector2(-170f, 0f), new Vector2(96f, 96f));
 
         Material mat = rewardFontMaterial != null ? rewardFontMaterial : fontMaterial;
         rewardText = CreateText("Value", row.transform, defaultText, 68f, Color.white, mat);
@@ -182,7 +182,9 @@ public static class VictorySceneBuilder
         rewardText.fontStyle = FontStyles.Bold;
         rewardText.fontWeight = FontWeight.Bold;
         rewardText.extraPadding = true;
-        SetRect(rewardText.rectTransform, new Vector2(55f, 0f), new Vector2(290f, 100f));
+        rewardText.enableWordWrapping = false;
+        rewardText.overflowMode = TextOverflowModes.Overflow;
+        SetRect(rewardText.rectTransform, new Vector2(80f, 0f), new Vector2(420f, 100f));
         return rowRect;
     }
 

@@ -6,6 +6,7 @@ using UnityEngine;
 /// Tương tự ArtifactBoxPickup, có biểu tượng dấu hỏi '?' và báo hiệu radar ở mép màn hình khi ở xa.
 /// Khi người chơi chạm vào, game tạm dừng và mở GameplayEventModalController để đưa ra các lựa chọn.
 /// </summary>
+[ExecuteAlways]
 [RequireComponent(typeof(CircleCollider2D))]
 public class GameplayEventPickup : MonoBehaviour
 {
@@ -64,6 +65,11 @@ public class GameplayEventPickup : MonoBehaviour
     private void Awake()
     {
         initialPosition = transform.position;
+
+        if (!activeEvents.Contains(this))
+        {
+            activeEvents.Add(this);
+        }
 
         Rigidbody2D rb = GetComponent<Rigidbody2D>();
         if (rb == null)
@@ -207,6 +213,7 @@ public class GameplayEventPickup : MonoBehaviour
 
     private void Update()
     {
+        if (!Application.isPlaying) return;
         if (isTriggered) return;
 
         if (initialPosition == Vector3.zero && transform.position != Vector3.zero)

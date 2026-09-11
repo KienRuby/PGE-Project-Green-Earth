@@ -229,6 +229,8 @@ MonoBehaviour:
   expReward: 500
   dataChipReward: 100
   redGemReward: 5
+  randomRedGemDropChance: 0.05
+  randomRedGemAmount: 1
   currencyDropChance: 1
   deathAnimationTrigger: Die
   deathAnimationState: Die

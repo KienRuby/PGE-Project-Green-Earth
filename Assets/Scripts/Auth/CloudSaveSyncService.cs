@@ -1,11 +1,13 @@
 using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Unity.Services.CloudSave;
+using Unity.Services.CloudSave.Models;
 using UnityEngine;
 
 namespace PGE.Auth
 {
-    /// <summary>
-    /// Du lieu dong bo dam may duoc ma hoa dong goi tu PlayerDataService va GameSettings.
-    /// </summary>
     [Serializable]
     public class PlayerCloudData
     {
@@ -15,142 +17,178 @@ namespace PGE.Auth
         public int redGems;
         public int advanceStones;
         public int energy;
+        public int chipsetBoxes;
+        public int droneBoxes;
         public string saveTimestampUtc;
         public int saveVersion;
-
-        public PlayerCloudData()
-        {
-            saveVersion = 1;
-            saveTimestampUtc = DateTime.UtcNow.ToString("o");
-        }
     }
 
-    /// <summary>
-    /// Dich vu tu dong dong bo va luu tru tien trinh len Cloud khi dang nhap tai khoan Google.
-    /// </summary>
+    public sealed class CloudLoadResult
+    {
+        public GameSaveData Data;
+        public string WriteLock;
+        public bool Exists => Data != null;
+    }
+
+    /// <summary>Real Unity Cloud Save transport. PlayerPrefs is never used as cloud storage.</summary>
     public static class CloudSaveSyncService
     {
-        private const string PrefKeyCloudBackup = "PGE.CloudSave.BackupData";
-        private const string PrefKeyLastSyncUtc = "PGE.CloudSave.LastSyncUtc";
+        public const string CloudKey = "pge_save_v2";
+        private static readonly SemaphoreSlim Gate = new SemaphoreSlim(1, 1);
+        private static string writeLock;
+        private static string writeLockPlayerId;
 
         public static event Action<PlayerCloudData> OnCloudSaveCompleted;
         public static event Action<PlayerCloudData> OnCloudLoadCompleted;
+        public static bool IsAnyCloudLoggedIn => AuthenticationServiceManager.Instance != null && AuthenticationServiceManager.Instance.IsCloudAvailable;
 
-        /// <summary>
-        /// Dong goi toan bo tien trinh hien tai tu PlayerDataService de luu len Cloud.
-        /// </summary>
+        public static UserProfile GetActiveUser()
+        {
+            if (!IsAnyCloudLoggedIn) return null;
+            AuthenticationServiceManager auth = AuthenticationServiceManager.Instance;
+            return auth.Provider == AuthenticationProvider.GooglePlayGames ? GoogleAuthManager.Instance?.CurrentUser : AppleAuthManager.Instance?.CurrentUser;
+        }
+
         public static PlayerCloudData CreateCloudPayload(string accountId)
         {
             return new PlayerCloudData
             {
                 accountId = accountId,
-                playerId = GameSettings.LocalPlayerId,
+                playerId = AuthenticationServiceManager.Instance?.PlayerId ?? string.Empty,
                 dataChips = PlayerDataService.DataChips,
                 redGems = PlayerDataService.RedGems,
                 advanceStones = PlayerDataService.AdvanceStones,
                 energy = PlayerDataService.Energy,
-                saveTimestampUtc = DateTime.UtcNow.ToString("o"),
-                saveVersion = 1
+                chipsetBoxes = PlayerDataService.ChipsetBoxes,
+                droneBoxes = PlayerDataService.DroneBoxes,
+                saveTimestampUtc = DateTime.UtcNow.ToString("O"),
+                saveVersion = GameSaveData.CurrentVersion
             };
         }
 
-        public static UserProfile GetActiveUser()
+        public static async Task<CloudLoadResult> LoadAsync(CancellationToken token = default)
         {
-            if (GoogleAuthManager.Instance != null && GoogleAuthManager.Instance.IsLoggedIn)
-                return GoogleAuthManager.Instance.CurrentUser;
-            if (AppleAuthManager.Instance != null && AppleAuthManager.Instance.IsLoggedIn)
-                return AppleAuthManager.Instance.CurrentUser;
-            return null;
-        }
-
-        public static bool IsAnyCloudLoggedIn => GetActiveUser() != null;
-
-        /// <summary>
-        /// Thuc hien luu du lieu len Cloud.
-        /// </summary>
-        public static void SaveToCloud(Action<bool, string> onComplete = null)
-        {
-            UserProfile activeUser = GetActiveUser();
-            if (activeUser == null)
-            {
-                onComplete?.Invoke(false, "Chưa đăng nhập tài khoản đám mây (Google hoặc Apple).");
-                return;
-            }
-
+            EnsureAuthorized();
+            string playerId = AuthenticationServiceManager.Instance.PlayerId;
+            int generation = AuthenticationServiceManager.Instance.AccountGeneration;
+            await Gate.WaitAsync(token);
             try
             {
-                string accountId = activeUser.userId;
-                PlayerCloudData payload = CreateCloudPayload(accountId);
-                string json = JsonUtility.ToJson(payload);
-
-                PlayerPrefs.SetString(PrefKeyCloudBackup + "_" + accountId, json);
-                PlayerPrefs.SetString(PrefKeyLastSyncUtc, payload.saveTimestampUtc);
-                PlayerPrefs.Save();
-
-                Debug.Log($"<color=#00FF99>[CloudSave] Đồng bộ Cloud thành công cho tài khoản {activeUser.authProvider} ({accountId})</color>");
-                OnCloudSaveCompleted?.Invoke(payload);
-                onComplete?.Invoke(true, "Đồng bộ đám mây thành công!");
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"[CloudSave] Lỗi khi lưu lên Cloud: {ex.Message}");
-                onComplete?.Invoke(false, ex.Message);
-            }
-        }
-
-        /// <summary>
-        /// Tai tien trinh tu Cloud ve va hop nhat vao PlayerDataService.
-        /// </summary>
-        public static void LoadFromCloud(Action<bool, string> onComplete = null)
-        {
-            UserProfile activeUser = GetActiveUser();
-            if (activeUser == null)
-            {
-                onComplete?.Invoke(false, "Chưa đăng nhập tài khoản đám mây (Google hoặc Apple).");
-                return;
-            }
-
-            try
-            {
-                string accountId = activeUser.userId;
-                string key = PrefKeyCloudBackup + "_" + accountId;
-
-                if (PlayerPrefs.HasKey(key))
+                var results = await RetryAsync(() => CloudSaveService.Instance.Data.Player.LoadAsync(new HashSet<string> { CloudKey }), token);
+                EnsureSameAccount(playerId, generation);
+                if (!results.TryGetValue(CloudKey, out Item item))
                 {
-                    string json = PlayerPrefs.GetString(key, string.Empty);
-                    if (!string.IsNullOrEmpty(json))
-                    {
-                        PlayerCloudData cloudData = JsonUtility.FromJson<PlayerCloudData>(json);
-                        if (cloudData != null)
-                        {
-                            // Hop nhat tien te (Lay gia tri cao hon giua Cloud va Local de bao ve tien trinh)
-                            PlayerDataService.DataChips = Mathf.Max(PlayerDataService.DataChips, cloudData.dataChips);
-                            PlayerDataService.RedGems = Mathf.Max(PlayerDataService.RedGems, cloudData.redGems);
-                            PlayerDataService.AdvanceStones = Mathf.Max(PlayerDataService.AdvanceStones, cloudData.advanceStones);
-                            if (cloudData.energy > 0)
-                            {
-                                PlayerDataService.Energy = Mathf.Max(PlayerDataService.Energy, cloudData.energy);
-                            }
-
-                            Debug.Log($"<color=#00FF99>[CloudSave] Da tai va hop nhat tien trinh tu Cloud cho {accountId}</color>");
-                            OnCloudLoadCompleted?.Invoke(cloudData);
-                            onComplete?.Invoke(true, "Đã khôi phục dữ liệu từ đám mây!");
-                            return;
-                        }
-                    }
+                    writeLock = null;
+                    writeLockPlayerId = playerId;
+                    return new CloudLoadResult();
                 }
 
-                // Neu chua co du lieu tren cloud, tao moi tu local
-                SaveToCloud((success, msg) =>
-                {
-                    onComplete?.Invoke(success, success ? "Đã khởi tạo lưu đám mây mới." : msg);
-                });
+                string json = item.Value.GetAs<string>();
+                GameSaveData data = GameSaveData.Migrate(JsonUtility.FromJson<GameSaveData>(json));
+                string error = data == null ? "Cloud payload is empty." : string.Empty;
+                if (data == null || !data.Validate(out error))
+                    throw new InvalidOperationException("Cloud save validation failed: " + error);
+                if (!string.IsNullOrEmpty(data.ownerPlayerId) && data.ownerPlayerId != playerId)
+                    throw new InvalidOperationException("Cloud save owner does not match the authenticated player.");
+                data.ownerPlayerId = playerId;
+                writeLock = item.WriteLock;
+                writeLockPlayerId = playerId;
+                OnCloudLoadCompleted?.Invoke(ToLegacy(data));
+                return new CloudLoadResult { Data = data, WriteLock = item.WriteLock };
             }
-            catch (Exception ex)
+            finally { Gate.Release(); }
+        }
+
+        public static async Task SaveAsync(GameSaveData data, CancellationToken token = default)
+        {
+            EnsureAuthorized();
+            string playerId = AuthenticationServiceManager.Instance.PlayerId;
+            int generation = AuthenticationServiceManager.Instance.AccountGeneration;
+            string error = data == null ? "Save payload is empty." : string.Empty;
+            if (data == null || !data.Validate(out error)) throw new InvalidOperationException(error);
+            if (data.ownerPlayerId != playerId) throw new InvalidOperationException("Refusing to upload save owned by another player.");
+
+            await Gate.WaitAsync(token);
+            try
             {
-                Debug.LogError($"[CloudSave] Loi khi tai tu Cloud: {ex.Message}");
-                onComplete?.Invoke(false, ex.Message);
+                string json = JsonUtility.ToJson(data);
+                Dictionary<string, string> result;
+                if (writeLockPlayerId == playerId && !string.IsNullOrEmpty(writeLock))
+                {
+                    var values = new Dictionary<string, SaveItem> { { CloudKey, new SaveItem(json, writeLock) } };
+                    result = await RetryAsync(() => CloudSaveService.Instance.Data.Player.SaveAsync(values), token);
+                }
+                else
+                {
+                    var values = new Dictionary<string, object> { { CloudKey, json } };
+                    result = await RetryAsync(() => CloudSaveService.Instance.Data.Player.SaveAsync(values), token);
+                }
+                EnsureSameAccount(playerId, generation);
+                writeLock = result[CloudKey];
+                writeLockPlayerId = playerId;
+                OnCloudSaveCompleted?.Invoke(ToLegacy(data));
             }
+            finally { Gate.Release(); }
+        }
+
+        public static void SaveToCloud(Action<bool, string> onComplete = null) => SaveCallbackAsync(onComplete);
+        public static void LoadFromCloud(Action<bool, string> onComplete = null) => LoadCallbackAsync(onComplete);
+
+        private static async void SaveCallbackAsync(Action<bool, string> callback)
+        {
+            try
+            {
+                long revision = SaveSyncManager.Instance?.CurrentRevision + 1 ?? 1;
+                GameSaveData data = GameSaveData.Capture(AuthenticationServiceManager.Instance?.PlayerId, revision);
+                await SaveAsync(data);
+                callback?.Invoke(true, "Cloud synced.");
+            }
+            catch (Exception ex) { callback?.Invoke(false, ex.Message); }
+        }
+
+        private static async void LoadCallbackAsync(Action<bool, string> callback)
+        {
+            try
+            {
+                CloudLoadResult result = await LoadAsync();
+                if (!result.Exists) { callback?.Invoke(false, "No cloud save exists."); return; }
+                result.Data.ApplyToPlayerPrefs();
+                callback?.Invoke(true, "Cloud save restored.");
+            }
+            catch (Exception ex) { callback?.Invoke(false, ex.Message); }
+        }
+
+        private static async Task<T> RetryAsync<T>(Func<Task<T>> operation, CancellationToken token)
+        {
+            Exception last = null;
+            for (int attempt = 0; attempt < 3; attempt++)
+            {
+                token.ThrowIfCancellationRequested();
+                try { return await operation(); }
+                catch (Exception ex)
+                {
+                    last = ex;
+                    if (attempt < 2) await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, attempt)), token);
+                }
+            }
+            throw last ?? new InvalidOperationException("Cloud operation failed.");
+        }
+
+        private static void EnsureAuthorized()
+        {
+            if (!IsAnyCloudLoggedIn) throw new InvalidOperationException("A verified Google or Apple account is required for recoverable cloud save.");
+        }
+
+        private static void EnsureSameAccount(string playerId, int generation)
+        {
+            AuthenticationServiceManager auth = AuthenticationServiceManager.Instance;
+            if (auth == null || auth.PlayerId != playerId || auth.AccountGeneration != generation)
+                throw new OperationCanceledException("Account changed while cloud operation was in progress.");
+        }
+
+        private static PlayerCloudData ToLegacy(GameSaveData data)
+        {
+            return new PlayerCloudData { accountId = data.ownerPlayerId, playerId = data.ownerPlayerId, saveTimestampUtc = data.updatedAtUtc, saveVersion = data.saveVersion };
         }
     }
 }

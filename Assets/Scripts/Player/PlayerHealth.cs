@@ -117,6 +117,43 @@ public class PlayerHealth : MonoBehaviour, IDamageable
 
     private float invincibleTimer;
     private int damageReduction;
+    private int artifactDamageReduction;
+    private int labHealthBonus;
+    private float artifactHealthPercent;
+    private bool isInvulnerable;
+
+    public bool IsInvulnerable
+    {
+        get => isInvulnerable;
+        set => isInvulnerable = value;
+    }
+
+    public int TotalDamageReduction => damageReduction + artifactDamageReduction;
+
+    public void SetLabHealthBonus(int bonus, bool resetCurrentHealth = false)
+    {
+        labHealthBonus = Mathf.Max(0, bonus);
+        ApplyHealthBonuses(resetCurrentHealth);
+    }
+
+    public void SetArtifactHealthBonus(float percent)
+    {
+        artifactHealthPercent = Mathf.Max(0f, percent);
+        ApplyHealthBonuses(false);
+    }
+
+    private void ApplyHealthBonuses(bool resetCurrentHealth)
+    {
+        int nextMax = Mathf.RoundToInt((BaseMaxHealth + labHealthBonus) * (1f + artifactHealthPercent / 100f));
+        int increase = nextMax - MaxHealth;
+        SetMaxHealth(nextMax, resetCurrentHealth);
+        if (!resetCurrentHealth && increase > 0) Heal(increase);
+    }
+
+    public void SetArtifactDamageReduction(int bonus)
+    {
+        artifactDamageReduction = Mathf.Max(0, bonus);
+    }
     private SpriteRenderer[] spriteRenderers;
     private Color[] initialSpriteColors;
     private Coroutine flashRoutine;
@@ -281,6 +318,9 @@ public class PlayerHealth : MonoBehaviour, IDamageable
     /// </summary>
     public void TakeRangedDamage(int damage)
     {
+        if (IsDead || isInvulnerable)
+            return;
+
         if (rangedDefenseBonusPercent > 0f)
         {
             float reductionMultiplier = 1f - (rangedDefenseBonusPercent / 100f);
@@ -299,7 +339,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable
 
     public void TakeDamage(int damage)
     {
-        if (IsDead)
+        if (IsDead || isInvulnerable)
             return;
 
         if (invincibleTimer > 0f)
@@ -308,7 +348,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable
         if (damage <= 0)
             return;
 
-        int effectiveDamage = Mathf.Max(1, damage - damageReduction);
+        int effectiveDamage = Mathf.Max(1, damage - TotalDamageReduction);
 
         int damageToHp = effectiveDamage;
         if (currentShield > 0)

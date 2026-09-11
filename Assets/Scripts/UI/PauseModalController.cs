@@ -500,9 +500,21 @@ public class PauseModalController : MonoBehaviour
         HideArtifactDetail();
 
         // 1. Activate main content panels
-        if (statsPanel != null) statsPanel.SetActive(index == 0);
-        if (chipsetPanel != null) chipsetPanel.SetActive(index == 1);
-        if (artifactPanel != null) artifactPanel.SetActive(index == 2);
+        if (statsPanel != null)
+        {
+            EnsureParentChainActive(statsPanel);
+            statsPanel.SetActive(index == 0);
+        }
+        if (chipsetPanel != null)
+        {
+            EnsureParentChainActive(chipsetPanel);
+            chipsetPanel.SetActive(index == 1);
+        }
+        if (artifactPanel != null)
+        {
+            EnsureParentChainActive(artifactPanel);
+            artifactPanel.SetActive(index == 2);
+        }
 
         if (index == 1)
         {
@@ -626,9 +638,21 @@ public class PauseModalController : MonoBehaviour
     {
         CurrentSubTab = index;
 
-        if (defStatsPanel != null) defStatsPanel.SetActive(index == 0);
-        if (attackStatsPanel != null) attackStatsPanel.SetActive(index == 1);
-        if (otherStatsPanel != null) otherStatsPanel.SetActive(index == 2);
+        if (defStatsPanel != null)
+        {
+            EnsureParentChainActive(defStatsPanel);
+            defStatsPanel.SetActive(index == 0);
+        }
+        if (attackStatsPanel != null)
+        {
+            EnsureParentChainActive(attackStatsPanel);
+            attackStatsPanel.SetActive(index == 1);
+        }
+        if (otherStatsPanel != null)
+        {
+            EnsureParentChainActive(otherStatsPanel);
+            otherStatsPanel.SetActive(index == 2);
+        }
 
         SetSubTabVisual(defSubTabBg, defSubTabText, index == 0);
         SetSubTabVisual(attackSubTabBg, attackSubTabText, index == 1);
@@ -936,6 +960,35 @@ public class PauseModalController : MonoBehaviour
         }
 
         LoadTabSpritesIfMissing();
+
+        // Auto-wire sub-tab visuals if missing
+        if (defSubTabButton != null)
+        {
+            if (defSubTabBg == null) defSubTabBg = defSubTabButton.GetComponent<Image>();
+            if (defSubTabText == null) defSubTabText = defSubTabButton.GetComponentInChildren<TMP_Text>(true);
+        }
+        if (attackSubTabButton != null)
+        {
+            if (attackSubTabBg == null) attackSubTabBg = attackSubTabButton.GetComponent<Image>();
+            if (attackSubTabText == null) attackSubTabText = attackSubTabButton.GetComponentInChildren<TMP_Text>(true);
+        }
+        if (otherSubTabButton != null)
+        {
+            if (otherSubTabBg == null) otherSubTabBg = otherSubTabButton.GetComponent<Image>();
+            if (otherSubTabText == null) otherSubTabText = otherSubTabButton.GetComponentInChildren<TMP_Text>(true);
+        }
+
+        // Ensure StatsSubContainer is active
+        Transform statsSub = searchRoot.Find("MainFrame/StatsPanel/StatsSubContainer")
+                          ?? searchRoot.Find("StatsPanel/StatsSubContainer");
+        if (statsSub != null && !statsSub.gameObject.activeSelf)
+        {
+            statsSub.gameObject.SetActive(true);
+        }
+        if (defStatsPanel != null && defStatsPanel.transform.parent != null && !defStatsPanel.transform.parent.gameObject.activeSelf)
+        {
+            defStatsPanel.transform.parent.gameObject.SetActive(true);
+        }
 
         AlignTabPosition(statsOn, statsOff);
         AlignTabPosition(chipsetOn, chipsetOff);

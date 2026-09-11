@@ -65,9 +65,10 @@ public class ChipItemData
     public bool NeedsAdvanceStones => tier == ChipTier.Epic && IsAtTierCap;
     public int AdvanceStoneCost => NeedsAdvanceStones ? 10 : 0;
 
-    public int RequiredTierEnhances => requiredTierEnhances;
+    public int RequiredTierEnhances => Mathf.Min(requiredTierEnhances,
+        MaxLevel - (tier == ChipTier.Magic ? 1 : GetMaxLevelForTier((ChipTier)((int)tier - 1))));
     public bool IsTierUnlockReady => tierUnlockRulesEnabled
-        ? tierEnhanceCount >= requiredTierEnhances
+        ? tierEnhanceCount >= RequiredTierEnhances || IsAtTierCap
         : IsAtTierCap;
     public bool UsesRedDataChipForAdvance => tierUnlockRulesEnabled && tier == ChipTier.Epic;
     public int YellowToRedDataChipCost => yellowToRedDataChipCost;
@@ -113,7 +114,7 @@ public class ChipItemData
             }
             if (tierUnlockRulesEnabled)
             {
-                return tierEnhanceCount >= requiredTierEnhances || level >= MaxLevel;
+                return tierEnhanceCount >= RequiredTierEnhances || level >= MaxLevel;
             }
             return IsAtTierCap;
         }
@@ -483,6 +484,7 @@ public class ChipsetController : MonoBehaviour
         ChipManager.OnRedGemsChanged += HandleCurrencyChanged;
         ChipManager.OnEnergyChanged += HandleCurrencyChanged;
         ChipManager.OnAdvanceStonesChanged += HandleCurrencyChanged;
+        PlayerDataService.OnChipsetPiecesChanged += HandleChipsetPiecesChanged;
     }
 
     private void OnDisable()
@@ -491,6 +493,7 @@ public class ChipsetController : MonoBehaviour
         ChipManager.OnRedGemsChanged -= HandleCurrencyChanged;
         ChipManager.OnEnergyChanged -= HandleCurrencyChanged;
         ChipManager.OnAdvanceStonesChanged -= HandleCurrencyChanged;
+        PlayerDataService.OnChipsetPiecesChanged -= HandleChipsetPiecesChanged;
     }
 
     private void HandleCurrencyChanged(int _)
@@ -498,6 +501,21 @@ public class ChipsetController : MonoBehaviour
         RefreshTopBar();
         if (detailModal != null && detailModal.activeSelf && selectedDetailChip != null)
         {
+            RefreshDetailModal();
+        }
+    }
+
+    private void HandleChipsetPiecesChanged(int chipsetId, int newCount)
+    {
+        ChipItemData chipset = allChips.FirstOrDefault(item => item != null && item.id == chipsetId);
+        if (chipset == null) return;
+
+        chipset.count = newCount;
+        RefreshEquippedGrid();
+        RefreshInventory();
+        if (detailModal != null && detailModal.activeSelf && selectedDetailChip != null && selectedDetailChip.id == chipsetId)
+        {
+            selectedDetailChip.count = newCount;
             RefreshDetailModal();
         }
     }
@@ -1391,7 +1409,7 @@ public class ChipsetController : MonoBehaviour
         // 1. Mod Badge
         if (detailModBadgeText != null)
         {
-            detailModBadgeText.text = $"🔧 Mod able (up to LV{selectedDetailChip.MaxLevel:00}) 🔧";
+            detailModBadgeText.text = $"MOD • UP TO LV{selectedDetailChip.MaxLevel:00}";
         }
 
         // 2. Top Card
@@ -2032,13 +2050,13 @@ public class ChipsetController : MonoBehaviour
             textRt.offsetMax = new Vector2(-20f, -20f);
 
             TMP_Text txt = textObj.AddComponent<TextMeshProUGUI>();
+            AssignRuntimeNoticeFont(txt);
             txt.text = line1;
             txt.fontSize = 36f;
             txt.color = Color.white;
             txt.fontStyle = FontStyles.Bold;
             txt.alignment = TextAlignmentOptions.Center;
-            txt.outlineColor = Color.black;
-            txt.outlineWidth = 0.25f;
+            ApplyRuntimeNoticeOutline(txt);
             txt.raycastTarget = false;
         }
         else
@@ -2053,13 +2071,13 @@ public class ChipsetController : MonoBehaviour
             line1Rt.offsetMax = new Vector2(-20f, 0f);
 
             TMP_Text txt1 = line1Obj.AddComponent<TextMeshProUGUI>();
+            AssignRuntimeNoticeFont(txt1);
             txt1.text = line1;
             txt1.fontSize = 32f;
             txt1.color = Color.white;
             txt1.fontStyle = FontStyles.Bold;
             txt1.alignment = TextAlignmentOptions.Center;
-            txt1.outlineColor = Color.black;
-            txt1.outlineWidth = 0.25f;
+            ApplyRuntimeNoticeOutline(txt1);
             txt1.raycastTarget = false;
 
             GameObject line2Obj = new GameObject("Line2", typeof(RectTransform));
@@ -2072,18 +2090,38 @@ public class ChipsetController : MonoBehaviour
             line2Rt.offsetMax = new Vector2(-20f, 0f);
 
             TMP_Text txt2 = line2Obj.AddComponent<TextMeshProUGUI>();
+            AssignRuntimeNoticeFont(txt2);
             txt2.text = line2;
             txt2.fontSize = 26f;
             txt2.color = new Color32(254, 209, 66, 255);
             txt2.fontStyle = FontStyles.Bold;
             txt2.alignment = TextAlignmentOptions.Center;
-            txt2.outlineColor = Color.black;
-            txt2.outlineWidth = 0.25f;
+            ApplyRuntimeNoticeOutline(txt2);
             txt2.raycastTarget = false;
         }
 
         root.AddComponent<UIDissolveController>();
         root.SetActive(false);
         return root;
+    }
+
+    private void AssignRuntimeNoticeFont(TMP_Text text)
+    {
+        if (text == null || text.font != null) return;
+
+        TMP_FontAsset referenceFont = detailNameText != null && detailNameText.font != null
+            ? detailNameText.font
+            : detailModBadgeText != null && detailModBadgeText.font != null
+                ? detailModBadgeText.font
+                : TMP_Settings.defaultFontAsset;
+
+        if (referenceFont != null) text.font = referenceFont;
+    }
+
+    private static void ApplyRuntimeNoticeOutline(TMP_Text text)
+    {
+        if (text == null || text.font == null || text.font.material == null) return;
+        text.outlineColor = Color.black;
+        text.outlineWidth = 0.25f;
     }
 }

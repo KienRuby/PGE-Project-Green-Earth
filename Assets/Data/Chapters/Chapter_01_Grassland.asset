@@ -28,7 +28,7 @@ MonoBehaviour:
   levelConfigId: grassland_1
   isLocked: 0
   victoryDataChipReward: 1000
-  victoryRedGemReward: 200
+  victoryRedGemReward: 20
   autoGenerateWaves: 1
   chapterDifficultyMultiplier: 1
   wavePowerGrowthRate: 0.08

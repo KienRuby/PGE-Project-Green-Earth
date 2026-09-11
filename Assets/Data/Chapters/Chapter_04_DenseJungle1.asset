@@ -27,6 +27,8 @@ MonoBehaviour:
   gameplaySceneName: GamePlay
   levelConfigId: dense_jungle_1
   isLocked: 0
+  victoryDataChipReward: 1728
+  victoryRedGemReward: 35
   autoGenerateWaves: 1
   chapterDifficultyMultiplier: 1.75
   wavePowerGrowthRate: 0.08
