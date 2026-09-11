@@ -84,7 +84,7 @@ public static class DamageNumberSceneBuilder
         tmp.enableWordWrapping = false;
         tmp.enableVertexGradient = true;
         tmp.colorGradient = new VertexGradient(
-            new Color(1f, 1f, 1f, 1f),
+            new Color(1f........................................., 1f, 1f, 1f),
             new Color(1f, 1f, 1f, 1f),
             new Color(1f, 0.82f, 0.08f, 1f),
             new Color(1f, 0.82f, 0.08f, 1f)
