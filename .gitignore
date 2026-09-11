@@ -28,6 +28,9 @@
 *.log
 *.txt
 *.txt.meta
+!Packages/**/*.txt
+!Packages/**/*.txt.meta
+!ProjectSettings/*.txt
 
 # Agent, test runner & temporary test scripts/documents
 .agents/
