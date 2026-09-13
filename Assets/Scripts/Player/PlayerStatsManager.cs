@@ -72,13 +72,29 @@ public class PlayerStatsManager : MonoBehaviour
         int rangeLevel = GetStatLevel("RANGE") + GetStatLevel("ATTACK RANGE");
         int bulletSpeedLevel = GetStatLevel("BULLET SPEED") + GetStatLevel("TECH");
 
-        BonusMaxHealth = hpLevel * hpBonusPerLevel;
+        int equippedSkin = BuildBodyController.EquippedSkinIndex;
+        int bodyBonusHp = equippedSkin switch
+        {
+            1 => 50,
+            2 => 100,
+            3 => 250,
+            _ => 0
+        };
+        int bodyBonusDef = equippedSkin switch
+        {
+            1 => 7,
+            2 => 15,
+            3 => 35,
+            _ => 0
+        };
+
+        BonusMaxHealth = hpLevel * hpBonusPerLevel + bodyBonusHp;
         BonusDamage = atkLevel * damageBonusPerLevel;
         BonusSpeed = moveSpeedLevel * speedBonusPerLevel;
         BonusFireRate = fireRateLevel * fireRateBonusPerLevel;
         BonusRange = rangeLevel * rangeBonusPerLevel;
         HealthRegenPerSecond = autoRecoveryLevel * regenPerSecondPerLevel;
-        DamageReduction = defLevel * damageReductionPerLevel;
+        DamageReduction = defLevel * damageReductionPerLevel + bodyBonusDef;
         BonusBulletSpeed = bulletSpeedLevel * bulletSpeedBonusPerLevel;
         CritChance = Mathf.Clamp01(critRateLevel * critChancePerLevel);
 
@@ -119,6 +135,7 @@ public class PlayerStatsManager : MonoBehaviour
 
     public static int GetStatLevel(string statName)
     {
-        return PlayerDataService.GetItemLevel(statName);
+        string key = PlayerDataService.FormatItemLevelKey(statName);
+        return PlayerPrefs.GetInt(key, 0);
     }
 }

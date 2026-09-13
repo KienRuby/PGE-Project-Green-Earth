@@ -34,7 +34,7 @@ public class BuddyItemData
     public string epicPerkText;
 
     public bool CanEnhance => ChipManager.DataChips >= enhanceCost;
-    public bool CanAdvanceTier => count >= requiredCount && requiredCount > 0;
+    public bool CanAdvanceTier => tier < BuddyTier.Holographic && count >= requiredCount && requiredCount > 0;
     public bool CanUpgrade => CanEnhance || CanAdvanceTier;
 
     public bool Enhance()
@@ -51,7 +51,9 @@ public class BuddyItemData
         if (!CanAdvanceTier) return false;
         count -= requiredCount;
         tier = (BuddyTier)Mathf.Min((int)tier + 1, (int)BuddyTier.Holographic);
-        requiredCount = Mathf.RoundToInt(requiredCount * 1.6f) + 1;
+        requiredCount = tier >= BuddyTier.Holographic
+            ? 0
+            : Mathf.RoundToInt(requiredCount * 1.6f) + 1;
         return true;
     }
 
@@ -80,7 +82,6 @@ public class BuddyItemData
 public class BuddyController : MonoBehaviour
 {
     [Header("Top Bar Currencies")]
-    [SerializeField] private TMP_Text energyText;
     [SerializeField] private TMP_Text chipCurrencyText;
     [SerializeField] private TMP_Text redCurrencyText;
 
@@ -211,7 +212,6 @@ public class BuddyController : MonoBehaviour
     {
         ChipManager.OnDataChipsChanged += HandleCurrencyChanged;
         ChipManager.OnRedGemsChanged += HandleCurrencyChanged;
-        ChipManager.OnEnergyChanged += HandleCurrencyChanged;
         PlayerDataService.OnBuddyPiecesChanged += HandleBuddyPiecesChanged;
     }
 
@@ -219,7 +219,6 @@ public class BuddyController : MonoBehaviour
     {
         ChipManager.OnDataChipsChanged -= HandleCurrencyChanged;
         ChipManager.OnRedGemsChanged -= HandleCurrencyChanged;
-        ChipManager.OnEnergyChanged -= HandleCurrencyChanged;
         PlayerDataService.OnBuddyPiecesChanged -= HandleBuddyPiecesChanged;
     }
 
@@ -865,14 +864,11 @@ public class BuddyController : MonoBehaviour
         }
 
         // 4. Action Buttons
-        if (detailEquipBtn == null)
+        Transform equipBtnT = modalRoot.Find("EquipBtn");
+        if (equipBtnT != null)
         {
-            Transform t = modalRoot.Find("EquipBtn");
-            if (t != null)
-            {
-                detailEquipBtn = t.GetComponent<Button>();
-                if (detailEquipBtnText == null) detailEquipBtnText = t.GetComponentInChildren<TMP_Text>(true);
-            }
+            if (detailEquipBtn == null) detailEquipBtn = equipBtnT.GetComponent<Button>();
+            if (detailEquipBtnText == null) detailEquipBtnText = equipBtnT.GetComponentInChildren<TMP_Text>(true);
         }
 
         Transform enhBtnT = modalRoot.Find("EnhanceBtn");
@@ -897,13 +893,14 @@ public class BuddyController : MonoBehaviour
             }
         }
 
-        if (detailAdvanceTierBtn == null)
+        Transform advanceBtnT = modalRoot.Find("AdvanceTierBtn");
+        if (advanceBtnT != null)
         {
-            Transform t = modalRoot.Find("AdvanceTierBtn");
-            if (t != null)
+            if (detailAdvanceTierBtn == null) detailAdvanceTierBtn = advanceBtnT.GetComponent<Button>();
+            if (detailAdvanceTierText == null)
             {
-                detailAdvanceTierBtn = t.GetComponent<Button>();
-                if (detailAdvanceTierText == null) detailAdvanceTierText = t.Find("Label")?.GetComponent<TMP_Text>() ?? t.GetComponentInChildren<TMP_Text>(true);
+                detailAdvanceTierText = advanceBtnT.Find("Label")?.GetComponent<TMP_Text>()
+                    ?? advanceBtnT.GetComponentInChildren<TMP_Text>(true);
             }
         }
 
@@ -988,7 +985,6 @@ public class BuddyController : MonoBehaviour
 
     private void RefreshTopBar()
     {
-        if (energyText != null) energyText.text = $"{ChipManager.Energy}/{ChipManager.MaxEnergy}";
         if (chipCurrencyText != null) chipCurrencyText.text = $"{ChipManager.DataChips:N0}";
         if (redCurrencyText != null) redCurrencyText.text = $"{ChipManager.RedGems:N0}";
     }
@@ -1470,7 +1466,7 @@ public class BuddyController : MonoBehaviour
         // 6. Advance Tier Button
         if (detailAdvanceTierText != null)
         {
-            detailAdvanceTierText.text = selectedDetailBuddy.requiredCount > 0
+            detailAdvanceTierText.text = selectedDetailBuddy.tier < BuddyTier.Holographic && selectedDetailBuddy.requiredCount > 0
                 ? $"Advance Tier ({selectedDetailBuddy.count}/{selectedDetailBuddy.requiredCount})"
                 : "MAX TIER";
         }

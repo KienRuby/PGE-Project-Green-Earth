@@ -72,7 +72,7 @@ public static class DropTable
 
         CircleCollider2D col = boxObj.AddComponent<CircleCollider2D>();
         col.isTrigger = true;
-        col.radius = 0.8f;
+        col.radius = 0.3f;
 
         Rigidbody2D rb = boxObj.AddComponent<Rigidbody2D>();
         rb.bodyType = RigidbodyType2D.Kinematic;

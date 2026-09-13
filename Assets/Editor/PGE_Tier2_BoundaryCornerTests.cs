@@ -1442,6 +1442,56 @@ public class PGE_Tier2_BoundaryCornerTests
         Assert.That(drone.CanAdvanceTier, Is.False);
         Assert.That(drone.AdvanceTier(), Is.False);
     }
+
+    [Test]
+    public void T2_F18_06_BuddyDetailAdvanceLabel_UsesSelectedBuddyFragmentCounts()
+    {
+        GameObject root = new GameObject("BuddyControllerTest");
+        root.SetActive(false);
+        BuddyController controller = root.AddComponent<BuddyController>();
+
+        GameObject modal = new GameObject("BuddyDetailModal", typeof(RectTransform));
+        modal.transform.SetParent(root.transform, false);
+        GameObject modalBox = new GameObject("ModalBox", typeof(RectTransform));
+        modalBox.transform.SetParent(modal.transform, false);
+        GameObject buttonObject = new GameObject(
+            "AdvanceTierBtn",
+            typeof(RectTransform),
+            typeof(CanvasRenderer),
+            typeof(UnityEngine.UI.Image),
+            typeof(UnityEngine.UI.Button));
+        buttonObject.transform.SetParent(modalBox.transform, false);
+        GameObject labelObject = new GameObject(
+            "Label",
+            typeof(RectTransform),
+            typeof(CanvasRenderer),
+            typeof(TMPro.TextMeshProUGUI));
+        labelObject.transform.SetParent(buttonObject.transform, false);
+
+        try
+        {
+            const BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance;
+            typeof(BuddyController).GetField("detailModal", flags)?.SetValue(controller, modal);
+            typeof(BuddyController).GetField("detailAdvanceTierBtn", flags)?.SetValue(
+                controller,
+                buttonObject.GetComponent<UnityEngine.UI.Button>());
+            typeof(BuddyController).GetField("selectedDetailBuddy", flags)?.SetValue(
+                controller,
+                new BuddyItemData { id = 1, tier = BuddyTier.Common, count = 4, requiredCount = 28 });
+
+            controller.RefreshDetailModal();
+
+            TMPro.TMP_Text label = labelObject.GetComponent<TMPro.TMP_Text>();
+            Assert.That(label.text, Is.EqualTo("Advance Tier (4/28)"));
+            Assert.That(
+                typeof(BuddyController).GetField("detailAdvanceTierText", flags)?.GetValue(controller),
+                Is.SameAs(label));
+        }
+        finally
+        {
+            Object.DestroyImmediate(root);
+        }
+    }
     #endregion
 
     #region Feature 19: Level Up Popup & Reroll Modal (Boundary)

@@ -304,7 +304,7 @@ public class M4MetaSystemsTests
     [Test]
     public void M4_13_LevelUpPopup_Offers4DistinctChoices_WithoutDuplicates()
     {
-        List<ChipItemData> catalog = ChipsetLevelUpPopup.CreateRuntimeCatalog();
+        List<ChipItemData> catalog = ChipsetController.CreateDefaultDatabase();
         Assert.That(catalog.Count, Is.GreaterThanOrEqualTo(4));
 
         System.Random rng = new System.Random(12345);

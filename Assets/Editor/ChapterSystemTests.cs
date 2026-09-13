@@ -155,6 +155,19 @@ public class ChapterSystemTests
     }
 
     [Test]
+    public void EnergyBalanceText_IsOwnedOnlyByTopBar()
+    {
+        const System.Reflection.BindingFlags flags =
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+
+        Assert.That(typeof(TopBarCurrencyController).GetField("energyText", flags), Is.Not.Null);
+        Assert.That(typeof(ShopController).GetField("energyText", flags), Is.Null);
+        Assert.That(typeof(LabUpgradeController).GetField("energyBalanceText", flags), Is.Null);
+        Assert.That(typeof(ChipsetController).GetField("energyText", flags), Is.Null);
+        Assert.That(typeof(BuddyController).GetField("energyText", flags), Is.Null);
+    }
+
+    [Test]
     public void ChapterScreenController_TryStartChapter_DeductsEnergyStrictlyOnce()
     {
         bool originalTestMode = ChipManager.IsTestMode;
@@ -314,6 +327,7 @@ public class ChapterSystemTests
         Object.DestroyImmediate(normal);
         Object.DestroyImmediate(pressed);
     }
+    [Test]
     public void TopBarCurrencyController_UpdatesTextsOnChipManagerEvents()
     {
         bool originalTestMode = ChipManager.IsTestMode;
@@ -341,13 +355,14 @@ public class ChapterSystemTests
             ChipManager.IsTestMode = false;
             ChipManager.DataChips = 54321;
             ChipManager.RedGems = 12345;
-            ChipManager.Energy = 42;
+            ChipManager.Energy = 150;
 
             ctrl.RefreshAllBalances();
 
             Assert.That(dataChipFormattedText(chipText.text), Is.EqualTo("54.321"));
             Assert.That(dataChipFormattedText(gemText.text), Is.EqualTo("12.345"));
-            Assert.That(energyText.text, Does.StartWith("42/"));
+            Assert.That(energyText.text, Is.EqualTo($"150/{ChipManager.MaxEnergy}"),
+                "TopBar phải hiển thị số năng lượng thực tế, kể cả khi vượt sức chứa chuẩn.");
         }
         finally
         {

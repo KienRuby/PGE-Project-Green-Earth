@@ -268,7 +268,6 @@ public class ChipItemData
 public class ChipsetController : MonoBehaviour
 {
     [Header("Top Bar Currencies")]
-    [SerializeField] private TMP_Text energyText;
     [SerializeField] private TMP_Text chipCurrencyText;
     [SerializeField] private TMP_Text redCurrencyText;
     [SerializeField] private TMP_Text advanceStonesText;
@@ -482,7 +481,6 @@ public class ChipsetController : MonoBehaviour
     {
         ChipManager.OnDataChipsChanged += HandleCurrencyChanged;
         ChipManager.OnRedGemsChanged += HandleCurrencyChanged;
-        ChipManager.OnEnergyChanged += HandleCurrencyChanged;
         ChipManager.OnAdvanceStonesChanged += HandleCurrencyChanged;
         PlayerDataService.OnChipsetPiecesChanged += HandleChipsetPiecesChanged;
     }
@@ -491,7 +489,6 @@ public class ChipsetController : MonoBehaviour
     {
         ChipManager.OnDataChipsChanged -= HandleCurrencyChanged;
         ChipManager.OnRedGemsChanged -= HandleCurrencyChanged;
-        ChipManager.OnEnergyChanged -= HandleCurrencyChanged;
         ChipManager.OnAdvanceStonesChanged -= HandleCurrencyChanged;
         PlayerDataService.OnChipsetPiecesChanged -= HandleChipsetPiecesChanged;
     }
@@ -533,10 +530,6 @@ public class ChipsetController : MonoBehaviour
         for (int i = 0; i < deckEquippedIds.Length; i++)
         {
             deckEquippedIds[i] = PlayerDataService.LoadChipsetDeck(i, deckEquippedIds[i]);
-            if (deckEquippedIds[i] == null || deckEquippedIds[i].Length == 0 || deckEquippedIds[i].All(id => id <= 0))
-            {
-                deckEquippedIds[i] = GetDefaultDeckIds(i);
-            }
         }
     }
 
@@ -805,9 +798,7 @@ public class ChipsetController : MonoBehaviour
             .Select(id => byId[id].Clone())
             .ToList();
 
-        return equipped.Count > 0
-            ? equipped
-            : source.Where(chip => chip != null).Select(chip => chip.Clone()).ToList();
+        return equipped;
     }
 
     private static int[] GetDefaultDeckIds(int deckIndex)
@@ -956,7 +947,6 @@ public class ChipsetController : MonoBehaviour
 
     private void RefreshTopBar()
     {
-        if (energyText != null) energyText.text = $"{ChipManager.Energy}/{ChipManager.MaxEnergy}";
         if (chipCurrencyText != null) chipCurrencyText.text = $"{ChipManager.DataChips:N0}";
         if (redCurrencyText != null) redCurrencyText.text = $"{ChipManager.RedGems:N0}";
         if (advanceStonesText != null) advanceStonesText.text = $"{ChipManager.AdvanceStones:N0}";

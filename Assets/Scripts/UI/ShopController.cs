@@ -64,7 +64,6 @@ public sealed class ShopController : MonoBehaviour
     }
 
     [Header("Balances and Header UI")]
-    [SerializeField] private TMP_Text energyText;
     [SerializeField] private TMP_Text dataChipText;
     [SerializeField] private TMP_Text redGemText;
     [SerializeField] private TMP_Text feedbackText;
@@ -78,7 +77,6 @@ public sealed class ShopController : MonoBehaviour
     [Tooltip("Thời gian giãn cách tối thiểu (giây) giữa 2 lần bấm mua liên tiếp để chống click spam/double tap.")]
     [SerializeField] private float transactionCooldown = 0.2f;
 
-    private int currentEnergy;
     private int currentDataChips;
     private int currentRedGems;
     private int chipsetBoxes;
@@ -109,7 +107,6 @@ public sealed class ShopController : MonoBehaviour
 
     private void Awake()
     {
-        currentEnergy = Mathf.Clamp(ChipManager.Energy, 0, ChipManager.MaxEnergy);
         currentDataChips = ChipManager.DataChips;
         currentRedGems = ChipManager.RedGems;
         chipsetBoxes = PlayerDataService.ChipsetBoxes;
@@ -127,14 +124,12 @@ public sealed class ShopController : MonoBehaviour
     {
         ChipManager.OnDataChipsChanged += HandleDataChipsChanged;
         ChipManager.OnRedGemsChanged += HandleRedGemsChanged;
-        ChipManager.OnEnergyChanged += HandleEnergyChanged;
         ChipManager.OnTestModeChanged += HandleTestModeChanged;
         ChipManager.OnChipsetBoxesChanged += HandleChipsetBoxesChanged;
         ChipManager.OnDroneBoxesChanged += HandleDroneBoxesChanged;
 
         currentDataChips = ChipManager.DataChips;
         currentRedGems = ChipManager.RedGems;
-        currentEnergy = Mathf.Clamp(ChipManager.Energy, 0, ChipManager.MaxEnergy);
         chipsetBoxes = PlayerDataService.ChipsetBoxes;
         droneBoxes = PlayerDataService.DroneBoxes;
 
@@ -146,7 +141,6 @@ public sealed class ShopController : MonoBehaviour
     {
         ChipManager.OnDataChipsChanged -= HandleDataChipsChanged;
         ChipManager.OnRedGemsChanged -= HandleRedGemsChanged;
-        ChipManager.OnEnergyChanged -= HandleEnergyChanged;
         ChipManager.OnTestModeChanged -= HandleTestModeChanged;
         ChipManager.OnChipsetBoxesChanged -= HandleChipsetBoxesChanged;
         ChipManager.OnDroneBoxesChanged -= HandleDroneBoxesChanged;
@@ -199,12 +193,6 @@ public sealed class ShopController : MonoBehaviour
         RefreshView();
     }
 
-    private void HandleEnergyChanged(int newAmount)
-    {
-        currentEnergy = Mathf.Clamp(newAmount, 0, ChipManager.MaxEnergy);
-        RefreshView();
-    }
-
     private void HandleChipsetBoxesChanged(int newAmount)
     {
         chipsetBoxes = newAmount;
@@ -221,7 +209,6 @@ public sealed class ShopController : MonoBehaviour
     {
         currentDataChips = ChipManager.DataChips;
         currentRedGems = ChipManager.RedGems;
-        currentEnergy = Mathf.Clamp(ChipManager.Energy, 0, ChipManager.MaxEnergy);
         chipsetBoxes = PlayerDataService.ChipsetBoxes;
         droneBoxes = PlayerDataService.DroneBoxes;
         RefreshView();
@@ -899,11 +886,6 @@ public sealed class ShopController : MonoBehaviour
 
     private void RefreshView()
     {
-        if (energyText != null)
-        {
-            energyText.text = $"{currentEnergy}/{ChipManager.MaxEnergy}";
-        }
-
         if (dataChipText != null)
         {
             dataChipText.text = currentDataChips.ToString("N0");

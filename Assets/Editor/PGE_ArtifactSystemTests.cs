@@ -357,6 +357,40 @@ public class PGE_ArtifactSystemTests
     }
 
     [Test]
+    public void Test10B_ArtifactChest_UsesGlowSprite_AndOpensImmediatelyWhenReceived()
+    {
+        Sprite glowingClosedChest = Resources.Load<Sprite>("UI/ArtifactChest/ruong_artifact_sang");
+        Sprite openChest = Resources.Load<Sprite>("UI/ArtifactChest/ruong_artifact_mo");
+        Assert.IsNotNull(glowingClosedChest);
+        Assert.IsNotNull(openChest);
+
+        GameObject canvasObj = new GameObject("ArtifactChestCanvas", typeof(Canvas));
+        ArtifactFoundModalController modal = ArtifactFoundModalController.CreateRuntimeModal(
+            canvasObj.transform as RectTransform);
+
+        ArtifactData artifact = ScriptableObject.CreateInstance<ArtifactData>();
+        artifact.id = "test_chest_visual";
+        artifact.artifactName = "Test Artifact";
+
+        GameObject boxObj = DropTable.SpawnArtifactBox(Vector3.zero, artifact);
+        ArtifactBoxPickup pickup = boxObj.GetComponent<ArtifactBoxPickup>();
+
+        Assert.AreSame(glowingClosedChest, pickup.CurrentSprite);
+        Assert.IsFalse(pickup.IsOpen);
+
+        pickup.TriggerOpenArtifact();
+        modal.OnGetClicked();
+
+        Assert.IsTrue(pickup.IsOpen);
+        Assert.AreSame(openChest, pickup.CurrentSprite);
+
+        Object.DestroyImmediate(boxObj);
+        Object.DestroyImmediate(artifact);
+        Object.DestroyImmediate(canvasObj);
+        ArtifactBoxPickup.ClearActiveBoxesForTesting();
+    }
+
+    [Test]
     public void Test11_ArtifactGrid_Arranges4PerRow()
     {
         // Kiểm tra logic sắp xếp lưới 4 cột / 1 hàng

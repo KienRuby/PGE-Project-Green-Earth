@@ -18,7 +18,8 @@ public class ChipsetLevelUpParticleField : MonoBehaviour
     private readonly List<ParticleState> particles = new List<ParticleState>();
     private RectTransform fieldRect;
 
-    private static readonly string[] FallbackGlyphs = { "⚙", "◇", "○", "+", "✦", "#" };
+    private static readonly string[] PreferredGlyphs = { "⚙", "◇", "○", "+", "✦", "#", "*", "O", "x", "=" };
+    private static readonly string[] SafeGlyphs = { "*", "O", "+", "x", "#", "=" };
     private static readonly Color32[] Colors =
     {
         new Color32(255, 196, 38, 255),
@@ -83,6 +84,8 @@ public class ChipsetLevelUpParticleField : MonoBehaviour
         if (particles.Count > 0) return;
 
         bool hasSprites = particleSprites != null && particleSprites.Length > 0;
+        TMP_FontAsset activeFont = fallbackFont != null ? fallbackFont : TMP_Settings.defaultFontAsset;
+        string[] supportedGlyphs = hasSprites ? null : BuildSupportedGlyphPool(activeFont);
         for (int i = 0; i < particleCount; i++)
         {
             GameObject go = new GameObject($"MechanicalParticle_{i:00}", typeof(RectTransform), typeof(CanvasGroup));
@@ -103,8 +106,8 @@ public class ChipsetLevelUpParticleField : MonoBehaviour
             else
             {
                 TextMeshProUGUI glyph = go.AddComponent<TextMeshProUGUI>();
-                if (fallbackFont != null) glyph.font = fallbackFont;
-                glyph.text = FallbackGlyphs[Random.Range(0, FallbackGlyphs.Length)];
+                if (activeFont != null) glyph.font = activeFont;
+                glyph.text = supportedGlyphs[Random.Range(0, supportedGlyphs.Length)];
                 glyph.color = Colors[Random.Range(0, Colors.Length)];
                 glyph.alignment = TextAlignmentOptions.Center;
                 glyph.fontStyle = FontStyles.Bold;
@@ -117,6 +120,23 @@ public class ChipsetLevelUpParticleField : MonoBehaviour
                 Group = go.GetComponent<CanvasGroup>()
             });
         }
+    }
+
+    private static string[] BuildSupportedGlyphPool(TMP_FontAsset font)
+    {
+        if (font == null) return SafeGlyphs;
+
+        List<string> supported = new List<string>(PreferredGlyphs.Length);
+        for (int i = 0; i < PreferredGlyphs.Length; i++)
+        {
+            string candidate = PreferredGlyphs[i];
+            if (!string.IsNullOrEmpty(candidate) && font.HasCharacter(candidate[0], true, false))
+            {
+                supported.Add(candidate);
+            }
+        }
+
+        return supported.Count > 0 ? supported.ToArray() : SafeGlyphs;
     }
 
     private void Respawn(ParticleState particle, bool fillWholeField)

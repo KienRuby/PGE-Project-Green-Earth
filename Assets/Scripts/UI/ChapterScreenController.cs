@@ -411,6 +411,11 @@ public class ChapterScreenController : MonoBehaviour
         TryStartChapter(out _);
     }
 
+    public bool OwnsStartButton(Button candidate)
+    {
+        return candidate != null && startButton == candidate;
+    }
+
     public void SetDatabaseForTesting(ChapterDatabase db, int chapterIndex = 0)
     {
         chapterDatabase = db;

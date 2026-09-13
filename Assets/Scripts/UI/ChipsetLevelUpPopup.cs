@@ -787,7 +787,7 @@ public class ChipsetLevelUpPopup : MonoBehaviour
 
     public static List<ChipItemData> CreateRuntimeCatalog()
     {
-        return ChipsetController.CreateSavedDatabase()
+        return ChipsetController.CreateGameplayDatabase()
             .Where(chip => chip != null && chip.id >= 1 && chip.id <= PrimaryChipsetCount)
             .Select(chip => chip.Clone())
             .ToList();

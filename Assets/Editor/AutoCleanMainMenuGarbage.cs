@@ -18,6 +18,11 @@ public static class AutoCleanMainMenuGarbage
     [MenuItem("PGE/Tools/Force Clean MainMenu Scene Now")]
     public static void ExecuteClean()
     {
+        if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling || EditorApplication.isUpdating)
+        {
+            return;
+        }
+
         Scene scene = EditorSceneManager.GetActiveScene();
 
         if (scene.path != MainMenuPath)

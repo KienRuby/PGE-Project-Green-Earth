@@ -658,7 +658,8 @@ public static class PlayerDataService
         data.level = Mathf.Max(1, PlayerPrefs.GetInt($"{BuddyLevelKeyPrefix}{data.id}", data.level));
         data.tier = (BuddyTier)PlayerPrefs.GetInt($"{BuddyTierKeyPrefix}{data.id}", (int)data.tier);
         data.count = GetBuddyPieceCount(data.id, data.count);
-        data.requiredCount = Mathf.Max(1, PlayerPrefs.GetInt($"{BuddyRequiredCountKeyPrefix}{data.id}", data.requiredCount));
+        int savedRequiredCount = PlayerPrefs.GetInt($"{BuddyRequiredCountKeyPrefix}{data.id}", data.requiredCount);
+        data.requiredCount = data.tier >= BuddyTier.Holographic ? 0 : Mathf.Max(1, savedRequiredCount);
         data.enhanceCost = Mathf.Max(0, PlayerPrefs.GetInt($"{BuddyEnhanceCostKeyPrefix}{data.id}", data.enhanceCost));
     }
 
@@ -668,7 +669,9 @@ public static class PlayerDataService
         PlayerPrefs.SetInt($"{BuddyLevelKeyPrefix}{data.id}", Mathf.Max(1, data.level));
         PlayerPrefs.SetInt($"{BuddyTierKeyPrefix}{data.id}", (int)data.tier);
         PlayerPrefs.SetInt($"{BuddyCountKeyPrefix}{data.id}", Mathf.Max(0, data.count));
-        PlayerPrefs.SetInt($"{BuddyRequiredCountKeyPrefix}{data.id}", Mathf.Max(1, data.requiredCount));
+        PlayerPrefs.SetInt(
+            $"{BuddyRequiredCountKeyPrefix}{data.id}",
+            data.tier >= BuddyTier.Holographic ? 0 : Mathf.Max(1, data.requiredCount));
         PlayerPrefs.SetInt($"{BuddyEnhanceCostKeyPrefix}{data.id}", Mathf.Max(0, data.enhanceCost));
         PlayerPrefs.Save();
     }
