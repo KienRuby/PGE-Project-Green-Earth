@@ -3088,7 +3088,7 @@ public static class LabMenuSceneBuilder
         RectTransform droneGrid = CreateRect("DroneBoxGrid", boxSection);
         Stretch(droneGrid, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -810f), new Vector2(0f, -460f));
         offerViews.Add(CreateShopOfferCard(
-            droneGrid, "Open1Item", 0.03f, 0.495f, "Open Drone Box", "1 time", "x600", "drone-box",
+            droneGrid, "Open1Item", 0.03f, 0.495f, "Open Drone Box", "1 time", "x300", "drone-box",
             new Color32(25, 58, 76, 255), false, 0f));
         offerViews.Add(CreateShopOfferCard(
             droneGrid, "Open5Item", 0.505f, 0.97f, "Open Drone Box", "5 times", "x2,700", "drone-box",
@@ -3122,7 +3122,7 @@ public static class LabMenuSceneBuilder
         ConfigureShopOffer(offers.GetArrayElementAtIndex(2), offerViews[2], "daily-drone-2", "DRONE BOX", 180, ShopController.CurrencyType.RedGem, ShopController.RewardType.DroneBox, 1, true);
         ConfigureShopOffer(offers.GetArrayElementAtIndex(3), offerViews[3], "chipset-box-1", "CHIPSET BOX", 300, ShopController.CurrencyType.RedGem, ShopController.RewardType.ChipsetBox, 1, false);
         ConfigureShopOffer(offers.GetArrayElementAtIndex(4), offerViews[4], "chipset-box-10", "CHIPSET BOX", 2700, ShopController.CurrencyType.RedGem, ShopController.RewardType.ChipsetBox, 10, false);
-        ConfigureShopOffer(offers.GetArrayElementAtIndex(5), offerViews[5], "drone-box-1", "DRONE BOX", 600, ShopController.CurrencyType.RedGem, ShopController.RewardType.DroneBox, 1, false);
+        ConfigureShopOffer(offers.GetArrayElementAtIndex(5), offerViews[5], "drone-box-1", "DRONE BOX", 300, ShopController.CurrencyType.RedGem, ShopController.RewardType.DroneBox, 1, false);
         ConfigureShopOffer(offers.GetArrayElementAtIndex(6), offerViews[6], "drone-box-5", "DRONE BOX", 2700, ShopController.CurrencyType.RedGem, ShopController.RewardType.DroneBox, 5, false);
         serializedController.ApplyModifiedPropertiesWithoutUndo();
 

@@ -236,4 +236,79 @@ public class BuddyEquipSystemTests
             Object.DestroyImmediate(go);
         }
     }
+
+    [Test]
+    public void BuddyCardUI_WhenEnoughFragments_UpgradeArrowIsActive()
+    {
+        GameObject go = new GameObject("TestCard", typeof(BuddyCardUI));
+        try
+        {
+            BuddyCardUI card = go.GetComponent<BuddyCardUI>();
+            BuddyItemData data = new BuddyItemData
+            {
+                id = 1,
+                buddyName = "Sloy",
+                level = 1,
+                count = 29,
+                requiredCount = 10,
+                enhanceCost = 500,
+                tier = BuddyTier.Common
+            };
+
+            Assert.IsTrue(data.CanAdvanceTier);
+            Assert.IsTrue(data.CanUpgrade);
+
+            card.Setup(data, null, null);
+            Assert.IsNotNull(card.UpgradeArrowGroup, "UpgradeArrowGroup should be created/ensured");
+            Assert.IsTrue(card.UpgradeArrowGroup.activeSelf, "UpgradeArrowGroup must be active when CanUpgrade is true");
+        }
+        finally
+        {
+            Object.DestroyImmediate(go);
+        }
+    }
+
+    [Test]
+    public void BuddyCardUI_SetEquippedBadge_TogglesBadgeProperly()
+    {
+        GameObject go = new GameObject("TestCard", typeof(BuddyCardUI));
+        try
+        {
+            BuddyCardUI card = go.GetComponent<BuddyCardUI>();
+            card.SetEquippedBadge(true);
+            Assert.IsNotNull(card.EquippedBadgeGroup, "EquippedBadgeGroup should be created");
+            Assert.IsTrue(card.EquippedBadgeGroup.activeSelf, "EquippedBadgeGroup should be active");
+
+            card.SetEquippedBadge(false);
+            Assert.IsFalse(card.EquippedBadgeGroup.activeSelf, "EquippedBadgeGroup should be deactivated");
+        }
+        finally
+        {
+            Object.DestroyImmediate(go);
+        }
+    }
+
+    [Test]
+    public void BuddyController_SortByQuantity_PutsHighestCountFirst()
+    {
+        GameObject go = new GameObject("TestBuddyController", typeof(BuddyController));
+        try
+        {
+            BuddyController ctrl = go.GetComponent<BuddyController>();
+            ctrl.InitializeDatabase();
+
+            PlayerDataService.SetBuddyPieceCount(1, 10);
+            PlayerDataService.SetBuddyPieceCount(2, 50);
+
+            ctrl.InitializeDatabase();
+            ctrl.SetSortMode(true);
+
+            var list = ctrl.AllBuddies.OrderByDescending(b => b.count).ToList();
+            Assert.AreEqual(2, list[0].id, "Highest quantity buddy should be first in sorted order");
+        }
+        finally
+        {
+            Object.DestroyImmediate(go);
+        }
+    }
 }

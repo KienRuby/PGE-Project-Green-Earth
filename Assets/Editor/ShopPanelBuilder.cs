@@ -21,6 +21,49 @@ public static class ShopPanelBuilder
         EditorApplication.delayCall += CheckAndBuildIfMissing;
     }
 
+    public static void CleanUpOrphanRootShopPanels()
+    {
+        var currentScene = EditorSceneManager.GetActiveScene();
+        foreach (var root in currentScene.GetRootGameObjects())
+        {
+            if (root != null && (root.name == "ShopPanel" || root.name == "ShopPanel (Scrollable)"))
+            {
+                Debug.LogWarning($"[ShopPanelBuilder] Cleaning up duplicate orphan root object: {root.name}");
+                UnityEngine.Object.DestroyImmediate(root);
+            }
+        }
+    }
+
+    private static GameObject FindShopPanelInCanvas()
+    {
+        CleanUpOrphanRootShopPanels();
+        var currentScene = EditorSceneManager.GetActiveScene();
+        foreach (var root in currentScene.GetRootGameObjects())
+        {
+            if (root != null && root.name == "Canvas")
+            {
+                Transform content = root.transform.Find("Content");
+                if (content != null)
+                {
+                    Transform shop = content.Find("ShopPanel") ?? content.Find("ShopPanel (Scrollable)");
+                    if (shop != null) return shop.gameObject;
+                }
+            }
+        }
+
+        // Fallback search under Canvas
+        GameObject canvas = FindInActiveScene("Canvas");
+        if (canvas != null)
+        {
+            Transform t = canvas.transform.Find("Content/ShopPanel")
+                ?? canvas.transform.Find("Content/ShopPanel (Scrollable)")
+                ?? canvas.GetComponentsInChildren<Transform>(true).FirstOrDefault(tr => tr.name == "ShopPanel" && tr != canvas.transform);
+            if (t != null) return t.gameObject;
+        }
+
+        return null;
+    }
+
     private static GameObject FindInActiveScene(string name)
     {
         var currentScene = EditorSceneManager.GetActiveScene();
@@ -38,7 +81,9 @@ public static class ShopPanelBuilder
         var currentScene = EditorSceneManager.GetActiveScene();
         if (currentScene.path != MainMenuScenePath) return;
 
-        GameObject shopPanel = FindInActiveScene("ShopPanel") ?? FindInActiveScene("ShopPanel (Scrollable)");
+        CleanUpOrphanRootShopPanels();
+
+        GameObject shopPanel = FindShopPanelInCanvas();
         Transform contentT = shopPanel != null ? shopPanel.transform.Find("Viewport/ShopContent") : null;
         // Chỉ tự động build nếu ShopPanel hoặc ShopContent chưa hề tồn tại hoặc rỗng hoàn toàn.
         // Nếu đã có các mục con, tuyệt đối không tự ý xóa để bảo toàn các chỉnh sửa kích thước, vị trí của người dùng.
@@ -62,6 +107,8 @@ public static class ShopPanelBuilder
             currentScene = EditorSceneManager.OpenScene(MainMenuScenePath, OpenSceneMode.Single);
         }
 
+        CleanUpOrphanRootShopPanels();
+
         // 1. Load All 28 Sprites
         Sprite[] allSprites = AssetDatabase.LoadAllAssetsAtPath(ShopAtlasPath).OfType<Sprite>().ToArray();
         var spriteMap = allSprites.ToDictionary(s => s.name, StringComparer.OrdinalIgnoreCase);
@@ -70,8 +117,8 @@ public static class ShopPanelBuilder
 
         Debug.Log($"[ShopPanelBuilder] Loaded {allSprites.Length} shop sprites from atlas.");
 
-        // 2. Find ShopPanel (including inactive)
-        GameObject shopPanel = FindInActiveScene("ShopPanel (Scrollable)") ?? FindInActiveScene("ShopPanel");
+        // 2. Find ShopPanel (under Canvas/Content)
+        GameObject shopPanel = FindShopPanelInCanvas();
         if (shopPanel == null)
         {
             // Try searching under Canvas
@@ -167,7 +214,7 @@ public static class ShopPanelBuilder
 
         VerticalLayoutGroup vLayout = contentT.GetComponent<VerticalLayoutGroup>();
         if (vLayout == null) vLayout = contentT.gameObject.AddComponent<VerticalLayoutGroup>();
-        vLayout.padding = new RectOffset(40, 40, 180, 260); // 180px top for TopBar, 260px bottom for BottomNav
+        vLayout.padding = new RectOffset(40, 40, 20, 40); // 20px top, 40px bottom (Canvas/Content already offsets TopBar and BottomNav)
         vLayout.spacing = 28f;
         vLayout.childAlignment = TextAnchor.UpperCenter;
         vLayout.childControlWidth = true;
@@ -574,7 +621,7 @@ public static class ShopPanelBuilder
             else if (id == "drone-box-1")
             {
                 offerElem.FindPropertyRelative("currency").enumValueIndex = (int)ShopController.CurrencyType.RedGem;
-                offerElem.FindPropertyRelative("price").intValue = 600;
+                offerElem.FindPropertyRelative("price").intValue = 300;
                 offerElem.FindPropertyRelative("reward").enumValueIndex = (int)ShopController.RewardType.DroneBox;
                 offerElem.FindPropertyRelative("rewardAmount").intValue = 1;
                 offerElem.FindPropertyRelative("oncePerDay").boolValue = false;
@@ -582,7 +629,7 @@ public static class ShopPanelBuilder
             else if (id == "drone-box-10")
             {
                 offerElem.FindPropertyRelative("currency").enumValueIndex = (int)ShopController.CurrencyType.RedGem;
-                offerElem.FindPropertyRelative("price").intValue = 5400;
+                offerElem.FindPropertyRelative("price").intValue = 2700;
                 offerElem.FindPropertyRelative("reward").enumValueIndex = (int)ShopController.RewardType.DroneBox;
                 offerElem.FindPropertyRelative("rewardAmount").intValue = 10;
                 offerElem.FindPropertyRelative("oncePerDay").boolValue = false;
@@ -590,8 +637,8 @@ public static class ShopPanelBuilder
             else if (id.StartsWith("data-chip"))
             {
                 offerElem.FindPropertyRelative("currency").enumValueIndex = (int)ShopController.CurrencyType.RedGem;
-                int price = id.EndsWith("1") ? 200 : id.EndsWith("2") ? 400 : 1000;
-                int amount = id.EndsWith("1") ? 2000 : id.EndsWith("2") ? 4250 : 12200;
+                int price = id.EndsWith("1") ? 100 : id.EndsWith("2") ? 200 : 500;
+                int amount = id.EndsWith("1") ? 9900 : id.EndsWith("2") ? 21037 : 60390;
                 offerElem.FindPropertyRelative("price").intValue = price;
                 offerElem.FindPropertyRelative("reward").enumValueIndex = (int)ShopController.RewardType.DataChip;
                 offerElem.FindPropertyRelative("rewardAmount").intValue = amount;

@@ -220,7 +220,11 @@ public class ChipsetLevelUpPopup : MonoBehaviour
         }
 
         if (popupRoot != null) popupRoot.SetActive(false);
-        ownsTimeScale = false;
+        if (ownsTimeScale)
+        {
+            Time.timeScale = 1f;
+            ownsTimeScale = false;
+        }
     }
 
     private void OpenNextLevelSelection()

@@ -242,9 +242,14 @@ public sealed class VictoryPanelController : MonoBehaviour
     {
         // Chờ 1.2s trong thời gian gameplay bình thường (game KHÔNG dừng đột ngột)
         // để người chơi chứng kiến toàn bộ enemy đồng loạt thực hiện animation Die & Fade out
-        yield return new WaitForSeconds(1.2f);
+        if (Time.timeScale <= 0f)
+        {
+            Time.timeScale = 1f;
+        }
 
-        timeScaleBeforeVictory = Time.timeScale > 0f ? Time.timeScale : 1f;
+        yield return new WaitForSecondsRealtime(1.2f);
+
+        timeScaleBeforeVictory = 1f;
         ownsGameplayPause = true;
         Time.timeScale = 0f;
 

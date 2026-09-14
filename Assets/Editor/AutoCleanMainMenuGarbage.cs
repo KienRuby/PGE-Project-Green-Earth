@@ -41,7 +41,7 @@ public static class AutoCleanMainMenuGarbage
             if (root == null) continue;
             string n = root.name;
 
-            if (n == "Event1" || n == "Player" || n == "[DamageNumberManager]")
+            if (n == "Event1" || n == "Player" || n == "[DamageNumberManager]" || n == "TestBuildBodyController" || n.StartsWith("TestBuildBody") || n.StartsWith("BuddyController_Test"))
             {
                 toDelete.Add(root);
             }

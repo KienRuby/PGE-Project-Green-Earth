@@ -22,6 +22,19 @@ public class PlayerSkinApplierEditor : Editor
     private static HandleEditMode currentHandleMode = HandleEditMode.All;
     private static bool showPartDetails = true;
 
+    private void OnEnable()
+    {
+        if (currentHandleMode != HandleEditMode.Disabled)
+        {
+            Tools.hidden = true;
+        }
+    }
+
+    private void OnDisable()
+    {
+        Tools.hidden = false;
+    }
+
     static PlayerSkinApplierEditor()
     {
         EditorApplication.delayCall += CheckAndSetupIfMissing;
@@ -40,6 +53,13 @@ public class PlayerSkinApplierEditor : Editor
             if (applier == null)
             {
                 SetupPlayerSkinApplierInGamePlayScene();
+            }
+            else if (applier.defaultBodySprite == null)
+            {
+                AutoLoadDefaultSprites(applier);
+                EditorUtility.SetDirty(applier);
+                UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(activeScene);
+                UnityEditor.SceneManagement.EditorSceneManager.SaveScene(activeScene);
             }
         }
     }
@@ -73,38 +93,58 @@ public class PlayerSkinApplierEditor : Editor
         {
             Undo.RecordObject(applier.gameObject, "Ensure Visual Slots");
             applier.AutoEnsureVisualSlots();
+            AutoLoadDefaultSprites(applier);
             applier.ApplySkin(applier.previewSkinIndex);
             EditorUtility.SetDirty(applier);
             Debug.Log("[PlayerSkinApplierEditor] Đã kiểm tra và đồng bộ Visual Slots thành công!");
         }
 
-        if (GUILayout.Button("📥 Tự động nạp 4 bộ Skin", GUILayout.Height(28)))
+        if (GUILayout.Button("📥 Nạp 4 bộ Skin", GUILayout.Height(28)))
         {
             Undo.RecordObject(applier, "Auto Load Skin Sprites");
             AutoLoadAllSkinSprites(applier);
             applier.ApplySkin(applier.previewSkinIndex);
             EditorUtility.SetDirty(applier);
         }
+
+        if (GUILayout.Button("📦 Nạp Sprite Mặc Định", GUILayout.Height(28)))
+        {
+            Undo.RecordObject(applier, "Auto Load Default Sprites");
+            AutoLoadDefaultSprites(applier);
+            EditorUtility.SetDirty(applier);
+        }
         EditorGUILayout.EndHorizontal();
 
         EditorGUILayout.Space(6);
 
-        // 2. Skin Preview Switcher Buttons
+        // 2. Skin Preview Switcher Buttons (Có nút MẶC ĐỊNH để đối chiếu)
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-        EditorGUILayout.LabelField("👁️ CHỌN XEM TRƯỚC VÀ HIỆU CHỈNH SKIN:", EditorStyles.boldLabel);
+        EditorGUILayout.LabelField("👁️ CHỌN XEM TRƯỚC VÀ HIỆU CHỈNH SKIN / MẶC ĐỊNH:", EditorStyles.boldLabel);
         EditorGUILayout.BeginHorizontal();
+
+        // Nút Mặc Định (Gốc) để đối chiếu
+        bool isDefault = applier.isShowingDefault;
+        GUI.backgroundColor = isDefault ? new Color(1f, 0.78f, 0.15f, 1f) : Color.white;
+        if (GUILayout.Button("↺ MẶC ĐỊNH\n(Đối chiếu)", GUILayout.Height(42), GUILayout.Width(100)))
+        {
+            Undo.RecordObject(applier, "Switch to Default Visuals");
+            AutoLoadDefaultSprites(applier);
+            applier.ApplyDefaultVisuals();
+            EditorUtility.SetDirty(applier);
+        }
 
         for (int i = 0; i < 4; i++)
         {
-            bool isCurrent = (applier.previewSkinIndex == i);
+            bool isCurrent = (!applier.isShowingDefault && applier.previewSkinIndex == i);
             GUI.backgroundColor = isCurrent ? new Color(0.2f, 0.85f, 0.4f, 1f) : Color.white;
 
             string skinLabel = i == 0 ? "Skin 1\n(Unit-1)" :
                                i == 1 ? "Skin 2\n(Unit-2)" :
                                i == 2 ? "Skin 3\n(Unit-3)" : "Skin 4\n(Unit-4)";
 
-            if (GUILayout.Button(skinLabel, GUILayout.Height(40)))
+            if (GUILayout.Button(skinLabel, GUILayout.Height(42)))
             {
+                Undo.RecordObject(applier, $"Preview Skin {i + 1}");
                 applier.previewSkinIndex = i;
                 applier.ApplySkin(i);
                 EditorUtility.SetDirty(applier);
@@ -113,33 +153,74 @@ public class PlayerSkinApplierEditor : Editor
         GUI.backgroundColor = Color.white;
         EditorGUILayout.EndHorizontal();
 
-        EditorGUILayout.Space(4);
-        int newIndex = EditorGUILayout.IntSlider("Skin Slider:", applier.previewSkinIndex, 0, 3);
-        if (newIndex != applier.previewSkinIndex)
+        if (applier.isShowingDefault)
         {
-            applier.previewSkinIndex = newIndex;
-            applier.ApplySkin(newIndex);
-            EditorUtility.SetDirty(applier);
+            EditorGUILayout.Space(4);
+            EditorGUILayout.HelpBox(
+                "🔍 ĐANG ĐỐI CHIẾU VỚI BẢN MẶC ĐỊNH GỐC (BASE CHARACTER):\n" +
+                "• Đang hiển thị 5 Sprite mặc định ban đầu ở vị trí (0, 0, 0) chuẩn.\n" +
+                "• Bạn có thể xem dáng đứng, vị trí súng, chân, nòng súng để làm mốc đối chiếu.\n" +
+                "• Bấm [Skin 1], [Skin 2], [Skin 3] hoặc [Skin 4] ở trên để quay lại tùy biến skin!",
+                MessageType.Warning
+            );
+        }
+        else
+        {
+            EditorGUILayout.Space(4);
+            int newIndex = EditorGUILayout.IntSlider("Skin Slider:", applier.previewSkinIndex, 0, 3);
+            if (newIndex != applier.previewSkinIndex)
+            {
+                applier.previewSkinIndex = newIndex;
+                applier.ApplySkin(newIndex);
+                EditorUtility.SetDirty(applier);
+            }
         }
 
         EditorGUILayout.EndVertical();
 
         EditorGUILayout.Space(6);
 
-        // 3. One-Click Save Current Scene Transforms
+        // Khôi phục khung xương gốc nếu bị lỡ tay kéo nhầm
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-        GUI.backgroundColor = new Color(0.3f, 0.7f, 1f, 1f);
-        if (GUILayout.Button($"💾 LƯU VỊ TRÍ SCENE HIỆN TẠI VÀO SKIN {applier.previewSkinIndex + 1}", GUILayout.Height(36)))
+        EditorGUILayout.LabelField("🦴 CÔNG CỤ KHÔI PHỤC KHUNG XƯƠNG GỐC:", EditorStyles.boldLabel);
+        if (GUILayout.Button("⚡ Đặt Lại Xương Cha Về Chuẩn (Reset Parent Bones)", GUILayout.Height(26)))
         {
-            Undo.RecordObject(applier, $"Capture Transforms for Skin {applier.previewSkinIndex + 1}");
-            applier.CaptureCurrentSceneTransforms(applier.previewSkinIndex);
+            Undo.RecordObject(applier.transform, "Reset Parent Bones");
+            applier.ResetParentBonesToDefault();
+            if (applier.isShowingDefault)
+            {
+                applier.ApplyDefaultVisuals();
+            }
+            else
+            {
+                applier.ApplySkin(applier.previewSkinIndex);
+            }
             EditorUtility.SetDirty(applier);
             UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(applier.gameObject.scene);
-            Debug.Log($"[PlayerSkinApplierEditor] ✅ Đã lưu toàn bộ tọa độ và tỷ lệ trên Scene vào Skin {applier.previewSkinIndex + 1} ({applier.skins[applier.previewSkinIndex].skinName})!");
+            Debug.Log("[PlayerSkinApplierEditor] Đã căn lại toàn bộ xương cha về tọa độ hoạt hình mặc định!");
         }
-        GUI.backgroundColor = Color.white;
-        EditorGUILayout.HelpBox("👉 MẸO: Bạn có thể chọn trực tiếp BodyVisual, GunVisual, Leg1Visual trong Scene, dùng công cụ W (Move) và R (Scale) để chỉnh, rồi bấm nút trên để LƯU LẠI!", MessageType.None);
+        EditorGUILayout.HelpBox("💡 Bấm nút này nếu bạn lỡ dùng phím W kéo nhầm các Xương cha ('thân', 'GunSprite', 'Tay', 'Chan 1', 'chan 2') làm lệch cả nhân vật.", MessageType.None);
         EditorGUILayout.EndVertical();
+
+        EditorGUILayout.Space(6);
+
+        // 3. One-Click Save Current Scene Transforms (chỉ khi đang chọn skin)
+        if (!applier.isShowingDefault)
+        {
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            GUI.backgroundColor = new Color(0.3f, 0.7f, 1f, 1f);
+            if (GUILayout.Button($"💾 LƯU VỊ TRÍ SCENE HIỆN TẠI VÀO SKIN {applier.previewSkinIndex + 1}", GUILayout.Height(36)))
+            {
+                Undo.RecordObject(applier, $"Capture Transforms for Skin {applier.previewSkinIndex + 1}");
+                applier.CaptureCurrentSceneTransforms(applier.previewSkinIndex);
+                EditorUtility.SetDirty(applier);
+                UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(applier.gameObject.scene);
+                Debug.Log($"[PlayerSkinApplierEditor] ✅ Đã lưu toàn bộ tọa độ và tỷ lệ trên Scene vào Skin {applier.previewSkinIndex + 1} ({applier.skins[applier.previewSkinIndex].skinName})!");
+            }
+            GUI.backgroundColor = Color.white;
+            EditorGUILayout.HelpBox("👉 MẸO: Bạn có thể chọn trực tiếp BodyVisual, GunVisual, Leg1Visual trong Scene, dùng công cụ W (Move) và R (Scale) để chỉnh, rồi bấm nút trên để LƯU LẠI!", MessageType.None);
+            EditorGUILayout.EndVertical();
+        }
 
         EditorGUILayout.Space(6);
 
@@ -255,10 +336,28 @@ public class PlayerSkinApplierEditor : Editor
 
     private void OnSceneGUI()
     {
-        if (currentHandleMode == HandleEditMode.Disabled) return;
+        if (currentHandleMode == HandleEditMode.Disabled)
+        {
+            Tools.hidden = false;
+            return;
+        }
 
         PlayerSkinApplier applier = (PlayerSkinApplier)target;
-        if (applier == null || applier.skins == null || applier.skins.Length == 0) return;
+        if (applier == null || applier.skins == null || applier.skins.Length == 0)
+        {
+            Tools.hidden = false;
+            return;
+        }
+
+        // Khi đang ở chế độ Mặc Định (Đối chiếu), không vẽ Handles để tránh thao tác kéo nhầm vào Skin
+        if (applier.isShowingDefault)
+        {
+            Tools.hidden = false;
+            return;
+        }
+
+        // Ẩn công cụ mặc định của Unity (phím W/E/R) để người dùng không bấm nhầm vào Xương cha
+        Tools.hidden = true;
 
         int skinIdx = Mathf.Clamp(applier.previewSkinIndex, 0, applier.skins.Length - 1);
         PlayerSkinConfig skin = applier.skins[skinIdx];
@@ -346,6 +445,49 @@ public class PlayerSkinApplierEditor : Editor
         }
     }
 
+    public static void AutoLoadDefaultSprites(PlayerSkinApplier applier)
+    {
+        if (applier == null) return;
+
+        // 1. Thân mặc định: Assets/Sprites/Character/thân.png
+        Sprite body = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Character/thân.png");
+        if (body != null) applier.defaultBodySprite = body;
+
+        // 2. Tay mặc định: Assets/Sprites/Character/cánh tay trên.png (Sprite 'Tay')
+        Sprite[] armSprites = LoadAllSpritesFromAssetPath("Assets/Sprites/Character/cánh tay trên.png");
+        Sprite arm = FindBestSprite(armSprites, "Tay");
+        if (arm != null) applier.defaultArmSprite = arm;
+
+        // 3. Súng mặc định: Assets/Sprites/Character/khẩu súng.png (Sprite 'Gun')
+        Sprite[] gunSprites = LoadAllSpritesFromAssetPath("Assets/Sprites/Character/khẩu súng.png");
+        Sprite gun = FindBestSprite(gunSprites, "Gun");
+        if (gun != null) applier.defaultGunSprite = gun;
+
+        // 4. Chân mặc định: Assets/Sprites/Character/chân.png (Sprite 'Chan 1' & 'chan 2')
+        Sprite[] legSprites = LoadAllSpritesFromAssetPath("Assets/Sprites/Character/chân.png");
+        Sprite leg1 = FindBestSprite(legSprites, "Chan 1", "chân 1");
+        Sprite leg2 = FindBestSprite(legSprites, "chan 2", "chân 2");
+        if (leg1 != null) applier.defaultLeg1Sprite = leg1;
+        if (leg2 != null) applier.defaultLeg2Sprite = leg2;
+
+        applier.defaultFirePointOffset = new Vector2(3.59f, -0.99f);
+        Debug.Log("[PlayerSkinApplierEditor] Đã tự động nạp 5 Sprite Mặc Định gốc!");
+    }
+
+    private static Sprite[] LoadAllSpritesFromAssetPath(string assetPath)
+    {
+        UnityEngine.Object[] subAssets = AssetDatabase.LoadAllAssetsAtPath(assetPath);
+        System.Collections.Generic.List<Sprite> list = new System.Collections.Generic.List<Sprite>();
+        if (subAssets != null)
+        {
+            foreach (var a in subAssets)
+            {
+                if (a is Sprite s) list.Add(s);
+            }
+        }
+        return list.ToArray();
+    }
+
     public static void AutoLoadAllSkinSprites(PlayerSkinApplier applier)
     {
         if (applier == null) return;
@@ -420,6 +562,7 @@ public class PlayerSkinApplierEditor : Editor
             applier = Undo.AddComponent<PlayerSkinApplier>(player);
         }
 
+        AutoLoadDefaultSprites(applier);
         AutoLoadAllSkinSprites(applier);
         applier.AutoEnsureVisualSlots();
         applier.ApplySkin(applier.previewSkinIndex);

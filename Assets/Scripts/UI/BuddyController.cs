@@ -639,6 +639,14 @@ public class BuddyController : MonoBehaviour
         }
     }
 
+    public void LoadUpgradeArrowSpriteIfMissing()
+    {
+        if (upgradeArrowSprite != null) return;
+#if UNITY_EDITOR
+        upgradeArrowSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Chipset/Frames/badge-upgrade.png");
+#endif
+    }
+
     public void AutoWireInventoryContainerIfMissing()
     {
         if (slotIconBuddyContainer == null)
@@ -651,34 +659,22 @@ public class BuddyController : MonoBehaviour
 
         if (slotIconBuddyContainer != null)
         {
+            LoadUpgradeArrowSpriteIfMissing();
             inventoryCards.Clear();
-            string[] targetSlotNames = new string[5]
-            {
-                "drone-snowflake",
-                "drone-spider",
-                "drone-stealth-wing",
-                "drone-antenna-eye",
-                "drone-cross-visor"
-            };
 
-            for (int i = 0; i < targetSlotNames.Length; i++)
+            for (int i = 0; i < slotIconBuddyContainer.childCount; i++)
             {
-                Transform child = slotIconBuddyContainer.Find(targetSlotNames[i]);
-                if (child == null && i < slotIconBuddyContainer.childCount)
-                {
-                    child = slotIconBuddyContainer.GetChild(i);
-                }
+                Transform child = slotIconBuddyContainer.GetChild(i);
+                if (child == null) continue;
 
-                if (child != null)
+                BuddyCardUI card = child.GetComponent<BuddyCardUI>() ?? child.gameObject.AddComponent<BuddyCardUI>();
+                if (child.GetComponent<Button>() == null)
                 {
-                    BuddyCardUI card = child.GetComponent<BuddyCardUI>() ?? child.gameObject.AddComponent<BuddyCardUI>();
-                    if (child.GetComponent<Button>() == null)
-                    {
-                        child.gameObject.AddComponent<Button>();
-                    }
-                    card.EnsureProgressBar();
-                    inventoryCards.Add(card);
+                    child.gameObject.AddComponent<Button>();
                 }
+                card.EnsureProgressBar();
+                card.EnsureUpgradeArrow(upgradeArrowSprite);
+                inventoryCards.Add(card);
             }
         }
     }
@@ -973,6 +969,7 @@ public class BuddyController : MonoBehaviour
         PlayerDataService.ActiveBuddyDeckIndex = activeDeckIndex;
         RefreshPresetButtons();
         RefreshEquippedGrid();
+        RefreshInventory();
         ShowToast($"Switched to Buddy Preset {deckIndex + 1}");
     }
 
@@ -1177,6 +1174,7 @@ public class BuddyController : MonoBehaviour
     {
         EnsureEquippedSlotsMatchTemplate();
         AutoWireEquippedSlotsIfMissing();
+        LoadUpgradeArrowSpriteIfMissing();
 
         if (deckEquippedIds == null || activeDeckIndex >= deckEquippedIds.Length || deckEquippedIds[activeDeckIndex] == null || deckEquippedIds[activeDeckIndex].Length != 3)
         {
@@ -1195,10 +1193,12 @@ public class BuddyController : MonoBehaviour
             if (buddyId == -2 || (slotUnlocked != null && i < slotUnlocked.Length && !slotUnlocked[i]))
             {
                 equippedSlots[i].SetupLocked(frame, () => ShowToast($"Slot {slotIndex + 1} locked!"));
+                equippedSlots[i].SetEquippedBadge(false);
             }
             else if (buddyId <= 0)
             {
                 equippedSlots[i].SetupEmpty(emptySlotFrameSprite ?? frame, () => ShowToast("Empty Slot! Please select a Drone below to equip."));
+                equippedSlots[i].SetEquippedBadge(false);
             }
             else
             {
@@ -1207,11 +1207,14 @@ public class BuddyController : MonoBehaviour
                 {
                     Sprite icon = GetIconSprite(buddy);
                     Sprite buddyFrame = GetFrameSprite(buddy.tier);
+                    equippedSlots[i].EnsureUpgradeArrow(upgradeArrowSprite);
                     equippedSlots[i].Setup(buddy, icon, buddyFrame, (b) => OpenDetailModalFromEquippedSlot(b, slotIndex), QuickUpgradeBuddy);
+                    equippedSlots[i].SetEquippedBadge(false);
                 }
                 else
                 {
                     equippedSlots[i].SetupEmpty(emptySlotFrameSprite ?? frame, () => ShowToast("Empty Slot! Please select a Drone below to equip."));
+                    equippedSlots[i].SetEquippedBadge(false);
                 }
             }
         }
@@ -1241,6 +1244,21 @@ public class BuddyController : MonoBehaviour
     public void RefreshInventory()
     {
         AutoWireInventoryContainerIfMissing();
+        LoadUpgradeArrowSpriteIfMissing();
+
+        List<BuddyItemData> sortedList = new List<BuddyItemData>(allBuddies);
+        if (sortByQuantity)
+        {
+            sortedList = sortedList.OrderByDescending(b => b.count).ThenByDescending(b => (int)b.tier).ThenByDescending(b => b.level).ToList();
+        }
+        else
+        {
+            sortedList = sortedList.OrderByDescending(b => (int)b.tier).ThenByDescending(b => b.level).ThenByDescending(b => b.count).ToList();
+        }
+
+        int[] currentDeck = (deckEquippedIds != null && activeDeckIndex < deckEquippedIds.Length)
+            ? deckEquippedIds[activeDeckIndex]
+            : null;
 
         // 1. Populate fixed inventory cards in SlotIconBuddy (always visible, never empty)
         if (inventoryCards != null && inventoryCards.Count > 0)
@@ -1250,22 +1268,21 @@ public class BuddyController : MonoBehaviour
                 BuddyCardUI card = inventoryCards[i];
                 if (card == null) continue;
 
-                string cardName = card.gameObject.name;
-                BuddyItemData data = allBuddies.FirstOrDefault(b =>
-                    (!string.IsNullOrEmpty(b.iconKey) && cardName.IndexOf(b.iconKey, StringComparison.OrdinalIgnoreCase) >= 0) ||
-                    (!string.IsNullOrEmpty(b.buddyName) && cardName.IndexOf(b.buddyName, StringComparison.OrdinalIgnoreCase) >= 0));
-
-                if (data == null && i < allBuddies.Count)
+                if (i < sortedList.Count)
                 {
-                    data = allBuddies[i];
-                }
-
-                if (data != null)
-                {
+                    BuddyItemData data = sortedList[i];
                     Sprite icon = GetIconSprite(data);
                     Sprite frame = GetFrameSprite(data.tier);
+                    card.EnsureUpgradeArrow(upgradeArrowSprite);
                     card.Setup(data, icon, frame, (b) => OpenDetailModalFromInventory(b), QuickUpgradeBuddy);
+
+                    bool isEquipped = currentDeck != null && currentDeck.Contains(data.id);
+                    card.SetEquippedBadge(isEquipped);
                     card.gameObject.SetActive(true);
+                }
+                else
+                {
+                    card.gameObject.SetActive(false);
                 }
             }
         }
@@ -1274,16 +1291,6 @@ public class BuddyController : MonoBehaviour
         if (inventoryContent != null && inventoryContent.gameObject.activeInHierarchy)
         {
             EnsureInventoryCardsInitialized();
-
-            List<BuddyItemData> sortedList = new List<BuddyItemData>(allBuddies);
-            if (sortByQuantity)
-            {
-                sortedList = sortedList.OrderByDescending(b => b.count).ThenByDescending(b => (int)b.tier).ToList();
-            }
-            else
-            {
-                sortedList = sortedList.OrderByDescending(b => (int)b.tier).ThenByDescending(b => b.level).ToList();
-            }
 
             for (int i = 0; i < sortedList.Count; i++)
             {
@@ -1303,7 +1310,11 @@ public class BuddyController : MonoBehaviour
                 BuddyItemData data = sortedList[i];
                 Sprite icon = GetIconSprite(data);
                 Sprite frame = GetFrameSprite(data.tier);
+                card.EnsureUpgradeArrow(upgradeArrowSprite);
                 card.Setup(data, icon, frame, (b) => OpenDetailModalFromInventory(b), QuickUpgradeBuddy);
+
+                bool isEquipped = currentDeck != null && currentDeck.Contains(data.id);
+                card.SetEquippedBadge(isEquipped);
                 card.gameObject.SetActive(true);
             }
 

@@ -53,6 +53,9 @@ public sealed class ShopCarouselUI : MonoBehaviour, IBeginDragHandler, IDragHand
 
     private void OnEnable()
     {
+        if (parentScrollRect == null) parentScrollRect = GetComponentInParent<ScrollRect>();
+        SetupDotButtons();
+        ShowPage(currentPage, false);
         StartAutoSlide();
     }
 
@@ -75,6 +78,7 @@ public sealed class ShopCarouselUI : MonoBehaviour, IBeginDragHandler, IDragHand
         if (dots == null) return;
         for (int i = 0; i < dots.Length; i++)
         {
+            if (dots[i] == null) continue;
             int pageIndex = i;
             Button btn = dots[i].GetComponent<Button>();
             if (btn == null)
@@ -165,7 +169,7 @@ public sealed class ShopCarouselUI : MonoBehaviour, IBeginDragHandler, IDragHand
 
     private void ShowPage(int targetIndex, bool animated)
     {
-        if (pages == null) return;
+        if (pages == null || pages.Length == 0) return;
         for (int i = 0; i < pages.Length; i++)
         {
             if (pages[i] != null)
@@ -248,6 +252,7 @@ public sealed class ShopCarouselUI : MonoBehaviour, IBeginDragHandler, IDragHand
     private void StartAutoSlide()
     {
         if (!enableAutoSlide) return;
+        if (pages == null || pages.Length <= 1) return;
         StopAutoSlide();
         if (gameObject.activeInHierarchy)
         {

@@ -92,6 +92,23 @@ public class PlayerSkinApplier : MonoBehaviour
     [Tooltip("Transform nòng súng (FirePoint).")]
     public Transform firePoint;
 
+    [Header("Sprite Mặc Định Gốc (Base Character)")]
+    [Tooltip("Sprite Thân mặc định ban đầu của nhân vật.")]
+    public Sprite defaultBodySprite;
+    [Tooltip("Sprite Cánh tay mặc định ban đầu của nhân vật.")]
+    public Sprite defaultArmSprite;
+    [Tooltip("Sprite Khẩu súng mặc định ban đầu của nhân vật.")]
+    public Sprite defaultGunSprite;
+    [Tooltip("Sprite Chân trái mặc định ban đầu của nhân vật.")]
+    public Sprite defaultLeg1Sprite;
+    [Tooltip("Sprite Chân phải mặc định ban đầu của nhân vật.")]
+    public Sprite defaultLeg2Sprite;
+    [Tooltip("Tọa độ nòng súng mặc định ban đầu.")]
+    public Vector2 defaultFirePointOffset = new Vector2(3.59f, -0.99f);
+
+    [HideInInspector]
+    public bool isShowingDefault = false;
+
     [Header("Danh sách 4 Skin")]
     public PlayerSkinConfig[] skins = new PlayerSkinConfig[4]
     {
@@ -120,9 +137,32 @@ public class PlayerSkinApplier : MonoBehaviour
     public int ActiveAppliedIndex => activeAppliedIndex;
     private int activeAppliedIndex = -1;
 
+    public PlayerSkinConfig CurrentSkin
+    {
+        get
+        {
+            if (isShowingDefault) return null;
+            if (skins != null && activeAppliedIndex >= 0 && activeAppliedIndex < skins.Length)
+                return skins[activeAppliedIndex];
+            int eq = BuildBodyController.EquippedSkinIndex;
+            if (skins != null && eq >= 0 && eq < skins.Length)
+                return skins[eq];
+            return null;
+        }
+    }
+
+    public bool HasCustomGunSprite => !isShowingDefault && CurrentSkin != null && CurrentSkin.gunSprite != null;
+    public Sprite CurrentSkinGunSprite => isShowingDefault ? defaultGunSprite : CurrentSkin?.gunSprite;
+
     private void Awake()
     {
         AutoEnsureVisualSlots();
+        ApplyEquippedSkin();
+    }
+
+    private void Start()
+    {
+        // Chạy trong Start để đảm bảo skin ghi đè lên các thiết lập sprite mặc định của vũ khí trong PlayerAutoShooter
         ApplyEquippedSkin();
     }
 
@@ -151,8 +191,143 @@ public class PlayerSkinApplier : MonoBehaviour
     }
 
     /// <summary>
+    /// Hiển thị lại toàn bộ Sprite Mặc Định gốc của nhân vật và reset mọi vị trí Offset về (0,0) chuẩn.
+    /// Giúp người dùng đối chiếu dáng đứng và tỷ lệ ban đầu.
+    /// </summary>
+    public void ApplyDefaultVisuals()
+    {
+        AutoEnsureVisualSlots();
+        isShowingDefault = true;
+        activeAppliedIndex = -1;
+
+        // 1. Áp dụng Sprite mặc định
+        if (bodyRenderer != null && defaultBodySprite != null)
+            bodyRenderer.sprite = defaultBodySprite;
+
+        if (armRenderer != null && defaultArmSprite != null)
+            armRenderer.sprite = defaultArmSprite;
+
+        if (gunRenderer != null && defaultGunSprite != null)
+            gunRenderer.sprite = defaultGunSprite;
+
+        if (leg1Renderer != null && defaultLeg1Sprite != null)
+            leg1Renderer.sprite = defaultLeg1Sprite;
+
+        if (leg2Renderer != null && defaultLeg2Sprite != null)
+            leg2Renderer.sprite = defaultLeg2Sprite;
+
+        // 2. Reset triệt để Visual Slots về (0,0), Scale (1,1), Rotation 0
+        ResetAllVisualSlotTransforms();
+
+        // 3. Reset nòng súng về tọa độ mặc định
+        if (firePoint != null)
+        {
+            firePoint.localPosition = new Vector3(defaultFirePointOffset.x, defaultFirePointOffset.y, firePoint.localPosition.z);
+        }
+
+        // 4. Cập nhật cache PlayerHealth
+        PlayerHealth health = GetComponent<PlayerHealth>() ?? GetComponentInParent<PlayerHealth>();
+        if (health != null)
+        {
+            health.CacheSpriteRenderers(true);
+        }
+    }
+
+    /// <summary>
+    /// Reset vị trí, góc xoay và tỷ lệ của cả 5 Visual Slots về gốc chuẩn.
+    /// </summary>
+    public void ResetAllVisualSlotTransforms()
+    {
+        if (bodyVisual != null)
+        {
+            bodyVisual.localPosition = Vector3.zero;
+            bodyVisual.localScale = Vector3.one;
+            bodyVisual.localRotation = Quaternion.identity;
+        }
+        if (gunVisual != null)
+        {
+            gunVisual.localPosition = Vector3.zero;
+            gunVisual.localScale = Vector3.one;
+            gunVisual.localRotation = Quaternion.identity;
+        }
+        if (armVisual != null)
+        {
+            armVisual.localPosition = Vector3.zero;
+            armVisual.localScale = Vector3.one;
+            armVisual.localRotation = Quaternion.identity;
+        }
+        if (leg1Visual != null)
+        {
+            leg1Visual.localPosition = Vector3.zero;
+            leg1Visual.localScale = Vector3.one;
+            leg1Visual.localRotation = Quaternion.identity;
+        }
+        if (leg2Visual != null)
+        {
+            leg2Visual.localPosition = Vector3.zero;
+            leg2Visual.localScale = Vector3.one;
+            leg2Visual.localRotation = Quaternion.identity;
+        }
+    }
+
+    /// <summary>
+    /// Đặt lại các Xương cha (Bones) về vị trí gốc hoạt hình ban đầu phòng khi người dùng lỡ kéo lệch xương cha trên Scene.
+    /// </summary>
+    public void ResetParentBonesToDefault()
+    {
+        Transform root = transform;
+        Transform boneBody = root.Find("thân");
+        if (boneBody != null)
+        {
+            boneBody.localPosition = Vector3.zero;
+            boneBody.localRotation = Quaternion.identity;
+            boneBody.localScale = Vector3.one;
+
+            Transform boneGunPivot = boneBody.Find("GunPivot");
+            if (boneGunPivot != null)
+            {
+                boneGunPivot.localPosition = new Vector3(-3.9f, 4.24f, 0f);
+                boneGunPivot.localRotation = Quaternion.identity;
+                boneGunPivot.localScale = Vector3.one;
+
+                Transform boneGun = boneGunPivot.Find("GunSprite");
+                if (boneGun != null)
+                {
+                    boneGun.localPosition = new Vector3(5.63f, -2.09f, 0f);
+                    boneGun.localRotation = Quaternion.Euler(0f, 0f, 15.5f);
+                    boneGun.localScale = new Vector3(1.7548f, 1.7548f, 1f);
+                }
+
+                Transform boneArm = boneGunPivot.Find("Tay");
+                if (boneArm != null)
+                {
+                    boneArm.localPosition = new Vector3(0.35f, -0.35f, 0f);
+                    boneArm.localRotation = Quaternion.Euler(0f, 0f, 5.427f);
+                    boneArm.localScale = new Vector3(1.33173f, 1.33173f, 1f);
+                }
+            }
+        }
+
+        Transform boneLeg1 = root.Find("Chan 1");
+        if (boneLeg1 != null)
+        {
+            boneLeg1.localPosition = new Vector3(-2.65f, 0.95f, 0f);
+            boneLeg1.localRotation = Quaternion.identity;
+            boneLeg1.localScale = new Vector3(1.33173f, 1.33173f, 1f);
+        }
+
+        Transform boneLeg2 = root.Find("chan 2");
+        if (boneLeg2 != null)
+        {
+            boneLeg2.localPosition = new Vector3(1.37f, -0.37f, 0f);
+            boneLeg2.localRotation = Quaternion.identity;
+            boneLeg2.localScale = new Vector3(1.33173f, 1.33173f, 1f);
+        }
+    }
+
+    /// <summary>
     /// Áp dụng toàn bộ sprite, vị trí offset và tỷ lệ thu phóng của skin tương ứng.
-    /// Hoạt động an toàn 100% không bị Animator ghi đè nhờ kiến trúc Visual Slot.
+    /// Luôn reset sạch sẽ các slot trước để tránh bị ảnh hưởng bởi skin trước đó.
     /// </summary>
     public void ApplySkin(int skinIndex)
     {
@@ -160,28 +335,32 @@ public class PlayerSkinApplier : MonoBehaviour
 
         skinIndex = Mathf.Clamp(skinIndex, 0, skins.Length - 1);
         activeAppliedIndex = skinIndex;
+        isShowingDefault = false;
         PlayerSkinConfig skin = skins[skinIndex];
         if (skin == null) return;
 
         AutoEnsureVisualSlots();
 
-        // 1. Áp dụng Sprite cho từng bộ phận
-        if (bodyRenderer != null && skin.bodySprite != null)
-            bodyRenderer.sprite = skin.bodySprite;
+        // 1. Áp dụng Sprite cho từng bộ phận (fallback về mặc định nếu skin không có)
+        if (bodyRenderer != null)
+            bodyRenderer.sprite = (skin.bodySprite != null) ? skin.bodySprite : defaultBodySprite;
 
-        if (armRenderer != null && skin.armSprite != null)
-            armRenderer.sprite = skin.armSprite;
+        if (armRenderer != null)
+            armRenderer.sprite = (skin.armSprite != null) ? skin.armSprite : defaultArmSprite;
 
-        if (gunRenderer != null && skin.gunSprite != null)
-            gunRenderer.sprite = skin.gunSprite;
+        if (gunRenderer != null)
+            gunRenderer.sprite = (skin.gunSprite != null) ? skin.gunSprite : defaultGunSprite;
 
-        if (leg1Renderer != null && skin.leg1Sprite != null)
-            leg1Renderer.sprite = skin.leg1Sprite;
+        if (leg1Renderer != null)
+            leg1Renderer.sprite = (skin.leg1Sprite != null) ? skin.leg1Sprite : defaultLeg1Sprite;
 
-        if (leg2Renderer != null && skin.leg2Sprite != null)
-            leg2Renderer.sprite = skin.leg2Sprite;
+        if (leg2Renderer != null)
+            leg2Renderer.sprite = (skin.leg2Sprite != null) ? skin.leg2Sprite : defaultLeg2Sprite;
 
-        // 2. Áp dụng Vị trí Offset, Tỷ lệ Scale và Góc xoay lên từng Visual Slot
+        // 2. Reset tất cả slots về (0,0) trước để tránh bị ảnh hưởng/lem bởi skin trước
+        ResetAllVisualSlotTransforms();
+
+        // 3. Áp dụng Vị trí Offset, Tỷ lệ Scale và Góc xoay riêng của skin này
         if (bodyVisual != null && skin.body != null)
         {
             bodyVisual.localPosition = new Vector3(skin.body.positionOffset.x, skin.body.positionOffset.y, 0f);
@@ -237,13 +416,14 @@ public class PlayerSkinApplier : MonoBehaviour
             leg2Visual.localRotation = Quaternion.Euler(0f, 0f, skin.leg2.rotationOffset);
         }
 
-        // 3. Cập nhật vị trí nòng súng (FirePoint)
+        // 4. Cập nhật vị trí nòng súng (FirePoint)
         if (firePoint != null)
         {
-            firePoint.localPosition = new Vector3(skin.firePointOffset.x, skin.firePointOffset.y, firePoint.localPosition.z);
+            Vector2 fpPos = skin.firePointOffset != Vector2.zero ? skin.firePointOffset : defaultFirePointOffset;
+            firePoint.localPosition = new Vector3(fpPos.x, fpPos.y, firePoint.localPosition.z);
         }
 
-        // 4. Cập nhật cache của PlayerHealth để hiệu ứng chớp trắng flash nhận đúng sprite mới
+        // 5. Cập nhật cache của PlayerHealth để hiệu ứng chớp trắng flash nhận đúng sprite mới
         PlayerHealth health = GetComponent<PlayerHealth>() ?? GetComponentInParent<PlayerHealth>();
         if (health != null)
         {
@@ -422,7 +602,7 @@ public class PlayerSkinApplier : MonoBehaviour
             {
                 newRenderer.sprite = boneRenderer.sprite;
                 newRenderer.color = boneRenderer.color;
-                newRenderer.material = boneRenderer.material;
+                newRenderer.sharedMaterial = boneRenderer.sharedMaterial;
                 newRenderer.sortingLayerID = boneRenderer.sortingLayerID;
                 newRenderer.sortingOrder = boneRenderer.sortingOrder;
                 newRenderer.flipX = boneRenderer.flipX;

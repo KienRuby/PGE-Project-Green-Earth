@@ -402,10 +402,16 @@ public class PlayerAutoShooter : MonoBehaviour
 
         currentEquippedWeapon = weapon;
 
-        // 1. Chỉ cập nhật Sprite. Kích thước súng được giữ theo Transform đã đặt trong Scene.
+        PlayerSkinApplier skinApplier = GetComponent<PlayerSkinApplier>() ?? GetComponentInParent<PlayerSkinApplier>();
+
+        // 1. Chỉ cập nhật Sprite súng nếu Skin không có Gun Sprite riêng.
         if (gunSpriteRenderer != null)
         {
-            if (weapon.gunSprite != null)
+            if (skinApplier != null && skinApplier.HasCustomGunSprite)
+            {
+                gunSpriteRenderer.sprite = skinApplier.CurrentSkinGunSprite;
+            }
+            else if (weapon.gunSprite != null)
             {
                 gunSpriteRenderer.sprite = weapon.gunSprite;
             }
@@ -417,10 +423,17 @@ public class PlayerAutoShooter : MonoBehaviour
             playerHealth.CacheSpriteRenderers(true);
         }
 
-        // 2. Cập nhật vị trí nòng súng (FirePoint)
-        if (attackPoint != null && weapon.firePointOffset != Vector2.zero)
+        // 2. Cập nhật vị trí nòng súng (FirePoint), ưu tiên offset từ Skin nếu có
+        if (attackPoint != null)
         {
-            attackPoint.localPosition = new Vector3(weapon.firePointOffset.x, weapon.firePointOffset.y, 0f);
+            if (skinApplier != null && skinApplier.CurrentSkin != null && skinApplier.CurrentSkin.firePointOffset != Vector2.zero)
+            {
+                attackPoint.localPosition = new Vector3(skinApplier.CurrentSkin.firePointOffset.x, skinApplier.CurrentSkin.firePointOffset.y, 0f);
+            }
+            else if (weapon.firePointOffset != Vector2.zero)
+            {
+                attackPoint.localPosition = new Vector3(weapon.firePointOffset.x, weapon.firePointOffset.y, 0f);
+            }
         }
 
         // 3. Cập nhật Prefab đạn & Hiệu ứng nòng súng

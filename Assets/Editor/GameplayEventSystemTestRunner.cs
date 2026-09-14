@@ -6,18 +6,9 @@ using UnityEngine;
 
 namespace PGE.Tests
 {
-    [InitializeOnLoad]
     public class GameplayEventSystemTestRunner
     {
         public const string ReportPath = "Assets/Editor/GameplayEventTestReport.txt";
-
-        static GameplayEventSystemTestRunner()
-        {
-            EditorApplication.delayCall += () =>
-            {
-                RunAllTestsAndSaveReport();
-            };
-        }
 
         [MenuItem("PGE/Tests/Run Gameplay Event Tests")]
         public static void RunFromMenu()

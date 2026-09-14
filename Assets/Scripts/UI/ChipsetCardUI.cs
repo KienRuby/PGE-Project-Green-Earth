@@ -198,16 +198,12 @@ public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
             {
                 levelText.text = $"LV.{data.level:00} MAX";
             }
-            else if (data.IsTierUnlockReady)
-            {
-                levelText.text = $"LV.{data.level:00} CAP";
-            }
             else
             {
-                levelText.text = $"LV.{data.level:00}";
+                levelText.text = $"LV.{data.level:00}/{data.MaxLevel:00}";
             }
 
-            ConfigureLevelLabel(levelText, data.IsMaxOverall || data.IsTierUnlockReady);
+            ConfigureLevelLabel(levelText, data.IsMaxOverall);
         }
 
         EnsureProgressBar();
@@ -497,16 +493,12 @@ public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
             {
                 levelText.text = $"LV.{boundData.level:00} MAX";
             }
-            else if (boundData.IsTierUnlockReady)
-            {
-                levelText.text = $"LV.{boundData.level:00} CAP";
-            }
             else
             {
-                levelText.text = $"LV.{boundData.level:00}";
+                levelText.text = $"LV.{boundData.level:00}/{boundData.MaxLevel:00}";
             }
 
-            ConfigureLevelLabel(levelText, boundData.IsMaxOverall || boundData.IsTierUnlockReady);
+            ConfigureLevelLabel(levelText, boundData.IsMaxOverall);
         }
 
         EnsureProgressBar();

@@ -9,18 +9,9 @@ using Object = UnityEngine.Object;
 
 namespace PGE.Tests.Adversarial
 {
-    [InitializeOnLoad]
     public class M1AdversarialChallengeTests
     {
         public const string ReportPath = "Assets/Editor/M1AdversarialTestReport.txt";
-
-        static M1AdversarialChallengeTests()
-        {
-            EditorApplication.delayCall += () =>
-            {
-                RunAllAdversarialTestsAndSaveReport();
-            };
-        }
 
         [MenuItem("PGE/Tests/Run M1 Adversarial Stress Tests")]
         public static void RunFromMenu()

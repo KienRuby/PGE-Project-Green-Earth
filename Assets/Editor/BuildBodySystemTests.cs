@@ -4,18 +4,9 @@ using System.Text;
 using UnityEditor;
 using UnityEngine;
 
-[InitializeOnLoad]
 public class BuildBodySystemTests
 {
     public const string ReportPath = "Assets/Editor/BuildBodyTestReport.txt";
-
-    static BuildBodySystemTests()
-    {
-        EditorApplication.delayCall += () =>
-        {
-            RunTests();
-        };
-    }
 
     [MenuItem("PGE/Tests/Run Build Body System Tests")]
     public static void RunFromMenu()
@@ -62,17 +53,25 @@ public class BuildBodySystemTests
             // Test 1: Chapter lock condition (< 3 chapters => locked, >= 3 chapters => unlocked)
             PlayerDataService.UnlockedChapterIndex = 0;
             var go = new GameObject("TestBuildBodyController");
+            go.hideFlags = HideFlags.HideAndDontSave;
             var ctrl = go.AddComponent<BuildBodyController>();
-            Assert("Test01_Locked_WhenChapter0", !ctrl.IsBuildBodyUnlocked, "Chapter 0 should be locked");
+            try
+            {
+                Assert("Test01_Locked_WhenChapter0", !ctrl.IsBuildBodyUnlocked, "Chapter 0 should be locked");
 
-            PlayerDataService.UnlockedChapterIndex = 2; // 2 chapters cleared
-            Assert("Test02_Locked_WhenChapter2", !ctrl.IsBuildBodyUnlocked, "Chapter 2 should be locked");
+                PlayerDataService.UnlockedChapterIndex = 2; // 2 chapters cleared
+                Assert("Test02_Locked_WhenChapter2", !ctrl.IsBuildBodyUnlocked, "Chapter 2 should be locked");
 
-            PlayerDataService.UnlockedChapterIndex = 3; // 3 chapters cleared
-            Assert("Test03_Unlocked_WhenChapter3", ctrl.IsBuildBodyUnlocked, "Chapter 3 should be unlocked");
+                PlayerDataService.UnlockedChapterIndex = 3; // 3 chapters cleared
+                Assert("Test03_Unlocked_WhenChapter3", ctrl.IsBuildBodyUnlocked, "Chapter 3 should be unlocked");
 
-            PlayerDataService.UnlockedChapterIndex = 4;
-            Assert("Test04_Unlocked_WhenChapter4", ctrl.IsBuildBodyUnlocked, "Chapter 4 should be unlocked");
+                PlayerDataService.UnlockedChapterIndex = 4;
+                Assert("Test04_Unlocked_WhenChapter4", ctrl.IsBuildBodyUnlocked, "Chapter 4 should be unlocked");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(go);
+            }
 
             // Test 2: Skin equipping & Background color / Status text logic
             BuildBodyController.EquippedSkinIndex = 1; // AD Unit-2
@@ -92,8 +91,6 @@ public class BuildBodySystemTests
             {
                 Assert("Test07_BuildBodyUIBuilder_Execution", false, ex.Message);
             }
-
-            UnityEngine.Object.DestroyImmediate(go);
         }
         catch (Exception ex)
         {

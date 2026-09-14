@@ -21,6 +21,8 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
     [SerializeField] private Button cardButton;
     [SerializeField] private Button upgradeButton;
     [SerializeField] private GameObject upgradeArrowGroup;
+    [SerializeField] private GameObject equippedBadgeGroup;
+    [SerializeField] private Sprite upgradeArrowSprite;
     [SerializeField] private GameObject normalContentGroup;
     [SerializeField] private GameObject emptySlotGroup;
     [SerializeField] private GameObject lockedSlotGroup;
@@ -42,6 +44,8 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
     public Image ProgressFillImage => progressFillImage;
     public Image DroneIconImage => droneIconImage;
     public Image CardFrameImage => cardFrameImage;
+    public GameObject UpgradeArrowGroup => upgradeArrowGroup;
+    public GameObject EquippedBadgeGroup => equippedBadgeGroup;
 
     private void Awake()
     {
@@ -251,6 +255,133 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
         }
     }
 
+    public void EnsureUpgradeArrow(Sprite customArrowSprite = null)
+    {
+        if (customArrowSprite != null)
+        {
+            upgradeArrowSprite = customArrowSprite;
+        }
+
+        if (upgradeArrowGroup == null)
+        {
+            Transform t = transform.Find("NormalContentGroup/UpgradeArrowGroup")
+                ?? transform.Find("UpgradeArrowGroup")
+                ?? transform.Find("NormalContentGroup/UpgradeArrow")
+                ?? transform.Find("UpgradeArrow");
+            if (t != null)
+            {
+                upgradeArrowGroup = t.gameObject;
+            }
+            else
+            {
+                Transform parent = normalContentGroup != null ? normalContentGroup.transform : transform;
+                GameObject arrowObj = new GameObject("UpgradeArrowGroup", typeof(RectTransform));
+                RectTransform rt = arrowObj.GetComponent<RectTransform>();
+                rt.SetParent(parent, false);
+                rt.anchorMin = new Vector2(0.85f, 0.16f);
+                rt.anchorMax = new Vector2(0.85f, 0.16f);
+                rt.pivot = new Vector2(0.5f, 0.5f);
+                rt.anchoredPosition = Vector2.zero;
+                rt.sizeDelta = new Vector2(46f, 46f);
+
+                Image img = arrowObj.AddComponent<Image>();
+                img.raycastTarget = true;
+                Sprite arrowSprite = upgradeArrowSprite;
+#if UNITY_EDITOR
+                if (arrowSprite == null)
+                {
+                    arrowSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Chipset/Frames/badge-upgrade.png");
+                }
+#endif
+                if (arrowSprite != null)
+                {
+                    img.sprite = arrowSprite;
+                    img.color = Color.white;
+                }
+                else
+                {
+                    img.color = new Color(0.18f, 0.92f, 0.45f, 1f);
+                }
+
+                Button btn = arrowObj.AddComponent<Button>();
+                btn.targetGraphic = img;
+
+                upgradeArrowGroup = arrowObj;
+                upgradeButton = btn;
+            }
+        }
+
+        if (upgradeButton == null && upgradeArrowGroup != null)
+        {
+            upgradeButton = upgradeArrowGroup.GetComponent<Button>();
+            if (upgradeButton == null)
+            {
+                upgradeButton = upgradeArrowGroup.AddComponent<Button>();
+            }
+        }
+    }
+
+    public void SetEquippedBadge(bool isEquipped)
+    {
+        if (equippedBadgeGroup == null)
+        {
+            Transform t = transform.Find("NormalContentGroup/EquippedBadge")
+                ?? transform.Find("EquippedBadge");
+            if (t != null)
+            {
+                equippedBadgeGroup = t.gameObject;
+            }
+            else if (isEquipped)
+            {
+                Transform parent = normalContentGroup != null ? normalContentGroup.transform : transform;
+                GameObject badgeObj = new GameObject("EquippedBadge", typeof(RectTransform));
+                RectTransform rt = badgeObj.GetComponent<RectTransform>();
+                rt.SetParent(parent, false);
+                rt.anchorMin = new Vector2(0.5f, 0.94f);
+                rt.anchorMax = new Vector2(0.5f, 0.94f);
+                rt.pivot = new Vector2(0.5f, 0.5f);
+                rt.anchoredPosition = Vector2.zero;
+                rt.sizeDelta = new Vector2(130f, 28f);
+
+                Image bg = badgeObj.AddComponent<Image>();
+                bg.color = new Color(0.04f, 0.28f, 0.32f, 0.92f);
+                bg.raycastTarget = false;
+
+                GameObject textObj = new GameObject("BadgeText", typeof(RectTransform));
+                RectTransform textRt = textObj.GetComponent<RectTransform>();
+                textRt.SetParent(badgeObj.transform, false);
+                textRt.anchorMin = Vector2.zero;
+                textRt.anchorMax = Vector2.one;
+                textRt.sizeDelta = Vector2.zero;
+                textRt.anchoredPosition = Vector2.zero;
+
+                TextMeshProUGUI tmp = textObj.AddComponent<TextMeshProUGUI>();
+                if (levelText != null && levelText.font != null)
+                {
+                    tmp.font = levelText.font;
+                    if (levelText.fontSharedMaterial != null) tmp.fontSharedMaterial = levelText.fontSharedMaterial;
+                }
+                tmp.text = "EQUIPPED";
+                tmp.fontSize = 15f;
+                tmp.fontStyle = FontStyles.Bold;
+                tmp.color = new Color(0.25f, 0.95f, 0.85f, 1f);
+                tmp.alignment = TextAlignmentOptions.Center;
+                tmp.raycastTarget = false;
+
+                equippedBadgeGroup = badgeObj;
+            }
+        }
+
+        if (equippedBadgeGroup != null)
+        {
+            equippedBadgeGroup.SetActive(isEquipped);
+            if (isEquipped)
+            {
+                equippedBadgeGroup.transform.SetAsLastSibling();
+            }
+        }
+    }
+
     public void UpdateProgressBar(float fillRatio)
     {
         EnsureProgressBar();
@@ -421,9 +552,15 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
             UpdateProgressFromText();
         }
 
+        EnsureUpgradeArrow(upgradeArrowSprite);
+        bool canUpgrade = data != null && data.CanUpgrade;
         if (upgradeArrowGroup != null)
         {
-            upgradeArrowGroup.SetActive(false);
+            upgradeArrowGroup.SetActive(canUpgrade);
+            if (canUpgrade)
+            {
+                upgradeArrowGroup.transform.SetAsLastSibling();
+            }
         }
 
         if (cardButton != null)
@@ -447,6 +584,7 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
         boundData = null;
         slotState = BuddySlotState.Empty;
         onEmptySlotClicked = onEmptyClick;
+        SetEquippedBadge(false);
 
         if (normalContentGroup != null) normalContentGroup.SetActive(false);
         if (emptySlotGroup != null) emptySlotGroup.SetActive(true);
@@ -483,6 +621,7 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
         boundData = null;
         slotState = BuddySlotState.Locked;
         onLockedSlotClicked = onLockedClick;
+        SetEquippedBadge(false);
 
         if (normalContentGroup != null) normalContentGroup.SetActive(false);
         if (emptySlotGroup != null) emptySlotGroup.SetActive(false);
@@ -549,9 +688,15 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
             }
         }
 
+        EnsureUpgradeArrow(upgradeArrowSprite);
         if (upgradeArrowGroup != null)
         {
-            upgradeArrowGroup.SetActive(boundData.CanUpgrade);
+            bool canUpgrade = boundData.CanUpgrade;
+            upgradeArrowGroup.SetActive(canUpgrade);
+            if (canUpgrade)
+            {
+                upgradeArrowGroup.transform.SetAsLastSibling();
+            }
         }
     }
 

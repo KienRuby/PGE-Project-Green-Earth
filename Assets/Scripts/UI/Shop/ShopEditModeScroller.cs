@@ -70,6 +70,11 @@ public class ShopEditModeScroller : MonoBehaviour
     {
         AutoFindReferences();
 
+        if (Application.isPlaying)
+        {
+            ResetToTop();
+        }
+
 #if UNITY_EDITOR
         EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
         EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
@@ -189,8 +194,6 @@ public class ShopEditModeScroller : MonoBehaviour
     {
         if (content == null || viewport == null || targetRect == null) return;
 
-        Canvas.ForceUpdateCanvases();
-
         // Tính khoảng cách từ đỉnh content đến đỉnh target
         float contentHeight = content.rect.height;
         float viewportHeight = viewport.rect.height;
@@ -217,6 +220,12 @@ public class ShopEditModeScroller : MonoBehaviour
 #if UNITY_EDITOR
             if (!Application.isPlaying) EditorUtility.SetDirty(content);
 #endif
+        }
+
+        if (scrollRect != null)
+        {
+            scrollRect.normalizedPosition = new Vector2(0f, 1f);
+            scrollRect.velocity = Vector2.zero;
         }
 
         if (viewportMask != null)
