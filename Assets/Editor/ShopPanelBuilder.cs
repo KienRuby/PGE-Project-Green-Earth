@@ -38,10 +38,11 @@ public static class ShopPanelBuilder
         var currentScene = EditorSceneManager.GetActiveScene();
         if (currentScene.path != MainMenuScenePath) return;
 
-        GameObject vip = FindInActiveScene("Card_VIP_Package");
-        RectTransform dailyRt = FindInActiveScene("Daily_Shop_Row")?.GetComponent<RectTransform>();
-        GameObject metaCarousel = FindInActiveScene("Meta_Shop_Carousel");
-        if (vip == null || dailyRt == null || dailyRt.sizeDelta.y < 200f || metaCarousel == null)
+        GameObject shopPanel = FindInActiveScene("ShopPanel") ?? FindInActiveScene("ShopPanel (Scrollable)");
+        Transform contentT = shopPanel != null ? shopPanel.transform.Find("Viewport/ShopContent") : null;
+        // Chỉ tự động build nếu ShopPanel hoặc ShopContent chưa hề tồn tại hoặc rỗng hoàn toàn.
+        // Nếu đã có các mục con, tuyệt đối không tự ý xóa để bảo toàn các chỉnh sửa kích thước, vị trí của người dùng.
+        if (shopPanel == null || contentT == null || contentT.childCount == 0)
         {
             BuildFullShopPanel();
         }
@@ -653,6 +654,11 @@ public static class ShopPanelBuilder
                 BoxDropRateModalController.EnsureModalInCanvas(mainCanvas);
             }
         }
+
+        // Ensure ShopEditModeScroller is attached for Edit-Mode navigation
+        ShopEditModeScroller scroller = shopPanel.GetComponent<ShopEditModeScroller>();
+        if (scroller == null) scroller = shopPanel.AddComponent<ShopEditModeScroller>();
+        scroller.AutoFindReferences();
 
         EditorUtility.SetDirty(shopPanel);
         EditorSceneManager.SaveScene(currentScene);

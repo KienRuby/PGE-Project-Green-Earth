@@ -2267,7 +2267,71 @@ public class PGEGameLogicTests
             ChipManager.RedGems = originalRedGems;
         }
     }
+
+    [Test]
+    public void PlayerSkinApplier_AutoEnsureVisualSlots_CreatesSlotsUnderBones()
+    {
+        GameObject player = new GameObject("TestPlayer");
+        GameObject body = new GameObject("thân");
+        body.transform.SetParent(player.transform, false);
+        body.AddComponent<SpriteRenderer>();
+
+        GameObject gunPivot = new GameObject("GunPivot");
+        gunPivot.transform.SetParent(body.transform, false);
+
+        GameObject gunSprite = new GameObject("GunSprite");
+        gunSprite.transform.SetParent(gunPivot.transform, false);
+        gunSprite.AddComponent<SpriteRenderer>();
+
+        GameObject arm = new GameObject("Tay");
+        arm.transform.SetParent(gunPivot.transform, false);
+        arm.AddComponent<SpriteRenderer>();
+
+        GameObject leg1 = new GameObject("Chan 1");
+        leg1.transform.SetParent(player.transform, false);
+        leg1.AddComponent<SpriteRenderer>();
+
+        GameObject leg2 = new GameObject("chan 2");
+        leg2.transform.SetParent(player.transform, false);
+        leg2.AddComponent<SpriteRenderer>();
+
+        PlayerSkinApplier applier = player.AddComponent<PlayerSkinApplier>();
+        applier.AutoEnsureVisualSlots();
+
+        Assert.That(body.transform.Find("BodyVisual"), Is.Not.Null, "BodyVisual child must be created.");
+        Assert.That(gunSprite.transform.Find("GunVisual"), Is.Not.Null, "GunVisual child must be created.");
+        Assert.That(arm.transform.Find("ArmVisual"), Is.Not.Null, "ArmVisual child must be created.");
+        Assert.That(leg1.transform.Find("Leg1Visual"), Is.Not.Null, "Leg1Visual child must be created.");
+        Assert.That(leg2.transform.Find("Leg2Visual"), Is.Not.Null, "Leg2Visual child must be created.");
+
+        // Bone SpriteRenderer should be disabled so only visual slot renders
+        Assert.That(body.GetComponent<SpriteRenderer>().enabled, Is.False, "Bone SpriteRenderer should be disabled.");
+        Assert.That(applier.bodyRenderer, Is.EqualTo(body.transform.Find("BodyVisual").GetComponent<SpriteRenderer>()));
+
+        // Test ApplySkin
+        applier.skins[1].gun.positionOffset = new Vector2(0.5f, -0.3f);
+        applier.skins[1].gun.scaleMultiplier = new Vector2(0.8f, 0.8f);
+        applier.ApplySkin(1);
+
+        Transform gunVisual = gunSprite.transform.Find("GunVisual");
+        Assert.That(gunVisual.localPosition.x, Is.EqualTo(0.5f).Within(0.001f));
+        Assert.That(gunVisual.localPosition.y, Is.EqualTo(-0.3f).Within(0.001f));
+        Assert.That(gunVisual.localScale.x, Is.EqualTo(0.8f).Within(0.001f));
+        Assert.That(gunVisual.localScale.y, Is.EqualTo(0.8f).Within(0.001f));
+
+        // Bone transform must remain untouched (so Animation is never broken!)
+        Assert.That(gunSprite.transform.localPosition, Is.EqualTo(Vector3.zero));
+
+        // Test CaptureCurrentSceneTransforms
+        gunVisual.localPosition = new Vector3(1.2f, 2.3f, 0f);
+        gunVisual.localScale = new Vector3(0.65f, 0.65f, 1f);
+        applier.CaptureCurrentSceneTransforms(1);
+
+        Assert.That(applier.skins[1].gun.positionOffset.x, Is.EqualTo(1.2f).Within(0.001f));
+        Assert.That(applier.skins[1].gun.positionOffset.y, Is.EqualTo(2.3f).Within(0.001f));
+        Assert.That(applier.skins[1].gun.scaleMultiplier.x, Is.EqualTo(0.65f).Within(0.001f));
+        Assert.That(applier.skins[1].gun.scaleMultiplier.y, Is.EqualTo(0.65f).Within(0.001f));
+
+        Object.DestroyImmediate(player);
+    }
 }
-
-
-

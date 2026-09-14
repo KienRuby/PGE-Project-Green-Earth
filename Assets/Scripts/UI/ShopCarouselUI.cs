@@ -113,6 +113,56 @@ public sealed class ShopCarouselUI : MonoBehaviour, IBeginDragHandler, IDragHand
         SetPage(prev);
     }
 
+    /// <summary>
+    /// Chuyển đổi trang hiển thị trực tiếp trong Edit Mode
+    /// </summary>
+    public void SetPageInEditor(int index)
+    {
+        if (pages == null || pages.Length == 0) return;
+        index = Mathf.Clamp(index, 0, pages.Length - 1);
+        currentPage = index;
+        for (int i = 0; i < pages.Length; i++)
+        {
+            if (pages[i] != null)
+            {
+                pages[i].gameObject.SetActive(i == currentPage);
+#if UNITY_EDITOR
+                UnityEditor.EditorUtility.SetDirty(pages[i].gameObject);
+#endif
+            }
+        }
+        UpdateDots(currentPage);
+    }
+
+    /// <summary>
+    /// Đồng bộ kích thước và LayoutElement từ 1 thẻ được chọn sang tất cả các thẻ còn lại
+    /// </summary>
+    public void SyncSizeToAllPages(int sourcePageIndex)
+    {
+        if (pages == null || sourcePageIndex < 0 || sourcePageIndex >= pages.Length) return;
+        RectTransform source = pages[sourcePageIndex];
+        if (source == null) return;
+
+        LayoutElement sourceLE = source.GetComponent<LayoutElement>();
+
+        for (int i = 0; i < pages.Length; i++)
+        {
+            if (i == sourcePageIndex || pages[i] == null) continue;
+
+            pages[i].sizeDelta = source.sizeDelta;
+            LayoutElement targetLE = pages[i].GetComponent<LayoutElement>();
+            if (sourceLE != null && targetLE != null)
+            {
+                targetLE.preferredWidth = sourceLE.preferredWidth;
+                targetLE.preferredHeight = sourceLE.preferredHeight;
+            }
+#if UNITY_EDITOR
+            UnityEditor.EditorUtility.SetDirty(pages[i]);
+            if (targetLE != null) UnityEditor.EditorUtility.SetDirty(targetLE);
+#endif
+        }
+    }
+
     private void ShowPage(int targetIndex, bool animated)
     {
         if (pages == null) return;

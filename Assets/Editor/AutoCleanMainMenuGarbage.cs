@@ -79,8 +79,7 @@ public static class AutoCleanMainMenuGarbage
 
         if (chipCard != null && chipCard.transform.Find("Button_Info") == null)
         {
-            Debug.Log("[AutoClean] Đang tự động gắn nút Info và Bảng tỷ lệ mở hộp vào ShopPanel...");
-            ShopPanelBuilder.BuildFullShopPanel();
+            Debug.Log("[AutoClean] Box_Chipset_1x chưa có nút Info. Để tạo lại đầy đủ giao diện, hãy dùng menu 'PGE/UI/Rebuild Shop Panel (Full Visual)'.");
         }
     }
 }

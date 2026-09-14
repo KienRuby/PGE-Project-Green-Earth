@@ -10,6 +10,7 @@ using UnityEngine;
 public static class ShopSpriteSlicer
 {
     public const string TexturePath = "Assets/Sprites/UI/Shop/khung màn shop.png";
+    public const string BoxShopTexturePath = "Assets/Sprites/UI/Shop/box shop.png";
 
     static ShopSpriteSlicer()
     {
@@ -17,6 +18,12 @@ public static class ShopSpriteSlicer
     }
 
     public static void CheckAndSliceIfEmpty()
+    {
+        CheckAndSliceShopAtlas();
+        CheckAndSliceBoxShop();
+    }
+
+    private static void CheckAndSliceShopAtlas()
     {
         TextureImporter importer = AssetImporter.GetAtPath(TexturePath) as TextureImporter;
         if (importer == null) return;
@@ -31,6 +38,24 @@ public static class ShopSpriteSlicer
         if (existingRects == null || existingRects.Length == 0)
         {
             SliceShopTexture();
+        }
+    }
+
+    private static void CheckAndSliceBoxShop()
+    {
+        TextureImporter importer = AssetImporter.GetAtPath(BoxShopTexturePath) as TextureImporter;
+        if (importer == null) return;
+
+        SpriteDataProviderFactories factories = new SpriteDataProviderFactories();
+        factories.Init();
+        ISpriteEditorDataProvider dataProvider = factories.GetSpriteEditorDataProviderFromObject(importer);
+        if (dataProvider == null) return;
+        dataProvider.InitSpriteEditorDataProvider();
+
+        SpriteRect[] existingRects = dataProvider.GetSpriteRects();
+        if (existingRects == null || existingRects.Length == 0)
+        {
+            SliceBoxShopTexture();
         }
     }
 
@@ -116,6 +141,92 @@ public static class ShopSpriteSlicer
         importer.SaveAndReimport();
 
         Debug.Log($"[ShopSpriteSlicer] Successfully sliced {spriteRects.Length} sprites for {TexturePath}.");
+    }
+
+    [MenuItem("PGE/UI/Slice All Shop Textures")]
+    public static void SliceAllShopTextures()
+    {
+        SliceShopTexture();
+        SliceBoxShopTexture();
+    }
+
+    [MenuItem("PGE/UI/Slice Box Shop Texture")]
+    public static void SliceBoxShopTexture()
+    {
+        TextureImporter importer = AssetImporter.GetAtPath(BoxShopTexturePath) as TextureImporter;
+        if (importer == null)
+        {
+            Debug.LogWarning($"[ShopSpriteSlicer] Cannot find TextureImporter at path: {BoxShopTexturePath}");
+            return;
+        }
+
+        importer.textureType = TextureImporterType.Sprite;
+        importer.spriteImportMode = SpriteImportMode.Multiple;
+        importer.spritePixelsPerUnit = 100f;
+        importer.mipmapEnabled = false;
+        importer.alphaIsTransparency = true;
+        importer.wrapMode = TextureWrapMode.Clamp;
+        importer.filterMode = FilterMode.Bilinear;
+        importer.maxTextureSize = 4096;
+        importer.SaveAndReimport();
+
+        SpriteDataProviderFactories factories = new SpriteDataProviderFactories();
+        factories.Init();
+        ISpriteEditorDataProvider dataProvider = factories.GetSpriteEditorDataProviderFromObject(importer);
+        dataProvider.InitSpriteEditorDataProvider();
+
+        SpriteRect[] existingRects = dataProvider.GetSpriteRects();
+        var existingGuids = existingRects != null
+            ? existingRects.Where(r => !string.IsNullOrEmpty(r.name)).ToDictionary(r => r.name, r => r.spriteID)
+            : new Dictionary<string, GUID>();
+
+        var boxDefinitions = new (string name, float x, float y, float w, float h)[]
+        {
+            // Chipset 1x (Small Green/Cyan 'C')
+            ("Box_Chipset_1x_Closed", 496f, 2764f, 239f, 267f),
+            ("Box_Chipset_1x_Open", 496f, 2346f, 240f, 318f),
+            ("Box_Chipset_1x_Lid", 499f, 2545f, 233f, 119f),
+            ("Box_Chipset_1x_Base", 496f, 2346f, 240f, 193f),
+
+            // Chipset 10x (Big Green/Cyan 'C')
+            ("Box_Chipset_10x_Closed", 1400f, 2751f, 326f, 335f),
+            ("Box_Chipset_10x_Open", 1400f, 2214f, 326f, 479f),
+            ("Box_Chipset_10x_Lid", 1400f, 2517f, 326f, 176f),
+            ("Box_Chipset_10x_Base", 1400f, 2214f, 326f, 280f),
+
+            // Drone 1x (Small Blue 'D')
+            ("Box_Drone_1x_Closed", 495f, 1797f, 241f, 269f),
+            ("Box_Drone_1x_Open", 495f, 1282f, 241f, 319f),
+            ("Box_Drone_1x_Lid", 499f, 1482f, 233f, 119f),
+            ("Box_Drone_1x_Base", 495f, 1282f, 241f, 194f),
+
+            // Drone 10x (Big Blue 'D')
+            ("Box_Drone_10x_Closed", 1400f, 1558f, 326f, 335f),
+            ("Box_Drone_10x_Open", 1400f, 962f, 326f, 479f),
+            ("Box_Drone_10x_Lid", 1400f, 1265f, 326f, 176f),
+            ("Box_Drone_10x_Base", 1400f, 962f, 326f, 280f)
+        };
+
+        SpriteRect[] spriteRects = new SpriteRect[boxDefinitions.Length];
+        for (int i = 0; i < boxDefinitions.Length; i++)
+        {
+            var def = boxDefinitions[i];
+            GUID guid = existingGuids.TryGetValue(def.name, out GUID existingId) ? existingId : GUID.Generate();
+            spriteRects[i] = new SpriteRect
+            {
+                name = def.name,
+                alignment = SpriteAlignment.Center,
+                pivot = new Vector2(0.5f, 0.5f),
+                spriteID = guid,
+                rect = new Rect(def.x, def.y, def.w, def.h)
+            };
+        }
+
+        dataProvider.SetSpriteRects(spriteRects);
+        dataProvider.Apply();
+        importer.SaveAndReimport();
+
+        Debug.Log($"[ShopSpriteSlicer] Successfully sliced {spriteRects.Length} box sprites for {BoxShopTexturePath}.");
     }
 }
 #endif

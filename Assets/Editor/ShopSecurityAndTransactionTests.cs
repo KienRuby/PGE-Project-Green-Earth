@@ -524,12 +524,15 @@ public class ShopSecurityAndTransactionTests
         var buddyDrops = ShopBoxDropRoller.Roll(
             ShopBoxDropRoller.BoxCategory.Buddy, 100, new System.Random(1357));
 
+        Assert.That(chipsetDropsA.Count, Is.EqualTo(100));
+        Assert.That(buddyDrops.Count, Is.EqualTo(100));
         Assert.That(chipsetDropsA.Count, Is.EqualTo(chipsetDropsB.Count));
         for (int i = 0; i < chipsetDropsA.Count; i++)
         {
             Assert.That(chipsetDropsA[i].ItemId, Is.InRange(1, 10));
             Assert.That(chipsetDropsA[i].ItemId, Is.EqualTo(chipsetDropsB[i].ItemId));
             Assert.That(chipsetDropsA[i].Pieces, Is.EqualTo(chipsetDropsB[i].Pieces));
+            Assert.That(chipsetDropsA[i].Pieces == 1 || chipsetDropsA[i].Pieces == 3 || chipsetDropsA[i].Pieces == 7, Is.True);
         }
 
         for (int i = 0; i < buddyDrops.Count; i++)
@@ -570,13 +573,16 @@ public class ShopSecurityAndTransactionTests
         Assert.That(PlayerDataService.ChipsetBoxes, Is.EqualTo(0), "Shop opens the boxes immediately");
 
         int totalPieces = 0;
+        int[] rolledByItem = new int[11];
         foreach (ShopBoxDropRoller.Drop drop in shop.LastBoxDrops)
         {
             Assert.That(drop.ItemId, Is.InRange(1, 10));
-            Assert.That(GetSavedChipsetPieceCount(drop.ItemId),
-                Is.EqualTo(before[drop.ItemId] + drop.Pieces));
+            rolledByItem[drop.ItemId] += drop.Pieces;
             totalPieces += drop.Pieces;
         }
+        Assert.That(shop.LastBoxDrops.Count, Is.EqualTo(10));
+        for (int itemId = 1; itemId <= 10; itemId++)
+            Assert.That(GetSavedChipsetPieceCount(itemId), Is.EqualTo(before[itemId] + rolledByItem[itemId]));
         Assert.That(totalPieces, Is.InRange(10, 70));
     }
 
@@ -601,12 +607,16 @@ public class ShopSecurityAndTransactionTests
         Assert.That(PlayerDataService.DroneBoxes, Is.EqualTo(0), "Shop opens the boxes immediately");
 
         int totalPieces = 0;
+        int[] rolledByItem = new int[13];
         foreach (ShopBoxDropRoller.Drop drop in shop.LastBoxDrops)
         {
             Assert.That(drop.ItemId, Is.InRange(1, 12));
-            Assert.That(PlayerDataService.GetBuddyPieceCount(drop.ItemId), Is.EqualTo(drop.Pieces));
+            rolledByItem[drop.ItemId] += drop.Pieces;
             totalPieces += drop.Pieces;
         }
+        Assert.That(shop.LastBoxDrops.Count, Is.EqualTo(10));
+        for (int itemId = 1; itemId <= 12; itemId++)
+            Assert.That(PlayerDataService.GetBuddyPieceCount(itemId), Is.EqualTo(rolledByItem[itemId]));
         Assert.That(totalPieces, Is.InRange(10, 70));
     }
 

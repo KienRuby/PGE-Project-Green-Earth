@@ -48,6 +48,8 @@ public class PlayerStatsManager : MonoBehaviour
     public int DamageReduction { get; private set; }
     public float BonusBulletSpeed { get; private set; }
     public float CritChance { get; private set; }
+    public float AilmentResistance { get; private set; }
+    public float BonusMagnetRadius { get; private set; }
 
     private float regenAccumulator;
 
@@ -97,6 +99,24 @@ public class PlayerStatsManager : MonoBehaviour
         DamageReduction = defLevel * damageReductionPerLevel + bodyBonusDef;
         BonusBulletSpeed = bulletSpeedLevel * bulletSpeedBonusPerLevel;
         CritChance = Mathf.Clamp01(critRateLevel * critChancePerLevel);
+
+        AilmentResistance = equippedSkin switch
+        {
+            1 => 0.10f,
+            2 => 0.20f,
+            _ => 0f
+        };
+
+        BonusMagnetRadius = (equippedSkin == 2) ? 1.5f : 0f;
+        MagnetPickup magnet = GetComponent<MagnetPickup>();
+        if (magnet == null && BonusMagnetRadius > 0f)
+        {
+            magnet = gameObject.AddComponent<MagnetPickup>();
+        }
+        if (magnet != null)
+        {
+            magnet.SetBonusMagnetRadius(BonusMagnetRadius);
+        }
 
         if (playerHealth != null)
         {

@@ -704,7 +704,8 @@ public class PauseModalController : MonoBehaviour
         if (evasionRateValueText != null) evasionRateValueText.text = "3%";
         if (kitRecoveryValueText != null) kitRecoveryValueText.text = "30%";
         if (autoRecoveryValueText != null) autoRecoveryValueText.text = $"{regen:F1}/sec";
-        if (ailmentResistValueText != null) ailmentResistValueText.text = "0%";
+        float ailmentResist = (playerStats != null ? playerStats.AilmentResistance : 0f) * 100f;
+        if (ailmentResistValueText != null) ailmentResistValueText.text = $"{ailmentResist:F0}%";
 
         // 3. Attack Stats
         float atkBonus = playerStats != null ? 3.5f + (playerStats.BonusDamage * 0.5f) : 3.5f;

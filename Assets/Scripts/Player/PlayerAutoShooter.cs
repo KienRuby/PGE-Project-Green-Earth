@@ -471,6 +471,12 @@ public class PlayerAutoShooter : MonoBehaviour
         }
     }
 
+    public void SetRenderers(SpriteRenderer gun, SpriteRenderer[] bodies)
+    {
+        if (gun != null) gunSpriteRenderer = gun;
+        if (bodies != null) bodyRenderers = bodies;
+    }
+
     private void Update()
     {
         if (playerHealth != null && playerHealth.IsDead)
