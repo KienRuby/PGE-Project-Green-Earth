@@ -311,4 +311,69 @@ public class BuddyEquipSystemTests
             Object.DestroyImmediate(go);
         }
     }
+
+    [Test]
+    public void BuddyController_EquipBuddy_ClonesExactTemplateToEquippedSlot()
+    {
+        GameObject root = new GameObject("BuddyController_Root", typeof(RectTransform));
+        try
+        {
+            // Create EquippedRow
+            GameObject equippedRow = new GameObject("EquippedRow", typeof(RectTransform), typeof(UnityEngine.UI.HorizontalLayoutGroup));
+            equippedRow.transform.SetParent(root.transform, false);
+
+            // Create SlotIconBuddy container with 2 templates
+            GameObject slotIconContainer = new GameObject("SlotIconBuddy", typeof(RectTransform));
+            slotIconContainer.transform.SetParent(root.transform, false);
+
+            GameObject templateSnowflake = new GameObject("drone-snowflake", typeof(RectTransform), typeof(BuddyCardUI));
+            templateSnowflake.transform.SetParent(slotIconContainer.transform, false);
+            templateSnowflake.GetComponent<RectTransform>().sizeDelta = new Vector2(250f, 320f);
+
+            GameObject templateSpider = new GameObject("drone-spider", typeof(RectTransform), typeof(BuddyCardUI));
+            templateSpider.transform.SetParent(slotIconContainer.transform, false);
+            templateSpider.GetComponent<RectTransform>().sizeDelta = new Vector2(250f, 320f);
+
+            // Child on templateSpider to verify child preservation
+            GameObject spiderIcon = new GameObject("DroneIcon", typeof(RectTransform), typeof(UnityEngine.UI.Image));
+            spiderIcon.transform.SetParent(templateSpider.transform, false);
+            spiderIcon.GetComponent<RectTransform>().anchoredPosition = new Vector2(10f, -20f);
+
+            BuddyController ctrl = root.AddComponent<BuddyController>();
+            ctrl.InitializeDatabase();
+
+            // Find Drone 2 (Turret Buffer / drone-spider)
+            var spiderBuddy = ctrl.AllBuddies.FirstOrDefault(b => b.id == 2);
+            Assert.IsNotNull(spiderBuddy);
+
+            // Open and Equip
+            ctrl.OpenDetailModal(spiderBuddy);
+            var toggleMethod = typeof(BuddyController).GetMethod("ToggleEquipSelectedBuddy",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            toggleMethod.Invoke(ctrl, null);
+
+            // Verify that EquippedRow has slot 0 cloned from drone-spider
+            Assert.IsTrue(equippedRow.transform.childCount >= 1);
+            Transform slot0 = equippedRow.transform.GetChild(0);
+            Assert.AreEqual("EquippedSlot_0_drone-spider", slot0.name, "Slot 0 should be cloned from drone-spider template");
+            Assert.AreEqual(new Vector2(250f, 320f), slot0.GetComponent<RectTransform>().sizeDelta, "Slot 0 should have 250x320 dimensions");
+
+            // Verify child DroneIcon position was preserved from template
+            Transform childIcon = slot0.Find("DroneIcon");
+            Assert.IsNotNull(childIcon, "DroneIcon child should exist in clone");
+            Assert.AreEqual(new Vector2(10f, -20f), childIcon.GetComponent<RectTransform>().anchoredPosition, "Child position must be preserved");
+
+            // Unequip
+            ctrl.OpenDetailModalFromEquippedSlot(spiderBuddy, 0);
+            toggleMethod.Invoke(ctrl, null);
+
+            // Verify reverted to empty slot
+            slot0 = equippedRow.transform.GetChild(0);
+            Assert.AreEqual("EquippedSlot_0", slot0.name, "Slot 0 should revert to clean empty slot name");
+        }
+        finally
+        {
+            Object.DestroyImmediate(root);
+        }
+    }
 }

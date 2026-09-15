@@ -685,7 +685,7 @@ public class BuddyController : MonoBehaviour
         AutoWireInventoryContainerIfMissing();
     }
 
-    public void EnsureEquippedSlotsMatchTemplate()
+    public Transform FindTemplateForBuddy(BuddyItemData buddy)
     {
         if (slotIconBuddyContainer == null)
         {
@@ -695,79 +695,95 @@ public class BuddyController : MonoBehaviour
                                      GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name.Equals("SlotIconBuddy", StringComparison.OrdinalIgnoreCase));
         }
 
-        Transform template = null;
-        if (slotIconBuddyContainer != null && slotIconBuddyContainer.childCount > 0)
+        if (slotIconBuddyContainer != null && buddy != null)
         {
-            template = slotIconBuddyContainer.GetChild(0); // drone-snowflake clean template
-        }
-        else
-        {
-            template = transform.Find("Content/SlotIconBuddy/drone-snowflake") ??
-                       transform.Find("SlotIconBuddy/drone-snowflake") ??
-                       GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name.Equals("drone-snowflake", StringComparison.OrdinalIgnoreCase));
+            // 1. Tìm theo iconKey (e.g. drone-spider, drone-antenna-eye, drone-cross-visor, drone-snowflake, drone-stealth-wing)
+            if (!string.IsNullOrEmpty(buddy.iconKey))
+            {
+                Transform match = slotIconBuddyContainer.Find(buddy.iconKey);
+                if (match != null) return match;
+
+                foreach (Transform child in slotIconBuddyContainer)
+                {
+                    if (child.name.Equals(buddy.iconKey, StringComparison.OrdinalIgnoreCase))
+                        return child;
+                }
+            }
+
+            // 2. Tìm theo buddyName
+            if (!string.IsNullOrEmpty(buddy.buddyName))
+            {
+                foreach (Transform child in slotIconBuddyContainer)
+                {
+                    if (child.name.IndexOf(buddy.buddyName, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                        buddy.buddyName.IndexOf(child.name, StringComparison.OrdinalIgnoreCase) >= 0)
+                        return child;
+                }
+            }
         }
 
+        // 3. Fallback: drone-snowflake hoặc child đầu tiên
+        if (slotIconBuddyContainer != null && slotIconBuddyContainer.childCount > 0)
+        {
+            Transform snow = slotIconBuddyContainer.Find("drone-snowflake");
+            if (snow != null) return snow;
+            return slotIconBuddyContainer.GetChild(0);
+        }
+
+        return transform.Find("Content/SlotIconBuddy/drone-snowflake") ??
+               transform.Find("SlotIconBuddy/drone-snowflake") ??
+               GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name.Equals("drone-snowflake", StringComparison.OrdinalIgnoreCase));
+    }
+
+    public void ConfigureEquippedRowLayout(Transform equippedRowT)
+    {
+        if (equippedRowT == null) return;
+        HorizontalLayoutGroup hlg = equippedRowT.GetComponent<HorizontalLayoutGroup>();
+        if (hlg != null)
+        {
+            hlg.childControlWidth = false;
+            hlg.childControlHeight = false;
+            hlg.childForceExpandWidth = false;
+            hlg.childForceExpandHeight = false;
+            hlg.childAlignment = TextAnchor.MiddleCenter;
+            hlg.spacing = 28f;
+        }
+    }
+
+    public void SetupSlotTransformAndLayout(Transform slotT, int siblingIndex)
+    {
+        if (slotT == null) return;
+        slotT.SetSiblingIndex(siblingIndex);
+        slotT.localScale = Vector3.one;
+        slotT.localRotation = Quaternion.identity;
+
+        RectTransform rt = slotT.GetComponent<RectTransform>();
+        if (rt != null)
+        {
+            rt.anchorMin = new Vector2(0.5f, 0.5f);
+            rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.sizeDelta = new Vector2(250f, 320f);
+        }
+
+        LayoutElement le = slotT.GetComponent<LayoutElement>() ?? slotT.gameObject.AddComponent<LayoutElement>();
+        le.preferredWidth = 250f;
+        le.preferredHeight = 320f;
+        le.minWidth = 250f;
+        le.minHeight = 320f;
+        le.flexibleWidth = 0;
+        le.flexibleHeight = 0;
+    }
+
+    public void EnsureEquippedSlotsMatchTemplate()
+    {
+        AutoWireSlotIconBuddyIfMissing();
         Transform equippedRowT = transform.Find("BoardBackground/EquippedRow") ??
                                  transform.Find("EquippedBoard/EquippedRow") ??
                                  transform.Find("EquippedRow") ??
                                  GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name.Equals("EquippedRow", StringComparison.OrdinalIgnoreCase));
 
-        if (template == null || equippedRowT == null) return;
-
-        for (int i = 0; i < 3; i++)
-        {
-            Transform existingSlot = equippedRowT.Find($"EquippedSlot_{i}");
-            if (existingSlot == null && i < equippedRowT.childCount)
-            {
-                existingSlot = equippedRowT.GetChild(i);
-            }
-
-            bool needsRebuild = existingSlot == null ||
-                                existingSlot.Find("UpgradeArrowGroup") != null ||
-                                existingSlot.Find("NormalContentGroup") != null ||
-                                existingSlot.Find("EmptySlotGroup") != null ||
-                                existingSlot.Find("BottomBar") != null ||
-                                existingSlot.Find("Fill") == null;
-
-            if (needsRebuild)
-            {
-                GameObject clone = Instantiate(template.gameObject, equippedRowT);
-                clone.name = $"EquippedSlot_{i}";
-                clone.transform.localScale = Vector3.one;
-                clone.transform.localRotation = Quaternion.identity;
-
-                RectTransform cloneRect = clone.GetComponent<RectTransform>();
-                RectTransform templateRect = template.GetComponent<RectTransform>();
-                if (cloneRect != null && templateRect != null)
-                {
-                    cloneRect.sizeDelta = templateRect.sizeDelta;
-                }
-
-                if (existingSlot != null)
-                {
-                    clone.transform.SetSiblingIndex(existingSlot.GetSiblingIndex());
-                    if (Application.isPlaying) Destroy(existingSlot.gameObject);
-                    else DestroyImmediate(existingSlot.gameObject);
-                }
-
-                existingSlot = clone.transform;
-            }
-
-            BuddyCardUI card = existingSlot.GetComponent<BuddyCardUI>() ?? existingSlot.gameObject.AddComponent<BuddyCardUI>();
-            if (existingSlot.GetComponent<Button>() == null)
-            {
-                existingSlot.gameObject.AddComponent<Button>();
-            }
-            card.EnsureProgressBar();
-            if (card.ProgressFillImage != null)
-            {
-                card.ProgressFillImage.color = Color.white;
-            }
-            if (i < equippedSlots.Length)
-            {
-                equippedSlots[i] = card;
-            }
-        }
+        ConfigureEquippedRowLayout(equippedRowT);
     }
 
     public void AutoWireDetailModalReferencesIfMissing()
@@ -1173,8 +1189,14 @@ public class BuddyController : MonoBehaviour
     public void RefreshEquippedGrid()
     {
         EnsureEquippedSlotsMatchTemplate();
-        AutoWireEquippedSlotsIfMissing();
         LoadUpgradeArrowSpriteIfMissing();
+
+        Transform equippedRowT = transform.Find("BoardBackground/EquippedRow") ??
+                                 transform.Find("EquippedBoard/EquippedRow") ??
+                                 transform.Find("EquippedRow") ??
+                                 GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name.Equals("EquippedRow", StringComparison.OrdinalIgnoreCase));
+
+        ConfigureEquippedRowLayout(equippedRowT);
 
         if (deckEquippedIds == null || activeDeckIndex >= deckEquippedIds.Length || deckEquippedIds[activeDeckIndex] == null || deckEquippedIds[activeDeckIndex].Length != 3)
         {
@@ -1182,39 +1204,117 @@ public class BuddyController : MonoBehaviour
         }
         int[] currentDeck = deckEquippedIds[activeDeckIndex];
 
-        for (int i = 0; i < equippedSlots.Length && i < 3; i++)
+        if (equippedSlots == null || equippedSlots.Length != 3)
         {
-            if (equippedSlots[i] == null) continue;
+            equippedSlots = new BuddyCardUI[3];
+        }
 
+        if (equippedRowT == null) return;
+
+        for (int i = 0; i < 3; i++)
+        {
             int slotIndex = i;
             int buddyId = (currentDeck != null && i < currentDeck.Length) ? currentDeck[i] : -1;
-            Sprite frame = GetFrameSprite(BuddyTier.Common);
+            bool isLocked = buddyId == -2 || (slotUnlocked != null && i < slotUnlocked.Length && !slotUnlocked[i]);
 
-            if (buddyId == -2 || (slotUnlocked != null && i < slotUnlocked.Length && !slotUnlocked[i]))
+            Transform existingSlot = null;
+            if (i < equippedRowT.childCount)
             {
-                equippedSlots[i].SetupLocked(frame, () => ShowToast($"Slot {slotIndex + 1} locked!"));
-                equippedSlots[i].SetEquippedBadge(false);
+                existingSlot = equippedRowT.GetChild(i);
             }
-            else if (buddyId <= 0)
+
+            if (isLocked || buddyId <= 0)
             {
-                equippedSlots[i].SetupEmpty(emptySlotFrameSprite ?? frame, () => ShowToast("Empty Slot! Please select a Drone below to equip."));
-                equippedSlots[i].SetEquippedBadge(false);
+                string expectedEmptyName = $"EquippedSlot_{i}";
+                bool isCorrectEmpty = existingSlot != null && existingSlot.name == expectedEmptyName && existingSlot.GetComponent<BuddyCardUI>() != null;
+
+                if (!isCorrectEmpty)
+                {
+                    Transform defaultTemplate = FindTemplateForBuddy(null);
+                    if (defaultTemplate != null)
+                    {
+                        GameObject clone = Instantiate(defaultTemplate.gameObject, equippedRowT);
+                        clone.name = expectedEmptyName;
+                        SetupSlotTransformAndLayout(clone.transform, i);
+
+                        if (existingSlot != null)
+                        {
+                            if (Application.isPlaying) Destroy(existingSlot.gameObject);
+                            else DestroyImmediate(existingSlot.gameObject);
+                        }
+                        existingSlot = clone.transform;
+                    }
+                }
+
+                if (existingSlot != null)
+                {
+                    BuddyCardUI card = existingSlot.GetComponent<BuddyCardUI>() ?? existingSlot.gameObject.AddComponent<BuddyCardUI>();
+                    if (existingSlot.GetComponent<Button>() == null) existingSlot.gameObject.AddComponent<Button>();
+                    card.EnsureProgressBar();
+
+                    Sprite frame = GetFrameSprite(BuddyTier.Common);
+                    if (isLocked)
+                    {
+                        card.SetupLocked(frame, () => ShowToast($"Slot {slotIndex + 1} locked!"));
+                    }
+                    else
+                    {
+                        card.SetupEmpty(emptySlotFrameSprite ?? frame, () => ShowToast("Empty Slot! Please select a Drone below to equip."));
+                    }
+                    card.SetEquippedBadge(false);
+                    equippedSlots[i] = card;
+                }
             }
             else
             {
                 BuddyItemData buddy = allBuddies.FirstOrDefault(b => b.id == buddyId);
-                if (buddy != null)
+                if (buddy == null)
                 {
+                    Sprite frame = GetFrameSprite(BuddyTier.Common);
+                    if (existingSlot != null)
+                    {
+                        BuddyCardUI card = existingSlot.GetComponent<BuddyCardUI>() ?? existingSlot.gameObject.AddComponent<BuddyCardUI>();
+                        card.SetupEmpty(emptySlotFrameSprite ?? frame, () => ShowToast("Empty Slot! Please select a Drone below to equip."));
+                        card.SetEquippedBadge(false);
+                        equippedSlots[i] = card;
+                    }
+                    continue;
+                }
+
+                string expectedEquippedName = $"EquippedSlot_{i}_{buddy.iconKey}";
+                bool isCorrectDroneClone = existingSlot != null && existingSlot.name == expectedEquippedName && existingSlot.GetComponent<BuddyCardUI>() != null;
+
+                if (!isCorrectDroneClone)
+                {
+                    // Bê nguyên vẹn template của chính con Drone đó lên slot!
+                    Transform droneTemplate = FindTemplateForBuddy(buddy);
+                    if (droneTemplate != null)
+                    {
+                        GameObject clone = Instantiate(droneTemplate.gameObject, equippedRowT);
+                        clone.name = expectedEquippedName;
+                        SetupSlotTransformAndLayout(clone.transform, i);
+
+                        if (existingSlot != null)
+                        {
+                            if (Application.isPlaying) Destroy(existingSlot.gameObject);
+                            else DestroyImmediate(existingSlot.gameObject);
+                        }
+                        existingSlot = clone.transform;
+                    }
+                }
+
+                if (existingSlot != null)
+                {
+                    BuddyCardUI card = existingSlot.GetComponent<BuddyCardUI>() ?? existingSlot.gameObject.AddComponent<BuddyCardUI>();
+                    if (existingSlot.GetComponent<Button>() == null) existingSlot.gameObject.AddComponent<Button>();
+                    card.EnsureProgressBar();
+                    card.EnsureUpgradeArrow(upgradeArrowSprite);
+
                     Sprite icon = GetIconSprite(buddy);
                     Sprite buddyFrame = GetFrameSprite(buddy.tier);
-                    equippedSlots[i].EnsureUpgradeArrow(upgradeArrowSprite);
-                    equippedSlots[i].Setup(buddy, icon, buddyFrame, (b) => OpenDetailModalFromEquippedSlot(b, slotIndex), QuickUpgradeBuddy);
-                    equippedSlots[i].SetEquippedBadge(false);
-                }
-                else
-                {
-                    equippedSlots[i].SetupEmpty(emptySlotFrameSprite ?? frame, () => ShowToast("Empty Slot! Please select a Drone below to equip."));
-                    equippedSlots[i].SetEquippedBadge(false);
+                    card.Setup(buddy, icon, buddyFrame, (b) => OpenDetailModalFromEquippedSlot(b, slotIndex), QuickUpgradeBuddy);
+                    card.SetEquippedBadge(false);
+                    equippedSlots[i] = card;
                 }
             }
         }
