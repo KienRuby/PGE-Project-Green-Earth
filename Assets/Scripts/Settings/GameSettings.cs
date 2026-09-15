@@ -78,20 +78,56 @@ public static class GameSettings
         }
     }
 
-    public static bool IsVietnamese => Language == VietnameseLanguage;
+    public static bool IsVietnamese => string.Equals(Language, "Tiếng Việt", StringComparison.OrdinalIgnoreCase) || string.Equals(Language, VietnameseLanguage, StringComparison.OrdinalIgnoreCase);
 
     public static string NormalizeLanguage(string value)
     {
-        if (string.Equals(value, "Tiếng Việt", StringComparison.OrdinalIgnoreCase))
-            return VietnameseLanguage;
+        if (string.IsNullOrEmpty(value)) return EnglishLanguage;
 
-        foreach (string supportedLanguage in SupportedLanguages)
+        if (string.Equals(value, "Tiếng Việt", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(value, "Vietnamese", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(value, "vi", StringComparison.OrdinalIgnoreCase))
         {
-            if (string.Equals(value, supportedLanguage, StringComparison.OrdinalIgnoreCase))
-                return supportedLanguage;
+            return "Tiếng Việt";
+        }
+
+        if (string.Equals(value, ChineseLanguage, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(value, "zh", StringComparison.OrdinalIgnoreCase))
+        {
+            return ChineseLanguage;
+        }
+
+        if (string.Equals(value, RussianLanguage, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(value, "ru", StringComparison.OrdinalIgnoreCase))
+        {
+            return RussianLanguage;
+        }
+
+        if (string.Equals(value, EnglishLanguage, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(value, "en", StringComparison.OrdinalIgnoreCase))
+        {
+            return EnglishLanguage;
         }
 
         return EnglishLanguage;
+    }
+
+    public static string GetLanguageDisplayName(string language)
+    {
+        string norm = NormalizeLanguage(language);
+        switch (norm)
+        {
+            case "Tiếng Việt":
+            case VietnameseLanguage:
+                return "Tiếng Việt";
+            case ChineseLanguage:
+                return "中文 (Chinese)";
+            case RussianLanguage:
+                return "Русский (Russian)";
+            case EnglishLanguage:
+            default:
+                return "English";
+        }
     }
 
     public static bool ShowDamage

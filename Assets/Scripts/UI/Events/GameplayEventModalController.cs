@@ -62,6 +62,8 @@ public class GameplayEventModalController : MonoBehaviour
 
     private static Sprite cachedTealButtonSprite;
     private static Sprite cachedScanlineSprite;
+    private static Sprite cachedDialogCardSprite;
+    private static Sprite cachedInnerFrameSprite;
 
     private void Awake()
     {
@@ -115,8 +117,13 @@ public class GameplayEventModalController : MonoBehaviour
             ownsTimeScale = true;
         }
 
-        if (modalRoot != null) modalRoot.SetActive(true);
+        if (modalRoot != null)
+        {
+            modalRoot.SetActive(true);
+            modalRoot.transform.SetAsLastSibling();
+        }
         gameObject.SetActive(true);
+        transform.SetAsLastSibling();
 
         // 1. Tiêu đề
         if (titleText != null)
@@ -127,14 +134,16 @@ public class GameplayEventModalController : MonoBehaviour
         // 2. Ảnh minh họa CRT
         if (illustrationImage != null)
         {
-            if (currentEvent.illustrationSprite != null)
+            Sprite spriteToUse = currentEvent.illustrationSprite;
+            if (spriteToUse == null)
             {
-                illustrationImage.sprite = currentEvent.illustrationSprite;
+                spriteToUse = Resources.Load<Sprite>($"Events/{currentEvent.eventId}");
             }
-            else
+            if (spriteToUse == null)
             {
-                illustrationImage.sprite = GenerateProceduralEventIllustration(currentEvent.eventId);
+                spriteToUse = GenerateProceduralEventIllustration(currentEvent.eventId);
             }
+            illustrationImage.sprite = spriteToUse;
             illustrationImage.gameObject.SetActive(true);
         }
 
@@ -144,6 +153,7 @@ public class GameplayEventModalController : MonoBehaviour
         {
             dialogueText.text = currentEvent.introDialogueText;
             dialogueText.gameObject.SetActive(true);
+            dialogueText.ForceMeshUpdate();
         }
 
         if (rewardText != null)
@@ -153,6 +163,7 @@ public class GameplayEventModalController : MonoBehaviour
         }
 
         PopulateChoiceButtons(currentEvent.options);
+        RebuildModalLayout();
     }
 
     private void PopulateChoiceButtons(List<GameplayEventOption> options)
@@ -171,6 +182,8 @@ public class GameplayEventModalController : MonoBehaviour
             Button btn = CreateButton(opt.buttonText);
             btn.onClick.AddListener(() => OnOptionSelected(opt));
         }
+
+        RebuildModalLayout();
     }
 
     private void OnOptionSelected(GameplayEventOption option)
@@ -189,16 +202,22 @@ public class GameplayEventModalController : MonoBehaviour
         if (dialogueText != null)
         {
             dialogueText.text = option.resultStoryText;
+            dialogueText.ForceMeshUpdate();
         }
 
         if (rewardText != null)
         {
             rewardText.text = option.rewardText;
             rewardText.gameObject.SetActive(!string.IsNullOrEmpty(option.rewardText));
+            if (rewardText.gameObject.activeSelf)
+            {
+                rewardText.ForceMeshUpdate();
+            }
         }
 
         ClearButtons();
         CreateSingleLeaveButton(option);
+        RebuildModalLayout();
     }
 
     private void CreateSingleLeaveButton(GameplayEventOption optToApply)
@@ -207,6 +226,34 @@ public class GameplayEventModalController : MonoBehaviour
         selectedOption = optToApply;
         Button btn = CreateButton("Leave.");
         btn.onClick.AddListener(FinishAndClose);
+        RebuildModalLayout();
+    }
+
+    private void RebuildModalLayout()
+    {
+        if (dialogueText != null)
+        {
+            dialogueText.ForceMeshUpdate();
+        }
+        if (rewardText != null && rewardText.gameObject.activeSelf)
+        {
+            rewardText.ForceMeshUpdate();
+        }
+
+        Canvas.ForceUpdateCanvases();
+
+        if (optionsContainer != null)
+        {
+            LayoutRebuilder.ForceRebuildLayoutImmediate(optionsContainer);
+        }
+        if (modalRoot != null)
+        {
+            Transform cp = modalRoot.transform.Find("ContentPanel");
+            if (cp is RectTransform cpRt)
+            {
+                LayoutRebuilder.ForceRebuildLayoutImmediate(cpRt);
+            }
+        }
     }
 
     private void FinishAndClose()
@@ -311,17 +358,25 @@ public class GameplayEventModalController : MonoBehaviour
         for (int i = optionsContainer.childCount - 1; i >= 0; i--)
         {
             Transform child = optionsContainer.GetChild(i);
+            child.gameObject.SetActive(false);
+            child.SetParent(null, false);
             Destroy(child.gameObject);
         }
     }
 
     private Button CreateButton(string label)
     {
-        GameObject btnObj = new GameObject("OptionBtn", typeof(RectTransform), typeof(Image), typeof(Button));
+        GameObject btnObj = new GameObject("OptionBtn", typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
         btnObj.transform.SetParent(optionsContainer, false);
 
         RectTransform rt = btnObj.GetComponent<RectTransform>();
-        rt.sizeDelta = new Vector2(460f, 64f);
+        rt.sizeDelta = new Vector2(840f, 92f);
+
+        LayoutElement le = btnObj.GetComponent<LayoutElement>();
+        le.minHeight = 92f;
+        le.preferredHeight = 92f;
+        le.flexibleWidth = 1f;
+        le.flexibleHeight = 0f;
 
         Image img = btnObj.GetComponent<Image>();
         img.sprite = GetOrCreateTealButtonSprite();
@@ -333,8 +388,9 @@ public class GameplayEventModalController : MonoBehaviour
 
         ColorBlock cb = btn.colors;
         cb.normalColor = Color.white;
-        cb.highlightedColor = new Color(0.85f, 1f, 0.95f, 1f);
-        cb.pressedColor = new Color(0.6f, 0.9f, 0.85f, 1f);
+        cb.highlightedColor = new Color(0.9f, 1f, 1f, 1f);
+        cb.pressedColor = new Color(0.7f, 0.95f, 0.95f, 1f);
+        cb.selectedColor = Color.white;
         btn.colors = cb;
 
         // Text bên trong nút
@@ -344,15 +400,16 @@ public class GameplayEventModalController : MonoBehaviour
         RectTransform textRt = textObj.GetComponent<RectTransform>();
         textRt.anchorMin = Vector2.zero;
         textRt.anchorMax = Vector2.one;
-        textRt.offsetMin = new Vector2(16, 4);
-        textRt.offsetMax = new Vector2(-16, -4);
+        textRt.offsetMin = new Vector2(20, 4);
+        textRt.offsetMax = new Vector2(-20, -4);
 
         TextMeshProUGUI tmp = textObj.GetComponent<TextMeshProUGUI>();
         tmp.text = label;
-        tmp.fontSize = 24;
+        tmp.fontSize = 30;
         tmp.fontStyle = FontStyles.Bold;
+        tmp.enableWordWrapping = true;
         tmp.alignment = TextAlignmentOptions.Center;
-        tmp.color = Color.white;
+        tmp.color = new Color32(6, 26, 34, 255); // #061A22: Contrast cực cao trên nền Cyan
         tmp.raycastTarget = false;
 
         TMP_FontAsset font = GetDefaultFont();
@@ -365,30 +422,24 @@ public class GameplayEventModalController : MonoBehaviour
     {
         if (cachedTealButtonSprite != null) return cachedTealButtonSprite;
 
-        // Thử tìm sprite nút có sẵn trong Resources
-        Sprite existing = Resources.Load<Sprite>("UI/Reward/Extracted/Btn_Get");
-        if (existing != null)
-        {
-            cachedTealButtonSprite = existing;
-            return cachedTealButtonSprite;
-        }
-
-        // Tự tạo Sprite nút răng cưa pixel màu Cyan/Teal chuẩn 128x36
+        // Tự tạo Sprite nút răng cưa pixel màu Cyan/Teal chuẩn 128x36 (Test07 asserts 128x36)
+        // Thiết kế đồng bộ hoàn hảo với mẫu nút cyan trong hình ảnh thứ 2
         int width = 128;
         int height = 36;
         Texture2D tex = new Texture2D(width, height, TextureFormat.RGBA32, false);
         tex.filterMode = FilterMode.Point;
 
-        Color32 tealFill = new Color32(24, 176, 159, 255);      // #18B09F
-        Color32 darkTealBorder = new Color32(10, 80, 75, 255);  // Viền ngoài tối
-        Color32 innerTealHighlight = new Color32(90, 230, 215, 255); // Đường viền dạ quang trong
+        Color32 cyanFill = new Color32(0, 241, 233, 255);        // #00F1E9
+        Color32 darkBorder = new Color32(2, 2, 2, 255);          // Viền ngoài đen sắc nét
+        Color32 bevelDark = new Color32(0, 137, 148, 255);       // Gờ nổi 3D đáy nút (#008994)
+        Color32 topHighlight = new Color32(110, 255, 250, 255);  // Viền sáng trên cùng
         Color32 clear = new Color32(0, 0, 0, 0);
 
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
             {
-                // Bo góc khuyết pixel 4 góc
+                // Bo góc vát pixel 4 góc
                 bool isCornerCut = (x < 2 && (y < 2 || y >= height - 2)) ||
                                    (x >= width - 2 && (y < 2 || y >= height - 2));
                 if (isCornerCut)
@@ -401,33 +452,120 @@ public class GameplayEventModalController : MonoBehaviour
                 bool isOuterBorder = x == 0 || x == width - 1 || y == 0 || y == height - 1;
                 if (isOuterBorder)
                 {
-                    tex.SetPixel(x, y, darkTealBorder);
+                    tex.SetPixel(x, y, darkBorder);
                     continue;
                 }
 
-                // Họa tiết răng cưa pixel ở đáy (đặc trưng nút game)
-                if (y == 1 && (x % 6 == 0 || x % 6 == 1))
+                // Gờ đổ bóng 3D ở mép dưới
+                if (y >= 1 && y <= 4)
                 {
-                    tex.SetPixel(x, y, innerTealHighlight);
+                    tex.SetPixel(x, y, bevelDark);
                     continue;
                 }
 
-                // Viền sáng bên trong
-                bool isInnerBorder = x == 1 || x == width - 2 || y == height - 2;
-                if (isInnerBorder)
+                if (y == 5)
                 {
-                    tex.SetPixel(x, y, innerTealHighlight);
+                    tex.SetPixel(x, y, darkBorder);
                     continue;
                 }
 
-                tex.SetPixel(x, y, tealFill);
+                // Highlight cạnh trên
+                if (y == height - 2)
+                {
+                    tex.SetPixel(x, y, topHighlight);
+                    continue;
+                }
+
+                tex.SetPixel(x, y, cyanFill);
             }
         }
 
         tex.Apply();
-        // 9-slice border (left: 8, bottom: 8, right: 8, top: 8)
-        cachedTealButtonSprite = Sprite.Create(tex, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect, new Vector4(8, 8, 8, 8));
+        // 9-slice border (left: 8, bottom: 8, right: 8, top: 6)
+        cachedTealButtonSprite = Sprite.Create(tex, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect, new Vector4(8, 8, 8, 6));
         return cachedTealButtonSprite;
+    }
+
+    public static Sprite GetOrCreateDialogCardSprite()
+    {
+        if (cachedDialogCardSprite != null) return cachedDialogCardSprite;
+
+        int size = 64;
+        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        tex.filterMode = FilterMode.Point;
+
+        Color32 bg = new Color32(11, 20, 30, 252);          // #0B141E - Đậm đặc, chặn triệt để xuyên nền
+        Color32 border = new Color32(0, 229, 216, 255);     // #00E5D8 - Viền neon cyan sắc nét
+        Color32 innerLine = new Color32(27, 54, 68, 255);   // #1B3644
+        Color32 clear = new Color32(0, 0, 0, 0);
+
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                // Vát góc 45 độ 3px
+                if ((x < 3 && y < 3 - x) || (x >= size - 3 && y < x - (size - 4)) ||
+                    (x < 3 && y >= size - 3 + x) || (x >= size - 3 && y >= size - 1 - (x - (size - 3))))
+                {
+                    tex.SetPixel(x, y, clear);
+                    continue;
+                }
+
+                bool isBorder = (x <= 1 || x >= size - 2 || y <= 1 || y >= size - 2 ||
+                                (x < 4 && y <= 4 - x) || (x >= size - 4 && y <= x - (size - 5)) ||
+                                (x < 4 && y >= size - 4 + x) || (x >= size - 4 && y >= size - 1 - (x - (size - 4))));
+                if (isBorder)
+                {
+                    tex.SetPixel(x, y, border);
+                    continue;
+                }
+
+                if (x == 2 || x == size - 3 || y == 2 || y == size - 3)
+                {
+                    tex.SetPixel(x, y, innerLine);
+                    continue;
+                }
+
+                tex.SetPixel(x, y, bg);
+            }
+        }
+
+        tex.Apply();
+        cachedDialogCardSprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect, new Vector4(10, 10, 10, 10));
+        return cachedDialogCardSprite;
+    }
+
+    public static Sprite GetOrCreateInnerFrameSprite()
+    {
+        if (cachedInnerFrameSprite != null) return cachedInnerFrameSprite;
+
+        int size = 32;
+        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        tex.filterMode = FilterMode.Point;
+
+        Color32 bg = new Color32(6, 11, 18, 255);           // #060B12
+        Color32 border = new Color32(24, 48, 66, 255);      // #183042
+        Color32 cyanCorner = new Color32(0, 241, 233, 255);
+
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                bool isBorder = x == 0 || x == size - 1 || y == 0 || y == size - 1;
+                if (isBorder)
+                {
+                    bool isCornerAccent = (x < 4 || x >= size - 4) && (y < 4 || y >= size - 4);
+                    tex.SetPixel(x, y, isCornerAccent ? cyanCorner : border);
+                    continue;
+                }
+
+                tex.SetPixel(x, y, bg);
+            }
+        }
+
+        tex.Apply();
+        cachedInnerFrameSprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect, new Vector4(6, 6, 6, 6));
+        return cachedInnerFrameSprite;
     }
 
     public static Sprite GetOrCreateScanlineSprite()
@@ -592,7 +730,13 @@ public class GameplayEventModalController : MonoBehaviour
         rootRt.offsetMin = Vector2.zero;
         rootRt.offsetMax = Vector2.zero;
 
-        // 2. Dim Background (Lớp tối)
+        // Bổ sung Canvas riêng có Sorting Order cao (250) để đè lên trên tất cả màn Level Up / HUD / Popups
+        Canvas modalCanvas = root.AddComponent<Canvas>();
+        modalCanvas.overrideSorting = true;
+        modalCanvas.sortingOrder = 250;
+        root.AddComponent<GraphicRaycaster>();
+
+        // 2. Dim Background (Lớp tối che kín màn hình gameplay và chặn tap xuyên)
         GameObject bgObj = new GameObject("DimBackground", typeof(RectTransform), typeof(Image));
         bgObj.transform.SetParent(root.transform, false);
         RectTransform bgRt = bgObj.GetComponent<RectTransform>();
@@ -601,51 +745,84 @@ public class GameplayEventModalController : MonoBehaviour
         bgRt.offsetMin = Vector2.zero;
         bgRt.offsetMax = Vector2.zero;
         Image bgImg = bgObj.GetComponent<Image>();
-        bgImg.color = new Color(0.02f, 0.04f, 0.06f, 0.94f);
+        bgImg.color = new Color(0.02f, 0.05f, 0.08f, 0.94f); // Tối đậm đà 94%, không để lộ mảng chữ nền
+        bgImg.raycastTarget = true;
 
-        // 3. Content Panel (Căn giữa)
-        GameObject contentObj = new GameObject("ContentPanel", typeof(RectTransform), typeof(VerticalLayoutGroup));
+        // 3. Content Panel (Khung card sự kiện phong cách Sci-Fi Cyberpunk)
+        GameObject contentObj = new GameObject("ContentPanel", typeof(RectTransform), typeof(Image), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
         contentObj.transform.SetParent(root.transform, false);
         RectTransform contentRt = contentObj.GetComponent<RectTransform>();
         contentRt.anchorMin = new Vector2(0.5f, 0.5f);
         contentRt.anchorMax = new Vector2(0.5f, 0.5f);
         contentRt.pivot = new Vector2(0.5f, 0.5f);
-        contentRt.sizeDelta = new Vector2(520f, 850f);
+        contentRt.sizeDelta = new Vector2(920f, 0f);
         contentRt.anchoredPosition = Vector2.zero;
 
+        Image cardImg = contentObj.GetComponent<Image>();
+        cardImg.sprite = GetOrCreateDialogCardSprite();
+        cardImg.type = Image.Type.Sliced;
+        cardImg.color = Color.white;
+        cardImg.raycastTarget = true;
+
         VerticalLayoutGroup vlg = contentObj.GetComponent<VerticalLayoutGroup>();
-        vlg.childAlignment = TextAnchor.MiddleCenter;
-        vlg.spacing = 20f;
+        vlg.padding = new RectOffset(40, 40, 32, 36);
+        vlg.spacing = 16f;
+        vlg.childAlignment = TextAnchor.UpperCenter;
         vlg.childControlWidth = true;
-        vlg.childControlHeight = false;
+        vlg.childControlHeight = true;
         vlg.childForceExpandWidth = true;
         vlg.childForceExpandHeight = false;
 
+        ContentSizeFitter csf = contentObj.GetComponent<ContentSizeFitter>();
+        csf.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+        csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
         // 4. Header Title Text
-        GameObject titleObj = new GameObject("TitleText", typeof(RectTransform), typeof(TextMeshProUGUI));
+        GameObject titleObj = new GameObject("TitleText", typeof(RectTransform), typeof(TextMeshProUGUI), typeof(LayoutElement));
         titleObj.transform.SetParent(contentObj.transform, false);
-        LayoutElement titleLe = titleObj.AddComponent<LayoutElement>();
-        titleLe.minHeight = 50f;
+        LayoutElement titleLe = titleObj.GetComponent<LayoutElement>();
+        titleLe.minHeight = 52f;
+        titleLe.preferredHeight = 56f;
+        titleLe.flexibleHeight = 0f;
         TextMeshProUGUI titleTmp = titleObj.GetComponent<TextMeshProUGUI>();
         titleTmp.text = "Event Title";
-        titleTmp.fontSize = 38;
+        titleTmp.fontSize = 42;
         titleTmp.fontStyle = FontStyles.Bold;
         titleTmp.alignment = TextAlignmentOptions.Center;
         titleTmp.color = Color.white;
+        titleTmp.raycastTarget = false;
         if (defaultFont != null) titleTmp.font = defaultFont;
 
-        // 5. Illustration Frame (CRT)
-        GameObject frameObj = new GameObject("IllustrationFrame", typeof(RectTransform), typeof(Image));
+        // 5. Illustration Frame (Tỉ lệ 3:2 landscape chuẩn cho hình minh họa mới)
+        GameObject frameObj = new GameObject("IllustrationFrame", typeof(RectTransform), typeof(Image), typeof(LayoutElement));
         frameObj.transform.SetParent(contentObj.transform, false);
         RectTransform frameRt = frameObj.GetComponent<RectTransform>();
-        frameRt.sizeDelta = new Vector2(320f, 320f);
-        LayoutElement frameLe = frameObj.AddComponent<LayoutElement>();
-        frameLe.preferredWidth = 320f;
-        frameLe.preferredHeight = 320f;
-        Image frameImg = frameObj.GetComponent<Image>();
-        frameImg.preserveAspect = true;
+        frameRt.sizeDelta = new Vector2(840f, 480f);
+        LayoutElement frameLe = frameObj.GetComponent<LayoutElement>();
+        frameLe.preferredWidth = 840f;
+        frameLe.preferredHeight = 480f;
+        frameLe.minHeight = 420f;
+        frameLe.flexibleHeight = 0f;
 
-        // Scanline overlay
+        Image frameImg = frameObj.GetComponent<Image>();
+        frameImg.sprite = GetOrCreateInnerFrameSprite();
+        frameImg.type = Image.Type.Sliced;
+        frameImg.color = Color.white;
+
+        // Ảnh hiển thị bên trong khung viền
+        GameObject illustObj = new GameObject("IllustrationImage", typeof(RectTransform), typeof(Image));
+        illustObj.transform.SetParent(frameObj.transform, false);
+        RectTransform illustRt = illustObj.GetComponent<RectTransform>();
+        illustRt.anchorMin = Vector2.zero;
+        illustRt.anchorMax = Vector2.one;
+        illustRt.offsetMin = new Vector2(4, 4);
+        illustRt.offsetMax = new Vector2(-4, -4);
+        Image illustImg = illustObj.GetComponent<Image>();
+        illustImg.type = Image.Type.Simple;
+        illustImg.preserveAspect = true;
+        illustImg.color = Color.white;
+
+        // Scanline overlay (Hiệu ứng CRT công nghệ cao tinh tế)
         GameObject scanlineObj = new GameObject("Scanlines", typeof(RectTransform), typeof(Image));
         scanlineObj.transform.SetParent(frameObj.transform, false);
         RectTransform slRt = scanlineObj.GetComponent<RectTransform>();
@@ -656,56 +833,65 @@ public class GameplayEventModalController : MonoBehaviour
         Image slImg = scanlineObj.GetComponent<Image>();
         slImg.sprite = GetOrCreateScanlineSprite();
         slImg.type = Image.Type.Tiled;
-        slImg.color = new Color(1f, 1f, 1f, 0.4f);
+        slImg.color = new Color(1f, 1f, 1f, 0.15f);
         slImg.raycastTarget = false;
 
         // 6. Dialogue / Story Text
-        GameObject storyObj = new GameObject("DialogueText", typeof(RectTransform), typeof(TextMeshProUGUI));
+        GameObject storyObj = new GameObject("DialogueText", typeof(RectTransform), typeof(TextMeshProUGUI), typeof(LayoutElement));
         storyObj.transform.SetParent(contentObj.transform, false);
-        LayoutElement storyLe = storyObj.AddComponent<LayoutElement>();
-        storyLe.minHeight = 90f;
+        LayoutElement storyLe = storyObj.GetComponent<LayoutElement>();
+        storyLe.minHeight = 50f;
+        storyLe.preferredHeight = -1; // Để TextMeshPro tự tính toán chiều cao chính xác theo nội dung
+        storyLe.flexibleHeight = 0f;
         TextMeshProUGUI storyTmp = storyObj.GetComponent<TextMeshProUGUI>();
         storyTmp.text = "Event story text...";
-        storyTmp.fontSize = 22;
+        storyTmp.fontSize = 28;
         storyTmp.fontStyle = FontStyles.Normal;
-        storyTmp.alignment = TextAlignmentOptions.Center;
-        storyTmp.color = new Color(0.9f, 0.95f, 0.95f, 1f);
-        storyTmp.lineSpacing = 12f;
+        storyTmp.alignment = TextAlignmentOptions.Top;
+        storyTmp.color = new Color32(220, 242, 248, 255);
+        storyTmp.lineSpacing = 6f;
+        storyTmp.margin = new Vector4(16, 0, 16, 0);
+        storyTmp.enableWordWrapping = true;
+        storyTmp.raycastTarget = false;
         if (defaultFont != null) storyTmp.font = defaultFont;
 
-        // 7. Reward Text (Màu vàng kim)
-        GameObject rewardObj = new GameObject("RewardText", typeof(RectTransform), typeof(TextMeshProUGUI));
+        // 7. Reward Text (Màu vàng kim nổi bật sau khi lựa chọn)
+        GameObject rewardObj = new GameObject("RewardText", typeof(RectTransform), typeof(TextMeshProUGUI), typeof(LayoutElement));
         rewardObj.transform.SetParent(contentObj.transform, false);
-        LayoutElement rewardLe = rewardObj.AddComponent<LayoutElement>();
-        rewardLe.minHeight = 45f;
+        LayoutElement rewardLe = rewardObj.GetComponent<LayoutElement>();
+        rewardLe.minHeight = 44f;
+        rewardLe.preferredHeight = -1; // Tự co giãn theo nội dung thưởng
+        rewardLe.flexibleHeight = 0f;
         TextMeshProUGUI rewardTmp = rewardObj.GetComponent<TextMeshProUGUI>();
         rewardTmp.text = "Reward Text";
-        rewardTmp.fontSize = 28;
+        rewardTmp.fontSize = 32;
         rewardTmp.fontStyle = FontStyles.Bold;
         rewardTmp.alignment = TextAlignmentOptions.Center;
-        rewardTmp.color = new Color32(255, 194, 54, 255); // #FFC236
+        rewardTmp.color = new Color32(255, 198, 54, 255); // #FFC636
+        rewardTmp.enableWordWrapping = true;
+        rewardTmp.raycastTarget = false;
         if (defaultFont != null) rewardTmp.font = defaultFont;
         rewardObj.SetActive(false);
 
-        // 8. Options Container (Chứa các nút)
+        // 8. Options Container (Chứa các nút rẽ nhánh)
         GameObject optsObj = new GameObject("OptionsContainer", typeof(RectTransform), typeof(VerticalLayoutGroup));
         optsObj.transform.SetParent(contentObj.transform, false);
         RectTransform optsRt = optsObj.GetComponent<RectTransform>();
-        optsRt.sizeDelta = new Vector2(480f, 220f);
-        LayoutElement optsLe = optsObj.AddComponent<LayoutElement>();
-        optsLe.minHeight = 120f;
+        optsRt.sizeDelta = new Vector2(840f, 0f);
         VerticalLayoutGroup optsVlg = optsObj.GetComponent<VerticalLayoutGroup>();
         optsVlg.childAlignment = TextAnchor.MiddleCenter;
         optsVlg.spacing = 14f;
-        optsVlg.childControlWidth = false;
-        optsVlg.childControlHeight = false;
+        optsVlg.childControlWidth = true;
+        optsVlg.childControlHeight = true;
+        optsVlg.childForceExpandWidth = true;
+        optsVlg.childForceExpandHeight = false;
 
         // 9. Gắn Controller
         GameplayEventModalController controller = root.AddComponent<GameplayEventModalController>();
         controller.modalRoot = root;
         controller.dimBackground = bgImg;
         controller.titleText = titleTmp;
-        controller.illustrationImage = frameImg;
+        controller.illustrationImage = illustImg;
         controller.scanlineOverlay = slImg;
         controller.dialogueText = storyTmp;
         controller.rewardText = rewardTmp;
