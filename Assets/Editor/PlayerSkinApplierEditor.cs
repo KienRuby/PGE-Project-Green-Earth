@@ -108,11 +108,11 @@ public class PlayerSkinApplierEditor : Editor
         {
             EditorGUILayout.Space(4);
             EditorGUILayout.HelpBox(
-                "🔍 ĐANG ĐỐI CHIẾU VỚI BẢN MẶC ĐỊNH GỐC (BASE CHARACTER):\n" +
-                "• Đang hiển thị 5 Sprite mặc định ban đầu ở vị trí (0, 0, 0) chuẩn.\n" +
-                "• Bạn có thể gán thủ công các Sprite mặc định ở bảng bên dưới.\n" +
-                "• Bấm [Skin 1], [Skin 2], [Skin 3] hoặc [Skin 4] ở trên để quay lại tùy biến skin!",
-                MessageType.Warning
+                "🔍 ĐANG XEM TRƯỚC & HIỆU CHỈNH BẢN MẶC ĐỊNH GỐC (BASE CHARACTER):\n" +
+                "• Bạn có thể dùng chuột kéo thả trực tiếp các Visual Slot (BodyVisual, GunVisual,...) trên Scene View hoặc chỉnh số ở bảng dưới.\n" +
+                "• Bấm nút [💾 LƯU VỊ TRÍ SCENE HIỆN TẠI VÀO BẢN MẶC ĐỊNH] để ghi nhận tọa độ mới!\n" +
+                "• Bấm [Skin 1], [Skin 2], [Skin 3] hoặc [Skin 4] ở trên để chuyển sang tùy biến skin.",
+                MessageType.Info
             );
 
             EditorGUILayout.Space(4);
@@ -178,10 +178,52 @@ public class PlayerSkinApplierEditor : Editor
 
         EditorGUILayout.Space(6);
 
-        // 3. One-Click Save Current Scene Transforms & Sprites (chỉ khi đang chọn skin)
-        if (!applier.isShowingDefault)
+        // 3. One-Click Save Current Scene Transforms & Sprites
+        EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+        if (applier.isShowingDefault)
         {
-            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            GUI.backgroundColor = new Color(1f, 0.78f, 0.15f, 1f);
+            if (GUILayout.Button("💾 LƯU VỊ TRÍ SCENE HIỆN TẠI VÀO BẢN MẶC ĐỊNH", GUILayout.Height(38)))
+            {
+                Undo.RecordObject(applier, "Capture Transforms for Default Skin");
+                applier.CaptureCurrentSceneTransformsForDefault();
+                EditorUtility.SetDirty(applier);
+                UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(applier.gameObject.scene);
+                Debug.Log("[PlayerSkinApplierEditor] ✅ Đã lưu toàn bộ tọa độ, tỷ lệ và Sprite trên Scene vào Bản Mặc Định (Default)!");
+            }
+            GUI.backgroundColor = Color.white;
+
+            EditorGUILayout.Space(2);
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("📋 Sao Chép Sang Skin 1 (Unit-1)", GUILayout.Height(26)))
+            {
+                if (EditorUtility.DisplayDialog("Đồng bộ Skin 1", "Bạn có muốn sao chép toàn bộ tọa độ & Sprite của Bản Mặc Định sang Skin 1 (AD Unit-1) không?", "Đồng ý", "Hủy"))
+                {
+                    Undo.RecordObject(applier, "Copy Default to Skin 1");
+                    applier.CopyDefaultTransformsToSkin1();
+                    EditorUtility.SetDirty(applier);
+                    UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(applier.gameObject.scene);
+                    Debug.Log("[PlayerSkinApplierEditor] ✅ Đã đồng bộ tọa độ Bản Mặc Định sang Skin 1 (AD Unit-1)!");
+                }
+            }
+
+            if (GUILayout.Button("↺ Đặt Lại Về (0, 0, 0) Gốc", GUILayout.Height(26)))
+            {
+                if (EditorUtility.DisplayDialog("Khôi phục tọa độ Mặc định", "Bạn có chắc muốn đặt lại toàn bộ Offset của Bản Mặc Định về (0,0,0) không?", "Đồng ý", "Hủy"))
+                {
+                    Undo.RecordObject(applier, "Reset Default Transforms");
+                    applier.ResetDefaultTransformsToZero();
+                    EditorUtility.SetDirty(applier);
+                    UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(applier.gameObject.scene);
+                    Debug.Log("[PlayerSkinApplierEditor] Đã đặt lại tọa độ Bản Mặc Định về (0,0,0)!");
+                }
+            }
+            EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.HelpBox("👉 MẸO: Bạn có thể chọn trực tiếp BodyVisual, GunVisual, Leg1Visual trong Scene, dùng công cụ W (Move) và R (Scale) để chỉnh, rồi bấm nút trên để LƯU LẠI VÀO BẢN MẶC ĐỊNH!", MessageType.None);
+        }
+        else
+        {
             GUI.backgroundColor = new Color(0.3f, 0.7f, 1f, 1f);
             if (GUILayout.Button($"💾 LƯU VỊ TRÍ SCENE HIỆN TẠI VÀO SKIN {applier.previewSkinIndex + 1}", GUILayout.Height(36)))
             {
@@ -193,8 +235,8 @@ public class PlayerSkinApplierEditor : Editor
             }
             GUI.backgroundColor = Color.white;
             EditorGUILayout.HelpBox("👉 MẸO: Bạn có thể chọn trực tiếp BodyVisual, GunVisual, Leg1Visual trong Scene, dùng công cụ W (Move) và R (Scale) để chỉnh, rồi bấm nút trên để LƯU LẠI!", MessageType.None);
-            EditorGUILayout.EndVertical();
         }
+        EditorGUILayout.EndVertical();
 
         EditorGUILayout.Space(6);
 
@@ -206,8 +248,75 @@ public class PlayerSkinApplierEditor : Editor
 
         EditorGUILayout.Space(6);
 
-        // 5. Detailed Part Controls for Active Skin
-        if (applier.skins != null && applier.previewSkinIndex >= 0 && applier.previewSkinIndex < applier.skins.Length)
+        // 5. Detailed Part Controls for Active Skin or Default
+        if (applier.isShowingDefault)
+        {
+            if (applier.defaultBody == null) applier.defaultBody = new BodyPartTransformConfig();
+            if (applier.defaultGun == null) applier.defaultGun = new BodyPartTransformConfig();
+            if (applier.defaultArm == null) applier.defaultArm = new BodyPartTransformConfig();
+            if (applier.defaultLeg1 == null) applier.defaultLeg1 = new BodyPartTransformConfig();
+            if (applier.defaultLeg2 == null) applier.defaultLeg2 = new BodyPartTransformConfig();
+
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            showPartDetails = EditorGUILayout.Foldout(showPartDetails, "⚙️ THÔNG SỐ CHI TIẾT & TỌA ĐỘ: BẢN MẶC ĐỊNH (BASE CHARACTER)", true);
+
+            if (showPartDetails)
+            {
+                EditorGUI.indentLevel++;
+
+                // Súng
+                DrawPartSection(applier, "Khẩu súng (Gun)", applier.defaultGun, applier.defaultGunSprite, s => applier.defaultGunSprite = s, () =>
+                {
+                    applier.defaultGun = new BodyPartTransformConfig(Vector2.zero, Vector2.one);
+                    applier.ApplyDefaultVisuals();
+                });
+
+                // Nòng súng (FirePoint)
+                EditorGUILayout.Space(4);
+                EditorGUILayout.LabelField("🎯 Nòng súng (FirePoint Offset):", EditorStyles.boldLabel);
+                EditorGUI.BeginChangeCheck();
+                Vector2 newFp = EditorGUILayout.Vector2Field("Tọa độ nòng súng:", applier.defaultFirePointOffset);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    Undo.RecordObject(applier, "Change FirePoint Offset");
+                    applier.defaultFirePointOffset = newFp;
+                    applier.ApplyDefaultVisuals();
+                    EditorUtility.SetDirty(applier);
+                }
+
+                // Thân
+                DrawPartSection(applier, "Thân (Body)", applier.defaultBody, applier.defaultBodySprite, s => applier.defaultBodySprite = s, () =>
+                {
+                    applier.defaultBody = new BodyPartTransformConfig(Vector2.zero, Vector2.one);
+                    applier.ApplyDefaultVisuals();
+                });
+
+                // Cánh tay
+                DrawPartSection(applier, "Cánh tay (Arm)", applier.defaultArm, applier.defaultArmSprite, s => applier.defaultArmSprite = s, () =>
+                {
+                    applier.defaultArm = new BodyPartTransformConfig(Vector2.zero, Vector2.one);
+                    applier.ApplyDefaultVisuals();
+                });
+
+                // Chân 1
+                DrawPartSection(applier, "Chân trái (Chan 1)", applier.defaultLeg1, applier.defaultLeg1Sprite, s => applier.defaultLeg1Sprite = s, () =>
+                {
+                    applier.defaultLeg1 = new BodyPartTransformConfig(Vector2.zero, Vector2.one);
+                    applier.ApplyDefaultVisuals();
+                });
+
+                // Chân 2
+                DrawPartSection(applier, "Chân phải (chan 2)", applier.defaultLeg2, applier.defaultLeg2Sprite, s => applier.defaultLeg2Sprite = s, () =>
+                {
+                    applier.defaultLeg2 = new BodyPartTransformConfig(Vector2.zero, Vector2.one);
+                    applier.ApplyDefaultVisuals();
+                });
+
+                EditorGUI.indentLevel--;
+            }
+            EditorGUILayout.EndVertical();
+        }
+        else if (applier.skins != null && applier.previewSkinIndex >= 0 && applier.previewSkinIndex < applier.skins.Length)
         {
             PlayerSkinConfig activeSkin = applier.skins[applier.previewSkinIndex];
             if (activeSkin != null)
@@ -300,7 +409,10 @@ public class PlayerSkinApplierEditor : Editor
             {
                 Undo.RecordObject(applier, $"Change {partName} Sprite");
                 onSpriteChanged(newSprite);
-                applier.ApplySkin(applier.previewSkinIndex);
+                if (applier.isShowingDefault)
+                    applier.ApplyDefaultVisuals();
+                else
+                    applier.ApplySkin(applier.previewSkinIndex);
                 EditorUtility.SetDirty(applier);
             }
         }
@@ -316,7 +428,10 @@ public class PlayerSkinApplierEditor : Editor
             config.positionOffset = pos;
             config.scaleMultiplier = scale;
             config.rotationOffset = rot;
-            applier.ApplySkin(applier.previewSkinIndex);
+            if (applier.isShowingDefault)
+                applier.ApplyDefaultVisuals();
+            else
+                applier.ApplySkin(applier.previewSkinIndex);
             EditorUtility.SetDirty(applier);
         }
     }
@@ -330,14 +445,57 @@ public class PlayerSkinApplierEditor : Editor
         }
 
         PlayerSkinApplier applier = (PlayerSkinApplier)target;
-        if (applier == null || applier.skins == null || applier.skins.Length == 0)
+        if (applier == null)
         {
             Tools.hidden = false;
             return;
         }
 
-        // Khi đang ở chế độ Mặc Định (Đối chiếu), không vẽ Handles để tránh thao tác kéo nhầm vào Skin
+        // Ẩn công cụ mặc định của Unity (phím W/E/R) để người dùng không bấm nhầm vào Xương cha
+        Tools.hidden = true;
+
         if (applier.isShowingDefault)
+        {
+            if (applier.defaultBody == null) applier.defaultBody = new BodyPartTransformConfig();
+            if (applier.defaultGun == null) applier.defaultGun = new BodyPartTransformConfig();
+            if (applier.defaultArm == null) applier.defaultArm = new BodyPartTransformConfig();
+            if (applier.defaultLeg1 == null) applier.defaultLeg1 = new BodyPartTransformConfig();
+            if (applier.defaultLeg2 == null) applier.defaultLeg2 = new BodyPartTransformConfig();
+
+            // 1. Gun Handle
+            if (currentHandleMode == HandleEditMode.All || currentHandleMode == HandleEditMode.GunOnly)
+            {
+                DrawPartHandle(applier, applier.defaultGun, applier.gunVisual, "🔴 Súng (Mặc định)", Color.red);
+            }
+
+            // 2. FirePoint Handle
+            if (currentHandleMode == HandleEditMode.All || currentHandleMode == HandleEditMode.FirePointOnly || currentHandleMode == HandleEditMode.GunOnly)
+            {
+                DrawDefaultFirePointHandle(applier);
+            }
+
+            // 3. Body Handle
+            if (currentHandleMode == HandleEditMode.All || currentHandleMode == HandleEditMode.BodyOnly)
+            {
+                DrawPartHandle(applier, applier.defaultBody, applier.bodyVisual, "🔵 Thân (Mặc định)", Color.cyan);
+            }
+
+            // 4. Arm Handle
+            if (currentHandleMode == HandleEditMode.All || currentHandleMode == HandleEditMode.GunOnly)
+            {
+                DrawPartHandle(applier, applier.defaultArm, applier.armVisual, "🟡 Tay (Mặc định)", Color.yellow);
+            }
+
+            // 5. Legs Handles
+            if (currentHandleMode == HandleEditMode.All || currentHandleMode == HandleEditMode.LegsOnly)
+            {
+                DrawPartHandle(applier, applier.defaultLeg1, applier.leg1Visual, "🟢 Chân 1 (Mặc định)", Color.green);
+                DrawPartHandle(applier, applier.defaultLeg2, applier.leg2Visual, "🟣 Chân 2 (Mặc định)", new Color(0.8f, 0.4f, 1f));
+            }
+            return;
+        }
+
+        if (applier.skins == null || applier.skins.Length == 0)
         {
             Tools.hidden = false;
             return;
@@ -427,6 +585,34 @@ public class PlayerSkinApplierEditor : Editor
             Undo.RecordObject(applier, "Adjust FirePoint in Scene");
             Vector3 newLocalPos = parentTr.InverseTransformPoint(newFpWorldPos);
             skin.firePointOffset = new Vector2(newLocalPos.x, newLocalPos.y);
+            fp.localPosition = new Vector3(newLocalPos.x, newLocalPos.y, fp.localPosition.z);
+            EditorUtility.SetDirty(applier);
+        }
+    }
+
+    private void DrawDefaultFirePointHandle(PlayerSkinApplier applier)
+    {
+        if (applier.firePoint == null) return;
+
+        Transform fp = applier.firePoint;
+        Transform parentTr = fp.parent;
+        if (parentTr == null) return;
+
+        Vector3 fpWorldPos = fp.position;
+
+        Handles.color = Color.yellow;
+        Handles.DrawWireDisc(fpWorldPos, Vector3.forward, 0.12f);
+        Handles.color = Color.red;
+        Handles.DrawLine(fpWorldPos, fpWorldPos + fp.right * 0.8f);
+        Handles.Label(fpWorldPos + Vector3.up * 0.15f, "🎯 Nòng súng (Mặc định)");
+
+        EditorGUI.BeginChangeCheck();
+        Vector3 newFpWorldPos = Handles.PositionHandle(fpWorldPos, fp.rotation);
+        if (EditorGUI.EndChangeCheck())
+        {
+            Undo.RecordObject(applier, "Adjust Default FirePoint in Scene");
+            Vector3 newLocalPos = parentTr.InverseTransformPoint(newFpWorldPos);
+            applier.defaultFirePointOffset = new Vector2(newLocalPos.x, newLocalPos.y);
             fp.localPosition = new Vector3(newLocalPos.x, newLocalPos.y, fp.localPosition.z);
             EditorUtility.SetDirty(applier);
         }

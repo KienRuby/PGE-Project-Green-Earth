@@ -106,6 +106,13 @@ public class PlayerSkinApplier : MonoBehaviour
     [Tooltip("Tọa độ nòng súng mặc định ban đầu.")]
     public Vector2 defaultFirePointOffset = new Vector2(3.59f, -0.99f);
 
+    [Header("Tùy chỉnh Vị trí & Kích thước Bản Mặc Định (Không ảnh hưởng Animation)")]
+    public BodyPartTransformConfig defaultBody = new BodyPartTransformConfig();
+    public BodyPartTransformConfig defaultArm = new BodyPartTransformConfig();
+    public BodyPartTransformConfig defaultGun = new BodyPartTransformConfig();
+    public BodyPartTransformConfig defaultLeg1 = new BodyPartTransformConfig();
+    public BodyPartTransformConfig defaultLeg2 = new BodyPartTransformConfig();
+
     [HideInInspector]
     public bool isShowingDefault = false;
 
@@ -216,21 +223,51 @@ public class PlayerSkinApplier : MonoBehaviour
         if (leg2Renderer != null && defaultLeg2Sprite != null)
             leg2Renderer.sprite = defaultLeg2Sprite;
 
-        // 2. Reset triệt để Visual Slots về (0,0), Scale (1,1), Rotation 0
+        // 2. Reset triệt để Visual Slots về (0,0), Scale (1,1), Rotation 0 trước
         ResetAllVisualSlotTransforms();
 
-        // 3. Reset nòng súng về tọa độ mặc định
+        // 3. Áp dụng Vị trí Offset, Tỷ lệ Scale và Góc xoay riêng của Bản Mặc Định
+        ApplyPartTransform(bodyVisual, defaultBody);
+        ApplyPartTransform(gunVisual, defaultGun);
+        ApplyPartTransform(armVisual, defaultArm);
+        ApplyPartTransform(leg1Visual, defaultLeg1);
+        ApplyPartTransform(leg2Visual, defaultLeg2);
+
+        // 4. Reset nòng súng về tọa độ mặc định
         if (firePoint != null)
         {
             firePoint.localPosition = new Vector3(defaultFirePointOffset.x, defaultFirePointOffset.y, firePoint.localPosition.z);
         }
 
-        // 4. Cập nhật cache PlayerHealth
+        // 5. Cập nhật cache PlayerHealth
         PlayerHealth health = GetComponent<PlayerHealth>() ?? GetComponentInParent<PlayerHealth>();
         if (health != null)
         {
             health.CacheSpriteRenderers(true);
         }
+    }
+
+    /// <summary>
+    /// Áp dụng transform cho một bộ phận Visual theo config tương ứng.
+    /// </summary>
+    public void ApplyPartTransform(Transform visual, BodyPartTransformConfig config)
+    {
+        if (visual == null) return;
+        if (config == null)
+        {
+            visual.localPosition = Vector3.zero;
+            visual.localScale = Vector3.one;
+            visual.localRotation = Quaternion.identity;
+            return;
+        }
+
+        visual.localPosition = new Vector3(config.positionOffset.x, config.positionOffset.y, 0f);
+        visual.localScale = new Vector3(
+            config.scaleMultiplier.x == 0f ? 1f : config.scaleMultiplier.x,
+            config.scaleMultiplier.y == 0f ? 1f : config.scaleMultiplier.y,
+            1f
+        );
+        visual.localRotation = Quaternion.Euler(0f, 0f, config.rotationOffset);
     }
 
     /// <summary>
@@ -489,6 +526,125 @@ public class PlayerSkinApplier : MonoBehaviour
         if (armRenderer != null && armRenderer.sprite != null) skin.armSprite = armRenderer.sprite;
         if (leg1Renderer != null && leg1Renderer.sprite != null) skin.leg1Sprite = leg1Renderer.sprite;
         if (leg2Renderer != null && leg2Renderer.sprite != null) skin.leg2Sprite = leg2Renderer.sprite;
+    }
+
+    /// <summary>
+    /// Ghi nhận vị trí, góc xoay, tỷ lệ và sprite hiện tại của các Visual slot trên Scene vào cấu hình Bản Mặc Định (Default).
+    /// </summary>
+    public void CaptureCurrentSceneTransformsForDefault()
+    {
+        AutoEnsureVisualSlots();
+
+        if (defaultBody == null) defaultBody = new BodyPartTransformConfig();
+        if (defaultGun == null) defaultGun = new BodyPartTransformConfig();
+        if (defaultArm == null) defaultArm = new BodyPartTransformConfig();
+        if (defaultLeg1 == null) defaultLeg1 = new BodyPartTransformConfig();
+        if (defaultLeg2 == null) defaultLeg2 = new BodyPartTransformConfig();
+
+        if (bodyVisual != null)
+        {
+            defaultBody.positionOffset = bodyVisual.localPosition;
+            defaultBody.scaleMultiplier = bodyVisual.localScale;
+            defaultBody.rotationOffset = bodyVisual.localEulerAngles.z;
+        }
+
+        if (gunVisual != null)
+        {
+            defaultGun.positionOffset = gunVisual.localPosition;
+            defaultGun.scaleMultiplier = gunVisual.localScale;
+            defaultGun.rotationOffset = gunVisual.localEulerAngles.z;
+        }
+
+        if (armVisual != null)
+        {
+            defaultArm.positionOffset = armVisual.localPosition;
+            defaultArm.scaleMultiplier = armVisual.localScale;
+            defaultArm.rotationOffset = armVisual.localEulerAngles.z;
+        }
+
+        if (leg1Visual != null)
+        {
+            defaultLeg1.positionOffset = leg1Visual.localPosition;
+            defaultLeg1.scaleMultiplier = leg1Visual.localScale;
+            defaultLeg1.rotationOffset = leg1Visual.localEulerAngles.z;
+        }
+
+        if (leg2Visual != null)
+        {
+            defaultLeg2.positionOffset = leg2Visual.localPosition;
+            defaultLeg2.scaleMultiplier = leg2Visual.localScale;
+            defaultLeg2.rotationOffset = leg2Visual.localEulerAngles.z;
+        }
+
+        if (firePoint != null)
+        {
+            defaultFirePointOffset = firePoint.localPosition;
+        }
+
+        // Tự động lưu luôn Sprite hiện tại trên Scene nếu người dùng kéo thả sprite trực tiếp vào SpriteRenderer
+        if (bodyRenderer != null && bodyRenderer.sprite != null) defaultBodySprite = bodyRenderer.sprite;
+        if (gunRenderer != null && gunRenderer.sprite != null) defaultGunSprite = gunRenderer.sprite;
+        if (armRenderer != null && armRenderer.sprite != null) defaultArmSprite = armRenderer.sprite;
+        if (leg1Renderer != null && leg1Renderer.sprite != null) defaultLeg1Sprite = leg1Renderer.sprite;
+        if (leg2Renderer != null && leg2Renderer.sprite != null) defaultLeg2Sprite = leg2Renderer.sprite;
+    }
+
+    /// <summary>
+    /// Sao chép toàn bộ tọa độ và sprite của Bản Mặc Định sang Skin 1 (AD Unit-1).
+    /// </summary>
+    public void CopyDefaultTransformsToSkin1()
+    {
+        if (skins == null || skins.Length == 0) return;
+        PlayerSkinConfig s1 = skins[0];
+        if (s1 == null) return;
+
+        if (s1.body == null) s1.body = new BodyPartTransformConfig();
+        if (s1.gun == null) s1.gun = new BodyPartTransformConfig();
+        if (s1.arm == null) s1.arm = new BodyPartTransformConfig();
+        if (s1.leg1 == null) s1.leg1 = new BodyPartTransformConfig();
+        if (s1.leg2 == null) s1.leg2 = new BodyPartTransformConfig();
+
+        s1.body.positionOffset = defaultBody != null ? defaultBody.positionOffset : Vector2.zero;
+        s1.body.scaleMultiplier = defaultBody != null ? defaultBody.scaleMultiplier : Vector2.one;
+        s1.body.rotationOffset = defaultBody != null ? defaultBody.rotationOffset : 0f;
+
+        s1.gun.positionOffset = defaultGun != null ? defaultGun.positionOffset : Vector2.zero;
+        s1.gun.scaleMultiplier = defaultGun != null ? defaultGun.scaleMultiplier : Vector2.one;
+        s1.gun.rotationOffset = defaultGun != null ? defaultGun.rotationOffset : 0f;
+
+        s1.arm.positionOffset = defaultArm != null ? defaultArm.positionOffset : Vector2.zero;
+        s1.arm.scaleMultiplier = defaultArm != null ? defaultArm.scaleMultiplier : Vector2.one;
+        s1.arm.rotationOffset = defaultArm != null ? defaultArm.rotationOffset : 0f;
+
+        s1.leg1.positionOffset = defaultLeg1 != null ? defaultLeg1.positionOffset : Vector2.zero;
+        s1.leg1.scaleMultiplier = defaultLeg1 != null ? defaultLeg1.scaleMultiplier : Vector2.one;
+        s1.leg1.rotationOffset = defaultLeg1 != null ? defaultLeg1.rotationOffset : 0f;
+
+        s1.leg2.positionOffset = defaultLeg2 != null ? defaultLeg2.positionOffset : Vector2.zero;
+        s1.leg2.scaleMultiplier = defaultLeg2 != null ? defaultLeg2.scaleMultiplier : Vector2.one;
+        s1.leg2.rotationOffset = defaultLeg2 != null ? defaultLeg2.rotationOffset : 0f;
+
+        s1.firePointOffset = defaultFirePointOffset;
+
+        if (defaultBodySprite != null) s1.bodySprite = defaultBodySprite;
+        if (defaultGunSprite != null) s1.gunSprite = defaultGunSprite;
+        if (defaultArmSprite != null) s1.armSprite = defaultArmSprite;
+        if (defaultLeg1Sprite != null) s1.leg1Sprite = defaultLeg1Sprite;
+        if (defaultLeg2Sprite != null) s1.leg2Sprite = defaultLeg2Sprite;
+    }
+
+    /// <summary>
+    /// Đặt lại các biến đổi (offset, scale, rotation) của Bản Mặc Định về gốc (0, 0, 0).
+    /// </summary>
+    public void ResetDefaultTransformsToZero()
+    {
+        defaultBody = new BodyPartTransformConfig();
+        defaultGun = new BodyPartTransformConfig();
+        defaultArm = new BodyPartTransformConfig();
+        defaultLeg1 = new BodyPartTransformConfig();
+        defaultLeg2 = new BodyPartTransformConfig();
+        defaultFirePointOffset = new Vector2(3.59f, -0.99f);
+        ApplyDefaultVisuals();
     }
 
     /// <summary>
