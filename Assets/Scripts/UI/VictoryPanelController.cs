@@ -85,7 +85,6 @@ public sealed class VictoryPanelController : MonoBehaviour
     private bool victoryVisible;
     private bool vipBonusClaimed;
     private bool ownsGameplayPause;
-    private float timeScaleBeforeVictory = 1f;
     private TMP_FontAsset runtimeFont;
     private Material runtimeFontMaterial;
 
@@ -249,7 +248,6 @@ public sealed class VictoryPanelController : MonoBehaviour
 
         yield return new WaitForSecondsRealtime(1.2f);
 
-        timeScaleBeforeVictory = 1f;
         ownsGameplayPause = true;
         Time.timeScale = 0f;
 

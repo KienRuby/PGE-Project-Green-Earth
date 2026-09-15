@@ -98,7 +98,6 @@ public sealed class BoxOpeningController : MonoBehaviour
     [SerializeField, Min(0.01f)] private float anticipationDuration = 0.18f;
     [SerializeField, Min(0.01f)] private float lidOpenDuration = 0.20f;
     [SerializeField, Min(0.01f)] private float rewardRevealDuration = 0.35f;
-    [SerializeField, Min(0f)] private float rewardHoldDuration = 0.30f;
     [SerializeField, Min(0.01f)] private float transitionDuration = 0.13f;
 
     private static readonly Vector2 RewardStartPosition = new Vector2(0f, -505f);
@@ -432,18 +431,6 @@ public sealed class BoxOpeningController : MonoBehaviour
         });
         ResetRewardVisual();
         ClearSmoke();
-    }
-
-    private IEnumerator WaitInterruptible(float duration)
-    {
-        float elapsed = 0f;
-        while (elapsed < duration && !skipRequested)
-        {
-            elapsed += Time.unscaledDeltaTime;
-            if (rewardBurstImage != null && rewardBurstImage.gameObject.activeSelf)
-                rewardBurstImage.rectTransform.Rotate(0f, 0f, 16f * Time.unscaledDeltaTime);
-            yield return null;
-        }
     }
 
     private IEnumerator Tween(float duration, Action<float> update)
