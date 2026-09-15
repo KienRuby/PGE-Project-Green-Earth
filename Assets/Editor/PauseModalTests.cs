@@ -6,6 +6,77 @@ using UnityEngine.UI;
 [TestFixture]
 public class PauseModalTests
 {
+#if UNITY_EDITOR
+    public const string ReportPath = "Assets/Editor/PauseModalTestReport.txt";
+
+    [UnityEditor.MenuItem("PGE/Tests/Run Pause Modal Tests")]
+    public static string RunFromMenu()
+    {
+        return RunAllTestsAndSaveReport();
+    }
+
+    public static string RunAllTestsAndSaveReport()
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine("================================================================================");
+        sb.AppendLine("PAUSE MODAL SYSTEM TEST REPORT");
+        sb.AppendLine($"Timestamp (UTC): {System.DateTime.UtcNow:yyyy-MM-ddTHH:mm:ssZ}");
+        sb.AppendLine("================================================================================");
+
+        int passed = 0;
+        int failed = 0;
+
+        void Execute(string name, System.Action testAction)
+        {
+            var test = new PauseModalTests();
+            try
+            {
+                test.ResetRuntimeChipsetState();
+                testAction();
+                passed++;
+                sb.AppendLine($"[PASS] {name}");
+            }
+            catch (System.Exception ex)
+            {
+                failed++;
+                sb.AppendLine($"[FAIL] {name}: {ex.Message}");
+            }
+        }
+
+        Execute(nameof(PauseModalController_SelectMainTab_TogglesOnOffButtonsCorrectly), () => new PauseModalTests().PauseModalController_SelectMainTab_TogglesOnOffButtonsCorrectly());
+        Execute(nameof(PauseModalController_AutoWireTabButtonsAndSettings_WiresFromHierarchy), () => new PauseModalTests().PauseModalController_AutoWireTabButtonsAndSettings_WiresFromHierarchy());
+        Execute(nameof(PauseModalController_AlignTabPosition_AlignsOffToOnCoordinates), () => new PauseModalTests().PauseModalController_AlignTabPosition_AlignsOffToOnCoordinates());
+        Execute(nameof(PauseModalController_SettingButton_OpensSettingsPanel), () => new PauseModalTests().PauseModalController_SettingButton_OpensSettingsPanel());
+        Execute(nameof(PauseModalController_SelectMainTab_SwapsSpritesOnMainTabButtonsAndKeepsAllActive), () => new PauseModalTests().PauseModalController_SelectMainTab_SwapsSpritesOnMainTabButtonsAndKeepsAllActive());
+        Execute(nameof(PauseModalController_EquippedChipsets_DoesNotAutoEquipStandardGun), () => new PauseModalTests().PauseModalController_EquippedChipsets_DoesNotAutoEquipStandardGun());
+        Execute(nameof(PauseModalController_SelectChipsetInLevelUp_AddsCardWithIconAndFrame), () => new PauseModalTests().PauseModalController_SelectChipsetInLevelUp_AddsCardWithIconAndFrame());
+        Execute(nameof(PauseModalController_MultipleChipsets_ArrangesHorizontallyAcrossRow), () => new PauseModalTests().PauseModalController_MultipleChipsets_ArrangesHorizontallyAcrossRow());
+        Execute(nameof(PauseModalController_EquippedChipsets_RetainsDistinctIconsAndTierFramesFromLevelUp), () => new PauseModalTests().PauseModalController_EquippedChipsets_RetainsDistinctIconsAndTierFramesFromLevelUp());
+        Execute(nameof(PauseModalController_ChipIcon_MatchesTargetTransform), () => new PauseModalTests().PauseModalController_ChipIcon_MatchesTargetTransform());
+        Execute(nameof(PauseModalController_ArtifactIconSlots_PreservesPositionAndSize_WhenRefreshing), () => new PauseModalTests().PauseModalController_ArtifactIconSlots_PreservesPositionAndSize_WhenRefreshing());
+        Execute(nameof(PauseModalController_ArtifactIconSlots_AutoWiresChildrenFromArtifactPanel), () => new PauseModalTests().PauseModalController_ArtifactIconSlots_AutoWiresChildrenFromArtifactPanel());
+        Execute(nameof(PauseModalController_ArrangeArtifactSlotsGrid_Arranges4PerRow), () => new PauseModalTests().PauseModalController_ArrangeArtifactSlotsGrid_Arranges4PerRow());
+        Execute(nameof(PauseModalController_ShowArtifactDetail_PopulatesFieldsAndActivates), () => new PauseModalTests().PauseModalController_ShowArtifactDetail_PopulatesFieldsAndActivates());
+        Execute(nameof(PauseModalController_ClickArtifactSlot_OpensDetailDialog), () => new PauseModalTests().PauseModalController_ClickArtifactSlot_OpensDetailDialog());
+        Execute(nameof(PauseModalController_RefreshCharacterAvatar_DisplaysCorrectSkinSprite), () => new PauseModalTests().PauseModalController_RefreshCharacterAvatar_DisplaysCorrectSkinSprite());
+        Execute(nameof(PauseModalController_OnEquippedSkinChanged_AutomaticallyUpdatesAvatar), () => new PauseModalTests().PauseModalController_OnEquippedSkinChanged_AutomaticallyUpdatesAvatar());
+
+        sb.AppendLine("================================================================================");
+        sb.AppendLine($"SUMMARY: Total={passed + failed}, Passed={passed}, Failed={failed}");
+        sb.AppendLine("================================================================================");
+
+        string report = sb.ToString();
+        try
+        {
+            System.IO.File.WriteAllText(ReportPath, report);
+        }
+        catch { }
+
+        Debug.Log(report);
+        return report;
+    }
+#endif
+
     [SetUp]
     public void ResetRuntimeChipsetState()
     {
@@ -738,5 +809,102 @@ public class PauseModalTests
 
         Object.DestroyImmediate(data);
         Object.DestroyImmediate(root);
+    }
+
+    [Test]
+    public void PauseModalController_RefreshCharacterAvatar_DisplaysCorrectSkinSprite()
+    {
+        int origSkin = BuildBodyController.EquippedSkinIndex;
+        GameObject root = new GameObject("PauseModalRoot", typeof(RectTransform));
+        GameObject avatarObj = new GameObject("Avatar", typeof(RectTransform), typeof(Image));
+        avatarObj.transform.SetParent(root.transform);
+        Image avatarImg = avatarObj.GetComponent<Image>();
+
+        Sprite spriteBlue = Sprite.Create(new Texture2D(2, 2), new Rect(0, 0, 2, 2), Vector2.zero);
+        spriteBlue.name = "Robot_Skin_Blue";
+        Sprite spriteGreen = Sprite.Create(new Texture2D(2, 2), new Rect(0, 0, 2, 2), Vector2.zero);
+        spriteGreen.name = "Robot_Skin_Green";
+        Sprite spritePurple = Sprite.Create(new Texture2D(2, 2), new Rect(0, 0, 2, 2), Vector2.zero);
+        spritePurple.name = "Robot_Skin_Purple";
+        Sprite spriteBlack = Sprite.Create(new Texture2D(2, 2), new Rect(0, 0, 2, 2), Vector2.zero);
+        spriteBlack.name = "Robot_Skin_Black";
+
+        Sprite[] skinSprites = new Sprite[4] { spriteBlue, spriteGreen, spritePurple, spriteBlack };
+
+        PauseModalController pauseCtrl = root.AddComponent<PauseModalController>();
+        pauseCtrl.SetSkinAvatarSpritesForTesting(skinSprites, avatarImg);
+
+        try
+        {
+            // Unit 1: Blue (index 0)
+            BuildBodyController.EquippedSkinIndex = 0;
+            pauseCtrl.RefreshCharacterAvatar();
+            Assert.That(avatarImg.sprite, Is.EqualTo(spriteBlue), "Skin index 0 should display Robot_Skin_Blue");
+
+            // Unit 2: Green (index 1)
+            BuildBodyController.EquippedSkinIndex = 1;
+            pauseCtrl.RefreshCharacterAvatar();
+            Assert.That(avatarImg.sprite, Is.EqualTo(spriteGreen), "Skin index 1 should display Robot_Skin_Green");
+
+            // Unit 3: Purple (index 2)
+            BuildBodyController.EquippedSkinIndex = 2;
+            pauseCtrl.RefreshCharacterAvatar();
+            Assert.That(avatarImg.sprite, Is.EqualTo(spritePurple), "Skin index 2 should display Robot_Skin_Purple");
+
+            // Unit 4: Black (index 3)
+            BuildBodyController.EquippedSkinIndex = 3;
+            pauseCtrl.RefreshCharacterAvatar();
+            Assert.That(avatarImg.sprite, Is.EqualTo(spriteBlack), "Skin index 3 should display Robot_Skin_Black");
+        }
+        finally
+        {
+            BuildBodyController.EquippedSkinIndex = origSkin;
+            Object.DestroyImmediate(root);
+            Object.DestroyImmediate(spriteBlue);
+            Object.DestroyImmediate(spriteGreen);
+            Object.DestroyImmediate(spritePurple);
+            Object.DestroyImmediate(spriteBlack);
+        }
+    }
+
+    [Test]
+    public void PauseModalController_OnEquippedSkinChanged_AutomaticallyUpdatesAvatar()
+    {
+        int origSkin = BuildBodyController.EquippedSkinIndex;
+        GameObject root = new GameObject("PauseModalRoot", typeof(RectTransform));
+        GameObject avatarObj = new GameObject("Avatar", typeof(RectTransform), typeof(Image));
+        avatarObj.transform.SetParent(root.transform);
+        Image avatarImg = avatarObj.GetComponent<Image>();
+
+        Sprite spriteBlue = Sprite.Create(new Texture2D(2, 2), new Rect(0, 0, 2, 2), Vector2.zero);
+        Sprite spriteGreen = Sprite.Create(new Texture2D(2, 2), new Rect(0, 0, 2, 2), Vector2.zero);
+        Sprite spritePurple = Sprite.Create(new Texture2D(2, 2), new Rect(0, 0, 2, 2), Vector2.zero);
+        Sprite spriteBlack = Sprite.Create(new Texture2D(2, 2), new Rect(0, 0, 2, 2), Vector2.zero);
+
+        Sprite[] skinSprites = new Sprite[4] { spriteBlue, spriteGreen, spritePurple, spriteBlack };
+
+        PauseModalController pauseCtrl = root.AddComponent<PauseModalController>();
+        pauseCtrl.SetSkinAvatarSpritesForTesting(skinSprites, avatarImg);
+
+        try
+        {
+            BuildBodyController.EquippedSkinIndex = 0;
+            // Event change to Green (1)
+            BuildBodyController.EquippedSkinIndex = 1;
+            Assert.That(avatarImg.sprite, Is.EqualTo(spriteGreen), "Changing skin to 1 should update avatar to Green via event");
+
+            // Event change to Black (3)
+            BuildBodyController.EquippedSkinIndex = 3;
+            Assert.That(avatarImg.sprite, Is.EqualTo(spriteBlack), "Changing skin to 3 should update avatar to Black via event");
+        }
+        finally
+        {
+            BuildBodyController.EquippedSkinIndex = origSkin;
+            Object.DestroyImmediate(root);
+            Object.DestroyImmediate(spriteBlue);
+            Object.DestroyImmediate(spriteGreen);
+            Object.DestroyImmediate(spritePurple);
+            Object.DestroyImmediate(spriteBlack);
+        }
     }
 }

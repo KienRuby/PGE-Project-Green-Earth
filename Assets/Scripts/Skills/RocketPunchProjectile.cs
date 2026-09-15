@@ -34,7 +34,7 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
 
     [Header("Orbit Settings (Xoay quanh Player)")]
     [Tooltip("Bán kính vòng quay xung quanh Player (mét).")]
-    [SerializeField] private float orbitRadius = 1.6f;
+    [SerializeField] private float orbitRadius = 0.8f;
 
     [Tooltip("Tốc độ bay xoay vòng quanh Player (độ/giây).")]
     [SerializeField] private float orbitSpeed = 220f;
@@ -182,7 +182,7 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
         aoeDamage = aoeDmg > 0 ? aoeDmg : Mathf.RoundToInt(damage * 0.55f);
         aoeRadius = Mathf.Max(1.0f, radius);
         launchSpeed = Mathf.Max(2.0f, speed);
-        orbitRadius = Mathf.Max(0.5f, orbitDist);
+        orbitRadius = Mathf.Max(0.2f, orbitDist);
         orbitSpeed = Mathf.Max(30f, orbitSpd);
         hasStun = stunEnabled;
         stunDuration = Mathf.Max(0.1f, stunTime);

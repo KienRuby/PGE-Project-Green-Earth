@@ -312,7 +312,7 @@ MonoBehaviour:
   aoeRadius: 2.5
   launchSpeed: 12
   maxFlightTime: 4
-  orbitRadius: 1.6
+  orbitRadius: 0.8
   orbitSpeed: 220
   steeringTurnRate: 420
   autoRetargetRadius: 14

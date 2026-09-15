@@ -33,8 +33,8 @@ public class RocketPunchSkill : MonoBehaviour
 
     [Header("Orbit Tuning (Tùy chỉnh bay quanh Player)")]
     [Tooltip("Bán kính vòng quay xung quanh Player (mét).")]
-    [Range(0.8f, 3.5f)]
-    [SerializeField] private float orbitRadius = 1.6f;
+    [Range(0.2f, 3.5f)]
+    [SerializeField] private float orbitRadius = 0.8f;
 
     [Tooltip("Tốc độ bay xoay vòng quanh Player (độ/giây). Càng nhỏ càng bay chậm.")]
     [Range(60f, 720f)]

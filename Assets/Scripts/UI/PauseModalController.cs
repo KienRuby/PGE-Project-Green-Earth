@@ -137,6 +137,13 @@ public class PauseModalController : MonoBehaviour
     [SerializeField] private TMP_Text characterNameText;
     [SerializeField] private TMP_Text characterLevelExpText;
 
+    [Header("6b. Skin Avatar Sprites")]
+    [Tooltip("Danh sách Sprite đại diện tương ứng với các Skin (0: Unit-1 Blue, 1: Unit-2 Green, 2: Unit-3 Purple, 3: Unit-4 Black).")]
+    [SerializeField] private Sprite[] skinAvatarSprites = new Sprite[4];
+
+    public Sprite[] SkinAvatarSprites { get => skinAvatarSprites; set => skinAvatarSprites = value; }
+    public Image CharacterAvatarImage => characterAvatarImage;
+
     [Header("7. DEF Stat Value Texts")]
     [SerializeField] private TMP_Text hpValueText;
     [SerializeField] private TMP_Text defValueText;
@@ -235,16 +242,26 @@ public class PauseModalController : MonoBehaviour
         BindButtons();
         ChipsetLevelUpPopup.OnRuntimeChipsetSelected -= HandleChipsetSelected;
         ChipsetLevelUpPopup.OnRuntimeChipsetSelected += HandleChipsetSelected;
+        BuildBodyController.OnEquippedSkinChanged -= HandleEquippedSkinChanged;
+        BuildBodyController.OnEquippedSkinChanged += HandleEquippedSkinChanged;
+        RefreshCharacterAvatar();
     }
 
     private void OnDisable()
     {
         ChipsetLevelUpPopup.OnRuntimeChipsetSelected -= HandleChipsetSelected;
+        BuildBodyController.OnEquippedSkinChanged -= HandleEquippedSkinChanged;
     }
 
     private void OnDestroy()
     {
         ChipsetLevelUpPopup.OnRuntimeChipsetSelected -= HandleChipsetSelected;
+        BuildBodyController.OnEquippedSkinChanged -= HandleEquippedSkinChanged;
+    }
+
+    private void HandleEquippedSkinChanged(int newSkinIndex)
+    {
+        RefreshCharacterAvatar();
     }
 
     private void Start()
@@ -692,6 +709,8 @@ public class PauseModalController : MonoBehaviour
             }
         }
 
+        RefreshCharacterAvatar();
+
         // 2. DEF Stats
         int curHp = playerHealth != null ? playerHealth.CurrentHealth : 260;
         int maxHp = playerHealth != null ? playerHealth.MaxHealth : 260;
@@ -725,6 +744,78 @@ public class PauseModalController : MonoBehaviour
         if (droneAtkValueText != null) droneAtkValueText.text = "0%";
         if (turretAtkValueText != null) turretAtkValueText.text = "0%";
         if (turretDurationValueText != null) turretDurationValueText.text = "0%";
+    }
+
+    /// <summary>
+    /// Cập nhật Sprite đại diện trên thẻ nhân vật (CharacterCard) theo đúng Skin đang được trang bị.
+    /// </summary>
+    public void RefreshCharacterAvatar()
+    {
+        if (characterAvatarImage == null) return;
+
+        int skinIndex = BuildBodyController.EquippedSkinIndex;
+
+        // Nếu có PlayerSkinApplier trong scene, ưu tiên lấy theo skin đang active của player
+        PlayerSkinApplier skinApplier = FindObjectOfType<PlayerSkinApplier>();
+        if (skinApplier != null && skinApplier.ActiveAppliedIndex >= 0)
+        {
+            skinIndex = skinApplier.ActiveAppliedIndex;
+        }
+
+        skinIndex = Mathf.Clamp(skinIndex, 0, 3);
+
+        Sprite targetSprite = null;
+
+        // 1. Lấy từ mảng skinAvatarSprites đã gán trong inspector hoặc scene builder
+        if (skinAvatarSprites != null && skinIndex >= 0 && skinIndex < skinAvatarSprites.Length)
+        {
+            targetSprite = skinAvatarSprites[skinIndex];
+        }
+
+        // 2. Lấy từ cấu hình portraitSprite của PlayerSkinApplier nếu có
+        if (targetSprite == null && skinApplier != null && skinApplier.skins != null && skinIndex < skinApplier.skins.Length)
+        {
+            targetSprite = skinApplier.skins[skinIndex]?.portraitSprite;
+        }
+
+        // 3. Fallback nạp sprite nếu chưa được gán
+        if (targetSprite == null)
+        {
+            targetSprite = LoadFallbackSkinSprite(skinIndex);
+        }
+
+        if (targetSprite != null)
+        {
+            characterAvatarImage.sprite = targetSprite;
+            characterAvatarImage.preserveAspect = true;
+            characterAvatarImage.enabled = true;
+        }
+    }
+
+    private static Sprite LoadFallbackSkinSprite(int index)
+    {
+#if UNITY_EDITOR
+        string path = index switch
+        {
+            0 => "Assets/Sprites/UI/Buil body/Robot_Skin_Blue.png",
+            1 => "Assets/Sprites/UI/Buil body/Robot_Skin_Green.png",
+            2 => "Assets/Sprites/UI/Buil body/Robot_Skin_Purple.png",
+            3 => "Assets/Sprites/UI/Buil body/Robot_Skin_Black.png",
+            _ => "Assets/Sprites/UI/Buil body/Robot_Skin_Blue.png"
+        };
+        return UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(path);
+#else
+        return null;
+#endif
+    }
+
+    public void SetSkinAvatarSpritesForTesting(Sprite[] sprites, Image avatarImage = null)
+    {
+        skinAvatarSprites = sprites;
+        if (avatarImage != null)
+        {
+            characterAvatarImage = avatarImage;
+        }
     }
 
     public void OnDamageDetailsButtonClicked()

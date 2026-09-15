@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 6c501216f25d8474ba01102000c62c29
+guid: d83a02e3b04e7b24eb0490e37b962a14
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -31,7 +31,7 @@ TextureImporter:
   cubemapConvolution: 0
   seamlessCubemap: 0
   textureFormat: 1
-  maxTextureSize: 4096
+  maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
     filterMode: 0
@@ -69,7 +69,7 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 3
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 4096
+    maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -82,7 +82,7 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 3
     buildTarget: Standalone
-    maxTextureSize: 4096
+    maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -95,7 +95,7 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 3
     buildTarget: Android
-    maxTextureSize: 4096
+    maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -110,43 +110,43 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Chan 1
+      name: 1
       rect:
         serializedVersion: 2
-        x: 847
-        y: 1966
-        width: 152
-        height: 337
-      alignment: 9
-      pivot: {x: 0.6595025, y: 0.91726387}
+        x: 708
+        y: 1894
+        width: 264
+        height: 410
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 29aa57a529ddf4c7340856933b0b6398
-      internalID: -2040592341959848592
+      spriteID: 69266458c337f8743b32d3ce0e0e13d5
+      internalID: 1516565397
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: chan 2
+      name: 2
       rect:
         serializedVersion: 2
-        x: 1048
-        y: 2008
-        width: 167
-        height: 294
-      alignment: 9
-      pivot: {x: 0.7032471, y: 0.95355266}
+        x: 971
+        y: 1926
+        width: 214
+        height: 376
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: b21ab98f85056138173148758980bb2c
-      internalID: 2219504772987026516
+      spriteID: af4328c1a1101cd44b55c75ccb1e98dd
+      internalID: -946685520
       vertices: []
       indices: 
       edges: []
@@ -162,9 +162,8 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      Chan 1: -2040592341959848592
-      chan 2: 2219504772987026516
-      "ch\xE2n_full": -5560356426916713432
+      1: 1516565397
+      2: -946685520
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

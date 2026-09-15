@@ -691,13 +691,12 @@ public class PlayerAutoShooter : MonoBehaviour
             return;
 
         float angle = Mathf.Atan2(aimDirection.y, aimDirection.x) * Mathf.Rad2Deg;
+        bool isAimingLeft = Mathf.Abs(angle) > 90f;
+        SetBodyFacing(isAimingLeft);
 
         // 1. Xoay khẩu súng (GunPivot / GunTransform)
         if (gunTransform != null)
         {
-            bool isAimingLeft = Mathf.Abs(angle) > 90f;
-            SetBodyFacing(isAimingLeft);
-
             if (bodyTransform != null && gunTransform.IsChildOf(bodyTransform))
             {
                 float localAimAngle = CalculateLocalAimAngle(angle, isAimingLeft);
@@ -766,7 +765,7 @@ public class PlayerAutoShooter : MonoBehaviour
             if (bodyRenderer != null)
             {
                 bool belongsToBodyTransform =
-                    bodyTransform != null && bodyRenderer.transform == bodyTransform;
+                    bodyTransform != null && (bodyRenderer.transform == bodyTransform || bodyRenderer.transform.IsChildOf(bodyTransform));
 
                 bodyRenderer.flipX = !belongsToBodyTransform && isAimingLeft;
             }

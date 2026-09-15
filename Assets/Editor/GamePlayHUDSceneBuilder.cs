@@ -936,7 +936,8 @@ public static class GamePlayHUDSceneBuilder
         charCardRt.sizeDelta = new Vector2(340f, 850f);
 
         // Avatar Image
-        Sprite playerSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Character/thân.png");
+        Sprite playerSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Buil body/Robot_Skin_Purple.png")
+                           ?? AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Buil body/Robot_Skin_Blue.png");
         Image avatarImg = CreateImage("Avatar", charCardObj.transform, Color.white, playerSprite);
         avatarImg.preserveAspect = true;
         avatarImg.rectTransform.anchoredPosition = new Vector2(0f, 100f);
@@ -1170,6 +1171,15 @@ public static class GamePlayHUDSceneBuilder
         so.FindProperty("attackStatsPanel").objectReferenceValue = atkPanelObj;
         so.FindProperty("otherStatsPanel").objectReferenceValue = othPanelObj;
         so.FindProperty("characterAvatarImage").objectReferenceValue = avatarImg;
+        SerializedProperty skinSpritesProp = so.FindProperty("skinAvatarSprites");
+        if (skinSpritesProp != null)
+        {
+            skinSpritesProp.arraySize = 4;
+            skinSpritesProp.GetArrayElementAtIndex(0).objectReferenceValue = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Buil body/Robot_Skin_Blue.png");
+            skinSpritesProp.GetArrayElementAtIndex(1).objectReferenceValue = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Buil body/Robot_Skin_Green.png");
+            skinSpritesProp.GetArrayElementAtIndex(2).objectReferenceValue = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Buil body/Robot_Skin_Purple.png");
+            skinSpritesProp.GetArrayElementAtIndex(3).objectReferenceValue = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Buil body/Robot_Skin_Black.png");
+        }
         so.FindProperty("characterNameText").objectReferenceValue = charNameTxt;
         so.FindProperty("characterLevelExpText").objectReferenceValue = charLvlTxt;
         so.FindProperty("hpValueText").objectReferenceValue = hpVal;

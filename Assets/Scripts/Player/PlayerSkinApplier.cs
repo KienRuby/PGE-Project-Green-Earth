@@ -34,6 +34,9 @@ public class PlayerSkinConfig
     [Tooltip("Tên định danh của Skin (ví dụ: AD Unit-1, AD Unit-2,...).")]
     public string skinName = "AD Unit";
 
+    [Tooltip("Sprite ảnh đại diện UI của Skin này.")]
+    public Sprite portraitSprite;
+
     [Header("Sprite các bộ phận cơ thể")]
     [Tooltip("Sprite Thân robot.")]
     public Sprite bodySprite;
@@ -305,6 +308,12 @@ public class PlayerSkinApplier : MonoBehaviour
             leg2Visual.localScale = Vector3.one;
             leg2Visual.localRotation = Quaternion.identity;
         }
+
+        if (bodyRenderer != null) bodyRenderer.flipX = false;
+        if (gunRenderer != null) { gunRenderer.flipX = false; gunRenderer.flipY = false; }
+        if (armRenderer != null) armRenderer.flipX = false;
+        if (leg1Renderer != null) leg1Renderer.flipX = false;
+        if (leg2Renderer != null) leg2Renderer.flipX = false;
     }
 
     /// <summary>

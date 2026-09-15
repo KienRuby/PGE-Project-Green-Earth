@@ -32,8 +32,8 @@ public class SpinningBladeSkill : MonoBehaviour
 
     [Header("Orbit Clustered Tuning (Bay ngay sát bên cạnh nhau)")]
     [Tooltip("Bán kính vòng quay quanh Player (mét).")]
-    [Range(1.0f, 4.0f)]
-    [SerializeField] private float orbitRadius = 1.85f;
+    [Range(0.5f, 3.0f)]
+    [SerializeField] private float orbitRadius = 0.925f;
 
     [Tooltip("Tốc độ bay xoay vòng quanh Player (độ/giây). Mặc định 80°/s (chậm rãi và dễ nhìn).")]
     [Range(10f, 360f)]
@@ -89,7 +89,7 @@ public class SpinningBladeSkill : MonoBehaviour
 
     /// <summary>
     /// Bán kính quỹ đạo thực tế. Nếu có Đĩa Gai (SpikyDiscusSkill) cùng hoạt động ở vòng trong,
-    /// Lưỡi Dao Xoay luôn bay ở vòng ngoài với khoảng cách tối thiểu 0.65m
+    /// Lưỡi Dao Xoay luôn bay ở vòng ngoài với khoảng cách tối thiểu 0.325m
     /// để 2 chipset không bao giờ bị đè lên nhau.
     /// </summary>
     public float GetEffectiveOrbitRadius()
@@ -99,9 +99,9 @@ public class SpinningBladeSkill : MonoBehaviour
         if (discusSkill != null && discusSkill.IsUnlocked)
         {
             float discusRadius = discusSkill.RawOrbitRadius;
-            if (radius <= discusRadius + 0.5f)
+            if (radius <= discusRadius + 0.25f)
             {
-                radius = discusRadius + 0.65f;
+                radius = discusRadius + 0.325f;
             }
         }
         return radius;

@@ -1902,7 +1902,7 @@ MonoBehaviour:
   rocketPunchPrefab: {fileID: 7648358555700705095, guid: 29f161e0d99efe24baa0879f607ed721, type: 3}
   explosionVfxPrefab: {fileID: 3290514725870574986, guid: 2019a65776aecea44abb57cfdb6e0df5, type: 3}
   lavaHazardPrefab: {fileID: 0}
-  orbitRadius: 0.8
+  orbitRadius: 0.4
   orbitSpeed: 192
   launchSpeed: 4
   attackSpeedMultiplier: 0.65
@@ -1960,7 +1960,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spinningBladePrefab: {fileID: 6482937105928172948, guid: 58e10b7410294828ba28472910482910, type: 3}
   hitVfxPrefab: {fileID: 3290514725870574986, guid: 2019a65776aecea44abb57cfdb6e0df5, type: 3}
-  orbitRadius: 1.85
+  orbitRadius: 0.925
   orbitSpeed: 80
   bladeSpacingAngle: 25
   selfSpinSpeed: 480
@@ -2061,7 +2061,7 @@ MonoBehaviour:
     bleedDuration: 3
     isGiantScale: 1
     destroyEnemyBullets: 1
-  orbitRadius: 1.15
+  orbitRadius: 0.575
   selfSpinSpeed: 540
   spikyDiscusPrefab: {fileID: 1958027733123456789, guid: f05c63f121ea36d43a7a1e4f536ef41d, type: 3}
   hitVfxPrefab: {fileID: 3290514725870574986, guid: 2019a65776aecea44abb57cfdb6e0df5, type: 3}
@@ -2199,8 +2199,28 @@ MonoBehaviour:
   defaultGunSprite: {fileID: 1950697415, guid: 53980148e8e4f83429126e94325722e2, type: 3}
   defaultLeg1Sprite: {fileID: 770955769, guid: 65fc5831f8144fc49bddde98555ed20d, type: 3}
   defaultLeg2Sprite: {fileID: 1856406010, guid: 65fc5831f8144fc49bddde98555ed20d, type: 3}
-  defaultFirePointOffset: {x: 3.59, y: -0.99}
-  isShowingDefault: 1
+  defaultFirePointOffset: {x: 3.04, y: -1.54}
+  defaultBody:
+    positionOffset: {x: 0, y: 0}
+    scaleMultiplier: {x: 1, y: 1}
+    rotationOffset: 0
+  defaultArm:
+    positionOffset: {x: 0, y: 0}
+    scaleMultiplier: {x: 1, y: 1}
+    rotationOffset: 0
+  defaultGun:
+    positionOffset: {x: -2.0497887, y: -0.6563146}
+    scaleMultiplier: {x: 0.88215, y: 0.88215}
+    rotationOffset: 0
+  defaultLeg1:
+    positionOffset: {x: 0.27215445, y: 0.58318853}
+    scaleMultiplier: {x: 1, y: 1}
+    rotationOffset: 0
+  defaultLeg2:
+    positionOffset: {x: 0.50542927, y: 1.0497379}
+    scaleMultiplier: {x: 1, y: 1}
+    rotationOffset: 0
+  isShowingDefault: 0
   skins:
   - skinName: AD Unit-1 (Basic Body)
     bodySprite: {fileID: -5182206973502839065, guid: b11d782772fef994681d861860fa33eb, type: 3}
@@ -2209,26 +2229,26 @@ MonoBehaviour:
     leg1Sprite: {fileID: -2040592341959848592, guid: 7e8f556a10c1620498e036dbf132b04e, type: 3}
     leg2Sprite: {fileID: 2219504772987026516, guid: 7e8f556a10c1620498e036dbf132b04e, type: 3}
     body:
-      positionOffset: {x: 0, y: 0}
-      scaleMultiplier: {x: 1, y: 1}
+      positionOffset: {x: -0.88, y: 2.28}
+      scaleMultiplier: {x: 1.2184588, y: 1.2184588}
       rotationOffset: 0
     arm:
-      positionOffset: {x: 0, y: 0}
+      positionOffset: {x: 0.4478165, y: 0.19178143}
       scaleMultiplier: {x: 1, y: 1}
       rotationOffset: 0
     gun:
-      positionOffset: {x: 0, y: 0}
-      scaleMultiplier: {x: 1, y: 1}
+      positionOffset: {x: -3.98, y: -0.55}
+      scaleMultiplier: {x: 0.78198, y: 0.78198}
       rotationOffset: 0
     leg1:
-      positionOffset: {x: 0, y: 0}
-      scaleMultiplier: {x: 1, y: 1}
+      positionOffset: {x: 0, y: 0.62}
+      scaleMultiplier: {x: 1.218459, y: 1.218459}
       rotationOffset: 0
     leg2:
-      positionOffset: {x: 0, y: 0}
-      scaleMultiplier: {x: 1, y: 1}
+      positionOffset: {x: 0.19, y: 1.67}
+      scaleMultiplier: {x: 1.218459, y: 1.218459}
       rotationOffset: 0
-    firePointOffset: {x: 3.59, y: -0.99}
+    firePointOffset: {x: 5.6, y: -1.23}
   - skinName: AD Unit-2
     bodySprite: {fileID: -5182206973502839065, guid: b48489951e9c39e40b043dacb6bd63af, type: 3}
     armSprite: {fileID: 7950957983998334306, guid: 3f0a5377d27c63e47bddaa6fff51a1f7, type: 3}
@@ -2236,26 +2256,26 @@ MonoBehaviour:
     leg1Sprite: {fileID: -2040592341959848592, guid: 4071c3ce871ecc447b4da5ad69b7b1d8, type: 3}
     leg2Sprite: {fileID: 2219504772987026516, guid: 4071c3ce871ecc447b4da5ad69b7b1d8, type: 3}
     body:
-      positionOffset: {x: 0, y: 0}
-      scaleMultiplier: {x: 1, y: 1}
+      positionOffset: {x: -0.67309624, y: 3.3654773}
+      scaleMultiplier: {x: 1.218459, y: 1.218459}
       rotationOffset: 0
     arm:
-      positionOffset: {x: 0, y: 0}
+      positionOffset: {x: 0.10121549, y: 0.6543064}
       scaleMultiplier: {x: 1, y: 1}
       rotationOffset: 0
     gun:
-      positionOffset: {x: -0.2, y: 0}
+      positionOffset: {x: -4.3504596, y: -0.5024176}
       scaleMultiplier: {x: 0.85, y: 0.85}
       rotationOffset: 0
     leg1:
-      positionOffset: {x: 0, y: 0}
-      scaleMultiplier: {x: 1, y: 1}
+      positionOffset: {x: -0.34991258, y: 0.5831878}
+      scaleMultiplier: {x: 1.218459, y: 1.218459}
       rotationOffset: 0
     leg2:
-      positionOffset: {x: 0, y: 0}
-      scaleMultiplier: {x: 1, y: 1}
+      positionOffset: {x: -0.3499125, y: 1.8687928}
+      scaleMultiplier: {x: 1.218459, y: 1.218459}
       rotationOffset: 0
-    firePointOffset: {x: 3.59, y: -0.99}
+    firePointOffset: {x: 5.18, y: -1.5}
   - skinName: AD Unit-3
     bodySprite: {fileID: 21300000, guid: 4da2c1164166fb344963fd6c07c2f6e3, type: 3}
     armSprite: {fileID: 7950957983998334306, guid: e4177e280f33c244c83bcc6aab8b54cd, type: 3}
@@ -2263,54 +2283,54 @@ MonoBehaviour:
     leg1Sprite: {fileID: -2040592341959848592, guid: 36da15fc112cf3e4e954fbe99bd24172, type: 3}
     leg2Sprite: {fileID: 2219504772987026516, guid: 36da15fc112cf3e4e954fbe99bd24172, type: 3}
     body:
-      positionOffset: {x: 0, y: 0}
-      scaleMultiplier: {x: 1, y: 1}
+      positionOffset: {x: -1.1908622, y: 0.20710485}
+      scaleMultiplier: {x: 1.218459, y: 1.218459}
       rotationOffset: 0
     arm:
-      positionOffset: {x: 0, y: 0}
+      positionOffset: {x: 0.13275671, y: -0.24693732}
       scaleMultiplier: {x: 1, y: 1}
       rotationOffset: 0
     gun:
-      positionOffset: {x: -0.3, y: -0.1}
+      positionOffset: {x: -3.0321705, y: -0.56707275}
       scaleMultiplier: {x: 0.8, y: 0.8}
       rotationOffset: 0
     leg1:
-      positionOffset: {x: 0, y: 0}
-      scaleMultiplier: {x: 1, y: 1}
+      positionOffset: {x: -0.46655026, y: -1.0886167}
+      scaleMultiplier: {x: 1.218459, y: 1.218459}
       rotationOffset: 0
     leg2:
-      positionOffset: {x: 0, y: 0}
-      scaleMultiplier: {x: 1, y: 1}
+      positionOffset: {x: -0.58103275, y: 0.5456904}
+      scaleMultiplier: {x: 1.218459, y: 1.218459}
       rotationOffset: 0
     firePointOffset: {x: 3.59, y: -0.99}
   - skinName: AD Unit-4
     bodySprite: {fileID: -5182206973502839065, guid: 65d0f84371244c549be34da2de3e090b, type: 3}
     armSprite: {fileID: 7950957983998334306, guid: e330f572764c47d4d96d4be202e4d3e3, type: 3}
     gunSprite: {fileID: -9212286445950041963, guid: 38ff57d9d59e7f642a3071d113dcbe9d, type: 3}
-    leg1Sprite: {fileID: -2040592341959848592, guid: 6c501216f25d8474ba01102000c62c29, type: 3}
-    leg2Sprite: {fileID: 2219504772987026516, guid: 6c501216f25d8474ba01102000c62c29, type: 3}
+    leg1Sprite: {fileID: 1516565397, guid: d83a02e3b04e7b24eb0490e37b962a14, type: 3}
+    leg2Sprite: {fileID: -946685520, guid: d83a02e3b04e7b24eb0490e37b962a14, type: 3}
     body:
       positionOffset: {x: 0, y: 0}
-      scaleMultiplier: {x: 1, y: 1}
+      scaleMultiplier: {x: 1.218459, y: 1.218459}
       rotationOffset: 0
     arm:
-      positionOffset: {x: 0, y: 0}
+      positionOffset: {x: -0.09037539, y: 0.28196448}
       scaleMultiplier: {x: 1, y: 1}
       rotationOffset: 0
     gun:
-      positionOffset: {x: -0.4, y: 0}
+      positionOffset: {x: -2.34, y: -0.99}
       scaleMultiplier: {x: 0.75, y: 0.75}
       rotationOffset: 0
     leg1:
-      positionOffset: {x: 0, y: 0}
+      positionOffset: {x: -0.6, y: -1.28}
       scaleMultiplier: {x: 1, y: 1}
       rotationOffset: 0
     leg2:
-      positionOffset: {x: 0, y: 0}
+      positionOffset: {x: -0.76, y: 0.37}
       scaleMultiplier: {x: 1, y: 1}
       rotationOffset: 0
-    firePointOffset: {x: 3.59, y: -0.99}
-  previewSkinIndex: 0
+    firePointOffset: {x: 2.05, y: -0.77}
+  previewSkinIndex: 3
 --- !u!1 &84461339
 GameObject:
   m_ObjectHideFlags: 0
@@ -3664,7 +3684,7 @@ Transform:
   m_GameObject: {fileID: 190367608}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0.0908327, w: 0.9958662}
-  m_LocalPosition: {x: 3.59, y: -0.99, z: 0}
+  m_LocalPosition: {x: 2.05, y: -0.77, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 0.99999994}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -10184,7 +10204,7 @@ Transform:
   m_GameObject: {fileID: 597260188}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -0.76, y: 0.37, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -10231,7 +10251,7 @@ SpriteRenderer:
   m_SortingLayerID: -771299411
   m_SortingLayer: 3
   m_SortingOrder: 0
-  m_Sprite: {fileID: 1856406010, guid: 65fc5831f8144fc49bddde98555ed20d, type: 3}
+  m_Sprite: {fileID: -946685520, guid: d83a02e3b04e7b24eb0490e37b962a14, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -10615,7 +10635,7 @@ Transform:
   m_GameObject: {fileID: 616722153}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -0.09037539, y: 0.28196448, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -10662,7 +10682,7 @@ SpriteRenderer:
   m_SortingLayerID: -771299411
   m_SortingLayer: 3
   m_SortingOrder: 11
-  m_Sprite: {fileID: 645427658, guid: 5025098a24122604ebebf8cec4e70041, type: 3}
+  m_Sprite: {fileID: 7950957983998334306, guid: e330f572764c47d4d96d4be202e4d3e3, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -12860,7 +12880,7 @@ Transform:
   m_GameObject: {fileID: 769687986}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -0.6, y: -1.28, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -12907,12 +12927,12 @@ SpriteRenderer:
   m_SortingLayerID: -771299411
   m_SortingLayer: 3
   m_SortingOrder: 0
-  m_Sprite: {fileID: 770955769, guid: 65fc5831f8144fc49bddde98555ed20d, type: 3}
+  m_Sprite: {fileID: 1516565397, guid: d83a02e3b04e7b24eb0490e37b962a14, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 2.1200001, y: 4.7400002}
+  m_Size: {x: 2.6399999, y: 4.1}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -19379,8 +19399,8 @@ Transform:
   m_GameObject: {fileID: 1136516180}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: -2.34, y: -0.99, z: 0}
+  m_LocalScale: {x: 0.75, y: 0.75, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 190367609}
@@ -19427,7 +19447,7 @@ SpriteRenderer:
   m_SortingLayerID: 1428351797
   m_SortingLayer: 4
   m_SortingOrder: 2
-  m_Sprite: {fileID: 1950697415, guid: 53980148e8e4f83429126e94325722e2, type: 3}
+  m_Sprite: {fileID: -9212286445950041963, guid: 38ff57d9d59e7f642a3071d113dcbe9d, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -27632,6 +27652,11 @@ MonoBehaviour:
   characterAvatarImage: {fileID: 947154252}
   characterNameText: {fileID: 1320990797}
   characterLevelExpText: {fileID: 1205397754}
+  skinAvatarSprites:
+  - {fileID: 21300000, guid: f51c41b902f7411bb73bea5a451eea29, type: 3}
+  - {fileID: 21300000, guid: a0277066b3494a75909d85cf42083af7, type: 3}
+  - {fileID: 21300000, guid: 2d3a99253ee74b9988fb54bd2c08379d, type: 3}
+  - {fileID: 21300000, guid: c4b4f39f11904202a44e778807a6d37e, type: 3}
   hpValueText: {fileID: 2036479670}
   defValueText: {fileID: 96235811}
   rangedDefValueText: {fileID: 1868849016}
@@ -27754,7 +27779,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.218459, y: 1.218459, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1001071103}
@@ -27800,7 +27825,7 @@ SpriteRenderer:
   m_SortingLayerID: -771299411
   m_SortingLayer: 3
   m_SortingOrder: 10
-  m_Sprite: {fileID: 21300000, guid: 927ef51fd14429040adaf0d06687797e, type: 3}
+  m_Sprite: {fileID: -5182206973502839065, guid: 65d0f84371244c549be34da2de3e090b, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
