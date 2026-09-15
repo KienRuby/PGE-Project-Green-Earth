@@ -524,12 +524,15 @@ public class ShopSecurityAndTransactionTests
         var buddyDrops = ShopBoxDropRoller.Roll(
             ShopBoxDropRoller.BoxCategory.Buddy, 100, new System.Random(1357));
 
+        Assert.That(chipsetDropsA.Count, Is.EqualTo(100));
+        Assert.That(buddyDrops.Count, Is.EqualTo(100));
         Assert.That(chipsetDropsA.Count, Is.EqualTo(chipsetDropsB.Count));
         for (int i = 0; i < chipsetDropsA.Count; i++)
         {
             Assert.That(chipsetDropsA[i].ItemId, Is.InRange(1, 10));
             Assert.That(chipsetDropsA[i].ItemId, Is.EqualTo(chipsetDropsB[i].ItemId));
             Assert.That(chipsetDropsA[i].Pieces, Is.EqualTo(chipsetDropsB[i].Pieces));
+            Assert.That(chipsetDropsA[i].Pieces == 1 || chipsetDropsA[i].Pieces == 3 || chipsetDropsA[i].Pieces == 7, Is.True);
         }
 
         for (int i = 0; i < buddyDrops.Count; i++)
@@ -570,13 +573,16 @@ public class ShopSecurityAndTransactionTests
         Assert.That(PlayerDataService.ChipsetBoxes, Is.EqualTo(0), "Shop opens the boxes immediately");
 
         int totalPieces = 0;
+        int[] rolledByItem = new int[11];
         foreach (ShopBoxDropRoller.Drop drop in shop.LastBoxDrops)
         {
             Assert.That(drop.ItemId, Is.InRange(1, 10));
-            Assert.That(GetSavedChipsetPieceCount(drop.ItemId),
-                Is.EqualTo(before[drop.ItemId] + drop.Pieces));
+            rolledByItem[drop.ItemId] += drop.Pieces;
             totalPieces += drop.Pieces;
         }
+        Assert.That(shop.LastBoxDrops.Count, Is.EqualTo(10));
+        for (int itemId = 1; itemId <= 10; itemId++)
+            Assert.That(GetSavedChipsetPieceCount(itemId), Is.EqualTo(before[itemId] + rolledByItem[itemId]));
         Assert.That(totalPieces, Is.InRange(10, 70));
     }
 
@@ -584,30 +590,80 @@ public class ShopSecurityAndTransactionTests
     public void Test_22_DroneBox10_AddsExactRolledPieces_ToBuddyCards()
     {
         DeleteAllBoxDropData();
-        PlayerDataService.RedGems = 6000;
+        PlayerDataService.RedGems = 3000;
         shop.SetBoxRandomSeedForTesting(888);
 
         var offer = new ShopController.Offer
         {
             id = "drone-box-10",
             currency = ShopController.CurrencyType.RedGem,
-            price = 5400,
+            price = 2700,
             reward = ShopController.RewardType.DroneBox,
             rewardAmount = 10
         };
 
         Assert.That(shop.TryPurchase(offer, bypassCooldown: true), Is.True);
-        Assert.That(PlayerDataService.RedGems, Is.EqualTo(600));
+        Assert.That(PlayerDataService.RedGems, Is.EqualTo(300));
         Assert.That(PlayerDataService.DroneBoxes, Is.EqualTo(0), "Shop opens the boxes immediately");
 
         int totalPieces = 0;
+        int[] rolledByItem = new int[13];
         foreach (ShopBoxDropRoller.Drop drop in shop.LastBoxDrops)
         {
             Assert.That(drop.ItemId, Is.InRange(1, 12));
-            Assert.That(PlayerDataService.GetBuddyPieceCount(drop.ItemId), Is.EqualTo(drop.Pieces));
+            rolledByItem[drop.ItemId] += drop.Pieces;
             totalPieces += drop.Pieces;
         }
+        Assert.That(shop.LastBoxDrops.Count, Is.EqualTo(10));
+        for (int itemId = 1; itemId <= 12; itemId++)
+            Assert.That(PlayerDataService.GetBuddyPieceCount(itemId), Is.EqualTo(rolledByItem[itemId]));
         Assert.That(totalPieces, Is.InRange(10, 70));
+    }
+
+    [Test]
+    public void Test_23_DataChipOffers_ExchangeRedGemsForCorrectDataChips()
+    {
+        PlayerDataService.RedGems = 1000;
+        PlayerDataService.DataChips = 0;
+
+        // Data Chip 1: 100 Gems -> 9900 Chips
+        var offer1 = new ShopController.Offer
+        {
+            id = "data-chip-1",
+            currency = ShopController.CurrencyType.RedGem,
+            price = 100,
+            reward = ShopController.RewardType.DataChip,
+            rewardAmount = 9900
+        };
+        Assert.That(shop.TryPurchase(offer1, bypassCooldown: true), Is.True);
+        Assert.That(PlayerDataService.RedGems, Is.EqualTo(900));
+        Assert.That(PlayerDataService.DataChips, Is.EqualTo(9900));
+
+        // Data Chip 2: 200 Gems -> 21037 Chips
+        var offer2 = new ShopController.Offer
+        {
+            id = "data-chip-2",
+            currency = ShopController.CurrencyType.RedGem,
+            price = 200,
+            reward = ShopController.RewardType.DataChip,
+            rewardAmount = 21037
+        };
+        Assert.That(shop.TryPurchase(offer2, bypassCooldown: true), Is.True);
+        Assert.That(PlayerDataService.RedGems, Is.EqualTo(700));
+        Assert.That(PlayerDataService.DataChips, Is.EqualTo(9900 + 21037));
+
+        // Data Chip 3: 500 Gems -> 60390 Chips
+        var offer3 = new ShopController.Offer
+        {
+            id = "data-chip-3",
+            currency = ShopController.CurrencyType.RedGem,
+            price = 500,
+            reward = ShopController.RewardType.DataChip,
+            rewardAmount = 60390
+        };
+        Assert.That(shop.TryPurchase(offer3, bypassCooldown: true), Is.True);
+        Assert.That(PlayerDataService.RedGems, Is.EqualTo(200));
+        Assert.That(PlayerDataService.DataChips, Is.EqualTo(9900 + 21037 + 60390));
     }
 
     private static int[] GetAllChipsetPieceCounts()

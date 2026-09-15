@@ -623,6 +623,11 @@ public class UIPanelTransition : MonoBehaviour
             activeDimRoutine = StartCoroutine(AnimateDimOverlay(dimOverlay.alpha, dimTargetAlpha, dimDuration, true));
         }
 
+        if (animateChildren && (cachedRows == null || cachedRows.Length == 0))
+        {
+            CacheStaggerStructure();
+        }
+
         if (animateChildren && cachedRows != null && cachedRows.Length > 0)
         {
             TriggerStaggerRows();
@@ -1117,7 +1122,7 @@ public class UIPanelTransition : MonoBehaviour
 
         for (int r = 0; r < cachedRows.Length; r++)
         {
-            if (activeRowRoutines != null && activeRowRoutines[r] != null)
+            if (activeRowRoutines != null && r < activeRowRoutines.Length && activeRowRoutines[r] != null)
             {
                 StopCoroutine(activeRowRoutines[r]);
                 activeRowRoutines[r] = null;

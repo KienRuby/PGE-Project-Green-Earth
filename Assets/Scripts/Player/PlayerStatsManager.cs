@@ -48,6 +48,8 @@ public class PlayerStatsManager : MonoBehaviour
     public int DamageReduction { get; private set; }
     public float BonusBulletSpeed { get; private set; }
     public float CritChance { get; private set; }
+    public float AilmentResistance { get; private set; }
+    public float BonusMagnetRadius { get; private set; }
 
     private float regenAccumulator;
 
@@ -72,15 +74,49 @@ public class PlayerStatsManager : MonoBehaviour
         int rangeLevel = GetStatLevel("RANGE") + GetStatLevel("ATTACK RANGE");
         int bulletSpeedLevel = GetStatLevel("BULLET SPEED") + GetStatLevel("TECH");
 
-        BonusMaxHealth = hpLevel * hpBonusPerLevel;
+        int equippedSkin = BuildBodyController.EquippedSkinIndex;
+        int bodyBonusHp = equippedSkin switch
+        {
+            1 => 50,
+            2 => 100,
+            3 => 250,
+            _ => 0
+        };
+        int bodyBonusDef = equippedSkin switch
+        {
+            1 => 7,
+            2 => 15,
+            3 => 35,
+            _ => 0
+        };
+
+        BonusMaxHealth = hpLevel * hpBonusPerLevel + bodyBonusHp;
         BonusDamage = atkLevel * damageBonusPerLevel;
         BonusSpeed = moveSpeedLevel * speedBonusPerLevel;
         BonusFireRate = fireRateLevel * fireRateBonusPerLevel;
         BonusRange = rangeLevel * rangeBonusPerLevel;
         HealthRegenPerSecond = autoRecoveryLevel * regenPerSecondPerLevel;
-        DamageReduction = defLevel * damageReductionPerLevel;
+        DamageReduction = defLevel * damageReductionPerLevel + bodyBonusDef;
         BonusBulletSpeed = bulletSpeedLevel * bulletSpeedBonusPerLevel;
         CritChance = Mathf.Clamp01(critRateLevel * critChancePerLevel);
+
+        AilmentResistance = equippedSkin switch
+        {
+            1 => 0.10f,
+            2 => 0.20f,
+            _ => 0f
+        };
+
+        BonusMagnetRadius = (equippedSkin == 2) ? 1.5f : 0f;
+        MagnetPickup magnet = GetComponent<MagnetPickup>();
+        if (magnet == null && BonusMagnetRadius > 0f)
+        {
+            magnet = gameObject.AddComponent<MagnetPickup>();
+        }
+        if (magnet != null)
+        {
+            magnet.SetBonusMagnetRadius(BonusMagnetRadius);
+        }
 
         if (playerHealth != null)
         {
@@ -119,6 +155,7 @@ public class PlayerStatsManager : MonoBehaviour
 
     public static int GetStatLevel(string statName)
     {
-        return PlayerDataService.GetItemLevel(statName);
+        string key = PlayerDataService.FormatItemLevelKey(statName);
+        return PlayerPrefs.GetInt(key, 0);
     }
 }

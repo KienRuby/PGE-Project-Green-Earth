@@ -23,18 +23,6 @@ public static class VictorySceneBuilder
     private static Material fontMaterial;
     private static Material rewardFontMaterial;
 
-    [InitializeOnLoadMethod]
-    private static void AutoBuildOnCompile()
-    {
-        EditorApplication.delayCall += () =>
-        {
-            if (!EditorApplication.isPlayingOrWillChangePlaymode)
-            {
-                Build();
-            }
-        };
-    }
-
     [MenuItem("PGE/UI/Build Victory Panel")]
     public static void Build()
     {

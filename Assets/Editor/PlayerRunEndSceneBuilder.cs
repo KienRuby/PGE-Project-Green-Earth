@@ -35,18 +35,6 @@ public static class PlayerRunEndSceneBuilder
     private static Material fontMaterial;
     private static Material rewardFontMaterial;
 
-    [InitializeOnLoadMethod]
-    private static void AutoBuildOnCompile()
-    {
-        EditorApplication.delayCall += () =>
-        {
-            if (!EditorApplication.isPlayingOrWillChangePlaymode)
-            {
-                BuildGameOverOnly();
-            }
-        };
-    }
-
     [MenuItem("PGE/UI/Build Revive & Game Over")]
     public static void BuildFromMenu()
     {

@@ -220,7 +220,11 @@ public class ChipsetLevelUpPopup : MonoBehaviour
         }
 
         if (popupRoot != null) popupRoot.SetActive(false);
-        ownsTimeScale = false;
+        if (ownsTimeScale)
+        {
+            Time.timeScale = 1f;
+            ownsTimeScale = false;
+        }
     }
 
     private void OpenNextLevelSelection()
@@ -787,7 +791,7 @@ public class ChipsetLevelUpPopup : MonoBehaviour
 
     public static List<ChipItemData> CreateRuntimeCatalog()
     {
-        return ChipsetController.CreateSavedDatabase()
+        return ChipsetController.CreateGameplayDatabase()
             .Where(chip => chip != null && chip.id >= 1 && chip.id <= PrimaryChipsetCount)
             .Select(chip => chip.Clone())
             .ToList();

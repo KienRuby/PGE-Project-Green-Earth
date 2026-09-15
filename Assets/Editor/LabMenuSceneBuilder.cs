@@ -152,16 +152,15 @@ public static class LabMenuSceneBuilder
         DestroyChildrenNamed(canvas.transform, "BuddyToastMessage");
 
         TopBarCurrencyController topBar = UnityEngine.Object.FindObjectOfType<TopBarCurrencyController>();
-        TMP_Text energyText = null, chipText = null, redText = null;
+        TMP_Text chipText = null, redText = null;
         if (topBar != null)
         {
             SerializedObject tbSO = new SerializedObject(topBar);
-            energyText = tbSO.FindProperty("energyText")?.objectReferenceValue as TMP_Text;
             chipText = tbSO.FindProperty("dataChipText")?.objectReferenceValue as TMP_Text;
             redText = tbSO.FindProperty("redGemText")?.objectReferenceValue as TMP_Text;
         }
 
-        GameObject buddyPanel = CreateBuddyPanel(content, canvas.GetComponent<RectTransform>(), energyText, chipText, redText);
+        GameObject buddyPanel = CreateBuddyPanel(content, canvas.GetComponent<RectTransform>(), chipText, redText);
         buddyPanel.name = "BuddyPanel";
         buddyPanel.SetActive(true);
 
@@ -228,16 +227,15 @@ public static class LabMenuSceneBuilder
         DestroyChildrenNamed(canvas.transform, "ChipsetToastMessage");
 
         TopBarCurrencyController topBar = UnityEngine.Object.FindObjectOfType<TopBarCurrencyController>();
-        TMP_Text energyText = null, chipText = null, redText = null;
+        TMP_Text chipText = null, redText = null;
         if (topBar != null)
         {
             SerializedObject tbSO = new SerializedObject(topBar);
-            energyText = tbSO.FindProperty("energyText")?.objectReferenceValue as TMP_Text;
             chipText = tbSO.FindProperty("dataChipText")?.objectReferenceValue as TMP_Text;
             redText = tbSO.FindProperty("redGemText")?.objectReferenceValue as TMP_Text;
         }
 
-        GameObject chipsetPanel = CreateChipsetPanel(content, canvas.GetComponent<RectTransform>(), energyText, chipText, redText);
+        GameObject chipsetPanel = CreateChipsetPanel(content, canvas.GetComponent<RectTransform>(), chipText, redText);
         chipsetPanel.name = "ChipsetPanel";
         chipsetPanel.SetActive(true);
 
@@ -538,7 +536,7 @@ public static class LabMenuSceneBuilder
 
             ShopPanelBuilder.BuildFullShopPanel();
             Transform rebuilt = content.Find("ShopPanel (Scrollable)") ?? content.Find("ShopPanel");
-            shopPanel = (rebuilt != null) ? rebuilt.gameObject : CreateShopPanel(content, null, null, null);
+            shopPanel = (rebuilt != null) ? rebuilt.gameObject : CreateShopPanel(content, null, null);
             shopPanel.name = "ShopPanel";
             shopPanel.SetActive(false);
         }
@@ -1601,7 +1599,7 @@ public static class LabMenuSceneBuilder
 
         TopBarCurrencyController topBarCtrl = CreateTopBar(
             topBar,
-            out TMP_Text energyBalanceText,
+            out _,
             out TMP_Text chipBalanceText,
             out TMP_Text redChipBalanceText);
 
@@ -1609,11 +1607,11 @@ public static class LabMenuSceneBuilder
         Stretch(content, Vector2.zero, Vector2.one, new Vector2(0f, 220f), new Vector2(0f, -175f));
 
         GameObject[] panels = new GameObject[5];
-        panels[0] = CreateShopPanel(content, energyBalanceText, chipBalanceText, redChipBalanceText);
-        panels[1] = CreateLabPanel(content, energyBalanceText, chipBalanceText, redChipBalanceText);
+        panels[0] = CreateShopPanel(content, chipBalanceText, redChipBalanceText);
+        panels[1] = CreateLabPanel(content, chipBalanceText, redChipBalanceText);
         panels[2] = ChapterMenuSceneBuilder.BuildChapterPanel(content, font);
-        panels[3] = CreateChipsetPanel(content, canvasRect, energyBalanceText, chipBalanceText, redChipBalanceText);
-        panels[4] = CreateBuddyPanel(content, canvasRect, energyBalanceText, chipBalanceText, redChipBalanceText);
+        panels[3] = CreateChipsetPanel(content, canvasRect, chipBalanceText, redChipBalanceText);
+        panels[4] = CreateBuddyPanel(content, canvasRect, chipBalanceText, redChipBalanceText);
 
         // Default to Chapter Tab (index 2)
         for (int i = 0; i < panels.Length; i++)
@@ -1712,7 +1710,6 @@ public static class LabMenuSceneBuilder
     private static GameObject CreateChipsetPanel(
         RectTransform parent,
         RectTransform canvasRect,
-        TMP_Text energyText,
         TMP_Text chipCurrencyText,
         TMP_Text redCurrencyText)
     {
@@ -1964,7 +1961,6 @@ public static class LabMenuSceneBuilder
         ChipsetController controller = panel.gameObject.AddComponent<ChipsetController>();
         SerializedObject sController = new SerializedObject(controller);
 
-        sController.FindProperty("energyText").objectReferenceValue = energyText;
         sController.FindProperty("chipCurrencyText").objectReferenceValue = chipCurrencyText;
         sController.FindProperty("redCurrencyText").objectReferenceValue = redCurrencyText;
         sController.FindProperty("advanceStonesText").objectReferenceValue = null;
@@ -2090,7 +2086,6 @@ public static class LabMenuSceneBuilder
     private static GameObject CreateBuddyPanel(
         RectTransform parent,
         RectTransform canvasRect,
-        TMP_Text energyText,
         TMP_Text chipCurrencyText,
         TMP_Text redCurrencyText)
     {
@@ -2256,7 +2251,6 @@ public static class LabMenuSceneBuilder
         BuddyController controller = panel.gameObject.AddComponent<BuddyController>();
         SerializedObject sController = new SerializedObject(controller);
 
-        sController.FindProperty("energyText").objectReferenceValue = energyText;
         sController.FindProperty("chipCurrencyText").objectReferenceValue = chipCurrencyText;
         sController.FindProperty("redCurrencyText").objectReferenceValue = redCurrencyText;
 
@@ -3037,7 +3031,6 @@ public static class LabMenuSceneBuilder
 
     private static GameObject CreateShopPanel(
         RectTransform parent,
-        TMP_Text energyBalanceText,
         TMP_Text chipBalanceText,
         TMP_Text redChipBalanceText)
     {
@@ -3095,7 +3088,7 @@ public static class LabMenuSceneBuilder
         RectTransform droneGrid = CreateRect("DroneBoxGrid", boxSection);
         Stretch(droneGrid, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -810f), new Vector2(0f, -460f));
         offerViews.Add(CreateShopOfferCard(
-            droneGrid, "Open1Item", 0.03f, 0.495f, "Open Drone Box", "1 time", "x600", "drone-box",
+            droneGrid, "Open1Item", 0.03f, 0.495f, "Open Drone Box", "1 time", "x300", "drone-box",
             new Color32(25, 58, 76, 255), false, 0f));
         offerViews.Add(CreateShopOfferCard(
             droneGrid, "Open5Item", 0.505f, 0.97f, "Open Drone Box", "5 times", "x2,700", "drone-box",
@@ -3118,7 +3111,6 @@ public static class LabMenuSceneBuilder
 
         ShopController controller = panel.gameObject.AddComponent<ShopController>();
         SerializedObject serializedController = new SerializedObject(controller);
-        GetRequiredProperty(serializedController, "energyText").objectReferenceValue = energyBalanceText;
         GetRequiredProperty(serializedController, "dataChipText").objectReferenceValue = chipBalanceText;
         GetRequiredProperty(serializedController, "redGemText").objectReferenceValue = redChipBalanceText;
         GetRequiredProperty(serializedController, "feedbackText").objectReferenceValue = feedbackText;
@@ -3130,7 +3122,7 @@ public static class LabMenuSceneBuilder
         ConfigureShopOffer(offers.GetArrayElementAtIndex(2), offerViews[2], "daily-drone-2", "DRONE BOX", 180, ShopController.CurrencyType.RedGem, ShopController.RewardType.DroneBox, 1, true);
         ConfigureShopOffer(offers.GetArrayElementAtIndex(3), offerViews[3], "chipset-box-1", "CHIPSET BOX", 300, ShopController.CurrencyType.RedGem, ShopController.RewardType.ChipsetBox, 1, false);
         ConfigureShopOffer(offers.GetArrayElementAtIndex(4), offerViews[4], "chipset-box-10", "CHIPSET BOX", 2700, ShopController.CurrencyType.RedGem, ShopController.RewardType.ChipsetBox, 10, false);
-        ConfigureShopOffer(offers.GetArrayElementAtIndex(5), offerViews[5], "drone-box-1", "DRONE BOX", 600, ShopController.CurrencyType.RedGem, ShopController.RewardType.DroneBox, 1, false);
+        ConfigureShopOffer(offers.GetArrayElementAtIndex(5), offerViews[5], "drone-box-1", "DRONE BOX", 300, ShopController.CurrencyType.RedGem, ShopController.RewardType.DroneBox, 1, false);
         ConfigureShopOffer(offers.GetArrayElementAtIndex(6), offerViews[6], "drone-box-5", "DRONE BOX", 2700, ShopController.CurrencyType.RedGem, ShopController.RewardType.DroneBox, 5, false);
         serializedController.ApplyModifiedPropertiesWithoutUndo();
 
@@ -3327,7 +3319,6 @@ public static class LabMenuSceneBuilder
 
     private static GameObject CreateLabPanel(
         RectTransform parent,
-        TMP_Text energyBalanceText,
         TMP_Text chipBalanceText,
         TMP_Text redChipBalanceText)
     {
@@ -3420,7 +3411,6 @@ public static class LabMenuSceneBuilder
         LabUpgradeController controller = panel.gameObject.AddComponent<LabUpgradeController>();
         SerializedObject serializedController = new SerializedObject(controller);
         GetRequiredProperty(serializedController, "upgradeButton").objectReferenceValue = upgradeButton;
-        GetRequiredProperty(serializedController, "energyBalanceText").objectReferenceValue = energyBalanceText;
         GetRequiredProperty(serializedController, "chipBalanceText").objectReferenceValue = chipBalanceText;
         GetRequiredProperty(serializedController, "redChipBalanceText").objectReferenceValue = redChipBalanceText;
         GetRequiredProperty(serializedController, "priceText").objectReferenceValue = priceText;

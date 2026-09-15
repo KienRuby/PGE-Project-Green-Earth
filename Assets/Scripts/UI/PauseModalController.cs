@@ -704,7 +704,8 @@ public class PauseModalController : MonoBehaviour
         if (evasionRateValueText != null) evasionRateValueText.text = "3%";
         if (kitRecoveryValueText != null) kitRecoveryValueText.text = "30%";
         if (autoRecoveryValueText != null) autoRecoveryValueText.text = $"{regen:F1}/sec";
-        if (ailmentResistValueText != null) ailmentResistValueText.text = "0%";
+        float ailmentResist = (playerStats != null ? playerStats.AilmentResistance : 0f) * 100f;
+        if (ailmentResistValueText != null) ailmentResistValueText.text = $"{ailmentResist:F0}%";
 
         // 3. Attack Stats
         float atkBonus = playerStats != null ? 3.5f + (playerStats.BonusDamage * 0.5f) : 3.5f;
@@ -1295,22 +1296,16 @@ public class PauseModalController : MonoBehaviour
             }
         }
 
-        // 2. Luôn đảm bảo vũ khí mặc định (Standard Gun ID 1 hoặc súng đã trang bị)
-        if (runtimeEquippedChips.Count == 0 || !runtimeEquippedChips.Any(c => c.id == 1))
-        {
-            Sprite defaultGunIcon = GetChipsetIconSprite(1, "standard-gun");
-            Sprite defaultFrame = GetChipsetLeverFrame(ChipTier.Magic);
-            RegisterOrUpdateRuntimeChip(1, "Standard Gun", "standard-gun", 1, ChipTier.Magic, defaultGunIcon, defaultFrame);
-        }
-
-        // 3. Đồng bộ từ ChipsetBattleStats (được cập nhật khi Player lên cấp và qua PlayerChipsetSkillManager)
+        // 2. Chỉ dùng BattleStats để cập nhật chipset đã thực sự chọn trong trận.
+        // Standard Gun cơ bản vẫn có thể xuất hiện trong thống kê sát thương,
+        // nhưng không được biến thành chipset đã trang bị nếu người chơi không chọn nó.
         var battleEntries = ChipsetBattleStats.Entries;
         if (battleEntries != null)
         {
             for (int i = 0; i < battleEntries.Count; i++)
             {
                 var entry = battleEntries[i];
-                if (entry != null && entry.RuntimeLevel > 0)
+                if (entry != null && entry.RuntimeLevel > 0 && runtimeEquippedChips.Any(c => c.id == entry.ChipsetId))
                 {
                     Sprite icon = GetChipsetIconSprite(entry.ChipsetId, entry.IconKey);
                     Sprite frame = GetChipsetLeverFrame(ChipTier.Magic);
@@ -1319,7 +1314,7 @@ public class PauseModalController : MonoBehaviour
             }
         }
 
-        // 4. Đồng bộ từ ChipsetLevelUpPopup nếu có instance trong Scene (fallback runtimeChipLevels)
+        // 3. Đồng bộ từ ChipsetLevelUpPopup nếu có instance trong Scene (fallback runtimeChipLevels)
         ChipsetLevelUpPopup popup = FindObjectOfType<ChipsetLevelUpPopup>(true);
         if (popup != null && popup.RuntimeChipLevels != null)
         {

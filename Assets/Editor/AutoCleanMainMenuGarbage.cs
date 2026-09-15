@@ -18,6 +18,11 @@ public static class AutoCleanMainMenuGarbage
     [MenuItem("PGE/Tools/Force Clean MainMenu Scene Now")]
     public static void ExecuteClean()
     {
+        if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling || EditorApplication.isUpdating)
+        {
+            return;
+        }
+
         Scene scene = EditorSceneManager.GetActiveScene();
 
         if (scene.path != MainMenuPath)
@@ -36,7 +41,7 @@ public static class AutoCleanMainMenuGarbage
             if (root == null) continue;
             string n = root.name;
 
-            if (n == "Event1" || n == "Player" || n == "[DamageNumberManager]")
+            if (n == "Event1" || n == "Player" || n == "[DamageNumberManager]" || n == "TestBuildBodyController" || n.StartsWith("TestBuildBody") || n.StartsWith("BuddyController_Test"))
             {
                 toDelete.Add(root);
             }
@@ -59,10 +64,6 @@ public static class AutoCleanMainMenuGarbage
             EditorSceneManager.SaveScene(scene);
             Debug.Log($"[AutoClean] >>> ĐÃ DỌN DẸP THÀNH CÔNG {deletedCount} ĐỐI TƯỢNG RÁC VÀ ĐÃ LƯU SCENE MAINMENU! <<<");
         }
-        else
-        {
-            Debug.Log("[AutoClean] Scene MainMenu đã hoàn toàn sạch sẽ, không còn đối tượng rác nào.");
-        }
 
         // Tự động gắn các nút Info và Modal tỷ lệ mở hộp nếu chưa có
         GameObject chipCard = null;
@@ -74,8 +75,7 @@ public static class AutoCleanMainMenuGarbage
 
         if (chipCard != null && chipCard.transform.Find("Button_Info") == null)
         {
-            Debug.Log("[AutoClean] Đang tự động gắn nút Info và Bảng tỷ lệ mở hộp vào ShopPanel...");
-            ShopPanelBuilder.BuildFullShopPanel();
+            Debug.Log("[AutoClean] Box_Chipset_1x chưa có nút Info. Để tạo lại đầy đủ giao diện, hãy dùng menu 'PGE/UI/Rebuild Shop Panel (Full Visual)'.");
         }
     }
 }

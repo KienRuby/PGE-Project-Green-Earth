@@ -1325,15 +1325,9 @@ public static class GamePlayHUDSceneBuilder
 /// Đồng bộ card chipset Pause cũ sang hierarchy editable sau khi scripts compile.
 /// Scene chỉ được đánh dấu dirty; người thiết kế vẫn là người quyết định lúc Save.
 /// </summary>
-[InitializeOnLoad]
 public static class PauseChipsetHierarchySync
 {
     private const string MenuPath = "Tools/PGE/Sync Editable Pause Chipset Frame";
-
-    static PauseChipsetHierarchySync()
-    {
-        EditorApplication.delayCall += SyncLoadedGamePlayScene;
-    }
 
     [MenuItem(MenuPath, priority = 102)]
     public static void SyncLoadedGamePlayScene()

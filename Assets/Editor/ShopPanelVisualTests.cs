@@ -113,6 +113,31 @@ public class ShopPanelVisualTests
         // 10. Verify ShopController
         ShopController controller = shopPanel.GetComponent<ShopController>();
         Assert.That(controller, Is.Not.Null);
+
+        var data1 = controller.Offers.FirstOrDefault(o => o.id == "data-chip-1");
+        Assert.That(data1, Is.Not.Null);
+        Assert.That(data1.price, Is.EqualTo(100));
+        Assert.That(data1.rewardAmount, Is.EqualTo(9900));
+
+        var data2 = controller.Offers.FirstOrDefault(o => o.id == "data-chip-2");
+        Assert.That(data2, Is.Not.Null);
+        Assert.That(data2.price, Is.EqualTo(200));
+        Assert.That(data2.rewardAmount, Is.EqualTo(21037));
+
+        var data3 = controller.Offers.FirstOrDefault(o => o.id == "data-chip-3");
+        Assert.That(data3, Is.Not.Null);
+        Assert.That(data3.price, Is.EqualTo(500));
+        Assert.That(data3.rewardAmount, Is.EqualTo(60390));
+
+        var drone1 = controller.Offers.FirstOrDefault(o => o.id == "drone-box-1");
+        Assert.That(drone1, Is.Not.Null);
+        Assert.That(drone1.price, Is.EqualTo(300));
+        Assert.That(drone1.rewardAmount, Is.EqualTo(1));
+
+        var drone10 = controller.Offers.FirstOrDefault(o => o.id == "drone-box-10");
+        Assert.That(drone10, Is.Not.Null);
+        Assert.That(drone10.price, Is.EqualTo(2700));
+        Assert.That(drone10.rewardAmount, Is.EqualTo(10));
     }
 }
 #endif

@@ -6,6 +6,13 @@ using UnityEngine.UI;
 [TestFixture]
 public class PauseModalTests
 {
+    [SetUp]
+    public void ResetRuntimeChipsetState()
+    {
+        ChipsetLevelUpPopup.ResetEquippedRuntimeChipsForTesting();
+        ChipsetBattleStats.Reset();
+    }
+
     [Test]
     public void PauseModalController_SelectMainTab_TogglesOnOffButtonsCorrectly()
     {
@@ -227,7 +234,7 @@ public class PauseModalTests
     }
 
     [Test]
-    public void PauseModalController_EquippedChipsets_InitiallyContainsStandardGun()
+    public void PauseModalController_EquippedChipsets_DoesNotAutoEquipStandardGun()
     {
         GameObject root = new GameObject("PauseModalRoot", typeof(RectTransform));
         GameObject chipPanel = new GameObject("ChipsetPanel", typeof(RectTransform));
@@ -246,7 +253,7 @@ public class PauseModalTests
         lvlBadge.transform.SetParent(cardTemplate.transform);
         GameObject labelObj = new GameObject("Label", typeof(RectTransform));
         labelObj.transform.SetParent(lvlBadge.transform);
-        TMPro.TMP_Text label = labelObj.AddComponent<TMPro.TextMeshProUGUI>();
+        labelObj.AddComponent<TMPro.TextMeshProUGUI>();
 
         PauseModalController pauseCtrl = root.AddComponent<PauseModalController>();
         pauseCtrl.ResetRuntimeEquippedChipsForTesting();
@@ -261,13 +268,9 @@ public class PauseModalTests
 
         pauseCtrl.SelectMainTab(1);
 
-        Assert.That(pauseCtrl.RuntimeEquippedChips.Count, Is.GreaterThanOrEqualTo(1));
-        Assert.That(pauseCtrl.RuntimeEquippedChips[0].id, Is.EqualTo(1));
-        Assert.That(pauseCtrl.RuntimeEquippedChips[0].level, Is.EqualTo(1));
-        Transform migratedFrame = cardTemplate.transform.Find("IconFrameAssetSlot");
-        Assert.That(migratedFrame, Is.Not.Null);
-        Assert.That(migratedFrame.Find("ChipIcon"), Is.Not.Null);
-        Assert.That(lvlBadge.activeSelf, Is.False, "Badge chữ cũ phải ẩn khi dùng level pips của khung chipset.");
+        Assert.That(pauseCtrl.RuntimeEquippedChips, Is.Empty,
+            "Pause modal không được tự trang bị Standard Gun khi người chơi chưa chọn chipset trong trận.");
+        Assert.That(cardTemplate.activeSelf, Is.False);
 
         Object.DestroyImmediate(root);
     }
@@ -309,11 +312,10 @@ public class PauseModalTests
         pauseCtrl.RegisterOrUpdateRuntimeChip(2, "Rifle", "rifle", 1, ChipTier.Magic);
         pauseCtrl.SelectMainTab(1);
 
-        Assert.That(pauseCtrl.RuntimeEquippedChips.Count, Is.EqualTo(2));
-        Assert.That(pauseCtrl.RuntimeEquippedChips[1].name, Is.EqualTo("Rifle"));
-        Assert.That(pauseCtrl.SpawnedChipCards.Count, Is.GreaterThanOrEqualTo(1));
+        Assert.That(pauseCtrl.RuntimeEquippedChips.Count, Is.EqualTo(1));
+        Assert.That(pauseCtrl.RuntimeEquippedChips[0].name, Is.EqualTo("Rifle"));
 
-        GameObject rifleCard = pauseCtrl.SpawnedChipCards[0];
+        GameObject rifleCard = cardTemplate;
         Assert.That(rifleCard.activeSelf, Is.True);
 
         Transform rifleFrame = rifleCard.transform.Find("IconFrameAssetSlot");
@@ -325,7 +327,7 @@ public class PauseModalTests
         pauseCtrl.RegisterOrUpdateRuntimeChip(2, "Rifle", "rifle", 2, ChipTier.Magic);
         pauseCtrl.RefreshEquippedChips();
 
-        Assert.That(pauseCtrl.RuntimeEquippedChips[1].level, Is.EqualTo(2));
+        Assert.That(pauseCtrl.RuntimeEquippedChips[0].level, Is.EqualTo(2));
 
         Object.DestroyImmediate(root);
     }
@@ -738,4 +740,3 @@ public class PauseModalTests
         Object.DestroyImmediate(root);
     }
 }
-

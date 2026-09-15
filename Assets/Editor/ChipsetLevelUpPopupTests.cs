@@ -1,8 +1,39 @@
 using System.Linq;
 using NUnit.Framework;
+using UnityEngine;
 
 public class ChipsetLevelUpPopupTests
 {
+    [Test]
+    public void MechanicalParticles_OnlyUseGlyphsSupportedByTheirFont()
+    {
+        UnityEngine.GameObject root = new UnityEngine.GameObject(
+            "MechanicalParticleTest",
+            typeof(UnityEngine.RectTransform));
+        root.SetActive(false);
+
+        try
+        {
+            ChipsetLevelUpParticleField field = root.AddComponent<ChipsetLevelUpParticleField>();
+            TMPro.TMP_FontAsset font = UnityEngine.Resources.Load<TMPro.TMP_FontAsset>(
+                "Fonts & Materials/LiberationSans SDF");
+            Assert.That(font, Is.Not.Null);
+
+            field.SetParticleAssets(font, System.Array.Empty<UnityEngine.Sprite>());
+            root.SetActive(true);
+
+            TMPro.TextMeshProUGUI[] glyphs = root.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true);
+            Assert.That(glyphs.Length, Is.GreaterThan(0));
+            Assert.That(glyphs.All(glyph =>
+                    !string.IsNullOrEmpty(glyph.text) && font.HasCharacter(glyph.text[0], true, false)),
+                Is.True);
+        }
+        finally
+        {
+            UnityEngine.Object.DestroyImmediate(root);
+        }
+    }
+
     [Test]
     public void SharedCatalog_ContainsAllMainMenuChipsets_AndReturnsFreshCopies()
     {
@@ -52,9 +83,9 @@ public class ChipsetLevelUpPopupTests
     }
 
     [Test]
-    public void RuntimeCatalog_ContainsOnlyTheTenPrimaryChipsets()
+    public void SavedCatalog_ContainsOnlyTheTenPrimaryChipsets()
     {
-        var catalog = ChipsetLevelUpPopup.CreateRuntimeCatalog();
+        var catalog = ChipsetController.CreateSavedDatabase();
 
         Assert.That(catalog.Count, Is.EqualTo(10));
         CollectionAssert.AreEqual(Enumerable.Range(1, 10), catalog.Select(chip => chip.id));
@@ -99,7 +130,7 @@ public class ChipsetLevelUpPopupTests
         Assert.That(library.primaryChipIcons.All(sprite => sprite != null), Is.True);
         Assert.That(library.primaryChipIcons.Select(sprite => sprite.name).Distinct().Count(), Is.EqualTo(10));
 
-        string[] iconKeys = ChipsetLevelUpPopup.CreateRuntimeCatalog()
+        string[] iconKeys = ChipsetController.CreateDefaultDatabase()
             .Select(chip => chip.iconKey)
             .ToArray();
         UnityEngine.Sprite[] resolvedIcons = iconKeys
@@ -145,13 +176,42 @@ public class ChipsetLevelUpPopupTests
     }
 
     [Test]
-    public void SelectEquippedCatalog_FallsBackToFullCatalog_WhenDeckIsEmpty()
+    public void SelectEquippedCatalog_ReturnsEmpty_WhenDeckIsEmpty()
     {
         var catalog = ChipsetController.CreateDefaultDatabase();
 
         var gameplayCatalog = ChipsetController.SelectEquippedCatalog(catalog, new[] { -1, -1 });
 
-        Assert.That(gameplayCatalog.Count, Is.EqualTo(catalog.Count));
+        Assert.That(gameplayCatalog, Is.Empty,
+            "Deck rỗng phải giữ nguyên trạng thái rỗng, không được tự equip toàn bộ catalog.");
+    }
+
+    [Test]
+    public void CreateRuntimeCatalog_UsesOnlyActiveSavedDeck()
+    {
+        int originalActiveDeck = PlayerDataService.ActiveChipsetDeckIndex;
+        const int testDeckIndex = 2;
+        string deckKey = PlayerDataService.GetDeckKey(testDeckIndex);
+        bool hadSavedDeck = PlayerPrefs.HasKey(deckKey);
+        string originalDeck = PlayerPrefs.GetString(deckKey, string.Empty);
+
+        try
+        {
+            PlayerDataService.ActiveChipsetDeckIndex = testDeckIndex;
+            PlayerDataService.SaveChipsetDeck(testDeckIndex, new[] { 3, -1, -1, -1, -1, -1, -1, -1, -1, -1 });
+
+            var runtimeCatalog = ChipsetLevelUpPopup.CreateRuntimeCatalog();
+
+            CollectionAssert.AreEqual(new[] { 3 }, runtimeCatalog.Select(item => item.id).ToArray(),
+                "Gameplay phải nhận đúng chipset đã Equip trong preset đang hoạt động.");
+        }
+        finally
+        {
+            PlayerDataService.ActiveChipsetDeckIndex = originalActiveDeck;
+            if (hadSavedDeck) PlayerPrefs.SetString(deckKey, originalDeck);
+            else PlayerPrefs.DeleteKey(deckKey);
+            PlayerPrefs.Save();
+        }
     }
 
     [Test]

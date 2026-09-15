@@ -64,7 +64,6 @@ public sealed class ShopController : MonoBehaviour
     }
 
     [Header("Balances and Header UI")]
-    [SerializeField] private TMP_Text energyText;
     [SerializeField] private TMP_Text dataChipText;
     [SerializeField] private TMP_Text redGemText;
     [SerializeField] private TMP_Text feedbackText;
@@ -74,11 +73,13 @@ public sealed class ShopController : MonoBehaviour
     [Header("Offers")]
     [SerializeField] private Offer[] offers;
 
+    [Header("Box Opening Presentation")]
+    [SerializeField] private BoxOpeningController boxOpeningController;
+
     [Header("Security and Anti-Spam")]
     [Tooltip("Thời gian giãn cách tối thiểu (giây) giữa 2 lần bấm mua liên tiếp để chống click spam/double tap.")]
     [SerializeField] private float transactionCooldown = 0.2f;
 
-    private int currentEnergy;
     private int currentDataChips;
     private int currentRedGems;
     private int chipsetBoxes;
@@ -109,7 +110,6 @@ public sealed class ShopController : MonoBehaviour
 
     private void Awake()
     {
-        currentEnergy = Mathf.Clamp(ChipManager.Energy, 0, ChipManager.MaxEnergy);
         currentDataChips = ChipManager.DataChips;
         currentRedGems = ChipManager.RedGems;
         chipsetBoxes = PlayerDataService.ChipsetBoxes;
@@ -127,14 +127,12 @@ public sealed class ShopController : MonoBehaviour
     {
         ChipManager.OnDataChipsChanged += HandleDataChipsChanged;
         ChipManager.OnRedGemsChanged += HandleRedGemsChanged;
-        ChipManager.OnEnergyChanged += HandleEnergyChanged;
         ChipManager.OnTestModeChanged += HandleTestModeChanged;
         ChipManager.OnChipsetBoxesChanged += HandleChipsetBoxesChanged;
         ChipManager.OnDroneBoxesChanged += HandleDroneBoxesChanged;
 
         currentDataChips = ChipManager.DataChips;
         currentRedGems = ChipManager.RedGems;
-        currentEnergy = Mathf.Clamp(ChipManager.Energy, 0, ChipManager.MaxEnergy);
         chipsetBoxes = PlayerDataService.ChipsetBoxes;
         droneBoxes = PlayerDataService.DroneBoxes;
 
@@ -146,7 +144,6 @@ public sealed class ShopController : MonoBehaviour
     {
         ChipManager.OnDataChipsChanged -= HandleDataChipsChanged;
         ChipManager.OnRedGemsChanged -= HandleRedGemsChanged;
-        ChipManager.OnEnergyChanged -= HandleEnergyChanged;
         ChipManager.OnTestModeChanged -= HandleTestModeChanged;
         ChipManager.OnChipsetBoxesChanged -= HandleChipsetBoxesChanged;
         ChipManager.OnDroneBoxesChanged -= HandleDroneBoxesChanged;
@@ -199,12 +196,6 @@ public sealed class ShopController : MonoBehaviour
         RefreshView();
     }
 
-    private void HandleEnergyChanged(int newAmount)
-    {
-        currentEnergy = Mathf.Clamp(newAmount, 0, ChipManager.MaxEnergy);
-        RefreshView();
-    }
-
     private void HandleChipsetBoxesChanged(int newAmount)
     {
         chipsetBoxes = newAmount;
@@ -221,7 +212,6 @@ public sealed class ShopController : MonoBehaviour
     {
         currentDataChips = ChipManager.DataChips;
         currentRedGems = ChipManager.RedGems;
-        currentEnergy = Mathf.Clamp(ChipManager.Energy, 0, ChipManager.MaxEnergy);
         chipsetBoxes = PlayerDataService.ChipsetBoxes;
         droneBoxes = PlayerDataService.DroneBoxes;
         RefreshView();
@@ -258,6 +248,12 @@ public sealed class ShopController : MonoBehaviour
 
     public bool TryPurchase(Offer offer, bool bypassCooldown = false)
     {
+        if (boxOpeningController != null && boxOpeningController.IsBusy)
+        {
+            Debug.LogWarning("[SHOP] Purchase rejected: Box opening presentation is still active.");
+            return false;
+        }
+
         // 1. Concurrency Lock: Chống re-entrancy / gọi song song
         if (isProcessingTransaction)
         {
@@ -390,6 +386,12 @@ public sealed class ShopController : MonoBehaviour
                   $"  TransactionSuccess: true");
 
         ShowMessage(BuildSuccessMessage(offer, lastBoxDrops));
+
+        if (boxDropSnapshot != null && boxOpeningController != null &&
+            !boxOpeningController.TryBegin(offer.reward, offer.rewardAmount, lastBoxDrops, gameObject))
+        {
+            Debug.LogWarning("[SHOP] Rewards were granted, but the box opening presentation could not start.");
+        }
         return true;
     }
 
@@ -415,28 +417,30 @@ public sealed class ShopController : MonoBehaviour
         RewardType reward,
         List<ShopBoxDropRoller.Drop> drops)
     {
+        // Keep every roll for presentation, but aggregate repeated IDs for atomic persistence.
+        List<ShopBoxDropRoller.Drop> persistedDrops = ShopBoxDropRoller.AggregateByItem(drops);
         var snapshot = new BoxDropSnapshot
         {
             Reward = reward,
-            Drops = drops.ToArray()
+            Drops = persistedDrops.ToArray()
         };
 
         if (reward == RewardType.ChipsetBox)
         {
-            snapshot.Chipsets = new ChipItemData[drops.Count];
-            snapshot.ChipsetsExisted = new bool[drops.Count];
-            for (int i = 0; i < drops.Count; i++)
+            snapshot.Chipsets = new ChipItemData[persistedDrops.Count];
+            snapshot.ChipsetsExisted = new bool[persistedDrops.Count];
+            for (int i = 0; i < persistedDrops.Count; i++)
             {
-                snapshot.ChipsetsExisted[i] = PlayerDataService.HasChipsetItemData(drops[i].ItemId);
-                snapshot.Chipsets[i] = GetSavedChipsetSnapshot(drops[i].ItemId);
+                snapshot.ChipsetsExisted[i] = PlayerDataService.HasChipsetItemData(persistedDrops[i].ItemId);
+                snapshot.Chipsets[i] = GetSavedChipsetSnapshot(persistedDrops[i].ItemId);
             }
         }
         else
         {
-            snapshot.BuddyPieces = new int[drops.Count];
-            for (int i = 0; i < drops.Count; i++)
+            snapshot.BuddyPieces = new int[persistedDrops.Count];
+            for (int i = 0; i < persistedDrops.Count; i++)
             {
-                snapshot.BuddyPieces[i] = PlayerDataService.GetBuddyPieceCount(drops[i].ItemId);
+                snapshot.BuddyPieces[i] = PlayerDataService.GetBuddyPieceCount(persistedDrops[i].ItemId);
             }
         }
 
@@ -899,11 +903,6 @@ public sealed class ShopController : MonoBehaviour
 
     private void RefreshView()
     {
-        if (energyText != null)
-        {
-            energyText.text = $"{currentEnergy}/{ChipManager.MaxEnergy}";
-        }
-
         if (dataChipText != null)
         {
             dataChipText.text = currentDataChips.ToString("N0");
@@ -1044,8 +1043,7 @@ public static class ShopBoxDropRoller
         if (random == null) throw new ArgumentNullException(nameof(random));
 
         int[] itemIds = category == BoxCategory.Chipset ? ChipsetIds : BuddyIds;
-        var totalsById = new Dictionary<int, int>();
-        var orderedIds = new List<int>();
+        var results = new List<Drop>(boxCount);
 
         for (int i = 0; i < boxCount; i++)
         {
@@ -1053,22 +1051,32 @@ public static class ShopBoxDropRoller
             int pieces = rateRoll < 7 ? 7 : rateRoll < 30 ? 3 : 1;
             int itemId = itemIds[random.Next(itemIds.Length)];
 
-            if (!totalsById.ContainsKey(itemId))
-            {
-                totalsById[itemId] = 0;
-                orderedIds.Add(itemId);
-            }
-
-            totalsById[itemId] += pieces;
+            results.Add(new Drop(itemId, pieces));
         }
 
-        var results = new List<Drop>(orderedIds.Count);
-        for (int i = 0; i < orderedIds.Count; i++)
+        return results;
+    }
+
+    public static List<Drop> AggregateByItem(IReadOnlyList<Drop> drops)
+    {
+        var results = new List<Drop>();
+        if (drops == null) return results;
+
+        var indexByItem = new Dictionary<int, int>();
+        for (int i = 0; i < drops.Count; i++)
         {
-            int itemId = orderedIds[i];
-            results.Add(new Drop(itemId, totalsById[itemId]));
+            Drop drop = drops[i];
+            if (indexByItem.TryGetValue(drop.ItemId, out int existingIndex))
+            {
+                Drop existing = results[existingIndex];
+                results[existingIndex] = new Drop(existing.ItemId, checked(existing.Pieces + drop.Pieces));
+            }
+            else
+            {
+                indexByItem.Add(drop.ItemId, results.Count);
+                results.Add(drop);
+            }
         }
-
         return results;
     }
 }

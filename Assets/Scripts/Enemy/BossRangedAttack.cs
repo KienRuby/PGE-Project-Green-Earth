@@ -23,7 +23,7 @@ public class BossRangedAttack : MonoBehaviour, IPoolable
     public class ShootSkill
     {
         [Tooltip("Tên kỹ năng hiển thị trong Inspector.")]
-        public string skillName = "Bắn thẳng";
+        public string skillName = "Direct Shot";
 
         [Tooltip("Kiểu phân bố hướng đạn.")]
         public ShotPattern pattern = ShotPattern.AimedBurst;
@@ -260,7 +260,7 @@ public class BossRangedAttack : MonoBehaviour, IPoolable
         {
             new ShootSkill
             {
-                skillName = "Liên xạ nhắm Player",
+                skillName = "Player Rapid Fire",
                 pattern = ShotPattern.AimedBurst,
                 projectileCount = 3,
                 shotInterval = 0.18f,
@@ -268,7 +268,7 @@ public class BossRangedAttack : MonoBehaviour, IPoolable
             },
             new ShootSkill
             {
-                skillName = "Đạn hình quạt",
+                skillName = "Fan Spread Shot",
                 pattern = ShotPattern.Fan,
                 projectileCount = 5,
                 spreadAngle = 55f,
@@ -276,7 +276,7 @@ public class BossRangedAttack : MonoBehaviour, IPoolable
             },
             new ShootSkill
             {
-                skillName = "Đạn vòng tròn",
+                skillName = "Radial Circle Shot",
                 pattern = ShotPattern.Radial,
                 projectileCount = 12,
                 cooldown = 4.5f

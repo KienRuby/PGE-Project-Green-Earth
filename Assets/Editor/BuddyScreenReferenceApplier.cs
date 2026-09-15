@@ -162,6 +162,7 @@ public static class BuddyScreenReferenceApplier
 
         serialized.FindProperty("emptySlotFrameSprite").objectReferenceValue = sourceButtons["Empty"];
         serialized.FindProperty("lockedSlotFrameSprite").objectReferenceValue = sourceIcons["Locke"];
+        serialized.FindProperty("upgradeArrowSprite").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Chipset/Frames/badge-upgrade.png");
 
         // Tier Lock Sprites
         string chipsetPath = "Assets/Sprites/UI/Chipset/khung chipset.png";

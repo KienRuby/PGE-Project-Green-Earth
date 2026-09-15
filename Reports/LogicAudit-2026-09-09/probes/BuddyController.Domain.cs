@@ -34,7 +34,7 @@ public class BuddyItemData
     public string epicPerkText;
 
     public bool CanEnhance => ChipManager.DataChips >= enhanceCost;
-    public bool CanAdvanceTier => count >= requiredCount && requiredCount > 0;
+    public bool CanAdvanceTier => tier < BuddyTier.Holographic && count >= requiredCount && requiredCount > 0;
     public bool CanUpgrade => CanEnhance || CanAdvanceTier;
 
     public bool Enhance()
@@ -51,7 +51,9 @@ public class BuddyItemData
         if (!CanAdvanceTier) return false;
         count -= requiredCount;
         tier = (BuddyTier)Mathf.Min((int)tier + 1, (int)BuddyTier.Holographic);
-        requiredCount = Mathf.RoundToInt(requiredCount * 1.6f) + 1;
+        requiredCount = tier >= BuddyTier.Holographic
+            ? 0
+            : Mathf.RoundToInt(requiredCount * 1.6f) + 1;
         return true;
     }
 

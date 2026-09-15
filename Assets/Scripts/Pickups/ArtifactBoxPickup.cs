@@ -17,6 +17,24 @@ public class ArtifactBoxPickup : MonoBehaviour
     [Tooltip("SpriteRenderer hiển thị chiếc hộp/rương trên bản đồ.")]
     [SerializeField] private SpriteRenderer spriteRenderer;
 
+    [Tooltip("Sprite rương đóng có hào quang. Nếu trống sẽ lấy từ Resources/UI/ArtifactChest.")]
+    [SerializeField] private Sprite glowingClosedChestSprite;
+
+    [Tooltip("Sprite rương mở sau khi người chơi nhận Artifact. Nếu trống sẽ lấy từ Resources/UI/ArtifactChest.")]
+    [SerializeField] private Sprite openChestSprite;
+
+    [Tooltip("Kích thước cạnh lớn nhất của rương trong world space.")]
+    [Min(0.1f)] [SerializeField] private float visualWorldSize = 0.6f;
+
+    [Tooltip("Tốc độ nhịp sáng khi rương đang chờ được nhận.")]
+    [Min(0f)] [SerializeField] private float glowPulseSpeed = 3f;
+
+    [Tooltip("Biên độ phóng to/thu nhỏ nhẹ của hào quang.")]
+    [Range(0f, 0.2f)] [SerializeField] private float glowPulseAmount = 0.06f;
+
+    [Tooltip("Thời gian giữ hình rương mở sau khi nhận trước khi biến mất.")]
+    [Min(0f)] [SerializeField] private float openChestLifetime = 0.45f;
+
     [Tooltip("Tốc độ bay dập dềnh (Idle bobbing speed).")]
     [SerializeField] private float bobbingSpeed = 3f;
 
@@ -24,7 +42,7 @@ public class ArtifactBoxPickup : MonoBehaviour
     [SerializeField] private float bobbingAmount = 0.15f;
 
     [Tooltip("Bán kính phát hiện va chạm với Player.")]
-    [SerializeField] private float triggerRadius = 0.8f;
+    [SerializeField] private float triggerRadius = 0.3f;
 
     private static readonly List<ArtifactBoxPickup> activeBoxes = new List<ArtifactBoxPickup>();
     public static IReadOnlyList<ArtifactBoxPickup> ActiveBoxes => activeBoxes;
@@ -36,6 +54,11 @@ public class ArtifactBoxPickup : MonoBehaviour
 
     private Vector3 initialPosition;
     private bool isCollected = false;
+    private bool isOpen;
+    private Vector3 visualBaseScale = Vector3.one;
+
+    public bool IsOpen => isOpen;
+    public Sprite CurrentSprite => spriteRenderer != null ? spriteRenderer.sprite : null;
 
     private void OnEnable()
     {
@@ -82,6 +105,7 @@ public class ArtifactBoxPickup : MonoBehaviour
             spriteRenderer = GetComponent<SpriteRenderer>() ?? GetComponentInChildren<SpriteRenderer>();
         }
 
+        LoadChestSprites();
         EnsureVisual();
     }
 
@@ -116,7 +140,11 @@ public class ArtifactBoxPickup : MonoBehaviour
             spriteRenderer = visualObj.GetComponent<SpriteRenderer>();
         }
 
-        if (spriteRenderer.sprite == null)
+        if (glowingClosedChestSprite != null)
+        {
+            spriteRenderer.sprite = glowingClosedChestSprite;
+        }
+        else if (spriteRenderer.sprite == null)
         {
             // Tạo Sprite rương báu Cyberpunk 48x48 rực rỡ (viền Cyan, thân Vàng kim & ngọc dạ quang)
             int size = 48;
@@ -161,6 +189,11 @@ public class ArtifactBoxPickup : MonoBehaviour
             spriteRenderer.sprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 32f);
         }
 
+        FitVisualToWorldSize();
+        spriteRenderer.color = Color.white;
+        spriteRenderer.enabled = true;
+        isOpen = false;
+
         // Đảm bảo Sorting Layer luôn hiển thị trên sàn map (Ground)
         string targetSortingLayer = "UI";
         if (SortingLayer.NameToID("UI") == 0)
@@ -169,6 +202,37 @@ public class ArtifactBoxPickup : MonoBehaviour
         }
         spriteRenderer.sortingLayerName = targetSortingLayer;
         spriteRenderer.sortingOrder = 100;
+    }
+
+    private void LoadChestSprites()
+    {
+        if (glowingClosedChestSprite == null)
+        {
+            glowingClosedChestSprite = Resources.Load<Sprite>("UI/ArtifactChest/ruong_artifact_sang");
+        }
+
+        if (openChestSprite == null)
+        {
+            openChestSprite = Resources.Load<Sprite>("UI/ArtifactChest/ruong_artifact_mo");
+        }
+    }
+
+    private void FitVisualToWorldSize()
+    {
+        if (spriteRenderer == null || spriteRenderer.sprite == null) return;
+
+        // Không scale root vì sẽ làm thay đổi bán kính collider. DropTable tạo renderer trên child.
+        if (spriteRenderer.transform == transform)
+        {
+            visualBaseScale = spriteRenderer.transform.localScale;
+            return;
+        }
+
+        Vector2 spriteSize = spriteRenderer.sprite.bounds.size;
+        float longestSide = Mathf.Max(spriteSize.x, spriteSize.y);
+        float scale = longestSide > 0f ? visualWorldSize / longestSide : 1f;
+        visualBaseScale = Vector3.one * scale;
+        spriteRenderer.transform.localScale = visualBaseScale;
     }
 
     private Transform playerTransform;
@@ -187,6 +251,14 @@ public class ArtifactBoxPickup : MonoBehaviour
         float newY = initialPosition.y + Mathf.Sin(Time.time * bobbingSpeed) * bobbingAmount;
         transform.position = new Vector3(initialPosition.x, newY, initialPosition.z);
 
+        // Sprite đóng đã có hào quang; nhịp scale nhẹ giúp ánh sáng trông sống động hơn.
+        if (spriteRenderer != null && spriteRenderer.transform != transform)
+        {
+            float pulse01 = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * glowPulseSpeed);
+            float pulseScale = 1f + pulse01 * glowPulseAmount;
+            spriteRenderer.transform.localScale = visualBaseScale * pulseScale;
+        }
+
         // Kiểm tra khoảng cách trực tiếp đến Player (bảo đảm nhặt 100% ngay cả khi collider bị miss)
         if (playerTransform == null)
         {
@@ -202,7 +274,7 @@ public class ArtifactBoxPickup : MonoBehaviour
         if (playerTransform != null)
         {
             float dist = Vector2.Distance(transform.position, playerTransform.position);
-            if (dist <= Mathf.Max(triggerRadius, 1.1f))
+            if (dist <= triggerRadius)
             {
                 TriggerOpenArtifact();
             }
@@ -265,8 +337,7 @@ public class ArtifactBoxPickup : MonoBehaviour
             return;
         }
 
-        // Ẩn hình ảnh chiếc hộp và tắt collider ngay khi mở popup
-        if (spriteRenderer != null) spriteRenderer.enabled = false;
+        // Giữ rương đóng phát sáng phía sau popup; chỉ tắt collider để không nhận lặp lại.
         Collider2D col = GetComponent<Collider2D>();
         if (col != null) col.enabled = false;
 
@@ -286,7 +357,7 @@ public class ArtifactBoxPickup : MonoBehaviour
                     {
                         PlayerArtifactInventory.Instance.EquipArtifact(assignedArtifact);
                     }
-                    Destroy(gameObject);
+                    RevealOpenChest();
                 },
                 onThrowAway: () =>
                 {
@@ -303,8 +374,37 @@ public class ArtifactBoxPickup : MonoBehaviour
             {
                 PlayerArtifactInventory.Instance.EquipArtifact(assignedArtifact);
             }
-            Destroy(gameObject);
+            RevealOpenChest();
         }
+    }
+
+    private void RevealOpenChest()
+    {
+        isOpen = true;
+
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.enabled = true;
+            spriteRenderer.color = Color.white;
+            if (openChestSprite != null)
+            {
+                spriteRenderer.sprite = openChestSprite;
+                FitVisualToWorldSize();
+            }
+            spriteRenderer.transform.localScale = visualBaseScale;
+        }
+
+        // EditMode tests gọi callback đồng bộ; chỉ hẹn hủy khi game thực sự đang chạy.
+        if (Application.isPlaying)
+        {
+            StartCoroutine(DestroyAfterOpenReveal());
+        }
+    }
+
+    private System.Collections.IEnumerator DestroyAfterOpenReveal()
+    {
+        yield return new WaitForSecondsRealtime(openChestLifetime);
+        Destroy(gameObject);
     }
 
     /// <summary>

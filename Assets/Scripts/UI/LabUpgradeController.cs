@@ -151,9 +151,6 @@ public class LabUpgradeController : MonoBehaviour
     [Tooltip("Nút UPGRADE dùng để bắt đầu một lượt quay ngẫu nhiên.")]
     [SerializeField] private Button upgradeButton;
 
-    [Tooltip("Text hiển thị năng lượng hiện tại theo định dạng hiện tại/100.")]
-    [SerializeField] private TMP_Text energyBalanceText;
-
     [Tooltip("Text hiển thị số chip xanh hiện tại; tự rút gọn thành k/m và sẽ giảm khi nâng cấp.")]
     [SerializeField] private TMP_Text chipBalanceText;
 
@@ -244,11 +241,8 @@ public class LabUpgradeController : MonoBehaviour
     private Image highlightFlashImage;
     private Coroutine winningFlashCoroutine;
 
-    private const int MaxEnergy = 100;
-
     private int currentChips;
     private int currentRedChips;
-    private int currentEnergy;
     private int currentPrice;
     private int completedRolls;
     private int elitePityCounter;
@@ -356,7 +350,6 @@ public class LabUpgradeController : MonoBehaviour
 
     private void Start()
     {
-        currentEnergy = Mathf.Clamp(ChipManager.Energy, 0, MaxEnergy);
         currentChips = ChipManager.DataChips;
         currentRedChips = ChipManager.RedGems;
         completedRolls = PlayerDataService.CompletedRolls;
@@ -427,7 +420,6 @@ public class LabUpgradeController : MonoBehaviour
     {
         ChipManager.OnDataChipsChanged += HandleDataChipsChanged;
         ChipManager.OnRedGemsChanged += HandleRedGemsChanged;
-        ChipManager.OnEnergyChanged += HandleEnergyChanged;
         ChipManager.OnTestModeChanged += HandleTestModeChanged;
 
         if (!hasInitialized)
@@ -437,7 +429,6 @@ public class LabUpgradeController : MonoBehaviour
 
         currentChips = ChipManager.DataChips;
         currentRedChips = ChipManager.RedGems;
-        currentEnergy = Mathf.Clamp(ChipManager.Energy, 0, MaxEnergy);
         completedRolls = PlayerDataService.CompletedRolls;
         currentPrice = basePrice + completedRolls * priceStep;
         elitePityCounter = PlayerDataService.LabElitePityCounter;
@@ -454,7 +445,6 @@ public class LabUpgradeController : MonoBehaviour
     {
         ChipManager.OnDataChipsChanged -= HandleDataChipsChanged;
         ChipManager.OnRedGemsChanged -= HandleRedGemsChanged;
-        ChipManager.OnEnergyChanged -= HandleEnergyChanged;
         ChipManager.OnTestModeChanged -= HandleTestModeChanged;
 
         StopEnergyRecovery();
@@ -983,11 +973,6 @@ public class LabUpgradeController : MonoBehaviour
 
     private void RefreshMainView()
     {
-        if (energyBalanceText != null)
-        {
-            energyBalanceText.text = $"{currentEnergy}/{MaxEnergy}";
-        }
-
         if (chipBalanceText != null)
         {
             chipBalanceText.text = FormatChipAmount(currentChips);
@@ -1050,8 +1035,6 @@ public class LabUpgradeController : MonoBehaviour
     {
         // The persistent currency service owns the clock, including while this panel is hidden.
         if (!ChipManager.IsTestMode) PlayerDataService.RecoverEnergy(DateTime.UtcNow);
-        currentEnergy = Mathf.Clamp(ChipManager.Energy, 0, MaxEnergy);
-        if (energyBalanceText != null) energyBalanceText.text = $"{currentEnergy}/{MaxEnergy}";
     }
     private float GetTotalRarityWeight()
     {
@@ -1367,17 +1350,10 @@ public class LabUpgradeController : MonoBehaviour
         RefreshMainView();
     }
 
-    private void HandleEnergyChanged(int newAmount)
-    {
-        currentEnergy = Mathf.Clamp(newAmount, 0, MaxEnergy);
-        RefreshMainView();
-    }
-
     private void HandleTestModeChanged(bool isTest)
     {
         currentChips = ChipManager.DataChips;
         currentRedChips = ChipManager.RedGems;
-        currentEnergy = Mathf.Clamp(ChipManager.Energy, 0, MaxEnergy);
         RefreshMainView();
     }
 }

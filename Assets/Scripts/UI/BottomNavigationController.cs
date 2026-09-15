@@ -340,104 +340,112 @@ public class BottomNavigationController : MonoBehaviour
     private IEnumerator AnimateSelection(int selectedIndex)
     {
         int previousIndex = currentIndex;
-        RectTransform selectedRect = itemRects[selectedIndex];
-        Image selectedImage = GetButtonImage(items[selectedIndex]);
-
-        // Sample current state để không bị snap khi người dùng spam nút
-        Vector2 startPos = selectedRect != null ? selectedRect.anchoredPosition : baseAnchoredPositions[selectedIndex];
-        Vector3 startScale = selectedRect != null ? selectedRect.localScale : baseScales[selectedIndex];
-
-        // Layer 1 - Touch Feedback (Squash & Down)
-        Vector2 pressedPosition = baseAnchoredPositions[selectedIndex] + Vector2.up * pressedYOffset;
-        Vector3 pressedLocalScale = new Vector3(
-            baseScales[selectedIndex].x * buttonPressScaleX,
-            baseScales[selectedIndex].y * buttonPressScaleY,
-            1f);
-
-        yield return TweenButton(
-            selectedRect,
-            selectedImage,
-            startPos,
-            pressedPosition,
-            startScale,
-            pressedLocalScale,
-            GetCurrentColor(selectedIndex),
-            pressedColor,
-            buttonPressDuration);
-
-        // Kích hoạt chuyển cảnh Panel đồng thời
-        ApplySelectionState(selectedIndex, animated: animatePanelTransitions);
-
-        // Đưa các nút không tham gia chuyển tiếp về trạng thái nghỉ
-        for (int i = 0; i < itemRects.Length; i++)
+        try
         {
-            if (i != selectedIndex && i != previousIndex)
+            RectTransform selectedRect = itemRects[selectedIndex];
+            Image selectedImage = GetButtonImage(items[selectedIndex]);
+
+            // Sample current state để không bị snap khi người dùng spam nút
+            Vector2 startPos = selectedRect != null ? selectedRect.anchoredPosition : baseAnchoredPositions[selectedIndex];
+            Vector3 startScale = selectedRect != null ? selectedRect.localScale : baseScales[selectedIndex];
+
+            // Layer 1 - Touch Feedback (Squash & Down)
+            Vector2 pressedPosition = baseAnchoredPositions[selectedIndex] + Vector2.up * pressedYOffset;
+            Vector3 pressedLocalScale = new Vector3(
+                baseScales[selectedIndex].x * buttonPressScaleX,
+                baseScales[selectedIndex].y * buttonPressScaleY,
+                1f);
+
+            yield return TweenButton(
+                selectedRect,
+                selectedImage,
+                startPos,
+                pressedPosition,
+                startScale,
+                pressedLocalScale,
+                GetCurrentColor(selectedIndex),
+                pressedColor,
+                buttonPressDuration);
+
+            // Kích hoạt chuyển cảnh Panel đồng thời
+            ApplySelectionState(selectedIndex, animated: animatePanelTransitions);
+
+            // Đưa các nút không tham gia chuyển tiếp về trạng thái nghỉ
+            for (int i = 0; i < itemRects.Length; i++)
             {
-                ApplyRestingVisualToItem(i, false);
-            }
-        }
-
-        // Layer 2 - Tab Pop & Overshoot
-        RectTransform previousRect = IsValidCachedIndex(previousIndex) ? itemRects[previousIndex] : null;
-        Vector2 previousStartPosition = previousRect != null ? previousRect.anchoredPosition : Vector2.zero;
-        Vector3 previousStartScale = previousRect != null ? previousRect.localScale : Vector3.one;
-
-        Vector2 popPosition = baseAnchoredPositions[selectedIndex] + Vector2.up * (selectedYOffset + selectedPopOvershoot);
-        Vector3 popLocalScale = new Vector3(
-            baseScales[selectedIndex].x * 0.96f,
-            baseScales[selectedIndex].y * 1.05f,
-            1f);
-
-        float elapsed = 0f;
-        while (elapsed < buttonPopDuration)
-        {
-            elapsed += Time.unscaledDeltaTime;
-            float normalized = NormalizedTime(elapsed, buttonPopDuration);
-            float t = EaseOutQuad(normalized);
-
-            selectedRect.anchoredPosition = Vector2.LerpUnclamped(pressedPosition, popPosition, t);
-            selectedRect.localScale = Vector3.LerpUnclamped(pressedLocalScale, popLocalScale, t);
-            if (selectedImage != null)
-            {
-                selectedImage.color = Color.LerpUnclamped(pressedColor, GetRestingColor(selectedIndex), normalized);
+                if (i != selectedIndex && i != previousIndex)
+                {
+                    ApplyRestingVisualToItem(i, false);
+                }
             }
 
-            // Tab cũ trôi êm về vị trí gốc
+            // Layer 2 - Tab Pop & Overshoot
+            RectTransform previousRect = IsValidCachedIndex(previousIndex) ? itemRects[previousIndex] : null;
+            Vector2 previousStartPosition = previousRect != null ? previousRect.anchoredPosition : Vector2.zero;
+            Vector3 previousStartScale = previousRect != null ? previousRect.localScale : Vector3.one;
+
+            Vector2 popPosition = baseAnchoredPositions[selectedIndex] + Vector2.up * (selectedYOffset + selectedPopOvershoot);
+            Vector3 popLocalScale = new Vector3(
+                baseScales[selectedIndex].x * 0.96f,
+                baseScales[selectedIndex].y * 1.05f,
+                1f);
+
+            float elapsed = 0f;
+            while (elapsed < buttonPopDuration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float normalized = NormalizedTime(elapsed, buttonPopDuration);
+                float t = EaseOutQuad(normalized);
+
+                if (selectedRect != null)
+                {
+                    selectedRect.anchoredPosition = Vector2.LerpUnclamped(pressedPosition, popPosition, t);
+                    selectedRect.localScale = Vector3.LerpUnclamped(pressedLocalScale, popLocalScale, t);
+                }
+                if (selectedImage != null)
+                {
+                    selectedImage.color = Color.LerpUnclamped(pressedColor, GetRestingColor(selectedIndex), normalized);
+                }
+
+                // Tab cũ trôi êm về vị trí gốc
+                if (previousRect != null)
+                {
+                    previousRect.anchoredPosition = Vector2.LerpUnclamped(
+                        previousStartPosition,
+                        baseAnchoredPositions[previousIndex],
+                        normalized);
+                    previousRect.localScale = Vector3.LerpUnclamped(
+                        previousStartScale,
+                        baseScales[previousIndex],
+                        normalized);
+                }
+
+                yield return null;
+            }
+
             if (previousRect != null)
             {
-                previousRect.anchoredPosition = Vector2.LerpUnclamped(
-                    previousStartPosition,
-                    baseAnchoredPositions[previousIndex],
-                    normalized);
-                previousRect.localScale = Vector3.LerpUnclamped(
-                    previousStartScale,
-                    baseScales[previousIndex],
-                    normalized);
+                ApplyRestingVisualToItem(previousIndex, false);
             }
 
-            yield return null;
+            // Layer 2 - Settle về vị trí selected chuẩn
+            Vector2 finalSelectedPosition = baseAnchoredPositions[selectedIndex] + Vector2.up * selectedYOffset;
+            yield return TweenButton(
+                selectedRect,
+                selectedImage,
+                popPosition,
+                finalSelectedPosition,
+                popLocalScale,
+                baseScales[selectedIndex],
+                GetRestingColor(selectedIndex),
+                GetRestingColor(selectedIndex),
+                buttonSettleDuration);
         }
-
-        if (previousRect != null)
+        finally
         {
-            ApplyRestingVisualToItem(previousIndex, false);
+            ApplyRestingVisualState(selectedIndex);
+            selectionRoutine = null;
         }
-
-        // Layer 2 - Settle về vị trí selected chuẩn
-        Vector2 finalSelectedPosition = baseAnchoredPositions[selectedIndex] + Vector2.up * selectedYOffset;
-        yield return TweenButton(
-            selectedRect,
-            selectedImage,
-            popPosition,
-            finalSelectedPosition,
-            popLocalScale,
-            baseScales[selectedIndex],
-            GetRestingColor(selectedIndex),
-            GetRestingColor(selectedIndex),
-            buttonSettleDuration);
-
-        ApplyRestingVisualState(selectedIndex);
-        selectionRoutine = null;
     }
 
     private IEnumerator TweenButton(
@@ -578,26 +586,48 @@ public class BottomNavigationController : MonoBehaviour
             // Ẩn panel trước đó (Exit)
             if (IsValidCachedIndex(previousIndex))
             {
-                if (panelTransitions != null && panelTransitions[previousIndex] != null)
+                try
                 {
-                    panelTransitions[previousIndex].PlayHide(panelTransitionType, exitDirection);
+                    if (panelTransitions != null && panelTransitions[previousIndex] != null)
+                    {
+                        panelTransitions[previousIndex].PlayHide(panelTransitionType, exitDirection);
+                    }
+                    else if (items[previousIndex]?.panel != null)
+                    {
+                        items[previousIndex].panel.SetActive(false);
+                    }
                 }
-                else if (items[previousIndex]?.panel != null)
+                catch (Exception ex)
                 {
-                    items[previousIndex].panel.SetActive(false);
+                    Debug.LogWarning($"[BottomNavigation] Error hiding panel {previousIndex}: {ex.Message}");
+                    if (items[previousIndex]?.panel != null)
+                    {
+                        items[previousIndex].panel.SetActive(false);
+                    }
                 }
             }
 
             // Hiện panel mới (Enter)
             if (IsValidCachedIndex(selectedIndex))
             {
-                if (panelTransitions != null && panelTransitions[selectedIndex] != null)
+                try
                 {
-                    panelTransitions[selectedIndex].PlayShow(panelTransitionType, enterDirection);
+                    if (panelTransitions != null && panelTransitions[selectedIndex] != null)
+                    {
+                        panelTransitions[selectedIndex].PlayShow(panelTransitionType, enterDirection);
+                    }
+                    else if (items[selectedIndex]?.panel != null)
+                    {
+                        items[selectedIndex].panel.SetActive(true);
+                    }
                 }
-                else if (items[selectedIndex]?.panel != null)
+                catch (Exception ex)
                 {
-                    items[selectedIndex].panel.SetActive(true);
+                    Debug.LogWarning($"[BottomNavigation] Error showing panel {selectedIndex}: {ex.Message}");
+                    if (items[selectedIndex]?.panel != null)
+                    {
+                        items[selectedIndex].panel.SetActive(true);
+                    }
                 }
             }
 
@@ -606,13 +636,24 @@ public class BottomNavigationController : MonoBehaviour
             {
                 if (i != selectedIndex && i != previousIndex)
                 {
-                    if (panelTransitions != null && panelTransitions[i] != null)
+                    try
                     {
-                        panelTransitions[i].InstantHide();
+                        if (panelTransitions != null && panelTransitions[i] != null)
+                        {
+                            panelTransitions[i].InstantHide();
+                        }
+                        else if (items[i]?.panel != null)
+                        {
+                            items[i].panel.SetActive(false);
+                        }
                     }
-                    else if (items[i]?.panel != null)
+                    catch (Exception ex)
                     {
-                        items[i].panel.SetActive(false);
+                        Debug.LogWarning($"[BottomNavigation] Error disabling panel {i}: {ex.Message}");
+                        if (items[i]?.panel != null)
+                        {
+                            items[i].panel.SetActive(false);
+                        }
                     }
                 }
             }

@@ -1,59 +1,50 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
-/// Quản lý chuyển cảnh từ MainMenu sang GamePlay thông qua nút Battle/ChapterButton.
-/// Tự động tìm kiếm và gán sự kiện cho ChapterButton nếu chưa kéo thả trong Inspector.
+/// Adapter tương thích cho các scene cũ. ChapterScreenController là nơi duy nhất
+/// kiểm tra, trừ năng lượng và chuyển sang gameplay.
 /// </summary>
 public class MainMenuController : MonoBehaviour
 {
     [Header("Scene Navigation")]
-    [Tooltip("Nút bấm vào màn chơi chính (mặc định tìm ChapterButton).")]
+    [Tooltip("Nút Start cũ. Nếu ChapterScreenController đã sở hữu nút này thì adapter sẽ không gắn listener lần hai.")]
     [SerializeField] private Button playButton;
 
-    [Tooltip("Tên Scene Gameplay chính.")]
-    [SerializeField] private string gameplaySceneName = "GamePlay";
+    [SerializeField] private ChapterScreenController chapterScreenController;
 
     private void Start()
     {
-        if (playButton != null)
+        ResolveChapterScreen();
+        if (playButton != null &&
+            (chapterScreenController == null || !chapterScreenController.OwnsStartButton(playButton)))
         {
             playButton.onClick.AddListener(StartGame);
         }
     }
 
+    private void OnDestroy()
+    {
+        if (playButton != null) playButton.onClick.RemoveListener(StartGame);
+    }
+
     public void StartGame()
     {
-        int selectedIndex = PlayerDataService.SelectedChapterIndex;
-        ChapterDatabase db = null;
-#if UNITY_EDITOR
-        db = UnityEditor.AssetDatabase.LoadAssetAtPath<ChapterDatabase>("Assets/Data/Chapters/ChapterDatabase.asset");
-#endif
-        if (db == null)
+        ResolveChapterScreen();
+        if (chapterScreenController == null)
         {
-            db = Resources.Load<ChapterDatabase>("ChapterDatabase");
+            Debug.LogError("[MainMenuController] Không tìm thấy ChapterScreenController; không thể bắt đầu Chapter.");
+            return;
         }
 
-        int cost = 10;
-        if (db != null)
-        {
-            ChapterData chapter = db.GetChapter(selectedIndex);
-            if (chapter != null)
-            {
-                cost = chapter.energyCost;
-            }
-        }
+        chapterScreenController.OnStartButtonClicked();
+    }
 
-        if (ChipManager.TrySpendEnergy(cost))
+    private void ResolveChapterScreen()
+    {
+        if (chapterScreenController == null)
         {
-            Debug.Log($"[MainMenuController] ⚡ Đã trừ {cost} Energy để bắt đầu Chapter {selectedIndex + 1}. Số dư còn lại: {ChipManager.Energy}");
-            GameEvents.RaiseChapterPlayed(selectedIndex);
-            SceneManager.LoadScene(gameplaySceneName);
-        }
-        else
-        {
-            Debug.LogWarning($"[MainMenuController] ⚠️ Không đủ Energy ({ChipManager.Energy}/{cost}) để vào trận!");
+            chapterScreenController = FindObjectOfType<ChapterScreenController>();
         }
     }
 }

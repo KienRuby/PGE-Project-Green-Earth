@@ -286,8 +286,8 @@ public static class PityUIBuilder
         CanvasGroup winCg = winGo.GetComponent<CanvasGroup>();
 
         // 3. Header: Title, Subtitle, CloseButton
-        TMP_Text titleTxt = CreateText(winGo.transform, "TitleText", "BẢO HIỂM LƯỢT ROLL", 30, FontStyles.Bold, new Color32(80, 240, 230, 255), TextAlignmentOptions.Center, new Vector2(0f, 275f), new Vector2(540f, 45f));
-        TMP_Text subTxt = CreateText(winGo.transform, "SubtitleText", "Tiến độ tích lũy bảo hiểm chỉ số theo từng bậc", 17, FontStyles.Normal, new Color32(160, 215, 225, 255), TextAlignmentOptions.Center, new Vector2(0f, 238f), new Vector2(540f, 30f));
+        TMP_Text titleTxt = CreateText(winGo.transform, "TitleText", "ROLL PITY GUARANTEE", 30, FontStyles.Bold, new Color32(80, 240, 230, 255), TextAlignmentOptions.Center, new Vector2(0f, 275f), new Vector2(540f, 45f));
+        TMP_Text subTxt = CreateText(winGo.transform, "SubtitleText", "Progress towards guaranteed stats by tier", 17, FontStyles.Normal, new Color32(160, 215, 225, 255), TextAlignmentOptions.Center, new Vector2(0f, 238f), new Vector2(540f, 30f));
 
         Button closeBtn = CreateCloseButton(winGo.transform, new Vector2(265f, 280f));
 
@@ -384,8 +384,8 @@ public static class PityUIBuilder
         counterRect.pivot = new Vector2(0f, 0.5f);
         counterRect.anchoredPosition = new Vector2(32f, 18f);
 
-        // 3. Remaining Text: "Còn 2 lượt"
-        TMP_Text remainingTxt = CreateText(rowGo.transform, "RemainingText", "Còn 10 lượt", 18, FontStyles.Bold, tierColor, TextAlignmentOptions.Right, Vector2.zero, new Vector2(200f, 30f));
+        // 3. Remaining Text: "10 rolls left"
+        TMP_Text remainingTxt = CreateText(rowGo.transform, "RemainingText", "10 rolls left", 18, FontStyles.Bold, tierColor, TextAlignmentOptions.Right, Vector2.zero, new Vector2(200f, 30f));
         RectTransform remRect = remainingTxt.GetComponent<RectTransform>();
         remRect.anchorMin = new Vector2(1f, 0.5f);
         remRect.anchorMax = new Vector2(1f, 0.5f);
