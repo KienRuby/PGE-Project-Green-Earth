@@ -2203,38 +2203,38 @@ MonoBehaviour:
   isShowingDefault: 1
   skins:
   - skinName: AD Unit-1 (Basic Body)
-    bodySprite: {fileID: 21300000, guid: e004f7c2dcdbffa4692a9ecebea168d0, type: 3}
-    armSprite: {fileID: 21300000, guid: ad4b9d885ae20e54da09cc6626543bc3, type: 3}
-    gunSprite: {fileID: 21300000, guid: 23a1aed13f5029f438beacede9cd0d43, type: 3}
-    leg1Sprite: {fileID: 21300000, guid: 73e1a525a3f534e488dfd09fefaf097e, type: 3}
-    leg2Sprite: {fileID: 21300000, guid: e91ae5b55295f004ca01ffe75ac31c49, type: 3}
+    bodySprite: {fileID: -5182206973502839065, guid: b11d782772fef994681d861860fa33eb, type: 3}
+    armSprite: {fileID: 7950957983998334306, guid: fa67feb686c38264e8ab722fd57364ea, type: 3}
+    gunSprite: {fileID: -9212286445950041963, guid: a14684e0c410c224d922ec86c4f49844, type: 3}
+    leg1Sprite: {fileID: -2040592341959848592, guid: 7e8f556a10c1620498e036dbf132b04e, type: 3}
+    leg2Sprite: {fileID: 2219504772987026516, guid: 7e8f556a10c1620498e036dbf132b04e, type: 3}
     body:
-      positionOffset: {x: 0, y: -2.5562186}
+      positionOffset: {x: 0, y: 0}
       scaleMultiplier: {x: 1, y: 1}
       rotationOffset: 0
     arm:
-      positionOffset: {x: -1.2439681, y: 2.2759004}
+      positionOffset: {x: 0, y: 0}
       scaleMultiplier: {x: 1, y: 1}
       rotationOffset: 0
     gun:
-      positionOffset: {x: -2.2237372, y: 1.2658195}
+      positionOffset: {x: 0, y: 0}
       scaleMultiplier: {x: 1, y: 1}
       rotationOffset: 0
     leg1:
-      positionOffset: {x: 0.6930222, y: 0.37737176}
+      positionOffset: {x: 0, y: 0}
       scaleMultiplier: {x: 1, y: 1}
       rotationOffset: 0
     leg2:
-      positionOffset: {x: -0.2736907, y: 1.7789906}
+      positionOffset: {x: 0, y: 0}
       scaleMultiplier: {x: 1, y: 1}
       rotationOffset: 0
-    firePointOffset: {x: 5.88, y: -1.52}
+    firePointOffset: {x: 3.59, y: -0.99}
   - skinName: AD Unit-2
-    bodySprite: {fileID: 21300000, guid: dd1de9625904d6a41874847961cf3d46, type: 3}
-    armSprite: {fileID: 21300000, guid: f2464555f0d91f4469d96c53d6184fe7, type: 3}
-    gunSprite: {fileID: 21300000, guid: 42c940d56c92abd45bac0a156aecb119, type: 3}
-    leg1Sprite: {fileID: 21300000, guid: 1c8e75a96f1fd3341b6b29fff09a1c57, type: 3}
-    leg2Sprite: {fileID: 21300000, guid: c82cfcadd60f35549b0befc376fa00a3, type: 3}
+    bodySprite: {fileID: -5182206973502839065, guid: b48489951e9c39e40b043dacb6bd63af, type: 3}
+    armSprite: {fileID: 7950957983998334306, guid: 3f0a5377d27c63e47bddaa6fff51a1f7, type: 3}
+    gunSprite: {fileID: -9212286445950041963, guid: 314f3198166d07c4c8a5b61bd92a7979, type: 3}
+    leg1Sprite: {fileID: -2040592341959848592, guid: 4071c3ce871ecc447b4da5ad69b7b1d8, type: 3}
+    leg2Sprite: {fileID: 2219504772987026516, guid: 4071c3ce871ecc447b4da5ad69b7b1d8, type: 3}
     body:
       positionOffset: {x: 0, y: 0}
       scaleMultiplier: {x: 1, y: 1}
@@ -2257,11 +2257,11 @@ MonoBehaviour:
       rotationOffset: 0
     firePointOffset: {x: 3.59, y: -0.99}
   - skinName: AD Unit-3
-    bodySprite: {fileID: 21300000, guid: 2433591b62391de499a2a8b23ccec691, type: 3}
-    armSprite: {fileID: 21300000, guid: 0345fdd04727b75499092c6bbd26697a, type: 3}
-    gunSprite: {fileID: 21300000, guid: 5bea5d9740661e44183441325ac24fad, type: 3}
-    leg1Sprite: {fileID: 21300000, guid: 2a22cebaf956ffa43b523084e7fa5f4d, type: 3}
-    leg2Sprite: {fileID: 21300000, guid: d1d3e30902a024c4490fa399bd86ef53, type: 3}
+    bodySprite: {fileID: -5182206973502839065, guid: 4da2c1164166fb344963fd6c07c2f6e3, type: 3}
+    armSprite: {fileID: 7950957983998334306, guid: e4177e280f33c244c83bcc6aab8b54cd, type: 3}
+    gunSprite: {fileID: -9212286445950041963, guid: 673301c1065bc49469b13de76a575db8, type: 3}
+    leg1Sprite: {fileID: -2040592341959848592, guid: 36da15fc112cf3e4e954fbe99bd24172, type: 3}
+    leg2Sprite: {fileID: 2219504772987026516, guid: 36da15fc112cf3e4e954fbe99bd24172, type: 3}
     body:
       positionOffset: {x: 0, y: 0}
       scaleMultiplier: {x: 1, y: 1}
@@ -2284,11 +2284,11 @@ MonoBehaviour:
       rotationOffset: 0
     firePointOffset: {x: 3.59, y: -0.99}
   - skinName: AD Unit-4
-    bodySprite: {fileID: 21300000, guid: 382064633f840e04f98e817953e5ec0c, type: 3}
-    armSprite: {fileID: 21300000, guid: 91edfe709d71b0c49a25ad0b70323070, type: 3}
-    gunSprite: {fileID: 21300000, guid: 4ba2042fde2b9ce4d9b18b9cc4db7d10, type: 3}
-    leg1Sprite: {fileID: 21300000, guid: 37d84a32315c2f74abef834dfa62a6ea, type: 3}
-    leg2Sprite: {fileID: 21300000, guid: cbc724557abe1d44f82304294d8907d3, type: 3}
+    bodySprite: {fileID: -5182206973502839065, guid: 65d0f84371244c549be34da2de3e090b, type: 3}
+    armSprite: {fileID: 7950957983998334306, guid: e330f572764c47d4d96d4be202e4d3e3, type: 3}
+    gunSprite: {fileID: -9212286445950041963, guid: 38ff57d9d59e7f642a3071d113dcbe9d, type: 3}
+    leg1Sprite: {fileID: -2040592341959848592, guid: 6c501216f25d8474ba01102000c62c29, type: 3}
+    leg2Sprite: {fileID: 2219504772987026516, guid: 6c501216f25d8474ba01102000c62c29, type: 3}
     body:
       positionOffset: {x: 0, y: 0}
       scaleMultiplier: {x: 1, y: 1}
@@ -10184,7 +10184,7 @@ Transform:
   m_GameObject: {fileID: 597260188}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.2736907, y: 1.7789906, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -10615,8 +10615,8 @@ Transform:
   m_GameObject: {fileID: 616722153}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.2439681, y: 2.2759004, z: 0}
-  m_LocalScale: {x: 1.4714, y: 1.4714, z: 1.4714}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1140328031}
@@ -15560,7 +15560,7 @@ Transform:
   m_GameObject: {fileID: 956880959}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2.47, y: 3.27, z: 0}
+  m_LocalPosition: {x: -3.9, y: 5.54, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -19378,9 +19378,9 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1136516180}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: 0.0893812, w: 0.9959975}
-  m_LocalPosition: {x: -1.27, y: 0.38, z: 0}
-  m_LocalScale: {x: 1.2711, y: 1.2711, z: 1.2711}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 190367609}
@@ -19724,9 +19724,9 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1140328030}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0.047341805, w: 0.9988788}
   m_LocalPosition: {x: 0.35, y: -0.35, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.33173, y: 1.33173, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 616722154}
@@ -21159,9 +21159,9 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1219404387}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 3.26, y: -1.76, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0.13485092, w: 0.9908659}
+  m_LocalPosition: {x: 5.63, y: -2.09, z: 0}
+  m_LocalScale: {x: 1.7548, y: 1.7548, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 1136516181}
@@ -29017,7 +29017,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 1.37, y: -0.37, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.33173, y: 1.33173, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 597260189}
@@ -29102,7 +29102,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -2.65, y: 0.95, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.33173, y: 1.33173, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 769687987}

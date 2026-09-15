@@ -175,7 +175,10 @@ public class BuildBodyController : MonoBehaviour
         if (!IsBuildBodyUnlocked)
         {
             int currentCleared = PlayerDataService.UnlockedChapterIndex;
-            ShowToast($"Cần vượt qua Chapter 3 để mở khóa Build Body! (Hiện tại: {currentCleared}/{RequiredChaptersToUnlock})");
+            bool vi = GameSettings.IsVietnamese;
+            ShowToast(vi
+                ? $"Cần vượt qua Chapter 3 để mở khóa Build Body! (Hiện tại: {currentCleared}/{RequiredChaptersToUnlock})"
+                : $"Clear Chapter 3 to unlock Build Body! (Current: {currentCleared}/{RequiredChaptersToUnlock})");
             return;
         }
 
@@ -267,15 +270,16 @@ public class BuildBodyController : MonoBehaviour
 
     private void EquipSkin(int index)
     {
+        bool vi = GameSettings.IsVietnamese;
         if (EquippedSkinIndex == index)
         {
-            ShowToast($"Đang sử dụng AD Unit-{index + 1}!");
+            ShowToast(vi ? $"Đang sử dụng AD Unit-{index + 1}!" : $"Currently using AD Unit-{index + 1}!");
             return;
         }
 
         EquippedSkinIndex = index;
         RefreshAllCards();
-        ShowToast($"Đã đổi sang trang phục AD Unit-{index + 1}!");
+        ShowToast(vi ? $"Đã đổi sang trang phục AD Unit-{index + 1}!" : $"Equipped outfit AD Unit-{index + 1}!");
     }
 
     private void OnBuildButtonClicked(int index)
@@ -288,10 +292,13 @@ public class BuildBodyController : MonoBehaviour
 
         int cost = unit4BuildCostRedGems;
         int currentGems = ChipManager.RedGems;
+        bool vi = GameSettings.IsVietnamese;
 
         if (currentGems < cost)
         {
-            ShowToast($"Không đủ Ngọc Đỏ để Build Unit {index + 1}! Cần {cost} Ngọc Đỏ (Hiện có: {currentGems:N0})");
+            ShowToast(vi
+                ? $"Không đủ Ngọc Đỏ để Build Unit {index + 1}! Cần {cost} Ngọc Đỏ (Hiện có: {currentGems:N0})"
+                : $"Not enough Red Gems to build Unit {index + 1}! Need {cost} Red Gems (Current: {currentGems:N0})");
             return;
         }
 
@@ -300,13 +307,16 @@ public class BuildBodyController : MonoBehaviour
             PlayerPrefs.SetInt(GetBodyUnlockKey(index), 1);
             PlayerPrefs.Save();
             EquipSkin(index);
-            ShowToast($"★ Chúc mừng! Đã Build thành công AD Unit-{index + 1}! ★");
+            ShowToast(vi
+                ? $"★ Chúc mừng! Đã Build thành công AD Unit-{index + 1}! ★"
+                : $"★ Congratulations! Successfully built AD Unit-{index + 1}! ★");
         }
     }
 
     public void RefreshAllCards()
     {
         int currentEquipped = EquippedSkinIndex;
+        bool vi = GameSettings.IsVietnamese;
 
         for (int i = 0; i < cardViews.Length; i++)
         {
@@ -327,12 +337,12 @@ public class BuildBodyController : MonoBehaviour
             {
                 if (isEquipped)
                 {
-                    card.statusText.text = "Current version";
+                    card.statusText.text = vi ? "Phiên bản hiện tại" : "Current version";
                     card.statusText.gameObject.SetActive(true);
                 }
                 else if (isUnlocked)
                 {
-                    card.statusText.text = "Previous version";
+                    card.statusText.text = vi ? "Phiên bản trước" : "Previous version";
                     card.statusText.gameObject.SetActive(true);
                 }
                 else

@@ -52,7 +52,7 @@ namespace PGE.Auth
 
         private async void RunSignIn(Action<bool, UserProfile> onComplete)
         {
-            OnAuthStatusMessage?.Invoke("Đang xác thực với Google Play Games và máy chủ...");
+            OnAuthStatusMessage?.Invoke(GameSettings.IsVietnamese ? "Đang xác thực với Google Play Games và máy chủ..." : "Authenticating with Google Play Games and server...");
             bool success = AuthenticationServiceManager.Instance != null && await AuthenticationServiceManager.Instance.SignInGoogleAsync();
             UserProfile profile = BuildProfile();
             if (!success) OnAuthError?.Invoke(AuthenticationServiceManager.Instance?.LastError ?? "Google authentication unavailable.");

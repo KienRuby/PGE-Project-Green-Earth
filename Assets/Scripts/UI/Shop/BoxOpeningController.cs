@@ -36,6 +36,7 @@ public sealed class BoxOpeningController : MonoBehaviour
     {
         public int itemId;
         public string displayName;
+        public string description;
         public Sprite icon;
         public Sprite frame;
     }
@@ -77,7 +78,10 @@ public sealed class BoxOpeningController : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Image rewardFrameImage;
     [SerializeField] private UnityEngine.UI.Image rewardIconImage;
     [SerializeField] private TMP_Text rewardNameText;
+    [SerializeField] private TMP_Text rewardDescText;
     [SerializeField] private TMP_Text rewardAmountText;
+    [SerializeField] private TMP_Text tapToContinueText;
+    [SerializeField] private UnityEngine.UI.Button fullScreenTapButton;
 
     [Header("Result")]
     [SerializeField] private GameObject resultPanel;
@@ -97,8 +101,8 @@ public sealed class BoxOpeningController : MonoBehaviour
     [SerializeField, Min(0f)] private float rewardHoldDuration = 0.30f;
     [SerializeField, Min(0.01f)] private float transitionDuration = 0.13f;
 
-    private static readonly Vector2 RewardStartPosition = new Vector2(0f, -25f);
-    private static readonly Vector2 RewardDisplayPosition = new Vector2(0f, 300f);
+    private static readonly Vector2 RewardStartPosition = new Vector2(0f, -505f);
+    private static readonly Vector2 RewardDisplayPosition = new Vector2(0f, 44f);
     private static readonly Vector2[] SmokeDirections =
     {
         new Vector2(-230f, 40f), new Vector2(-170f, 135f), new Vector2(-85f, 205f),
@@ -116,6 +120,7 @@ public sealed class BoxOpeningController : MonoBehaviour
     private ShopController.RewardType currentRewardType;
     private BoxVisualSet currentVisualSet;
     private bool skipRequested;
+    private bool tapRequested;
     private bool shopWasActive;
     private GameObject activeShopPanel;
 
@@ -131,6 +136,7 @@ public sealed class BoxOpeningController : MonoBehaviour
         RebuildVisualLookups();
         if (skipButton != null) skipButton.onClick.AddListener(Skip);
         if (closeResultButton != null) closeResultButton.onClick.AddListener(CloseResult);
+        if (fullScreenTapButton != null) fullScreenTapButton.onClick.AddListener(OnTapContinue);
         ResetAllVisuals();
     }
 
@@ -138,6 +144,15 @@ public sealed class BoxOpeningController : MonoBehaviour
     {
         if (skipButton != null) skipButton.onClick.RemoveListener(Skip);
         if (closeResultButton != null) closeResultButton.onClick.RemoveListener(CloseResult);
+        if (fullScreenTapButton != null) fullScreenTapButton.onClick.RemoveListener(OnTapContinue);
+    }
+
+    public void OnTapContinue()
+    {
+        if (state == BoxOpeningState.RevealingReward)
+        {
+            tapRequested = true;
+        }
     }
 
     public bool TryBegin(
@@ -237,8 +252,19 @@ public sealed class BoxOpeningController : MonoBehaviour
             yield return PlayRewardReveal();
             if (TryCompleteSkip()) yield break;
 
-            float hold = currentDrops.Count >= 7 ? Mathf.Min(0.18f, rewardHoldDuration) : rewardHoldDuration;
-            yield return WaitInterruptible(hold);
+            tapRequested = false;
+            if (tapToContinueText != null)
+            {
+                tapToContinueText.gameObject.SetActive(true);
+                tapToContinueText.text = GameSettings.IsVietnamese ? "Chạm để tiếp tục" : "Tap to continue";
+            }
+
+            while (!tapRequested && !skipRequested)
+            {
+                if (rewardBurstImage != null && rewardBurstImage.gameObject.activeSelf)
+                    rewardBurstImage.rectTransform.Rotate(0f, 0f, 16f * Time.unscaledDeltaTime);
+                yield return null;
+            }
             if (TryCompleteSkip()) yield break;
 
             if (i < currentDrops.Count - 1)
@@ -355,12 +381,24 @@ public sealed class BoxOpeningController : MonoBehaviour
         rewardRoot.localScale = Vector3.one * 0.3f;
         rewardBurstImage.gameObject.SetActive(true);
         rewardGlowImage.gameObject.SetActive(true);
+        if (rewardNameText != null)
+        {
+            rewardNameText.gameObject.SetActive(true);
+            rewardNameText.alpha = 0f;
+        }
+        if (rewardDescText != null && !string.IsNullOrEmpty(rewardDescText.text))
+        {
+            rewardDescText.gameObject.SetActive(true);
+            rewardDescText.alpha = 0f;
+        }
 
         yield return Tween(rewardRevealDuration, value =>
         {
             float easedPosition = EaseOutBack(value);
             rewardRoot.anchoredPosition = Vector2.LerpUnclamped(RewardStartPosition, RewardDisplayPosition, easedPosition);
             rewardCanvasGroup.alpha = Mathf.Clamp01(value * 5f);
+            if (rewardNameText != null) rewardNameText.alpha = Mathf.Clamp01(value * 3f);
+            if (rewardDescText != null && rewardDescText.gameObject.activeSelf) rewardDescText.alpha = Mathf.Clamp01(value * 3f);
 
             float scale;
             if (value < 0.58f) scale = Mathf.Lerp(0.3f, 1.15f, EaseOutQuad(value / 0.58f));
@@ -376,6 +414,8 @@ public sealed class BoxOpeningController : MonoBehaviour
         rewardRoot.anchoredPosition = RewardDisplayPosition;
         rewardRoot.localScale = Vector3.one;
         rewardCanvasGroup.alpha = 1f;
+        if (rewardNameText != null) rewardNameText.alpha = 1f;
+        if (rewardDescText != null && rewardDescText.gameObject.activeSelf) rewardDescText.alpha = 1f;
     }
 
     private IEnumerator HideCurrentReward()
@@ -386,6 +426,9 @@ public sealed class BoxOpeningController : MonoBehaviour
             float eased = EaseInOutSine(value);
             rewardRoot.localScale = Vector3.Lerp(startScale, Vector3.one * 0.55f, eased);
             rewardCanvasGroup.alpha = 1f - eased;
+            if (rewardNameText != null) rewardNameText.alpha = 1f - eased;
+            if (rewardDescText != null) rewardDescText.alpha = 1f - eased;
+            if (tapToContinueText != null) tapToContinueText.alpha = 1f - eased;
         });
         ResetRewardVisual();
         ClearSmoke();
@@ -475,8 +518,54 @@ public sealed class BoxOpeningController : MonoBehaviour
         rewardFrameImage.enabled = rewardFrameImage.sprite != null;
         ApplyQuantityEffect(rewardGlowImage, drop.Pieces, true);
         ApplyQuantityEffect(rewardBurstImage, drop.Pieces, true);
-        rewardNameText.text = visual?.displayName ?? $"ITEM {drop.ItemId}";
-        rewardAmountText.text = $"x{drop.Pieces:N0}";
+        if (rewardNameText != null)
+        {
+            rewardNameText.text = visual?.displayName ?? $"ITEM {drop.ItemId}";
+            rewardNameText.color = Color.white;
+            rewardNameText.gameObject.SetActive(true);
+        }
+        if (rewardDescText != null)
+        {
+            string desc = GetLocalizedDescription(visual);
+            rewardDescText.text = desc;
+            rewardDescText.color = Color.white;
+            rewardDescText.gameObject.SetActive(!string.IsNullOrEmpty(desc));
+        }
+        if (rewardAmountText != null)
+        {
+            rewardAmountText.text = $"x{drop.Pieces:N0}";
+            rewardAmountText.color = Color.white;
+        }
+    }
+
+    private string GetLocalizedDescription(RewardVisualEntry visual)
+    {
+        if (visual == null || string.IsNullOrEmpty(visual.description)) return string.Empty;
+        if (!GameSettings.IsVietnamese) return visual.description;
+
+        string name = visual.displayName ?? string.Empty;
+        if (name.IndexOf("Rifle", StringComparison.OrdinalIgnoreCase) >= 0)
+            return "Vũ khí xả loạt đạn tốc độ cao";
+        if (name.IndexOf("Standard Gun", StringComparison.OrdinalIgnoreCase) >= 0)
+            return "Luôn được trang bị, kể cả khi không có trong bộ bài";
+        if (name.IndexOf("Rocket Punch", StringComparison.OrdinalIgnoreCase) >= 0)
+            return "Phóng nắm đấm tên lửa gây sát thương diện rộng";
+        if (name.IndexOf("Spinning Blade", StringComparison.OrdinalIgnoreCase) >= 0)
+            return "Ném phi đao xoay xuyên qua kẻ địch";
+        if (name.IndexOf("Multigun", StringComparison.OrdinalIgnoreCase) >= 0)
+            return "Bắn mưa đạn ra nhiều hướng cùng lúc";
+        if (name.IndexOf("Gun Turret", StringComparison.OrdinalIgnoreCase) >= 0)
+            return "Triển khai trụ súng tự động tấn công";
+        if (name.IndexOf("Spiky Discus", StringComparison.OrdinalIgnoreCase) >= 0)
+            return "Đĩa gai xoay quanh bản thân gây sát thương";
+        if (name.IndexOf("Shotgun", StringComparison.OrdinalIgnoreCase) >= 0)
+            return "Bắn loạt mảnh đạn uy lực mạnh ở tầm gần";
+        if (name.IndexOf("Energy Jumper Cables", StringComparison.OrdinalIgnoreCase) >= 0)
+            return "Hút sinh lực từ kẻ địch để hồi phục HP";
+        if (name.IndexOf("High-Explosive Mine", StringComparison.OrdinalIgnoreCase) >= 0)
+            return "Rải mìn phát nổ cực mạnh trên mặt đất";
+
+        return visual.description;
     }
 
     private RewardVisualEntry ResolveRewardVisual(int itemId)
@@ -505,7 +594,7 @@ public sealed class BoxOpeningController : MonoBehaviour
         else
         {
             effect.gameObject.SetActive(keepCommonEffect);
-            effect.color = new Color32(43, 245, 255, keepCommonEffect ? (byte)110 : (byte)0);
+            effect.color = new Color32(43, 245, 255, keepCommonEffect ? (byte)220 : (byte)0);
         }
     }
 
@@ -550,7 +639,7 @@ public sealed class BoxOpeningController : MonoBehaviour
         chestLidImage.sprite = set.lidSprite;
         chestOpenImage.sprite = set.openSprite;
 
-        float width = set.multiOpen ? 520f : 460f;
+        float width = set.multiOpen ? 450f : 325f;
         SetImageWidth(chestClosedImage, width);
         SetImageWidth(chestBaseImage, width);
         SetImageWidth(chestLidImage, width * 0.985f);
@@ -595,8 +684,18 @@ public sealed class BoxOpeningController : MonoBehaviour
         if (rewardCanvasGroup != null) rewardCanvasGroup.alpha = 0f;
         if (rewardIconImage != null) rewardIconImage.sprite = null;
         if (rewardFrameImage != null) rewardFrameImage.sprite = null;
-        if (rewardNameText != null) rewardNameText.text = string.Empty;
+        if (rewardNameText != null)
+        {
+            rewardNameText.text = string.Empty;
+            rewardNameText.gameObject.SetActive(false);
+        }
+        if (rewardDescText != null)
+        {
+            rewardDescText.text = string.Empty;
+            rewardDescText.gameObject.SetActive(false);
+        }
         if (rewardAmountText != null) rewardAmountText.text = string.Empty;
+        if (tapToContinueText != null) tapToContinueText.gameObject.SetActive(false);
         if (rewardGlowImage != null) rewardGlowImage.gameObject.SetActive(false);
         if (rewardBurstImage != null) rewardBurstImage.gameObject.SetActive(false);
     }

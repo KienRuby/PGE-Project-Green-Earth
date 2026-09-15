@@ -2334,4 +2334,82 @@ public class PGEGameLogicTests
 
         Object.DestroyImmediate(player);
     }
+
+    [Test]
+    public void PlayerSkinApplier_EquippingSkinInBuildBody_AppliesAccuratelyInGamePlayMatch()
+    {
+        int origSkin = BuildBodyController.EquippedSkinIndex;
+
+        try
+        {
+            GameObject player = new GameObject("TestPlayer");
+            GameObject body = new GameObject("thân");
+            body.transform.SetParent(player.transform, false);
+            body.AddComponent<SpriteRenderer>();
+
+            GameObject gunPivot = new GameObject("GunPivot");
+            gunPivot.transform.SetParent(body.transform, false);
+
+            GameObject gunSprite = new GameObject("GunSprite");
+            gunSprite.transform.SetParent(gunPivot.transform, false);
+            gunSprite.AddComponent<SpriteRenderer>();
+
+            GameObject arm = new GameObject("Tay");
+            arm.transform.SetParent(gunPivot.transform, false);
+            arm.AddComponent<SpriteRenderer>();
+
+            GameObject leg1 = new GameObject("Chan 1");
+            leg1.transform.SetParent(player.transform, false);
+            leg1.AddComponent<SpriteRenderer>();
+
+            GameObject leg2 = new GameObject("chan 2");
+            leg2.transform.SetParent(player.transform, false);
+            leg2.AddComponent<SpriteRenderer>();
+
+            PlayerSkinApplier applier = player.AddComponent<PlayerSkinApplier>();
+            applier.AutoEnsureVisualSlots();
+
+            Sprite[] testSprites = new Sprite[4];
+            for (int s = 0; s < 4; s++)
+            {
+                Texture2D tex = new Texture2D(32, 32);
+                testSprites[s] = Sprite.Create(tex, new Rect(0, 0, 32, 32), new Vector2(0.5f, 0.5f));
+                applier.skins[s].bodySprite = testSprites[s];
+                applier.skins[s].gunSprite = testSprites[s];
+                applier.skins[s].armSprite = testSprites[s];
+                applier.skins[s].leg1Sprite = testSprites[s];
+                applier.skins[s].leg2Sprite = testSprites[s];
+            }
+
+            for (int targetSkin = 0; targetSkin < 4; targetSkin++)
+            {
+                BuildBodyController.EquippedSkinIndex = targetSkin;
+                Assert.That(BuildBodyController.EquippedSkinIndex, Is.EqualTo(targetSkin));
+
+                applier.ApplyEquippedSkin();
+
+                Assert.That(applier.ActiveAppliedIndex, Is.EqualTo(targetSkin), $"ActiveAppliedIndex should match skin {targetSkin}");
+                Assert.That(applier.isShowingDefault, Is.False);
+                Assert.That(applier.bodyRenderer.sprite, Is.EqualTo(testSprites[targetSkin]), $"Body sprite should match skin {targetSkin}");
+                Assert.That(applier.gunRenderer.sprite, Is.EqualTo(testSprites[targetSkin]), $"Gun sprite should match skin {targetSkin}");
+                Assert.That(applier.armRenderer.sprite, Is.EqualTo(testSprites[targetSkin]), $"Arm sprite should match skin {targetSkin}");
+                Assert.That(applier.leg1Renderer.sprite, Is.EqualTo(testSprites[targetSkin]), $"Leg1 sprite should match skin {targetSkin}");
+                Assert.That(applier.leg2Renderer.sprite, Is.EqualTo(testSprites[targetSkin]), $"Leg2 sprite should match skin {targetSkin}");
+            }
+
+            for (int s = 0; s < 4; s++)
+            {
+                if (testSprites[s] != null)
+                {
+                    Object.DestroyImmediate(testSprites[s].texture);
+                    Object.DestroyImmediate(testSprites[s]);
+                }
+            }
+            Object.DestroyImmediate(player);
+        }
+        finally
+        {
+            BuildBodyController.EquippedSkinIndex = origSkin;
+        }
+    }
 }

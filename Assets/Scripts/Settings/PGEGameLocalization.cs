@@ -14,7 +14,76 @@ public static class PGEGameLocalization
         GameSettings.Changed -= ApplySavedLanguage;
         GameSettings.Changed += ApplySavedLanguage;
 
-        ApplySavedLanguage();
+        EnsureStartupSync();
+    }
+
+    private static void EnsureStartupSync()
+    {
+        try
+        {
+            Type locSettingsType = Type.GetType("UnityEngine.Localization.Settings.LocalizationSettings, Unity.Localization");
+            if (locSettingsType == null) return;
+
+            PropertyInfo initOpProp = locSettingsType.GetProperty("InitializationOperation", BindingFlags.Public | BindingFlags.Static);
+            if (initOpProp != null)
+            {
+                object initOp = initOpProp.GetValue(null);
+                if (initOp != null)
+                {
+                    PropertyInfo isDoneProp = initOp.GetType().GetProperty("IsDone");
+                    if (isDoneProp != null && (bool)isDoneProp.GetValue(initOp))
+                    {
+                        ApplySavedLanguage();
+                        return;
+                    }
+
+                    GameObject runnerObj = new GameObject("[PGEGameLocalizationHelper]");
+                    UnityEngine.Object.DontDestroyOnLoad(runnerObj);
+                    LocalizationStartupWatcher watcher = runnerObj.AddComponent<LocalizationStartupWatcher>();
+                    watcher.StartWatching(initOp);
+                    return;
+                }
+            }
+
+            ApplySavedLanguage();
+        }
+        catch (Exception ex)
+        {
+            Debug.LogWarning($"[PGEGameLocalization] Startup sync error: {ex.Message}");
+        }
+    }
+
+    private class LocalizationStartupWatcher : MonoBehaviour
+    {
+        public void StartWatching(object initOp)
+        {
+            StartCoroutine(WaitRoutine(initOp));
+        }
+
+        private System.Collections.IEnumerator WaitRoutine(object initOp)
+        {
+            if (initOp is System.Collections.IEnumerator enumerator)
+            {
+                yield return enumerator;
+            }
+            else
+            {
+                PropertyInfo isDoneProp = initOp?.GetType().GetProperty("IsDone");
+                float timeout = 5f;
+                while (timeout > 0f)
+                {
+                    if (isDoneProp != null && (bool)isDoneProp.GetValue(initOp))
+                    {
+                        break;
+                    }
+                    timeout -= Time.unscaledDeltaTime;
+                    yield return null;
+                }
+            }
+
+            ApplySavedLanguage();
+            Destroy(gameObject);
+        }
     }
 
     public static void ApplySavedLanguage()

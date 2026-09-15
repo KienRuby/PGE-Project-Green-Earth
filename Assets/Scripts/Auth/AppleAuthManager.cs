@@ -39,7 +39,7 @@ namespace PGE.Auth
 
         private async void RunSignIn(Action<bool, UserProfile> onComplete)
         {
-            OnAuthStatusMessage?.Invoke("Đang xác thực với Apple và máy chủ...");
+            OnAuthStatusMessage?.Invoke(GameSettings.IsVietnamese ? "Đang xác thực với Apple và máy chủ..." : "Authenticating with Apple and server...");
             bool success = AuthenticationServiceManager.Instance != null && await AuthenticationServiceManager.Instance.SignInAppleAsync();
             UserProfile profile = BuildProfile();
             if (!success) OnAuthError?.Invoke(AuthenticationServiceManager.Instance?.LastError ?? "Apple authentication unavailable.");

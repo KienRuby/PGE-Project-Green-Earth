@@ -341,20 +341,20 @@ public class PlayerSkinApplier : MonoBehaviour
 
         AutoEnsureVisualSlots();
 
-        // 1. Áp dụng Sprite cho từng bộ phận (fallback về mặc định nếu skin không có)
-        if (bodyRenderer != null)
+        // 1. Áp dụng Sprite cho từng bộ phận (chỉ gán nếu có sprite cấu hình hoặc sprite mặc định)
+        if (bodyRenderer != null && (skin.bodySprite != null || defaultBodySprite != null))
             bodyRenderer.sprite = (skin.bodySprite != null) ? skin.bodySprite : defaultBodySprite;
 
-        if (armRenderer != null)
+        if (armRenderer != null && (skin.armSprite != null || defaultArmSprite != null))
             armRenderer.sprite = (skin.armSprite != null) ? skin.armSprite : defaultArmSprite;
 
-        if (gunRenderer != null)
+        if (gunRenderer != null && (skin.gunSprite != null || defaultGunSprite != null))
             gunRenderer.sprite = (skin.gunSprite != null) ? skin.gunSprite : defaultGunSprite;
 
-        if (leg1Renderer != null)
+        if (leg1Renderer != null && (skin.leg1Sprite != null || defaultLeg1Sprite != null))
             leg1Renderer.sprite = (skin.leg1Sprite != null) ? skin.leg1Sprite : defaultLeg1Sprite;
 
-        if (leg2Renderer != null)
+        if (leg2Renderer != null && (skin.leg2Sprite != null || defaultLeg2Sprite != null))
             leg2Renderer.sprite = (skin.leg2Sprite != null) ? skin.leg2Sprite : defaultLeg2Sprite;
 
         // 2. Reset tất cả slots về (0,0) trước để tránh bị ảnh hưởng/lem bởi skin trước
@@ -482,6 +482,13 @@ public class PlayerSkinApplier : MonoBehaviour
         {
             skin.firePointOffset = firePoint.localPosition;
         }
+
+        // Tự động lưu luôn Sprite hiện tại trên Scene nếu người dùng kéo thả sprite trực tiếp vào SpriteRenderer
+        if (bodyRenderer != null && bodyRenderer.sprite != null) skin.bodySprite = bodyRenderer.sprite;
+        if (gunRenderer != null && gunRenderer.sprite != null) skin.gunSprite = gunRenderer.sprite;
+        if (armRenderer != null && armRenderer.sprite != null) skin.armSprite = armRenderer.sprite;
+        if (leg1Renderer != null && leg1Renderer.sprite != null) skin.leg1Sprite = leg1Renderer.sprite;
+        if (leg2Renderer != null && leg2Renderer.sprite != null) skin.leg2Sprite = leg2Renderer.sprite;
     }
 
     /// <summary>

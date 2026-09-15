@@ -76,23 +76,23 @@ public class PityGuaranteeTests
         so.FindProperty("progressBarSlider").objectReferenceValue = slider;
         so.ApplyModifiedProperties();
 
-        // Case 1: 3 / 10 -> còn 7 lượt
+        // Case 1: 3 / 10 -> còn 7 lượt / 7 rolls left
         row.Setup("ELITE", 3, 10, Color.blue);
         Assert.That(counterTxt.text, Does.Contain("3"));
         Assert.That(counterTxt.text, Does.Contain("10"));
-        Assert.That(remTxt.text, Does.Contain("Còn"));
         Assert.That(remTxt.text, Does.Contain("7"));
+        Assert.That(remTxt.text.Contains("rolls left") || remTxt.text.Contains("lượt"), Is.True);
         Assert.That(slider.value, Is.EqualTo(3));
         Assert.That(slider.maxValue, Is.EqualTo(10));
 
-        // Case 2: 10 / 10 -> ĐÃ KÍCH HOẠT BẢO HIỂM
+        // Case 2: 10 / 10 -> PITY GUARANTEED / ĐÃ KÍCH HOẠT BẢO HIỂM
         row.Setup("ELITE", 10, 10, Color.blue);
-        Assert.That(remTxt.text, Does.Contain("ĐÃ KÍCH HOẠT BẢO HIỂM"));
+        Assert.That(remTxt.text.Contains("PITY GUARANTEED") || remTxt.text.Contains("ĐÃ KÍCH HOẠT BẢO HIỂM"), Is.True);
         Assert.That(slider.value, Is.EqualTo(10));
 
-        // Case 3: 15 / 10 -> ĐÃ KÍCH HOẠT BẢO HIỂM (clamped)
+        // Case 3: 15 / 10 -> PITY GUARANTEED / ĐÃ KÍCH HOẠT BẢO HIỂM (clamped)
         row.Setup("ELITE", 15, 10, Color.blue);
-        Assert.That(remTxt.text, Does.Contain("ĐÃ KÍCH HOẠT BẢO HIỂM"));
+        Assert.That(remTxt.text.Contains("PITY GUARANTEED") || remTxt.text.Contains("ĐÃ KÍCH HOẠT BẢO HIỂM"), Is.True);
         Assert.That(slider.value, Is.EqualTo(10));
 
         UnityEngine.Object.DestroyImmediate(rowGo);

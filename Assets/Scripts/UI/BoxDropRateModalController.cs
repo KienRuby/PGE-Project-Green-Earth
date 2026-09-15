@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -43,6 +43,12 @@ public class BoxDropRateModalController : MonoBehaviour
     [SerializeField] private TMP_Text reward23Text;
     [SerializeField] private TMP_Text rate70Text;
     [SerializeField] private TMP_Text reward70Text;
+    [SerializeField] private TMP_Text tag7Text;
+    [SerializeField] private TMP_Text tag23Text;
+    [SerializeField] private TMP_Text tag70Text;
+    [SerializeField] private TMP_Text closeButtonText;
+
+    private string currentBoxType = "chipset";
 
     private void Awake()
     {
@@ -69,6 +75,25 @@ public class BoxDropRateModalController : MonoBehaviour
         }
     }
 
+    private void OnEnable()
+    {
+        GameSettings.Changed -= HandleSettingsChanged;
+        GameSettings.Changed += HandleSettingsChanged;
+    }
+
+    private void OnDisable()
+    {
+        GameSettings.Changed -= HandleSettingsChanged;
+    }
+
+    private void HandleSettingsChanged()
+    {
+        if (gameObject.activeInHierarchy || (modalRoot != null && modalRoot.activeSelf))
+        {
+            UpdateTexts(currentBoxType);
+        }
+    }
+
     public void ShowChipsetRates()
     {
         Show("chipset");
@@ -81,6 +106,8 @@ public class BoxDropRateModalController : MonoBehaviour
 
     public void Show(string boxType)
     {
+        currentBoxType = boxType;
+
         if (modalRoot != null)
         {
             modalRoot.SetActive(true);
@@ -90,7 +117,13 @@ public class BoxDropRateModalController : MonoBehaviour
             gameObject.SetActive(true);
         }
 
-        bool isChipset = boxType.ToLower().Contains("chipset");
+        UpdateTexts(boxType);
+    }
+
+    public void UpdateTexts(string boxType)
+    {
+        bool isChipset = (boxType ?? string.Empty).ToLower().Contains("chipset");
+        bool vi = GameSettings.IsVietnamese;
 
         if (titleText != null)
         {
@@ -99,29 +132,51 @@ public class BoxDropRateModalController : MonoBehaviour
 
         if (subtitleText != null)
         {
-            subtitleText.text = isChipset 
-                ? "Mỗi hộp Chipset chứa các mảnh Chipset ngẫu nhiên với tỷ lệ:" 
-                : "Mỗi hộp Drone chứa các mảnh Drone ngẫu nhiên với tỷ lệ:";
+            subtitleText.text = vi
+                ? (isChipset 
+                    ? "Mỗi hộp Chipset chứa các mảnh Chipset ngẫu nhiên với tỷ lệ:" 
+                    : "Mỗi hộp Drone chứa các mảnh Drone ngẫu nhiên với tỷ lệ:")
+                : (isChipset
+                    ? "Each Chipset box contains random Chipset fragments with drop rates:"
+                    : "Each Drone box contains random Drone fragments with drop rates:");
         }
 
         if (reward7Text != null)
         {
-            reward7Text.text = isChipset ? "7 Mảnh Chipset (x7)" : "7 Mảnh Drone (x7)";
+            reward7Text.text = vi
+                ? (isChipset ? "7 Mảnh Chipset (x7)" : "7 Mảnh Drone (x7)")
+                : (isChipset ? "7 Chipset Fragments (x7)" : "7 Drone Fragments (x7)");
         }
 
         if (reward23Text != null)
         {
-            reward23Text.text = isChipset ? "3 Mảnh Chipset (x3)" : "3 Mảnh Drone (x3)";
+            reward23Text.text = vi
+                ? (isChipset ? "3 Mảnh Chipset (x3)" : "3 Mảnh Drone (x3)")
+                : (isChipset ? "3 Chipset Fragments (x3)" : "3 Drone Fragments (x3)");
         }
 
         if (reward70Text != null)
         {
-            reward70Text.text = isChipset ? "1 Mảnh Chipset (x1)" : "1 Mảnh Drone (x1)";
+            reward70Text.text = vi
+                ? (isChipset ? "1 Mảnh Chipset (x1)" : "1 Mảnh Drone (x1)")
+                : (isChipset ? "1 Chipset Fragment (x1)" : "1 Drone Fragment (x1)");
         }
+
+        if (tag7Text == null && rowsContainer != null) tag7Text = rowsContainer.Find("Row_7Percent/TagText")?.GetComponent<TMP_Text>();
+        if (tag23Text == null && rowsContainer != null) tag23Text = rowsContainer.Find("Row_23Percent/TagText")?.GetComponent<TMP_Text>();
+        if (tag70Text == null && rowsContainer != null) tag70Text = rowsContainer.Find("Row_70Percent/TagText")?.GetComponent<TMP_Text>();
+        if (closeButtonText == null && closeButton != null) closeButtonText = closeButton.GetComponentInChildren<TMP_Text>(true);
+
+        if (tag7Text != null) tag7Text.text = vi ? "⭐ SIÊU HIẾM" : "⭐ SUPER RARE";
+        if (tag23Text != null) tag23Text.text = vi ? "★ HIẾM" : "★ RARE";
+        if (tag70Text != null) tag70Text.text = vi ? "PHỔ BIẾN" : "COMMON";
+        if (closeButtonText != null) closeButtonText.text = vi ? "ĐÓNG" : "CLOSE";
 
         if (noteText != null)
         {
-            noteText.text = "* Lưu ý: Hộp 10 lần (10 times) tương đương mở 10 hộp với cùng tỷ lệ độc lập trên.";
+            noteText.text = vi
+                ? "* Lưu ý: Hộp 10 lần (10 times) tương đương mở 10 hộp với cùng tỷ lệ độc lập trên."
+                : "* Note: 10-times box is equivalent to opening 10 individual boxes with the same rates above.";
         }
     }
 
@@ -214,7 +269,7 @@ public class BoxDropRateModalController : MonoBehaviour
         subRt.anchoredPosition = new Vector2(0f, -68f);
         subRt.sizeDelta = new Vector2(500f, 40f);
         TextMeshProUGUI subTmp = subObj.GetComponent<TextMeshProUGUI>();
-        subTmp.text = "Mỗi hộp chứa ngẫu nhiên các mảnh với tỷ lệ:";
+        subTmp.text = "Each box contains random fragments with drop rates:";
         subTmp.fontSize = 15f;
         subTmp.alignment = TextAlignmentOptions.Center;
         subTmp.color = new Color(0.75f, 0.85f, 0.95f, 1f);
@@ -235,9 +290,9 @@ public class BoxDropRateModalController : MonoBehaviour
         vlg.childControlHeight = false;
 
         // Tạo 3 hàng
-        CreateRateRow(rowsObj.transform, "Row_7Percent", "7%", new Color(1f, 0.85f, 0.2f, 1f), "7 Mảnh (x7)", "⭐ SIÊU HIẾM", out TMP_Text r7, out TMP_Text rew7);
-        CreateRateRow(rowsObj.transform, "Row_23Percent", "23%", new Color(0.35f, 0.8f, 1f, 1f), "3 Mảnh (x3)", "★ HIẾM", out TMP_Text r23, out TMP_Text rew23);
-        CreateRateRow(rowsObj.transform, "Row_70Percent", "70%", new Color(0.85f, 0.9f, 0.95f, 1f), "1 Mảnh (x1)", "PHỔ BIẾN", out TMP_Text r70, out TMP_Text rew70);
+        CreateRateRow(rowsObj.transform, "Row_7Percent", "7%", new Color(1f, 0.85f, 0.2f, 1f), "7 Fragments (x7)", "⭐ SUPER RARE", out TMP_Text r7, out TMP_Text rew7, out TMP_Text tag7);
+        CreateRateRow(rowsObj.transform, "Row_23Percent", "23%", new Color(0.35f, 0.8f, 1f, 1f), "3 Fragments (x3)", "★ RARE", out TMP_Text r23, out TMP_Text rew23, out TMP_Text tag23);
+        CreateRateRow(rowsObj.transform, "Row_70Percent", "70%", new Color(0.85f, 0.9f, 0.95f, 1f), "1 Fragment (x1)", "COMMON", out TMP_Text r70, out TMP_Text rew70, out TMP_Text tag70);
 
         // Note
         GameObject noteObj = new GameObject("NoteText", typeof(RectTransform), typeof(TextMeshProUGUI));
@@ -249,7 +304,7 @@ public class BoxDropRateModalController : MonoBehaviour
         noteRt.anchoredPosition = new Vector2(0f, 75f);
         noteRt.sizeDelta = new Vector2(500f, 35f);
         TextMeshProUGUI noteTmp = noteObj.GetComponent<TextMeshProUGUI>();
-        noteTmp.text = "* Hộp 10 lần (10 times) tương đương mở 10 hộp độc lập với cùng tỷ lệ trên.";
+        noteTmp.text = "* Note: 10-times box is equivalent to opening 10 individual boxes with the same rates above.";
         noteTmp.fontSize = 13f;
         noteTmp.fontStyle = FontStyles.Italic;
         noteTmp.alignment = TextAlignmentOptions.Center;
@@ -275,7 +330,7 @@ public class BoxDropRateModalController : MonoBehaviour
         closeTxtRt.anchorMax = Vector2.one;
         closeTxtRt.sizeDelta = Vector2.zero;
         TextMeshProUGUI closeTxt = closeTxtObj.GetComponent<TextMeshProUGUI>();
-        closeTxt.text = "ĐÓNG";
+        closeTxt.text = "CLOSE";
         closeTxt.fontSize = 18f;
         closeTxt.fontStyle = FontStyles.Bold;
         closeTxt.alignment = TextAlignmentOptions.Center;
@@ -313,13 +368,17 @@ public class BoxDropRateModalController : MonoBehaviour
         ctrl.subtitleText = subTmp;
         ctrl.noteText = noteTmp;
         ctrl.closeButton = closeBtn;
+        ctrl.closeButtonText = closeTxt;
         ctrl.backgroundDimButton = dimBtn;
         ctrl.rate7Text = r7;
         ctrl.reward7Text = rew7;
+        ctrl.tag7Text = tag7;
         ctrl.rate23Text = r23;
         ctrl.reward23Text = rew23;
+        ctrl.tag23Text = tag23;
         ctrl.rate70Text = r70;
         ctrl.reward70Text = rew70;
+        ctrl.tag70Text = tag70;
 
         xBtn.onClick.AddListener(ctrl.Close);
         closeBtn.onClick.AddListener(ctrl.Close);
@@ -329,7 +388,7 @@ public class BoxDropRateModalController : MonoBehaviour
         return ctrl;
     }
 
-    private static void CreateRateRow(Transform parent, string name, string rateStr, Color rateColor, string rewardStr, string tagStr, out TMP_Text rateOut, out TMP_Text rewardOut)
+    private static void CreateRateRow(Transform parent, string name, string rateStr, Color rateColor, string rewardStr, string tagStr, out TMP_Text rateOut, out TMP_Text rewardOut, out TMP_Text tagOut)
     {
         GameObject row = new GameObject(name, typeof(RectTransform), typeof(Image));
         row.transform.SetParent(parent, false);
@@ -386,5 +445,6 @@ public class BoxDropRateModalController : MonoBehaviour
         tagTmp.fontSize = 13f;
         tagTmp.color = rateColor;
         tagTmp.alignment = TextAlignmentOptions.Right;
+        tagOut = tagTmp;
     }
 }

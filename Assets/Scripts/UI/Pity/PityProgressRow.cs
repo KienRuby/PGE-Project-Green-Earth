@@ -71,17 +71,19 @@ public class PityProgressRow : MonoBehaviour
             }
         }
 
+        bool vi = GameSettings.IsVietnamese;
+
         // 3. Xử lý trường hợp tắt bảo hiểm
         if (threshold <= 0)
         {
             if (counterText != null)
             {
-                counterText.text = "TẮT";
+                counterText.text = vi ? "TẮT" : "OFF";
                 counterText.color = new Color(0.6f, 0.6f, 0.6f, 1f);
             }
             if (remainingText != null)
             {
-                remainingText.text = "<color=#888888>Chưa bật</color>";
+                remainingText.text = vi ? "<color=#888888>Chưa bật</color>" : "<color=#888888>Disabled</color>";
             }
             if (progressBarSlider != null)
             {
@@ -138,11 +140,15 @@ public class PityProgressRow : MonoBehaviour
             remainingText.color = tierColor;
             if (remaining <= 0 || currentCount >= threshold)
             {
-                remainingText.text = "<color=#FFD700>★ ĐÃ KÍCH HOẠT BẢO HIỂM ★</color>";
+                remainingText.text = vi 
+                    ? "<color=#FFD700>★ ĐÃ KÍCH HOẠT BẢO HIỂM ★</color>" 
+                    : "<color=#FFD700>★ PITY GUARANTEED ★</color>";
             }
             else
             {
-                remainingText.text = $"Còn {remaining} lượt";
+                remainingText.text = vi 
+                    ? $"Còn {remaining} lượt" 
+                    : (remaining == 1 ? "1 roll left" : $"{remaining} rolls left");
             }
         }
     }

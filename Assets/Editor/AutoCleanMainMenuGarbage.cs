@@ -64,10 +64,6 @@ public static class AutoCleanMainMenuGarbage
             EditorSceneManager.SaveScene(scene);
             Debug.Log($"[AutoClean] >>> ĐÃ DỌN DẸP THÀNH CÔNG {deletedCount} ĐỐI TƯỢNG RÁC VÀ ĐÃ LƯU SCENE MAINMENU! <<<");
         }
-        else
-        {
-            Debug.Log("[AutoClean] Scene MainMenu đã hoàn toàn sạch sẽ, không còn đối tượng rác nào.");
-        }
 
         // Tự động gắn các nút Info và Modal tỷ lệ mở hộp nếu chưa có
         GameObject chipCard = null;

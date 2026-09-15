@@ -23,7 +23,6 @@ public static class ArtifactSystemSetup
     private const string ResourcesFolderPath = "Assets/Resources";
     private const string SpriteSheetPath = "Assets/Sprites/UI/nút artifact.png";
 
-    [InitializeOnLoadMethod]
     [MenuItem("PGE/Setup Artifact Database & Defaults", false, 120)]
     [MenuItem("Tools/PGE/Setup Artifact Database & Defaults", false, 120)]
     public static void GenerateArtifactAssets()
