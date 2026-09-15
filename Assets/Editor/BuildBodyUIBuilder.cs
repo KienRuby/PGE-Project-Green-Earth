@@ -18,7 +18,6 @@ using UnityEngine.UI;
 /// - AD Unit-4 có nút Build với giá 500 Ngọc Đỏ.
 /// - Kết nối đầy đủ 100% SerializedProperty với BuildBodyController.
 /// </summary>
-[InitializeOnLoad]
 public static class BuildBodyUIBuilder
 {
     private const string ScenePath = "Assets/Scenes/MainMenu.unity";
@@ -40,15 +39,6 @@ public static class BuildBodyUIBuilder
     // Font Paths
     private const string NunitoFontPath = "Assets/Fonts/Nunito/Nunito SDF.asset";
     private const string DefaultFontPath = "Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset";
-
-    static BuildBodyUIBuilder()
-    {
-        EditorApplication.delayCall += () =>
-        {
-            TryBuildRequestedUI();
-        };
-        EditorApplication.update += TryBuildRequestedUI;
-    }
 
     private static void TryBuildRequestedUI()
     {

@@ -5,13 +5,8 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
 
-[InitializeOnLoad]
 public class ShopScrollerWindow : EditorWindow
 {
-    static ShopScrollerWindow()
-    {
-        EditorApplication.delayCall += EnsureScrollerAttachedToScene;
-    }
 
     public static void EnsureScrollerAttachedToScene()
     {

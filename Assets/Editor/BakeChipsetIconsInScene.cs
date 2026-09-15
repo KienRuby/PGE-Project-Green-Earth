@@ -9,13 +9,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-[InitializeOnLoad]
 public static class BakeChipsetIconsInScene
 {
-    static BakeChipsetIconsInScene()
-    {
-        // Available via menu: PGE > Bake All Panels In Scene
-    }
 
     private static void ExecuteBakeIfOpen()
     {

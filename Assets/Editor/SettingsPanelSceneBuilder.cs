@@ -10,7 +10,6 @@ using UnityEngine.SceneManagement;
 /// Tự động xây dựng và đặt GameObject SettingsPanel tĩnh vào Hierarchy của Scene MainMenu.
 /// Menu: PGE > UI > Build Settings Panel Only
 /// </summary>
-[InitializeOnLoad]
 public static class SettingsPanelSceneBuilder
 {
     private const string MainMenuScenePath = "Assets/Scenes/MainMenu.unity";
@@ -19,11 +18,6 @@ public static class SettingsPanelSceneBuilder
     private const string PrefabPath = "Assets/Prefabs/UI/SettingsPanel.prefab";
     private const string BuildRequestPath = "Assets/Editor/PGE_SettingsPanel_BuildRequest.txt";
     private const string BuildGamePlayRequestPath = "Assets/Editor/PGE_SettingsPanel_GamePlay_BuildRequest.txt";
-
-    static SettingsPanelSceneBuilder()
-    {
-        EditorApplication.update += TryBuildRequestedUI;
-    }
 
     private static void TryBuildRequestedUI()
     {

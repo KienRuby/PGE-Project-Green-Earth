@@ -8,7 +8,6 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-[InitializeOnLoad] // Keeps the serialized scene wiring reproducible after a clean checkout.
 public static class BoxOpeningSceneInstaller
 {
     private const string MainMenuScenePath = "Assets/Scenes/MainMenu.unity";
@@ -22,11 +21,6 @@ public static class BoxOpeningSceneInstaller
     private const string RewardStrokeMaterialPath = "Assets/Fonts/Nunito/Nunito SDF - RewardStroke.mat";
     private const string StrokeMaterialPath = "Assets/Fonts/Nunito/Nunito SDF - Stroke.mat";
     private const string SessionKey = "PGE.BoxOpeningSceneInstaller.v7";
-
-    static BoxOpeningSceneInstaller()
-    {
-        EditorApplication.delayCall += InstallOnceAfterCompile;
-    }
 
     [MenuItem("PGE/UI/Install Box Opening Flow")]
     public static void InstallFromMenu()

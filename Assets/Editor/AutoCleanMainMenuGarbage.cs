@@ -5,15 +5,9 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-[InitializeOnLoad]
 public static class AutoCleanMainMenuGarbage
 {
     private const string MainMenuPath = "Assets/Scenes/MainMenu.unity";
-
-    static AutoCleanMainMenuGarbage()
-    {
-        EditorApplication.delayCall += ExecuteClean;
-    }
 
     [MenuItem("PGE/Tools/Force Clean MainMenu Scene Now")]
     public static void ExecuteClean()
@@ -27,6 +21,10 @@ public static class AutoCleanMainMenuGarbage
 
         if (scene.path != MainMenuPath)
         {
+            if (!EditorUtility.DisplayDialog("Clean MainMenu Scene", "Bạn có muốn mở Scene MainMenu để dọn dẹp không?", "Đồng ý", "Hủy"))
+            {
+                return;
+            }
             scene = EditorSceneManager.OpenScene(MainMenuPath, OpenSceneMode.Single);
         }
 

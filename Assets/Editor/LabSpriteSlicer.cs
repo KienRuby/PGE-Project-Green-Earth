@@ -7,15 +7,9 @@ using UnityEditor;
 using UnityEditor.U2D.Sprites;
 using UnityEngine;
 
-[InitializeOnLoad]
 public static class LabSpriteSlicer
 {
     private const string TexturePath = "Assets/Sprites/UI/Lab/nút màn lab 1.png";
-
-    static LabSpriteSlicer()
-    {
-        // Available via menu: PGE > UI > Slice Lab Texture 1
-    }
 
     [MenuItem("PGE/UI/Slice Lab Texture 1")]
     public static void SliceLabTexture()

@@ -9,7 +9,6 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-[InitializeOnLoad]
 public static class LabSlotConfigurator
 {
     private const string LabTexturePath = "Assets/Sprites/UI/Lab/nút màn lab 1.png";
@@ -34,11 +33,6 @@ public static class LabSlotConfigurator
         "Move Speed",
         "Chipset Selection"
     };
-
-    static LabSlotConfigurator()
-    {
-        // One-time configure available via PGE > UI > Configure All 16 Lab Slots Like Slot 1
-    }
 
     [MenuItem("PGE/UI/Configure All 16 Lab Slots Like Slot 1")]
     public static void ConfigureAllSlots()

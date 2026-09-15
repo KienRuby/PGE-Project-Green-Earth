@@ -18,7 +18,6 @@ using UnityEngine.UI;
 /// 
 /// Menu: PGE > UI > Build Pity Guarantee UI
 /// </summary>
-[InitializeOnLoad]
 public static class PityUIBuilder
 {
     private const string ScenePath = "Assets/Scenes/MainMenu.unity";
@@ -28,11 +27,6 @@ public static class PityUIBuilder
     private const string PrefabDir = "Assets/Prefabs/UI";
     private const string PrefabPath = "Assets/Prefabs/UI/PityGuaranteePanel.prefab";
     private const string BuildRequestPath = "Assets/Editor/PGE_PityUI_BuildRequest.txt";
-
-    static PityUIBuilder()
-    {
-        EditorApplication.update += TryBuildRequestedUI;
-    }
 
     private static void TryBuildRequestedUI()
     {

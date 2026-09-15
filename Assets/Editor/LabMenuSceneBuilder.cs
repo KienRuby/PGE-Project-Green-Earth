@@ -12,22 +12,8 @@ using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-[InitializeOnLoad]
 public static class LabMenuSceneBuilder
 {
-    static LabMenuSceneBuilder()
-    {
-        EditorApplication.update += TryBuildRequestedScene;
-        EditorApplication.update += TryBuildRequestedShopPanel;
-        EditorApplication.update += TryBuildRequestedChipsetPanel;
-        EditorApplication.update += TryApplyRequestedGreenChipsetFrames;
-        EditorApplication.update += TryApplyRequestedSelectedBottomBarLayout;
-        EditorApplication.update += TryApplyRequestedUpgradeArrowLayout;
-        EditorApplication.update += TryBuildRequestedBuddyPanel;
-        EditorApplication.update += TryUpdateRequestedLabStats;
-        EditorApplication.update += TryCleanDuplicateModalsRequested;
-    }
-
     private sealed class SlotView
     {
         public GameObject lockedGroup;

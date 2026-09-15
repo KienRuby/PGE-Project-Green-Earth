@@ -7,7 +7,6 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-[InitializeOnLoad]
 public static class GunTurretSetupHelper
 {
     private const string GamePlayScenePath = "Assets/Scenes/GamePlay.unity";
@@ -15,11 +14,6 @@ public static class GunTurretSetupHelper
     private const string ProjectilePrefabPath = "Assets/Prefabs/Projectile.prefab";
     private const string ExplosionPrefabPath = "Assets/Prefabs/VFX Boom.prefab";
     private const string RequestTriggerPath = "Assets/Editor/PGE_GunTurretSetup_Request.txt";
-
-    static GunTurretSetupHelper()
-    {
-        EditorApplication.update += TryAutoSetupGunTurret;
-    }
 
     [MenuItem("PGE/Skills/Setup Gun Turret Prefab and Player")]
     public static void SetupGunTurretAndPlayer()
