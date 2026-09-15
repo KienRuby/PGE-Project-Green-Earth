@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using TMPro;
 using UnityEngine;
@@ -740,6 +741,7 @@ public class SettingsPanelController : MonoBehaviour, IPointerClickHandler
             return;
         }
 
+        UpdateLanguageOptionLabels();
         UIDissolveController.ShowInstant(languageOptionsPanel);
         languageOptionsPanel.transform.SetAsLastSibling();
     }
@@ -748,8 +750,29 @@ public class SettingsPanelController : MonoBehaviour, IPointerClickHandler
     {
         GameSettings.Language = language;
         PGEGameLocalization.ApplySavedLanguage();
+        UpdateLanguageOptionLabels();
         if (languageOptionsPanel != null) UIDissolveController.HideWithEffect(languageOptionsPanel);
         RefreshLabels();
+    }
+
+    public void UpdateLanguageOptionLabels()
+    {
+        if (languageOptionsPanel == null) return;
+
+        string currentLang = GameSettings.Language;
+        foreach (string language in GameSettings.SupportedLanguages)
+        {
+            Transform optionTransform = languageOptionsPanel.transform.Find(language + "Button");
+            if (optionTransform == null) continue;
+
+            TMP_Text txt = optionTransform.GetComponentInChildren<TMP_Text>(true);
+            if (txt == null) continue;
+
+            string displayName = GameSettings.GetLanguageDisplayName(language);
+            bool isActive = string.Equals(GameSettings.NormalizeLanguage(language), currentLang, StringComparison.OrdinalIgnoreCase);
+
+            txt.text = isActive ? $"✓  {displayName}" : displayName;
+        }
     }
 
     private void EnsureLanguageOptionsPanel()
@@ -764,6 +787,7 @@ public class SettingsPanelController : MonoBehaviour, IPointerClickHandler
         {
             EnsureLanguagePanelBlocksClicks();
             BindLanguageOptionButtons();
+            UpdateLanguageOptionLabels();
             return;
         }
         if (languageButton == null) return;
@@ -796,6 +820,7 @@ public class SettingsPanelController : MonoBehaviour, IPointerClickHandler
         languageOptionsPanel.transform.SetAsLastSibling();
         EnsureLanguagePanelBlocksClicks();
         BindLanguageOptionButtons();
+        UpdateLanguageOptionLabels();
         languageOptionsPanel.SetActive(false);
     }
 

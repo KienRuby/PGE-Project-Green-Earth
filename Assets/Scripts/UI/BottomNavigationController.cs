@@ -143,6 +143,14 @@ public class BottomNavigationController : MonoBehaviour
         int initialIndex = Mathf.Clamp(defaultSelectedIndex, 0, items.Length - 1);
         ApplySelectionState(initialIndex, animated: false);
         ApplyRestingVisualState(initialIndex);
+        EnsureLocalizedLabels();
+    }
+
+    private void OnEnable()
+    {
+        GameSettings.Changed -= EnsureLocalizedLabels;
+        GameSettings.Changed += EnsureLocalizedLabels;
+        EnsureLocalizedLabels();
     }
 
     private void OnDisable()
@@ -157,6 +165,81 @@ public class BottomNavigationController : MonoBehaviour
         {
             ApplyRestingVisualState(currentIndex);
         }
+
+        GameSettings.Changed -= EnsureLocalizedLabels;
+    }
+
+    public void SetItemsForTesting(NavigationItem[] testItems)
+    {
+        items = testItems;
+    }
+
+    public void EnsureLocalizedLabels()
+    {
+        if (items == null) return;
+
+        bool isVi = GameSettings.IsVietnamese || string.Equals(GameSettings.Language, "Tiếng Việt", StringComparison.OrdinalIgnoreCase);
+
+        for (int i = 0; i < items.Length; i++)
+        {
+            NavigationItem item = items[i];
+            if (item == null) continue;
+
+            if (isVi)
+            {
+                if (item.label == null && item.button != null)
+                {
+                    Transform existing = item.button.transform.Find("LocalizedLabel");
+                    if (existing != null)
+                    {
+                        item.label = existing.GetComponent<TMP_Text>();
+                    }
+                    if (item.label == null)
+                    {
+                        GameObject labelObj = new GameObject("LocalizedLabel", typeof(RectTransform), typeof(TextMeshProUGUI));
+                        labelObj.transform.SetParent(item.button.transform, false);
+                        RectTransform rt = labelObj.GetComponent<RectTransform>();
+                        rt.anchorMin = Vector2.zero;
+                        rt.anchorMax = Vector2.one;
+                        rt.offsetMin = Vector2.zero;
+                        rt.offsetMax = Vector2.zero;
+
+                        TextMeshProUGUI tmp = labelObj.GetComponent<TextMeshProUGUI>();
+                        tmp.fontSize = 20;
+                        tmp.alignment = TextAlignmentOptions.Center;
+                        tmp.raycastTarget = false;
+                        item.label = tmp;
+                    }
+                }
+
+                if (item.label != null)
+                {
+                    item.label.gameObject.SetActive(true);
+                    item.label.text = GetLocalizedTabName(item.name);
+                }
+            }
+            else
+            {
+                if (item.label != null)
+                {
+                    item.label.gameObject.SetActive(false);
+                }
+            }
+        }
+    }
+
+    private static string GetLocalizedTabName(string tabName)
+    {
+        if (string.IsNullOrEmpty(tabName)) return string.Empty;
+
+        if (tabName.Equals("Shop", StringComparison.OrdinalIgnoreCase)) return "Cửa hàng";
+        if (tabName.Equals("Lab", StringComparison.OrdinalIgnoreCase)) return "Phòng thí nghiệm";
+        if (tabName.Equals("Chapter", StringComparison.OrdinalIgnoreCase) || tabName.Equals("Battle", StringComparison.OrdinalIgnoreCase)) return "Chiến đấu";
+        if (tabName.Equals("Chipset", StringComparison.OrdinalIgnoreCase)) return "Chipset";
+        if (tabName.Equals("Buddy", StringComparison.OrdinalIgnoreCase)) return "Đồng đội";
+        if (tabName.Equals("Artifact", StringComparison.OrdinalIgnoreCase)) return "Cổ vật";
+
+        return tabName;
     }
 
     private void OnDestroy()
