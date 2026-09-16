@@ -478,7 +478,7 @@ public class DailyLoginItemUI : MonoBehaviour
                 }
                 if (btnRect != null)
                 {
-                    btnRect.sizeDelta = new Vector2(240f, 105f);
+                    ApplyReferenceSpriteSize(btnRect, btnGetSprite, new Vector2(174f, 76f));
                 }
                 if (claimButtonText != null)
                 {
@@ -501,8 +501,7 @@ public class DailyLoginItemUI : MonoBehaviour
                 }
                 if (btnRect != null)
                 {
-                    // Tỷ lệ 373 x 174 -> 255 x 119
-                    btnRect.sizeDelta = new Vector2(255f, 119f);
+                    ApplyReferenceSpriteSize(btnRect, btnClaimAgainSprite, new Vector2(186.5f, 87f));
                 }
                 if (claimButtonText != null)
                 {
@@ -527,7 +526,7 @@ public class DailyLoginItemUI : MonoBehaviour
                 }
                 if (btnRect != null)
                 {
-                    btnRect.sizeDelta = new Vector2(240f, 105f);
+                    ApplyReferenceSpriteSize(btnRect, btnObtainedSprite, new Vector2(174f, 76f));
                 }
                 if (claimButtonText != null)
                 {
@@ -769,7 +768,7 @@ public class DailyLoginItemUI : MonoBehaviour
         GameObject badge = new GameObject("RewardBadge", typeof(RectTransform), typeof(Image));
         badge.transform.SetParent(parent, false);
         RectTransform rt = badge.GetComponent<RectTransform>();
-        rt.sizeDelta = new Vector2(100f, 100f);
+        rt.sizeDelta = new Vector2(82f, 84f);
         badge.GetComponent<Image>().color = new Color32(11, 45, 60, 0);
 
         GameObject iconObj = new GameObject("Icon", typeof(RectTransform), typeof(Image));
@@ -777,8 +776,8 @@ public class DailyLoginItemUI : MonoBehaviour
         RectTransform iconRt = iconObj.GetComponent<RectTransform>();
         iconRt.anchorMin = new Vector2(0.5f, 0.5f);
         iconRt.anchorMax = new Vector2(0.5f, 0.5f);
-        iconRt.anchoredPosition = new Vector2(0f, 10f);
-        iconRt.sizeDelta = new Vector2(50f, 50f);
+        iconRt.anchoredPosition = new Vector2(0f, 8f);
+        iconRt.sizeDelta = new Vector2(82f, 84f);
         iconObj.GetComponent<Image>().preserveAspect = true;
 
         GameObject textObj = new GameObject("AmountText", typeof(RectTransform), typeof(TextMeshProUGUI));
@@ -794,6 +793,11 @@ public class DailyLoginItemUI : MonoBehaviour
         txt.color = Color.white;
 
         return badge;
+    }
+
+    private static void ApplyReferenceSpriteSize(RectTransform rect, Sprite sprite, Vector2 fallbackSize)
+    {
+        rect.sizeDelta = sprite != null ? sprite.rect.size * 0.5f : fallbackSize;
     }
 
     public void SetReferencesForBuilder(

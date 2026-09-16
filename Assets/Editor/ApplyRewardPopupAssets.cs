@@ -325,7 +325,7 @@ namespace PGE.EditorTools
                     HorizontalLayoutGroup rLayout = rewardsTr.GetComponent<HorizontalLayoutGroup>();
                     if (rLayout != null)
                     {
-                        rLayout.spacing = 18f;
+                        rLayout.spacing = 45f;
                         rLayout.childAlignment = TextAnchor.MiddleLeft;
                         rLayout.childControlWidth = false;
                         rLayout.childControlHeight = false;
@@ -340,7 +340,7 @@ namespace PGE.EditorTools
                             GameObject badge = new GameObject($"RewardBadge_{r}", typeof(RectTransform), typeof(Image));
                             badge.transform.SetParent(rewardsTr, false);
                             RectTransform badgeRt = badge.GetComponent<RectTransform>();
-                            badgeRt.sizeDelta = new Vector2(75f, 75f);
+                            badgeRt.sizeDelta = new Vector2(82f, 84f);
                             Image badgeBg = badge.GetComponent<Image>();
                             badgeBg.color = new Color32(11, 45, 60, 0); // alpha = 0 theo yêu cầu người dùng
                             badgeBg.raycastTarget = false;
@@ -353,7 +353,7 @@ namespace PGE.EditorTools
                             iconRt.anchorMax = new Vector2(0.5f, 0.5f);
                             iconRt.pivot = new Vector2(0.5f, 0.5f);
                             iconRt.anchoredPosition = new Vector2(0f, 8f);
-                            iconRt.sizeDelta = new Vector2(45f, 45f);
+                            iconRt.sizeDelta = new Vector2(82f, 84f);
                             Image iconImg = iconObj.GetComponent<Image>();
                             iconImg.sprite = rw.sprite;
                             iconImg.preserveAspect = true;

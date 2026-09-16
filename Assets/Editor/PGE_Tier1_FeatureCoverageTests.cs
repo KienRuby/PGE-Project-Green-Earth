@@ -1599,14 +1599,14 @@ public class PGE_Tier1_FeatureCoverageTests
 
     #region Feature 18: Buddy Drone Management
     [Test]
-    public void F18_01_BuddyController_CreateDefaultDatabase_Has10Drones()
+    public void F18_01_BuddyController_CreateDefaultDatabase_Has5Drones()
     {
         GameObject go = new GameObject("BuddyController", typeof(BuddyController));
         try
         {
             BuddyController ctrl = go.GetComponent<BuddyController>();
             ctrl.InitializeDatabase();
-            Assert.That(ctrl.AllBuddies.Count, Is.GreaterThanOrEqualTo(10));
+            Assert.That(ctrl.AllBuddies.Count, Is.EqualTo(5));
         }
         finally
         {

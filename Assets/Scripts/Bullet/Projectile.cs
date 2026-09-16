@@ -44,6 +44,7 @@ public class Projectile : MonoBehaviour, IPoolable
 
     public int Damage => damage;
     public float MoveSpeed => moveSpeed;
+    public bool IsCritical { get; set; }
 
     private void Awake()
     {
@@ -175,7 +176,14 @@ public class Projectile : MonoBehaviour, IPoolable
             }
             else
             {
-                damageable.TakeDamage(damage);
+                if (damageable is EnemyHealth eh)
+                {
+                    eh.TakeDamage(damage, IsCritical);
+                }
+                else
+                {
+                    damageable.TakeDamage(damage);
+                }
                 ChipsetBattleStats.RecordDamage(sourceChipsetId, damage);
                 EnergyJumperCablesSkill.TriggerLifeSteal(damage, isMainWeapon: true);
             }
@@ -215,7 +223,7 @@ public class Projectile : MonoBehaviour, IPoolable
             EnemyHealth enemy = col.GetComponentInParent<EnemyHealth>();
             if (enemy != null && !enemy.IsDead && enemy.gameObject.activeInHierarchy)
             {
-                enemy.TakeDamage(damage);
+                enemy.TakeDamage(damage, IsCritical);
                 ChipsetBattleStats.RecordDamage(sourceChipsetId, damage);
                 EnergyJumperCablesSkill.TriggerLifeSteal(damage, isMainWeapon: true);
             }

@@ -2223,6 +2223,7 @@ MonoBehaviour:
   isShowingDefault: 0
   skins:
   - skinName: AD Unit-1 (Basic Body)
+    portraitSprite: {fileID: 0}
     bodySprite: {fileID: -5182206973502839065, guid: b11d782772fef994681d861860fa33eb, type: 3}
     armSprite: {fileID: 7950957983998334306, guid: fa67feb686c38264e8ab722fd57364ea, type: 3}
     gunSprite: {fileID: -9212286445950041963, guid: a14684e0c410c224d922ec86c4f49844, type: 3}
@@ -2250,6 +2251,7 @@ MonoBehaviour:
       rotationOffset: 0
     firePointOffset: {x: 5.6, y: -1.23}
   - skinName: AD Unit-2
+    portraitSprite: {fileID: 0}
     bodySprite: {fileID: -5182206973502839065, guid: b48489951e9c39e40b043dacb6bd63af, type: 3}
     armSprite: {fileID: 7950957983998334306, guid: 3f0a5377d27c63e47bddaa6fff51a1f7, type: 3}
     gunSprite: {fileID: -9212286445950041963, guid: 314f3198166d07c4c8a5b61bd92a7979, type: 3}
@@ -2277,6 +2279,7 @@ MonoBehaviour:
       rotationOffset: 0
     firePointOffset: {x: 5.18, y: -1.5}
   - skinName: AD Unit-3
+    portraitSprite: {fileID: 0}
     bodySprite: {fileID: 21300000, guid: 4da2c1164166fb344963fd6c07c2f6e3, type: 3}
     armSprite: {fileID: 7950957983998334306, guid: e4177e280f33c244c83bcc6aab8b54cd, type: 3}
     gunSprite: {fileID: -9212286445950041963, guid: 673301c1065bc49469b13de76a575db8, type: 3}
@@ -2304,6 +2307,7 @@ MonoBehaviour:
       rotationOffset: 0
     firePointOffset: {x: 3.59, y: -0.99}
   - skinName: AD Unit-4
+    portraitSprite: {fileID: 0}
     bodySprite: {fileID: -5182206973502839065, guid: 65d0f84371244c549be34da2de3e090b, type: 3}
     armSprite: {fileID: 7950957983998334306, guid: e330f572764c47d4d96d4be202e4d3e3, type: 3}
     gunSprite: {fileID: -9212286445950041963, guid: 38ff57d9d59e7f642a3071d113dcbe9d, type: 3}
@@ -20438,6 +20442,74 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1201614626}
   m_CullTransparentMesh: 1
+--- !u!21 &1204872547
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Nunito SDF - Stroke (Instance)
+  m_Shader: {fileID: 4800000, guid: fe393ace9b354375a9cb14cdbbc28be4, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords:
+  - OUTLINE_ON
+  - UNDERLAY_ON
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 6868023605643443334, guid: 88378fd6127ec3345802e6c374507f19, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _ColorMask: 15
+    - _CullMode: 0
+    - _FaceDilate: 0.18
+    - _GradientScale: 10
+    - _MaskSoftnessX: 0
+    - _MaskSoftnessY: 0
+    - _OutlineSoftness: 0
+    - _OutlineWidth: 0.28
+    - _PerspectiveFilter: 0.875
+    - _ScaleRatioA: 0.9
+    - _ScaleRatioB: 1
+    - _ScaleRatioC: 0.56925
+    - _ScaleX: 1
+    - _ScaleY: 1
+    - _ShaderFlags: 0
+    - _Sharpness: 0
+    - _Stencil: 0
+    - _StencilComp: 8
+    - _StencilOp: 0
+    - _StencilReadMask: 255
+    - _StencilWriteMask: 255
+    - _TextureHeight: 1024
+    - _TextureWidth: 1024
+    - _UnderlayDilate: 0.25
+    - _UnderlayOffsetX: 0
+    - _UnderlayOffsetY: 0
+    - _UnderlaySoftness: 0.45
+    - _VertexOffsetX: 0
+    - _VertexOffsetY: 0
+    - _WeightBold: 0.75
+    - _WeightNormal: 0
+    m_Colors:
+    - _ClipRect: {r: -32767, g: -32767, b: 32767, a: 32767}
+    - _FaceColor: {r: 1, g: 1, b: 1, a: 1}
+    - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
+    - _UnderlayColor: {r: 0.96, g: 0.96, b: 0.52, a: 0.85}
+  m_BuildTextureStacks: []
 --- !u!1 &1205397751
 GameObject:
   m_ObjectHideFlags: 0
@@ -34823,6 +34895,74 @@ MonoBehaviour:
   randomSeed: 12345
   obstacleSortingBase: 0
   decorationSortingOrder: -90
+--- !u!1 &2005297801
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2005297803}
+  - component: {fileID: 2005297802}
+  m_Layer: 0
+  m_Name: '[DamageNumberManager]'
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2005297802
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2005297801}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91d5ec6e5d388ec459815593830f94d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damageNumberPrefab: {fileID: 1580813595225278284, guid: c4ebbbcf176b31b4f8401283b25595bb, type: 3}
+  initialPoolSize: 60
+  fontAsset: {fileID: 11400000, guid: 88378fd6127ec3345802e6c374507f19, type: 2}
+  strokeMaterial: {fileID: 2100000, guid: 686cfa7cdb111f748aa18d4495b8bbea, type: 2}
+  defaultFontSize: 2.4
+  critIconSprite: {fileID: 21300000, guid: f792237f5ed243198696c9d4fe280805, type: 3}
+  defaultCritScale: 0.76
+  defaultCritIconSize: 0.249
+  defaultCritIconSpacing: 0.021
+  defaultCritIconOffset: {x: 0, y: 0.01}
+  defaultCritSpawnOffset: {x: 0, y: 0.35, z: 0}
+  syncCritSettingsToInstances: 1
+  showGameViewPreview: 0
+  previewPosition: {x: 0.015, y: 1.4, z: 0}
+  previewDamageAmount: 10000
+  defaultOutlineColor: {r: 0, g: 0, b: 0, a: 1}
+  defaultOutlineWidth: 0.28
+  useManagerOutlinePerType: 0
+  normalOutlineColor: {r: 0, g: 0, b: 0, a: 1}
+  criticalOutlineColor: {r: 0, g: 0, b: 0, a: 1}
+  playerDamageOutlineColor: {r: 0, g: 0, b: 0, a: 1}
+  healOutlineColor: {r: 0, g: 0, b: 0, a: 1}
+  sortingLayerName: UI
+  sortingOrder: 600
+--- !u!4 &2005297803
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2005297801}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2006003503
 GameObject:
   m_ObjectHideFlags: 0
@@ -37051,3 +37191,4 @@ SceneRoots:
   - {fileID: 983277090}
   - {fileID: 2000000003}
   - {fileID: 2096723528}
+  - {fileID: 2005297803}

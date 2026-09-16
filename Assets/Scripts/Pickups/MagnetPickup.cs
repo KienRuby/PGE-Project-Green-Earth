@@ -1,8 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// Quản lý bán kính hút ngọc (Magnet Pickup Range) xung quanh Player.
-/// Liên tục quét các GemPickup trong phạm vi magnetRadius và kích hoạt lực hút.
+/// Quản lý bán kính hút vật phẩm (Magnet Pickup Range) xung quanh Player.
+/// Liên tục quét các GemPickup và HealthBoxPickup trong phạm vi magnetRadius và kích hoạt lực hút.
 /// </summary>
 public class MagnetPickup : MonoBehaviour
 {
@@ -43,10 +43,11 @@ public class MagnetPickup : MonoBehaviour
 
     public void AttractNearbyGems()
     {
-        var allGems = GemPickup.AllActiveGems;
         float radiusSqr = EffectiveMagnetRadius * EffectiveMagnetRadius;
         Vector3 playerPos = playerTransform.position;
 
+        // 1. Hút các GemPickup (EXP, Currency, Powerup)
+        var allGems = GemPickup.AllActiveGems;
         for (int i = 0; i < allGems.Count; i++)
         {
             GemPickup gem = allGems[i];
@@ -59,16 +60,42 @@ public class MagnetPickup : MonoBehaviour
                 }
             }
         }
+
+        // 2. Hút các HealthBoxPickup (Hộp máu nhỏ & lớn)
+        var allBoxes = HealthBoxPickup.ActiveBoxes;
+        for (int i = 0; i < allBoxes.Count; i++)
+        {
+            HealthBoxPickup box = allBoxes[i];
+            if (box != null && !box.IsBeingAttracted && !box.IsCollected)
+            {
+                float distSqr = (box.transform.position - playerPos).sqrMagnitude;
+                if (distSqr <= radiusSqr)
+                {
+                    box.TriggerMagnetAttraction(playerTransform);
+                }
+            }
+        }
     }
 
     public static void TriggerGlobalMagnet(Transform target)
     {
+        // 1. Hút toàn bộ Gem
         var allGems = GemPickup.AllActiveGems;
         for (int i = 0; i < allGems.Count; i++)
         {
             if (allGems[i] != null)
             {
                 allGems[i].TriggerMagnetAttraction(target);
+            }
+        }
+
+        // 2. Hút toàn bộ Hộp máu
+        var allBoxes = HealthBoxPickup.ActiveBoxes;
+        for (int i = 0; i < allBoxes.Count; i++)
+        {
+            if (allBoxes[i] != null && !allBoxes[i].IsCollected)
+            {
+                allBoxes[i].TriggerMagnetAttraction(target);
             }
         }
     }

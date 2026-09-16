@@ -1,142 +1,91 @@
----
+﻿---
 name: ui
-description: Unity UI expert for menus, HUDs, screens, panels, buttons, labels, and all visual interface elements. Handles questions about UI in scenes or prefabs (how many elements, what exists, structure analysis), styling changes (colors, borders, backgrounds, fonts, spacing, rounded corners), layout adjustments, and UI generation. Routes to UI Toolkit, uGUI, or IMGUI based on project context.
+description: Unity UI expert for menus, HUDs, screens, panels, buttons, labels, and all visual interface elements. Routes to UI Toolkit, uGUI, or IMGUI based on project context. Also acts as Design Fidelity gatekeeper: whenever the user provides a visual UI design (screenshot, mockup, image, or screen reference), enforces pixel-faithful implementation (zero deviation, no unsolicited redesign), measurement discipline against project tokens, asset/token reuse, missing-state handling, and Definition-of-Done self-verification.
 ---
 
-Determine the appropriate UI system for the project and route to the correct specialized skill.
+# Unity UI & Design Fidelity Master Skill
 
-## When to Route vs Answer Directly
+Điều phối, xây dựng, chỉnh sửa và chuẩn hóa toàn bộ giao diện người dùng (UI) trong Unity (uGUI, UI Toolkit, IMGUI), đồng thời đảm bảo **kỷ luật thi công thiết kế chuẩn xác tuyệt đối (Pixel-Faithful / Zero Deviation)** khi có ảnh mẫu, mockup hoặc tài liệu tham khảo trực quan.
 
-**Route to a specialized skill when:**
-- User wants to understand, edit, or generate specific UI elements
-- User references specific files or UI objects
-- User asks for UI changes or creation
+---
 
-**Answer directly (without routing) when:**
-- User asks comparative/educational questions ("What's the difference between UI Toolkit and uGUI?")
-- User asks about UI system capabilities or recommendations ("Should I use UITK or uGUI for mobile?")
-- User needs conceptual explanation of Unity UI architecture
+## PHẦN 1: QUY CHUẨN THI CÔNG THEO THIẾT KẾ GỐC (DESIGN FIDELITY)
 
-## Routing Logic
+Khi người dùng cung cấp một giao diện trực quan (ảnh chụp màn hình, mockup, link Figma, hoặc màn hình có sẵn cần dựng lại) — mục tiêu là **độ lệch bằng 0** so với bản gốc, không phải "gần giống". Đây là việc tái tạo chính xác một đặc tả (spec) kỹ thuật, **tuyệt đối không tự ý diễn giải lại theo gu cá nhân hay "sáng tạo thêm"**.
 
-**Step 1: Check for explicit file references or keywords:**
+Tuân thủ quy trình 5 bước nghiêm ngặt sau:
 
-| User mentions | Route to |
-|---------------|----------|
-| `.uxml` or `.uss` files (including in `/Editor/`) | `ui-uitk` |
+### Bước 1 — Phân tích thiết kế trước khi code
+- **Xác định lưới & tỉ lệ (Grid & Scale)**: Nhận diện hệ thống spacing (lưới 4pt/8pt, type scale theo tỉ lệ). Nếu đo được các khoảng cách xấp xỉ 4/8/16/24/32px, giả định đó là chủ ý theo grid, không làm tròn tùy tiện theo số đo lệch do nén ảnh.
+- **Bóc tách danh sách phần tử**: Component, layout, spacing, typography, màu sắc và giá trị cụ thể của từng phần tử.
+- **Chỉ ra điểm chưa rõ**: Phần nào bị cắt, mờ, thiếu số đo hoặc thiếu trạng thái — liệt kê rõ thay vì tự đoán mò.
+- **Tái sử dụng component**: Nếu có nhiều màn hình được đưa cùng lúc, xác định phần tử lặp lại (button, header, card, item slot) để dùng chung Prefab/Template thay vì tạo nhiều bản rời rạc.
+
+### Bước 2 — Kiểm kê Asset & Design Token có sẵn trong Project
+Với mỗi icon, hình ảnh, font chữ hoặc giá trị style (màu sắc, bo góc, padding):
+1. **Tìm trong project trước**: Quét thư mục asset (`Assets/`, sprite atlases, font assets, theme/palette ScriptableObjects, TextMeshPro styles).
+2. **Dùng token/asset sẵn có**: Nếu project đã có preset màu, style font, hoặc prefab nút tương ứng — **bắt buộc dùng cái có sẵn**, không hardcode màu hex hay thông số px thô trừ khi project chưa có hệ thống style.
+3. **Nếu asset gần khớp**: Tái sử dụng hoặc điều chỉnh (resize, tint màu), không tạo file rác mới.
+4. **Nếu chưa chắc chắn**: Liệt kê các asset tìm được và xác nhận với người dùng, không tự chọn bừa.
+
+### Bước 3 — Xử lý các trạng thái không thấy trong thiết kế tĩnh
+Thiết kế tĩnh thường chỉ thể hiện 1 trạng thái. Trước khi hoàn thành, tự rà soát và xử lý theo pattern đã có của project:
+- **Trạng thái tương tác (Interaction States)**: Normal, Hover, Pressed/Selected, Disabled.
+- **Trạng thái dữ liệu (Data States)**: Loading, Empty, Error, Dữ liệu dài/tràn text.
+- **Responsive / Co giãn màn hình**: Neo góc (Anchors), Pivot, Content Size Fitter, tỉ lệ khung hình (16:9, 19.5:9 tai thỏ/notch), vùng an toàn (Safe Area).
+
+### Bước 4 — Kỷ luật đo lường khi triển khai
+- Dùng đúng đơn vị hệ thống của Unity (RectTransform anchors/offsets, layout groups, hoặc USS flex/px/%).
+- **Tuyệt đối KHÔNG tự ý**:
+  - Đổi bố cục, khoảng cách, màu sắc, kích thước, vị trí phần tử so với thiết kế gốc.
+  - Thêm/bớt hiệu ứng, animation, bo góc, đổ bóng (shadow) nếu bản vẽ không có.
+  - Tự áp đặt "best practice cá nhân" làm lệch thiết kế — nếu nghi ngờ bản gốc có điểm bất hợp lý, hãy nêu ra để hỏi, không tự sửa.
+
+### Bước 5 — Tự kiểm tra (Definition of Done)
+Trước khi bàn giao, đối chiếu checklist:
+- [ ] Layout/spacing/alignment khớp thiết kế gốc ở từng phần tử.
+- [ ] Màu sắc và Typography (font, size, weight) dùng đúng token/font asset của dự án, không lệch tông.
+- [ ] Asset đặt đúng vị trí, đúng tỉ lệ (Aspect Ratio), đúng pivot.
+- [ ] Các trạng thái thiếu (hover/disabled/empty/responsive) được xử lý đồng bộ với toàn app.
+- [ ] Không có phần tử nào bị thêm/bớt ngoài ý thiết kế; không có "cải tiến tự phát".
+
+---
+
+## PHẦN 2: ĐIỀU PHỐI HỆ THỐNG UI UNITY (ROUTING LOGIC)
+
+Sau khi nắm rõ yêu cầu thiết kế, xác định hệ thống UI phù hợp trong Unity để triển khai:
+
+### 1. Phân loại theo từ khóa / file trực tiếp:
+
+| Người dùng nhắc đến | Điều phối tới |
+|---|---|
+| File `.uxml` hoặc `.uss` (kể cả trong `/Editor/`) | `ui-uitk` (UI Toolkit) |
 | "UI Toolkit", "UITK", "UIElements", "CreateGUI" | `ui-uitk` |
-| Canvas prefabs/objects, `.prefab` with UI | `ui-ugui` |
-| "uGUI", "Canvas", "RectTransform", "legacy UI" | `ui-ugui` |
+| Prefab Canvas, `.prefab` UI, `Canvas`, `RectTransform` | `ui-ugui` (uGUI) |
 | "IMGUI", "OnGUI", "OnInspectorGUI", "immediate mode" | `ui-imgui` |
-| Figma URL (`figma.com/design/...`), "Figma", "import from Figma" | Not available — see below |
+| Link Figma (`figma.com/...`), "Figma" | Yêu cầu screenshot/mô tả cụ thể và áp dụng Quy trình Phần 1 |
 
-**For editor-related requests (EditorWindow, custom inspector, PropertyDrawer):**
-- If no explicit UI system mentioned → **Go to Step 2** to detect project's editor UI system
-- If no existing pattern is detected, default to `ui-uitk` for new editor UI
-- Only use `ui-imgui` if project exclusively uses IMGUI or user explicitly requests it
+### 2. Tự động nhận diện từ Project nếu chưa rõ:
+- Có file `.uxml`, `.uss` hoặc component `UIDocument` trong scene → **UI Toolkit**.
+- Có `Canvas`, `RectTransform`, `CanvasScaler`, `HorizontalLayoutGroup` trong scene/prefab → **uGUI**.
+- Script editor có hàm `CreateGUI()` → **UI Toolkit (Editor)**.
+- Script editor có hàm `OnGUI()` hoặc `OnInspectorGUI()` → **IMGUI (Legacy Editor)**.
 
-If explicit file or keywords found, activate the corresponding skill immediately.
+### 3. Nguyên tắc mặc định:
+- Dự án đã có sẵn framework nào: Đi theo framework đó để đồng bộ kiến trúc.
+- UI Game/Runtime mới tinh: Ưu tiên **uGUI (`ui-ugui`)** do tính phổ biến, tương thích mobile và tài nguyên có sẵn trong project.
+- Công cụ Editor mới tinh: Ưu tiên **UI Toolkit (`ui-uitk`)** trừ khi dự án đang chạy thuần IMGUI.
 
-**Step 2: If ambiguous, detect from project:**
+---
 
-Search the project to determine which UI system is in use:
+## PHẦN 3: KỶ LUẬT PHẠM VI (SCOPE DISCIPLINE) & BÁO CÁO
 
-| Look for | Indicates |
-|----------|-----------|
-| `.uxml` or `.uss` files (including in `/Editor/`) | UI Toolkit (runtime or editor) |
-| `UIDocument` components in scenes | UI Toolkit (runtime) |
-| Editor scripts with `CreateGUI()` method | UI Toolkit (editor) |
-| `Canvas` in scenes/prefabs | uGUI |
-| `RectTransform` heavy usage | uGUI |
-| Editor scripts with `OnGUI()` or `OnInspectorGUI()` | IMGUI (legacy editor) |
+### Giữ đúng phạm vi yêu cầu:
+- Chỉ tạo/sửa giao diện visual. Không tự ý viết thêm gameplay scripts phức tạp gắn vào button nếu người dùng chưa yêu cầu logic cụ thể.
+- Đặt tên GameObject / Component / UXML Element rõ ràng, chuẩn theo quy ước dự án hoặc `PascalCase` / `camelCase`.
 
-**Step 3: If still unclear, ask or default:**
-
-- For existing projects: detect and follow whichever framework is already in use (Step 2)
-- For new projects with no UI yet: ask the user which framework they prefer (UI Toolkit vs uGUI), briefly explaining that UI Toolkit is modern/CSS-like while uGUI is Canvas-based/mature
-- For new runtime/game UI where the user has no preference: default to uGUI (`ui-ugui`)
-- When the user mentions mobile/performance constraints or older Unity versions (pre-6.0): bias toward uGUI (`ui-ugui`)
-
-## Request Types
-
-Specialized skills handle three types of requests:
-
-| Type | Examples |
-|------|----------|
-| **Understanding** | "What does this button do?", "How is this laid out?", "Explain this UI" |
-| **Editing** | "Change this color", "Add a label here", "Fix this layout" |
-| **Generation** | "Create a menu", "Make an inventory screen", "Build a settings panel" |
-
-Route all types to the appropriate specialized skill based on the UI system.
-
-## Available Sub-Skills
-
-### UI Toolkit — `ui-uitk`
-- For Unity 6.0+ projects using UI Toolkit (runtime game UI and editor tools)
-- **Understands**, **edits**, and **generates** `.uxml` and `.uss` files
-- Modern, CSS-like styling approach
-- Preferred for new editor windows (CreateGUI) and existing UI Toolkit projects
-
-### uGUI — `ui-ugui`
-- For projects using Unity's Canvas-based UI system
-- **Understands**, **edits**, and **generates** Canvas hierarchies
-- Uses Layout Groups for responsive design
-- Default for new runtime/game UI when the user has no framework preference
-
-### IMGUI — `ui-imgui`
-- For legacy editor tools using OnGUI/immediate mode
-- Only use when project has existing IMGUI editor code or user explicitly requests IMGUI
-- **Understands**, **edits**, and **generates** EditorWindow, inspectors, PropertyDrawers built with OnGUI
-- Not for runtime game UI — for new editor tools, use UI Toolkit unless the project already uses IMGUI exclusively
-
-### Figma design import — not available here
-
-Importing a Figma design requires Unity's Figma integration service, which only exists
-inside Unity AI Assistant. There is no client-side equivalent, so do not promise it.
-
-If the user brings a Figma URL, say the automated import is not available here and offer
-the alternative: ask them to describe or screenshot the screen, then build it with the
-appropriate framework skill above.
-
-## Common Guidelines (All UI Systems)
-
-### Scope Discipline
-
-**Do only what is requested:**
-- Question → answer without making changes
-- Targeted edit → modify only what's specified
-- Generation → create only requested files
-- Don't proactively add scripts unless explicitly asked
-
-**These do NOT imply scripts:**
-- "proper buttons" → well-styled buttons
-- "working UI" → valid UI that renders
-- "menu screen" → visual layout only
-
-### Conventions
-
-**Follow project patterns first.** Search existing files before applying defaults.
-
-| Type | Convention |
-|------|------------|
-| Element names | Follow project patterns, or camelCase |
-| File organization | Match existing project structure |
-
-### Workflow
-
-1. **Determine UI system** — Use routing logic above
-   - For Figma requests, tell the user the automated import is not available here, then
-     work from their description or screenshot and continue with framework detection
-2. **Activate specialized skill** — Route to `ui-uitk`, `ui-ugui`, or `ui-imgui`
-3. **Skill handles request** — Understanding, editing, or generation as appropriate
-
-## Handling Mixed Projects
-
-Many Unity projects use multiple UI systems simultaneously (e.g., UI Toolkit for runtime game UI plus editor tools). When you detect multiple systems:
-
-- **For runtime UI requests** (menus, HUDs, game screens) → Route to whichever runtime system (UITK or uGUI) is already in use
-- **For editor tool requests** (custom inspectors, editor windows):
-  - **Prefer UI Toolkit** (CreateGUI) for new editor UI — it's the modern approach
-  - Only use IMGUI if the project's existing editor tools use IMGUI exclusively, or user explicitly requests IMGUI
-  - Check for existing editor `.uxml` files to confirm UITK usage
-- **If creating new runtime UI in a mixed project** → Match the pattern used by similar existing UI; if there is no similar existing UI and the user has no preference, use uGUI
+### Định dạng báo cáo khi hoàn thành:
+1. **Những gì đã tái sử dụng**: Liệt kê các Sprite, Font, Color Token, Prefab đã dùng lại từ project.
+2. **Những gì mới tạo**: Nêu rõ file/prefab nào vừa tạo mới và lý do.
+3. **Các điểm giả định (nếu có)**: Nêu rõ các trạng thái bổ sung (hover, disabled, responsive) để người dùng xác nhận.
+4. **Xác nhận checklist Definition of Done** đã đạt yêu cầu.

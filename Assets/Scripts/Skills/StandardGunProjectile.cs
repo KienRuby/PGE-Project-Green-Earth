@@ -140,7 +140,14 @@ public class StandardGunProjectile : MonoBehaviour, IPoolable
             bool isCrit = critChance > 0f && Random.value < critChance;
             int finalDamage = isCrit ? Mathf.RoundToInt(damage * critMultiplier) : damage;
 
-            damageable.TakeDamage(finalDamage);
+            if (enemyHealth != null)
+            {
+                enemyHealth.TakeDamage(finalDamage, isCrit);
+            }
+            else
+            {
+                damageable.TakeDamage(finalDamage);
+            }
 
             // 2. Kích hoạt Hút máu (Life Steal)
             if (lifeStealPercent > 0f && cachedPlayerHealth != null && !cachedPlayerHealth.IsDead)

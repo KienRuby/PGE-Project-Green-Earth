@@ -95,6 +95,7 @@ public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
     public Image BottomProgressBar => bottomProgressBar;
     public Image ProgressFillImage => progressFillImage;
     public RectTransform ProgressFillRect => progressFillRect;
+    public GameObject UpgradeArrowGroup => upgradeArrowGroup;
 
     private void Awake()
     {
@@ -186,19 +187,124 @@ public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
             }
         }
         EnsureProgressBar();
-        if (upgradeArrowGroup == null)
+        EnsureUpgradeArrow();
+        EnsureStar();
+    }
+
+    private static Sprite cachedUpgradeArrowSprite;
+
+    public static Sprite GetUpgradeArrowSprite()
+    {
+        if (cachedUpgradeArrowSprite != null) return cachedUpgradeArrowSprite;
+
+        cachedUpgradeArrowSprite = Resources.Load<Sprite>("UI/Chipset/badge-upgrade");
+#if UNITY_EDITOR
+        if (cachedUpgradeArrowSprite == null)
         {
-            Transform t = transform.Find("NormalContentGroup/UpgradeArrowGroup") ?? transform.Find("UpgradeArrowGroup");
-            if (t != null) upgradeArrowGroup = t.gameObject;
+            cachedUpgradeArrowSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Chipset/Frames/badge-upgrade.png");
         }
-        if (upgradeButton == null && upgradeArrowGroup != null)
+#endif
+        return cachedUpgradeArrowSprite;
+    }
+
+    private static Sprite cachedStarSprite;
+
+    public static Sprite GetStarSprite()
+    {
+        if (cachedStarSprite != null) return cachedStarSprite;
+
+        cachedStarSprite = Resources.Load<Sprite>("UI/Chipset/icon-star");
+#if UNITY_EDITOR
+        if (cachedStarSprite == null)
         {
-            upgradeButton = upgradeArrowGroup.GetComponent<Button>();
+            cachedStarSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Chipset/Frames/icon-star.png");
         }
+#endif
+        return cachedStarSprite;
+    }
+
+    public void EnsureStar()
+    {
         if (starObject == null)
         {
             Transform t = transform.Find("NormalContentGroup/Star") ?? transform.Find("Star");
             if (t != null) starObject = t.gameObject;
+        }
+
+        if (starObject != null)
+        {
+            Image starImg = starObject.GetComponent<Image>();
+            if (starImg != null && starImg.sprite == null)
+            {
+                starImg.sprite = GetStarSprite();
+            }
+        }
+    }
+
+    public void EnsureUpgradeArrow()
+    {
+        if (upgradeArrowGroup == null)
+        {
+            Transform t = transform.Find("NormalContentGroup/UpgradeArrowGroup") 
+                       ?? transform.Find("UpgradeArrowGroup")
+                       ?? transform.Find("NormalContentGroup/UpgradeArrow") 
+                       ?? transform.Find("UpgradeArrow");
+            if (t != null)
+            {
+                upgradeArrowGroup = t.gameObject;
+            }
+            else
+            {
+                Transform parent = normalContentGroup != null ? normalContentGroup.transform : transform;
+                GameObject arrowObj = new GameObject("UpgradeArrowGroup", typeof(RectTransform));
+                RectTransform rt = arrowObj.GetComponent<RectTransform>();
+                rt.SetParent(parent, false);
+                rt.anchorMin = new Vector2(0.88f, 0.17f);
+                rt.anchorMax = new Vector2(0.88f, 0.17f);
+                rt.pivot = new Vector2(0.5f, 0.5f);
+                rt.anchoredPosition = new Vector2(0f, 23.8f);
+                rt.sizeDelta = new Vector2(44f, 44f);
+
+                Image img = arrowObj.AddComponent<Image>();
+                img.raycastTarget = true;
+                img.sprite = GetUpgradeArrowSprite();
+                img.color = Color.white;
+                img.preserveAspect = true;
+
+                Button btn = arrowObj.AddComponent<Button>();
+                btn.targetGraphic = img;
+
+                upgradeArrowGroup = arrowObj;
+                upgradeButton = btn;
+            }
+        }
+
+        if (upgradeArrowGroup != null)
+        {
+            Image arrowImg = upgradeArrowGroup.GetComponent<Image>();
+            if (arrowImg == null)
+            {
+                arrowImg = upgradeArrowGroup.AddComponent<Image>();
+            }
+
+            if (arrowImg.sprite == null)
+            {
+                arrowImg.sprite = GetUpgradeArrowSprite();
+            }
+
+            arrowImg.color = Color.white;
+            arrowImg.preserveAspect = true;
+            arrowImg.raycastTarget = true;
+
+            if (upgradeButton == null)
+            {
+                upgradeButton = upgradeArrowGroup.GetComponent<Button>();
+                if (upgradeButton == null)
+                {
+                    upgradeButton = upgradeArrowGroup.AddComponent<Button>();
+                }
+                upgradeButton.targetGraphic = arrowImg;
+            }
         }
     }
 
@@ -286,12 +392,18 @@ public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
         float fillRatio = data != null ? CalculateFillRatio(data.count, data.requiredCount, data.IsMaxOverall) : 0f;
         UpdateProgressBar(fillRatio);
 
+        EnsureUpgradeArrow();
         bool hasAction = data != null && !data.IsMaxOverall && (data.CanUpgrade || data.CanAdvanceTier);
         if (upgradeArrowGroup != null)
         {
             upgradeArrowGroup.SetActive(hasAction);
+            if (hasAction)
+            {
+                upgradeArrowGroup.transform.SetAsLastSibling();
+            }
         }
 
+        EnsureStar();
         if (starObject != null && data != null)
         {
             starObject.SetActive(data.hasStar);
@@ -583,12 +695,18 @@ public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
         float fillRatio = CalculateFillRatio(boundData.count, boundData.requiredCount, boundData.IsMaxOverall);
         UpdateProgressBar(fillRatio);
 
+        EnsureUpgradeArrow();
         bool hasAction = !boundData.IsMaxOverall && (boundData.CanUpgrade || boundData.CanAdvanceTier);
         if (upgradeArrowGroup != null)
         {
             upgradeArrowGroup.SetActive(hasAction);
+            if (hasAction)
+            {
+                upgradeArrowGroup.transform.SetAsLastSibling();
+            }
         }
 
+        EnsureStar();
         if (starObject != null)
         {
             starObject.SetActive(boundData.hasStar);
@@ -700,8 +818,17 @@ public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
         }
         if (levelText != null) levelText.text = level;
         if (progressText != null) progressText.text = progress;
+        EnsureStar();
         if (starObject != null) starObject.SetActive(star);
-        if (upgradeArrowGroup != null) upgradeArrowGroup.SetActive(arrow);
+        EnsureUpgradeArrow();
+        if (upgradeArrowGroup != null)
+        {
+            upgradeArrowGroup.SetActive(arrow);
+            if (arrow)
+            {
+                upgradeArrowGroup.transform.SetAsLastSibling();
+            }
+        }
 
         float fillRatio = ParseFillRatioFromProgressText(progress);
         UpdateProgressBar(fillRatio);

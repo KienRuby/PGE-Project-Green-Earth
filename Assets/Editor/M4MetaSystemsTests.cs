@@ -266,11 +266,12 @@ public class M4MetaSystemsTests
             BuddyController ctrl = buddyObj.GetComponent<BuddyController>();
             ctrl.InitializeDatabase();
 
-            Assert.That(ctrl.AllBuddies.Count, Is.GreaterThanOrEqualTo(12), "Buddy roster must contain at least 12 unique drones.");
+            Assert.That(ctrl.AllBuddies.Count, Is.EqualTo(5), "Buddy roster must contain exactly 5 official playable drones.");
 
             // Verify unique IDs
             var ids = ctrl.AllBuddies.Select(b => b.id).Distinct().ToList();
             Assert.That(ids.Count, Is.EqualTo(ctrl.AllBuddies.Count));
+            Assert.That(ids, Is.EquivalentTo(new[] { 1, 2, 3, 4, 10 }));
         }
         finally
         {

@@ -450,6 +450,7 @@ public class AchievementItemUI : MonoBehaviour
                     actionButtonImage.color = GetButtonColor;
                 }
             }
+            ApplyReferenceButtonSize(btnGetSprite);
             if (border != null)
             {
                 border.color = (btnGetSprite != null) ? Color.clear : GetBorderColor;
@@ -492,6 +493,7 @@ public class AchievementItemUI : MonoBehaviour
                     actionButtonImage.color = InProgressButtonColor;
                 }
             }
+            ApplyReferenceButtonSize(inactiveSprite);
             if (border != null)
             {
                 border.color = (inactiveSprite != null) ? Color.clear : InProgressBorderColor;
@@ -533,6 +535,7 @@ public class AchievementItemUI : MonoBehaviour
                     actionButtonImage.color = ObtainedButtonColor;
                 }
             }
+            ApplyReferenceButtonSize(btnObtainedSprite);
             if (border != null)
             {
                 border.color = (btnObtainedSprite != null) ? Color.clear : ObtainedBorderColor;
@@ -600,7 +603,7 @@ public class AchievementItemUI : MonoBehaviour
         GameObject badge = new GameObject("RewardBadge", typeof(RectTransform), typeof(Image));
         badge.transform.SetParent(parent, false);
         RectTransform rt = badge.GetComponent<RectTransform>();
-        rt.sizeDelta = new Vector2(75f, 75f);
+        rt.sizeDelta = new Vector2(82f, 84f);
         Image badgeImg = badge.GetComponent<Image>();
         badgeImg.color = new Color32(11, 45, 60, 0);
         badgeImg.raycastTarget = false;
@@ -610,8 +613,8 @@ public class AchievementItemUI : MonoBehaviour
         RectTransform iconRt = iconObj.GetComponent<RectTransform>();
         iconRt.anchorMin = new Vector2(0.5f, 0.5f);
         iconRt.anchorMax = new Vector2(0.5f, 0.5f);
-        iconRt.anchoredPosition = new Vector2(0f, 10f);
-        iconRt.sizeDelta = new Vector2(46f, 46f);
+        iconRt.anchoredPosition = new Vector2(0f, 8f);
+        iconRt.sizeDelta = new Vector2(82f, 84f);
         Image iconImg = iconObj.GetComponent<Image>();
         iconImg.preserveAspect = true;
         iconImg.raycastTarget = false;
@@ -631,6 +634,17 @@ public class AchievementItemUI : MonoBehaviour
         txt.raycastTarget = false;
 
         return badge;
+    }
+
+    private void ApplyReferenceButtonSize(Sprite sprite)
+    {
+        if (actionButton == null) return;
+
+        RectTransform rect = actionButton.transform as RectTransform;
+        if (rect != null)
+        {
+            rect.sizeDelta = sprite != null ? sprite.rect.size * 0.5f : new Vector2(174f, 76f);
+        }
     }
 
     public void SetReferencesForBuilder(

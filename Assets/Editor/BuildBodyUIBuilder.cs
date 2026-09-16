@@ -254,27 +254,30 @@ public static class BuildBodyUIBuilder
                 robot = robotBlue,
                 title = "Basic Body",
                 desc = "Start from <color=#FFE95C>Lv.1</color>",
-                status = "Previous version",
+                status = "",
                 isEquipped = false,
-                isBuild = false
+                isBuild = true,
+                cost = 1000
             },
             new {
                 unitNum = 2,
                 robot = robotGreen,
                 title = "",
                 desc = "Bonus <color=#FFE95C>HP+50/DEF+7</color>\nStart from <color=#FFE95C>Lv.2</color>\nAilment Resistance <color=#FFE95C>+10%</color>",
-                status = "Previous version",
+                status = "",
                 isEquipped = false,
-                isBuild = false
+                isBuild = true,
+                cost = 1500
             },
             new {
                 unitNum = 3,
                 robot = robotPurple,
                 title = "",
                 desc = "Bonus <color=#FFE95C>HP+100/DEF+15</color>\nStart from <color=#FFE95C>Lv.3</color>\nAilment Resistance <color=#FFE95C>+20%</color>\n<color=#FFE95C>Gem Magnet Lv.1</color>",
-                status = "Current version",
-                isEquipped = true, // Mặc định xanh lá
-                isBuild = false
+                status = "",
+                isEquipped = false,
+                isBuild = true,
+                cost = 2000
             },
             new {
                 unitNum = 4,
@@ -283,7 +286,8 @@ public static class BuildBodyUIBuilder
                 desc = "Bonus <color=#FFE95C>HP+250/DEF+35</color>\nStart from <color=#FFE95C>Lv.5</color>",
                 status = "",
                 isEquipped = false,
-                isBuild = true // Có nút Build
+                isBuild = true,
+                cost = 3000
             }
         };
 
@@ -300,6 +304,7 @@ public static class BuildBodyUIBuilder
                 info.status,
                 info.isEquipped,
                 info.isBuild,
+                info.cost,
                 info.isEquipped ? greenCardBg : darkBlueCardBg,
                 slotFrame,
                 changeSkinBtnSprite,
@@ -382,6 +387,16 @@ public static class BuildBodyUIBuilder
             cProp.FindPropertyRelative("buildCostIcon").objectReferenceValue = cards[i].buildCostIcon;
         }
 
+        SerializedProperty buildCostsProp = so.FindProperty("unitBuildCosts");
+        if (buildCostsProp != null)
+        {
+            buildCostsProp.arraySize = 4;
+            buildCostsProp.GetArrayElementAtIndex(0).intValue = 1000;
+            buildCostsProp.GetArrayElementAtIndex(1).intValue = 1500;
+            buildCostsProp.GetArrayElementAtIndex(2).intValue = 2000;
+            buildCostsProp.GetArrayElementAtIndex(3).intValue = 3000;
+        }
+
         so.ApplyModifiedPropertiesWithoutUndo();
 
         // 9. Lưu Scene
@@ -400,6 +415,7 @@ public static class BuildBodyUIBuilder
         string status,
         bool isEquipped,
         bool hasBuild,
+        int cost,
         Sprite bgSprite,
         Sprite slotSprite,
         Sprite changeSkinSprite,
@@ -648,14 +664,14 @@ public static class BuildBodyUIBuilder
         GameObject costTextObj = new GameObject("Price", typeof(RectTransform), typeof(TextMeshProUGUI));
         costTextObj.transform.SetParent(costRect, false);
         RectTransform ctRect = costTextObj.GetComponent<RectTransform>();
-        ctRect.sizeDelta = new Vector2(80f, 36f);
+        ctRect.sizeDelta = new Vector2(100f, 36f);
         TextMeshProUGUI ctTMP = costTextObj.GetComponent<TextMeshProUGUI>();
         if (font != null) ctTMP.font = font;
         ctTMP.fontSize = 28f;
         ctTMP.fontStyle = FontStyles.Bold;
         ctTMP.color = new Color32(255, 233, 92, 255);
         ctTMP.alignment = TextAlignmentOptions.MidlineLeft;
-        ctTMP.text = "500";
+        ctTMP.text = cost.ToString("N0");
 
         buildGroupObj.SetActive(hasBuild);
         view.buildGroup = buildGroupObj;

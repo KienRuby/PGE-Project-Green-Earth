@@ -216,6 +216,8 @@ public class Enemy : MonoBehaviour, IDamageable, IPoolable
                 }
             }
 
+            DropTable.TryDropHealthBox(transform.position);
+
             OnEnemyDeath?.Invoke();
             OnDeath?.Invoke(this);
             GameEvents.RaiseEnemyKilled(expReward);

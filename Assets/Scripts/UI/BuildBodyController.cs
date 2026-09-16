@@ -80,8 +80,8 @@ public class BuildBodyController : MonoBehaviour
     [SerializeField] private BodyCardView[] cardViews = new BodyCardView[4];
 
     [Header("Unit Build Costs")]
-    [Tooltip("Giá Ngọc Đỏ để Build Unit 4.")]
-    [SerializeField] private int unit4BuildCostRedGems = 500;
+    [Tooltip("Giá Ngọc Đỏ để Build 4 Units (Unit 1: 1000, Unit 2: 1500, Unit 3: 2000, Unit 4: 3000).")]
+    [SerializeField] private int[] unitBuildCosts = new int[4] { 1000, 1500, 2000, 3000 };
 
     [Header("Toast Notification")]
     [SerializeField] private GameObject toastRoot;
@@ -90,7 +90,12 @@ public class BuildBodyController : MonoBehaviour
     // Public Properties and Events
     public static int EquippedSkinIndex
     {
-        get => PlayerPrefs.GetInt(EquippedSkinKey, 2); // Mặc định Unit-3 (index 2) giống trong ảnh mẫu
+        get
+        {
+            int index = PlayerPrefs.GetInt(EquippedSkinKey, -1);
+            if (index >= 0 && !IsBodyUnlocked(index)) return -1;
+            return index;
+        }
         set
         {
             PlayerPrefs.SetInt(EquippedSkinKey, value);
@@ -111,14 +116,22 @@ public class BuildBodyController : MonoBehaviour
         }
     }
 
+    public int GetBuildCost(int index)
+    {
+        if (unitBuildCosts != null && index >= 0 && index < unitBuildCosts.Length)
+            return unitBuildCosts[index];
+        return index switch
+        {
+            0 => 1000,
+            1 => 1500,
+            2 => 2000,
+            3 => 3000,
+            _ => 1000
+        };
+    }
+
     private void Awake()
     {
-        // Khởi tạo trạng thái mở khóa mặc định cho Unit 1, 2, 3 (đã sở hữu)
-        if (!PlayerPrefs.HasKey(GetBodyUnlockKey(0))) PlayerPrefs.SetInt(GetBodyUnlockKey(0), 1);
-        if (!PlayerPrefs.HasKey(GetBodyUnlockKey(1))) PlayerPrefs.SetInt(GetBodyUnlockKey(1), 1);
-        if (!PlayerPrefs.HasKey(GetBodyUnlockKey(2))) PlayerPrefs.SetInt(GetBodyUnlockKey(2), 1);
-        PlayerPrefs.Save();
-
         SetupTabListeners();
         SetupCardListeners();
         RefreshTabLockState();
@@ -144,7 +157,6 @@ public class BuildBodyController : MonoBehaviour
 
     public static bool IsBodyUnlocked(int index)
     {
-        if (index <= 2) return true; // Unit 1, 2, 3 mặc định đã mở sẵn
         return PlayerPrefs.GetInt(GetBodyUnlockKey(index), 0) == 1;
     }
 
@@ -290,15 +302,15 @@ public class BuildBodyController : MonoBehaviour
             return;
         }
 
-        int cost = unit4BuildCostRedGems;
+        int cost = GetBuildCost(index);
         int currentGems = ChipManager.RedGems;
         bool vi = GameSettings.IsVietnamese;
 
         if (currentGems < cost)
         {
             ShowToast(vi
-                ? $"Không đủ Ngọc Đỏ để Build Unit {index + 1}! Cần {cost} Ngọc Đỏ (Hiện có: {currentGems:N0})"
-                : $"Not enough Red Gems to build Unit {index + 1}! Need {cost} Red Gems (Current: {currentGems:N0})");
+                ? $"Không đủ Ngọc Đỏ để Build Unit {index + 1}! Cần {cost:N0} Ngọc Đỏ (Hiện có: {currentGems:N0})"
+                : $"Not enough Red Gems to build Unit {index + 1}! Need {cost:N0} Red Gems (Current: {currentGems:N0})");
             return;
         }
 
@@ -323,8 +335,8 @@ public class BuildBodyController : MonoBehaviour
             BodyCardView card = cardViews[i];
             if (card == null || card.cardRoot == null) continue;
 
-            bool isEquipped = (i == currentEquipped);
             bool isUnlocked = IsBodyUnlocked(i);
+            bool isEquipped = isUnlocked && (i == currentEquipped);
 
             // 1. Đổi màu nền: Nền xanh lá (Panel_Bottom_Green) nếu đang chọn/trang bị, xanh đậm (Panel_Top_DarkBlue) nếu không
             if (card.backgroundImage != null)
@@ -357,7 +369,7 @@ public class BuildBodyController : MonoBehaviour
                 card.changeSkinButton.gameObject.SetActive(isEquipped);
             }
 
-            // 4. Nhóm nút Build: Chỉ hiển thị trên thẻ chưa sở hữu (AD Unit-4)
+            // 4. Nhóm nút Build: Chỉ hiển thị trên thẻ chưa sở hữu
             if (card.buildGroup != null)
             {
                 card.buildGroup.SetActive(!isUnlocked);
@@ -365,7 +377,7 @@ public class BuildBodyController : MonoBehaviour
 
             if (card.buildCostText != null)
             {
-                card.buildCostText.text = unit4BuildCostRedGems.ToString();
+                card.buildCostText.text = GetBuildCost(i).ToString("N0");
             }
         }
     }

@@ -14,13 +14,40 @@ public enum DamageType
 /// Quản lý hiển thị và diễn hoạt của một số sát thương (Floating Damage Number).
 /// Sử dụng TextMeshPro trong không gian World-Space với chuyển động Parabolic Arc,
 /// hiệu ứng Squash & Stretch nảy bùng nổ, Vertex Gradient rực rỡ và stroke viền đen sắc nét.
+/// Tích hợp icon chí mạng tự động nhận diện con số đầu tiên và giãn cách an toàn.
 /// </summary>
+[ExecuteAlways]
 [RequireComponent(typeof(TMP_Text))]
 public class DamageNumber : MonoBehaviour, IPoolable
 {
     [Header("UI & Rendering")]
     [Tooltip("Tham chiếu TextMeshPro hiển thị số.")]
     [SerializeField] private TMP_Text textComponent;
+
+    [Header("Critical Hit Sizing & Position (Tùy Chỉnh Sát Thương Chí Mạng)")]
+    [Tooltip("SpriteRenderer hiển thị icon ngôi sao chí mạng.")]
+    [SerializeField] private SpriteRenderer critIconRenderer;
+
+    [Tooltip("Sprite icon chí mạng (mặc định tự nạp từ Resources/UI/CritDamageIcon).")]
+    [SerializeField] private Sprite critIconSprite;
+
+    [Tooltip("Hệ số phóng to/thu nhỏ riêng cho đòn chí mạng (Số + Icon). Mặc định 1.25. Giảm xuống nếu muốn thu nhỏ sát thương chí mạng.")]
+    [Range(0.5f, 2.5f)]
+    [SerializeField] private float critScaleMultiplier = 1.25f;
+
+    [Tooltip("Kích thước icon chí mạng (Icon Size). Chỉnh ~0.38 - 0.45 để nhỏ bằng với chiều cao con số sát thương.")]
+    [Range(0.1f, 1.5f)]
+    [SerializeField] private float critIconSize = 0.42f;
+
+    [Tooltip("Khoảng cách giữa icon chí mạng và dãy số sát thương. Càng nhỏ thì icon càng dịch sát vào số.")]
+    [Range(-0.1f, 0.4f)]
+    [SerializeField] private float critIconSpacing = 0.03f;
+
+    [Tooltip("Độ lệch vị trí riêng của icon chí mạng (Offset X, Y). Dùng để chỉnh icon lên/xuống/trái/phải.")]
+    [SerializeField] private Vector2 critIconOffset = new Vector2(0f, 0.01f);
+
+    [Tooltip("Độ lệch vị trí xuất hiện ban đầu của sát thương chí mạng so với mục tiêu.")]
+    [SerializeField] private Vector3 critSpawnOffset = new Vector3(0f, 0.35f, 0f);
 
     [Tooltip("Sorting Layer cho MeshRenderer để hiển thị trên quái và đạn.")]
     [SerializeField] private string sortingLayerName = "UI";
@@ -41,7 +68,7 @@ public class DamageNumber : MonoBehaviour, IPoolable
     [Tooltip("Lực cản không khí theo phương ngang.")]
     [SerializeField] private float dragX = 2.5f;
 
-    [Tooltip("Hệ số kích thước chữ số (gấp đôi mặc định giúp người chơi dễ nhìn thấy sát thương).")]
+    [Tooltip("Hệ số kích thước chữ số cơ bản.")]
     [SerializeField] private float baseScale = 1.30f;
 
     [Tooltip("Độ nảy phóng to ban đầu (Pop Multiplier).")]
@@ -49,7 +76,7 @@ public class DamageNumber : MonoBehaviour, IPoolable
 
     [Header("Color Schemes - Solid Fallbacks")]
     [SerializeField] private Color normalColor = new Color(1f, 0.92f, 0.35f, 1f);       // Vàng hổ phách tươi
-    [SerializeField] private Color criticalColor = new Color(1f, 0.35f, 0.05f, 1f);     // Cam lửa rực
+    [SerializeField] private Color criticalColor = new Color(0.94f, 0.42f, 0.30f, 1f);   // Cam san hô rực rỡ (#F06749)
     [SerializeField] private Color playerDamageColor = new Color(1f, 0.2f, 0.2f, 1f);   // Đỏ tươi nguy hiểm
     [SerializeField] private Color healColor = new Color(0.15f, 0.95f, 0.45f, 1f);      // Xanh ngọc hồi phục
 
@@ -57,8 +84,8 @@ public class DamageNumber : MonoBehaviour, IPoolable
     private static readonly Color NormalGradTop = new Color(1f, 1f, 1f, 1f);             // Trắng tinh khiết sáng rõ
     private static readonly Color NormalGradBottom = new Color(1f, 0.82f, 0.08f, 1f);     // Vàng cam ấm tương phản cao
 
-    private static readonly Color CritGradTop = new Color(1f, 0.98f, 0.3f, 1f);
-    private static readonly Color CritGradBottom = new Color(1f, 0.18f, 0.02f, 1f);
+    private static readonly Color CritGradTop = new Color(0.96f, 0.48f, 0.36f, 1f);
+    private static readonly Color CritGradBottom = new Color(0.88f, 0.36f, 0.24f, 1f);
 
     private static readonly Color PlayerGradTop = new Color(1f, 0.65f, 0.65f, 1f);
     private static readonly Color PlayerGradBottom = new Color(0.95f, 0.08f, 0.08f, 1f);
@@ -106,6 +133,86 @@ public class DamageNumber : MonoBehaviour, IPoolable
     {
         get => useCustomOutlinePerType;
         set => useCustomOutlinePerType = value;
+    }
+
+    public SpriteRenderer CritIconRenderer => critIconRenderer;
+    public bool IsCritActive => isCrit;
+
+    public float CritScaleMultiplier
+    {
+        get => critScaleMultiplier;
+        set
+        {
+            critScaleMultiplier = Mathf.Max(0.1f, value);
+            SyncPreviewToManager();
+        }
+    }
+
+    public float CritIconSize
+    {
+        get => critIconSize;
+        set
+        {
+            critIconSize = Mathf.Max(0.05f, value);
+            UpdateCritLayout();
+            SyncPreviewToManager();
+        }
+    }
+
+    public float CritIconSpacing
+    {
+        get => critIconSpacing;
+        set
+        {
+            critIconSpacing = value;
+            UpdateCritLayout();
+            SyncPreviewToManager();
+        }
+    }
+
+    public Vector2 CritIconOffset
+    {
+        get => critIconOffset;
+        set
+        {
+            critIconOffset = value;
+            UpdateCritLayout();
+            SyncPreviewToManager();
+        }
+    }
+
+    public Vector3 CritSpawnOffset
+    {
+        get => critSpawnOffset;
+        set
+        {
+            critSpawnOffset = value;
+            SyncPreviewToManager();
+        }
+    }
+
+    public void ConfigureCritVisuals(float scaleMultiplier, float iconSize, float iconSpacing, Vector2 iconOffset, Vector3 spawnOffset)
+    {
+        critScaleMultiplier = scaleMultiplier;
+        critIconSize = iconSize;
+        critIconSpacing = iconSpacing;
+        critIconOffset = iconOffset;
+        critSpawnOffset = spawnOffset;
+        UpdateCritLayout();
+    }
+
+    public void SyncPreviewToManager()
+    {
+#if UNITY_EDITOR
+        if (gameObject.name == "[DamageNumber_Preview]")
+        {
+            DamageNumberManager mgr = DamageNumberManager.Instance != null ? DamageNumberManager.Instance : Object.FindObjectOfType<DamageNumberManager>();
+            if (mgr != null)
+            {
+                mgr.RecordCritVisualSettingsFromPreview(critScaleMultiplier, critIconSize, critIconSpacing, critIconOffset, critSpawnOffset);
+            }
+        }
+#endif
     }
 
     private Vector3 initialScale = Vector3.one;
@@ -175,6 +282,46 @@ public class DamageNumber : MonoBehaviour, IPoolable
             if (initialScale == Vector3.zero) initialScale = Vector3.one;
         }
 
+        // Tự động kiểm tra / tạo child CritIcon
+        if (critIconRenderer == null)
+        {
+            Transform iconTr = transform.Find("CritIcon");
+            if (iconTr != null)
+            {
+                critIconRenderer = iconTr.GetComponent<SpriteRenderer>();
+            }
+            else
+            {
+                GameObject iconObj = new GameObject("CritIcon");
+                iconObj.transform.SetParent(transform, false);
+                critIconRenderer = iconObj.AddComponent<SpriteRenderer>();
+            }
+        }
+
+        if (critIconSprite == null)
+        {
+            critIconSprite = Resources.Load<Sprite>("UI/CritDamageIcon");
+        }
+
+        if (critIconRenderer != null)
+        {
+            if (critIconRenderer.GetComponent<CritIconProxy>() == null)
+            {
+                critIconRenderer.gameObject.AddComponent<CritIconProxy>();
+            }
+            if (critIconRenderer.sprite == null && critIconSprite != null)
+            {
+                critIconRenderer.sprite = critIconSprite;
+            }
+            string resolvedLayer = GetResolvedSortingLayer(sortingLayerName);
+            critIconRenderer.sortingLayerName = resolvedLayer;
+            critIconRenderer.sortingOrder = sortingOrder + 12;
+            if (Application.isPlaying && !isCrit)
+            {
+                critIconRenderer.gameObject.SetActive(false);
+            }
+        }
+
         ApplyOutline();
     }
 
@@ -188,6 +335,12 @@ public class DamageNumber : MonoBehaviour, IPoolable
         {
             meshRenderer.sortingLayerName = resolvedLayer;
             meshRenderer.sortingOrder = order;
+        }
+
+        if (critIconRenderer != null)
+        {
+            critIconRenderer.sortingLayerName = resolvedLayer;
+            critIconRenderer.sortingOrder = order + 12;
         }
     }
 
@@ -237,12 +390,34 @@ public class DamageNumber : MonoBehaviour, IPoolable
 
         if (textComponent == null) return;
 
+        // Bảo vệ an toàn: Nếu fontSharedMaterial chưa được gán hoặc đang import asset,
+        // tuyệt đối không gọi textComponent.fontMaterial vì TMP sẽ throw ArgumentNullException (source null).
+        if (textComponent.fontSharedMaterial == null) return;
+
+        // Chỉ tạo và chỉnh fontMaterial instance khi đang trong Play mode để tránh rò rỉ bộ nhớ
+        // và tránh lỗi serialization trong OnValidate / Asset Import của Unity Editor.
+        if (!Application.isPlaying) return;
+
         Material mat = textComponent.fontMaterial;
         if (mat != null)
         {
             mat.EnableKeyword(ShaderUtilities.Keyword_Outline);
             mat.SetColor(ShaderUtilities.ID_OutlineColor, outlineColor);
             mat.SetFloat(ShaderUtilities.ID_OutlineWidth, outlineWidth);
+
+            if (isCrit)
+            {
+                mat.EnableKeyword(ShaderUtilities.Keyword_Underlay);
+                mat.SetColor(ShaderUtilities.ID_UnderlayColor, new Color(0.96f, 0.96f, 0.52f, 0.85f));
+                mat.SetFloat(ShaderUtilities.ID_UnderlayDilate, 0.25f);
+                mat.SetFloat(ShaderUtilities.ID_UnderlaySoftness, 0.45f);
+                mat.SetFloat(ShaderUtilities.ID_UnderlayOffsetX, 0f);
+                mat.SetFloat(ShaderUtilities.ID_UnderlayOffsetY, 0f);
+            }
+            else
+            {
+                mat.DisableKeyword(ShaderUtilities.Keyword_Underlay);
+            }
         }
     }
 
@@ -263,24 +438,28 @@ public class DamageNumber : MonoBehaviour, IPoolable
 
         isCrit = (type == DamageType.Critical);
 
-        // 1. Định dạng nội dung hiển thị theo phong cách game Survivor
+        // 1. Định dạng nội dung hiển thị
         if (textComponent != null)
         {
             string numStr = amount > 0 ? amount.ToString() : "0";
             switch (type)
             {
                 case DamageType.Critical:
-                    textComponent.text = "CRIT " + numStr + "!";
+                    textComponent.text = numStr;
+                    textComponent.fontStyle = FontStyles.Bold | FontStyles.Italic;
                     break;
                 case DamageType.PlayerDamage:
                     textComponent.text = "-" + numStr;
+                    textComponent.fontStyle = FontStyles.Bold;
                     break;
                 case DamageType.Heal:
                     textComponent.text = "+" + numStr;
+                    textComponent.fontStyle = FontStyles.Bold;
                     break;
                 case DamageType.Normal:
                 default:
                     textComponent.text = numStr;
+                    textComponent.fontStyle = FontStyles.Bold;
                     break;
             }
         }
@@ -288,7 +467,6 @@ public class DamageNumber : MonoBehaviour, IPoolable
         // 2. Thiết lập màu sắc và Vertex Gradient
         float scaleFactor = extraScale;
 
-        // Dynamic scale nhẹ theo độ lớn sát thương
         if (amount >= 300) scaleFactor *= 1.15f;
         else if (amount >= 100) scaleFactor *= 1.08f;
 
@@ -298,8 +476,8 @@ public class DamageNumber : MonoBehaviour, IPoolable
                 baseColor = criticalColor;
                 gradTop = CritGradTop;
                 gradBottom = CritGradBottom;
-                scaleFactor *= 1.35f;
-                SetSorting(sortingLayerName, sortingOrder + 10); // Ưu tiên hiển thị đòn chí mạng lên trên
+                scaleFactor *= critScaleMultiplier;
+                SetSorting(sortingLayerName, sortingOrder + 10);
                 break;
             case DamageType.PlayerDamage:
                 baseColor = playerDamageColor;
@@ -327,7 +505,7 @@ public class DamageNumber : MonoBehaviour, IPoolable
         targetScaleFactor = scaleFactor;
         ApplyColorAndGradient(1f);
 
-        // 3. Áp dụng viền (tùy biến theo loại hoặc viền chuẩn mặc định)
+        // 3. Áp dụng viền
         if (useCustomOutlinePerType)
         {
             Color targetOutline;
@@ -354,79 +532,134 @@ public class DamageNumber : MonoBehaviour, IPoolable
             ApplyOutline();
         }
 
-        // 4. Khởi tạo quỹ đạo Parabolic Arc (bật nảy vòng cung)
+        // 4. Bố cục hiển thị liên hợp cho đòn chí mạng
+        if (isCrit)
+        {
+            UpdateCritLayout();
+        }
+        else
+        {
+            if (critIconRenderer != null)
+            {
+                critIconRenderer.gameObject.SetActive(false);
+            }
+            if (textComponent != null)
+            {
+                textComponent.alignment = TextAlignmentOptions.Center;
+                textComponent.transform.localPosition = Vector3.zero;
+            }
+        }
+
+        // 5. Khởi tạo quỹ đạo Parabolic Arc
         float clampedDir = Mathf.Clamp(horizontalDir, -1.2f, 1.2f);
         float hSpread = clampedDir * Random.Range(0.7f, 1.2f);
         float startOffsetY = Random.Range(0.2f, 0.4f);
+        Vector3 spawnOffset = isCrit ? critSpawnOffset : new Vector3(0f, startOffsetY, 0f);
 
-        transform.position = startPos + new Vector3(clampedDir * 0.2f, startOffsetY, 0f);
+        float centerCompensation = isCrit ? -GetGroupHorizontalCenterOffset() : 0f;
+        transform.position = startPos + spawnOffset + new Vector3(centerCompensation + clampedDir * 0.2f, 0f, 0f);
         currentVelocity = new Vector3(hSpread, burstSpeedY * (isCrit ? 1.15f : 1f), 0f);
 
-        // 4. Kích hoạt trạng thái diễn hoạt (Squash & Stretch ban đầu)
         transform.localScale = new Vector3(initialScale.x * 1.12f, initialScale.y * 0.9f, initialScale.z) * (baseScale * targetScaleFactor);
         elapsedTime = 0f;
         isRunning = true;
         gameObject.SetActive(true);
     }
 
+    /// <summary>
+    /// Thiết lập hiển thị tĩnh để xem trước trực tiếp trên màn Game (không bị trôi, nảy hay biến mất).
+    /// </summary>
+    public void SetupPreview(int amount, DamageType type = DamageType.Critical)
+    {
+        EnsureComponents();
+        isCrit = (type == DamageType.Critical);
+        isRunning = false;
+
+        if (textComponent != null)
+        {
+            textComponent.text = amount.ToString();
+            textComponent.fontStyle = isCrit ? (FontStyles.Bold | FontStyles.Italic) : FontStyles.Bold;
+        }
+
+        targetScaleFactor = isCrit ? critScaleMultiplier : 1f;
+        baseColor = isCrit ? criticalColor : normalColor;
+        gradTop = isCrit ? CritGradTop : NormalGradTop;
+        gradBottom = isCrit ? CritGradBottom : NormalGradBottom;
+
+        ApplyColorAndGradient(1f);
+        ApplyOutline();
+        UpdateCritLayout();
+
+        Vector3 validInitScale = (initialScale == Vector3.zero ? Vector3.one : initialScale);
+        transform.localScale = validInitScale * (baseScale * targetScaleFactor);
+    }
+
     private void ApplyColorAndGradient(float alpha)
     {
-        if (textComponent == null) return;
+        if (textComponent != null)
+        {
+            Color c = baseColor;
+            c.a = alpha;
+            textComponent.color = c;
 
-        Color c = baseColor;
-        c.a = alpha;
-        textComponent.color = c;
+            textComponent.enableVertexGradient = true;
+            Color top = gradTop;
+            top.a = alpha;
+            Color btm = gradBottom;
+            btm.a = alpha;
+            textComponent.colorGradient = new VertexGradient(top, top, btm, btm);
+        }
 
-        textComponent.enableVertexGradient = true;
-        Color top = gradTop;
-        top.a = alpha;
-        Color btm = gradBottom;
-        btm.a = alpha;
-        textComponent.colorGradient = new VertexGradient(top, top, btm, btm);
+        if (critIconRenderer != null && isCrit)
+        {
+            critIconRenderer.color = new Color(1f, 1f, 1f, alpha);
+        }
     }
 
     private void Update()
     {
+        if (!Application.isPlaying)
+        {
+            if (critIconRenderer != null)
+            {
+                UpdateCritLayout();
+            }
+            return;
+        }
+
         if (!isRunning) return;
 
         float dt = Time.deltaTime;
         elapsedTime += dt;
         float progress = Mathf.Clamp01(elapsedTime / duration);
 
-        // 1. Cập nhật vị trí vật lý Parabolic Arc
+        // 1. Parabolic Arc
         transform.position += currentVelocity * dt;
-
-        // Trọng lực kéo trôi xuống dần
         currentVelocity.y -= arcGravity * dt;
-        // Giảm dần vận tốc ngang theo lực cản
         currentVelocity.x = Mathf.Lerp(currentVelocity.x, 0f, dt * dragX);
 
-        // 2. Hiệu ứng Squash & Stretch + Elastic Overshoot (Pop)
+        // 2. Squash & Stretch + Elastic Pop
         float currentMultiplier;
         float peakPop = isCrit ? popMultiplier * 1.18f : popMultiplier;
 
         if (progress < 0.15f)
         {
-            // Bùng nổ phóng to nhanh (Overshoot)
             float t = progress / 0.15f;
             currentMultiplier = Mathf.Lerp(0.92f, peakPop, Mathf.Sin(t * Mathf.PI * 0.5f));
         }
         else if (progress < 0.4f)
         {
-            // Đàn hồi co về kích thước chuẩn (Elastic settle)
             float t = (progress - 0.15f) / 0.25f;
             currentMultiplier = Mathf.Lerp(peakPop, 1.0f, t);
         }
         else
         {
-            // Giai đoạn cuối hơi thu nhỏ nhẹ nhàng
             float t = (progress - 0.4f) / 0.6f;
             currentMultiplier = Mathf.Lerp(1.0f, 0.9f, t);
         }
 
         Vector3 finalScale = initialScale * (baseScale * targetScaleFactor * currentMultiplier);
 
-        // Hiệu ứng rung nhẹ điểm nhấn đòn Chí Mạng ở 0.2s đầu
         if (isCrit && progress < 0.25f)
         {
             float shake = Mathf.Sin(elapsedTime * 65f) * 0.03f;
@@ -435,11 +668,11 @@ public class DamageNumber : MonoBehaviour, IPoolable
 
         transform.localScale = finalScale;
 
-        // 3. Hiệu ứng mờ dần (Fade-out): Giữ sắc nét 65% thời gian đầu, chỉ mờ dần ở 35% cuối
+        // 3. Fade-out
         float alpha = progress < 0.65f ? 1f : Mathf.Lerp(1f, 0f, (progress - 0.65f) / 0.35f);
         ApplyColorAndGradient(alpha);
 
-        // 4. Thu hồi về Pool khi hết thời gian
+        // 4. Return to pool
         if (progress >= 1f)
         {
             Despawn();
@@ -468,7 +701,141 @@ public class DamageNumber : MonoBehaviour, IPoolable
     public void OnReturnToPool()
     {
         isRunning = false;
+        if (critIconRenderer != null)
+        {
+            critIconRenderer.gameObject.SetActive(false);
+        }
+        if (textComponent != null)
+        {
+            textComponent.transform.localPosition = Vector3.zero;
+            textComponent.alignment = TextAlignmentOptions.Center;
+            textComponent.fontStyle = FontStyles.Bold;
+        }
         gameObject.SetActive(false);
     }
-}
 
+    /// <summary>
+    /// Tự động nhận diện biên giới bên trái thực tế của con số đầu tiên trong chuỗi số sát thương.
+    /// Tính toán dựa trên cấu trúc hình học thực của glyph (TMP_CharacterInfo).
+    /// </summary>
+    public float GetFirstCharacterLeftEdge()
+    {
+        if (textComponent == null) return 0f;
+
+        textComponent.ForceMeshUpdate();
+        TMP_TextInfo textInfo = textComponent.textInfo;
+
+        if (textInfo != null && textInfo.characterCount > 0)
+        {
+            for (int i = 0; i < textInfo.characterCount; i++)
+            {
+                TMP_CharacterInfo charInfo = textInfo.characterInfo[i];
+                if (charInfo.isVisible)
+                {
+                    // Lấy tọa độ X nhỏ nhất của glyph con số đầu tiên
+                    return Mathf.Min(charInfo.bottomLeft.x, charInfo.topLeft.x);
+                }
+            }
+        }
+
+        return textComponent.textBounds.min.x;
+    }
+
+    /// <summary>
+    /// Tính toán độ lệch tâm ngang của toàn bộ tổ hợp (Icon + Chữ số) so với tâm Transform.
+    /// </summary>
+    public float GetGroupHorizontalCenterOffset()
+    {
+        if (critIconRenderer == null || !critIconRenderer.gameObject.activeSelf || textComponent == null)
+        {
+            return 0f;
+        }
+
+        float iconLeftEdge = critIconRenderer.transform.localPosition.x - (critIconSize * 0.41f);
+        float textRightEdge = textComponent.textBounds.max.x;
+        return (iconLeftEdge + textRightEdge) * 0.5f;
+    }
+
+    /// <summary>
+    /// Tự động nhận diện con số đầu tiên và định vị icon chí mạng luôn đứng trước bên trái,
+    /// tự động giãn cách sát số (critIconSpacing) để đẹp mắt mà tuyệt đối không che khuất số sát thương.
+    /// </summary>
+    public void UpdateCritLayout()
+    {
+        if (critIconRenderer == null)
+        {
+            EnsureComponents();
+            if (critIconRenderer == null) return;
+        }
+
+        bool shouldShow = isCrit;
+#if UNITY_EDITOR
+        if (!Application.isPlaying)
+        {
+            shouldShow = true;
+        }
+#endif
+
+        if (!shouldShow)
+        {
+            critIconRenderer.gameObject.SetActive(false);
+            return;
+        }
+
+        if (critIconRenderer.sprite == null && critIconSprite != null)
+        {
+            critIconRenderer.sprite = critIconSprite;
+        }
+
+        critIconRenderer.gameObject.SetActive(true);
+
+        if (critIconRenderer.sprite != null)
+        {
+            float spriteW = critIconRenderer.sprite.rect.width / critIconRenderer.sprite.pixelsPerUnit;
+            float spriteH = critIconRenderer.sprite.rect.height / critIconRenderer.sprite.pixelsPerUnit;
+            float maxDim = Mathf.Max(spriteW, spriteH);
+            float iconScaleFactor = maxDim > 0f ? (critIconSize / maxDim) : 1f;
+            critIconRenderer.transform.localScale = new Vector3(iconScaleFactor, iconScaleFactor, 1f);
+        }
+
+        if (textComponent != null)
+        {
+            textComponent.alignment = TextAlignmentOptions.Center;
+            textComponent.transform.localPosition = Vector3.zero;
+            textComponent.margin = Vector4.zero;
+
+            float firstCharLeft = GetFirstCharacterLeftEdge();
+            float iconWidth = critIconSize;
+
+            // Bán kính hữu dụng từ tâm icon đến chóp nhọn ngoài cùng bên phải của ngôi sao.
+            // Bounding box của texture CritDamageIcon.png là 465/512 (chừa 47px viền trong suốt).
+            // (465 - 256) / 512 = 0.4082f => Lấy xấp xỉ 0.41f để chóp sao chạm chuẩn xác mép giãn cách.
+            float starRightRadius = iconWidth * 0.41f;
+
+            // Đặt chóp nhọn bên phải của icon cách mép trái con số đầu tiên đúng một khoảng critIconSpacing
+            float targetIconCenterX = (firstCharLeft - critIconSpacing) - starRightRadius + critIconOffset.x;
+            float targetIconCenterY = textComponent.textBounds.center.y + critIconOffset.y;
+
+            critIconRenderer.transform.localPosition = new Vector3(targetIconCenterX, targetIconCenterY, 0f);
+
+            // Đồng bộ sang proxy nếu có
+            CritIconProxy proxy = critIconRenderer.GetComponent<CritIconProxy>();
+            if (proxy != null)
+            {
+                proxy.SyncFromParent();
+            }
+        }
+    }
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        EnsureComponents();
+        if (textComponent != null)
+        {
+            UpdateCritLayout();
+        }
+        SyncPreviewToManager();
+    }
+#endif
+}

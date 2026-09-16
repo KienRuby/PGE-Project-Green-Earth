@@ -566,6 +566,17 @@ public sealed class BoxOpeningController : MonoBehaviour
         if (name.IndexOf("High-Explosive Mine", StringComparison.OrdinalIgnoreCase) >= 0)
             return "Rải mìn phát nổ cực mạnh trên mặt đất";
 
+        if (name.IndexOf("Sloy", StringComparison.OrdinalIgnoreCase) >= 0)
+            return "Bắn đạn làm chậm kẻ địch";
+        if (name.IndexOf("Turret Buffer", StringComparison.OrdinalIgnoreCase) >= 0)
+            return "Cường hóa kỹ năng và thời gian của tất cả Trụ";
+        if (name.IndexOf("Radar Eye", StringComparison.OrdinalIgnoreCase) >= 0)
+            return "Quét điểm yếu và tăng tỉ lệ chí mạng";
+        if (name.IndexOf("Assault Blaster", StringComparison.OrdinalIgnoreCase) >= 0)
+            return "Pháo đôi hỏa lực trực diện tầm xa";
+        if (name.IndexOf("Purifying", StringComparison.OrdinalIgnoreCase) >= 0)
+            return "Tăng khả năng kháng hiệu ứng xấu";
+
         return visual.description;
     }
 

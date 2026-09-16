@@ -29,6 +29,7 @@ public class BuddyCombatManager : MonoBehaviour
     [SerializeField] private GameObject assaultBlasterPrefab;
 
     [Header("Runtime Spawned Buddies")]
+    public const int MaxCombatDrones = 3;
     [SerializeField] private List<BuddyCombatDrone> activeDrones = new List<BuddyCombatDrone>();
 
     public static BuddyCombatManager Instance { get; private set; }
@@ -99,7 +100,7 @@ public class BuddyCombatManager : MonoBehaviour
         ClearAllDrones();
 
         int activeDeck = PlayerDataService.ActiveBuddyDeckIndex;
-        int[] equippedIds = PlayerDataService.LoadBuddyDeck(activeDeck, new int[] { 1, 2, 10, 3, 4 });
+        int[] equippedIds = PlayerDataService.LoadBuddyDeck(activeDeck, new int[] { 1, 2, 10 });
 
         if (equippedIds == null || equippedIds.Length == 0)
         {
@@ -107,13 +108,17 @@ public class BuddyCombatManager : MonoBehaviour
             return;
         }
 
-        // Lọc danh sách ID hợp lệ (> 0)
+        // Lọc danh sách ID hợp lệ (> 0), tối đa MaxCombatDrones (3)
         List<int> validIds = new List<int>();
         for (int i = 0; i < equippedIds.Length; i++)
         {
             if (equippedIds[i] > 0)
             {
                 validIds.Add(equippedIds[i]);
+                if (validIds.Count >= MaxCombatDrones)
+                {
+                    break;
+                }
             }
         }
 

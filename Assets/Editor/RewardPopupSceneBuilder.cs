@@ -269,24 +269,32 @@ public static class RewardPopupSceneBuilder
         windowRect.anchorMin = new Vector2(0.5f, 0.5f);
         windowRect.anchorMax = new Vector2(0.5f, 0.5f);
         windowRect.pivot = new Vector2(0.5f, 0.5f);
-        windowRect.anchoredPosition = new Vector2(0f, -40f);
-        windowRect.sizeDelta = new Vector2(1000f, 1400f);
+        windowRect.anchoredPosition = new Vector2(0f, -51f);
+        windowRect.sizeDelta = new Vector2(857f, 1214f);
 
         // D. Tabs Header Container
         RectTransform tabsHeader = CreateRect("Tabs", windowObj.transform);
-        tabsHeader.anchorMin = new Vector2(0f, 1f);
-        tabsHeader.anchorMax = new Vector2(1f, 1f);
+        tabsHeader.anchorMin = new Vector2(0.5f, 1f);
+        tabsHeader.anchorMax = new Vector2(0.5f, 1f);
         tabsHeader.pivot = new Vector2(0.5f, 0f);
         tabsHeader.anchoredPosition = new Vector2(0f, -2f);
-        tabsHeader.sizeDelta = new Vector2(-30f, 85f);
+        tabsHeader.sizeDelta = new Vector2(722f, 116f);
 
         // Tab 1: Daily Login Tab Button (Left half) - Inactive
-        GameObject dailyTabObj = CreateTabButton("DailyLoginTab", tabsHeader, new Vector2(0f, 0f), new Vector2(0.5f, 1f), new Vector2(0f, 0f), new Vector2(-6f, 0f), "Daily Login", 32f, InactiveTabBg, WindowBorderColor, out Image dailyTabBg, out TMP_Text dailyTabTxt, out GameObject dailyTabDot);
+        GameObject dailyTabObj = CreateTabButton("DailyLoginTab", tabsHeader, Vector2.zero, Vector2.zero, Vector2.zero, new Vector2(343.5f, 116f), "Daily Login", 32f, InactiveTabBg, WindowBorderColor, out Image dailyTabBg, out TMP_Text dailyTabTxt, out GameObject dailyTabDot);
+        RectTransform dailyTabRect = dailyTabObj.GetComponent<RectTransform>();
+        dailyTabRect.pivot = Vector2.zero;
+        dailyTabRect.anchoredPosition = Vector2.zero;
+        dailyTabRect.sizeDelta = new Vector2(343.5f, 116f);
         dailyTabTxt.color = InactiveTabText;
         Button dailyTabBtn = dailyTabObj.GetComponent<Button>();
 
         // Tab 2: Achievements Tab Button (Right half) - Active theo đúng Image 1
-        GameObject achTabObj = CreateTabButton("AchievementTab", tabsHeader, new Vector2(0.5f, 0f), new Vector2(1f, 1f), new Vector2(6f, 0f), new Vector2(0f, 0f), "Achievements", 32f, ActiveTabBg, WindowBorderColor, out Image achTabBg, out TMP_Text achTabTxt, out GameObject achTabDot);
+        GameObject achTabObj = CreateTabButton("AchievementTab", tabsHeader, new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-343.5f, 0f), Vector2.zero, "Achievements", 32f, ActiveTabBg, WindowBorderColor, out Image achTabBg, out TMP_Text achTabTxt, out GameObject achTabDot);
+        RectTransform achievementTabRect = achTabObj.GetComponent<RectTransform>();
+        achievementTabRect.pivot = new Vector2(1f, 0f);
+        achievementTabRect.anchoredPosition = Vector2.zero;
+        achievementTabRect.sizeDelta = new Vector2(343.5f, 116f);
         achTabTxt.color = ActiveTabText;
         Button achTabBtn = achTabObj.GetComponent<Button>();
 
@@ -330,7 +338,7 @@ public static class RewardPopupSceneBuilder
     {
         GameObject panelObj = CreateRect("DailyLoginPanel", parent).gameObject;
         RectTransform panelRect = panelObj.GetComponent<RectTransform>();
-        Stretch(panelRect, Vector2.zero, Vector2.one, new Vector2(16f, 20f), new Vector2(-16f, -30f));
+        Stretch(panelRect, Vector2.zero, Vector2.one, new Vector2(16f, 10f), new Vector2(-16f, -23f));
 
         // ScrollRect
         ScrollRect scroll = panelObj.AddComponent<ScrollRect>();
@@ -356,8 +364,8 @@ public static class RewardPopupSceneBuilder
         scroll.content = content;
 
         VerticalLayoutGroup layout = content.gameObject.AddComponent<VerticalLayoutGroup>();
-        layout.spacing = 16f;
-        layout.padding = new RectOffset(10, 10, 15, 15);
+        layout.spacing = 25f;
+        layout.padding = new RectOffset(0, 0, 15, 15);
         layout.childAlignment = TextAnchor.UpperCenter;
         layout.childControlWidth = true;
         layout.childControlHeight = false;
@@ -384,12 +392,12 @@ public static class RewardPopupSceneBuilder
     {
         GameObject itemObj = CreateFrame($"Day{dayIndex:00}", parent, CardBgColor, CardBorderColor, out Image bg);
         RectTransform rect = itemObj.GetComponent<RectTransform>();
-        rect.sizeDelta = new Vector2(920f, 150f);
+        rect.sizeDelta = new Vector2(825f, 134f);
         LayoutElement le = itemObj.AddComponent<LayoutElement>();
-        le.preferredWidth = 948f;
-        le.minWidth = 948f;
-        le.preferredHeight = 150f;
-        le.minHeight = 150f;
+        le.preferredWidth = 825f;
+        le.minWidth = 825f;
+        le.preferredHeight = 134f;
+        le.minHeight = 134f;
 
         CanvasGroup cg = itemObj.AddComponent<CanvasGroup>();
         cg.alpha = 1.0f;
@@ -435,11 +443,11 @@ public static class RewardPopupSceneBuilder
         rewardsTr.anchorMin = new Vector2(0f, 0.5f);
         rewardsTr.anchorMax = new Vector2(1f, 0.5f);
         rewardsTr.pivot = new Vector2(0f, 0.5f);
-        rewardsTr.anchoredPosition = new Vector2(160f, 0f);
-        rewardsTr.sizeDelta = new Vector2(-460f, 120f);
+        rewardsTr.anchoredPosition = new Vector2(215f, 0f);
+        rewardsTr.sizeDelta = new Vector2(-437f, 110f);
 
         HorizontalLayoutGroup rLayout = rewardsTr.gameObject.AddComponent<HorizontalLayoutGroup>();
-        rLayout.spacing = 18f;
+        rLayout.spacing = 45f;
         rLayout.childAlignment = TextAnchor.MiddleLeft;
         rLayout.childControlWidth = false;
         rLayout.childControlHeight = false;
@@ -458,7 +466,7 @@ public static class RewardPopupSceneBuilder
             GameObject badge = new GameObject($"RewardBadge_{r}", typeof(RectTransform), typeof(Image));
             badge.transform.SetParent(rewardsTr, false);
             RectTransform badgeRt = badge.GetComponent<RectTransform>();
-            badgeRt.sizeDelta = new Vector2(75f, 75f);
+            badgeRt.sizeDelta = new Vector2(82f, 84f);
             Image badgeBg = badge.GetComponent<Image>();
             badgeBg.color = new Color32(11, 45, 60, 0); // alpha = 0 theo yêu cầu người dùng
             badgeBg.raycastTarget = false;
@@ -471,7 +479,7 @@ public static class RewardPopupSceneBuilder
             iconRt.anchorMax = new Vector2(0.5f, 0.5f);
             iconRt.pivot = new Vector2(0.5f, 0.5f);
             iconRt.anchoredPosition = new Vector2(0f, 8f);
-            iconRt.sizeDelta = new Vector2(45f, 45f);
+            iconRt.sizeDelta = new Vector2(82f, 84f);
             Image iconImg = iconObj.GetComponent<Image>();
             iconImg.sprite = rw.sprite;
             iconImg.preserveAspect = true;
@@ -492,8 +500,8 @@ public static class RewardPopupSceneBuilder
         stateRight.anchorMin = new Vector2(1f, 0.5f);
         stateRight.anchorMax = new Vector2(1f, 0.5f);
         stateRight.pivot = new Vector2(1f, 0.5f);
-        stateRight.anchoredPosition = new Vector2(-25f, 0f);
-        stateRight.sizeDelta = new Vector2(280f, 120f);
+        stateRight.anchoredPosition = new Vector2(-30f, 0f);
+        stateRight.sizeDelta = new Vector2(180f, 110f);
 
         // Button Get / Claim Again / Obtained
         GameObject getBtnObj = new GameObject("ClaimButton", typeof(RectTransform), typeof(Image), typeof(Button));
@@ -503,7 +511,7 @@ public static class RewardPopupSceneBuilder
         btnRect.anchorMax = new Vector2(0.5f, 0.5f);
         btnRect.pivot = new Vector2(0.5f, 0.5f);
         btnRect.anchoredPosition = Vector2.zero;
-        btnRect.sizeDelta = new Vector2(240f, 105f);
+        btnRect.sizeDelta = new Vector2(174f, 76f);
 
         Image btnImg = getBtnObj.GetComponent<Image>();
         btnImg.preserveAspect = true;
@@ -537,7 +545,7 @@ public static class RewardPopupSceneBuilder
         GameObject obtainedRoot = CreateFrame("ObtainedRoot", stateRight, ObtainedBtnColor, new Color32(45, 65, 80, 255), out _);
         RectTransform obtRect = obtainedRoot.GetComponent<RectTransform>();
         obtRect.anchoredPosition = Vector2.zero;
-        obtRect.sizeDelta = new Vector2(240f, 85f);
+        obtRect.sizeDelta = new Vector2(174f, 76f);
         TMP_Text obtainedTxt = CreateText("ObtainedLabel", obtainedRoot.transform, "Obtained", 34f, TextGray, TextAlignmentOptions.Center);
         Stretch(obtainedTxt.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
         obtainedRoot.SetActive(false);
@@ -596,7 +604,7 @@ public static class RewardPopupSceneBuilder
     {
         GameObject panelObj = CreateRect("AchievementPanel", parent).gameObject;
         RectTransform panelRect = panelObj.GetComponent<RectTransform>();
-        Stretch(panelRect, Vector2.zero, Vector2.one, new Vector2(16f, 20f), new Vector2(-16f, -30f));
+        Stretch(panelRect, Vector2.zero, Vector2.one, new Vector2(16f, 10f), new Vector2(-16f, -23f));
 
         ScrollRect scroll = panelObj.AddComponent<ScrollRect>();
         scroll.horizontal = false;
@@ -619,8 +627,8 @@ public static class RewardPopupSceneBuilder
         scroll.content = content;
 
         VerticalLayoutGroup layout = content.gameObject.AddComponent<VerticalLayoutGroup>();
-        layout.spacing = 16f;
-        layout.padding = new RectOffset(10, 10, 15, 15);
+        layout.spacing = 24f;
+        layout.padding = new RectOffset(0, 0, 15, 15);
         layout.childAlignment = TextAnchor.UpperCenter;
         layout.childControlWidth = true;
         layout.childControlHeight = false;
@@ -726,12 +734,12 @@ public static class RewardPopupSceneBuilder
             bg.color = Color.white;
         }
         RectTransform rect = itemObj.GetComponent<RectTransform>();
-        rect.sizeDelta = new Vector2(920f, 210f);
+        rect.sizeDelta = new Vector2(825f, 213f);
         LayoutElement le = itemObj.AddComponent<LayoutElement>();
-        le.preferredWidth = 948f;
-        le.minWidth = 948f;
-        le.preferredHeight = 210f;
-        le.minHeight = 210f;
+        le.preferredWidth = 825f;
+        le.minWidth = 825f;
+        le.preferredHeight = 213f;
+        le.minHeight = 213f;
 
         Image border = itemObj.GetComponent<Image>();
         if (achievementBannerSprite != null && border != null)
@@ -758,8 +766,8 @@ public static class RewardPopupSceneBuilder
         barRect.anchorMin = new Vector2(0f, 1f);
         barRect.anchorMax = new Vector2(0f, 1f);
         barRect.pivot = new Vector2(0f, 1f);
-        barRect.anchoredPosition = new Vector2(30f, -70f);
-        barRect.sizeDelta = new Vector2(560f, 32f);
+        barRect.anchoredPosition = new Vector2(25f, -58f);
+        barRect.sizeDelta = new Vector2(506f, 33.5f);
 
         // Progress Fill
         GameObject fillObj = CreateImage("ProgressFill", barBgObj.transform, ProgressFillColor, false).gameObject;
@@ -781,19 +789,19 @@ public static class RewardPopupSceneBuilder
         progressTxt.rectTransform.anchorMin = new Vector2(0f, 1f);
         progressTxt.rectTransform.anchorMax = new Vector2(0f, 1f);
         progressTxt.rectTransform.pivot = new Vector2(0.5f, 1f);
-        progressTxt.rectTransform.anchoredPosition = new Vector2(310f, -104f);
-        progressTxt.rectTransform.sizeDelta = new Vector2(560f, 30f);
+        progressTxt.rectTransform.anchoredPosition = new Vector2(278f, -60f);
+        progressTxt.rectTransform.sizeDelta = new Vector2(506f, 30f);
 
         // 3. Rewards Container (Dưới thanh progress bar)
         RectTransform rewardsTr = CreateRect("RewardsContainer", itemObj.transform);
         rewardsTr.anchorMin = new Vector2(0f, 0f);
         rewardsTr.anchorMax = new Vector2(0f, 0f);
         rewardsTr.pivot = new Vector2(0f, 0f);
-        rewardsTr.anchoredPosition = new Vector2(30f, 15f);
-        rewardsTr.sizeDelta = new Vector2(560f, 65f);
+        rewardsTr.anchoredPosition = new Vector2(25f, 10f);
+        rewardsTr.sizeDelta = new Vector2(506f, 90f);
 
         HorizontalLayoutGroup rLayout = rewardsTr.gameObject.AddComponent<HorizontalLayoutGroup>();
-        rLayout.spacing = preview.rewards.Length == 2 ? 180f : 45f;
+        rLayout.spacing = 51f;
         rLayout.childAlignment = TextAnchor.MiddleLeft;
         rLayout.childControlWidth = false;
         rLayout.childControlHeight = false;
@@ -804,7 +812,7 @@ public static class RewardPopupSceneBuilder
             GameObject badge = new GameObject($"RewardBadge_{r}", typeof(RectTransform), typeof(Image));
             badge.transform.SetParent(rewardsTr, false);
             RectTransform badgeRt = badge.GetComponent<RectTransform>();
-            badgeRt.sizeDelta = new Vector2(75f, 75f);
+            badgeRt.sizeDelta = new Vector2(82f, 84f);
             Image badgeBg = badge.GetComponent<Image>();
             badgeBg.color = new Color32(11, 45, 60, 0); // alpha = 0 theo yêu cầu người dùng
             badgeBg.raycastTarget = false;
@@ -816,8 +824,8 @@ public static class RewardPopupSceneBuilder
             iconRt.anchorMin = new Vector2(0.5f, 0.5f);
             iconRt.anchorMax = new Vector2(0.5f, 0.5f);
             iconRt.pivot = new Vector2(0.5f, 0.5f);
-            iconRt.anchoredPosition = new Vector2(0f, 10f);
-            iconRt.sizeDelta = new Vector2(46f, 46f);
+            iconRt.anchoredPosition = new Vector2(0f, 8f);
+            iconRt.sizeDelta = new Vector2(82f, 84f);
             Image iconImg = iconObj.GetComponent<Image>();
             iconImg.sprite = rw.sprite;
             iconImg.preserveAspect = true;
@@ -849,14 +857,14 @@ public static class RewardPopupSceneBuilder
 
         GameObject btnObj = CreateButton("ActionButton", itemObj.transform,
             new Vector2(1f, 0.5f), new Vector2(1f, 0.5f),
-            new Vector2(-280f, -47.5f), new Vector2(-30f, 47.5f),
+            new Vector2(-204f, -38f), new Vector2(-30f, 38f),
             btnLabel, 38f, btnFill, btnBorderColor, out Image btnImg);
         RectTransform btnRect = btnObj.GetComponent<RectTransform>();
         btnRect.anchorMin = new Vector2(1f, 0.5f);
         btnRect.anchorMax = new Vector2(1f, 0.5f);
         btnRect.pivot = new Vector2(1f, 0.5f);
         btnRect.anchoredPosition = new Vector2(-30f, 0f);
-        btnRect.sizeDelta = new Vector2(250f, 95f);
+        btnRect.sizeDelta = new Vector2(174f, 76f);
 
         Button actBtn = btnObj.GetComponent<Button>();
         actBtn.interactable = false;

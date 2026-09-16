@@ -683,7 +683,7 @@ public sealed class ShopController : MonoBehaviour
                 pack = new DevelopmentPack { Id = offer.id, RedGems = 3_000, ChipsetIds = new[] { 1, 8, 2 }, OnceOnly = true, SuccessMessage = "3,000 GEMS • STANDARD GUN x7 • SHOTGUN x7 • RIFLE x7" };
                 break;
             case "drone-pack":
-                pack = new DevelopmentPack { Id = offer.id, RedGems = 3_000, BuddyIds = new[] { 1, 6, 10 }, OnceOnly = true, SuccessMessage = "3,000 GEMS • SLOY x7 • MINE MAKER x7 • PURIFYING DRONE x7" };
+                pack = new DevelopmentPack { Id = offer.id, RedGems = 3_000, BuddyIds = new[] { 1, 2, 10 }, OnceOnly = true, SuccessMessage = "3,000 GEMS • SLOY x7 • TURRET BUFFER x7 • PURIFYING DRONE x7" };
                 break;
             case "gem-1": pack = GemPack(offer.id, 160); break;
             case "gem-2": pack = GemPack(offer.id, 1_000); break;
@@ -1035,7 +1035,7 @@ public static class ShopBoxDropRoller
     }
 
     private static readonly int[] ChipsetIds = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-    private static readonly int[] BuddyIds = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
+    private static readonly int[] BuddyIds = { 1, 2, 3, 4, 10 };
 
     public static List<Drop> Roll(BoxCategory category, int boxCount, System.Random random)
     {

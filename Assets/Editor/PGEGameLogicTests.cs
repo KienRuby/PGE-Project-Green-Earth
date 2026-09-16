@@ -1598,7 +1598,7 @@ public class PGEGameLogicTests
         BuddyController controller = go.AddComponent<BuddyController>();
         controller.InitializeDatabase();
 
-        Assert.That(controller.AllBuddies.Count, Is.GreaterThanOrEqualTo(10), "Buddy database must have all 10+ drones initialized.");
+        Assert.That(controller.AllBuddies.Count, Is.EqualTo(5), "Buddy database must have exactly 5 official drones initialized.");
 
         BuddyItemData snowflake = null;
         BuddyItemData spider = null;

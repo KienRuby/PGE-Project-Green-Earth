@@ -72,12 +72,12 @@ public class BuddyCombatSystemTests
     }
 
     [Test]
-    public void BuddyCombatManager_SpawnsAllEquippedDrones()
+    public void BuddyCombatManager_SpawnsAtMostThreeEquippedDrones()
     {
         GameObject playerObj = new GameObject("Player_Test");
         try
         {
-            // Thiết lập deck test chứa đủ 5 Buddy ID: 1, 2, 10, 3, 4
+            // Thiết lập deck test truyền 5 Buddy ID: 1, 2, 10, 3, 4 (vượt quá 3)
             int[] testDeck = new int[] { 1, 2, 10, 3, 4 };
             PlayerDataService.ActiveBuddyDeckIndex = 0;
             PlayerDataService.SaveBuddyDeck(0, testDeck);
@@ -86,11 +86,11 @@ public class BuddyCombatSystemTests
             manager.EnsureRegisteredPrefabsLoaded();
             manager.SpawnEquippedBuddies();
 
-            Assert.AreEqual(5, manager.ActiveDrones.Count, "Manager must spawn exactly 5 active drones for 5 equipped IDs.");
+            Assert.AreEqual(BuddyCombatManager.MaxCombatDrones, manager.ActiveDrones.Count, "Manager must spawn at most 3 active drones.");
 
-            // Kiểm tra các ID tương ứng
+            // Kiểm tra các ID tương ứng (chỉ 3 drone đầu tiên được đưa vào trận)
             int[] spawnedIds = manager.ActiveDrones.Select(d => d.BuddyId).ToArray();
-            CollectionAssert.AreEqual(testDeck, spawnedIds, "Spawned buddy IDs must match equipped deck order.");
+            CollectionAssert.AreEqual(new int[] { 1, 2, 10 }, spawnedIds, "Spawned buddy IDs must match first 3 equipped IDs.");
         }
         finally
         {

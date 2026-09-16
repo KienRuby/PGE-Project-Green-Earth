@@ -27,6 +27,16 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     [Tooltip("Tỷ lệ rơi tiền khi quái chết (1 = 100% luôn rơi, 0.5 = 50% cơ hội).")]
     [Range(0f, 1f)] [SerializeField] private float currencyDropChance = 1f;
 
+    [Header("Health Box Drops")]
+    [Tooltip("Cho phép quái rơi hộp máu khi bị tiêu diệt.")]
+    [SerializeField] private bool canDropHealthBox = true;
+
+    [Tooltip("Tỷ lệ xuất hiện Hộp Máu Nhỏ (hồi 10% Max HP) khi quái chết (5% = 0.05).")]
+    [Range(0f, 1f)] [SerializeField] private float smallHealthBoxDropChance = DropTable.SmallHealthBoxDropChance;
+
+    [Tooltip("Tỷ lệ xuất hiện Hộp Máu Lớn (hồi 20% Max HP) khi quái chết (3% = 0.03).")]
+    [Range(0f, 1f)] [SerializeField] private float largeHealthBoxDropChance = DropTable.LargeHealthBoxDropChance;
+
     [Header("Death & Animation")]
     [Tooltip("Tên Trigger kích hoạt animation Die trong Animator.")]
     [SerializeField] private string deathAnimationTrigger = "Die";
@@ -104,6 +114,15 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     public void SetCurrencyDropChance(float chance) => currencyDropChance = Mathf.Clamp01(chance);
     public void SetRandomRedGemDropChance(float chance) => randomRedGemDropChance = Mathf.Clamp01(chance);
     public void SetRandomRedGemAmount(int amount) => randomRedGemAmount = Mathf.Max(1, amount);
+    public bool CanDropHealthBox => canDropHealthBox;
+    public float SmallHealthBoxDropChance => smallHealthBoxDropChance;
+    public float LargeHealthBoxDropChance => largeHealthBoxDropChance;
+    public void SetCanDropHealthBox(bool canDrop) => canDropHealthBox = canDrop;
+    public void SetHealthBoxDropChances(float smallChance, float largeChance)
+    {
+        smallHealthBoxDropChance = Mathf.Clamp01(smallChance);
+        largeHealthBoxDropChance = Mathf.Clamp01(largeChance);
+    }
 
     public event Action<int, int> OnHealthChanged;
     public event Action OnEnemyDeath;
@@ -422,6 +441,12 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
                 {
                     ChipManager.AddRedGems(randomRedGemAmount);
                 }
+            }
+
+            // Cơ hội rơi Hộp Máu (mặc định 5% hộp nhỏ, 3% hộp lớn)
+            if (canDropHealthBox)
+            {
+                DropTable.TryDropHealthBox(transform.position, smallHealthBoxDropChance, largeHealthBoxDropChance);
             }
 
             GameEvents.RaiseEnemyKilled(expReward);

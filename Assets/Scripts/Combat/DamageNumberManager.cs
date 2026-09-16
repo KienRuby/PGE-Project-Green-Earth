@@ -26,6 +26,41 @@ public class DamageNumberManager : MonoBehaviour
     [Tooltip("Kích thước chữ số (FontSize) - được thu gọn để hiển thị tinh gọn, sắc nét.")]
     [SerializeField] private float defaultFontSize = 2.4f;
 
+    [Tooltip("Sprite icon chí mạng (nếu để trống, tự nạp từ Resources/UI/CritDamageIcon).")]
+    [SerializeField] private Sprite critIconSprite;
+
+    [Header("Critical Hit Sizing & Position (Tùy Chỉnh Sát Thương Chí Mạng)")]
+    [Tooltip("Hệ số phóng to/thu nhỏ riêng cho đòn chí mạng (Số + Icon). Mặc định 0.76f theo tinh chỉnh người dùng.")]
+    [Range(0.5f, 2.5f)]
+    [SerializeField] private float defaultCritScale = 0.76f;
+
+    [Tooltip("Kích thước icon chí mạng (Icon Size). Tinh chỉnh 0.249f theo người dùng.")]
+    [Range(0.1f, 1.5f)]
+    [SerializeField] private float defaultCritIconSize = 0.249f;
+
+    [Tooltip("Khoảng cách giữa icon chí mạng và dãy số sát thương. Tinh chỉnh 0.021f theo người dùng.")]
+    [Range(-0.1f, 0.4f)]
+    [SerializeField] private float defaultCritIconSpacing = 0.021f;
+
+    [Tooltip("Độ lệch vị trí riêng của icon chí mạng (Offset X, Y). Dùng để chỉnh icon lên/xuống/trái/phải.")]
+    [SerializeField] private Vector2 defaultCritIconOffset = new Vector2(0f, 0.01f);
+
+    [Tooltip("Độ lệch vị trí xuất hiện ban đầu của sát thương chí mạng so với mục tiêu.")]
+    [SerializeField] private Vector3 defaultCritSpawnOffset = new Vector3(0f, 0.35f, 0f);
+
+    [Tooltip("Tự động đồng bộ các thông số kích thước/vị trí chí mạng ở trên vào các số sát thương trong trận đấu.")]
+    [SerializeField] private bool syncCritSettingsToInstances = true;
+
+    [Header("Game View Live Preview (Xem Trước Trên Màn Game)")]
+    [Tooltip("Bật hiển thị mẫu số sát thương chí mạng ngay trên màn hình Game để dễ căn chỉnh kích thước.")]
+    [SerializeField] private bool showGameViewPreview = false;
+
+    [Tooltip("Vị trí hiển thị số sát thương xem trước trong màn Game (mặc định ngay trên đầu Player: 0.015, 1.4, 0).")]
+    [SerializeField] private Vector3 previewPosition = new Vector3(0.015f, 1.4f, 0f);
+
+    [Tooltip("Con số sát thương hiển thị mẫu.")]
+    [SerializeField] private int previewDamageAmount = 10000;
+
     [Header("Outline Settings")]
     [Tooltip("Màu viền mặc định cho số sát thương (mặc định viền đen sắc nét).")]
     [SerializeField] private Color defaultOutlineColor = Color.black;
@@ -64,6 +99,159 @@ public class DamageNumberManager : MonoBehaviour
         set => useManagerOutlinePerType = value;
     }
 
+    public float DefaultCritScale
+    {
+        get => defaultCritScale;
+        set
+        {
+            defaultCritScale = value;
+            if (syncCritSettingsToInstances) ApplyCritSettingsToAllInstances();
+            UpdateGameViewPreview();
+        }
+    }
+
+    public float DefaultCritIconSize
+    {
+        get => defaultCritIconSize;
+        set
+        {
+            defaultCritIconSize = value;
+            if (syncCritSettingsToInstances) ApplyCritSettingsToAllInstances();
+            UpdateGameViewPreview();
+        }
+    }
+
+    public float DefaultCritIconSpacing
+    {
+        get => defaultCritIconSpacing;
+        set
+        {
+            defaultCritIconSpacing = value;
+            if (syncCritSettingsToInstances) ApplyCritSettingsToAllInstances();
+            UpdateGameViewPreview();
+        }
+    }
+
+    public Vector2 DefaultCritIconOffset
+    {
+        get => defaultCritIconOffset;
+        set
+        {
+            defaultCritIconOffset = value;
+            if (syncCritSettingsToInstances) ApplyCritSettingsToAllInstances();
+            UpdateGameViewPreview();
+        }
+    }
+
+    public Vector3 DefaultCritSpawnOffset
+    {
+        get => defaultCritSpawnOffset;
+        set
+        {
+            defaultCritSpawnOffset = value;
+            if (syncCritSettingsToInstances) ApplyCritSettingsToAllInstances();
+            UpdateGameViewPreview();
+        }
+    }
+
+    public bool ShowGameViewPreview
+    {
+        get => showGameViewPreview;
+        set
+        {
+            showGameViewPreview = value;
+            UpdateGameViewPreview();
+        }
+    }
+
+    public Vector3 PreviewPosition
+    {
+        get => previewPosition;
+        set
+        {
+            previewPosition = value;
+            UpdateGameViewPreview();
+        }
+    }
+
+    public int PreviewDamageAmount
+    {
+        get => previewDamageAmount;
+        set
+        {
+            previewDamageAmount = value;
+            UpdateGameViewPreview();
+        }
+    }
+
+    public void ApplyCritSettingsToAllInstances()
+    {
+        foreach (DamageNumber item in allInstances)
+        {
+            if (item != null)
+            {
+                item.ConfigureCritVisuals(defaultCritScale, defaultCritIconSize, defaultCritIconSpacing, defaultCritIconOffset, defaultCritSpawnOffset);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Ghi nhận và lưu giữ thông số kích thước chí mạng từ đối tượng xem trước hoặc do người dùng kéo trực tiếp.
+    /// Đảm bảo khi bấm Play vào trận đấu, các số sát thương trong trận sẽ hiển thị đúng 100% kích thước đã chỉnh.
+    /// </summary>
+    public void RecordCritVisualSettingsFromPreview(float scale, float iconSize, float spacing, Vector2 offset, Vector3 spawnOffset)
+    {
+        defaultCritScale = scale;
+        defaultCritIconSize = iconSize;
+        defaultCritIconSpacing = spacing;
+        defaultCritIconOffset = offset;
+        defaultCritSpawnOffset = spawnOffset;
+#if UNITY_EDITOR
+        if (!Application.isPlaying)
+        {
+            UnityEditor.EditorUtility.SetDirty(this);
+        }
+#endif
+    }
+
+    /// <summary>
+    /// Đồng bộ thông số từ mẫu xem trước [DamageNumber_Preview] hoặc từ Prefab gốc để không bị ghi đè mất cấu hình.
+    /// </summary>
+    public void SyncFromPreviewOrPrefab()
+    {
+        DamageNumber preview = null;
+#if UNITY_2023_1_OR_NEWER
+        DamageNumber[] all = Object.FindObjectsByType<DamageNumber>(FindObjectsSortMode.None);
+#else
+        DamageNumber[] all = Object.FindObjectsOfType<DamageNumber>();
+#endif
+        foreach (var dn in all)
+        {
+            if (dn != null && dn.gameObject.name == "[DamageNumber_Preview]")
+            {
+                preview = dn;
+                break;
+            }
+        }
+
+        if (preview != null)
+        {
+            defaultCritScale = preview.CritScaleMultiplier;
+            defaultCritIconSize = preview.CritIconSize;
+            defaultCritIconSpacing = preview.CritIconSpacing;
+            defaultCritIconOffset = preview.CritIconOffset;
+            defaultCritSpawnOffset = preview.CritSpawnOffset;
+        }
+        else if (damageNumberPrefab != null)
+        {
+            defaultCritScale = damageNumberPrefab.CritScaleMultiplier;
+            defaultCritIconSize = damageNumberPrefab.CritIconSize;
+            defaultCritIconSpacing = damageNumberPrefab.CritIconSpacing;
+            defaultCritIconOffset = damageNumberPrefab.CritIconOffset;
+            defaultCritSpawnOffset = damageNumberPrefab.CritSpawnOffset;
+        }
+    }
+
     private readonly Queue<DamageNumber> poolQueue = new Queue<DamageNumber>();
     private readonly List<DamageNumber> allInstances = new List<DamageNumber>();
     private Transform poolContainer;
@@ -86,6 +274,8 @@ public class DamageNumberManager : MonoBehaviour
             GameSettings.ShowDamage = true;
         }
 
+        SyncFromPreviewOrPrefab();
+        HideGameViewPreview();
         InitializePool();
     }
 
@@ -235,6 +425,11 @@ public class DamageNumberManager : MonoBehaviour
             fontAsset = TMP_Settings.defaultFontAsset;
         }
 
+        if (critIconSprite == null)
+        {
+            critIconSprite = Resources.Load<Sprite>("UI/CritDamageIcon");
+        }
+
         // Đảm bảo material có keyword OUTLINE_ON và cấu hình màu viền
         if (strokeMaterial != null)
         {
@@ -261,6 +456,17 @@ public class DamageNumberManager : MonoBehaviour
         if (damageNumberPrefab != null)
         {
             instance = Instantiate(damageNumberPrefab, poolContainer);
+            if (instance != null && instance.TextComponent != null)
+            {
+                if (fontAsset != null && instance.TextComponent.font == null)
+                {
+                    instance.TextComponent.font = fontAsset;
+                }
+                if (strokeMaterial != null && instance.TextComponent.fontSharedMaterial == null)
+                {
+                    instance.TextComponent.fontSharedMaterial = strokeMaterial;
+                }
+            }
         }
         else
         {
@@ -293,9 +499,32 @@ public class DamageNumberManager : MonoBehaviour
         instance.SetSorting(sortingLayerName, sortingOrder);
         instance.EnsureComponents();
         instance.SetOutlineColor(defaultOutlineColor, defaultOutlineWidth);
+        if (syncCritSettingsToInstances)
+        {
+            instance.ConfigureCritVisuals(defaultCritScale, defaultCritIconSize, defaultCritIconSpacing, defaultCritIconOffset, defaultCritSpawnOffset);
+        }
         allInstances.Add(instance);
         return instance;
     }
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        if (syncCritSettingsToInstances && Application.isPlaying && allInstances.Count > 0)
+        {
+            ApplyCritSettingsToAllInstances();
+        }
+
+        if (!Application.isPlaying)
+        {
+            if (syncCritSettingsToInstances)
+            {
+                ApplyCritSettingsToAllInstances();
+            }
+            UpdateGameViewPreview();
+        }
+    }
+#endif
 
     private Vector3 lastSpawnPos;
     private float lastSpawnTime;
@@ -398,6 +627,103 @@ public class DamageNumberManager : MonoBehaviour
                 if (newFont != null) item.TextComponent.font = newFont;
                 if (newStrokeMat != null) item.TextComponent.fontSharedMaterial = newStrokeMat;
                 item.SetOutlineColor(defaultOutlineColor, defaultOutlineWidth);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Hiển thị đối tượng xem trước trực tiếp trên màn Game (Game View) và Scene View.
+    /// Giúp người phát triển dễ dàng quan sát, thu nhỏ/phóng to kích thước sát thương chí mạng
+    /// tương quan trực tiếp với nhân vật Player.
+    /// </summary>
+    public void UpdateGameViewPreview()
+    {
+        DamageNumber preview = null;
+#if UNITY_2023_1_OR_NEWER
+        DamageNumber[] all = Object.FindObjectsByType<DamageNumber>(FindObjectsSortMode.None);
+#else
+        DamageNumber[] all = Object.FindObjectsOfType<DamageNumber>();
+#endif
+        foreach (var dn in all)
+        {
+            if (dn != null && dn.gameObject.name == "[DamageNumber_Preview]")
+            {
+                preview = dn;
+                break;
+            }
+        }
+
+        if (!showGameViewPreview)
+        {
+            HideGameViewPreview();
+            return;
+        }
+
+        if (preview == null)
+        {
+            if (damageNumberPrefab != null)
+            {
+                GameObject obj = Instantiate(damageNumberPrefab.gameObject);
+                obj.name = "[DamageNumber_Preview]";
+                preview = obj.GetComponent<DamageNumber>();
+            }
+            else
+            {
+                return;
+            }
+        }
+
+        if (preview != null)
+        {
+            preview.gameObject.SetActive(true);
+            preview.transform.position = previewPosition;
+
+            if (fontAsset != null && preview.TextComponent != null)
+            {
+                preview.TextComponent.font = fontAsset;
+            }
+            if (strokeMaterial != null && preview.TextComponent != null)
+            {
+                preview.TextComponent.fontSharedMaterial = strokeMaterial;
+            }
+            if (critIconSprite != null && preview.CritIconRenderer != null)
+            {
+                preview.CritIconRenderer.sprite = critIconSprite;
+            }
+
+            preview.ConfigureCritVisuals(defaultCritScale, defaultCritIconSize, defaultCritIconSpacing, defaultCritIconOffset, defaultCritSpawnOffset);
+            preview.EnsureComponents();
+
+            preview.SetupPreview(previewDamageAmount, DamageType.Critical);
+        }
+    }
+
+    /// <summary>
+    /// Tắt đối tượng xem trước khi bắt đầu chơi thực tế hoặc dọn sạch trong Editor.
+    /// </summary>
+    public void HideGameViewPreview()
+    {
+#if UNITY_2023_1_OR_NEWER
+        DamageNumber[] all = Object.FindObjectsByType<DamageNumber>(FindObjectsSortMode.None);
+#else
+        DamageNumber[] all = Object.FindObjectsOfType<DamageNumber>();
+#endif
+        foreach (var dn in all)
+        {
+            if (dn != null && dn.gameObject.name == "[DamageNumber_Preview]")
+            {
+#if UNITY_EDITOR
+                if (!Application.isPlaying)
+                {
+                    Object.DestroyImmediate(dn.gameObject);
+                }
+                else
+                {
+                    dn.gameObject.SetActive(false);
+                }
+#else
+                dn.gameObject.SetActive(false);
+#endif
             }
         }
     }

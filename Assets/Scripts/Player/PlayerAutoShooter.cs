@@ -1005,12 +1005,14 @@ public class PlayerAutoShooter : MonoBehaviour
             {
                 int finalDamage = Mathf.Max(1, damage);
                 float totalCrit = Mathf.Clamp01(sourceCritChance + artifactCritBonus);
-                if (totalCrit > 0f && Random.value < totalCrit)
+                bool isCrit = totalCrit > 0f && Random.value < totalCrit;
+                if (isCrit)
                 {
                     finalDamage = Mathf.RoundToInt(finalDamage * 1.5f);
                 }
 
                 projectileScript.Setup(finalDamage, Mathf.Max(0.1f, speed), Mathf.Max(0.1f, range));
+                projectileScript.IsCritical = isCrit;
                 projectileScript.IsHoming = homing;
                 projectileScript.SetDamageSource(sourceChipsetId);
                 projectileScript.SetDirection(direction);

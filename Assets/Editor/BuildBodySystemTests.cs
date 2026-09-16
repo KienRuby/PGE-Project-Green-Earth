@@ -74,22 +74,46 @@ public class BuildBodySystemTests
             }
 
             // Test 2: Skin equipping & Background color / Status text logic
+            PlayerPrefs.SetInt(BuildBodyController.GetBodyUnlockKey(1), 1);
             BuildBodyController.EquippedSkinIndex = 1; // AD Unit-2
             Assert("Test05_EquippedSkinIndex_Updates", BuildBodyController.EquippedSkinIndex == 1, "EquippedSkinIndex should be 1");
 
-            // Test 3: Unit 4 build logic with Red Gems
+            // Test 3: All units initially locked & check build costs
+            PlayerPrefs.DeleteKey(BuildBodyController.GetBodyUnlockKey(0));
+            PlayerPrefs.DeleteKey(BuildBodyController.GetBodyUnlockKey(1));
+            PlayerPrefs.DeleteKey(BuildBodyController.GetBodyUnlockKey(2));
             PlayerPrefs.DeleteKey(BuildBodyController.GetBodyUnlockKey(3));
-            Assert("Test06_Unit4_InitiallyLocked", !BuildBodyController.IsBodyUnlocked(3), "Unit 4 should be locked initially");
+            Assert("Test06_AllUnits_InitiallyLocked",
+                !BuildBodyController.IsBodyUnlocked(0) &&
+                !BuildBodyController.IsBodyUnlocked(1) &&
+                !BuildBodyController.IsBodyUnlocked(2) &&
+                !BuildBodyController.IsBodyUnlocked(3), "All 4 units should be locked initially");
+
+            var costCtrlObj = new GameObject("CostTestCtrl");
+            costCtrlObj.hideFlags = HideFlags.HideAndDontSave;
+            var costCtrl = costCtrlObj.AddComponent<BuildBodyController>();
+            try
+            {
+                Assert("Test07_BuildCosts_Match",
+                    costCtrl.GetBuildCost(0) == 1000 &&
+                    costCtrl.GetBuildCost(1) == 1500 &&
+                    costCtrl.GetBuildCost(2) == 2000 &&
+                    costCtrl.GetBuildCost(3) == 3000, "Costs must be 1000, 1500, 2000, 3000");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(costCtrlObj);
+            }
 
             // Test 4: UI Builder execution
             try
             {
                 BuildBodyUIBuilder.BuildUI();
-                Assert("Test07_BuildBodyUIBuilder_Execution", true);
+                Assert("Test08_BuildBodyUIBuilder_Execution", true);
             }
             catch (Exception ex)
             {
-                Assert("Test07_BuildBodyUIBuilder_Execution", false, ex.Message);
+                Assert("Test08_BuildBodyUIBuilder_Execution", false, ex.Message);
             }
         }
         catch (Exception ex)

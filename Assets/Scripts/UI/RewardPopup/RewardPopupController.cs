@@ -20,6 +20,8 @@ using UnityEngine.UI;
 /// </summary>
 public class RewardPopupController : MonoBehaviour
 {
+    private static readonly Vector2 ActiveTabSize = new Vector2(343.5f, 116f);
+    private static readonly Vector2 InactiveTabSize = new Vector2(343.5f, 101f);
     private static RewardPopupController instance;
     public static RewardPopupController Instance => instance;
 
@@ -415,6 +417,7 @@ public class RewardPopupController : MonoBehaviour
         }
 
         ApplyTabHeaderColors(tabIndex);
+        ApplyTabHeaderSizes(isDaily);
 
         if (!lockTabTransforms)
         {
@@ -510,6 +513,21 @@ public class RewardPopupController : MonoBehaviour
 
         if (isDaily && dailyTabButton != null) dailyTabButton.transform.SetAsLastSibling();
         else if (!isDaily && achievementTabButton != null) achievementTabButton.transform.SetAsLastSibling();
+    }
+
+    private void ApplyTabHeaderSizes(bool isDaily)
+    {
+        if (dailyTabRect != null)
+        {
+            dailyTabRect.pivot = new Vector2(0f, 0f);
+            dailyTabRect.sizeDelta = isDaily ? ActiveTabSize : InactiveTabSize;
+        }
+
+        if (achTabRect != null)
+        {
+            achTabRect.pivot = new Vector2(1f, 0f);
+            achTabRect.sizeDelta = isDaily ? InactiveTabSize : ActiveTabSize;
+        }
     }
 
     private IEnumerator AnimateOpenPopupRoutine()
@@ -612,6 +630,7 @@ public class RewardPopupController : MonoBehaviour
         }
 
         ApplyTabHeaderColors(nextTab);
+        ApplyTabHeaderSizes(isDaily);
 
         GameObject enterPanel = isDaily ? dailyLoginPanel : achievementPanel;
         GameObject exitPanel = isDaily ? achievementPanel : dailyLoginPanel;
@@ -835,23 +854,25 @@ public class RewardPopupController : MonoBehaviour
         windowRect.anchorMin = new Vector2(0.5f, 0.5f);
         windowRect.anchorMax = new Vector2(0.5f, 0.5f);
         windowRect.pivot = new Vector2(0.5f, 0.5f);
-        windowRect.anchoredPosition = new Vector2(0f, -40f);
-        windowRect.sizeDelta = new Vector2(1000f, 1400f);
+        windowRect.anchoredPosition = new Vector2(0f, -51f);
+        windowRect.sizeDelta = new Vector2(857f, 1214f);
 
         // Tabs Header
         RectTransform tabsHeader = CreateRuntimeRect("Tabs", windowObj.transform).GetComponent<RectTransform>();
-        tabsHeader.anchorMin = new Vector2(0f, 1f);
-        tabsHeader.anchorMax = new Vector2(1f, 1f);
+        tabsHeader.anchorMin = new Vector2(0.5f, 1f);
+        tabsHeader.anchorMax = new Vector2(0.5f, 1f);
         tabsHeader.pivot = new Vector2(0.5f, 0f);
         tabsHeader.anchoredPosition = new Vector2(0f, -2f);
-        tabsHeader.sizeDelta = new Vector2(-30f, 85f);
+        tabsHeader.sizeDelta = new Vector2(722f, 116f);
 
         // Daily Login Tab (Left half)
-        GameObject dailyTabObj = CreateRuntimeTabButton("DailyLoginTab", tabsHeader, new Vector2(0f, 0f), new Vector2(0.5f, 1f), new Vector2(0f, 0f), new Vector2(-6f, 0f), "Daily Login Reward", 32f, ActiveTabBgColor, new Color32(94, 213, 205, 255), defaultFont, out Image dailyTabBg, out TMP_Text dailyTabTxt, out GameObject dailyTabDot);
+        GameObject dailyTabObj = CreateRuntimeTabButton("DailyLoginTab", tabsHeader, new Vector2(0f, 0f), new Vector2(0f, 0f), Vector2.zero, ActiveTabSize, "Daily Login Reward", 32f, ActiveTabBgColor, new Color32(94, 213, 205, 255), defaultFont, out Image dailyTabBg, out TMP_Text dailyTabTxt, out GameObject dailyTabDot);
+        dailyTabObj.GetComponent<RectTransform>().pivot = Vector2.zero;
         Button dailyTabBtn = dailyTabObj.GetComponent<Button>();
 
         // Achievements Tab (Right half)
-        GameObject achTabObj = CreateRuntimeTabButton("AchievementTab", tabsHeader, new Vector2(0.5f, 0f), new Vector2(1f, 1f), new Vector2(6f, 0f), new Vector2(0f, 0f), "Achievements", 32f, InactiveTabBgColor, new Color32(94, 213, 205, 255), defaultFont, out Image achTabBg, out TMP_Text achTabTxt, out GameObject achTabDot);
+        GameObject achTabObj = CreateRuntimeTabButton("AchievementTab", tabsHeader, new Vector2(1f, 0f), new Vector2(1f, 0f), -InactiveTabSize, Vector2.zero, "Achievements", 32f, InactiveTabBgColor, new Color32(94, 213, 205, 255), defaultFont, out Image achTabBg, out TMP_Text achTabTxt, out GameObject achTabDot);
+        achTabObj.GetComponent<RectTransform>().pivot = new Vector2(1f, 0f);
         Button achTabBtn = achTabObj.GetComponent<Button>();
 
         // Panels
@@ -878,7 +899,7 @@ public class RewardPopupController : MonoBehaviour
     {
         GameObject panelObj = CreateRuntimeRect("DailyLoginPanel", parent);
         RectTransform panelRect = panelObj.GetComponent<RectTransform>();
-        StretchRect(panelRect, Vector2.zero, Vector2.one, new Vector2(16f, 20f), new Vector2(-16f, -30f));
+        StretchRect(panelRect, Vector2.zero, Vector2.one, new Vector2(16f, 10f), new Vector2(-16f, -23f));
 
         ScrollRect scroll = panelObj.AddComponent<ScrollRect>();
         scroll.horizontal = false;
@@ -900,8 +921,8 @@ public class RewardPopupController : MonoBehaviour
         scroll.content = content;
 
         VerticalLayoutGroup layout = content.gameObject.AddComponent<VerticalLayoutGroup>();
-        layout.spacing = 16f;
-        layout.padding = new RectOffset(10, 10, 15, 15);
+        layout.spacing = 25f;
+        layout.padding = new RectOffset(0, 0, 15, 15);
         layout.childAlignment = TextAnchor.UpperCenter;
         layout.childControlWidth = true;
         layout.childControlHeight = false;
@@ -927,12 +948,12 @@ public class RewardPopupController : MonoBehaviour
     {
         GameObject itemObj = CreateRuntimeFrame($"Day{dayIndex:00}", parent, new Color32(14, 48, 68, 255), new Color32(64, 180, 195, 255), out Image bg);
         RectTransform rect = itemObj.GetComponent<RectTransform>();
-        rect.sizeDelta = new Vector2(920f, 150f);
+        rect.sizeDelta = new Vector2(825f, 134f);
         LayoutElement le = itemObj.AddComponent<LayoutElement>();
-        le.preferredWidth = 948f;
-        le.minWidth = 948f;
-        le.preferredHeight = 150f;
-        le.minHeight = 150f;
+        le.preferredWidth = 825f;
+        le.minWidth = 825f;
+        le.preferredHeight = 134f;
+        le.minHeight = 134f;
 
         CanvasGroup cg = itemObj.AddComponent<CanvasGroup>();
         Image border = itemObj.GetComponent<Image>();
@@ -958,11 +979,11 @@ public class RewardPopupController : MonoBehaviour
         rewardsTr.anchorMin = new Vector2(0f, 0.5f);
         rewardsTr.anchorMax = new Vector2(1f, 0.5f);
         rewardsTr.pivot = new Vector2(0f, 0.5f);
-        rewardsTr.anchoredPosition = new Vector2(160f, 0f);
-        rewardsTr.sizeDelta = new Vector2(-460f, 120f);
+        rewardsTr.anchoredPosition = new Vector2(215f, 0f);
+        rewardsTr.sizeDelta = new Vector2(-437f, 110f);
 
         HorizontalLayoutGroup rLayout = rewardsTr.gameObject.AddComponent<HorizontalLayoutGroup>();
-        rLayout.spacing = 14f;
+        rLayout.spacing = 45f;
         rLayout.childAlignment = TextAnchor.MiddleLeft;
         rLayout.childControlWidth = false;
         rLayout.childControlHeight = false;
@@ -972,10 +993,10 @@ public class RewardPopupController : MonoBehaviour
         stateRight.anchorMin = new Vector2(1f, 0.5f);
         stateRight.anchorMax = new Vector2(1f, 0.5f);
         stateRight.pivot = new Vector2(1f, 0.5f);
-        stateRight.anchoredPosition = new Vector2(-25f, 0f);
-        stateRight.sizeDelta = new Vector2(280f, 120f);
+        stateRight.anchoredPosition = new Vector2(-30f, 0f);
+        stateRight.sizeDelta = new Vector2(180f, 110f);
 
-        GameObject getBtnObj = CreateRuntimeButton("ClaimButton", stateRight, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-120f, -42.5f), new Vector2(120f, 42.5f), "Get", 36f, new Color32(56, 189, 248, 255), new Color32(94, 213, 205, 255), fontAsset, out _);
+        GameObject getBtnObj = CreateRuntimeButton("ClaimButton", stateRight, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-87f, -38f), new Vector2(87f, 38f), "Get", 36f, new Color32(56, 189, 248, 255), new Color32(94, 213, 205, 255), fontAsset, out _);
         Button claimBtn = getBtnObj.GetComponent<Button>();
         TMP_Text claimBtnTxt = getBtnObj.transform.Find("Label")?.GetComponent<TMP_Text>();
 
@@ -1009,7 +1030,7 @@ public class RewardPopupController : MonoBehaviour
     {
         GameObject panelObj = CreateRuntimeRect("AchievementPanel", parent);
         RectTransform panelRect = panelObj.GetComponent<RectTransform>();
-        StretchRect(panelRect, Vector2.zero, Vector2.one, new Vector2(16f, 20f), new Vector2(-16f, -30f));
+        StretchRect(panelRect, Vector2.zero, Vector2.one, new Vector2(16f, 10f), new Vector2(-16f, -23f));
 
         ScrollRect scroll = panelObj.AddComponent<ScrollRect>();
         scroll.horizontal = false;
@@ -1031,8 +1052,8 @@ public class RewardPopupController : MonoBehaviour
         scroll.content = content;
 
         VerticalLayoutGroup layout = content.gameObject.AddComponent<VerticalLayoutGroup>();
-        layout.spacing = 16f;
-        layout.padding = new RectOffset(10, 10, 15, 15);
+        layout.spacing = 24f;
+        layout.padding = new RectOffset(0, 0, 15, 15);
         layout.childAlignment = TextAnchor.UpperCenter;
         layout.childControlWidth = true;
         layout.childControlHeight = false;
@@ -1057,12 +1078,12 @@ public class RewardPopupController : MonoBehaviour
     {
         GameObject itemObj = CreateRuntimeFrame($"AchievementItem_{index}", parent, new Color32(14, 48, 68, 255), new Color32(64, 180, 195, 255), out Image bg);
         RectTransform rect = itemObj.GetComponent<RectTransform>();
-        rect.sizeDelta = new Vector2(920f, 210f);
+        rect.sizeDelta = new Vector2(825f, 213f);
         LayoutElement le = itemObj.AddComponent<LayoutElement>();
-        le.preferredWidth = 948f;
-        le.minWidth = 948f;
-        le.preferredHeight = 210f;
-        le.minHeight = 210f;
+        le.preferredWidth = 825f;
+        le.minWidth = 825f;
+        le.preferredHeight = 213f;
+        le.minHeight = 213f;
 
         Image border = itemObj.GetComponent<Image>();
 
@@ -1078,8 +1099,8 @@ public class RewardPopupController : MonoBehaviour
         barRect.anchorMin = new Vector2(0f, 1f);
         barRect.anchorMax = new Vector2(0f, 1f);
         barRect.pivot = new Vector2(0f, 1f);
-        barRect.anchoredPosition = new Vector2(30f, -70f);
-        barRect.sizeDelta = new Vector2(560f, 32f);
+        barRect.anchoredPosition = new Vector2(25f, -58f);
+        barRect.sizeDelta = new Vector2(506f, 33.5f);
 
         GameObject fillObj = CreateRuntimeImage("ProgressFill", barBgObj.transform, new Color32(40, 180, 245, 255), false);
         Image fillImg = fillObj.GetComponent<Image>();
@@ -1089,23 +1110,23 @@ public class RewardPopupController : MonoBehaviour
         progressTxt.rectTransform.anchorMin = new Vector2(0f, 1f);
         progressTxt.rectTransform.anchorMax = new Vector2(0f, 1f);
         progressTxt.rectTransform.pivot = new Vector2(0.5f, 1f);
-        progressTxt.rectTransform.anchoredPosition = new Vector2(310f, -104f);
-        progressTxt.rectTransform.sizeDelta = new Vector2(560f, 30f);
+        progressTxt.rectTransform.anchoredPosition = new Vector2(278f, -60f);
+        progressTxt.rectTransform.sizeDelta = new Vector2(506f, 30f);
 
         RectTransform rewardsTr = CreateRuntimeRect("RewardsContainer", itemObj.transform).GetComponent<RectTransform>();
         rewardsTr.anchorMin = new Vector2(0f, 0f);
         rewardsTr.anchorMax = new Vector2(0f, 0f);
         rewardsTr.pivot = new Vector2(0f, 0f);
-        rewardsTr.anchoredPosition = new Vector2(30f, 15f);
-        rewardsTr.sizeDelta = new Vector2(560f, 65f);
+        rewardsTr.anchoredPosition = new Vector2(25f, 10f);
+        rewardsTr.sizeDelta = new Vector2(506f, 90f);
 
         HorizontalLayoutGroup rLayout = rewardsTr.gameObject.AddComponent<HorizontalLayoutGroup>();
-        rLayout.spacing = 14f;
+        rLayout.spacing = 51f;
         rLayout.childAlignment = TextAnchor.MiddleLeft;
         rLayout.childControlWidth = false;
         rLayout.childControlHeight = false;
 
-        GameObject btnObj = CreateRuntimeButton("ActionButton", itemObj.transform, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-280f, -47.5f), new Vector2(-30f, 47.5f), "Get", 38f, new Color32(56, 189, 248, 255), new Color32(94, 213, 205, 255), fontAsset, out Image btnImg);
+        GameObject btnObj = CreateRuntimeButton("ActionButton", itemObj.transform, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-204f, -38f), new Vector2(-30f, 38f), "Get", 38f, new Color32(56, 189, 248, 255), new Color32(94, 213, 205, 255), fontAsset, out Image btnImg);
         Button actBtn = btnObj.GetComponent<Button>();
         TMP_Text btnTxt = btnObj.transform.Find("Label")?.GetComponent<TMP_Text>();
 

@@ -603,6 +603,7 @@ public static class PlayerDataService
     public const string BuddyDeckKeyPrefix = "PGE.Buddy.Deck.";
     public const string BuddyLevelKeyPrefix = "PGE.Buddy.Level.";
     public const string BuddyTierKeyPrefix = "PGE.Buddy.Tier.";
+    public const int MaxEquippedDronesPerDeck = 3;
 
     public static string GetBuddyDeckKey(int deckIndex) => $"{BuddyDeckKeyPrefix}{deckIndex}";
 
@@ -621,12 +622,12 @@ public static class PlayerDataService
         string key = GetBuddyDeckKey(deckIndex);
         if (!PlayerPrefs.HasKey(key))
         {
-            return fallback ?? new int[] { -1, -1, -1 };
+            return NormalizeBuddyDeck(fallback);
         }
         string raw = PlayerPrefs.GetString(key, string.Empty);
         if (string.IsNullOrWhiteSpace(raw))
         {
-            return fallback ?? new int[] { -1, -1, -1 };
+            return NormalizeBuddyDeck(fallback);
         }
         try
         {
@@ -636,20 +637,30 @@ public static class PlayerDataService
             {
                 result[i] = int.TryParse(parts[i].Trim(), out int val) ? val : -1;
             }
-            return result;
+            return NormalizeBuddyDeck(result);
         }
         catch
         {
-            return fallback ?? new int[] { -1, -1, -1 };
+            return NormalizeBuddyDeck(fallback);
         }
     }
 
     public static void SaveBuddyDeck(int deckIndex, int[] deck)
     {
         if (deck == null) return;
-        string raw = string.Join(",", deck);
+        string raw = string.Join(",", NormalizeBuddyDeck(deck));
         PlayerPrefs.SetString(GetBuddyDeckKey(deckIndex), raw);
         PlayerPrefs.Save();
+    }
+
+    public static int[] NormalizeBuddyDeck(int[] deck)
+    {
+        int[] normalized = new int[MaxEquippedDronesPerDeck];
+        for (int i = 0; i < normalized.Length; i++)
+        {
+            normalized[i] = (deck != null && i < deck.Length) ? deck[i] : -1;
+        }
+        return normalized;
     }
 
     public static void LoadBuddyProgress(BuddyItemData data)

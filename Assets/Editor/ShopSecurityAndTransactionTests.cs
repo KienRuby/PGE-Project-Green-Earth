@@ -535,9 +535,10 @@ public class ShopSecurityAndTransactionTests
             Assert.That(chipsetDropsA[i].Pieces == 1 || chipsetDropsA[i].Pieces == 3 || chipsetDropsA[i].Pieces == 7, Is.True);
         }
 
+        int[] validBuddyIds = { 1, 2, 3, 4, 10 };
         for (int i = 0; i < buddyDrops.Count; i++)
         {
-            Assert.That(buddyDrops[i].ItemId, Is.InRange(1, 12));
+            Assert.That(Array.IndexOf(validBuddyIds, buddyDrops[i].ItemId) >= 0, Is.True, $"Drop {buddyDrops[i].ItemId} must be one of the 5 active buddies.");
             Assert.That(buddyDrops[i].Pieces, Is.GreaterThan(0));
         }
 
@@ -608,9 +609,10 @@ public class ShopSecurityAndTransactionTests
 
         int totalPieces = 0;
         int[] rolledByItem = new int[13];
+        int[] validBuddyIds = { 1, 2, 3, 4, 10 };
         foreach (ShopBoxDropRoller.Drop drop in shop.LastBoxDrops)
         {
-            Assert.That(drop.ItemId, Is.InRange(1, 12));
+            Assert.That(Array.IndexOf(validBuddyIds, drop.ItemId) >= 0, Is.True, $"Drop item {drop.ItemId} must be one of 5 active buddies.");
             rolledByItem[drop.ItemId] += drop.Pieces;
             totalPieces += drop.Pieces;
         }
@@ -736,7 +738,7 @@ public class ShopSecurityAndTransactionTests
         int[] chipsetIds = { 1, 2, 3, 6, 7, 8, 10 };
         for (int i = 0; i < chipsetIds.Length; i++) DeleteChipsetItemData(chipsetIds[i]);
 
-        int[] buddyIds = { 1, 6, 10 };
+        int[] buddyIds = { 1, 2, 10 };
         for (int i = 0; i < buddyIds.Length; i++)
         {
             PlayerPrefs.DeleteKey($"{PlayerDataService.BuddyCountKeyPrefix}{buddyIds[i]}");

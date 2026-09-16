@@ -81,6 +81,8 @@ public class BuddyItemData
 
 public class BuddyController : MonoBehaviour
 {
+    public const int RequiredClearedChaptersForRobotPet = 4;
+
     [Header("Top Bar Currencies")]
     [SerializeField] private TMP_Text chipCurrencyText;
     [SerializeField] private TMP_Text redCurrencyText;
@@ -90,6 +92,11 @@ public class BuddyController : MonoBehaviour
     [SerializeField] private Button robotPetModeBtn;
     [SerializeField] private Image droneModeBg;
     [SerializeField] private Image robotPetModeBg;
+
+    [Header("Robot Pet Mode")]
+    [SerializeField] private GameObject robotPetPanel;
+    [SerializeField] private GameObject robotPetLockIcon;
+    [SerializeField] private GameObject[] droneModeContentRoots = Array.Empty<GameObject>();
 
     [Header("Preset Decks")]
     [SerializeField] private Button preset1Btn;
@@ -181,6 +188,7 @@ public class BuddyController : MonoBehaviour
     private int[][] deckEquippedIds = new int[3][];
     private bool[] slotUnlocked = new bool[] { true, true, true };
     private List<BuddyCardUI> spawnedInventoryCards = new List<BuddyCardUI>();
+    private bool isRobotPetMode;
 
     private static readonly Color SelectedPresetColor = new Color32(255, 203, 73, 255);
     private static readonly Color NormalPresetColor = new Color32(18, 58, 68, 255);
@@ -188,6 +196,7 @@ public class BuddyController : MonoBehaviour
     private static readonly Color NormalPresetTextColor = new Color32(245, 255, 255, 255);
 
     public IReadOnlyList<BuddyItemData> AllBuddies => allBuddies;
+    public bool IsRobotPetUnlocked => PlayerDataService.UnlockedChapterIndex >= RequiredClearedChaptersForRobotPet;
 
     private void Awake()
     {
@@ -206,6 +215,7 @@ public class BuddyController : MonoBehaviour
         RefreshSortButtons();
         RefreshEquippedGrid();
         RefreshInventory();
+        ShowDroneMode();
     }
 
     private void OnEnable()
@@ -213,6 +223,7 @@ public class BuddyController : MonoBehaviour
         ChipManager.OnDataChipsChanged += HandleCurrencyChanged;
         ChipManager.OnRedGemsChanged += HandleCurrencyChanged;
         PlayerDataService.OnBuddyPiecesChanged += HandleBuddyPiecesChanged;
+        RefreshRobotPetUnlockState();
     }
 
     private void OnDisable()
@@ -559,13 +570,85 @@ public class BuddyController : MonoBehaviour
             byQuantityBtn.onClick.AddListener(() => SetSortMode(true));
         }
 
-        if (droneModeBtn != null) droneModeBtn.onClick.AddListener(() => ShowToast("Drone Hangar Active"));
-        if (robotPetModeBtn != null) robotPetModeBtn.onClick.AddListener(() => ShowToast("Robot Pet unlocks at Chapter 12!"));
+        if (droneModeBtn != null)
+        {
+            droneModeBtn.onClick.RemoveListener(ShowDroneMode);
+            droneModeBtn.onClick.AddListener(ShowDroneMode);
+        }
+        if (robotPetModeBtn != null)
+        {
+            robotPetModeBtn.onClick.RemoveListener(TryShowRobotPetMode);
+            robotPetModeBtn.onClick.AddListener(TryShowRobotPetMode);
+        }
 
         if (detailCloseBtn != null) detailCloseBtn.onClick.AddListener(() => UIDissolveController.HideWithEffect(detailModal));
         if (detailEnhanceBtn != null) detailEnhanceBtn.onClick.AddListener(EnhanceSelectedBuddy);
         if (detailAdvanceTierBtn != null) detailAdvanceTierBtn.onClick.AddListener(AdvanceTierSelectedBuddy);
         if (detailEquipBtn != null) detailEquipBtn.onClick.AddListener(ToggleEquipSelectedBuddy);
+    }
+
+    public void ShowDroneMode()
+    {
+        SetBuddyMode(false);
+    }
+
+    public void TryShowRobotPetMode()
+    {
+        if (!IsRobotPetUnlocked)
+        {
+            ShowToast("Clear Chapter 4 to unlock Robot Pet!");
+            RefreshRobotPetUnlockState();
+            return;
+        }
+
+        SetBuddyMode(true);
+    }
+
+    private void SetBuddyMode(bool showRobotPet)
+    {
+        isRobotPetMode = showRobotPet && IsRobotPetUnlocked;
+
+        if (droneModeContentRoots != null)
+        {
+            foreach (GameObject contentRoot in droneModeContentRoots)
+            {
+                if (contentRoot != null)
+                {
+                    contentRoot.SetActive(!isRobotPetMode);
+                }
+            }
+        }
+
+        if (robotPetPanel != null)
+        {
+            robotPetPanel.SetActive(isRobotPetMode);
+        }
+
+        RefreshRobotPetUnlockState();
+    }
+
+    private void RefreshRobotPetUnlockState()
+    {
+        bool unlocked = IsRobotPetUnlocked;
+
+        if (robotPetLockIcon != null)
+        {
+            robotPetLockIcon.SetActive(!unlocked);
+        }
+
+        if (robotPetModeBg != null)
+        {
+            robotPetModeBg.color = unlocked
+                ? (isRobotPetMode ? Color.white : new Color(0.82f, 0.92f, 0.92f, 1f))
+                : new Color(0.35f, 0.45f, 0.45f, 1f);
+        }
+
+        if (droneModeBg != null)
+        {
+            droneModeBg.color = isRobotPetMode
+                ? new Color(0.82f, 0.92f, 0.92f, 1f)
+                : Color.white;
+        }
     }
 
     public void AutoWireSortButtonsIfMissing()

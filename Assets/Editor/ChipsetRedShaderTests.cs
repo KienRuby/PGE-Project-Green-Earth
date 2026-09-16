@@ -473,4 +473,42 @@ public class ChipsetRedShaderTests
             Object.DestroyImmediate(advBtnGo);
         }
     }
+
+    [Test]
+    public void ChipsetCardUI_WhenCanUpgrade_UpgradeArrowHasBadgeSprite()
+    {
+        GameObject cardObject = new GameObject(
+            "ChipsetCard",
+            typeof(RectTransform),
+            typeof(Image),
+            typeof(Button),
+            typeof(ChipsetCardUI));
+        try
+        {
+            ChipsetCardUI card = cardObject.GetComponent<ChipsetCardUI>();
+            ChipItemData data = new ChipItemData
+            {
+                id = 101,
+                chipName = "Test Chip",
+                tier = ChipTier.Magic,
+                level = 1,
+                count = 30,
+                requiredCount = 10
+            };
+            Assert.IsTrue(data.CanUpgrade);
+
+            card.Setup(data, null, null);
+            Assert.IsNotNull(card.UpgradeArrowGroup, "UpgradeArrowGroup must not be null");
+            Assert.IsTrue(card.UpgradeArrowGroup.activeSelf, "UpgradeArrowGroup must be active");
+            Image img = card.UpgradeArrowGroup.GetComponent<Image>();
+            Assert.IsNotNull(img, "UpgradeArrowGroup must have Image component");
+            Assert.IsNotNull(img.sprite, "UpgradeArrowGroup must have valid non-null sprite (not white square)");
+            Assert.IsTrue(img.sprite.name.Contains("badge-upgrade"), "Sprite should be badge-upgrade");
+        }
+        finally
+        {
+            Object.DestroyImmediate(cardObject);
+        }
+    }
 }
+

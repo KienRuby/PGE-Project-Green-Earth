@@ -155,7 +155,7 @@ public class PlayerSkinApplier : MonoBehaviour
             if (skins != null && activeAppliedIndex >= 0 && activeAppliedIndex < skins.Length)
                 return skins[activeAppliedIndex];
             int eq = BuildBodyController.EquippedSkinIndex;
-            if (skins != null && eq >= 0 && eq < skins.Length)
+            if (skins != null && eq >= 0 && eq < skins.Length && BuildBodyController.IsBodyUnlocked(eq))
                 return skins[eq];
             return null;
         }
@@ -197,6 +197,11 @@ public class PlayerSkinApplier : MonoBehaviour
     public void ApplyEquippedSkin()
     {
         int equippedIndex = BuildBodyController.EquippedSkinIndex;
+        if (equippedIndex < 0 || skins == null || equippedIndex >= skins.Length || !BuildBodyController.IsBodyUnlocked(equippedIndex))
+        {
+            ApplyDefaultVisuals();
+            return;
+        }
         ApplySkin(equippedIndex);
     }
 
@@ -379,7 +384,12 @@ public class PlayerSkinApplier : MonoBehaviour
     {
         if (skins == null || skins.Length == 0) return;
 
-        skinIndex = Mathf.Clamp(skinIndex, 0, skins.Length - 1);
+        if (skinIndex < 0 || skinIndex >= skins.Length || !BuildBodyController.IsBodyUnlocked(skinIndex))
+        {
+            ApplyDefaultVisuals();
+            return;
+        }
+
         activeAppliedIndex = skinIndex;
         isShowingDefault = false;
         PlayerSkinConfig skin = skins[skinIndex];

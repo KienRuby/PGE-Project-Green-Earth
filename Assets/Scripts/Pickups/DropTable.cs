@@ -4,7 +4,7 @@ using UnityEngine;
 
 /// <summary>
 /// Bảng tỷ lệ rơi vật phẩm (Drop Table):
-/// Xác định xác suất và số lượng EXP Gem, Chip xanh, Gem đỏ và Powerup khi tiêu diệt quái vật.
+/// Xác định xác suất và số lượng EXP Gem, Chip xanh, Gem đỏ, Powerup và Hộp Máu khi tiêu diệt quái vật.
 /// </summary>
 public static class DropTable
 {
@@ -15,6 +15,11 @@ public static class DropTable
         public int value;
         public float weight;
     }
+
+    public const float SmallHealthBoxDropChance = 0.05f; // 5% xuất hiện Hộp máu nhỏ
+    public const float LargeHealthBoxDropChance = 0.03f; // 3% xuất hiện Hộp máu lớn
+    public const float SmallHealthBoxHealPercent = 0.10f; // Hồi 10% HP tối đa
+    public const float LargeHealthBoxHealPercent = 0.20f; // Hồi 20% HP tối đa
 
     public static GemType DetermineExpGemType(int expAmount)
     {
@@ -60,6 +65,47 @@ public static class DropTable
         gemObj.transform.position = position;
         GemPickup gem = gemObj.GetComponent<GemPickup>();
         gem.Initialize(type, value, position);
+    }
+
+    /// <summary>
+    /// Sinh một Hộp Máu (Health Box) trên sân đấu tại vị trí chỉ định.
+    /// </summary>
+    public static HealthBoxPickup SpawnHealthBox(Vector3 position, HealthBoxType boxType)
+    {
+        string name = boxType == HealthBoxType.Small ? "HealthBox_Small" : "HealthBox_Large";
+        GameObject boxObj = new GameObject(name);
+        boxObj.transform.position = position;
+
+        CircleCollider2D col = boxObj.AddComponent<CircleCollider2D>();
+        col.isTrigger = true;
+        col.radius = boxType == HealthBoxType.Small ? 0.35f : 0.45f;
+
+        Rigidbody2D rb = boxObj.AddComponent<Rigidbody2D>();
+        rb.bodyType = RigidbodyType2D.Kinematic;
+        rb.simulated = true;
+
+        HealthBoxPickup pickup = boxObj.AddComponent<HealthBoxPickup>();
+        pickup.Initialize(boxType, position);
+        return pickup;
+    }
+
+    /// <summary>
+    /// Thử sinh ngẫu nhiên hộp máu khi tiêu diệt enemy:
+    /// - 3% rơi Hộp máu lớn (hồi 20% max HP)
+    /// - 5% rơi Hộp máu nhỏ (hồi 10% max HP)
+    /// </summary>
+    public static HealthBoxPickup TryDropHealthBox(Vector3 position, float smallChance = SmallHealthBoxDropChance, float largeChance = LargeHealthBoxDropChance)
+    {
+        float roll = UnityEngine.Random.value;
+        if (largeChance > 0f && roll < largeChance)
+        {
+            return SpawnHealthBox(position, HealthBoxType.Large);
+        }
+        if (smallChance > 0f && roll < largeChance + smallChance)
+        {
+            return SpawnHealthBox(position, HealthBoxType.Small);
+        }
+        return null;
     }
 
     /// <summary>

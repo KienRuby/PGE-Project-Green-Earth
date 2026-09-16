@@ -23,20 +23,9 @@ public static class BoxOpeningSceneInstaller
     private const string FontPath = "Assets/Fonts/Nunito/Nunito SDF.asset";
     private const string RewardStrokeMaterialPath = "Assets/Fonts/Nunito/Nunito SDF - RewardStroke.mat";
     private const string StrokeMaterialPath = "Assets/Fonts/Nunito/Nunito SDF - Stroke.mat";
-    private const string SessionKey = "PGE.BoxOpeningSceneInstaller.v8";
-
     [MenuItem("PGE/UI/Install Box Opening Flow")]
     public static void InstallFromMenu()
     {
-        InstallIntoMainMenu();
-    }
-
-    [InitializeOnLoadMethod]
-    private static void InstallOnceAfterCompile()
-    {
-        if (Application.isPlaying || EditorApplication.isPlayingOrWillChangePlaymode) return;
-        if (SessionState.GetBool(SessionKey, false)) return;
-        SessionState.SetBool(SessionKey, true);
         InstallIntoMainMenu();
     }
 

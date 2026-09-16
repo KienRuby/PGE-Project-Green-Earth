@@ -1,6 +1,7 @@
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.UI;
 
 [TestFixture]
 public class BuddyEquipSystemTests
@@ -40,6 +41,37 @@ public class BuddyEquipSystemTests
         Assert.AreEqual(-1, loaded[0]);
         Assert.AreEqual(-1, loaded[1]);
         Assert.AreEqual(-1, loaded[2]);
+    }
+
+    [Test]
+    public void BuddyController_AllBuddies_ContainsExactlyFiveActiveDrones()
+    {
+        GameObject go = new GameObject("BuddyController_Test", typeof(BuddyController));
+        try
+        {
+            BuddyController ctrl = go.GetComponent<BuddyController>();
+            ctrl.InitializeDatabase();
+
+            Assert.AreEqual(5, ctrl.AllBuddies.Count, "There must be exactly 5 active drones in the game.");
+            int[] expectedIds = new int[] { 1, 2, 3, 4, 10 };
+            int[] actualIds = ctrl.AllBuddies.Select(b => b.id).ToArray();
+            CollectionAssert.AreEqual(expectedIds, actualIds, "Active drones must strictly be IDs 1, 2, 3, 4, 10.");
+
+            foreach (int id in expectedIds)
+            {
+                Assert.IsTrue(BuddyController.IsPrimaryPlayableDrone(id), $"ID {id} must be recognized as a primary playable drone.");
+            }
+
+            int[] removedIds = new int[] { 5, 6, 7, 8, 9, 11, 12 };
+            foreach (int id in removedIds)
+            {
+                Assert.IsFalse(BuddyController.IsPrimaryPlayableDrone(id), $"Removed drone ID {id} must NOT be recognized as primary playable drone.");
+            }
+        }
+        finally
+        {
+            Object.DestroyImmediate(go);
+        }
     }
 
     [Test]
@@ -261,6 +293,10 @@ public class BuddyEquipSystemTests
             card.Setup(data, null, null);
             Assert.IsNotNull(card.UpgradeArrowGroup, "UpgradeArrowGroup should be created/ensured");
             Assert.IsTrue(card.UpgradeArrowGroup.activeSelf, "UpgradeArrowGroup must be active when CanUpgrade is true");
+            Image arrowImg = card.UpgradeArrowGroup.GetComponent<Image>();
+            Assert.IsNotNull(arrowImg, "UpgradeArrowGroup must have an Image component");
+            Assert.IsNotNull(arrowImg.sprite, "UpgradeArrowGroup must have a non-null sprite (not white square)");
+            Assert.IsTrue(arrowImg.sprite.name.Contains("badge-upgrade"), "Sprite should be badge-upgrade");
         }
         finally
         {
@@ -421,4 +457,3 @@ public class BuddyEquipSystemTests
         }
     }
 }
-

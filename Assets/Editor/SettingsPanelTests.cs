@@ -555,7 +555,7 @@ public class SettingsPanelTests
             controller.LoadSortSpritesIfMissing();
             controller.InitializeDatabase();
 
-            Assert.That(controller.AllBuddies.Count, Is.EqualTo(6));
+            Assert.That(controller.AllBuddies.Count, Is.EqualTo(5));
 
             foreach (var buddy in controller.AllBuddies)
             {
