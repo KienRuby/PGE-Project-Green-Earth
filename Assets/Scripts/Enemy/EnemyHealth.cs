@@ -31,10 +31,10 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     [Tooltip("Cho phép quái rơi hộp máu khi bị tiêu diệt.")]
     [SerializeField] private bool canDropHealthBox = true;
 
-    [Tooltip("Tỷ lệ xuất hiện Hộp Máu Nhỏ (hồi 10% Max HP) khi quái chết (5% = 0.05).")]
+    [Tooltip("Tỷ lệ xuất hiện Hộp Máu Nhỏ (hồi 10% Max HP) khi quái chết (3% = 0.03).")]
     [Range(0f, 1f)] [SerializeField] private float smallHealthBoxDropChance = DropTable.SmallHealthBoxDropChance;
 
-    [Tooltip("Tỷ lệ xuất hiện Hộp Máu Lớn (hồi 20% Max HP) khi quái chết (3% = 0.03).")]
+    [Tooltip("Tỷ lệ xuất hiện Hộp Máu Lớn (hồi 20% Max HP) khi quái chết (1% = 0.01).")]
     [Range(0f, 1f)] [SerializeField] private float largeHealthBoxDropChance = DropTable.LargeHealthBoxDropChance;
 
     [Header("Death & Animation")]

@@ -32,6 +32,8 @@ public class SpinningBladeProjectile : MonoBehaviour, IPoolable
 
     [Header("VFX & Rendering")]
     [SerializeField] private GameObject hitVfxPrefab;
+    [Tooltip("Bật/tắt vệt sáng màu xanh đằng sau lưỡi dao.")]
+    [SerializeField] private bool showTrail = false;
     [SerializeField] private TrailRenderer trailRenderer;
     [SerializeField] private SpriteRenderer spriteRenderer;
 
@@ -80,7 +82,16 @@ public class SpinningBladeProjectile : MonoBehaviour, IPoolable
             useTriggers = true
         };
 
-        FixTrailMaterial();
+        if (trailRenderer != null)
+        {
+            trailRenderer.enabled = showTrail;
+            trailRenderer.gameObject.SetActive(showTrail);
+        }
+
+        if (showTrail)
+        {
+            FixTrailMaterial();
+        }
     }
 
     private void FixTrailMaterial()
@@ -127,11 +138,15 @@ public class SpinningBladeProjectile : MonoBehaviour, IPoolable
         isInVortexMode = false;
         vortexTimer = 0f;
 
-        FixTrailMaterial();
-
         if (trailRenderer != null)
         {
-            trailRenderer.Clear();
+            trailRenderer.enabled = showTrail;
+            trailRenderer.gameObject.SetActive(showTrail);
+            if (showTrail)
+            {
+                FixTrailMaterial();
+                trailRenderer.Clear();
+            }
         }
     }
 

@@ -116,13 +116,15 @@ public static class SpinningBladeSetupHelper
                 new GradientColorKey[] { new GradientColorKey(new Color(0.2f, 0.8f, 1f), 0f), new GradientColorKey(new Color(0f, 0.4f, 1f), 1f) },
                 new GradientAlphaKey[] { new GradientAlphaKey(0.8f, 0f), new GradientAlphaKey(0f, 1f) }
             );
-            trail.colorGradient = gradient;
+            trail.enabled = false;
+            trailChild.SetActive(false);
 
             SpinningBladeProjectile proj = tempObj.AddComponent<SpinningBladeProjectile>();
             GameObject hitVfx = AssetDatabase.LoadAssetAtPath<GameObject>(HitVfxPrefabPath);
 
             SerializedObject so = new SerializedObject(proj);
             so.FindProperty("hitVfxPrefab").objectReferenceValue = hitVfx;
+            so.FindProperty("showTrail").boolValue = false;
             so.FindProperty("spriteRenderer").objectReferenceValue = sr;
             so.FindProperty("trailRenderer").objectReferenceValue = trail;
             so.ApplyModifiedPropertiesWithoutUndo();

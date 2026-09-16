@@ -519,12 +519,14 @@ public class RewardPopupController : MonoBehaviour
     {
         if (dailyTabRect != null)
         {
+            dailyTabRect.anchorMin = dailyTabRect.anchorMax = new Vector2(0f, 0f);
             dailyTabRect.pivot = new Vector2(0f, 0f);
             dailyTabRect.sizeDelta = isDaily ? ActiveTabSize : InactiveTabSize;
         }
 
         if (achTabRect != null)
         {
+            achTabRect.anchorMin = achTabRect.anchorMax = new Vector2(1f, 0f);
             achTabRect.pivot = new Vector2(1f, 0f);
             achTabRect.sizeDelta = isDaily ? InactiveTabSize : ActiveTabSize;
         }

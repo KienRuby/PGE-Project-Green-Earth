@@ -202,7 +202,7 @@ public class AchievementItemUI : MonoBehaviour
             }
             if (itemBorder != null)
             {
-                itemBorder.color = Color.white;
+                itemBorder.color = itemBorder == itemBackground ? Color.white : Color.clear;
             }
         }
         if (progressBarBgSprite != null && progressBgImage != null)
@@ -216,17 +216,60 @@ public class AchievementItemUI : MonoBehaviour
             progressFillImage.color = Color.white;
         }
 
-        if (rewardsContainer != null)
+        SanitizeRewardsLayout();
+    }
+
+    /// <summary>
+    /// Đồng bộ và bảo vệ Layout cho RewardsContainer:
+    /// - childControlWidth = false, childControlHeight = false: Không ghi đè kích thước sizeDelta của badge do user chỉnh trong Editor.
+    /// - childForceExpandWidth = false, childForceExpandHeight = false: Không ép dãn badge.
+    /// - Spacing không âm (< 0 -> reset về 18f).
+    /// - Tắt wordWrapping cho toàn bộ text AmountText để số lượng không bao giờ bị ngắt dòng thành hàng dọc.
+    /// - Bảo toàn 100% RectTransform do user chỉnh trong Edit Mode.
+    /// </summary>
+    public void SanitizeRewardsLayout()
+    {
+        if (rewardsContainer == null) return;
+
+        if (rewardsContainer.TryGetComponent<HorizontalLayoutGroup>(out var hlg))
         {
-            for (int i = 0; i < rewardsContainer.childCount; i++)
+            hlg.childControlWidth = false;
+            hlg.childControlHeight = false;
+            hlg.childForceExpandWidth = false;
+            hlg.childForceExpandHeight = false;
+            if (hlg.spacing < 0f)
             {
-                if (rewardsContainer.GetChild(i).TryGetComponent<Image>(out var badgeImg))
+                hlg.spacing = 18f;
+            }
+        }
+
+        for (int i = 0; i < rewardsContainer.childCount; i++)
+        {
+            Transform child = rewardsContainer.GetChild(i);
+            if (child == null) continue;
+
+            if (child.TryGetComponent<Image>(out var badgeImg))
+            {
+                if (badgeImg.color.a != 0f)
                 {
-                    if (badgeImg.color.a != 0f)
-                    {
-                        badgeImg.color = new Color(badgeImg.color.r, badgeImg.color.g, badgeImg.color.b, 0f);
-                    }
+                    badgeImg.color = new Color(badgeImg.color.r, badgeImg.color.g, badgeImg.color.b, 0f);
                 }
+            }
+
+            TMP_Text amountTxt = child.Find("AmountText")?.GetComponent<TMP_Text>()
+                ?? child.GetComponentInChildren<TMP_Text>();
+            if (amountTxt != null)
+            {
+                amountTxt.enableWordWrapping = false;
+                amountTxt.overflowMode = TextOverflowModes.Overflow;
+                amountTxt.alignment = TextAlignmentOptions.Center;
+            }
+
+            Image iconImg = child.Find("Icon")?.GetComponent<Image>()
+                ?? child.GetComponentInChildren<Image>();
+            if (iconImg != null)
+            {
+                iconImg.preserveAspect = true;
             }
         }
     }
@@ -238,9 +281,20 @@ public class AchievementItemUI : MonoBehaviour
         {
             if (this != null)
             {
+                EnsureUIReferences();
+                SanitizeRewardsLayout();
                 ApplyStaticVisualSprites();
             }
         };
+    }
+
+    [ContextMenu("Sync Layout & Visuals")]
+    public void ContextMenuSync()
+    {
+        EnsureUIReferences();
+        EnsureSpritesLoaded();
+        SanitizeRewardsLayout();
+        ApplyStaticVisualSprites();
     }
 #endif
 
@@ -250,6 +304,7 @@ public class AchievementItemUI : MonoBehaviour
     private void Awake()
     {
         EnsureUIReferences();
+        SanitizeRewardsLayout();
         ApplyStaticVisualSprites();
         if (actionButton != null)
         {
@@ -274,6 +329,7 @@ public class AchievementItemUI : MonoBehaviour
         Func<RewardType, Sprite> iconResolver)
     {
         EnsureUIReferences();
+        SanitizeRewardsLayout();
         ApplyStaticVisualSprites();
         if (definition == null) return;
 
@@ -325,9 +381,13 @@ public class AchievementItemUI : MonoBehaviour
     {
         if (rewardsContainer == null || rewards == null) return;
 
-        // Tái sử dụng các badge đã được thiết lập sẵn trong scene/hierarchy để giữ nguyên 100% Transform (X, Y, size)
+        SanitizeRewardsLayout();
+
+        // Tái sử dụng các badge đã được thiết lập sẵn trong scene/hierarchy để giữ nguyên 100% Transform (X, Y, size, anchors)
         int rewardIndex = 0;
-        for (int i = 0; i < rewardsContainer.childCount; i++)
+        int childCount = rewardsContainer.childCount;
+
+        for (int i = 0; i < childCount; i++)
         {
             Transform child = rewardsContainer.GetChild(i);
             if (rewardBadgePrefab != null && child.gameObject == rewardBadgePrefab)
@@ -363,11 +423,15 @@ public class AchievementItemUI : MonoBehaviour
                         iconImg.sprite = icon;
                         iconImg.enabled = true;
                     }
+                    iconImg.preserveAspect = true;
                 }
 
                 if (amountTxt != null)
                 {
-                    amountTxt.text = RewardService.FormatRewardAmount(reward.amount);
+                    amountTxt.enableWordWrapping = false;
+                    amountTxt.overflowMode = TextOverflowModes.Overflow;
+                    amountTxt.alignment = TextAlignmentOptions.Center;
+                    amountTxt.text = $"x{reward.amount}";
                 }
 
                 rewardIndex++;
@@ -378,12 +442,17 @@ public class AchievementItemUI : MonoBehaviour
             }
         }
 
-        // Nếu số lượng phần thưởng nhiều hơn số badge sẵn có, mới tạo thêm
+        // Nếu số lượng phần thưởng nhiều hơn số badge sẵn có, nhân bản từ badge đầu tiên
         while (rewardIndex < rewards.Length)
         {
             RewardData reward = rewards[rewardIndex];
             GameObject badgeObj;
-            if (rewardBadgePrefab != null)
+            if (rewardsContainer.childCount > 0)
+            {
+                badgeObj = Instantiate(rewardsContainer.GetChild(0).gameObject, rewardsContainer);
+                badgeObj.name = $"RewardBadge_{rewardIndex}";
+            }
+            else if (rewardBadgePrefab != null)
             {
                 badgeObj = Instantiate(rewardBadgePrefab, rewardsContainer);
             }
@@ -406,11 +475,15 @@ public class AchievementItemUI : MonoBehaviour
                     iconImg.sprite = icon;
                     iconImg.enabled = true;
                 }
+                iconImg.preserveAspect = true;
             }
 
             if (amountTxt != null)
             {
-                amountTxt.text = RewardService.FormatRewardAmount(reward.amount);
+                amountTxt.enableWordWrapping = false;
+                amountTxt.overflowMode = TextOverflowModes.Overflow;
+                amountTxt.alignment = TextAlignmentOptions.Center;
+                amountTxt.text = $"x{reward.amount}";
             }
 
             rewardIndex++;
@@ -632,6 +705,8 @@ public class AchievementItemUI : MonoBehaviour
         txt.alignment = TextAlignmentOptions.Center;
         txt.color = Color.white;
         txt.raycastTarget = false;
+        txt.enableWordWrapping = false;
+        txt.overflowMode = TextOverflowModes.Overflow;
 
         return badge;
     }

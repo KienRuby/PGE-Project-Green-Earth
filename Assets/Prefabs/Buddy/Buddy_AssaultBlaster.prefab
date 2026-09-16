@@ -100,8 +100,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   buddyId: 4
   droneName: Assault Blaster
-  followDistance: 0.85
-  minPlayerDistance: 0.72
+  followDistance: 0.52
+  minPlayerDistance: 0.38
   followSpeed: 12
   bobbingAmplitude: 0.05
   bobbingFrequency: 2.5

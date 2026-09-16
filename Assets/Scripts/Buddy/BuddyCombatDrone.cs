@@ -15,10 +15,12 @@ public abstract class BuddyCombatDrone : MonoBehaviour
 
     [Header("Formation & Follow Movement")]
     [Tooltip("Khoảng cách giữ cự ly với người chơi (mét).")]
-    [SerializeField] protected float followDistance = 0.85f;
+    [Range(0.3f, 2.0f)]
+    [SerializeField] protected float followDistance = 0.52f;
 
     [Tooltip("Bán kính vùng an toàn tối thiểu, tuyệt đối không cho phép drone đè vào Player (mét).")]
-    [SerializeField] protected float minPlayerDistance = 0.72f;
+    [Range(0.2f, 1.5f)]
+    [SerializeField] protected float minPlayerDistance = 0.38f;
 
     [Tooltip("Tốc độ bay theo người chơi (m/s).")]
     [SerializeField] protected float followSpeed = 16.0f;
@@ -93,9 +95,10 @@ public abstract class BuddyCombatDrone : MonoBehaviour
         transform.localScale = new Vector3(combatScale, combatScale, 1f);
 
         // Đảm bảo cự ly hợp lý, không quá xa nhưng tuyệt đối không đè vào người chơi
-        if (followDistance < 0.75f || followDistance > 1.2f)
+        followDistance = Mathf.Clamp(followDistance, 0.3f, 2.5f);
+        if (minPlayerDistance >= followDistance)
         {
-            followDistance = 0.85f;
+            minPlayerDistance = Mathf.Max(0.2f, followDistance * 0.75f);
         }
 
         // Phân bổ góc hình quạt quanh Player
@@ -124,9 +127,10 @@ public abstract class BuddyCombatDrone : MonoBehaviour
     protected virtual void Awake()
     {
         transform.localScale = new Vector3(combatScale, combatScale, 1f);
-        if (followDistance < 0.75f || followDistance > 1.2f)
+        followDistance = Mathf.Clamp(followDistance, 0.3f, 2.5f);
+        if (minPlayerDistance >= followDistance)
         {
-            followDistance = 0.85f;
+            minPlayerDistance = Mathf.Max(0.2f, followDistance * 0.75f);
         }
         if (spriteRenderer == null)
         {

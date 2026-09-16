@@ -8,6 +8,286 @@ using UnityEngine.UI;
 
 namespace PGE.EditorTools
 {
+    // Explicit reference-layout command. Reuses the existing hierarchy and sprites.
+    public static class RewardPopupReferenceLayout
+    {
+        private const string RequestPath = "Temp/RewardPopupReference.request";
+        private const float Scale = 1080f / 1152f;
+
+        [InitializeOnLoadMethod]
+        private static void RegisterRequest()
+        {
+            EditorApplication.update -= ProcessRequest;
+            EditorApplication.update += ProcessRequest;
+        }
+
+        private static void ProcessRequest()
+        {
+            if (EditorApplication.isCompiling || EditorApplication.isUpdating ||
+                !System.IO.File.Exists(RequestPath)) return;
+            string command = System.IO.File.ReadAllText(RequestPath).Trim();
+            if (command == "apply" && EditorApplication.isPlayingOrWillChangePlaymode) return;
+            System.IO.File.Delete(RequestPath);
+            try
+            {
+                if (command == "apply") Apply();
+                else if (command == "capture") CaptureBoth();
+            }
+            catch (System.Exception ex) { Debug.LogException(ex); }
+        }
+
+        private static Transform Popup()
+        {
+            return Resources.FindObjectsOfTypeAll<RewardPopupController>()
+                .First(x => x.gameObject.scene.IsValid() && x.gameObject.scene.name == "MainMenu").transform;
+        }
+
+        private static Sprite Sprite(string name) =>
+            AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Reward/Extracted/" + name + ".png");
+
+        private static void Rect(Transform t, float x, float y, float w, float h)
+        {
+            if (t == null) return;
+            var r = (RectTransform)t;
+            r.anchorMin = r.anchorMax = new Vector2(0, 1);
+            r.pivot = new Vector2(0, 1);
+            r.anchoredPosition = new Vector2(x, -y) * Scale;
+            r.sizeDelta = new Vector2(w, h) * Scale;
+            r.localScale = Vector3.one;
+        }
+
+        private static void Image(Transform t, string sprite)
+        {
+            if (t == null) return;
+            var img = t.GetComponent<UnityEngine.UI.Image>();
+            if (img == null) return;
+            img.sprite = Sprite(sprite);
+            img.color = Color.white;
+            img.type = UnityEngine.UI.Image.Type.Simple;
+            img.preserveAspect = false;
+        }
+
+        private static void Hide(Transform t) { if (t != null) t.gameObject.SetActive(false); }
+
+        [MenuItem("PGE/UI/Match Reward Popup Reference Layout")]
+        public static void Apply()
+        {
+            if (EditorApplication.isPlaying) throw new System.InvalidOperationException("Apply layout in Edit Mode.");
+            Transform popup = Popup();
+            Undo.RegisterFullObjectHierarchyUndo(popup.gameObject, "Match reward popup references");
+            Transform window = popup.Find("Window");
+            Rect(window, 126, 430, 912, 1290);
+            Image(window, "Frame_Daily_Login_Main");
+            Hide(window.Find("Background"));
+            Hide(window.Find("CloseButton"));
+            foreach (var shadow in window.GetComponentsInChildren<UnityEngine.UI.Shadow>(true))
+                if (!(shadow is UnityEngine.UI.Outline)) shadow.enabled = false;
+            var dim = popup.Find("DimBackground").GetComponent<UnityEngine.UI.Image>();
+            dim.color = new Color(0, 0, 0, 0.78f);
+            Transform tabs = window.Find("Tabs");
+            Rect(tabs, 72, -118, 768, 118);
+            tabs.SetAsFirstSibling();
+            ConfigureTab(tabs.Find("DailyLoginTab"), true, true);
+            ConfigureTab(tabs.Find("AchievementTab"), false, false);
+            var controller = popup.GetComponent<RewardPopupController>();
+            controller.SetTabSprites(Sprite("Tab_Daily_Login_Active"), Sprite("Tab_Daily_Login_Inactive"),
+                Sprite("Tab_Achievements_Active"), Sprite("Tab_Achievements_Inactive"));
+            var controllerSO = new SerializedObject(controller);
+            controllerSO.FindProperty("dailyTabBg").objectReferenceValue = tabs.Find("DailyLoginTab").GetComponent<UnityEngine.UI.Image>();
+            controllerSO.FindProperty("achievementTabBg").objectReferenceValue = tabs.Find("AchievementTab").GetComponent<UnityEngine.UI.Image>();
+            controllerSO.FindProperty("lockTabTransforms").boolValue = true;
+            controllerSO.ApplyModifiedPropertiesWithoutUndo();
+
+            ConfigurePanel(window.Find("DailyLoginPanel"), true);
+            ConfigurePanel(window.Find("AchievementPanel"), false);
+            var font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Fonts/Nunito/Nunito SDF.asset");
+            var material = AssetDatabase.LoadAssetAtPath<Material>("Assets/Fonts/Nunito/Nunito SDF - Stroke.mat");
+            foreach (var text in window.GetComponentsInChildren<TMP_Text>(true))
+            {
+                if (font != null) text.font = font;
+                if (material != null) text.fontSharedMaterial = material;
+                text.enableAutoSizing = false;
+                text.enableWordWrapping = false;
+                text.overflowMode = TextOverflowModes.Overflow;
+            }
+            window.Find("DailyLoginPanel").gameObject.SetActive(true);
+            window.Find("AchievementPanel").gameObject.SetActive(false);
+            Canvas.ForceUpdateCanvases();
+            EditorSceneManager.MarkSceneDirty(popup.gameObject.scene);
+            EditorSceneManager.SaveScene(popup.gameObject.scene);
+            Debug.Log("[RewardReference] Applied and saved reference layout.");
+            CaptureBoth();
+        }
+
+        private static void ConfigureTab(Transform tab, bool left, bool active)
+        {
+            var rt = (RectTransform)tab;
+            rt.anchorMin = rt.anchorMax = new Vector2(left ? 0 : 1, 0);
+            rt.pivot = new Vector2(left ? 0 : 1, 0);
+            rt.anchoredPosition = Vector2.zero;
+            rt.sizeDelta = new Vector2(343.5f, active ? 116 : 101);
+            Image(tab, "Tab_" + (left ? "Daily_Login_" : "Achievements_") + (active ? "Active" : "Inactive"));
+            Hide(tab.Find("Background"));
+            Hide(tab.Find("Label"));
+            Hide(tab.Find("Badge"));
+        }
+
+        private static void ConfigurePanel(Transform panel, bool daily)
+        {
+            Rect(panel, 16, daily ? 41 : 22, 880, daily ? 1200 : 1236);
+            Component panelUI = daily ? (Component)panel.GetComponent<DailyLoginPanelUI>() : panel.GetComponent<AchievementPanelUI>();
+            var panelSO = new SerializedObject(panelUI);
+            panelSO.FindProperty("energyIcon").objectReferenceValue = Sprite("Icon_Energy");
+            panelSO.FindProperty("dataChipIcon").objectReferenceValue = Sprite("Icon_Data_Chip");
+            panelSO.FindProperty("redGemIcon").objectReferenceValue = Sprite("Icon_Red_Gem");
+            panelSO.ApplyModifiedPropertiesWithoutUndo();
+            Transform content = panel.Find("Viewport/Content");
+            var layout = content.GetComponent<UnityEngine.UI.VerticalLayoutGroup>();
+            layout.padding = new RectOffset(0, 0, 0, 0);
+            layout.spacing = (daily ? 31 : 23) * Scale;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = layout.childForceExpandHeight = false;
+            layout.childAlignment = TextAnchor.UpperLeft;
+            foreach (Transform row in content)
+            {
+                var le = row.GetComponent<UnityEngine.UI.LayoutElement>() ?? row.gameObject.AddComponent<UnityEngine.UI.LayoutElement>();
+                le.minHeight = le.preferredHeight = (daily ? 142 : 227) * Scale;
+                le.flexibleHeight = 0;
+                Rect(row.Find("Background"), 0, 0, 880, daily ? 142 : 227);
+                Image(row.Find("Background"), daily ? "Row_Banner_Blue" : "Row_Banner_Achievement");
+                if (row.TryGetComponent<UnityEngine.UI.Image>(out var border)) border.color = Color.clear;
+                Transform rewards = row.Find("RewardsContainer");
+                Rect(rewards, daily ? 229 : 29, daily ? 22 : 109, 355, 89);
+                var rewardsLayout = rewards.GetComponent<UnityEngine.UI.HorizontalLayoutGroup>();
+                if (rewardsLayout != null)
+                {
+                    rewardsLayout.spacing = 47 * Scale;
+                    rewardsLayout.padding = new RectOffset();
+                    rewardsLayout.childAlignment = TextAnchor.UpperLeft;
+                    rewardsLayout.childControlWidth = rewardsLayout.childControlHeight = false;
+                    rewardsLayout.childForceExpandWidth = rewardsLayout.childForceExpandHeight = false;
+                }
+                foreach (Transform badge in rewards)
+                {
+                    Rect(badge, 0, 0, 87, 89);
+                    Rect(badge.Find("Icon"), 0, 0, 87, 89);
+                    Rect(badge.Find("AmountText"), -3, 66, 93, 31);
+                    var text = badge.Find("AmountText")?.GetComponent<TMP_Text>();
+                    if (text != null) { text.fontSize = 27 * Scale; text.alignment = TextAlignmentOptions.Center; }
+                    if (badge.TryGetComponent<UnityEngine.UI.Image>(out var badgeBackground)) badgeBackground.color = Color.clear;
+                    if (daily)
+                    {
+                        int index = badge.GetSiblingIndex();
+                        Image(badge.Find("Icon"), index == 0 ? "Icon_Energy" : index == 1 ? "Icon_Data_Chip" : "Icon_Red_Gem");
+                    }
+                }
+                if (daily)
+                {
+                    Rect(row.Find("DayHeader"), 29, 24, 100, 88);
+                    foreach (var txt in row.Find("DayHeader").GetComponentsInChildren<TMP_Text>(true))
+                    {
+                        bool number = txt.text.Trim() != "DAY";
+                        Rect(txt.transform, 0, number ? 42 : 0, 80, 42);
+                        txt.fontSize = 36 * Scale;
+                        txt.color = number ? Color.yellow : Color.white;
+                        txt.alignment = TextAlignmentOptions.Center;
+                    }
+                    Rect(row.Find("StateRight"), 661, 28, 185, 80);
+                    Rect(row.Find("StateRight/ClaimButton"), 0, 0, 185.6f, 81.0667f);
+                    var item = row.GetComponent<DailyLoginItemUI>();
+                    item.SetButtonSprites(Sprite("Btn_Get"), Sprite("Btn_Claim_Again"), Sprite("Btn_Obtained"));
+                    int day = row.GetSiblingIndex() + 1;
+                    item.SetButtonVisual(day == 1 ? DailyButtonState.Obtained : day == 3 ? DailyButtonState.ClaimAgain : DailyButtonState.Get);
+                }
+                else
+                {
+                    Rect(row.Find("TitleText"), 29, 10, 790, 43);
+                    var title = row.Find("TitleText").GetComponent<TMP_Text>();
+                    title.fontSize = 36 * Scale;
+                    Rect(row.Find("ProgressBarBg"), 27, 59, 539, 34);
+                    Rect(row.Find("ProgressText"), 27, 59, 539, 34);
+                    var progress = row.Find("ProgressText").GetComponent<TMP_Text>();
+                    progress.fontSize = 24 * Scale;
+                    progress.alignment = TextAlignmentOptions.Center;
+                    Rect(row.Find("ActionButton"), 661, 66, 185.6f, 81.0667f);
+                    Rect(row.Find("ActionButton/Background"), 0, 0, 185.6f, 81.0667f);
+                }
+            }
+        }
+
+        [MenuItem("PGE/UI/Capture Reward Popup Edit or Play")]
+        public static void CaptureBoth()
+        {
+            Transform popup = Popup();
+            bool wasActive = popup.gameObject.activeSelf;
+            Transform window = popup.Find("Window");
+            bool dailyActive = window.Find("DailyLoginPanel").gameObject.activeSelf;
+            popup.gameObject.SetActive(true);
+            for (int i = 0; i < 2; i++)
+            {
+                bool daily = i == 0;
+                window.Find("DailyLoginPanel").gameObject.SetActive(daily);
+                window.Find("AchievementPanel").gameObject.SetActive(!daily);
+                ConfigureTab(window.Find("Tabs/DailyLoginTab"), true, daily);
+                ConfigureTab(window.Find("Tabs/AchievementTab"), false, !daily);
+                Render(popup.GetComponentInParent<Canvas>(), (daily ? "daily" : "achievements") +
+                    (Application.isPlaying ? "-play" : "-edit"));
+            }
+            window.Find("DailyLoginPanel").gameObject.SetActive(dailyActive);
+            window.Find("AchievementPanel").gameObject.SetActive(!dailyActive);
+            ConfigureTab(window.Find("Tabs/DailyLoginTab"), true, dailyActive);
+            ConfigureTab(window.Find("Tabs/AchievementTab"), false, !dailyActive);
+            popup.gameObject.SetActive(wasActive);
+        }
+
+        private static void Render(Canvas canvas, string name)
+        {
+            var cameraObject = new GameObject("RewardReferenceCaptureCamera");
+            cameraObject.hideFlags = HideFlags.HideAndDontSave;
+            var camera = cameraObject.AddComponent<Camera>();
+            camera.orthographic = true;
+            camera.orthographicSize = 960;
+            camera.transform.position = new Vector3(540, 960, -100);
+            camera.clearFlags = CameraClearFlags.SolidColor;
+            camera.backgroundColor = Color.black;
+            camera.enabled = false;
+            var texture = new RenderTexture(1080, 1920, 24);
+            var mode = canvas.renderMode;
+            var oldCamera = canvas.worldCamera;
+            var oldDistance = canvas.planeDistance;
+            var previousTarget = RenderTexture.active;
+            Texture2D output = null;
+            try
+            {
+                camera.targetTexture = texture;
+                canvas.renderMode = RenderMode.ScreenSpaceCamera;
+                canvas.worldCamera = camera;
+                canvas.planeDistance = 10;
+                Canvas.ForceUpdateCanvases();
+                camera.Render();
+                RenderTexture.active = texture;
+                output = new Texture2D(1080, 1920, TextureFormat.RGB24, false);
+                output.ReadPixels(new Rect(0, 0, 1080, 1920), 0, 0);
+                output.Apply();
+                System.IO.Directory.CreateDirectory("Temp/RewardReference");
+                System.IO.File.WriteAllBytes("Temp/RewardReference/" + name + ".png", output.EncodeToPNG());
+                Debug.Log("[RewardReference] Captured " + name);
+            }
+            finally
+            {
+                canvas.renderMode = mode;
+                canvas.worldCamera = oldCamera;
+                canvas.planeDistance = oldDistance;
+                RenderTexture.active = previousTarget;
+                if (output != null) Object.DestroyImmediate(output);
+                Object.DestroyImmediate(texture);
+                Object.DestroyImmediate(cameraObject);
+                Canvas.ForceUpdateCanvases();
+            }
+        }
+    }
+
     public static class ApplyRewardPopupAssets
     {
         [MenuItem("PGE/UI/Apply Real Sliced Assets to Popup")]

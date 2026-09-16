@@ -16,8 +16,8 @@ public static class DropTable
         public float weight;
     }
 
-    public const float SmallHealthBoxDropChance = 0.05f; // 5% xuất hiện Hộp máu nhỏ
-    public const float LargeHealthBoxDropChance = 0.03f; // 3% xuất hiện Hộp máu lớn
+    public const float SmallHealthBoxDropChance = 0.03f; // 3% xuất hiện Hộp máu nhỏ (hồi 10% max HP)
+    public const float LargeHealthBoxDropChance = 0.01f; // 1% xuất hiện Hộp máu lớn (hồi 20% max HP)
     public const float SmallHealthBoxHealPercent = 0.10f; // Hồi 10% HP tối đa
     public const float LargeHealthBoxHealPercent = 0.20f; // Hồi 20% HP tối đa
 
@@ -91,8 +91,8 @@ public static class DropTable
 
     /// <summary>
     /// Thử sinh ngẫu nhiên hộp máu khi tiêu diệt enemy:
-    /// - 3% rơi Hộp máu lớn (hồi 20% max HP)
-    /// - 5% rơi Hộp máu nhỏ (hồi 10% max HP)
+    /// - 1% rơi Hộp máu lớn (hồi 20% max HP)
+    /// - 3% rơi Hộp máu nhỏ (hồi 10% max HP)
     /// </summary>
     public static HealthBoxPickup TryDropHealthBox(Vector3 position, float smallChance = SmallHealthBoxDropChance, float largeChance = LargeHealthBoxDropChance)
     {

@@ -100,8 +100,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   buddyId: 2
   droneName: Turret Buffer
-  followDistance: 0.85
-  minPlayerDistance: 0.72
+  followDistance: 0.52
+  minPlayerDistance: 0.38
   followSpeed: 12
   bobbingAmplitude: 0.05
   bobbingFrequency: 2.5

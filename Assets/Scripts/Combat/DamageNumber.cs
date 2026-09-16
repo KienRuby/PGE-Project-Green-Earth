@@ -71,6 +71,10 @@ public class DamageNumber : MonoBehaviour, IPoolable
     [Tooltip("Hệ số kích thước chữ số cơ bản.")]
     [SerializeField] private float baseScale = 1.30f;
 
+    [Tooltip("Hệ số kích thước riêng cho số hồi máu xanh lá (+HP). Mặc định 0.63f (đã giảm 40% so với kích thước cũ 1.05f).")]
+    [Range(0.2f, 2.0f)]
+    [SerializeField] private float healScaleMultiplier = 0.63f;
+
     [Tooltip("Độ nảy phóng to ban đầu (Pop Multiplier).")]
     [SerializeField] private float popMultiplier = 1.22f;
 
@@ -189,6 +193,12 @@ public class DamageNumber : MonoBehaviour, IPoolable
             critSpawnOffset = value;
             SyncPreviewToManager();
         }
+    }
+
+    public float HealScaleMultiplier
+    {
+        get => healScaleMultiplier;
+        set => healScaleMultiplier = Mathf.Max(0.1f, value);
     }
 
     public void ConfigureCritVisuals(float scaleMultiplier, float iconSize, float iconSpacing, Vector2 iconOffset, Vector3 spawnOffset)
@@ -490,7 +500,7 @@ public class DamageNumber : MonoBehaviour, IPoolable
                 baseColor = healColor;
                 gradTop = HealGradTop;
                 gradBottom = HealGradBottom;
-                scaleFactor *= 1.05f;
+                scaleFactor *= healScaleMultiplier;
                 SetSorting(sortingLayerName, sortingOrder + 5);
                 break;
             case DamageType.Normal:

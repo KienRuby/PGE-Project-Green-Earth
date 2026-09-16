@@ -194,6 +194,7 @@ public class BuddyController : MonoBehaviour
     private static readonly Color NormalPresetColor = new Color32(18, 58, 68, 255);
     private static readonly Color SelectedPresetTextColor = new Color32(10, 20, 30, 255);
     private static readonly Color NormalPresetTextColor = new Color32(245, 255, 255, 255);
+    private static readonly int[] ActiveDroneIds = { 1, 2, 3, 4, 10 };
 
     public IReadOnlyList<BuddyItemData> AllBuddies => allBuddies;
     public bool IsRobotPetUnlocked => PlayerDataService.UnlockedChapterIndex >= RequiredClearedChaptersForRobotPet;
@@ -308,7 +309,9 @@ public class BuddyController : MonoBehaviour
             slotUnlocked = new bool[] { true, true, true };
         }
 
-        if (allBuddies.Count > 0)
+        NormalizeActiveBuddyList();
+
+        if (allBuddies.Count == ActiveDroneIds.Length)
         {
             foreach (var b in allBuddies)
             {
@@ -399,97 +402,7 @@ public class BuddyController : MonoBehaviour
                 uniquePerkText = "Dual Shot ATK +30%",
                 epicPerkText = "Overheat Surge +30%"
             },
-            // 5. Drone Capsule (Nano Healer)
-            new BuddyItemData
-            {
-                id = 5,
-                buddyName = "Nano Healer",
-                iconKey = "drone-capsule",
-                tier = BuddyTier.Common,
-                level = 1,
-                count = 0,
-                requiredCount = 10,
-                enhanceCost = 500,
-                description = "Dispatches automated nano-capsules to regenerate health.",
-                baseStatText = "Player HP Recovery <color=#FFCB49>+2 HP/s</color>",
-                magicPerkText = "Heal Amount +20%",
-                rarePerkText = "Repair Speed +30%",
-                uniquePerkText = "Shield Battery +30%",
-                epicPerkText = "Emergency Revive +30%"
-            },
-            // 6. Drone Spiky Mine (Mine Layer)
-            new BuddyItemData
-            {
-                id = 6,
-                buddyName = "Mine Layer",
-                iconKey = "drone-spiky-mine",
-                tier = BuddyTier.Common,
-                level = 1,
-                count = 0,
-                requiredCount = 10,
-                enhanceCost = 500,
-                description = "Deploys cluster shrapnel mines around the player.",
-                baseStatText = "Mine AoE Range <color=#FFCB49>+15%</color>",
-                magicPerkText = "Mine ATK +20%",
-                rarePerkText = "Mine Cooldown -30%",
-                uniquePerkText = "Cluster Count +30%",
-                epicPerkText = "Shrapnel Blast +30%"
-            },
-            // 7. Drone Octagon Shield (Aegis Defender)
-            new BuddyItemData
-            {
-                id = 7,
-                buddyName = "Aegis Defender",
-                iconKey = "drone-octagon-shield",
-                tier = BuddyTier.Common,
-                level = 1,
-                count = 0,
-                requiredCount = 10,
-                enhanceCost = 500,
-                description = "Projects a geometric barrier blocking incoming enemy fire.",
-                baseStatText = "Player Shield Defense <color=#FFCB49>+18%</color>",
-                magicPerkText = "Barrier Duration +20%",
-                rarePerkText = "Cooldown -30%",
-                uniquePerkText = "Damage Absorption +30%",
-                epicPerkText = "Pulse Reflection +30%"
-            },
-            // 8. Drone Claw Magnet (Scavenger Unit)
-            new BuddyItemData
-            {
-                id = 8,
-                buddyName = "Scavenger Unit",
-                iconKey = "drone-claw-magnet",
-                tier = BuddyTier.Common,
-                level = 1,
-                count = 0,
-                requiredCount = 10,
-                enhanceCost = 500,
-                description = "Magnetically attracts dropped chips and energy cells.",
-                baseStatText = "Resource Vacuum Radius <color=#FFCB49>+35%</color>",
-                magicPerkText = "Pickup Range +20%",
-                rarePerkText = "Chip Drop Rate +30%",
-                uniquePerkText = "Exp Attraction +30%",
-                epicPerkText = "Scrap Recycling +30%"
-            },
-            // 9. Drone Dual Rotor (Air Striker)
-            new BuddyItemData
-            {
-                id = 9,
-                buddyName = "Air Striker",
-                iconKey = "drone-dual-rotor",
-                tier = BuddyTier.Common,
-                level = 1,
-                count = 0,
-                requiredCount = 10,
-                enhanceCost = 500,
-                description = "Executes aerial bombardment on congested monster waves.",
-                baseStatText = "Bombing Splash Damage <color=#FFCB49>+20%</color>",
-                magicPerkText = "Air Bomb ATK +20%",
-                rarePerkText = "Flight Speed +30%",
-                uniquePerkText = "Bomb Radius +30%",
-                epicPerkText = "Napalm Burn +30%"
-            },
-            // 10. Purifying Drone (Matches User Screenshot 2)
+            // 5. Purifying Drone (ID 10, matches user screenshot 2)
             new BuddyItemData
             {
                 id = 10,
@@ -506,42 +419,6 @@ public class BuddyController : MonoBehaviour
                 rarePerkText = "Ailment Resistance +7%",
                 uniquePerkText = "Ailment Resistance +9%",
                 epicPerkText = "Remove Ailment Instantly (cooldown 30s)"
-            },
-            // 11. Drone Laser Sentry (Beam Sentry)
-            new BuddyItemData
-            {
-                id = 11,
-                buddyName = "Beam Sentry",
-                iconKey = "drone-laser-sentry",
-                tier = BuddyTier.Common,
-                level = 1,
-                count = 0,
-                requiredCount = 10,
-                enhanceCost = 750,
-                description = "Locks onto highest HP targets with continuous thermal beams.",
-                baseStatText = "Boss Target Damage <color=#FFCB49>+30%</color>",
-                magicPerkText = "Beam ATK +20%",
-                rarePerkText = "Burn Duration +30%",
-                uniquePerkText = "Beam Width +30%",
-                epicPerkText = "Thermal Meltdown +30%"
-            },
-            // 12. Drone Plasma Orb (Plasma Vortex)
-            new BuddyItemData
-            {
-                id = 12,
-                buddyName = "Plasma Vortex",
-                iconKey = "drone-plasma-orb",
-                tier = BuddyTier.Common,
-                level = 1,
-                count = 0,
-                requiredCount = 10,
-                enhanceCost = 1000,
-                description = "Unleashes swirling electrical vortices annihilating crowds.",
-                baseStatText = "All Weapons' Lightning ATK <color=#FFCB49>+35%</color>",
-                magicPerkText = "Vortex Radius +20%",
-                rarePerkText = "Zap Chains +30%",
-                uniquePerkText = "Discharge ATK +30%",
-                epicPerkText = "Supernova Surge +30%"
             }
         };
 
@@ -622,6 +499,11 @@ public class BuddyController : MonoBehaviour
         if (robotPetPanel != null)
         {
             robotPetPanel.SetActive(isRobotPetMode);
+        }
+
+        if (!isRobotPetMode)
+        {
+            RefreshInventory();
         }
 
         RefreshRobotPetUnlockState();
@@ -1434,6 +1316,17 @@ public class BuddyController : MonoBehaviour
     {
         AutoWireInventoryContainerIfMissing();
         LoadUpgradeArrowSpriteIfMissing();
+        NormalizeActiveBuddyList();
+
+        // The authored cards and legacy scroll inventory represent the same collection.
+        // Use only one renderer, including after the Drone tab reactivates its roots.
+        bool useFixedCards = inventoryCards != null && inventoryCards.Any(card => card != null);
+        if (inventoryContent != null &&
+            inventoryContent != slotIconBuddyContainer &&
+            (slotIconBuddyContainer == null || !slotIconBuddyContainer.IsChildOf(inventoryContent)))
+        {
+            inventoryContent.gameObject.SetActive(!useFixedCards);
+        }
 
         List<BuddyItemData> sortedList = new List<BuddyItemData>(allBuddies);
         if (sortByQuantity)
@@ -1485,7 +1378,7 @@ public class BuddyController : MonoBehaviour
         }
 
         // 2. Populate scroll view if active
-        if (inventoryContent != null && inventoryContent.gameObject.activeInHierarchy)
+        if (!useFixedCards && inventoryContent != null && inventoryContent.gameObject.activeInHierarchy)
         {
             EnsureInventoryCardsInitialized();
 
@@ -1873,7 +1766,23 @@ public class BuddyController : MonoBehaviour
 
     public static bool IsPrimaryPlayableDrone(int id)
     {
-        return id == 1 || id == 2 || id == 3 || id == 4 || id == 10;
+        return Array.IndexOf(ActiveDroneIds, id) >= 0;
+    }
+
+    private void NormalizeActiveBuddyList()
+    {
+        if (allBuddies == null)
+        {
+            allBuddies = new List<BuddyItemData>();
+            return;
+        }
+
+        allBuddies = allBuddies
+            .Where(buddy => buddy != null && IsPrimaryPlayableDrone(buddy.id))
+            .GroupBy(buddy => buddy.id)
+            .Select(group => group.First())
+            .OrderBy(buddy => Array.IndexOf(ActiveDroneIds, buddy.id))
+            .ToList();
     }
 
     private static bool IsValidDroneSprite(Sprite s)

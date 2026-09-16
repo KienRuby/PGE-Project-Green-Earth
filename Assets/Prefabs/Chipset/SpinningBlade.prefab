@@ -16,7 +16,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2446675678897656711
 Transform:
   m_ObjectHideFlags: 0
@@ -40,7 +40,7 @@ TrailRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3526082413700000378}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -138,7 +138,7 @@ TrailRenderer:
     generateLightingData: 0
   m_MinVertexDistance: 0.1
   m_Autodestruct: 0
-  m_Emitting: 1
+  m_Emitting: 0
 --- !u!1 &6482937105928172948
 GameObject:
   m_ObjectHideFlags: 0
@@ -307,5 +307,6 @@ MonoBehaviour:
   vortexRadius: 2
   selfSpinSpeed: 1200
   hitVfxPrefab: {fileID: 100001, guid: 2019a65776aecea44abb57cfdb6e0df5, type: 3}
+  showTrail: 0
   trailRenderer: {fileID: 7540419863092396158}
   spriteRenderer: {fileID: 8947261948371928374}

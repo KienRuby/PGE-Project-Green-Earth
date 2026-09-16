@@ -51,15 +51,25 @@ public class AchievementPanelUI : MonoBehaviour
         if (energyIcon != null && redGemIcon != null && dataChipIcon != null) return;
 
 #if UNITY_EDITOR
-        Sprite[] sprites = UnityEditor.AssetDatabase.LoadAllAssetsAtPath("Assets/Sprites/UI/icon tài nguyên.png")
-            .OfType<Sprite>()
-            .ToArray();
+        if (energyIcon == null)
+            energyIcon = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Reward/Extracted/Icon_Energy.png");
+        if (redGemIcon == null)
+            redGemIcon = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Reward/Extracted/Icon_Red_Gem.png");
+        if (dataChipIcon == null)
+            dataChipIcon = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Reward/Extracted/Icon_Data_Chip.png");
 
-        if (sprites != null && sprites.Length > 0)
+        if (energyIcon == null || redGemIcon == null || dataChipIcon == null)
         {
-            if (energyIcon == null) energyIcon = Array.Find(sprites, s => s.name == "engry") ?? sprites[0];
-            if (redGemIcon == null) redGemIcon = Array.Find(sprites, s => s.name == "red") ?? sprites[0];
-            if (dataChipIcon == null) dataChipIcon = Array.Find(sprites, s => s.name == "data") ?? sprites[0];
+            Sprite[] sprites = UnityEditor.AssetDatabase.LoadAllAssetsAtPath("Assets/Sprites/UI/icon tài nguyên.png")
+                .OfType<Sprite>()
+                .ToArray();
+
+            if (sprites != null && sprites.Length > 0)
+            {
+                if (energyIcon == null) energyIcon = Array.Find(sprites, s => s.name == "engry") ?? sprites[0];
+                if (redGemIcon == null) redGemIcon = Array.Find(sprites, s => s.name == "red") ?? sprites[0];
+                if (dataChipIcon == null) dataChipIcon = Array.Find(sprites, s => s.name == "data") ?? sprites[0];
+            }
         }
 #endif
     }
