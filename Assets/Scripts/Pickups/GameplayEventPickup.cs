@@ -15,17 +15,29 @@ public class GameplayEventPickup : MonoBehaviour
     [SerializeField] private GameplayEventData assignedEvent;
 
     [Header("Visual & Animation")]
-    [Tooltip("SpriteRenderer hiển thị biểu tượng dấu hỏi/beacon sự kiện trên bản đồ.")]
+    [Tooltip("SpriteRenderer hiển thị bãi phế liệu/sự kiện trên bản đồ.")]
     [SerializeField] private SpriteRenderer spriteRenderer;
 
-    [Tooltip("Tốc độ bay dập dềnh (Idle bobbing speed).")]
+    [Tooltip("Sprite bãi phế liệu/sự kiện hiển thị trên bản đồ. Nếu để trống sẽ tải từ Resources/Events/event_pickup.")]
+    [SerializeField] private Sprite eventSprite;
+
+    [Tooltip("Kích thước chiều ngang của bãi phế liệu trong world space.")]
+    [Min(0.1f)] [SerializeField] private float visualWorldWidth = 2.0f;
+
+    [Tooltip("Tốc độ bay dập dềnh hoặc nhịp thở nhẹ (Idle bobbing speed).")]
     [SerializeField] private float bobbingSpeed = 3.5f;
 
-    [Tooltip("Biên độ bay dập dềnh (Idle bobbing amount).")]
-    [SerializeField] private float bobbingAmount = 0.2f;
+    [Tooltip("Biên độ bay dập dềnh (Idle bobbing amount). Mặc định 0 để bãi phế liệu nằm cố định trên mặt đất.")]
+    [SerializeField] private float bobbingAmount = 0f;
 
     [Tooltip("Bán kính phát hiện va chạm với Player.")]
-    [SerializeField] private float triggerRadius = 0.9f;
+    [SerializeField] private float triggerRadius = 1.0f;
+
+    [Tooltip("Sorting layer cho sprite sự kiện. Mặc định Ground để hòa vào sàn bản đồ.")]
+    [SerializeField] private string sortingLayer = "Ground";
+
+    [Tooltip("Sorting order cho sprite sự kiện.")]
+    [SerializeField] private int sortingOrder = 20;
 
     private static readonly List<GameplayEventPickup> activeEvents = new List<GameplayEventPickup>();
     public static IReadOnlyList<GameplayEventPickup> ActiveEvents => activeEvents;
@@ -37,6 +49,7 @@ public class GameplayEventPickup : MonoBehaviour
 
     private Vector3 initialPosition;
     private bool isTriggered = false;
+    private Transform playerTransform;
 
     public GameplayEventData AssignedEvent
     {
@@ -120,9 +133,22 @@ public class GameplayEventPickup : MonoBehaviour
             spriteRenderer = visualObj.GetComponent<SpriteRenderer>();
         }
 
-        if (spriteRenderer.sprite == null)
+        if (eventSprite == null)
         {
-            // Tạo Sprite biểu tượng dấu hỏi '?' Cyberpunk neon 48x48
+            eventSprite = Resources.Load<Sprite>("Events/event_pickup");
+            if (eventSprite == null)
+            {
+                eventSprite = Resources.Load<Sprite>("event_pickup");
+            }
+        }
+
+        if (eventSprite != null)
+        {
+            spriteRenderer.sprite = eventSprite;
+        }
+        else if (spriteRenderer.sprite == null)
+        {
+            // Fallback: Tạo Sprite biểu tượng dấu hỏi '?' Cyberpunk neon 48x48
             int size = 48;
             Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
             tex.filterMode = FilterMode.Point;
@@ -202,13 +228,41 @@ public class GameplayEventPickup : MonoBehaviour
             spriteRenderer.sprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 32f);
         }
 
-        string targetSortingLayer = "UI";
-        if (SortingLayer.NameToID("UI") == 0)
+        FitVisualToWorldSize();
+
+        string targetSortingLayer = sortingLayer;
+        if (SortingLayer.NameToID(targetSortingLayer) == 0)
         {
-            targetSortingLayer = SortingLayer.NameToID("VFX ") != 0 ? "VFX " : "Player";
+            if (SortingLayer.NameToID("Ground") != 0)
+            {
+                targetSortingLayer = "Ground";
+            }
+            else if (SortingLayer.NameToID("Default") != 0)
+            {
+                targetSortingLayer = "Default";
+            }
+            else
+            {
+                targetSortingLayer = SortingLayer.NameToID("VFX ") != 0 ? "VFX " : "Player";
+            }
         }
         spriteRenderer.sortingLayerName = targetSortingLayer;
-        spriteRenderer.sortingOrder = 105;
+        spriteRenderer.sortingOrder = sortingOrder;
+    }
+
+    private void FitVisualToWorldSize()
+    {
+        if (spriteRenderer == null || spriteRenderer.sprite == null) return;
+
+        if (spriteRenderer.transform == transform)
+        {
+            return;
+        }
+
+        Vector2 spriteSize = spriteRenderer.sprite.bounds.size;
+        float width = spriteSize.x;
+        float scale = width > 0f ? visualWorldWidth / width : 1f;
+        spriteRenderer.transform.localScale = Vector3.one * scale;
     }
 
     private void Update()
@@ -221,8 +275,32 @@ public class GameplayEventPickup : MonoBehaviour
             initialPosition = transform.position;
         }
 
-        float newY = initialPosition.y + Mathf.Sin(Time.time * bobbingSpeed) * bobbingAmount;
-        transform.position = new Vector3(initialPosition.x, newY, initialPosition.z);
+        if (bobbingAmount > 0.001f)
+        {
+            float newY = initialPosition.y + Mathf.Sin(Time.time * bobbingSpeed) * bobbingAmount;
+            transform.position = new Vector3(initialPosition.x, newY, initialPosition.z);
+        }
+
+        // Bổ sung kiểm tra khoảng cách trực tiếp đến Player phòng trường hợp physics collider bị miss
+        if (playerTransform == null)
+        {
+            GameObject pObj = GameObject.FindGameObjectWithTag("Player");
+            if (pObj != null) playerTransform = pObj.transform;
+            else
+            {
+                var pm = FindObjectOfType<PlayerMovement>();
+                if (pm != null) playerTransform = pm.transform;
+            }
+        }
+
+        if (playerTransform != null)
+        {
+            float dist = Vector2.Distance(transform.position, playerTransform.position);
+            if (dist <= triggerRadius)
+            {
+                TriggerEvent();
+            }
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D other)
