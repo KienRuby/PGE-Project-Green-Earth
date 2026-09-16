@@ -38,6 +38,12 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
     private Action onEmptySlotClicked;
     private Action onLockedSlotClicked;
 
+    public const float StandardProgressFontSize = 26f;
+    public const float StandardLevelFontSize = 22f;
+
+    private static TMP_FontAsset cachedFont;
+    private static Material cachedStrokeMaterial;
+
     public BuddyItemData BoundData => boundData;
     public BuddySlotState SlotState => slotState;
     public Image ProgressTrackImage => progressTrackImage;
@@ -46,6 +52,73 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
     public Image CardFrameImage => cardFrameImage;
     public GameObject UpgradeArrowGroup => upgradeArrowGroup;
     public GameObject EquippedBadgeGroup => equippedBadgeGroup;
+    public TMP_Text LevelText => levelText;
+    public TMP_Text ProgressText => progressText;
+
+    public static void EnsureFontAndMaterial(TMP_Text text)
+    {
+        if (text == null) return;
+
+        if (cachedFont == null)
+        {
+            if (text.font != null && text.font.name.IndexOf("Nunito", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                cachedFont = text.font;
+            }
+#if UNITY_EDITOR
+            if (cachedFont == null)
+            {
+                cachedFont = UnityEditor.AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Fonts/Nunito/Nunito SDF.asset");
+            }
+#endif
+        }
+
+        if (cachedStrokeMaterial == null)
+        {
+            if (text.fontSharedMaterial != null && text.fontSharedMaterial.name.IndexOf("Stroke", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                cachedStrokeMaterial = text.fontSharedMaterial;
+            }
+#if UNITY_EDITOR
+            if (cachedStrokeMaterial == null)
+            {
+                cachedStrokeMaterial = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Assets/Fonts/Nunito/Nunito SDF - Stroke.mat");
+            }
+#endif
+        }
+
+        if (cachedFont != null && text.font != cachedFont)
+        {
+            text.font = cachedFont;
+        }
+
+        if (cachedStrokeMaterial != null && text.fontSharedMaterial != cachedStrokeMaterial)
+        {
+            text.fontSharedMaterial = cachedStrokeMaterial;
+        }
+    }
+
+    public static void ConfigureProgressText(TMP_Text text)
+    {
+        if (text == null) return;
+        EnsureFontAndMaterial(text);
+        text.color = Color.white;
+        text.fontSize = StandardProgressFontSize;
+        text.fontStyle = FontStyles.Bold;
+        text.alignment = TextAlignmentOptions.Center;
+        text.transform.localScale = Vector3.one;
+    }
+
+    public static void ConfigureLevelText(TMP_Text text)
+    {
+        if (text == null) return;
+        EnsureFontAndMaterial(text);
+        text.color = Color.white;
+        text.fontSize = StandardLevelFontSize;
+        text.fontStyle = FontStyles.Bold;
+        text.alignment = TextAlignmentOptions.Center;
+        text.transform.localScale = Vector3.one;
+    }
 
     private void Awake()
     {
@@ -189,8 +262,16 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
         if (droneIconImage != null) droneIconImage.raycastTarget = false;
         if (progressFillImage != null) progressFillImage.raycastTarget = false;
         if (progressTrackImage != null) progressTrackImage.raycastTarget = false;
-        if (levelText != null) levelText.raycastTarget = false;
-        if (progressText != null) progressText.raycastTarget = false;
+        if (levelText != null)
+        {
+            levelText.raycastTarget = false;
+            ConfigureLevelText(levelText);
+        }
+        if (progressText != null)
+        {
+            progressText.raycastTarget = false;
+            ConfigureProgressText(progressText);
+        }
     }
 
     public void EnsureProgressBar()
@@ -409,7 +490,7 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
 
         if (progressText != null)
         {
-            progressText.color = fillRatio > 0.001f ? new Color(0.04f, 0.08f, 0.12f, 1f) : Color.white;
+            ConfigureProgressText(progressText);
             progressText.transform.SetAsLastSibling();
         }
     }
@@ -454,6 +535,7 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
         ResolveReferences();
         if (progressText != null)
         {
+            ConfigureProgressText(progressText);
             progressText.text = required > 0 ? $"{current}/{required}" : "MAX";
         }
         float ratio = required > 0 ? (float)current / required : 1f;
@@ -658,11 +740,13 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
 
         if (levelText != null)
         {
+            ConfigureLevelText(levelText);
             levelText.text = $"LV.{boundData.level:00}";
         }
 
         if (progressText != null)
         {
+            ConfigureProgressText(progressText);
             if (boundData.requiredCount > 0)
             {
                 progressText.text = $"{boundData.count}/{boundData.requiredCount}";

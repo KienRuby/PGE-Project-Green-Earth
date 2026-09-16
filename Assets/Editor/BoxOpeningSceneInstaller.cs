@@ -15,12 +15,15 @@ public static class BoxOpeningSceneInstaller
     private const string BackgroundPath = "Assets/Sprites/Backround/màn chapter.png";
     private const string GreenFramePath = "Assets/Sprites/UI/Chipset/Frames/card-frame-tier1-green.png";
     private const string SunburstPath = "Assets/Sprites/UI/Artifact/sunburst_ray.png";
+    private const string BurstCyanPath = "Assets/Sprites/UI/Shop/Extracted/VFX_Reward_Burst_Cyan.png";
+    private const string BurstGlowPath = "Assets/Sprites/UI/Shop/Extracted/VFX_Reward_Burst_Glow.png";
+    private const string BlankButtonPath = "Assets/Sprites/UI/Reward/Extracted/Btn_Blank_Cyan.png";
     private const string SmokePuffPath = "Assets/Sprites/UI/Shop/dot_white.png";
     private const string ResultButtonPath = "Assets/Sprites/UI/Reward/Extracted/Btn_Get.png";
     private const string FontPath = "Assets/Fonts/Nunito/Nunito SDF.asset";
     private const string RewardStrokeMaterialPath = "Assets/Fonts/Nunito/Nunito SDF - RewardStroke.mat";
     private const string StrokeMaterialPath = "Assets/Fonts/Nunito/Nunito SDF - Stroke.mat";
-    private const string SessionKey = "PGE.BoxOpeningSceneInstaller.v7";
+    private const string SessionKey = "PGE.BoxOpeningSceneInstaller.v8";
 
     [MenuItem("PGE/UI/Install Box Opening Flow")]
     public static void InstallFromMenu()
@@ -28,6 +31,7 @@ public static class BoxOpeningSceneInstaller
         InstallIntoMainMenu();
     }
 
+    [InitializeOnLoadMethod]
     private static void InstallOnceAfterCompile()
     {
         if (Application.isPlaying || EditorApplication.isPlayingOrWillChangePlaymode) return;
@@ -67,8 +71,12 @@ public static class BoxOpeningSceneInstaller
             Sprite backgroundSprite = AssetDatabase.LoadAssetAtPath<Sprite>(BackgroundPath);
             Sprite greenFrame = AssetDatabase.LoadAssetAtPath<Sprite>(GreenFramePath);
             Sprite sunburst = AssetDatabase.LoadAssetAtPath<Sprite>(SunburstPath);
+            Sprite burstCyan = AssetDatabase.LoadAssetAtPath<Sprite>(BurstCyanPath) ?? sunburst;
+            Sprite burstGlow = AssetDatabase.LoadAssetAtPath<Sprite>(BurstGlowPath) ?? sunburst;
+            Sprite blankButton = AssetDatabase.LoadAssetAtPath<Sprite>(BlankButtonPath);
             Sprite puffSprite = AssetDatabase.LoadAssetAtPath<Sprite>(SmokePuffPath);
             Sprite buttonSprite = AssetDatabase.LoadAssetAtPath<Sprite>(ResultButtonPath);
+            Sprite skipButtonSprite = blankButton != null ? blankButton : buttonSprite;
 
             GameObject driver = CreateRect("BoxOpeningSystem", canvas.transform);
             Stretch(driver.GetComponent<RectTransform>());
@@ -82,8 +90,9 @@ public static class BoxOpeningSceneInstaller
             overlayImg.preserveAspect = false;
             CanvasGroup overlayGroup = overlay.AddComponent<CanvasGroup>();
 
-            // Subtle ambient ray in background
-            UnityEngine.UI.Image ambientRay = CreateImage("BackgroundGlow", overlay.transform, sunburst, new Color32(0, 191, 220, 25), false).GetComponent<UnityEngine.UI.Image>();
+            // Ambient ray in background - disabled to prevent static ray mismatch behind spinning reward VFX
+            UnityEngine.UI.Image ambientRay = CreateImage("BackgroundGlow", overlay.transform, burstGlow, Color.clear, false).GetComponent<UnityEngine.UI.Image>();
+            ambientRay.gameObject.SetActive(false);
             SetCentered(ambientRay.rectTransform, new Vector2(0f, 40f), new Vector2(1450f, 1450f));
 
             // Full-screen invisible tap target to trigger "Tap to continue"
@@ -96,12 +105,12 @@ public static class BoxOpeningSceneInstaller
             fullScreenTap.transition = UnityEngine.UI.Selectable.Transition.None;
             fullScreenTap.targetGraphic = tapImg;
 
-            // Skip button top right
-            UnityEngine.UI.Button skipButton = CreateButton("SkipButton", overlay.transform, "SKIP", font, rewardStrokeMaterial, buttonSprite);
+            // Skip button top right (using blank cyan button without baked-in text)
+            UnityEngine.UI.Button skipButton = CreateButton("SkipButton", overlay.transform, "SKIP", font, rewardStrokeMaterial, skipButtonSprite);
             RectTransform skipRect = skipButton.GetComponent<RectTransform>();
             skipRect.anchorMin = skipRect.anchorMax = skipRect.pivot = Vector2.one;
             skipRect.anchoredPosition = new Vector2(-55f, -65f);
-            skipRect.sizeDelta = new Vector2(220f, 94f);
+            skipRect.sizeDelta = new Vector2(220f, 96f);
 
             // Title: item name (e.g. "Rifle") at top (Y = 676)
             TMP_Text rewardName = CreateText("RewardNameText", overlay.transform, string.Empty, 86f, font, rewardStrokeMaterial, TextAlignmentOptions.Center);
@@ -142,11 +151,11 @@ public static class BoxOpeningSceneInstaller
             SetCentered(rewardRoot, new Vector2(0f, 44f), new Vector2(276f, 347f));
             CanvasGroup rewardGroup = rewardObject.AddComponent<CanvasGroup>();
 
-            UnityEngine.UI.Image glow = CreateImage("RewardGlow", rewardRoot, sunburst, new Color32(0, 210, 255, 90), false).GetComponent<UnityEngine.UI.Image>();
-            SetCentered(glow.rectTransform, Vector2.zero, new Vector2(850f, 850f));
+            UnityEngine.UI.Image glow = CreateImage("RewardGlow", rewardRoot, burstGlow, new Color32(255, 255, 255, 200), false).GetComponent<UnityEngine.UI.Image>();
+            SetCentered(glow.rectTransform, Vector2.zero, new Vector2(920f, 920f));
 
-            UnityEngine.UI.Image burst = CreateImage("RewardBurst", rewardRoot, sunburst, new Color32(43, 245, 255, 230), false).GetComponent<UnityEngine.UI.Image>();
-            SetCentered(burst.rectTransform, Vector2.zero, new Vector2(980f, 980f));
+            UnityEngine.UI.Image burst = CreateImage("RewardBurst", rewardRoot, burstCyan, new Color32(255, 255, 255, 240), false).GetComponent<UnityEngine.UI.Image>();
+            SetCentered(burst.rectTransform, Vector2.zero, new Vector2(920f, 920f));
 
             UnityEngine.UI.Image rewardFrame = CreateImage("RewardFrame", rewardRoot, greenFrame, Color.white, false).GetComponent<UnityEngine.UI.Image>();
             SetCentered(rewardFrame.rectTransform, Vector2.zero, new Vector2(276f, 347f));
@@ -155,10 +164,13 @@ public static class BoxOpeningSceneInstaller
             rewardIcon.preserveAspect = true;
             SetCentered(rewardIcon.rectTransform, new Vector2(0f, 40f), new Vector2(220f, 165f));
 
-            // Reward amount (x1) placed inside bottom strip of card (Y = -82)
-            TMP_Text rewardAmount = CreateText("RewardAmountText", rewardRoot, string.Empty, 48f, font, rewardStrokeMaterial, TextAlignmentOptions.Center);
-            rewardAmount.color = Color.white;
-            SetCentered(rewardAmount.rectTransform, new Vector2(0f, -82f), new Vector2(200f, 55f));
+            // Reward amount (x1) placed inside bottom strip of card (Y = -86)
+            TMP_Text rewardAmount = CreateText("RewardAmountText", rewardRoot, string.Empty, 36f, font, rewardStrokeMaterial, TextAlignmentOptions.Center);
+            rewardAmount.enableAutoSizing = true;
+            rewardAmount.fontSizeMin = 22f;
+            rewardAmount.fontSizeMax = 42f;
+            rewardAmount.color = new Color32(255, 205, 67, 255);
+            SetCentered(rewardAmount.rectTransform, new Vector2(0f, -86f), new Vector2(220f, 55f));
 
             // Tap to continue at bottom (Y = -780)
             TMP_Text tapText = CreateText("TapToContinueText", overlay.transform, "Tap to continue", 42f, font, rewardStrokeMaterial, TextAlignmentOptions.Center);
@@ -186,7 +198,7 @@ public static class BoxOpeningSceneInstaller
             for (int i = 0; i < resultViews.Length; i++)
             {
                 GameObject item = CreateRect($"RewardItem_{i + 1:00}", gridRect);
-                UnityEngine.UI.Image quantityEffect = CreateImage("QuantityEffect", item.transform, sunburst, Color.clear, false).GetComponent<UnityEngine.UI.Image>();
+                UnityEngine.UI.Image quantityEffect = CreateImage("QuantityEffect", item.transform, burstCyan, Color.clear, false).GetComponent<UnityEngine.UI.Image>();
                 SetCentered(quantityEffect.rectTransform, new Vector2(0f, 28f), new Vector2(255f, 255f));
                 UnityEngine.UI.Image itemFrame = CreateImage("Frame", item.transform, null, Color.white, false).GetComponent<UnityEngine.UI.Image>();
                 SetCentered(itemFrame.rectTransform, new Vector2(0f, 28f), new Vector2(210f, 210f));

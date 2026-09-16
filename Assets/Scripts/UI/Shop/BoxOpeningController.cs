@@ -262,6 +262,8 @@ public sealed class BoxOpeningController : MonoBehaviour
             {
                 if (rewardBurstImage != null && rewardBurstImage.gameObject.activeSelf)
                     rewardBurstImage.rectTransform.Rotate(0f, 0f, 16f * Time.unscaledDeltaTime);
+                if (rewardGlowImage != null && rewardGlowImage.gameObject.activeSelf)
+                    rewardGlowImage.rectTransform.Rotate(0f, 0f, -10f * Time.unscaledDeltaTime);
                 yield return null;
             }
             if (TryCompleteSkip()) yield break;
@@ -379,7 +381,9 @@ public sealed class BoxOpeningController : MonoBehaviour
         rewardRoot.anchoredPosition = RewardStartPosition;
         rewardRoot.localScale = Vector3.one * 0.3f;
         rewardBurstImage.gameObject.SetActive(true);
+        rewardBurstImage.rectTransform.localRotation = Quaternion.identity;
         rewardGlowImage.gameObject.SetActive(true);
+        rewardGlowImage.rectTransform.localRotation = Quaternion.identity;
         if (rewardNameText != null)
         {
             rewardNameText.gameObject.SetActive(true);
@@ -390,6 +394,11 @@ public sealed class BoxOpeningController : MonoBehaviour
             rewardDescText.gameObject.SetActive(true);
             rewardDescText.alpha = 0f;
         }
+        if (rewardAmountText != null)
+        {
+            rewardAmountText.gameObject.SetActive(true);
+            rewardAmountText.alpha = 0f;
+        }
 
         yield return Tween(rewardRevealDuration, value =>
         {
@@ -398,6 +407,7 @@ public sealed class BoxOpeningController : MonoBehaviour
             rewardCanvasGroup.alpha = Mathf.Clamp01(value * 5f);
             if (rewardNameText != null) rewardNameText.alpha = Mathf.Clamp01(value * 3f);
             if (rewardDescText != null && rewardDescText.gameObject.activeSelf) rewardDescText.alpha = Mathf.Clamp01(value * 3f);
+            if (rewardAmountText != null) rewardAmountText.alpha = Mathf.Clamp01(value * 3f);
 
             float scale;
             if (value < 0.58f) scale = Mathf.Lerp(0.3f, 1.15f, EaseOutQuad(value / 0.58f));
@@ -408,6 +418,7 @@ public sealed class BoxOpeningController : MonoBehaviour
             rewardBurstImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(0.25f, 1.05f, EaseOutBack(value));
             rewardBurstImage.rectTransform.localRotation = Quaternion.Euler(0f, 0f, value * 18f);
             rewardGlowImage.rectTransform.localScale = Vector3.one * Mathf.Lerp(0.4f, 1.2f, EaseOutQuad(value));
+            rewardGlowImage.rectTransform.localRotation = Quaternion.Euler(0f, 0f, -value * 12f);
         });
 
         rewardRoot.anchoredPosition = RewardDisplayPosition;
@@ -415,6 +426,7 @@ public sealed class BoxOpeningController : MonoBehaviour
         rewardCanvasGroup.alpha = 1f;
         if (rewardNameText != null) rewardNameText.alpha = 1f;
         if (rewardDescText != null && rewardDescText.gameObject.activeSelf) rewardDescText.alpha = 1f;
+        if (rewardAmountText != null) rewardAmountText.alpha = 1f;
     }
 
     private IEnumerator HideCurrentReward()
@@ -427,6 +439,7 @@ public sealed class BoxOpeningController : MonoBehaviour
             rewardCanvasGroup.alpha = 1f - eased;
             if (rewardNameText != null) rewardNameText.alpha = 1f - eased;
             if (rewardDescText != null) rewardDescText.alpha = 1f - eased;
+            if (rewardAmountText != null) rewardAmountText.alpha = 1f - eased;
             if (tapToContinueText != null) tapToContinueText.alpha = 1f - eased;
         });
         ResetRewardVisual();
@@ -521,7 +534,8 @@ public sealed class BoxOpeningController : MonoBehaviour
         if (rewardAmountText != null)
         {
             rewardAmountText.text = $"x{drop.Pieces:N0}";
-            rewardAmountText.color = Color.white;
+            rewardAmountText.color = new Color32(255, 205, 67, 255);
+            rewardAmountText.gameObject.SetActive(true);
         }
     }
 
@@ -571,17 +585,17 @@ public sealed class BoxOpeningController : MonoBehaviour
         if (pieces >= 7)
         {
             effect.gameObject.SetActive(true);
-            effect.color = new Color32(255, 196, 35, keepCommonEffect ? (byte)220 : (byte)185);
+            effect.color = new Color32(255, 215, 60, keepCommonEffect ? (byte)235 : (byte)195);
         }
         else if (pieces >= 3)
         {
             effect.gameObject.SetActive(true);
-            effect.color = new Color32(190, 76, 255, keepCommonEffect ? (byte)215 : (byte)175);
+            effect.color = new Color32(220, 100, 255, keepCommonEffect ? (byte)235 : (byte)185);
         }
         else
         {
             effect.gameObject.SetActive(keepCommonEffect);
-            effect.color = new Color32(43, 245, 255, keepCommonEffect ? (byte)220 : (byte)0);
+            effect.color = new Color32(255, 255, 255, keepCommonEffect ? (byte)230 : (byte)0);
         }
     }
 
@@ -681,7 +695,11 @@ public sealed class BoxOpeningController : MonoBehaviour
             rewardDescText.text = string.Empty;
             rewardDescText.gameObject.SetActive(false);
         }
-        if (rewardAmountText != null) rewardAmountText.text = string.Empty;
+        if (rewardAmountText != null)
+        {
+            rewardAmountText.text = string.Empty;
+            rewardAmountText.gameObject.SetActive(false);
+        }
         if (tapToContinueText != null) tapToContinueText.gameObject.SetActive(false);
         if (rewardGlowImage != null) rewardGlowImage.gameObject.SetActive(false);
         if (rewardBurstImage != null) rewardBurstImage.gameObject.SetActive(false);

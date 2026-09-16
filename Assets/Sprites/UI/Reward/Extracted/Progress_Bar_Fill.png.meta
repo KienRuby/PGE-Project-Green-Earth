@@ -2,7 +2,7 @@ fileFormatVersion: 2
 guid: 027e1f6efde742d2bc06d1624db659e9
 TextureImporter:
   internalIDToNameTable: []
-  externalObjects: {{}}
+  externalObjects: {}
   serializedVersion: 13
   mipmaps:
     mipMapMode: 0
@@ -47,9 +47,9 @@ TextureImporter:
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
-  spritePivot: {{x: 0.5, y: 0.5}}
+  spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 100
-  spriteBorder: {{x: 0, y: 0, z: 0, w: 0}}
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
   alphaIsTransparency: 1
@@ -119,7 +119,7 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
-    nameFileIdTable: {{}}
+    nameFileIdTable: {}
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

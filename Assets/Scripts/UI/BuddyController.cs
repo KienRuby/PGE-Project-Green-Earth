@@ -502,7 +502,7 @@ public class BuddyController : MonoBehaviour
                 id = 11,
                 buddyName = "Beam Sentry",
                 iconKey = "drone-laser-sentry",
-                tier = BuddyTier.Rare,
+                tier = BuddyTier.Common,
                 level = 1,
                 count = 0,
                 requiredCount = 10,
@@ -520,7 +520,7 @@ public class BuddyController : MonoBehaviour
                 id = 12,
                 buddyName = "Plasma Vortex",
                 iconKey = "drone-plasma-orb",
-                tier = BuddyTier.Epic,
+                tier = BuddyTier.Common,
                 level = 1,
                 count = 0,
                 requiredCount = 10,
@@ -897,10 +897,16 @@ public class BuddyController : MonoBehaviour
             Transform labelT = enhBtnT.Find("Label");
             if (labelT != null)
             {
+                labelT.gameObject.SetActive(true);
                 TMP_Text labelText = labelT.GetComponent<TMP_Text>();
-                if (labelText != null && (string.IsNullOrEmpty(labelText.text) || int.TryParse(labelText.text, out _)))
+                if (labelText != null)
                 {
-                    labelText.text = "Enhance";
+                    labelText.enabled = true;
+                    labelText.text = "ENHANCE";
+                    labelText.color = Color.white;
+                    labelText.fontSize = 25f;
+                    labelText.fontStyle = FontStyles.Bold;
+                    labelText.alignment = TextAlignmentOptions.Center;
                 }
             }
         }
@@ -1349,11 +1355,19 @@ public class BuddyController : MonoBehaviour
         List<BuddyItemData> sortedList = new List<BuddyItemData>(allBuddies);
         if (sortByQuantity)
         {
-            sortedList = sortedList.OrderByDescending(b => b.count).ThenByDescending(b => (int)b.tier).ThenByDescending(b => b.level).ToList();
+            sortedList = sortedList.OrderByDescending(b => IsPrimaryPlayableDrone(b.id))
+                                   .ThenByDescending(b => b.count)
+                                   .ThenByDescending(b => (int)b.tier)
+                                   .ThenByDescending(b => b.level)
+                                   .ToList();
         }
         else
         {
-            sortedList = sortedList.OrderByDescending(b => (int)b.tier).ThenByDescending(b => b.level).ThenByDescending(b => b.count).ToList();
+            sortedList = sortedList.OrderByDescending(b => IsPrimaryPlayableDrone(b.id))
+                                   .ThenByDescending(b => (int)b.tier)
+                                   .ThenByDescending(b => b.level)
+                                   .ThenByDescending(b => b.count)
+                                   .ToList();
         }
 
         int[] currentDeck = (deckEquippedIds != null && activeDeckIndex < deckEquippedIds.Length)
@@ -1446,17 +1460,18 @@ public class BuddyController : MonoBehaviour
     {
         if (buddy == null) return;
         selectedDetailBuddy = buddy;
-        RefreshDetailModal();
         if (detailModal != null)
         {
             UIDissolveController.ShowInstant(detailModal);
         }
+        RefreshDetailModal();
     }
 
     public void RefreshDetailModal()
     {
         if (selectedDetailBuddy == null) return;
         AutoWireDetailModalReferencesIfMissing();
+        ChipsetController.ApplyModalButtonsDesign(detailEnhanceBtn, detailAdvanceTierBtn);
 
         // 1. Top Card (Clones exact visual from slot)
         Sprite icon = GetIconSprite(selectedDetailBuddy);
@@ -1562,24 +1577,44 @@ public class BuddyController : MonoBehaviour
             Transform labelT = detailEnhanceBtn.transform.Find("Label");
             if (labelT != null)
             {
+                labelT.gameObject.SetActive(true);
                 TMP_Text labelText = labelT.GetComponent<TMP_Text>();
-                if (labelText != null && (string.IsNullOrEmpty(labelText.text) || int.TryParse(labelText.text, out _)))
+                if (labelText != null)
                 {
-                    labelText.text = "Enhance";
+                    labelText.enabled = true;
+                    labelText.text = "ENHANCE";
+                    labelText.color = Color.white;
+                    labelText.fontSize = 25f;
+                    labelText.fontStyle = FontStyles.Bold;
+                    labelText.alignment = TextAlignmentOptions.Center;
                 }
             }
         }
         if (detailEnhanceCostText != null)
         {
+            detailEnhanceCostText.color = Color.white;
             detailEnhanceCostText.text = $"{selectedDetailBuddy.enhanceCost}";
+            LayoutRebuilder.ForceRebuildLayoutImmediate(detailEnhanceCostText.rectTransform);
+            if (detailEnhanceCostText.transform.parent is RectTransform parentRt)
+            {
+                LayoutRebuilder.ForceRebuildLayoutImmediate(parentRt);
+            }
         }
 
         // 6. Advance Tier Button
         if (detailAdvanceTierText != null)
         {
-            detailAdvanceTierText.text = selectedDetailBuddy.tier < BuddyTier.Holographic && selectedDetailBuddy.requiredCount > 0
-                ? $"Advance Tier ({selectedDetailBuddy.count}/{selectedDetailBuddy.requiredCount})"
-                : "MAX TIER";
+            bool isMaxTier = selectedDetailBuddy.tier >= BuddyTier.Holographic || selectedDetailBuddy.requiredCount <= 0;
+            if (isMaxTier)
+            {
+                detailAdvanceTierText.text = "<size=24><b>MAX TIER</b></size>";
+            }
+            else
+            {
+                bool hasFragments = selectedDetailBuddy.count >= selectedDetailBuddy.requiredCount;
+                string countColor = hasFragments ? "#4ADE80" : "#BAE6FD";
+                detailAdvanceTierText.text = $"<size=23><b>ADVANCE TIER</b></size>\n<size=18><color={countColor}>({selectedDetailBuddy.count}/{selectedDetailBuddy.requiredCount})</color></size>";
+            }
         }
         if (detailAdvanceTierBtn != null)
         {
@@ -1753,6 +1788,11 @@ public class BuddyController : MonoBehaviour
         RefreshInventory();
     }
 
+    public static bool IsPrimaryPlayableDrone(int id)
+    {
+        return id == 1 || id == 2 || id == 3 || id == 4 || id == 10;
+    }
+
     private static bool IsValidDroneSprite(Sprite s)
     {
         if (s == null) return false;
@@ -1819,7 +1859,7 @@ public class BuddyController : MonoBehaviour
                 match = validDrones.FirstOrDefault(s => s.name.IndexOf("snowflake", StringComparison.OrdinalIgnoreCase) >= 0);
             else if (cleanKey.Contains("stealth") || cleanKey.Contains("wing") || cleanKey.Contains("shadow") || cleanKey.Contains("shield") || cleanKey.Contains("missile"))
                 match = validDrones.FirstOrDefault(s => s.name.IndexOf("stealth", StringComparison.OrdinalIgnoreCase) >= 0);
-            else if (cleanKey.Contains("antenna") || cleanKey.Contains("eye") || cleanKey.Contains("seeker") || cleanKey.Contains("magnet"))
+            else if (cleanKey.Contains("antenna") || cleanKey.Contains("eye") || cleanKey.Contains("seeker") || cleanKey.Contains("magnet") || cleanKey.Contains("plasma") || cleanKey.Contains("orb") || cleanKey.Contains("vortex"))
                 match = validDrones.FirstOrDefault(s => s.name.IndexOf("antenna", StringComparison.OrdinalIgnoreCase) >= 0);
             else if (cleanKey.Contains("cross") || cleanKey.Contains("visor") || cleanKey.Contains("vulcan") || cleanKey.Contains("rotor") || cleanKey.Contains("laser"))
                 match = validDrones.FirstOrDefault(s => s.name.IndexOf("cross", StringComparison.OrdinalIgnoreCase) >= 0);
@@ -1827,11 +1867,16 @@ public class BuddyController : MonoBehaviour
             if (match != null) return match;
         }
 
-        // 5. If buddyId is specified, cyclically map across available drone icons
-        if (buddyId > 0)
+        // 5. If buddyId is specified, cyclically map across available unique drone icons
+        var uniqueDrones = validDrones.GroupBy(s => s.name.ToLowerInvariant()).Select(g => g.First()).ToList();
+        if (uniqueDrones.Count > 0)
         {
-            int idx = (buddyId - 1) % validDrones.Count;
-            return validDrones[idx];
+            if (buddyId > 0)
+            {
+                int idx = (buddyId - 1) % uniqueDrones.Count;
+                return uniqueDrones[idx];
+            }
+            return uniqueDrones[0];
         }
 
         // 6. Default to first valid drone sprite

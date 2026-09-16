@@ -44,6 +44,52 @@ public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
     private bool toggleDedicatedRedBackground;
     private bool redShimmerEnabled;
 
+    private static TMP_FontAsset cachedFont;
+    private static Material cachedStrokeMaterial;
+
+    public static void EnsureFontAndMaterial(TMP_Text text)
+    {
+        if (text == null) return;
+
+        if (cachedFont == null)
+        {
+            if (text.font != null && text.font.name.IndexOf("Nunito", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                cachedFont = text.font;
+            }
+#if UNITY_EDITOR
+            if (cachedFont == null)
+            {
+                cachedFont = UnityEditor.AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Fonts/Nunito/Nunito SDF.asset");
+            }
+#endif
+        }
+
+        if (cachedStrokeMaterial == null)
+        {
+            if (text.fontSharedMaterial != null && text.fontSharedMaterial.name.IndexOf("Stroke", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                cachedStrokeMaterial = text.fontSharedMaterial;
+            }
+#if UNITY_EDITOR
+            if (cachedStrokeMaterial == null)
+            {
+                cachedStrokeMaterial = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Assets/Fonts/Nunito/Nunito SDF - Stroke.mat");
+            }
+#endif
+        }
+
+        if (cachedFont != null && text.font != cachedFont)
+        {
+            text.font = cachedFont;
+        }
+
+        if (cachedStrokeMaterial != null && text.fontSharedMaterial != cachedStrokeMaterial)
+        {
+            text.fontSharedMaterial = cachedStrokeMaterial;
+        }
+    }
+
     public ChipItemData BoundData => boundData;
     public ChipSlotState SlotState => slotState;
     public Image BottomProgressBar => bottomProgressBar;
@@ -269,6 +315,7 @@ public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
     public static void ConfigureLevelLabel(TMP_Text text, bool hasStatusSuffix)
     {
         if (text == null) return;
+        EnsureFontAndMaterial(text);
 
         text.enableAutoSizing = true;
         text.fontSizeMin = 10f;
@@ -305,10 +352,9 @@ public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
     public static void ConfigureProgressText(TMP_Text text)
     {
         if (text == null) return;
+        EnsureFontAndMaterial(text);
         text.color = Color.white;
         text.fontStyle = FontStyles.Bold;
-        text.outlineColor = Color.black;
-        text.outlineWidth = 0.25f;
         text.alignment = TextAlignmentOptions.Center;
     }
 

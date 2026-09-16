@@ -1386,15 +1386,16 @@ public class ChipsetController : MonoBehaviour
         }
 
         selectedDetailChip = chip;
-        RefreshDetailModal();
         detailModal.SetActive(true);
         detailModal.transform.SetAsLastSibling();
+        RefreshDetailModal();
     }
 
     public void RefreshDetailModal()
     {
         if (selectedDetailChip == null) return;
         EnsureLockTierSprites();
+        ApplyModalButtonsDesign(detailEnhanceBtn, detailAdvanceTierBtn);
 
         // 1. Mod Badge
         if (detailModBadgeText != null)
@@ -1492,9 +1493,15 @@ public class ChipsetController : MonoBehaviour
 
         if (detailEnhanceCostText != null)
         {
+            detailEnhanceCostText.color = Color.white;
             detailEnhanceCostText.text = selectedDetailChip.tier < ChipTier.Holographic
-                ? $"{selectedDetailChip.enhanceCost}  ({selectedDetailChip.tierEnhanceCount}/{selectedDetailChip.RequiredTierEnhances})"
+                ? $"{selectedDetailChip.enhanceCost}  <color=#FDE047>({selectedDetailChip.tierEnhanceCount}/{selectedDetailChip.RequiredTierEnhances})</color>"
                 : $"{selectedDetailChip.enhanceCost}";
+            LayoutRebuilder.ForceRebuildLayoutImmediate(detailEnhanceCostText.rectTransform);
+            if (detailEnhanceCostText.transform.parent is RectTransform parentRt)
+            {
+                LayoutRebuilder.ForceRebuildLayoutImmediate(parentRt);
+            }
         }
         SetButtonBrightness(detailEnhanceBtn, enhanceBtnCanvasGroup, canEnhance);
 
@@ -1506,11 +1513,12 @@ public class ChipsetController : MonoBehaviour
         {
             if (isMaxTier)
             {
-                detailAdvanceTierText.text = "MAX TIER";
+                detailAdvanceTierText.text = "<size=24><b>MAX TIER</b></size>";
             }
             else
             {
-                detailAdvanceTierText.text = $"Advance Tier ({selectedDetailChip.count}/{selectedDetailChip.CurrentAdvanceCost})";
+                string countColor = hasFragments ? "#4ADE80" : "#BAE6FD";
+                detailAdvanceTierText.text = $"<size=23><b>ADVANCE TIER</b></size>\n<size=18><color={countColor}>({selectedDetailChip.count}/{selectedDetailChip.CurrentAdvanceCost})</color></size>";
             }
         }
         SetButtonBrightness(detailAdvanceTierBtn, advanceTierBtnCanvasGroup, hasFragments);
@@ -2110,8 +2118,269 @@ public class ChipsetController : MonoBehaviour
 
     private static void ApplyRuntimeNoticeOutline(TMP_Text text)
     {
-        if (text == null || text.font == null || text.font.material == null) return;
-        text.outlineColor = Color.black;
-        text.outlineWidth = 0.25f;
+        if (text == null) return;
+        ChipsetCardUI.EnsureFontAndMaterial(text);
+    }
+
+    private static Sprite cachedEnhanceSprite;
+    private static Sprite cachedAdvanceSprite;
+    private static Sprite cachedDataChipSprite;
+
+    public static Sprite GetEnhanceSprite()
+    {
+        if (cachedEnhanceSprite != null) return cachedEnhanceSprite;
+        cachedEnhanceSprite = Resources.Load<Sprite>("UI/btn_enhance_green");
+#if UNITY_EDITOR
+        if (cachedEnhanceSprite == null)
+        {
+            cachedEnhanceSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/btn_enhance_green.png");
+        }
+#endif
+        return cachedEnhanceSprite;
+    }
+
+    public static Sprite GetAdvanceSprite()
+    {
+        if (cachedAdvanceSprite != null) return cachedAdvanceSprite;
+        cachedAdvanceSprite = Resources.Load<Sprite>("UI/btn_advance_tier_gold");
+#if UNITY_EDITOR
+        if (cachedAdvanceSprite == null)
+        {
+            cachedAdvanceSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/btn_advance_tier_gold.png");
+        }
+#endif
+        return cachedAdvanceSprite;
+    }
+
+    public static Sprite GetDataChipIcon()
+    {
+        if (cachedDataChipSprite != null) return cachedDataChipSprite;
+        cachedDataChipSprite = Resources.Load<Sprite>("UI/icon_data_chip");
+#if UNITY_EDITOR
+        if (cachedDataChipSprite == null)
+        {
+            Sprite[] sprites = UnityEditor.AssetDatabase.LoadAllAssetsAtPath("Assets/Sprites/UI/icon tài nguyên.png")
+                ?.OfType<Sprite>()
+                ?.ToArray();
+            if (sprites != null && sprites.Length > 0)
+            {
+                cachedDataChipSprite = Array.Find(sprites, s => s != null && s.name == "data") ?? sprites[0];
+            }
+        }
+#endif
+        return cachedDataChipSprite;
+    }
+
+    public static void ApplyModalButtonsDesign(Button enhanceBtn, Button advanceTierBtn)
+    {
+        if (enhanceBtn != null)
+        {
+            RectTransform btnRt = enhanceBtn.GetComponent<RectTransform>();
+            if (btnRt != null) btnRt.sizeDelta = new Vector2(360f, 92f);
+
+            Sprite enhanceSprite = GetEnhanceSprite();
+            Image borderImg = enhanceBtn.GetComponent<Image>() ?? enhanceBtn.gameObject.AddComponent<Image>();
+            if (borderImg != null)
+            {
+                if (enhanceSprite != null)
+                {
+                    borderImg.sprite = enhanceSprite;
+                    borderImg.color = Color.white;
+                    borderImg.type = Image.Type.Simple;
+                }
+                else
+                {
+                    borderImg.color = new Color32(6, 78, 59, 255);
+                }
+                borderImg.raycastTarget = true;
+            }
+
+            // Hide/disable child solid background so the textured frame sprite renders cleanly
+            Transform bgT = enhanceBtn.transform.Find("Background");
+            if (bgT != null)
+            {
+                Image bgImg = bgT.GetComponent<Image>();
+                if (bgImg != null)
+                {
+                    bgImg.color = Color.clear;
+                    bgImg.enabled = false;
+                }
+            }
+
+            // Drop shadow
+            Shadow shadow = enhanceBtn.GetComponent<Shadow>() ?? enhanceBtn.gameObject.AddComponent<Shadow>();
+            shadow.effectColor = new Color32(0, 14, 24, 210);
+            shadow.effectDistance = new Vector2(6f, -6f);
+            shadow.useGraphicAlpha = true;
+
+            enhanceBtn.targetGraphic = borderImg;
+
+            // Label ("ENHANCE")
+            Transform costRowT = enhanceBtn.transform.Find("CostRow");
+            Transform labelT = enhanceBtn.transform.Find("Label")
+                ?? enhanceBtn.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t != enhanceBtn.transform && t.name.IndexOf("Label", StringComparison.OrdinalIgnoreCase) >= 0)
+                ?? enhanceBtn.GetComponentsInChildren<TMP_Text>(true).FirstOrDefault(t => costRowT == null || (t.transform.parent != costRowT && t.gameObject.name != "CostValue"))?.transform;
+
+            if (labelT != null)
+            {
+                labelT.gameObject.SetActive(true);
+                RectTransform labelRt = labelT.GetComponent<RectTransform>();
+                if (labelRt != null)
+                {
+                    labelRt.anchorMin = new Vector2(0.5f, 0.68f);
+                    labelRt.anchorMax = new Vector2(0.5f, 0.68f);
+                    labelRt.pivot = new Vector2(0.5f, 0.5f);
+                    labelRt.sizeDelta = new Vector2(320f, 32f);
+                    labelRt.anchoredPosition = Vector2.zero;
+                }
+
+                TMP_Text labelTmp = labelT.GetComponent<TMP_Text>();
+                if (labelTmp != null)
+                {
+                    labelTmp.enabled = true;
+                    labelTmp.text = "ENHANCE";
+                    labelTmp.fontSize = 25f;
+                    labelTmp.fontStyle = FontStyles.Bold;
+                    labelTmp.alignment = TextAlignmentOptions.Center;
+                    labelTmp.color = Color.white;
+                }
+            }
+
+            // CostRow
+            if (costRowT != null)
+            {
+                RectTransform costRowRt = costRowT.GetComponent<RectTransform>();
+                if (costRowRt != null)
+                {
+                    costRowRt.anchorMin = new Vector2(0.5f, 0.28f);
+                    costRowRt.anchorMax = new Vector2(0.5f, 0.28f);
+                    costRowRt.pivot = new Vector2(0.5f, 0.5f);
+                    costRowRt.sizeDelta = new Vector2(340f, 34f);
+                    costRowRt.anchoredPosition = Vector2.zero;
+                }
+
+                HorizontalLayoutGroup hlg = costRowT.GetComponent<HorizontalLayoutGroup>() ?? costRowT.gameObject.AddComponent<HorizontalLayoutGroup>();
+                hlg.padding = new RectOffset(0, 0, 0, 0);
+                hlg.spacing = 16f; // Generous 16px gap between chip icon and cost text
+                hlg.childAlignment = TextAnchor.MiddleCenter;
+                hlg.childControlWidth = false;
+                hlg.childControlHeight = false;
+                hlg.childForceExpandWidth = false;
+                hlg.childForceExpandHeight = false;
+
+                Transform chipIconT = costRowT.Find("ChipIcon") ?? costRowT.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t != costRowT && t.name.IndexOf("Icon", StringComparison.OrdinalIgnoreCase) >= 0);
+                Transform costValueT = costRowT.Find("CostValue") ?? costRowT.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t != costRowT && t.GetComponent<TMP_Text>() != null);
+
+                // ChipIcon (0) on LEFT, using existing project Data Chip icon
+                if (chipIconT != null)
+                {
+                    chipIconT.SetSiblingIndex(0);
+                    RectTransform iconRt = chipIconT.GetComponent<RectTransform>();
+                    if (iconRt != null) iconRt.sizeDelta = new Vector2(28f, 28f);
+                    Image iconImg = chipIconT.GetComponent<Image>();
+                    if (iconImg != null)
+                    {
+                        Sprite chipSprite = GetDataChipIcon();
+                        if (chipSprite != null) iconImg.sprite = chipSprite;
+                        iconImg.color = Color.white;
+                        iconImg.preserveAspect = true;
+                    }
+                }
+
+                if (costValueT != null)
+                {
+                    costValueT.SetSiblingIndex(1);
+                    ContentSizeFitter csf = costValueT.GetComponent<ContentSizeFitter>() ?? costValueT.gameObject.AddComponent<ContentSizeFitter>();
+                    csf.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+                    csf.verticalFit = ContentSizeFitter.FitMode.Unconstrained;
+
+                    TMP_Text valTmp = costValueT.GetComponent<TMP_Text>();
+                    if (valTmp != null)
+                    {
+                        valTmp.fontSize = 22f;
+                        valTmp.fontStyle = FontStyles.Bold;
+                        valTmp.alignment = TextAlignmentOptions.Left;
+                        valTmp.enableWordWrapping = false;
+                        valTmp.overflowMode = TextOverflowModes.Overflow;
+                        valTmp.richText = true;
+                        valTmp.color = Color.white;
+                        valTmp.margin = new Vector4(0, 0, 0, 0);
+                    }
+                }
+
+                if (costRowRt != null)
+                {
+                    LayoutRebuilder.ForceRebuildLayoutImmediate(costRowRt);
+                }
+            }
+        }
+
+        if (advanceTierBtn != null)
+        {
+            RectTransform btnRt = advanceTierBtn.GetComponent<RectTransform>();
+            if (btnRt != null) btnRt.sizeDelta = new Vector2(360f, 85f);
+
+            Sprite advanceSprite = GetAdvanceSprite();
+            Image borderImg = advanceTierBtn.GetComponent<Image>() ?? advanceTierBtn.gameObject.AddComponent<Image>();
+            if (borderImg != null)
+            {
+                if (advanceSprite != null)
+                {
+                    borderImg.sprite = advanceSprite;
+                    borderImg.color = Color.white;
+                    borderImg.type = Image.Type.Simple;
+                }
+                else
+                {
+                    borderImg.color = new Color32(2, 132, 199, 255);
+                }
+                borderImg.raycastTarget = true;
+            }
+
+            // Hide/disable child solid background
+            Transform bgT = advanceTierBtn.transform.Find("Background");
+            if (bgT != null)
+            {
+                Image bgImg = bgT.GetComponent<Image>();
+                if (bgImg != null)
+                {
+                    bgImg.color = Color.clear;
+                    bgImg.enabled = false;
+                }
+            }
+
+            // Drop shadow
+            Shadow shadow = advanceTierBtn.GetComponent<Shadow>() ?? advanceTierBtn.gameObject.AddComponent<Shadow>();
+            shadow.effectColor = new Color32(0, 14, 24, 210);
+            shadow.effectDistance = new Vector2(6f, -6f);
+            shadow.useGraphicAlpha = true;
+
+            advanceTierBtn.targetGraphic = borderImg;
+
+            // Label (Dynamic multi-line text)
+            Transform labelT = advanceTierBtn.transform.Find("Label");
+            if (labelT != null)
+            {
+                RectTransform labelRt = labelT.GetComponent<RectTransform>();
+                if (labelRt != null)
+                {
+                    labelRt.anchorMin = Vector2.zero;
+                    labelRt.anchorMax = Vector2.one;
+                    labelRt.sizeDelta = new Vector2(-20f, 0f);
+                    labelRt.pivot = new Vector2(0.5f, 0.5f);
+                    labelRt.anchoredPosition = Vector2.zero;
+                }
+
+                TMP_Text labelTmp = labelT.GetComponent<TMP_Text>();
+                if (labelTmp != null)
+                {
+                    labelTmp.alignment = TextAlignmentOptions.Center;
+                    labelTmp.enableWordWrapping = false;
+                    labelTmp.richText = true;
+                    labelTmp.color = Color.white;
+                    labelTmp.lineSpacing = -10f;
+                }
+            }
+        }
     }
 }

@@ -70,7 +70,7 @@ public static class ArtifactModalPrefabBuilder
         modalObj.transform.SetParent(canvas.transform, false);
         Undo.RegisterCreatedObjectUndo(modalObj, "Bake Artifact Found Modal");
 
-        // Chọn modal và highlight để người dùng thấy ngay trên Hierarchy
+        modalObj.SetActive(false);
         Selection.activeGameObject = modalObj;
         EditorSceneManager.MarkSceneDirty(currentScene);
 
@@ -89,8 +89,11 @@ public static class ArtifactModalPrefabBuilder
         Sprite sprGet = sheetSprites.TryGetValue("Btn_Get", out var sg) ? sg : null;
         Sprite defaultCardSpr = sheetSprites.TryGetValue("Artifact_Lego", out var sl) ? sl : null;
 
-        TMP_FontAsset defaultFont = Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF")
+        TMP_FontAsset defaultFont = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Fonts/Nunito/Nunito SDF.asset")
+                                 ?? Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF")
                                  ?? Resources.FindObjectsOfTypeAll<TMP_FontAsset>().FirstOrDefault();
+
+        Material strokeMaterial = AssetDatabase.LoadAssetAtPath<Material>("Assets/Fonts/Nunito/Nunito SDF - Stroke.mat");
 
         // 2. Root Modal
         GameObject root = new GameObject("ArtifactFoundModal", typeof(RectTransform), typeof(CanvasGroup));
@@ -131,12 +134,13 @@ public static class ArtifactModalPrefabBuilder
         titleRt.anchorMin = new Vector2(0.5f, 0.5f);
         titleRt.anchorMax = new Vector2(0.5f, 0.5f);
         titleRt.pivot = new Vector2(0.5f, 0.5f);
-        titleRt.anchoredPosition = new Vector2(0f, 480f);
-        titleRt.sizeDelta = new Vector2(800f, 90f);
+        titleRt.anchoredPosition = new Vector2(0f, 490f);
+        titleRt.sizeDelta = new Vector2(850f, 100f);
         TextMeshProUGUI titleTxt = titleObj.GetComponent<TextMeshProUGUI>();
         if (defaultFont != null) titleTxt.font = defaultFont;
+        if (strokeMaterial != null) titleTxt.fontSharedMaterial = strokeMaterial;
         titleTxt.text = "Artifact found";
-        titleTxt.fontSize = 54f;
+        titleTxt.fontSize = 64f;
         titleTxt.fontStyle = FontStyles.Bold;
         titleTxt.alignment = TextAlignmentOptions.Center;
         titleTxt.color = Color.white;
@@ -163,14 +167,15 @@ public static class ArtifactModalPrefabBuilder
         nameRt.anchorMax = new Vector2(0.5f, 0.5f);
         nameRt.pivot = new Vector2(0.5f, 0.5f);
         nameRt.anchoredPosition = new Vector2(0f, -25f);
-        nameRt.sizeDelta = new Vector2(800f, 65f);
+        nameRt.sizeDelta = new Vector2(800f, 75f);
         TextMeshProUGUI nameTxt = nameObj.GetComponent<TextMeshProUGUI>();
         if (defaultFont != null) nameTxt.font = defaultFont;
+        if (strokeMaterial != null) nameTxt.fontSharedMaterial = strokeMaterial;
         nameTxt.text = "Modular Brick";
-        nameTxt.fontSize = 44f;
+        nameTxt.fontSize = 54f;
         nameTxt.fontStyle = FontStyles.Bold;
         nameTxt.alignment = TextAlignmentOptions.Center;
-        nameTxt.color = new Color32(255, 184, 28, 255); // Màu vàng cam nổi bật
+        nameTxt.color = new Color32(255, 215, 0, 255); // Màu vàng hoàng kim nổi bật
 
         // 8. Mô tả Lore / Flavor Text
         GameObject loreObj = new GameObject("LoreDescription", typeof(RectTransform), typeof(TextMeshProUGUI));
@@ -179,14 +184,16 @@ public static class ArtifactModalPrefabBuilder
         loreRt.anchorMin = new Vector2(0.5f, 0.5f);
         loreRt.anchorMax = new Vector2(0.5f, 0.5f);
         loreRt.pivot = new Vector2(0.5f, 0.5f);
-        loreRt.anchoredPosition = new Vector2(0f, -85f);
-        loreRt.sizeDelta = new Vector2(750f, 60f);
+        loreRt.anchoredPosition = new Vector2(0f, -100f);
+        loreRt.sizeDelta = new Vector2(800f, 80f);
         TextMeshProUGUI loreTxt = loreObj.GetComponent<TextMeshProUGUI>();
         if (defaultFont != null) loreTxt.font = defaultFont;
+        if (strokeMaterial != null) loreTxt.fontSharedMaterial = strokeMaterial;
         loreTxt.text = "Interlocking plastic toy brick. Incredibly durable construction.";
-        loreTxt.fontSize = 24f;
+        loreTxt.fontSize = 34f;
+        loreTxt.fontStyle = FontStyles.Bold;
         loreTxt.alignment = TextAlignmentOptions.Center;
-        loreTxt.color = new Color32(220, 220, 220, 255);
+        loreTxt.color = Color.white; // Màu trắng sáng rõ chống chìm trên nền sunburst
 
         // 9. Chỉ số Buff
         GameObject statObj = new GameObject("StatBuffText", typeof(RectTransform), typeof(TextMeshProUGUI));
@@ -195,15 +202,16 @@ public static class ArtifactModalPrefabBuilder
         statRt.anchorMin = new Vector2(0.5f, 0.5f);
         statRt.anchorMax = new Vector2(0.5f, 0.5f);
         statRt.pivot = new Vector2(0.5f, 0.5f);
-        statRt.anchoredPosition = new Vector2(0f, -155f);
-        statRt.sizeDelta = new Vector2(750f, 60f);
+        statRt.anchoredPosition = new Vector2(0f, -185f);
+        statRt.sizeDelta = new Vector2(800f, 70f);
         TextMeshProUGUI statTxt = statObj.GetComponent<TextMeshProUGUI>();
         if (defaultFont != null) statTxt.font = defaultFont;
+        if (strokeMaterial != null) statTxt.fontSharedMaterial = strokeMaterial;
         statTxt.text = "DEF +12";
-        statTxt.fontSize = 36f;
+        statTxt.fontSize = 48f;
         statTxt.fontStyle = FontStyles.Bold;
         statTxt.alignment = TextAlignmentOptions.Center;
-        statTxt.color = new Color32(90, 255, 160, 255); // Xanh neon buff
+        statTxt.color = new Color32(0, 255, 136, 255); // Xanh neon rực rỡ
 
         // 10. Container chứa 2 nút bấm
         GameObject btnContainer = new GameObject("ButtonsContainer", typeof(RectTransform));
@@ -212,7 +220,7 @@ public static class ArtifactModalPrefabBuilder
         btnContainerRt.anchorMin = new Vector2(0.5f, 0.5f);
         btnContainerRt.anchorMax = new Vector2(0.5f, 0.5f);
         btnContainerRt.pivot = new Vector2(0.5f, 0.5f);
-        btnContainerRt.anchoredPosition = new Vector2(0f, -270f);
+        btnContainerRt.anchoredPosition = new Vector2(0f, -295f);
         btnContainerRt.sizeDelta = new Vector2(650f, 130f);
 
         // Nút Throw Away (dùng sprite Btn_ThrowAway)

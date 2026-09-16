@@ -416,4 +416,61 @@ public class ChipsetRedShaderTests
             Object.DestroyImmediate(controllerGo);
         }
     }
+
+    [Test]
+    public void ApplyModalButtonsDesign_AppliesOption2Sprites_AndReordersCostRowWithProjectChipIcon()
+    {
+        GameObject enhBtnGo = new GameObject("EnhanceBtn", typeof(RectTransform), typeof(Image), typeof(Button));
+        GameObject bgEnh = new GameObject("Background", typeof(RectTransform), typeof(Image));
+        bgEnh.transform.SetParent(enhBtnGo.transform, false);
+
+        GameObject costRowGo = new GameObject("CostRow", typeof(RectTransform));
+        costRowGo.transform.SetParent(enhBtnGo.transform, false);
+
+        GameObject costValGo = new GameObject("CostValue", typeof(RectTransform), typeof(TMPro.TextMeshProUGUI));
+        costValGo.transform.SetParent(costRowGo.transform, false);
+
+        GameObject chipIconGo = new GameObject("ChipIcon", typeof(RectTransform), typeof(Image));
+        chipIconGo.transform.SetParent(costRowGo.transform, false);
+
+        GameObject advBtnGo = new GameObject("AdvanceTierBtn", typeof(RectTransform), typeof(Image), typeof(Button));
+        GameObject bgAdv = new GameObject("Background", typeof(RectTransform), typeof(Image));
+        bgAdv.transform.SetParent(advBtnGo.transform, false);
+
+        try
+        {
+            Button enhBtn = enhBtnGo.GetComponent<Button>();
+            Button advBtn = advBtnGo.GetComponent<Button>();
+
+            ChipsetController.ApplyModalButtonsDesign(enhBtn, advBtn);
+
+            // Verify Enhance Sprite is assigned
+            Image enhImg = enhBtnGo.GetComponent<Image>();
+            Assert.That(enhImg.sprite, Is.Not.Null, "Enhance button must have a sprite assigned.");
+            Assert.That(enhImg.sprite.name, Does.Contain("btn_enhance_green"), "Enhance button must use btn_enhance_green sprite.");
+
+            // Verify Advance Sprite is assigned
+            Image advImg = advBtnGo.GetComponent<Image>();
+            Assert.That(advImg.sprite, Is.Not.Null, "Advance Tier button must have a sprite assigned.");
+            Assert.That(advImg.sprite.name, Does.Contain("btn_advance_tier_gold"), "Advance Tier button must use btn_advance_tier_gold sprite.");
+
+            // Verify background child disabled to avoid blocking art
+            Image bgEnhImg = bgEnh.GetComponent<Image>();
+            Assert.That(bgEnhImg.enabled, Is.False, "Child Background image should be disabled.");
+
+            // Verify ChipIcon is at sibling index 0 (LEFT)
+            Assert.That(chipIconGo.transform.GetSiblingIndex(), Is.EqualTo(0), "ChipIcon must be on the left (sibling index 0).");
+            Assert.That(costValGo.transform.GetSiblingIndex(), Is.EqualTo(1), "CostValue must be on the right (sibling index 1).");
+
+            // Verify ChipIcon has sprite from project
+            Image chipIconImg = chipIconGo.GetComponent<Image>();
+            Assert.That(chipIconImg.sprite, Is.Not.Null, "ChipIcon must have Data Chip sprite assigned.");
+            Assert.That(chipIconImg.preserveAspect, Is.True, "ChipIcon must preserve aspect ratio.");
+        }
+        finally
+        {
+            Object.DestroyImmediate(enhBtnGo);
+            Object.DestroyImmediate(advBtnGo);
+        }
+    }
 }

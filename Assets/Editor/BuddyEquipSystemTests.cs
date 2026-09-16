@@ -376,4 +376,49 @@ public class BuddyEquipSystemTests
             Object.DestroyImmediate(root);
         }
     }
+
+    [Test]
+    public void BuddyCardUI_ConfigureText_StandardizesFontSizeAndColor()
+    {
+        GameObject go = new GameObject("BuddyCardUI_TextTest", typeof(RectTransform), typeof(BuddyCardUI));
+        go.hideFlags = HideFlags.HideAndDontSave;
+        try
+        {
+            BuddyCardUI card = go.GetComponent<BuddyCardUI>();
+
+            GameObject lvlObj = new GameObject("Level", typeof(RectTransform), typeof(CanvasRenderer), typeof(TMPro.TextMeshProUGUI));
+            lvlObj.transform.SetParent(go.transform, false);
+            lvlObj.transform.localScale = new Vector3(0.639f, 0.639f, 0.639f);
+            TMPro.TMP_Text lvlText = lvlObj.GetComponent<TMPro.TMP_Text>();
+            lvlText.fontSize = 50f;
+            lvlText.color = Color.red;
+
+            GameObject prgObj = new GameObject("Quantity", typeof(RectTransform), typeof(CanvasRenderer), typeof(TMPro.TextMeshProUGUI));
+            prgObj.transform.SetParent(go.transform, false);
+            TMPro.TMP_Text prgText = prgObj.GetComponent<TMPro.TMP_Text>();
+            prgText.fontSize = 36f;
+            prgText.color = new Color(0.04f, 0.08f, 0.12f, 1f);
+
+            BuddyCardUI.ConfigureLevelText(lvlText);
+            BuddyCardUI.ConfigureProgressText(prgText);
+
+            Assert.AreEqual(Color.white, lvlText.color, "Level text must be white");
+            Assert.AreEqual(BuddyCardUI.StandardLevelFontSize, lvlText.fontSize, "Level text must match StandardLevelFontSize");
+            Assert.AreEqual(Vector3.one, lvlObj.transform.localScale, "Level transform scale must be normalized to Vector3.one");
+
+            Assert.AreEqual(Color.white, prgText.color, "Progress text must be white");
+            Assert.AreEqual(BuddyCardUI.StandardProgressFontSize, prgText.fontSize, "Progress text must match StandardProgressFontSize");
+            Assert.AreEqual(Vector3.one, prgObj.transform.localScale, "Progress transform scale must be Vector3.one");
+
+            // Verify UpdateProgressBar keeps text white
+            card.InitializeReferences(null, null, lvlText, prgText, null, null, null, null, null, null);
+            card.UpdateProgressBar(0.75f);
+            Assert.AreEqual(Color.white, prgText.color, "Progress text color must remain white when progress is filled");
+        }
+        finally
+        {
+            Object.DestroyImmediate(go);
+        }
+    }
 }
+

@@ -397,8 +397,10 @@ public class ArtifactFoundModalController : MonoBehaviour
         }
 
         TMP_FontAsset defaultFont = null;
+        Material strokeMaterial = null;
 #if UNITY_EDITOR
         defaultFont = UnityEditor.AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Fonts/Nunito/Nunito SDF.asset");
+        strokeMaterial = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Assets/Fonts/Nunito/Nunito SDF - Stroke.mat");
 #endif
         if (defaultFont == null)
         {
@@ -454,12 +456,13 @@ public class ArtifactFoundModalController : MonoBehaviour
         titleRt.anchorMin = new Vector2(0.5f, 0.5f);
         titleRt.anchorMax = new Vector2(0.5f, 0.5f);
         titleRt.pivot = new Vector2(0.5f, 0.5f);
-        titleRt.anchoredPosition = new Vector2(0f, 480f);
-        titleRt.sizeDelta = new Vector2(800f, 100f);
+        titleRt.anchoredPosition = new Vector2(0f, 490f);
+        titleRt.sizeDelta = new Vector2(850f, 100f);
         TextMeshProUGUI titleTxt = titleObj.GetComponent<TextMeshProUGUI>();
         if (defaultFont != null) titleTxt.font = defaultFont;
+        if (strokeMaterial != null) titleTxt.fontSharedMaterial = strokeMaterial;
         titleTxt.text = "Artifact found";
-        titleTxt.fontSize = 56f;
+        titleTxt.fontSize = 64f;
         titleTxt.fontStyle = FontStyles.Bold;
         titleTxt.alignment = TextAlignmentOptions.Center;
         titleTxt.color = Color.white;
@@ -511,6 +514,7 @@ public class ArtifactFoundModalController : MonoBehaviour
         labelRt.sizeDelta = new Vector2(0f, 40f);
         TextMeshProUGUI labelTxt = labelObj.GetComponent<TextMeshProUGUI>();
         if (defaultFont != null) labelTxt.font = defaultFont;
+        if (strokeMaterial != null) labelTxt.fontSharedMaterial = strokeMaterial;
         labelTxt.text = "ARTIFACT";
         labelTxt.fontSize = 28f;
         labelTxt.fontStyle = FontStyles.Bold;
@@ -525,15 +529,16 @@ public class ArtifactFoundModalController : MonoBehaviour
         nameRt.anchorMin = new Vector2(0.5f, 0.5f);
         nameRt.anchorMax = new Vector2(0.5f, 0.5f);
         nameRt.pivot = new Vector2(0.5f, 0.5f);
-        nameRt.anchoredPosition = new Vector2(0f, -40f);
-        nameRt.sizeDelta = new Vector2(800f, 65f);
+        nameRt.anchoredPosition = new Vector2(0f, -25f);
+        nameRt.sizeDelta = new Vector2(800f, 75f);
         TextMeshProUGUI nameTxt = nameObj.GetComponent<TextMeshProUGUI>();
         if (defaultFont != null) nameTxt.font = defaultFont;
+        if (strokeMaterial != null) nameTxt.fontSharedMaterial = strokeMaterial;
         nameTxt.text = "Artifact Name";
-        nameTxt.fontSize = 44f;
+        nameTxt.fontSize = 54f;
         nameTxt.fontStyle = FontStyles.Bold;
         nameTxt.alignment = TextAlignmentOptions.Center;
-        nameTxt.color = new Color32(255, 184, 28, 255); // Golden-Orange
+        nameTxt.color = new Color32(255, 215, 0, 255); // Màu vàng hoàng kim nổi bật
         nameTxt.raycastTarget = false;
 
         // 6. Lore / Flavor Text
@@ -543,14 +548,16 @@ public class ArtifactFoundModalController : MonoBehaviour
         loreRt.anchorMin = new Vector2(0.5f, 0.5f);
         loreRt.anchorMax = new Vector2(0.5f, 0.5f);
         loreRt.pivot = new Vector2(0.5f, 0.5f);
-        loreRt.anchoredPosition = new Vector2(0f, -125f);
-        loreRt.sizeDelta = new Vector2(750f, 80f);
+        loreRt.anchoredPosition = new Vector2(0f, -100f);
+        loreRt.sizeDelta = new Vector2(800f, 80f);
         TextMeshProUGUI loreTxt = loreObj.GetComponent<TextMeshProUGUI>();
         if (defaultFont != null) loreTxt.font = defaultFont;
+        if (strokeMaterial != null) loreTxt.fontSharedMaterial = strokeMaterial;
         loreTxt.text = "Flavor text description.";
-        loreTxt.fontSize = 28f;
+        loreTxt.fontSize = 34f;
+        loreTxt.fontStyle = FontStyles.Bold;
         loreTxt.alignment = TextAlignmentOptions.Center;
-        loreTxt.color = new Color32(240, 240, 240, 255);
+        loreTxt.color = Color.white; // Màu trắng sáng rõ chống chìm trên nền sunburst
         loreTxt.raycastTarget = false;
 
         // 7. Stat Buff Text (HP +15%, etc.)
@@ -560,15 +567,16 @@ public class ArtifactFoundModalController : MonoBehaviour
         statRt.anchorMin = new Vector2(0.5f, 0.5f);
         statRt.anchorMax = new Vector2(0.5f, 0.5f);
         statRt.pivot = new Vector2(0.5f, 0.5f);
-        statRt.anchoredPosition = new Vector2(0f, -220f);
-        statRt.sizeDelta = new Vector2(750f, 60f);
+        statRt.anchoredPosition = new Vector2(0f, -185f);
+        statRt.sizeDelta = new Vector2(800f, 70f);
         TextMeshProUGUI statTxt = statObj.GetComponent<TextMeshProUGUI>();
         if (defaultFont != null) statTxt.font = defaultFont;
+        if (strokeMaterial != null) statTxt.fontSharedMaterial = strokeMaterial;
         statTxt.text = "HP +15%";
-        statTxt.fontSize = 36f;
+        statTxt.fontSize = 48f;
         statTxt.fontStyle = FontStyles.Bold;
         statTxt.alignment = TextAlignmentOptions.Center;
-        statTxt.color = Color.white;
+        statTxt.color = new Color32(0, 255, 136, 255); // Xanh neon rực rỡ
         statTxt.raycastTarget = false;
 
         // 8. Buttons Container
@@ -578,8 +586,8 @@ public class ArtifactFoundModalController : MonoBehaviour
         btnContainerRt.anchorMin = new Vector2(0.5f, 0.5f);
         btnContainerRt.anchorMax = new Vector2(0.5f, 0.5f);
         btnContainerRt.pivot = new Vector2(0.5f, 0.5f);
-        btnContainerRt.anchoredPosition = new Vector2(0f, -360f);
-        btnContainerRt.sizeDelta = new Vector2(700f, 120f);
+        btnContainerRt.anchoredPosition = new Vector2(0f, -295f);
+        btnContainerRt.sizeDelta = new Vector2(650f, 130f);
 
         // 8a. Throw away Button (Slate Gray)
         GameObject throwBtnObj = CreateButton("ThrowAwayButton", btnContainer.transform, new Vector2(-180f, 0f), new Vector2(300f, 100f), "Throw\naway", 32f, new Color32(78, 105, 125, 255), Color.white, defaultFont, out Button throwBtn);

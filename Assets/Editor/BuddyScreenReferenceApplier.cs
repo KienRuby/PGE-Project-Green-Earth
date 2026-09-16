@@ -18,7 +18,7 @@ public static class BuddyScreenReferenceApplier
     private const string MainMenuScenePath = "Assets/Scenes/MainMenu.unity";
     private const string IconSheetPath = "Assets/Sprites/UI/Buddy/icon buddy.png";
     private const string ButtonSheetPath = "Assets/Sprites/UI/Buddy/nút màn buddy.png";
-    private const string AppliedKey = "PGE.BuddyScreenReferenceApplier.v7";
+    private const string AppliedKey = "PGE.BuddyScreenReferenceApplier.v9";
 
     static BuddyScreenReferenceApplier()
     {
@@ -132,9 +132,9 @@ public static class BuddyScreenReferenceApplier
 
         string[] iconKeys =
         {
-            "drone-snowflake", "drone-spider", "drone-antenna-eye", "drone-cross-visor", "drone-snowflake",
-            "drone-spider", "drone-antenna-eye", "drone-cross-visor", "drone-stealth-wing", "drone-stealth-wing",
-            "drone-antenna-eye", "drone-spider"
+            "drone-snowflake", "drone-spider", "drone-antenna-eye", "drone-cross-visor", "drone-stealth-wing",
+            "drone-snowflake", "drone-spider", "drone-antenna-eye", "drone-cross-visor", "drone-stealth-wing",
+            "drone-cross-visor", "drone-antenna-eye"
         };
         SerializedProperty icons = serialized.FindProperty("droneIcons");
         icons.arraySize = iconKeys.Length;
@@ -199,7 +199,23 @@ public static class BuddyScreenReferenceApplier
             drone0.FindPropertyRelative("enhanceCost").intValue = 3500;
             drone0.FindPropertyRelative("description").stringValue = "Fires shells that slow down enemies.";
             drone0.FindPropertyRelative("baseStatText").stringValue = "Drone ATK 20.4, Slow ATK Speed";
+            for (int b = 0; b < allBuddiesProp.arraySize; b++)
+            {
+                SerializedProperty droneProp = allBuddiesProp.GetArrayElementAtIndex(b);
+                int bId = droneProp.FindPropertyRelative("id").intValue;
+                if (bId == 11 || bId == 12 || (bId >= 5 && bId <= 9))
+                {
+                    droneProp.FindPropertyRelative("tier").enumValueIndex = (int)BuddyTier.Common;
+                    droneProp.FindPropertyRelative("count").intValue = 0;
+                }
+            }
         }
+
+        PlayerPrefs.DeleteKey("PGE.Buddy.Tier.11");
+        PlayerPrefs.DeleteKey("PGE.Buddy.Tier.12");
+        PlayerPrefs.DeleteKey("PGE.Buddy.Count.11");
+        PlayerPrefs.DeleteKey("PGE.Buddy.Count.12");
+        PlayerPrefs.Save();
 
         // Auto-wire EquippedRow (3 slots) using exact clone of Buddy Card template
         controller.EnsureEquippedSlotsMatchTemplate();
@@ -345,6 +361,25 @@ public static class BuddyScreenReferenceApplier
             }
         }
 
+        // Wire the 5 card templates under SlotIconBuddy to their matching exact sprites
+        Transform slotIconBuddy = FindDeep(controller.transform, "SlotIconBuddy");
+        if (slotIconBuddy != null)
+        {
+            foreach (Transform cardT in slotIconBuddy)
+            {
+                string cardName = cardT.name;
+                Transform iconT = cardT.Find("NormalContentGroup/Icon") ?? cardT.Find("NormalContentGroup/DroneIcon") ?? cardT.Find("Icon") ?? cardT.Find("DroneIcon");
+                if (iconT != null)
+                {
+                    Image iconImg = iconT.GetComponent<Image>();
+                    if (iconImg != null && sourceIcons != null && sourceIcons.TryGetValue(cardName, out Sprite s))
+                    {
+                        SetImageSprite(iconImg, s);
+                    }
+                }
+            }
+        }
+
         // Reset all Fill / ProgressFill images to Color.white so they display their native asset colors without yellow tint
         foreach (var img in controller.GetComponentsInChildren<Image>(true))
         {
@@ -353,6 +388,93 @@ public static class BuddyScreenReferenceApplier
             {
                 img.color = Color.white;
                 EditorUtility.SetDirty(img);
+            }
+        }
+
+        // Standardize all Buddy Card numbers (Level & Progress text) to white with black stroke outline
+        TMP_FontAsset nunitoFont = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Fonts/Nunito/Nunito SDF.asset");
+        Material strokeMaterial = AssetDatabase.LoadAssetAtPath<Material>("Assets/Fonts/Nunito/Nunito SDF - Stroke.mat");
+
+        foreach (var card in controller.GetComponentsInChildren<BuddyCardUI>(true))
+        {
+            SerializedObject sCard = new SerializedObject(card);
+            var prgProp = sCard.FindProperty("progressText");
+            TMP_Text prg = prgProp != null ? prgProp.objectReferenceValue as TMP_Text : null;
+            if (prg == null)
+            {
+                Transform pt = card.transform.Find("Quantity") ?? card.transform.Find("NormalContentGroup/BottomBar/ProgressText");
+                if (pt != null) prg = pt.GetComponent<TMP_Text>();
+            }
+            if (prg != null)
+            {
+                BuddyCardUI.ConfigureProgressText(prg);
+                if (nunitoFont != null) prg.font = nunitoFont;
+                if (strokeMaterial != null) prg.fontSharedMaterial = strokeMaterial;
+                prg.color = Color.white;
+                prg.fontSize = BuddyCardUI.StandardProgressFontSize;
+                prg.rectTransform.localScale = Vector3.one;
+                EditorUtility.SetDirty(prg);
+            }
+
+            var lvlProp = sCard.FindProperty("levelText");
+            TMP_Text lvl = lvlProp != null ? lvlProp.objectReferenceValue as TMP_Text : null;
+            if (lvl == null)
+            {
+                Transform lt = card.transform.Find("Level") ?? card.transform.Find("NormalContentGroup/LevelText");
+                if (lt != null) lvl = lt.GetComponent<TMP_Text>();
+            }
+            if (lvl != null)
+            {
+                BuddyCardUI.ConfigureLevelText(lvl);
+                if (nunitoFont != null) lvl.font = nunitoFont;
+                if (strokeMaterial != null) lvl.fontSharedMaterial = strokeMaterial;
+                lvl.color = Color.white;
+                lvl.fontSize = BuddyCardUI.StandardLevelFontSize;
+                lvl.rectTransform.localScale = Vector3.one;
+                EditorUtility.SetDirty(lvl);
+            }
+
+            EditorUtility.SetDirty(card);
+        }
+
+        // Also check any standalone Level / Quantity under SlotIconBuddy or EquippedRow
+        if (slotIconBuddy != null)
+        {
+            foreach (Transform droneTemplate in slotIconBuddy)
+            {
+                Transform lvlT = droneTemplate.Find("Level");
+                if (lvlT != null)
+                {
+                    TMP_Text lvlText = lvlT.GetComponent<TMP_Text>();
+                    if (lvlText != null)
+                    {
+                        BuddyCardUI.ConfigureLevelText(lvlText);
+                        if (nunitoFont != null) lvlText.font = nunitoFont;
+                        if (strokeMaterial != null) lvlText.fontSharedMaterial = strokeMaterial;
+                        lvlText.color = Color.white;
+                        lvlText.fontSize = BuddyCardUI.StandardLevelFontSize;
+                        lvlT.localScale = Vector3.one;
+                        EditorUtility.SetDirty(lvlText);
+                        EditorUtility.SetDirty(lvlT);
+                    }
+                }
+
+                Transform qtyT = droneTemplate.Find("Quantity");
+                if (qtyT != null)
+                {
+                    TMP_Text qtyText = qtyT.GetComponent<TMP_Text>();
+                    if (qtyText != null)
+                    {
+                        BuddyCardUI.ConfigureProgressText(qtyText);
+                        if (nunitoFont != null) qtyText.font = nunitoFont;
+                        if (strokeMaterial != null) qtyText.fontSharedMaterial = strokeMaterial;
+                        qtyText.color = Color.white;
+                        qtyText.fontSize = BuddyCardUI.StandardProgressFontSize;
+                        qtyT.localScale = Vector3.one;
+                        EditorUtility.SetDirty(qtyText);
+                        EditorUtility.SetDirty(qtyT);
+                    }
+                }
             }
         }
     }

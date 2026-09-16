@@ -2563,40 +2563,53 @@ public static class LabMenuSceneBuilder
         equipBtn.targetGraphic = eqBg;
 
         // Enhance Button (Bottom Right Top)
-        GameObject enhBtnObj = CreateFrame("EnhanceBtn", boxRect, new Color32(34, 197, 94, 255), BrightCyan, out Image enhBg);
-        enhBg.sprite = LoadBuddySprite("btn-enhance-plate");
+        GameObject enhBtnObj = CreateFrame("EnhanceBtn", boxRect, Color.clear, Color.white, out Image enhBg);
+        enhBg.enabled = false;
+        Image enhFrameImg = enhBtnObj.GetComponent<Image>();
+        enhFrameImg.sprite = ChipsetController.GetEnhanceSprite();
+        enhFrameImg.color = Color.white;
+        enhFrameImg.raycastTarget = true;
         RectTransform enhBtnRect = enhBtnObj.GetComponent<RectTransform>();
-        Anchor(enhBtnRect, new Vector2(0.71f, 0.16f), Vector2.zero, new Vector2(360f, 90f));
-        enhBg.raycastTarget = true;
+        Anchor(enhBtnRect, new Vector2(0.71f, 0.16f), Vector2.zero, new Vector2(360f, 92f));
         enhanceBtn = enhBtnObj.AddComponent<Button>();
-        enhanceBtn.targetGraphic = enhBg;
+        enhanceBtn.targetGraphic = enhFrameImg;
 
-        TMP_Text enhLabel = CreateText("Label", enhBtnRect, "Enhance", 26f, new Color32(10, 20, 30, 255), TextAlignmentOptions.Center);
-        Anchor(enhLabel.rectTransform, new Vector2(0.5f, 0.70f), Vector2.zero, new Vector2(320f, 32f));
+        TMP_Text enhLabel = CreateText("Label", enhBtnRect, "ENHANCE", 25f, Color.white, TextAlignmentOptions.Center);
+        enhLabel.fontStyle = FontStyles.Bold;
+        Anchor(enhLabel.rectTransform, new Vector2(0.5f, 0.68f), Vector2.zero, new Vector2(320f, 32f));
 
         RectTransform costRow = CreateRect("CostRow", enhBtnRect);
-        Anchor(costRow, new Vector2(0.5f, 0.30f), Vector2.zero, new Vector2(200f, 34f));
+        Anchor(costRow, new Vector2(0.5f, 0.28f), Vector2.zero, new Vector2(320f, 34f));
         HorizontalLayoutGroup costLayout = costRow.gameObject.AddComponent<HorizontalLayoutGroup>();
         costLayout.childAlignment = TextAnchor.MiddleCenter;
         costLayout.spacing = 8f;
         costLayout.childControlWidth = false;
         costLayout.childControlHeight = false;
 
-        enhanceCostText = CreateText("CostValue", costRow, "500", 24f, new Color32(10, 20, 30, 255), TextAlignmentOptions.Center);
-        enhanceCostText.rectTransform.sizeDelta = new Vector2(70f, 30f);
-        Image chipMini = CreateBuddyIcon("ChipIcon", costRow, "mini-chip-icon", 30f);
-        chipMini.rectTransform.sizeDelta = new Vector2(30f, 30f);
+        Image chipMini = CreateBuddyIcon("ChipIcon", costRow, "mini-chip-icon", 28f);
+        chipMini.sprite = ChipsetController.GetDataChipIcon();
+        chipMini.color = Color.white;
+        chipMini.preserveAspect = true;
+        chipMini.rectTransform.sizeDelta = new Vector2(28f, 28f);
+
+        enhanceCostText = CreateText("CostValue", costRow, "500", 22f, Color.white, TextAlignmentOptions.Left);
+        enhanceCostText.fontStyle = FontStyles.Bold;
+        enhanceCostText.rectTransform.sizeDelta = new Vector2(200f, 30f);
 
         // Advance Tier Button (Bottom Right Bottom)
-        GameObject advBtnObj = CreateFrame("AdvanceTierBtn", boxRect, new Color32(132, 204, 22, 255), Yellow, out Image advBg);
-        advBg.sprite = LoadBuddySprite("btn-advance-plate");
+        GameObject advBtnObj = CreateFrame("AdvanceTierBtn", boxRect, Color.clear, Color.white, out Image advBg);
+        advBg.enabled = false;
+        Image advFrameImg = advBtnObj.GetComponent<Image>();
+        advFrameImg.sprite = ChipsetController.GetAdvanceSprite();
+        advFrameImg.color = Color.white;
+        advFrameImg.raycastTarget = true;
         RectTransform advBtnRect = advBtnObj.GetComponent<RectTransform>();
-        Anchor(advBtnRect, new Vector2(0.71f, 0.075f), Vector2.zero, new Vector2(360f, 80f));
-        advBg.raycastTarget = true;
+        Anchor(advBtnRect, new Vector2(0.71f, 0.075f), Vector2.zero, new Vector2(360f, 85f));
         advanceTierBtn = advBtnObj.AddComponent<Button>();
-        advanceTierBtn.targetGraphic = advBg;
+        advanceTierBtn.targetGraphic = advFrameImg;
 
-        advanceTierText = CreateText("Label", advBtnRect, "Advance Tier (79/3)", 24f, new Color32(10, 20, 30, 255), TextAlignmentOptions.Center);
+        advanceTierText = CreateText("Label", advBtnRect, "Advance Tier (79/3)", 23f, Color.white, TextAlignmentOptions.Center);
+        advanceTierText.fontStyle = FontStyles.Bold;
         Stretch(advanceTierText.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
         return modalRoot.gameObject;
@@ -2877,42 +2890,55 @@ public static class LabMenuSceneBuilder
         equipBtn.targetGraphic = eqBg;
 
         // Enhance Button (Bottom Right Top)
-        GameObject enhBtnObj = CreateFrame("EnhanceBtn", boxRect, new Color32(34, 197, 94, 255), BrightCyan, out Image enhBg);
-        enhBg.sprite = LoadBuddySprite("btn-enhance-plate");
+        GameObject enhBtnObj = CreateFrame("EnhanceBtn", boxRect, Color.clear, Color.white, out Image enhBg);
+        enhBg.enabled = false;
+        Image enhFrameImg = enhBtnObj.GetComponent<Image>();
+        enhFrameImg.sprite = ChipsetController.GetEnhanceSprite();
+        enhFrameImg.color = Color.white;
+        enhFrameImg.raycastTarget = true;
         RectTransform enhBtnRect = enhBtnObj.GetComponent<RectTransform>();
-        Anchor(enhBtnRect, new Vector2(0.71f, 0.16f), Vector2.zero, new Vector2(360f, 90f));
-        enhBg.raycastTarget = true;
+        Anchor(enhBtnRect, new Vector2(0.71f, 0.16f), Vector2.zero, new Vector2(360f, 92f));
         enhanceBtn = enhBtnObj.AddComponent<Button>();
-        enhanceBtn.targetGraphic = enhBg;
+        enhanceBtn.targetGraphic = enhFrameImg;
         enhanceBtnCg = enhBtnObj.AddComponent<CanvasGroup>();
 
-        TMP_Text enhLabel = CreateText("Label", enhBtnRect, "Enhance", 26f, new Color32(10, 20, 30, 255), TextAlignmentOptions.Center);
-        Anchor(enhLabel.rectTransform, new Vector2(0.5f, 0.70f), Vector2.zero, new Vector2(320f, 32f));
+        TMP_Text enhLabel = CreateText("Label", enhBtnRect, "ENHANCE", 25f, Color.white, TextAlignmentOptions.Center);
+        enhLabel.fontStyle = FontStyles.Bold;
+        Anchor(enhLabel.rectTransform, new Vector2(0.5f, 0.68f), Vector2.zero, new Vector2(320f, 32f));
 
         RectTransform costRow = CreateRect("CostRow", enhBtnRect);
-        Anchor(costRow, new Vector2(0.5f, 0.30f), Vector2.zero, new Vector2(200f, 34f));
+        Anchor(costRow, new Vector2(0.5f, 0.28f), Vector2.zero, new Vector2(320f, 34f));
         HorizontalLayoutGroup costLayout = costRow.gameObject.AddComponent<HorizontalLayoutGroup>();
         costLayout.childAlignment = TextAnchor.MiddleCenter;
         costLayout.spacing = 8f;
         costLayout.childControlWidth = false;
         costLayout.childControlHeight = false;
 
-        enhanceCostText = CreateText("CostValue", costRow, "500", 24f, new Color32(10, 20, 30, 255), TextAlignmentOptions.Center);
-        enhanceCostText.rectTransform.sizeDelta = new Vector2(70f, 30f);
-        Image chipMini = CreateBuddyIcon("ChipIcon", costRow, "mini-chip-icon", 30f);
-        chipMini.rectTransform.sizeDelta = new Vector2(30f, 30f);
+        Image chipMini = CreateBuddyIcon("ChipIcon", costRow, "mini-chip-icon", 28f);
+        chipMini.sprite = ChipsetController.GetDataChipIcon();
+        chipMini.color = Color.white;
+        chipMini.preserveAspect = true;
+        chipMini.rectTransform.sizeDelta = new Vector2(28f, 28f);
+
+        enhanceCostText = CreateText("CostValue", costRow, "500", 22f, Color.white, TextAlignmentOptions.Left);
+        enhanceCostText.fontStyle = FontStyles.Bold;
+        enhanceCostText.rectTransform.sizeDelta = new Vector2(200f, 30f);
 
         // Advance Tier Button (Bottom Right Bottom)
-        GameObject advBtnObj = CreateFrame("AdvanceTierBtn", boxRect, new Color32(132, 204, 22, 255), Yellow, out Image advBg);
-        advBg.sprite = LoadBuddySprite("btn-advance-plate");
+        GameObject advBtnObj = CreateFrame("AdvanceTierBtn", boxRect, Color.clear, Color.white, out Image advBg);
+        advBg.enabled = false;
+        Image advFrameImg = advBtnObj.GetComponent<Image>();
+        advFrameImg.sprite = ChipsetController.GetAdvanceSprite();
+        advFrameImg.color = Color.white;
+        advFrameImg.raycastTarget = true;
         RectTransform advBtnRect = advBtnObj.GetComponent<RectTransform>();
-        Anchor(advBtnRect, new Vector2(0.71f, 0.075f), Vector2.zero, new Vector2(360f, 80f));
-        advBg.raycastTarget = true;
+        Anchor(advBtnRect, new Vector2(0.71f, 0.075f), Vector2.zero, new Vector2(360f, 85f));
         advanceTierBtn = advBtnObj.AddComponent<Button>();
-        advanceTierBtn.targetGraphic = advBg;
+        advanceTierBtn.targetGraphic = advFrameImg;
         advanceTierBtnCg = advBtnObj.AddComponent<CanvasGroup>();
 
-        advanceTierText = CreateText("Label", advBtnRect, "Advance Tier (439/3)", 24f, new Color32(10, 20, 30, 255), TextAlignmentOptions.Center);
+        advanceTierText = CreateText("Label", advBtnRect, "Advance Tier (439/3)", 23f, Color.white, TextAlignmentOptions.Center);
+        advanceTierText.fontStyle = FontStyles.Bold;
         Stretch(advanceTierText.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
         // 8. Notice Panels (Missing Currency / Fragments)

@@ -33,7 +33,7 @@ public class DamageNumber : MonoBehaviour, IPoolable
     [SerializeField] private float duration = 0.75f;
 
     [Tooltip("Tốc độ nảy bùng nổ ban đầu lên trên (Parabolic Arc).")]
-    [SerializeField] private float burstSpeedY = 3.2f;
+    [SerializeField] private float burstSpeedY = 3.8f;
 
     [Tooltip("Trọng lực kéo trôi xuống êm ái.")]
     [SerializeField] private float arcGravity = 4.8f;
@@ -41,8 +41,8 @@ public class DamageNumber : MonoBehaviour, IPoolable
     [Tooltip("Lực cản không khí theo phương ngang.")]
     [SerializeField] private float dragX = 2.5f;
 
-    [Tooltip("Hệ số thu nhỏ kích thước chữ số để tinh gọn, không che quái.")]
-    [SerializeField] private float baseScale = 0.65f;
+    [Tooltip("Hệ số kích thước chữ số (gấp đôi mặc định giúp người chơi dễ nhìn thấy sát thương).")]
+    [SerializeField] private float baseScale = 1.30f;
 
     [Tooltip("Độ nảy phóng to ban đầu (Pop Multiplier).")]
     [SerializeField] private float popMultiplier = 1.22f;
