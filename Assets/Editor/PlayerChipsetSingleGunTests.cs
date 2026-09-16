@@ -107,6 +107,45 @@ public class PlayerChipsetSingleGunTests
         }
     }
 
+    [Test]
+    public void GunTurret_AutoShoot_FiresBulletFromMuzzleAndRecordsAttack()
+    {
+        GameObject turretObject = new GameObject("Turret");
+        GameObject aimPivot = new GameObject("AimPivot");
+        aimPivot.transform.SetParent(turretObject.transform);
+        aimPivot.transform.localPosition = Vector3.zero;
+
+        GameObject firePoint = new GameObject("FirePoint");
+        firePoint.transform.SetParent(aimPivot.transform);
+        firePoint.transform.localPosition = new Vector3(1f, 0f, 0f);
+
+        GameObject enemy = new GameObject("EnemyTarget");
+        enemy.transform.position = new Vector3(5f, 0f, 0f);
+
+        GameObject bulletPrefab = new GameObject("TestBullet", typeof(Rigidbody2D), typeof(Projectile));
+
+        try
+        {
+            ChipsetBattleStats.Reset();
+            GunTurret turret = turretObject.AddComponent<GunTurret>();
+            turret.Initialize(35, 2f, 15f, 10f, 0f, false, 200, bulletPrefab, null, null);
+            SetPrivateField(turret, "currentTarget", enemy.transform);
+            SetPrivateField(turret, "nextFireTime", 0f);
+
+            InvokePrivate(turret, "AutoShoot");
+
+            ChipsetBattleStats.Entry entry = ChipsetBattleStats.GetEntry(6);
+            Assert.That(entry, Is.Not.Null, "ChipsetBattleStats entry cho GunTurret (id 6) phải tồn tại.");
+            Assert.That(entry.AttackCount, Is.GreaterThanOrEqualTo(1), "GunTurret AutoShoot phải gọi Shoot() và ghi nhận đòn đánh.");
+        }
+        finally
+        {
+            Object.DestroyImmediate(bulletPrefab);
+            Object.DestroyImmediate(enemy);
+            Object.DestroyImmediate(turretObject);
+        }
+    }
+
     private static void InvokePrivate(object target, string methodName, params object[] arguments)
     {
         MethodInfo method = target.GetType().GetMethod(

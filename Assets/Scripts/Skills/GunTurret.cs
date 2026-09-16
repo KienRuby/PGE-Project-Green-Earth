@@ -207,7 +207,7 @@ public class GunTurret : MonoBehaviour, IPoolable, IDamageable
         sharedTargetProvider = targetProvider;
 
         durationTimer = duration;
-        nextFireTime = Time.time + (1f / fireRate);
+        nextFireTime = Time.time;
         targetSearchTimer = 0f;
         currentTarget = null;
         regenAccumulator = 0f;
@@ -258,12 +258,6 @@ public class GunTurret : MonoBehaviour, IPoolable, IDamageable
 
     private void UpdateTarget()
     {
-        if (sharedTargetProvider != null)
-        {
-            currentTarget = sharedTargetProvider.CurrentTarget;
-            return;
-        }
-
         targetSearchTimer -= Time.deltaTime;
 
         if (currentTarget == null || !currentTarget.gameObject.activeInHierarchy)
@@ -273,20 +267,38 @@ public class GunTurret : MonoBehaviour, IPoolable, IDamageable
         }
         else
         {
-            // Kiểm tra xem mục tiêu hiện tại còn nằm trong phạm vi hình hộp không
-            Vector2 boxCenter = (Vector2)transform.position + detectionOffset;
-            Vector2 diff = (Vector2)currentTarget.position - boxCenter;
-            if (Mathf.Abs(diff.x) > detectionWidth * 0.5f || Mathf.Abs(diff.y) > detectionHeight * 0.5f)
+            EnemyHealth health = currentTarget.GetComponentInParent<EnemyHealth>();
+            if (health != null && health.IsDead)
             {
                 currentTarget = null;
                 targetSearchTimer = 0f;
             }
+            else
+            {
+                // Kiểm tra xem mục tiêu hiện tại còn nằm trong phạm vi hình hộp không
+                Vector2 boxCenter = (Vector2)transform.position + detectionOffset;
+                Vector2 diff = (Vector2)currentTarget.position - boxCenter;
+                bool inBox = Mathf.Abs(diff.x) <= detectionWidth * 0.5f && Mathf.Abs(diff.y) <= detectionHeight * 0.5f;
+
+                if (!inBox && (sharedTargetProvider == null || sharedTargetProvider.CurrentTarget != currentTarget))
+                {
+                    currentTarget = null;
+                    targetSearchTimer = 0f;
+                }
+            }
         }
 
-        if (targetSearchTimer > 0f) return;
+        if (targetSearchTimer <= 0f)
+        {
+            targetSearchTimer = targetRefreshRate;
+            FindNearestEnemy();
+        }
 
-        targetSearchTimer = targetRefreshRate;
-        FindNearestEnemy();
+        // Nếu không có quái trong hộp quét của trụ, fallback dùng mục tiêu chung của Player (nếu có)
+        if (currentTarget == null && sharedTargetProvider != null)
+        {
+            currentTarget = sharedTargetProvider.CurrentTarget;
+        }
     }
 
     private void FindNearestEnemy()
@@ -341,21 +353,41 @@ public class GunTurret : MonoBehaviour, IPoolable, IDamageable
 
     private void AutoShoot()
     {
-        if (currentTarget == null || projectilePrefab == null) return;
+        if (currentTarget == null || !currentTarget.gameObject.activeInHierarchy || projectilePrefab == null)
+        {
+            return;
+        }
+
+        EnemyHealth eh = currentTarget.GetComponentInParent<EnemyHealth>();
+        if (eh != null && eh.IsDead)
+        {
+            currentTarget = null;
+            return;
+        }
 
         if (Time.time < nextFireTime) return;
 
         float effectiveFireRate = Mathf.Max(0.1f, fireRate * GlobalTurretFireRateMultiplier);
         nextFireTime = Time.time + (1f / effectiveFireRate);
+        Shoot();
     }
 
     private void Shoot()
     {
-        if (currentTarget == null || projectilePrefab == null) return;
+        if (currentTarget == null || !currentTarget.gameObject.activeInHierarchy || projectilePrefab == null)
+        {
+            return;
+        }
 
-        Transform sharedFirePoint = sharedTargetProvider != null ? sharedTargetProvider.FirePoint : firePoint;
-        Vector3 spawnPos = sharedFirePoint != null ? sharedFirePoint.position : (aimPivot != null ? aimPivot.position : transform.position);
+        // Bắn từ nòng súng (firePoint) của chính trụ súng
+        Transform muzzlePoint = firePoint != null ? firePoint : (aimPivot != null ? aimPivot : (sharedTargetProvider != null ? sharedTargetProvider.FirePoint : transform));
+        Vector3 spawnPos = muzzlePoint != null ? muzzlePoint.position : transform.position;
         Vector2 direction = ((Vector2)currentTarget.position - (Vector2)spawnPos).normalized;
+        if (direction.sqrMagnitude < 0.0001f)
+        {
+            direction = aimPivot != null ? (Vector2)aimPivot.right : Vector2.right;
+        }
+
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         Quaternion rotation = Quaternion.Euler(0f, 0f, angle);
 
@@ -379,9 +411,10 @@ public class GunTurret : MonoBehaviour, IPoolable, IDamageable
             Projectile projectileScript = projectileObj.GetComponent<Projectile>();
             if (projectileScript != null)
             {
-                float maxBulletRange = sharedTargetProvider != null
-                    ? sharedTargetProvider.SharedAttackRange
-                    : Mathf.Sqrt(detectionWidth * detectionWidth + detectionHeight * detectionHeight) + 2f;
+                float diagonalRange = Mathf.Sqrt(detectionWidth * detectionWidth + detectionHeight * detectionHeight) + 4f;
+                float distToTarget = Vector2.Distance(spawnPos, currentTarget.position) + 4f;
+                float maxBulletRange = Mathf.Max(diagonalRange, distToTarget);
+
                 projectileScript.Setup(damage, bulletSpeed, maxBulletRange);
                 projectileScript.SetDamageSource(6);
                 projectileScript.SetDirection(direction);
@@ -400,9 +433,7 @@ public class GunTurret : MonoBehaviour, IPoolable, IDamageable
     {
         if (muzzleFlashPrefab == null) return;
 
-        Transform parentTransform = sharedTargetProvider != null
-            ? sharedTargetProvider.FirePoint
-            : (firePoint != null ? firePoint : transform);
+        Transform parentTransform = firePoint != null ? firePoint : (aimPivot != null ? aimPivot : transform);
         GameObject flashObj;
 
         if (PoolManager.Instance != null)
