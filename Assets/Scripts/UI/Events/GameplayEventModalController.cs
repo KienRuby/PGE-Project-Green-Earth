@@ -312,6 +312,15 @@ public class GameplayEventModalController : MonoBehaviour
                         healthToDamage.AddMaxHealth(25);
                         Debug.Log($"[GameplayEvent] 🔋 [Big Battery] Level +1: Tăng Máu tối đa +25!");
                     }
+                    else if (string.Equals(option.rewardItemId, "movespeed_buff", StringComparison.OrdinalIgnoreCase))
+                    {
+                        PlayerMovement move = FindObjectOfType<PlayerMovement>();
+                        if (move != null)
+                        {
+                            move.AddMoveSpeedPercent(10f);
+                            Debug.Log($"[GameplayEvent] 🏃 [Overclock] Tăng Tốc độ di chuyển +10%! Tốc độ mới: {move.EffectiveSpeed}");
+                        }
+                    }
                 }
                 break;
 
@@ -615,6 +624,18 @@ public class GameplayEventModalController : MonoBehaviour
             baseColor = new Color32(30, 25, 35, 255);
             highlight = new Color32(140, 80, 60, 255);
             accent = new Color32(230, 160, 90, 255);
+        }
+        else if (string.Equals(eventId, "syringe", StringComparison.OrdinalIgnoreCase))
+        {
+            baseColor = new Color32(20, 35, 40, 255);
+            highlight = new Color32(30, 140, 130, 255);
+            accent = new Color32(80, 240, 200, 255);
+        }
+        else if (string.Equals(eventId, "helmet", StringComparison.OrdinalIgnoreCase))
+        {
+            baseColor = new Color32(35, 20, 45, 255);
+            highlight = new Color32(110, 50, 140, 255);
+            accent = new Color32(200, 90, 240, 255);
         }
 
         for (int y = 0; y < h; y++)

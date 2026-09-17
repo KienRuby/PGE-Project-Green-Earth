@@ -38,7 +38,7 @@ namespace PGE.Tests
             GameplayEventDatabase db = ScriptableObject.CreateInstance<GameplayEventDatabase>();
             db.InitializeDefaults();
 
-            Assert.AreEqual(3, db.Events.Count);
+            Assert.AreEqual(5, db.Events.Count);
 
             var electricCar = db.GetById("electric_car");
             Assert.IsNotNull(electricCar);
@@ -60,6 +60,18 @@ namespace PGE.Tests
             Assert.AreEqual("Assasinator", assassinator.eventTitle);
             Assert.AreEqual(3, assassinator.options.Count);
             Assert.AreEqual("To purge mutants", assassinator.options[0].buttonText);
+
+            var syringe = db.GetById("syringe");
+            Assert.IsNotNull(syringe);
+            Assert.AreEqual("Medical Injector", syringe.eventTitle);
+            Assert.AreEqual(3, syringe.options.Count);
+            Assert.AreEqual("Inject into bio-circuitry", syringe.options[0].buttonText);
+
+            var helmet = db.GetById("helmet");
+            Assert.IsNotNull(helmet);
+            Assert.AreEqual("Broken Helmet", helmet.eventTitle);
+            Assert.AreEqual(3, helmet.options.Count);
+            Assert.AreEqual("Download tactical records", helmet.options[0].buttonText);
         }
 
         [Test]
@@ -185,6 +197,38 @@ namespace PGE.Tests
             {
                 Assert.IsFalse(rewardObj.gameObject.activeSelf, "RewardText phải ẩn khi người chơi chưa chọn lựa");
             }
+        }
+
+        [Test]
+        public void Test09_GetRandomEvent_AntiRepetition()
+        {
+            GameplayEventDatabase.ClearRuntimeInstanceForTesting();
+            GameplayEventDatabase db = GameplayEventDatabase.Instance;
+
+            List<string> chapterHistory = new List<string>();
+
+            // Lần 1: Không có loại trừ, rút 1 event bất kỳ trong 5 event
+            var ev1 = db.GetRandomEvent(chapterHistory);
+            Assert.IsNotNull(ev1);
+            chapterHistory.Add(ev1.eventId);
+
+            // Lần 2: Rút event tiếp theo, không được trùng với ev1
+            var ev2 = db.GetRandomEvent(chapterHistory);
+            Assert.IsNotNull(ev2);
+            Assert.AreNotEqual(ev1.eventId, ev2.eventId, "Event lần 2 không được trùng lặp với event lần 1 trong cùng Chapter");
+            chapterHistory.Add(ev2.eventId);
+
+            // Lần 3: Rút event tiếp theo, không được trùng với ev1 và ev2
+            var ev3 = db.GetRandomEvent(chapterHistory);
+            Assert.IsNotNull(ev3);
+            CollectionAssert.DoesNotContain(new[] { ev1.eventId, ev2.eventId }, ev3.eventId);
+            chapterHistory.Add(ev3.eventId);
+
+            // Giả lập loại trừ cả 5 event: hệ thống tự động reset nhưng tránh trùng ngay event trước đó
+            List<string> fullExcludes = new List<string> { "assasinator", "underground_bunker", "syringe", "helmet", "electric_car" };
+            var resetEv = db.GetRandomEvent(fullExcludes);
+            Assert.IsNotNull(resetEv, "Khi pool cạn, hệ thống phải tự reset danh sách để tiếp tục xuất hiện event");
+            Assert.AreNotEqual(ev3.eventId, resetEv.eventId, "Khi reset pool, không được lập tức lặp lại ngay event vừa kết thúc");
         }
     }
 }
