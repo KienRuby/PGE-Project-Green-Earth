@@ -239,6 +239,7 @@ public class EnemySpawner : MonoBehaviour
     private bool isArtifactRespawnTimerActive = false;
 
     private int gameplayEventsSpawnedInChapter = 0;
+    private readonly List<string> spawnedEventIdsInChapter = new List<string>();
     private float gameplayEventSpawnTimer = -1f;
     private bool isInitialGameplayEventSpawn = true;
     private bool isGameplayEventRespawnTimerActive = false;
@@ -1064,9 +1065,14 @@ public class EnemySpawner : MonoBehaviour
         }
         else
         {
-            pickup.AssignedEvent = GameplayEventDatabase.Instance.GetRandomEvent();
+            pickup.AssignedEvent = GameplayEventDatabase.Instance.GetRandomEvent(spawnedEventIdsInChapter);
         }
         pickup.SetSpawnPosition(spawnPos);
+
+        if (pickup.AssignedEvent != null && !string.IsNullOrEmpty(pickup.AssignedEvent.eventId))
+        {
+            spawnedEventIdsInChapter.Add(pickup.AssignedEvent.eventId);
+        }
 
         gameplayEventsSpawnedInChapter++;
         Debug.Log($"[EnemySpawner] ❓ Đã sinh Sự Kiện Gameplay ({pickup.AssignedEvent?.eventTitle ?? "Random"}) ({gameplayEventsSpawnedInChapter}/{maxGameplayEventsPerChapter}) tại {spawnPos}. Vòng tròn dấu '?' sẽ hiển thị ở mép màn hình!");
@@ -1076,6 +1082,7 @@ public class EnemySpawner : MonoBehaviour
     public void ResetGameplayEventChapterCount()
     {
         gameplayEventsSpawnedInChapter = 0;
+        spawnedEventIdsInChapter.Clear();
         isInitialGameplayEventSpawn = true;
         isGameplayEventRespawnTimerActive = false;
 
