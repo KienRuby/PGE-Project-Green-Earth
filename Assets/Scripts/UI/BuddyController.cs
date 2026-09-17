@@ -197,6 +197,8 @@ public class BuddyController : MonoBehaviour
     private static readonly int[] ActiveDroneIds = { 1, 2, 3, 4, 10 };
 
     public IReadOnlyList<BuddyItemData> AllBuddies => allBuddies;
+    private bool isStarted = false;
+
     public bool IsRobotPetUnlocked => PlayerDataService.UnlockedChapterIndex >= RequiredClearedChaptersForRobotPet;
 
     private void Awake()
@@ -211,12 +213,14 @@ public class BuddyController : MonoBehaviour
         AutoWireSlotIconBuddyIfMissing();
         AutoWireDetailModalReferencesIfMissing();
         SetupEventListeners();
+        SyncBuddyProgressFromSave();
         RefreshTopBar();
         RefreshPresetButtons();
         RefreshSortButtons();
         RefreshEquippedGrid();
         RefreshInventory();
         ShowDroneMode();
+        isStarted = true;
     }
 
     private void OnEnable()
@@ -225,9 +229,30 @@ public class BuddyController : MonoBehaviour
         ChipManager.OnRedGemsChanged += HandleCurrencyChanged;
         PlayerDataService.OnBuddyPiecesChanged += HandleBuddyPiecesChanged;
         RefreshRobotPetUnlockState();
+
+        if (isStarted)
+        {
+            SyncBuddyProgressFromSave();
+            RefreshTopBar();
+            RefreshPresetButtons();
+            RefreshSortButtons();
+            RefreshEquippedGrid();
+            RefreshInventory();
+            if (detailModal != null && detailModal.activeSelf && selectedDetailBuddy != null)
+            {
+                RefreshDetailModal();
+            }
+        }
     }
 
     private void OnDisable()
+    {
+        ChipManager.OnDataChipsChanged -= HandleCurrencyChanged;
+        ChipManager.OnRedGemsChanged -= HandleCurrencyChanged;
+        PlayerDataService.OnBuddyPiecesChanged -= HandleBuddyPiecesChanged;
+    }
+
+    private void OnDestroy()
     {
         ChipManager.OnDataChipsChanged -= HandleCurrencyChanged;
         ChipManager.OnRedGemsChanged -= HandleCurrencyChanged;
@@ -256,8 +281,66 @@ public class BuddyController : MonoBehaviour
     }
 #endif
 
+    public void SyncBuddyProgressFromSave()
+    {
+        if (this == null) return;
+        activeDeckIndex = PlayerDataService.ActiveBuddyDeckIndex;
+        if (deckEquippedIds == null || deckEquippedIds.Length != 3)
+        {
+            deckEquippedIds = new int[3][];
+        }
+        for (int d = 0; d < 3; d++)
+        {
+            int[] loaded = PlayerDataService.LoadBuddyDeck(d, new int[] { -1, -1, -1 });
+            if (loaded == null || loaded.Length != 3)
+            {
+                int[] fixedDeck = new int[3] { -1, -1, -1 };
+                if (loaded != null)
+                {
+                    for (int i = 0; i < Mathf.Min(loaded.Length, 3); i++)
+                    {
+                        fixedDeck[i] = loaded[i];
+                    }
+                }
+                loaded = fixedDeck;
+            }
+            deckEquippedIds[d] = loaded;
+        }
+
+        NormalizeActiveBuddyList();
+
+        if (allBuddies == null || allBuddies.Count != ActiveDroneIds.Length)
+        {
+            InitializeDatabase();
+            return;
+        }
+
+        for (int i = 0; i < allBuddies.Count; i++)
+        {
+            BuddyItemData buddy = allBuddies[i];
+            if (buddy != null)
+            {
+                PlayerDataService.LoadBuddyProgress(buddy);
+            }
+        }
+
+        if (selectedDetailBuddy != null)
+        {
+            BuddyItemData current = allBuddies.FirstOrDefault(b => b != null && b.id == selectedDetailBuddy.id);
+            if (current != null)
+            {
+                selectedDetailBuddy = current;
+            }
+            else
+            {
+                PlayerDataService.LoadBuddyProgress(selectedDetailBuddy);
+            }
+        }
+    }
+
     private void HandleCurrencyChanged(int _)
     {
+        if (this == null) return;
         RefreshTopBar();
         if (detailModal != null && detailModal.activeSelf)
         {
@@ -267,6 +350,7 @@ public class BuddyController : MonoBehaviour
 
     private void HandleBuddyPiecesChanged(int buddyId, int newCount)
     {
+        if (this == null) return;
         BuddyItemData buddy = allBuddies.FirstOrDefault(item => item != null && item.id == buddyId);
         if (buddy == null) return;
 
@@ -503,6 +587,7 @@ public class BuddyController : MonoBehaviour
 
         if (!isRobotPetMode)
         {
+            RefreshEquippedGrid();
             RefreshInventory();
         }
 
@@ -969,6 +1054,7 @@ public class BuddyController : MonoBehaviour
 
     private void RefreshTopBar()
     {
+        if (this == null) return;
         if (chipCurrencyText != null) chipCurrencyText.text = $"{ChipManager.DataChips:N0}";
         if (redCurrencyText != null) redCurrencyText.text = $"{ChipManager.RedGems:N0}";
     }
@@ -1047,6 +1133,7 @@ public class BuddyController : MonoBehaviour
 
     private void RefreshPresetButtons()
     {
+        if (this == null) return;
         AutoWirePresetButtonsIfMissing();
 
         if (preset1Bg != null)
@@ -1112,6 +1199,7 @@ public class BuddyController : MonoBehaviour
 
     private void RefreshSortButtons()
     {
+        if (this == null) return;
         AutoWireSortButtonsIfMissing();
 
         bool isByQuantity = sortByQuantity;
@@ -1159,6 +1247,7 @@ public class BuddyController : MonoBehaviour
 
     public void RefreshEquippedGrid()
     {
+        if (this == null) return;
         EnsureEquippedSlotsMatchTemplate();
         LoadUpgradeArrowSpriteIfMissing();
 
@@ -1314,6 +1403,7 @@ public class BuddyController : MonoBehaviour
 
     public void RefreshInventory()
     {
+        if (this == null) return;
         AutoWireInventoryContainerIfMissing();
         LoadUpgradeArrowSpriteIfMissing();
         NormalizeActiveBuddyList();
@@ -1445,6 +1535,7 @@ public class BuddyController : MonoBehaviour
 
     public void RefreshDetailModal()
     {
+        if (this == null) return;
         if (selectedDetailBuddy == null) return;
         AutoWireDetailModalReferencesIfMissing();
         ChipsetController.ApplyModalButtonsDesign(detailEnhanceBtn, detailAdvanceTierBtn);

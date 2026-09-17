@@ -685,6 +685,7 @@ public static class PlayerDataService
             data.tier >= BuddyTier.Holographic ? 0 : Mathf.Max(1, data.requiredCount));
         PlayerPrefs.SetInt($"{BuddyEnhanceCostKeyPrefix}{data.id}", Mathf.Max(0, data.enhanceCost));
         PlayerPrefs.Save();
+        OnBuddyPiecesChanged?.Invoke(data.id, Mathf.Max(0, data.count));
     }
 
     public static int GetBuddyPieceCount(int buddyId, int defaultValue = 0)
