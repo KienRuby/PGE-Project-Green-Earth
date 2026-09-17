@@ -95,7 +95,7 @@ public class TurretBufferBuddy : BuddyCombatDrone
             Projectile proj = projObj.GetComponent<Projectile>();
             if (proj != null)
             {
-                proj.Setup(baseDamage, projectileSpeed, targetDetectionRadius * 1.5f);
+                proj.Setup(baseDamage, projectileSpeed, EffectiveAttackRange);
                 proj.SetDirection(direction);
                 proj.SetTarget(target.transform);
                 proj.IsHoming = true;

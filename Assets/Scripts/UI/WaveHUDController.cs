@@ -357,21 +357,27 @@ public class WaveHUDController : MonoBehaviour
             iconRt.sizeDelta = new Vector2(30f, 30f);
 
             Image iconImg = iconObj.GetComponent<Image>();
-            if (art.icon != null)
+            iconImg.preserveAspect = true;
+            Sprite resolvedSprite = ResolveArtifactIcon(art);
+            if (resolvedSprite != null)
             {
-                iconImg.sprite = art.icon;
+                iconImg.sprite = resolvedSprite;
                 iconImg.color = Color.white;
             }
             else
             {
-                iconImg.color = art.statType == ArtifactStatType.MaxHealthPercent ? new Color32(235, 60, 60, 255)
-                    : (art.statType == ArtifactStatType.RangedDefensePercent ? new Color32(90, 180, 230, 255)
-                    : (art.statType == ArtifactStatType.TurretAttackSpeedPercent ? new Color32(240, 180, 30, 255)
-                    : new Color32(180, 90, 240, 255)));
+                // Tuyệt đối không để màu đỏ đặc nếu thiếu icon
+                iconImg.color = Color.clear;
             }
 
             spawnedArtifactSlots.Add(slot);
         }
+    }
+
+    private Sprite ResolveArtifactIcon(ArtifactData art)
+    {
+        if (art == null) return null;
+        return art.GetIcon();
     }
 
     private void HandleWaveStarted(int currentWave, int totalWaves)

@@ -35,6 +35,21 @@ public class BuddyCombatManager : MonoBehaviour
     public static BuddyCombatManager Instance { get; private set; }
     public IReadOnlyList<BuddyCombatDrone> ActiveDrones => activeDrones;
 
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void RegisterSceneLoadListener()
+    {
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private static void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
+    {
+        if (scene.name.Equals("GamePlay", StringComparison.OrdinalIgnoreCase) && Instance == null)
+        {
+            GameObject host = new GameObject("[BuddyCombatManager]");
+            host.AddComponent<BuddyCombatManager>();
+        }
+    }
+
     private void Awake()
     {
         Instance = this;
@@ -60,6 +75,13 @@ public class BuddyCombatManager : MonoBehaviour
         AddEntryIfMissing(3, radarEyePrefab);
         AddEntryIfMissing(4, assaultBlasterPrefab);
 
+        // Tự động nạp từ Resources/Prefabs/Buddy nếu còn thiếu (hỗ trợ môi trường Build Standalone/Mobile)
+        TryLoadResourcesPrefab(1, "Prefabs/Buddy/Buddy_Sloy");
+        TryLoadResourcesPrefab(2, "Prefabs/Buddy/Buddy_TurretBuffer");
+        TryLoadResourcesPrefab(10, "Prefabs/Buddy/Buddy_PurifyingDrone");
+        TryLoadResourcesPrefab(3, "Prefabs/Buddy/Buddy_RadarEye");
+        TryLoadResourcesPrefab(4, "Prefabs/Buddy/Buddy_AssaultBlaster");
+
 #if UNITY_EDITOR
         // Tự động tìm trong Assets/Prefabs/Buddy nếu đang trong Editor và còn thiếu
         TryLoadEditorPrefab(1, "Assets/Prefabs/Buddy/Buddy_Sloy.prefab");
@@ -76,6 +98,17 @@ public class BuddyCombatManager : MonoBehaviour
         if (!registeredPrefabs.Any(e => e.buddyId == id))
         {
             registeredPrefabs.Add(new BuddyPrefabEntry { buddyId = id, prefab = prefab });
+        }
+    }
+
+    private void TryLoadResourcesPrefab(int id, string path)
+    {
+        if (registeredPrefabs.Any(e => e.buddyId == id && e.prefab != null)) return;
+        GameObject p = Resources.Load<GameObject>(path);
+        if (p != null)
+        {
+            registeredPrefabs.RemoveAll(e => e.buddyId == id);
+            registeredPrefabs.Add(new BuddyPrefabEntry { buddyId = id, prefab = p });
         }
     }
 

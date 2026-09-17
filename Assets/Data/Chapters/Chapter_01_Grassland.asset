@@ -23,6 +23,11 @@ MonoBehaviour:
   mapColor: {r: 0.9685534, g: 0.86858594, b: 0.70966333, a: 1}
   groundDrawMode: 2
   playerBoundaryPadding: 0.6
+  enableObstacles: 1
+  obstacleDensity: 4
+  decorationDensity: 5
+  obstacleColliderWidthRatio: 0.55
+  obstacleColliderHeightRatio: 0.2
   flavorText: Mutant spores have been detected on the outskirts.
   gameplaySceneName: GamePlay
   levelConfigId: grassland_1

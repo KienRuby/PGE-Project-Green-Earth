@@ -59,10 +59,25 @@ public class RifleSkill : MonoBehaviour
     public bool IsUnlocked => isUnlocked;
     public int CurrentLevel => currentLevel;
 
+    private PlayerAutoShooter playerAutoShooter;
+
+    public float EffectiveAttackRange
+    {
+        get
+        {
+            if (playerAutoShooter != null)
+            {
+                return playerAutoShooter.ChipsetAttackRange;
+            }
+            return Mathf.Max(1.0f, attackRange - 3.0f);
+        }
+    }
+
     private void Awake()
     {
         playerTransform = transform;
         playerHealth = GetComponent<PlayerHealth>();
+        playerAutoShooter = GetComponent<PlayerAutoShooter>() ?? GetComponentInParent<PlayerAutoShooter>();
 
         Transform gunTrans = transform.Find("GunPivot") ?? transform.Find("GunTransform") ?? transform.Find("AttackPoint");
         if (gunTrans != null)
@@ -181,12 +196,13 @@ public class RifleSkill : MonoBehaviour
     private Transform FindNearestEnemy()
     {
         Vector2 center = playerTransform.position;
-        int hitCount = Physics2D.OverlapCircle(center, attackRange, contactFilter, enemyBuffer);
+        float currentRange = EffectiveAttackRange;
+        int hitCount = Physics2D.OverlapCircle(center, currentRange, contactFilter, enemyBuffer);
 
         if (hitCount == 0 && enemyLayer.value != 0)
         {
             ContactFilter2D fallback = new ContactFilter2D { useTriggers = true };
-            hitCount = Physics2D.OverlapCircle(center, attackRange, fallback, enemyBuffer);
+            hitCount = Physics2D.OverlapCircle(center, currentRange, fallback, enemyBuffer);
         }
 
         Transform nearest = null;
@@ -273,7 +289,7 @@ public class RifleSkill : MonoBehaviour
             rifleProj.Setup(
                 damageAmount,
                 bulletSpeed,
-                attackRange * 1.25f,
+                EffectiveAttackRange * 1.25f,
                 chanceToPierce,
                 pierceCount
             );

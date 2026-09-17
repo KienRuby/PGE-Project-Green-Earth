@@ -59,6 +59,30 @@ public sealed class AchievementManager : MonoBehaviour
 
     public const string ProgressKeyPrefix = "PGE.Achievement.Progress.";
     public const string ClaimedKeyPrefix = "PGE.Achievement.Claimed.";
+    public const string ClearedChaptersMaskKey = "PGE.Achievement.ClearedChaptersMask";
+
+    public static int GetClearedChaptersMask() => PlayerPrefs.GetInt(ClearedChaptersMaskKey, 0);
+
+    public static void RecordChapterCleared(int chapterNumber)
+    {
+        if (chapterNumber <= 0 || chapterNumber > 30) return;
+        int mask = PlayerPrefs.GetInt(ClearedChaptersMaskKey, 0);
+        mask |= (1 << chapterNumber);
+        PlayerPrefs.SetInt(ClearedChaptersMaskKey, mask);
+        PlayerPrefs.Save();
+    }
+
+    public static int GetDistinctClearedChaptersCount()
+    {
+        int mask = PlayerPrefs.GetInt(ClearedChaptersMaskKey, 0);
+        int bitCount = 0;
+        for (int i = 1; i <= 30; i++)
+        {
+            if ((mask & (1 << i)) != 0) bitCount++;
+        }
+        int unlocked = PlayerPrefs.GetInt(PlayerDataService.UnlockedChapterIndexKey, 0);
+        return Mathf.Max(bitCount, unlocked);
+    }
 
     [Header("Configuration Database")]
     [SerializeField] private AchievementDatabase database;
@@ -178,19 +202,25 @@ public sealed class AchievementManager : MonoBehaviour
             }
         }
 
-        // 2. Đồng bộ số Chapter đã clear (chapter_clear_5)
-        // Index 0 = Chapter 1 đang mở khóa. Nếu UnlockedChapterIndex > 0, nghĩa là đã vượt qua UnlockedChapterIndex chapters.
-        int unlockedChapterIndex = PlayerPrefs.GetInt(PlayerDataService.UnlockedChapterIndexKey, 0);
-        if (unlockedChapterIndex > 0 && database.Achievements != null)
+        // 2. Đồng bộ số Chapter đã clear duy nhất (chapter_clear_5 - distinct chapters)
+        int distinctCleared = GetDistinctClearedChaptersCount();
+        if (database.Achievements != null)
         {
             foreach (var def in database.Achievements)
             {
                 if (def != null && def.type == AchievementType.ChapterCleared)
                 {
                     int cur = GetProgress(def.id);
-                    if (unlockedChapterIndex > cur)
+                    if (cur != distinctCleared)
                     {
-                        SetProgress(def.id, unlockedChapterIndex);
+                        SetProgress(def.id, distinctCleared);
+                        anyChanged = true;
+                    }
+
+                    // Tự động khôi phục nếu trước đó từng bị đánh dấu Claimed sai do lỗi vượt 7/5 cũ:
+                    if (distinctCleared < def.targetValue && IsClaimed(def.id))
+                    {
+                        SetClaimed(def.id, false);
                         anyChanged = true;
                     }
                 }
@@ -242,8 +272,10 @@ public sealed class AchievementManager : MonoBehaviour
 
     private void HandleChapterCleared(int chapterNumber)
     {
-        // Tăng số lần clear hoặc đặt max chapter cleared
-        AddProgress(AchievementType.ChapterCleared, 1);
+        // Ghi nhận chapter đã clear duy nhất (không trùng lặp)
+        RecordChapterCleared(chapterNumber);
+        int distinctCount = GetDistinctClearedChaptersCount();
+        SetProgressForType(AchievementType.ChapterCleared, distinctCount);
     }
 
     private void HandleDailyRewardClaimed(int _, RewardData[] __)
@@ -300,7 +332,7 @@ public sealed class AchievementManager : MonoBehaviour
 
     public AchievementState GetState(string id)
     {
-        if (IsClaimed(id))
+        if (IsClaimed(id) && IsCompleted(id))
         {
             return AchievementState.Claimed;
         }
@@ -520,6 +552,7 @@ public sealed class AchievementManager : MonoBehaviour
                 PlayerPrefs.DeleteKey(GetClaimedKey(def.id));
             }
         }
+        PlayerPrefs.DeleteKey(ClearedChaptersMaskKey);
         PlayerPrefs.Save();
         OnAchievementUpdated?.Invoke();
         Debug.Log("[AchievementManager] 🧹 Đã reset toàn bộ tiến độ Achievements!");

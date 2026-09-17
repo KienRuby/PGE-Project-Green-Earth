@@ -37,7 +37,7 @@ public class DesertPropSpawner : MonoBehaviour
     }
 
     [SerializeField, Min(1)] private int desertChapterNumber = 1;
-    [SerializeField] private bool spawnOnlyInDesertChapter = true;
+    [SerializeField] private bool spawnOnlyInDesertChapter = false;
 
     [SerializeField] private List<PropEntry> props = new List<PropEntry>();
 
@@ -119,8 +119,23 @@ public class DesertPropSpawner : MonoBehaviour
         }
 
         float area = mapBoundary.MapSize.x * mapBoundary.MapSize.y;
-        SpawnKind(PropKind.Decoration, CalculateSpawnCount(area, decorationDensity), decorationMinSpacing);
-        SpawnKind(PropKind.Obstacle, CalculateSpawnCount(area, obstacleDensity), obstacleMinSpacing);
+
+        ChapterData currentChapter = chapterMapManager != null ? chapterMapManager.ActiveChapterData : null;
+        float currentObstacleDensity = (currentChapter != null && currentChapter.obstacleDensity > 0f)
+            ? currentChapter.obstacleDensity
+            : obstacleDensity;
+        float currentDecorationDensity = (currentChapter != null && currentChapter.decorationDensity > 0f)
+            ? currentChapter.decorationDensity
+            : decorationDensity;
+        float currentWidthRatio = (currentChapter != null && currentChapter.obstacleColliderWidthRatio > 0f)
+            ? currentChapter.obstacleColliderWidthRatio
+            : colliderWidthRatio;
+        float currentHeightRatio = (currentChapter != null && currentChapter.obstacleColliderHeightRatio > 0f)
+            ? currentChapter.obstacleColliderHeightRatio
+            : colliderHeightRatio;
+
+        SpawnKind(PropKind.Decoration, CalculateSpawnCount(area, currentDecorationDensity), decorationMinSpacing, currentWidthRatio, currentHeightRatio);
+        SpawnKind(PropKind.Obstacle, CalculateSpawnCount(area, currentObstacleDensity), obstacleMinSpacing, currentWidthRatio, currentHeightRatio);
     }
 
     [ContextMenu("Clear Generated Desert Props")]
@@ -150,16 +165,17 @@ public class DesertPropSpawner : MonoBehaviour
 
     private bool ShouldSpawnForCurrentChapter()
     {
+        ChapterData chapter = chapterMapManager != null ? chapterMapManager.ActiveChapterData : null;
+
         if (!spawnOnlyInDesertChapter)
         {
-            return true;
+            return chapter == null || chapter.enableObstacles;
         }
 
-        ChapterData chapter = chapterMapManager != null ? chapterMapManager.ActiveChapterData : null;
         return chapter != null && chapter.chapterNumber == desertChapterNumber;
     }
 
-    private void SpawnKind(PropKind kind, int targetCount, float minSpacing)
+    private void SpawnKind(PropKind kind, int targetCount, float minSpacing, float widthRatio, float heightRatio)
     {
         List<PropEntry> candidates = GetCandidates(kind);
         if (candidates.Count == 0 || targetCount <= 0)
@@ -185,8 +201,7 @@ public class DesertPropSpawner : MonoBehaviour
                 continue;
             }
 
-            CreateProp(entry, position);
-            positions.Add(position);
+            if (CreateProp(entry, position, widthRatio, heightRatio)) positions.Add(position);
         }
     }
 
@@ -245,7 +260,7 @@ public class DesertPropSpawner : MonoBehaviour
         return player != null ? (Vector2)player.transform.position : mapBoundary.MapCenter;
     }
 
-    private void CreateProp(PropEntry entry, Vector2 position)
+    private bool CreateProp(PropEntry entry, Vector2 position, float widthRatio, float heightRatio)
     {
         GameObject instance = Instantiate(entry.prefab, new Vector3(position.x, position.y, 0f), Quaternion.identity, generatedRoot);
         instance.name = entry.prefab.name;
@@ -256,11 +271,36 @@ public class DesertPropSpawner : MonoBehaviour
         instance.transform.localScale *= Mathf.Max(0.01f, multiplier);
 
         bool blocksPlayer = ShouldBlockPlayer(entry.kind, entry.blockPlayer);
-        ConfigureCollision(instance, blocksPlayer);
+        ConfigureCollision(instance, blocksPlayer, widthRatio, heightRatio);
+        // Reserve the corridor for the whole prop, not only its pivot.
+        Physics2D.SyncTransforms();
+        foreach (var renderer in instance.GetComponentsInChildren<Renderer>())
+        {
+            if (!FitsInsideMap(renderer.bounds)) return RejectProp(instance);
+        }
+        foreach (var collider in instance.GetComponentsInChildren<Collider2D>())
+        {
+            if (collider.enabled && !FitsInsideMap(collider.bounds)) return RejectProp(instance);
+        }
         ConfigureSorting(instance, entry.kind, position.y);
+        return true;
     }
 
-    private void ConfigureCollision(GameObject instance, bool blocksPlayer)
+    private bool FitsInsideMap(Bounds bounds)
+    {
+        return mapBoundary.IsInsideMap(bounds.min, mapEdgePadding) &&
+               mapBoundary.IsInsideMap(bounds.max, mapEdgePadding);
+    }
+
+    private static bool RejectProp(GameObject instance)
+    {
+        instance.SetActive(false);
+        if (Application.isPlaying) Destroy(instance);
+        else DestroyImmediate(instance);
+        return false;
+    }
+
+    private void ConfigureCollision(GameObject instance, bool blocksPlayer, float widthRatio, float heightRatio)
     {
         Collider2D[] colliders = instance.GetComponentsInChildren<Collider2D>(true);
         for (int i = 0; i < colliders.Length; i++)
@@ -283,8 +323,8 @@ public class DesertPropSpawner : MonoBehaviour
         Bounds spriteBounds = renderer.sprite.bounds;
         BoxCollider2D collider = instance.AddComponent<BoxCollider2D>();
         collider.size = new Vector2(
-            Mathf.Max(0.01f, spriteBounds.size.x * colliderWidthRatio),
-            Mathf.Max(0.01f, spriteBounds.size.y * colliderHeightRatio));
+            Mathf.Max(0.01f, spriteBounds.size.x * widthRatio),
+            Mathf.Max(0.01f, spriteBounds.size.y * heightRatio));
         collider.offset = new Vector2(
             spriteBounds.center.x,
             spriteBounds.min.y + collider.size.y * 0.5f);

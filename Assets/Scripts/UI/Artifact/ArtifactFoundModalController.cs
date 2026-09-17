@@ -217,9 +217,10 @@ public class ArtifactFoundModalController : MonoBehaviour
         // Cập nhật Icon (dùng placeholder nếu sprite chưa gán)
         if (iconImage != null)
         {
-            if (artifact.icon != null)
+            Sprite resolved = artifact != null ? artifact.GetIcon() : null;
+            if (resolved != null)
             {
-                iconImage.sprite = artifact.icon;
+                iconImage.sprite = resolved;
                 iconImage.color = Color.white;
             }
             else

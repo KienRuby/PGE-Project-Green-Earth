@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 #endif
 
 [RequireComponent(typeof(Rigidbody2D))]
+[DefaultExecutionOrder(100)]
 public class PlayerMovement : MonoBehaviour
 {
     [Header("Movement")]
@@ -251,16 +252,25 @@ public class PlayerMovement : MonoBehaviour
     private void LateUpdate()
     {
         // Lớp bảo vệ chắc chắn 100% Player không bị lực đẩy của quái văng ra ngoài biên
-        if (MapBoundary.Instance != null && (playerHealth == null || !playerHealth.IsDead))
+        if (MapBoundary.Instance != null)
         {
-            Vector2 clamped = MapBoundary.Instance.ClampPlayerPosition(transform.position);
-            if ((Vector2)transform.position != clamped)
+            Vector2 position = rb != null ? rb.position : (Vector2)transform.position;
+            Vector2 clamped = MapBoundary.Instance.ClampPlayerPosition(position);
+            if (position != clamped || (Vector2)transform.position != clamped)
             {
                 transform.position = new Vector3(clamped.x, clamped.y, transform.position.z);
                 if (rb != null)
                 {
                     rb.position = clamped;
                 }
+            }
+            if (rb != null)
+            {
+                Vector2 velocity = rb.velocity;
+                Vector2 allowed = MapBoundary.Instance.ClampPlayerPosition(clamped + velocity * Time.fixedDeltaTime);
+                if ((allowed.x - clamped.x) * velocity.x <= 0f) velocity.x = 0f;
+                if ((allowed.y - clamped.y) * velocity.y <= 0f) velocity.y = 0f;
+                rb.velocity = velocity;
             }
         }
     }

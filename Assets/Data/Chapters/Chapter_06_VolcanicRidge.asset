@@ -1,0 +1,210 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b6b402470e5ca473a5cbdb6226d8519, type: 3}
+  m_Name: Chapter_06_VolcanicRidge
+  m_EditorClassIdentifier: 
+  chapterNumber: 6
+  chapterTitle: Volcanic Ridge
+  totalWaves: 10
+  energyCost: 10
+  previewBackground: {fileID: 21300000, guid: 0377c92faaf76cc4d97b14ef7cfeeb09, type: 3}
+  bossSilhouette: {fileID: 21300000, guid: f69b6363b6220a24faa3bb42da143ecd, type: 3}
+  mapGroundSprite: {fileID: 21300000, guid: e92326fa91624344e844f543e748a31e, type: 3}
+  mapSize: {x: 40, y: 40}
+  mapColor: {r: 0.9685534, g: 0.86858594, b: 0.70966333, a: 1}
+  groundDrawMode: 2
+  playerBoundaryPadding: 0.6
+  enableObstacles: 1
+  obstacleDensity: 4
+  decorationDensity: 5
+  obstacleColliderWidthRatio: 0.55
+  obstacleColliderHeightRatio: 0.2
+  flavorText: Rivers of molten rock scorch the earth as obsidian beasts emerge.
+  gameplaySceneName: GamePlay
+  levelConfigId: volcanic_ridge_1
+  isLocked: 0
+  victoryDataChipReward: 2488
+  victoryRedGemReward: 50
+  autoGenerateWaves: 1
+  chapterDifficultyMultiplier: 2.25
+  wavePowerGrowthRate: 0.08
+  defaultWaveDuration: 30
+  finalBossWaveDuration: 60
+  chapterEnemyPool:
+  - enemyPrefab: {fileID: 6558628254369202594, guid: cae7dc80e82b3b14bade28b18c3b19ff, type: 3}
+    spawnWeight: 10
+    unlockTime: 0
+  - enemyPrefab: {fileID: 249402678474551263, guid: e9b7463808b4ee340950a632a574d9fa, type: 3}
+    spawnWeight: 10
+    unlockTime: 0
+  chapterBossPrefab: {fileID: 1010797112834101214, guid: 616d9ac7cedf5eb46b9e23335d25aa30, type: 3}
+  waves:
+  - waveName: Wave 1
+    totalEnemiesToSpawn: 45
+    maxConcurrentEnemies: 36
+    spawnInterval: 1
+    enemiesPerSpawn: 2
+    enemyPool: []
+    healthMultiplier: 2.25
+    damageMultiplier: 1.8
+    speedMultiplier: 1.15
+    expMultiplier: 1.5
+    isBossWave: 0
+    customBossPrefab: {fileID: 0}
+    bossCount: 1
+    bossSpawnDelay: 0
+    breakDurationAfterWave: 1
+    waveDuration: 25
+  - waveName: Wave 2
+    totalEnemiesToSpawn: 54
+    maxConcurrentEnemies: 39
+    spawnInterval: 1
+    enemiesPerSpawn: 2
+    enemyPool: []
+    healthMultiplier: 2.35
+    damageMultiplier: 1.9
+    speedMultiplier: 1.18
+    expMultiplier: 1.55
+    isBossWave: 0
+    customBossPrefab: {fileID: 0}
+    bossCount: 1
+    bossSpawnDelay: 0
+    breakDurationAfterWave: 1
+    waveDuration: 26
+  - waveName: Wave 3
+    totalEnemiesToSpawn: 62
+    maxConcurrentEnemies: 42
+    spawnInterval: 1
+    enemiesPerSpawn: 2
+    enemyPool: []
+    healthMultiplier: 2.45
+    damageMultiplier: 2.0
+    speedMultiplier: 1.22
+    expMultiplier: 1.6
+    isBossWave: 0
+    customBossPrefab: {fileID: 0}
+    bossCount: 1
+    bossSpawnDelay: 0
+    breakDurationAfterWave: 1
+    waveDuration: 27
+  - waveName: Wave 4
+    totalEnemiesToSpawn: 76
+    maxConcurrentEnemies: 45
+    spawnInterval: 1
+    enemiesPerSpawn: 3
+    enemyPool: []
+    healthMultiplier: 2.55
+    damageMultiplier: 2.1
+    speedMultiplier: 1.25
+    expMultiplier: 1.65
+    isBossWave: 0
+    customBossPrefab: {fileID: 0}
+    bossCount: 1
+    bossSpawnDelay: 0
+    breakDurationAfterWave: 1
+    waveDuration: 28
+  - waveName: Wave 5
+    totalEnemiesToSpawn: 90
+    maxConcurrentEnemies: 48
+    spawnInterval: 1
+    enemiesPerSpawn: 3
+    enemyPool: []
+    healthMultiplier: 2.65
+    damageMultiplier: 2.2
+    speedMultiplier: 1.29
+    expMultiplier: 1.7
+    isBossWave: 0
+    customBossPrefab: {fileID: 0}
+    bossCount: 1
+    bossSpawnDelay: 0
+    breakDurationAfterWave: 1
+    waveDuration: 29
+  - waveName: Wave 6
+    totalEnemiesToSpawn: 103
+    maxConcurrentEnemies: 51
+    spawnInterval: 1
+    enemiesPerSpawn: 3
+    enemyPool: []
+    healthMultiplier: 2.75
+    damageMultiplier: 2.3
+    speedMultiplier: 1.32
+    expMultiplier: 1.75
+    isBossWave: 0
+    customBossPrefab: {fileID: 0}
+    bossCount: 1
+    bossSpawnDelay: 0
+    breakDurationAfterWave: 1
+    waveDuration: 31
+  - waveName: Wave 7
+    totalEnemiesToSpawn: 117
+    maxConcurrentEnemies: 54
+    spawnInterval: 1
+    enemiesPerSpawn: 4
+    enemyPool: []
+    healthMultiplier: 2.85
+    damageMultiplier: 2.4
+    speedMultiplier: 1.35
+    expMultiplier: 1.8
+    isBossWave: 0
+    customBossPrefab: {fileID: 0}
+    bossCount: 1
+    bossSpawnDelay: 0
+    breakDurationAfterWave: 1
+    waveDuration: 32
+  - waveName: Wave 8
+    totalEnemiesToSpawn: 135
+    maxConcurrentEnemies: 57
+    spawnInterval: 1
+    enemiesPerSpawn: 4
+    enemyPool: []
+    healthMultiplier: 2.95
+    damageMultiplier: 2.5
+    speedMultiplier: 1.39
+    expMultiplier: 1.85
+    isBossWave: 0
+    customBossPrefab: {fileID: 0}
+    bossCount: 1
+    bossSpawnDelay: 0
+    breakDurationAfterWave: 1
+    waveDuration: 33
+  - waveName: Wave 9
+    totalEnemiesToSpawn: 153
+    maxConcurrentEnemies: 60
+    spawnInterval: 1
+    enemiesPerSpawn: 5
+    enemyPool: []
+    healthMultiplier: 3.05
+    damageMultiplier: 2.6
+    speedMultiplier: 1.43
+    expMultiplier: 1.9
+    isBossWave: 0
+    customBossPrefab: {fileID: 0}
+    bossCount: 1
+    bossSpawnDelay: 0
+    breakDurationAfterWave: 1
+    waveDuration: 34
+  - waveName: BOSS
+    totalEnemiesToSpawn: 180
+    maxConcurrentEnemies: 66
+    spawnInterval: 1
+    enemiesPerSpawn: 5
+    enemyPool: []
+    healthMultiplier: 4.5
+    damageMultiplier: 3.8
+    speedMultiplier: 1.55
+    expMultiplier: 2.4
+    isBossWave: 1
+    customBossPrefab: {fileID: 0}
+    bossCount: 1
+    bossSpawnDelay: 2
+    breakDurationAfterWave: 2
+    waveDuration: 60

@@ -1716,6 +1716,7 @@ public static class LabMenuSceneBuilder
         Stretch(tabChipsetRect, new Vector2(0.03f, 0f), new Vector2(0.485f, 1f), Vector2.zero, Vector2.zero);
         TMP_Text tabChipsetText = CreateText("Label", tabChipsetRect, "Chipset", 44f, Color.white, TextAlignmentOptions.Center);
         Stretch(tabChipsetText.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        tabChipsetBg.raycastTarget = true;
         Button tabChipsetBtn = tabChipsetObj.AddComponent<Button>();
         tabChipsetBtn.targetGraphic = tabChipsetBg;
 
@@ -1725,6 +1726,7 @@ public static class LabMenuSceneBuilder
         Stretch(tabHighTechRect, new Vector2(0.515f, 0f), new Vector2(0.97f, 1f), Vector2.zero, Vector2.zero);
         TMP_Text tabHighTechText = CreateText("Label", tabHighTechRect, "High-Tech Chipset", 36f, new Color32(60, 110, 110, 255), TextAlignmentOptions.Center);
         Stretch(tabHighTechText.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        tabHighTechBg.raycastTarget = true;
         Button tabHighTechBtn = tabHighTechObj.AddComponent<Button>();
         tabHighTechBtn.targetGraphic = tabHighTechBg;
 
@@ -2094,6 +2096,7 @@ public static class LabMenuSceneBuilder
         Anchor(tabDroneText.rectTransform, new Vector2(0.5f, 0.62f), Vector2.zero, new Vector2(300f, 50f));
         Image waveImg = CreateBuddyIcon("Wave", tabDroneRect, "wave-pulse-cyan", 140f);
         Anchor(waveImg.rectTransform, new Vector2(0.5f, 0.22f), Vector2.zero, new Vector2(140f, 30f));
+        tabDroneBg.raycastTarget = true;
         Button tabDroneBtn = tabDroneObj.AddComponent<Button>();
         tabDroneBtn.targetGraphic = tabDroneBg;
 
@@ -2105,6 +2108,7 @@ public static class LabMenuSceneBuilder
         Anchor(tabRobotPetText.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(400f, 50f));
         Image lockImg = CreateBuddyIcon("Lock", tabRobotPetRect, "icon-lock-buddy", 60f);
         Anchor(lockImg.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(60f, 60f));
+        tabRobotPetBg.raycastTarget = true;
         Button tabRobotPetBtn = tabRobotPetObj.AddComponent<Button>();
         tabRobotPetBtn.targetGraphic = tabRobotPetBg;
 

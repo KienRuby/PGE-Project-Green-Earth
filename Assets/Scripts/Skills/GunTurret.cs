@@ -108,6 +108,21 @@ public class GunTurret : MonoBehaviour, IPoolable, IDamageable
     public int CurrentHealth => currentHealth;
     public int MaxHealth => maxHealth;
 
+    /// <summary>
+    /// Phạm vi tấn công của Gun Turret (Chipset): luôn nhỏ hơn tầm bắn của Player 3m.
+    /// </summary>
+    public float EffectiveAttackRange
+    {
+        get
+        {
+            if (sharedTargetProvider != null)
+            {
+                return Mathf.Max(1.0f, sharedTargetProvider.SharedAttackRange - 3.0f);
+            }
+            return 9.0f;
+        }
+    }
+
     public float DetectionWidth
     {
         get => detectionWidth;
@@ -259,6 +274,7 @@ public class GunTurret : MonoBehaviour, IPoolable, IDamageable
     private void UpdateTarget()
     {
         targetSearchTimer -= Time.deltaTime;
+        float maxRange = EffectiveAttackRange;
 
         if (currentTarget == null || !currentTarget.gameObject.activeInHierarchy)
         {
@@ -275,12 +291,13 @@ public class GunTurret : MonoBehaviour, IPoolable, IDamageable
             }
             else
             {
-                // Kiểm tra xem mục tiêu hiện tại còn nằm trong phạm vi hình hộp không
+                // Kiểm tra xem mục tiêu hiện tại còn nằm trong phạm vi không
                 Vector2 boxCenter = (Vector2)transform.position + detectionOffset;
                 Vector2 diff = (Vector2)currentTarget.position - boxCenter;
                 bool inBox = Mathf.Abs(diff.x) <= detectionWidth * 0.5f && Mathf.Abs(diff.y) <= detectionHeight * 0.5f;
+                bool inRange = Vector2.Distance(transform.position, currentTarget.position) <= maxRange;
 
-                if (!inBox && (sharedTargetProvider == null || sharedTargetProvider.CurrentTarget != currentTarget))
+                if (!inRange || (!inBox && (sharedTargetProvider == null || sharedTargetProvider.CurrentTarget != currentTarget)))
                 {
                     currentTarget = null;
                     targetSearchTimer = 0f;
@@ -294,17 +311,24 @@ public class GunTurret : MonoBehaviour, IPoolable, IDamageable
             FindNearestEnemy();
         }
 
-        // Nếu không có quái trong hộp quét của trụ, fallback dùng mục tiêu chung của Player (nếu có)
-        if (currentTarget == null && sharedTargetProvider != null)
+        // Nếu không có quái trong hộp quét của trụ, fallback dùng mục tiêu chung của Player (nếu nằm trong EffectiveAttackRange)
+        if (currentTarget == null && sharedTargetProvider != null && sharedTargetProvider.CurrentTarget != null)
         {
-            currentTarget = sharedTargetProvider.CurrentTarget;
+            if (Vector2.Distance(transform.position, sharedTargetProvider.CurrentTarget.position) <= maxRange)
+            {
+                currentTarget = sharedTargetProvider.CurrentTarget;
+            }
         }
     }
 
     private void FindNearestEnemy()
     {
+        float maxRange = EffectiveAttackRange;
         Vector2 center = (Vector2)transform.position + detectionOffset;
-        Vector2 size = new Vector2(detectionWidth, detectionHeight);
+        Vector2 size = new Vector2(
+            Mathf.Min(detectionWidth, maxRange * 2f),
+            Mathf.Min(detectionHeight, maxRange * 2f)
+        );
 
         int hitCount = Physics2D.OverlapBox(center, size, 0f, contactFilter, enemyColliderBuffer);
 
@@ -316,6 +340,7 @@ public class GunTurret : MonoBehaviour, IPoolable, IDamageable
 
         Transform nearestEnemy = null;
         float nearestDistanceSqr = Mathf.Infinity;
+        float maxRangeSqr = maxRange * maxRange;
         Vector2 turretPos = transform.position;
 
         for (int i = 0; i < hitCount; i++)
@@ -330,7 +355,7 @@ public class GunTurret : MonoBehaviour, IPoolable, IDamageable
             Vector2 diff = (Vector2)health.transform.position - turretPos;
             float distSqr = diff.sqrMagnitude;
 
-            if (distSqr < nearestDistanceSqr)
+            if (distSqr <= maxRangeSqr && distSqr < nearestDistanceSqr)
             {
                 nearestDistanceSqr = distSqr;
                 nearestEnemy = health.transform;
@@ -360,6 +385,12 @@ public class GunTurret : MonoBehaviour, IPoolable, IDamageable
 
         EnemyHealth eh = currentTarget.GetComponentInParent<EnemyHealth>();
         if (eh != null && eh.IsDead)
+        {
+            currentTarget = null;
+            return;
+        }
+
+        if (Vector2.Distance(transform.position, currentTarget.position) > EffectiveAttackRange)
         {
             currentTarget = null;
             return;
@@ -411,9 +442,7 @@ public class GunTurret : MonoBehaviour, IPoolable, IDamageable
             Projectile projectileScript = projectileObj.GetComponent<Projectile>();
             if (projectileScript != null)
             {
-                float diagonalRange = Mathf.Sqrt(detectionWidth * detectionWidth + detectionHeight * detectionHeight) + 4f;
-                float distToTarget = Vector2.Distance(spawnPos, currentTarget.position) + 4f;
-                float maxBulletRange = Mathf.Max(diagonalRange, distToTarget);
+                float maxBulletRange = EffectiveAttackRange;
 
                 projectileScript.Setup(damage, bulletSpeed, maxBulletRange);
                 projectileScript.SetDamageSource(6);

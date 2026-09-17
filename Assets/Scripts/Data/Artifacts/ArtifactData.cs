@@ -78,4 +78,73 @@ public class ArtifactData : ScriptableObject
                 return $"{statType} +{statValue:0.#}%";
         }
     }
+
+    /// <summary>
+    /// Lấy Icon chính thức của Artifact. Nếu chưa được gán trên Inspector, hàm sẽ tự động tìm kiếm trong Resources/Database theo ID, statType hoặc sprite dự phòng.
+    /// </summary>
+    public Sprite GetIcon()
+    {
+        if (icon != null) return icon;
+
+        if (!string.IsNullOrEmpty(id))
+        {
+            // 1. Tìm trực tiếp theo ID trong Resources
+            Sprite res = Resources.Load<Sprite>($"UI/Artifact/{id}");
+            if (res != null) { icon = res; return res; }
+
+            // Thử tên chuẩn hóa thường (lowercase, gạch dưới)
+            string normalized = id.ToLowerInvariant().Replace(" ", "_").Replace("-", "_");
+            res = Resources.Load<Sprite>($"UI/Artifact/{normalized}");
+            if (res != null) { icon = res; return res; }
+
+            // 2. Tìm theo Database nếu có
+            if (ArtifactDatabase.Instance != null)
+            {
+                var dbArt = ArtifactDatabase.Instance.GetById(id);
+                if (dbArt != null && dbArt.icon != null) { icon = dbArt.icon; return dbArt.icon; }
+            }
+
+            // 3. Fallback theo từ khóa định danh đặc biệt
+            if (normalized.Contains("band_aid") || normalized.Contains("hop_mau") || normalized.Contains("first_aid"))
+            {
+                Sprite s = Resources.Load<Sprite>("UI/Artifact/metal_band_aid") ?? Resources.Load<Sprite>("UI/ArtifactChest/hop_mau_nho");
+                if (s != null) { icon = s; return s; }
+            }
+        }
+
+#if UNITY_EDITOR
+        if (!string.IsNullOrEmpty(id))
+        {
+            string cleanId = id.ToLowerInvariant().Replace(" ", "_").Replace("-", "_");
+            string[] candidatePaths = new string[]
+            {
+                $"Assets/Sprites/UI/Artifact/{cleanId}.png",
+                $"Assets/Sprites/UI/Artifact/{id}.png",
+                $"Assets/Sprites/UI/Artifact/{cleanId.Replace("energy_", "").Replace("quantum_", "")}.png",
+                "Assets/Sprites/UI/artifact 1/hop_mau_nho.png"
+            };
+            foreach (var p in candidatePaths)
+            {
+                Sprite s = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(p);
+                if (s != null) { icon = s; return s; }
+            }
+        }
+#endif
+
+        // 4. Fallback theo StatType từ Database
+        if (ArtifactDatabase.Instance != null && ArtifactDatabase.Instance.artifacts != null)
+        {
+            var match = ArtifactDatabase.Instance.artifacts.Find(a => a != null && a.statType == statType && a.icon != null);
+            if (match != null) { icon = match.icon; return icon; }
+        }
+
+        // 5. Fallback cuối cùng: nạp bất kỳ sprite artifact có sẵn nào để tuyệt đối không bao giờ bị ô vuông màu lỗi
+        Sprite defaultFallback = Resources.Load<Sprite>("UI/Artifact/metal_band_aid")
+                              ?? Resources.Load<Sprite>("UI/Artifact/quantum_core")
+                              ?? Resources.Load<Sprite>("UI/Artifact/kung_fu_data_usb")
+                              ?? Resources.Load<Sprite>("UI/Artifact/carbon_scales");
+        if (defaultFallback != null) { icon = defaultFallback; return defaultFallback; }
+
+        return null;
+    }
 }

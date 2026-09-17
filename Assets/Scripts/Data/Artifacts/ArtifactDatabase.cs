@@ -54,6 +54,7 @@ public class ArtifactDatabase : ScriptableObject
         battery.loreDescription = "Eco-friendly product you can recharge.";
         battery.statType = ArtifactStatType.MaxHealthPercent;
         battery.statValue = 15f;
+        battery.icon = Resources.Load<Sprite>("UI/Artifact/spare_battery");
         artifacts.Add(battery);
 
         // 2. Carbon Scales (Ranged DEF +10%)
@@ -63,6 +64,7 @@ public class ArtifactDatabase : ScriptableObject
         scales.loreDescription = "Vinyl 1, it likes me.\nVinyl 2, it doesn't like me.";
         scales.statType = ArtifactStatType.RangedDefensePercent;
         scales.statValue = 10f;
+        scales.icon = Resources.Load<Sprite>("UI/Artifact/carbon_scales");
         artifacts.Add(scales);
 
         // 3. Strong Cooler (Turret ATK Speed +20%)
@@ -72,6 +74,7 @@ public class ArtifactDatabase : ScriptableObject
         cooler.loreDescription = "Cools down Turrets when they overheat.";
         cooler.statType = ArtifactStatType.TurretAttackSpeedPercent;
         cooler.statValue = 20f;
+        cooler.icon = Resources.Load<Sprite>("UI/Artifact/strong_cooler");
         artifacts.Add(cooler);
 
         // 4. Kung Fu Data USB (All Weapons' ATK +9%)
@@ -81,6 +84,7 @@ public class ArtifactDatabase : ScriptableObject
         usb.loreDescription = "Does it actually have the Epic tome of Kung Fu in it?";
         usb.statType = ArtifactStatType.AllWeaponsDamagePercent;
         usb.statValue = 9f;
+        usb.icon = Resources.Load<Sprite>("UI/Artifact/kung_fu_usb");
         artifacts.Add(usb);
 
         // 5. Titanium Fabric (DEF +10)
@@ -90,6 +94,7 @@ public class ArtifactDatabase : ScriptableObject
         titanium.loreDescription = "Sturdy titanium. Covers the body.";
         titanium.statType = ArtifactStatType.DamageReduction;
         titanium.statValue = 10f;
+        titanium.icon = Resources.Load<Sprite>("UI/Artifact/titanium_fabric");
         artifacts.Add(titanium);
 
         // 6. Metal Band-aid (HP +12%)
@@ -99,6 +104,7 @@ public class ArtifactDatabase : ScriptableObject
         bandAid.loreDescription = "A specialized nanotech medical bandage found in abandoned bunkers.";
         bandAid.statType = ArtifactStatType.MaxHealthPercent;
         bandAid.statValue = 12f;
+        bandAid.icon = Resources.Load<Sprite>("UI/Artifact/metal_band_aid") ?? Resources.Load<Sprite>("UI/ArtifactChest/hop_mau_nho");
         artifacts.Add(bandAid);
     }
 

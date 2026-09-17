@@ -206,19 +206,38 @@ public static class BakeChipsetIconsInScene
         {
             Sprite droneTab = buddyButtons.FirstOrDefault(s => s.name.Equals("Drone", StringComparison.OrdinalIgnoreCase));
             Sprite robotPetOff = buddyButtons.FirstOrDefault(s => s.name.Equals("Robot Pet OFF", StringComparison.OrdinalIgnoreCase));
+            Sprite robotPetOn = buddyButtons.FirstOrDefault(s => s.name.Equals("Robot Pet On", StringComparison.OrdinalIgnoreCase))
+                ?? AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Buddy/RobotPet_Sliced/Tab_RobotPet.png");
 
             Transform tabDrone = buddyPanelObj.transform.Find("TopTabs/TabDrone");
             if (tabDrone != null && droneTab != null)
             {
                 var img = tabDrone.GetComponent<Image>();
-                if (img != null) { img.sprite = droneTab; img.color = Color.white; EditorUtility.SetDirty(img); }
+                if (img != null) { img.sprite = droneTab; img.color = Color.white; img.raycastTarget = true; EditorUtility.SetDirty(img); }
             }
 
             Transform tabRobotPet = buddyPanelObj.transform.Find("TopTabs/TabRobotPet");
-            if (tabRobotPet != null && robotPetOff != null)
+            if (tabRobotPet != null)
             {
                 var img = tabRobotPet.GetComponent<Image>();
-                if (img != null) { img.sprite = robotPetOff; img.color = Color.white; EditorUtility.SetDirty(img); }
+                if (img != null)
+                {
+                    if (robotPetOn != null) img.sprite = robotPetOn;
+                    img.color = Color.white;
+                    img.raycastTarget = true;
+                    EditorUtility.SetDirty(img);
+                }
+            }
+
+            if (controller != null)
+            {
+                SerializedObject so = new SerializedObject(controller);
+                var pUnlocked = so.FindProperty("robotPetUnlockedSprite");
+                var pLocked = so.FindProperty("robotPetLockedSprite");
+                if (pUnlocked != null && robotPetOn != null) pUnlocked.objectReferenceValue = robotPetOn;
+                if (pLocked != null && robotPetOff != null) pLocked.objectReferenceValue = robotPetOff;
+                so.ApplyModifiedProperties();
+                EditorUtility.SetDirty(controller);
             }
         }
 

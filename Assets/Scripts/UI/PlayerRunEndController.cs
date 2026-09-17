@@ -337,6 +337,7 @@ public sealed class PlayerRunEndController : MonoBehaviour
             return;
 
         resultResolved = true;
+        GameEvents.RaiseChapterPlayed(PlayerDataService.SelectedChapterIndex);
         SetPanelActive(revivePanel, false);
         PopulateGameOverResult();
         SetPanelActive(gameOverPanel, true);

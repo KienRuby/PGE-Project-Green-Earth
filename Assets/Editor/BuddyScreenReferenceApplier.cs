@@ -177,6 +177,19 @@ public static class BuddyScreenReferenceApplier
         SetImageSprite(serialized.FindProperty("droneModeBg").objectReferenceValue as Image, sourceButtons["Drone"]);
         SetImageSprite(serialized.FindProperty("robotPetModeBg").objectReferenceValue as Image, sourceButtons["Robot Pet On"]);
 
+        SerializedProperty pUnlocked = serialized.FindProperty("robotPetUnlockedSprite");
+        if (pUnlocked != null)
+        {
+            sourceButtons.TryGetValue("Robot Pet On", out Sprite rOn);
+            pUnlocked.objectReferenceValue = rOn ?? AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Buddy/RobotPet_Sliced/Tab_RobotPet.png");
+        }
+        SerializedProperty pLocked = serialized.FindProperty("robotPetLockedSprite");
+        if (pLocked != null)
+        {
+            sourceButtons.TryGetValue("Robot Pet OFF", out Sprite rOff);
+            pLocked.objectReferenceValue = rOff;
+        }
+
         if (sourceIcons.TryGetValue("1", out Sprite s1)) SetImageSprite(serialized.FindProperty("preset1Bg").objectReferenceValue as Image, s1);
         if (sourceIcons.TryGetValue("2", out Sprite s2)) SetImageSprite(serialized.FindProperty("preset2Bg").objectReferenceValue as Image, s2);
         if (sourceIcons.TryGetValue("3", out Sprite s3)) SetImageSprite(serialized.FindProperty("preset3Bg").objectReferenceValue as Image, s3);
@@ -494,6 +507,7 @@ public static class BuddyScreenReferenceApplier
         image.color = Color.white;
         image.type = Image.Type.Simple;
         image.preserveAspect = false;
+        image.raycastTarget = true;
         EditorUtility.SetDirty(image);
     }
 

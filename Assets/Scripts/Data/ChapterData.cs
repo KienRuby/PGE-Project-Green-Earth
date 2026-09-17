@@ -47,6 +47,26 @@ public class ChapterData : ScriptableObject
     [Range(0.1f, 3.0f)]
     public float playerBoundaryPadding = 0.6f;
 
+    [Header("Obstacles & Props Configuration")]
+    [Tooltip("Bật/tắt sinh chướng ngại vật và hoa văn cho Chapter này.")]
+    public bool enableObstacles = true;
+
+    [Tooltip("Mật độ chướng ngại vật (số vật cản / 100m²). Mặc định 4 như Chapter 1.")]
+    [Min(0f)]
+    public float obstacleDensity = 4f;
+
+    [Tooltip("Mật độ họa tiết trang trí (số họa tiết / 100m²). Mặc định 5 như Chapter 1.")]
+    [Min(0f)]
+    public float decorationDensity = 5f;
+
+    [Tooltip("Tỷ lệ chiều rộng collider chướng ngại vật (độ dày va chạm ngang).")]
+    [Range(0.05f, 1f)]
+    public float obstacleColliderWidthRatio = 0.55f;
+
+    [Tooltip("Tỷ lệ chiều cao collider chướng ngại vật (độ dày va chạm chân vật thể).")]
+    [Range(0.05f, 0.5f)]
+    public float obstacleColliderHeightRatio = 0.2f;
+
     [Header("Story & Flavor")]
     [TextArea(2, 4)]
     [Tooltip("Câu thoại dẫn truyện / gợi mở xuất hiện phía dưới quái vật trùm.")]

@@ -514,6 +514,77 @@ public class DailyLoginAchievementTests
     }
 
     [Test]
+    public void Achievement_ChapterClear_DistinctChaptersOnly_RepeatedDoesNotIncrease()
+    {
+        PlayerPrefs.DeleteKey(AchievementManager.ClearedChaptersMaskKey);
+        PlayerPrefs.DeleteKey(PlayerDataService.UnlockedChapterIndexKey);
+        PlayerPrefs.DeleteKey(AchievementManager.GetProgressKey("chapter_clear_5"));
+        PlayerPrefs.DeleteKey(AchievementManager.GetClaimedKey("chapter_clear_5"));
+        PlayerPrefs.Save();
+
+        GameObject mgrGo = new GameObject("DistinctChapterClearTest");
+        AchievementManager mgr = mgrGo.AddComponent<AchievementManager>();
+        mgr.EnsureDatabaseLoaded();
+
+        // Clear Chapter 1 lần 1
+        GameEvents.RaiseChapterCleared(1);
+        Assert.That(mgr.GetProgress("chapter_clear_5"), Is.EqualTo(1));
+
+        // Clear Chapter 1 lần 2 (lặp lại) -> tiến độ vẫn giữ nguyên 1
+        GameEvents.RaiseChapterCleared(1);
+        Assert.That(mgr.GetProgress("chapter_clear_5"), Is.EqualTo(1), "Chơi lại chapter đã clear không được tăng tiến độ.");
+
+        // Clear Chapter 2 -> tăng lên 2
+        GameEvents.RaiseChapterCleared(2);
+        Assert.That(mgr.GetProgress("chapter_clear_5"), Is.EqualTo(2));
+
+        // Clear Chapter 3, 4 -> tiến độ là 4
+        GameEvents.RaiseChapterCleared(3);
+        GameEvents.RaiseChapterCleared(4);
+        Assert.That(mgr.GetProgress("chapter_clear_5"), Is.EqualTo(4));
+        Assert.That(mgr.GetState("chapter_clear_5"), Is.EqualTo(AchievementState.InProgress));
+
+        // Clean up
+        PlayerPrefs.DeleteKey(AchievementManager.ClearedChaptersMaskKey);
+        PlayerPrefs.DeleteKey(AchievementManager.GetProgressKey("chapter_clear_5"));
+        PlayerPrefs.DeleteKey(AchievementManager.GetClaimedKey("chapter_clear_5"));
+        PlayerPrefs.Save();
+        UnityEngine.Object.DestroyImmediate(mgrGo);
+    }
+
+    [Test]
+    public void Achievement_SyncExistingProgress_RecoversPrematureClaim_IfUnderTarget()
+    {
+        PlayerPrefs.DeleteKey(AchievementManager.ClearedChaptersMaskKey);
+        // Giả lập người chơi chỉ mới vượt Chapter 4 (UnlockedChapterIndex = 4, tức 4 chapters đã clear)
+        PlayerPrefs.SetInt(PlayerDataService.UnlockedChapterIndexKey, 4);
+
+        // Nhưng do bug cũ trước đó, tiến độ bị ghi 7 và Claimed = true
+        PlayerPrefs.SetInt(AchievementManager.GetProgressKey("chapter_clear_5"), 7);
+        PlayerPrefs.SetInt(AchievementManager.GetClaimedKey("chapter_clear_5"), 1);
+        PlayerPrefs.Save();
+
+        GameObject mgrGo = new GameObject("RecoverPrematureClaimTest");
+        AchievementManager mgr = mgrGo.AddComponent<AchievementManager>();
+        mgr.EnsureDatabaseLoaded();
+
+        mgr.SyncExistingProgress();
+
+        // Tiến độ phải được đưa về đúng 4 (4/5)
+        Assert.That(mgr.GetProgress("chapter_clear_5"), Is.EqualTo(4), "Tiến độ phải được đưa về chuẩn 4/5.");
+        // Trạng thái Claimed phải được gỡ bỏ vì 4 < 5
+        Assert.That(mgr.IsClaimed("chapter_clear_5"), Is.False, "Nhiệm vụ 4/5 chưa đạt target không được giữ cờ Claimed.");
+        Assert.That(mgr.GetState("chapter_clear_5"), Is.EqualTo(AchievementState.InProgress));
+
+        // Clean up
+        PlayerPrefs.DeleteKey(PlayerDataService.UnlockedChapterIndexKey);
+        PlayerPrefs.DeleteKey(AchievementManager.GetProgressKey("chapter_clear_5"));
+        PlayerPrefs.DeleteKey(AchievementManager.GetClaimedKey("chapter_clear_5"));
+        PlayerPrefs.Save();
+        UnityEngine.Object.DestroyImmediate(mgrGo);
+    }
+
+    [Test]
     public void Popup_TabSwitching_PreservesAuthoredPanelTransforms()
     {
         GameObject popupGo = new GameObject("RewardPopupTransformTest", typeof(RectTransform));

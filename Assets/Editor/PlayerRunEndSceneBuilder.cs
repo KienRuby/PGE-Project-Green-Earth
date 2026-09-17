@@ -417,15 +417,15 @@ public static class PlayerRunEndSceneBuilder
 
         // 5. Nút Get reward (xanh dương bo tròn)
         getRewardButton = CreateSpriteButton(
-            "GetRewardButton", root.transform, normalButtonSprite, new Vector2(0f, -270f), new Vector2(440f, 226f));
+            "GetRewardButton", root.transform, normalButtonSprite, new Vector2(0f, -240f), new Vector2(440f, 226f));
 
         // 6. Nút Get x3 reward (xanh lá bo tròn)
         tripleButton = CreateSpriteButton(
-            "VipTripleButton", root.transform, tripleButtonSprite, new Vector2(0f, -475f), new Vector2(440f, 226f));
+            "VipTripleButton", root.transform, tripleButtonSprite, new Vector2(0f, -500f), new Vector2(440f, 226f));
 
         // 7. Feedback text
         feedbackText = CreateText("FeedbackText", root.transform, string.Empty, 24f, new Color32(255, 240, 116, 255));
-        SetRect(feedbackText.rectTransform, new Vector2(0f, -610f), new Vector2(600f, 40f));
+        SetRect(feedbackText.rectTransform, new Vector2(0f, -645f), new Vector2(600f, 40f));
 
         return root;
     }

@@ -148,7 +148,7 @@ public class BuddyEquipSystemTests
     }
 
     [Test]
-    public void BuddyEquip_WhenFull_ReplacesSlot0()
+    public void BuddyEquip_WhenFull_RejectsUntilADroneIsUnequipped()
     {
         GameObject go = new GameObject("BuddyController_Test", typeof(BuddyController));
         try
@@ -156,8 +156,7 @@ public class BuddyEquipSystemTests
             BuddyController ctrl = go.GetComponent<BuddyController>();
             ctrl.InitializeDatabase();
 
-            // Pre-fill deck 0 with [10, 20, 30]
-            int[] fullDeck = new int[] { 10, 20, 30 };
+            int[] fullDeck = new int[] { 1, 3, 10 };
             PlayerDataService.SaveBuddyDeck(0, fullDeck);
             ctrl.InitializeDatabase();
 
@@ -172,9 +171,14 @@ public class BuddyEquipSystemTests
             toggleMethod.Invoke(ctrl, null);
 
             int[] saved = PlayerDataService.LoadBuddyDeck(0);
-            Assert.AreEqual(2, saved[0], "Slot 0 should be replaced with Turret Buffer (id=2)");
-            Assert.AreEqual(20, saved[1], "Slot 1 should remain 20");
-            Assert.AreEqual(30, saved[2], "Slot 2 should remain 30");
+            CollectionAssert.AreEqual(fullDeck, saved, "A fourth drone must not replace any equipped drone.");
+
+            ctrl.OpenDetailModalFromEquippedSlot(ctrl.AllBuddies.First(b => b.id == 3), 1);
+            toggleMethod.Invoke(ctrl, null);
+            ctrl.OpenDetailModalFromInventory(turretBuffer);
+            toggleMethod.Invoke(ctrl, null);
+            CollectionAssert.AreEqual(new[] { 1, 2, 10 }, PlayerDataService.LoadBuddyDeck(0),
+                "After unequipping, the new drone must fill only the freed slot.");
         }
         finally
         {
@@ -406,6 +410,20 @@ public class BuddyEquipSystemTests
             // Verify reverted to empty slot
             slot0 = equippedRow.transform.GetChild(0);
             Assert.AreEqual("EquippedSlot_0", slot0.name, "Slot 0 should revert to clean empty slot name");
+            // Simulate a stale fourth visual slot from the previous implementation.
+            var stale = Object.Instantiate(slot0.gameObject, equippedRow.transform);
+            stale.name = "StaleExtraSlot";
+            for (int i = 0; i < 3; i++)
+            {
+                ctrl.OpenDetailModalFromInventory(spiderBuddy);
+                toggleMethod.Invoke(ctrl, null);
+                ctrl.RefreshEquippedGrid();
+                Assert.AreEqual(3, equippedRow.transform.childCount, "Repeated refresh must leave exactly three slots.");
+                Assert.AreEqual("EquippedSlot_0_drone-spider", equippedRow.transform.GetChild(0).name);
+                ctrl.OpenDetailModalFromEquippedSlot(spiderBuddy, 0);
+                toggleMethod.Invoke(ctrl, null);
+                Assert.AreEqual(3, equippedRow.transform.childCount);
+            }
         }
         finally
         {

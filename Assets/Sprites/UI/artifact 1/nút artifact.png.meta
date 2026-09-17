@@ -322,6 +322,15 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
+      Artifact_Butter: 552983822
+      Artifact_CD: -1940148266
+      Artifact_Chip: -1560817711
+      Artifact_Cooler: 125025782
+      Artifact_Lego: -151499625
+      Artifact_Rocket: -1126293469
+      Artifact_USB: -1402166991
+      Btn_Get: 1332071254
+      Btn_ThrowAway: 1205750065
       CD: -1940148266
       Chip: -1560817711
       LEGO: -151499625

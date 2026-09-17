@@ -260,6 +260,7 @@ public sealed class VictoryPanelController : MonoBehaviour
 
         int chapterNumber = PlayerDataService.SelectedChapterIndex + 1;
         GameEvents.RaiseChapterCleared(chapterNumber, 3);
+        GameEvents.RaiseChapterPlayed(PlayerDataService.SelectedChapterIndex);
 
         if (detailsButton != null) detailsButton.interactable = true;
         if (vipTripleButton != null) vipTripleButton.interactable = true;

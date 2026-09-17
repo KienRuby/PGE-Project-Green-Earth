@@ -2055,9 +2055,10 @@ public class PauseModalController : MonoBehaviour
         if (iconImg != null)
         {
             iconImg.enabled = true;
-            if (art.icon != null)
+            Sprite artSprite = art.GetIcon();
+            if (artSprite != null)
             {
-                iconImg.sprite = art.icon;
+                iconImg.sprite = artSprite;
                 iconImg.color = Color.white;
             }
             else
@@ -2178,7 +2179,7 @@ public class PauseModalController : MonoBehaviour
     private Sprite LoadArtifactSpriteFromSheet(string spriteName)
     {
 #if UNITY_EDITOR
-        string path = "Assets/Sprites/UI/nút artifact.png";
+        string path = "Assets/Sprites/UI/artifact 1/nút artifact.png";
         var sprites = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(path);
         foreach (var obj in sprites)
         {

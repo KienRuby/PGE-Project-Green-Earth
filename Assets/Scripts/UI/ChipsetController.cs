@@ -863,6 +863,9 @@ public class ChipsetController : MonoBehaviour
         if (furnaceCloseBtn != null) furnaceCloseBtn.onClick.AddListener(() => furnaceModal.SetActive(false));
         if (furnaceDismantleBtn != null) furnaceDismantleBtn.onClick.AddListener(ExecuteDismantle);
 
+        if (chipsetModeBg != null) chipsetModeBg.raycastTarget = true;
+        if (highTechModeBg != null) highTechModeBg.raycastTarget = true;
+
         if (chipsetModeBtn != null) chipsetModeBtn.onClick.AddListener(() => ShowToast("Chipset Configuration Active"));
         if (highTechModeBtn != null) highTechModeBtn.onClick.AddListener(() => ShowToast("High-Tech Chipset unlocks at Chapter 10!"));
 

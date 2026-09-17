@@ -8,9 +8,21 @@ using UnityEngine;
 /// - Cung cấp Gizmos trực quan trên Scene View để căn chỉnh nhanh chóng.
 /// </summary>
 [DisallowMultipleComponent]
+[DefaultExecutionOrder(-1100)]
 public class MapBoundary : MonoBehaviour
 {
-    public static MapBoundary Instance { get; private set; }
+    private static MapBoundary instance;
+    public static MapBoundary Instance
+    {
+        get
+        {
+            // Recover after an Editor script reload, where Awake is not rerun.
+            if (instance == null || !instance.isActiveAndEnabled)
+                instance = FindObjectOfType<MapBoundary>();
+            return instance;
+        }
+        private set => instance = value;
+    }
 
     [Header("1. Map Bounding Box")]
     [Tooltip("Tự động lấy kích thước từ SpriteRenderer gắn trên GameObject này.")]
@@ -58,7 +70,7 @@ public class MapBoundary : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (Instance == this)
+        if (instance == this)
         {
             Instance = null;
         }
@@ -127,6 +139,13 @@ public class MapBoundary : MonoBehaviour
 
         // Tính nửa chiều cao và nửa chiều rộng theo đơn vị World Unity
         float camHalfHeight = cam.orthographicSize;
+        if (cam.orthographic)
+        {
+            // A viewport larger than the floor cannot be contained by position alone.
+            float maxHalfHeight = Mathf.Min(mapSize.y * 0.5f, mapSize.x * 0.5f / Mathf.Max(0.01f, cam.aspect));
+            cam.orthographicSize = Mathf.Min(camHalfHeight, maxHalfHeight);
+            camHalfHeight = cam.orthographicSize;
+        }
         float camHalfWidth = camHalfHeight * cam.aspect;
 
         Vector2 min = MinBounds + new Vector2(camHalfWidth, camHalfHeight);

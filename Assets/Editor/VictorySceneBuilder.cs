@@ -98,15 +98,15 @@ public static class VictorySceneBuilder
 
         // 5. Nút Get reward (xanh dương bo tròn có chữ Get reward)
         Button normalButton = CreateSpriteButton(
-            "GetRewardButton", victoryPanel.transform, normalButtonSprite, new Vector2(0f, -270f), new Vector2(440f, 224f));
+            "GetRewardButton", victoryPanel.transform, normalButtonSprite, new Vector2(0f, -240f), new Vector2(440f, 224f));
 
         // 6. Nút Get x3 reward (xanh lá bo tròn có chữ Get x3 reward)
         Button tripleButton = CreateSpriteButton(
-            "VipTripleButton", victoryPanel.transform, tripleButtonSprite, new Vector2(0f, -475f), new Vector2(440f, 224f));
+            "VipTripleButton", victoryPanel.transform, tripleButtonSprite, new Vector2(0f, -500f), new Vector2(440f, 224f));
 
         // Text thông báo ẩn khi cần (feedback)
         TMP_Text feedbackText = CreateText("FeedbackText", victoryPanel.transform, string.Empty, 24f, Feedback);
-        SetRect(feedbackText.rectTransform, new Vector2(0f, -610f), new Vector2(600f, 40f));
+        SetRect(feedbackText.rectTransform, new Vector2(0f, -645f), new Vector2(600f, 40f));
 
         DamageDetailsPopup damageDetailsPopup = canvas.GetComponentInChildren<DamageDetailsPopup>(true);
         if (damageDetailsPopup == null)

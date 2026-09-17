@@ -9,6 +9,7 @@ using UnityEngine;
 /// </summary>
 [RequireComponent(typeof(SpriteRenderer))]
 [DisallowMultipleComponent]
+[DefaultExecutionOrder(-1000)]
 public class ChapterMapManager : MonoBehaviour
 {
     [Header("Chapter Integration")]
@@ -46,6 +47,7 @@ public class ChapterMapManager : MonoBehaviour
     private void Awake()
     {
         InitializeMap();
+        ApplyCurrentChapterMap();
     }
 
     private void Start()
@@ -77,6 +79,8 @@ public class ChapterMapManager : MonoBehaviour
     /// </summary>
     public void ApplyCurrentChapterMap()
     {
+        transform.rotation = Quaternion.identity;
+        transform.localScale = Vector3.one;
         if (spriteRenderer == null)
         {
             spriteRenderer = GetComponent<SpriteRenderer>();
@@ -132,10 +136,15 @@ public class ChapterMapManager : MonoBehaviour
                 spriteRenderer.sprite = targetSprite;
             }
             spriteRenderer.drawMode = chapter.groundDrawMode;
-            if (chapter.groundDrawMode == SpriteDrawMode.Tiled)
+            if (chapter.groundDrawMode != SpriteDrawMode.Simple)
             {
                 spriteRenderer.tileMode = SpriteTileMode.Continuous;
                 spriteRenderer.size = chapter.mapSize;
+            }
+            else if (spriteRenderer.sprite != null)
+            {
+                Vector2 spriteSize = spriteRenderer.sprite.bounds.size;
+                transform.localScale = new Vector3(chapter.mapSize.x / spriteSize.x, chapter.mapSize.y / spriteSize.y, 1f);
             }
             spriteRenderer.color = chapter.mapColor;
             spriteRenderer.sortingOrder = sortingOrder;
@@ -149,6 +158,7 @@ public class ChapterMapManager : MonoBehaviour
 
         // 3. Khóa vị trí sàn tại tâm
         transform.position = new Vector3(0f, 0f, groundZPosition);
+        CenterRenderedFloor();
 
         Debug.Log($"[ChapterMapManager] 🗺️ Đã thiết lập Bản đồ cho '{chapter.chapterTitle}' (Sprite: {(targetSprite != null ? targetSprite.name : "None")}, Size: {chapter.mapSize.x}x{chapter.mapSize.y}m, Padding: {chapter.playerBoundaryPadding}m)");
     }
@@ -174,6 +184,14 @@ public class ChapterMapManager : MonoBehaviour
         }
 
         transform.position = new Vector3(0f, 0f, groundZPosition);
+        CenterRenderedFloor();
+    }
+
+    private void CenterRenderedFloor()
+    {
+        if (spriteRenderer == null || spriteRenderer.sprite == null) return;
+        Vector3 center = spriteRenderer.bounds.center;
+        transform.position -= new Vector3(center.x, center.y, 0f);
     }
 
     private void FindChapterDatabase()

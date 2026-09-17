@@ -81,7 +81,7 @@ public class BuddyItemData
 
 public class BuddyController : MonoBehaviour
 {
-    public const int RequiredClearedChaptersForRobotPet = 4;
+    public const int RequiredClearedChaptersForRobotPet = 3;
 
     [Header("Top Bar Currencies")]
     [SerializeField] private TMP_Text chipCurrencyText;
@@ -96,6 +96,8 @@ public class BuddyController : MonoBehaviour
     [Header("Robot Pet Mode")]
     [SerializeField] private GameObject robotPetPanel;
     [SerializeField] private GameObject robotPetLockIcon;
+    [SerializeField] private Sprite robotPetUnlockedSprite;
+    [SerializeField] private Sprite robotPetLockedSprite;
     [SerializeField] private GameObject[] droneModeContentRoots = Array.Empty<GameObject>();
 
     [Header("Preset Decks")]
@@ -531,6 +533,9 @@ public class BuddyController : MonoBehaviour
             byQuantityBtn.onClick.AddListener(() => SetSortMode(true));
         }
 
+        if (droneModeBg != null) droneModeBg.raycastTarget = true;
+        if (robotPetModeBg != null) robotPetModeBg.raycastTarget = true;
+
         if (droneModeBtn != null)
         {
             droneModeBtn.onClick.RemoveListener(ShowDroneMode);
@@ -557,7 +562,11 @@ public class BuddyController : MonoBehaviour
     {
         if (!IsRobotPetUnlocked)
         {
-            ShowToast("Clear Chapter 4 to unlock Robot Pet!");
+            int current = PlayerDataService.UnlockedChapterIndex;
+            string msg = GameSettings.IsVietnamese
+                ? $"Cần vượt qua Chapter {RequiredClearedChaptersForRobotPet} để mở khóa Robot Pet! (Hiện tại: {current}/{RequiredClearedChaptersForRobotPet})"
+                : $"Clear Chapter {RequiredClearedChaptersForRobotPet} to unlock Robot Pet! (Current: {current}/{RequiredClearedChaptersForRobotPet})";
+            ShowToast(msg);
             RefreshRobotPetUnlockState();
             return;
         }
@@ -594,20 +603,58 @@ public class BuddyController : MonoBehaviour
         RefreshRobotPetUnlockState();
     }
 
+    private void EnsureRobotPetSpritesLoaded()
+    {
+        if (robotPetUnlockedSprite == null)
+        {
+            robotPetUnlockedSprite = Resources.Load<Sprite>("Tab_RobotPet");
+#if UNITY_EDITOR
+            if (robotPetUnlockedSprite == null)
+            {
+                robotPetUnlockedSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Buddy/RobotPet_Sliced/Tab_RobotPet.png");
+            }
+            if (robotPetUnlockedSprite == null)
+            {
+                var all = UnityEditor.AssetDatabase.LoadAllAssetsAtPath("Assets/Sprites/UI/Buddy/nút màn buddy.png").OfType<Sprite>();
+                robotPetUnlockedSprite = all.FirstOrDefault(s => s.name.Equals("Robot Pet On", StringComparison.OrdinalIgnoreCase));
+            }
+#endif
+        }
+
+        if (robotPetLockedSprite == null)
+        {
+#if UNITY_EDITOR
+            var all = UnityEditor.AssetDatabase.LoadAllAssetsAtPath("Assets/Sprites/UI/Buddy/nút màn buddy.png").OfType<Sprite>();
+            robotPetLockedSprite = all.FirstOrDefault(s => s.name.Equals("Robot Pet OFF", StringComparison.OrdinalIgnoreCase));
+#endif
+        }
+    }
+
     private void RefreshRobotPetUnlockState()
     {
+        EnsureRobotPetSpritesLoaded();
+
         bool unlocked = IsRobotPetUnlocked;
+
+        if (droneModeBg != null) droneModeBg.raycastTarget = true;
+        if (robotPetModeBg != null)
+        {
+            robotPetModeBg.raycastTarget = true;
+
+            Sprite targetSprite = unlocked ? robotPetUnlockedSprite : robotPetLockedSprite;
+            if (targetSprite != null)
+            {
+                robotPetModeBg.sprite = targetSprite;
+            }
+
+            robotPetModeBg.color = unlocked
+                ? (isRobotPetMode ? Color.white : new Color(0.82f, 0.92f, 0.92f, 1f))
+                : (robotPetLockedSprite != null ? Color.white : new Color(0.35f, 0.45f, 0.45f, 1f));
+        }
 
         if (robotPetLockIcon != null)
         {
             robotPetLockIcon.SetActive(!unlocked);
-        }
-
-        if (robotPetModeBg != null)
-        {
-            robotPetModeBg.color = unlocked
-                ? (isRobotPetMode ? Color.white : new Color(0.82f, 0.92f, 0.92f, 1f))
-                : new Color(0.35f, 0.45f, 0.45f, 1f);
         }
 
         if (droneModeBg != null)

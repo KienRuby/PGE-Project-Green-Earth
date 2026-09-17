@@ -21,7 +21,7 @@ public static class ArtifactSystemSetup
 {
     private const string FolderPath = "Assets/Data/Artifacts";
     private const string ResourcesFolderPath = "Assets/Resources";
-    private const string SpriteSheetPath = "Assets/Sprites/UI/nút artifact.png";
+    private const string SpriteSheetPath = "Assets/Sprites/UI/artifact 1/nút artifact.png";
 
     [MenuItem("PGE/Setup Artifact Database & Defaults", false, 120)]
     [MenuItem("Tools/PGE/Setup Artifact Database & Defaults", false, 120)]

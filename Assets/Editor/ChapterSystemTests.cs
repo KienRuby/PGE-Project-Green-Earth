@@ -388,7 +388,8 @@ public class ChapterSystemTests
             ChapterScreenController ctrl = go.AddComponent<ChapterScreenController>();
 
             ChapterDatabase db = AssetDatabase.LoadAssetAtPath<ChapterDatabase>(ChapterDatabasePath);
-            ctrl.SetDatabaseForTesting(db, 3); // Start at Chapter 4 (index 3)
+            int lastIndex = db.Count - 1;
+            ctrl.SetDatabaseForTesting(db, lastIndex); // Start at last chapter
 
             // Click Next (>) -> should wrap to Chapter 1 (index 0)
             ctrl.OnNextChapterClicked();
@@ -402,9 +403,9 @@ public class ChapterSystemTests
             ctrl.OnPrevChapterClicked();
             Assert.That(PlayerDataService.SelectedChapterIndex, Is.EqualTo(0));
 
-            // Click Prev (<) -> should wrap to Chapter 4 (index 3)
+            // Click Prev (<) -> should wrap to last chapter
             ctrl.OnPrevChapterClicked();
-            Assert.That(PlayerDataService.SelectedChapterIndex, Is.EqualTo(3));
+            Assert.That(PlayerDataService.SelectedChapterIndex, Is.EqualTo(lastIndex));
 
             GameObject.DestroyImmediate(go);
         }
@@ -1423,6 +1424,40 @@ public class ChapterSystemTests
             ChipManager.DataChips = initialChips;
             ChipManager.RedGems = initialGems;
             Object.DestroyImmediate(enemyGo);
+        }
+    }
+
+    [Test]
+    public void AllChapters_ShareChapter1MapAndObstacleConfiguration()
+    {
+        ChapterDatabase db = AssetDatabase.LoadAssetAtPath<ChapterDatabase>(ChapterDatabasePath);
+        Assert.That(db, Is.Not.Null, "Không tìm thấy ChapterDatabase.asset");
+        Assert.That(db.Count, Is.EqualTo(10), "Database phải chứa đủ 10 chapter.");
+
+        ChapterData c1 = db.GetChapter(0);
+        Assert.That(c1.mapGroundSprite, Is.Not.Null, "Chapter 1 phải có mapGroundSprite.");
+        Assert.That(c1.mapSize, Is.EqualTo(new Vector2(40f, 40f)));
+        Assert.That(c1.playerBoundaryPadding, Is.EqualTo(0.6f));
+        Assert.That(c1.enableObstacles, Is.True);
+        Assert.That(c1.obstacleDensity, Is.EqualTo(4f));
+        Assert.That(c1.decorationDensity, Is.EqualTo(5f));
+        Assert.That(c1.obstacleColliderWidthRatio, Is.EqualTo(0.55f));
+        Assert.That(c1.obstacleColliderHeightRatio, Is.EqualTo(0.2f));
+
+        for (int i = 1; i < db.Count; i++)
+        {
+            ChapterData ch = db.GetChapter(i);
+            Assert.That(ch, Is.Not.Null, $"Chapter index {i} không được null.");
+            Assert.That(ch.mapGroundSprite, Is.EqualTo(c1.mapGroundSprite), $"Chapter {ch.chapterNumber} phải dùng chung mapGroundSprite với Chapter 1.");
+            Assert.That(ch.mapSize, Is.EqualTo(c1.mapSize), $"Chapter {ch.chapterNumber} phải dùng mapSize {c1.mapSize}.");
+            Assert.That(ch.mapColor, Is.EqualTo(c1.mapColor), $"Chapter {ch.chapterNumber} phải dùng mapColor của Chapter 1.");
+            Assert.That(ch.groundDrawMode, Is.EqualTo(c1.groundDrawMode), $"Chapter {ch.chapterNumber} phải dùng groundDrawMode của Chapter 1.");
+            Assert.That(ch.playerBoundaryPadding, Is.EqualTo(c1.playerBoundaryPadding), $"Chapter {ch.chapterNumber} phải dùng padding của Chapter 1.");
+            Assert.That(ch.enableObstacles, Is.True, $"Chapter {ch.chapterNumber} phải bật enableObstacles.");
+            Assert.That(ch.obstacleDensity, Is.EqualTo(4f), $"Chapter {ch.chapterNumber} phải dùng obstacleDensity = 4.");
+            Assert.That(ch.decorationDensity, Is.EqualTo(5f), $"Chapter {ch.chapterNumber} phải dùng decorationDensity = 5.");
+            Assert.That(ch.obstacleColliderWidthRatio, Is.EqualTo(0.55f), $"Chapter {ch.chapterNumber} phải có obstacleColliderWidthRatio = 0.55.");
+            Assert.That(ch.obstacleColliderHeightRatio, Is.EqualTo(0.2f), $"Chapter {ch.chapterNumber} phải có obstacleColliderHeightRatio = 0.2.");
         }
     }
 }

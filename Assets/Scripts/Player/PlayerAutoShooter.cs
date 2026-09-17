@@ -155,6 +155,15 @@ public class PlayerAutoShooter : MonoBehaviour
     public Transform CurrentTarget => currentTarget;
     public Transform FirePoint => attackPoint != null ? attackPoint : transform;
     public float SharedAttackRange => Mathf.Max(0.1f, currentAttackRange + bonusAttackRange);
+    public float BonusAttackRange
+    {
+        get => bonusAttackRange;
+        set => bonusAttackRange = value;
+    }
+    /// <summary>
+    /// Phạm vi tấn công / bắn của các vũ khí chipset: luôn nhỏ hơn tầm bắn của Player 3m.
+    /// </summary>
+    public float ChipsetAttackRange => Mathf.Max(1.0f, SharedAttackRange - 3.0f);
 
     private void Awake()
     {
@@ -798,6 +807,11 @@ public class PlayerAutoShooter : MonoBehaviour
     {
         if (currentTarget == null || projectilePrefab == null) return;
 
+        // Chỉ khai hỏa vũ khí chipset khi mục tiêu nằm trong tầm bắn của chipset (nhỏ hơn Player 3m)
+        Vector3 spawnPosition = attackPoint != null ? attackPoint.position : transform.position;
+        float distToTarget = Vector2.Distance(spawnPosition, currentTarget.position);
+        if (distToTarget > ChipsetAttackRange) return;
+
         TryFireChipsetWeapon(1);
         TryFireChipsetWeapon(2);
         TryFireChipsetWeapon(5);
@@ -822,7 +836,7 @@ public class PlayerAutoShooter : MonoBehaviour
         int damage = Mathf.RoundToInt((GetChipsetWeaponDamage(chipsetId) + bonusDamage) * artifactDamageMultiplier);
         float spread = 0f;
         float speed = chipsetId == 2 ? 18f : 16f;
-        float range = chipsetId == 8 ? 9f : 12f;
+        float range = ChipsetAttackRange;
         float sourceCritChance = chipsetId == 1 && level >= 3 ? 0.10f : 0f;
         bool homing = chipsetId == 5 && level >= 3;
         bool radial = chipsetId == 5 && level >= 5;

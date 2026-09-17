@@ -283,7 +283,7 @@ public class ShopSecurityAndTransactionTests
         Assert.That(shop.TryPurchase(CreateVndOffer("drone-pack"), bypassCooldown: true), Is.True);
         Assert.That(PlayerDataService.RedGems, Is.EqualTo(3000));
         Assert.That(PlayerDataService.GetBuddyPieceCount(1), Is.EqualTo(7));
-        Assert.That(PlayerDataService.GetBuddyPieceCount(6), Is.EqualTo(7));
+        Assert.That(PlayerDataService.GetBuddyPieceCount(2), Is.EqualTo(7));
         Assert.That(PlayerDataService.GetBuddyPieceCount(10), Is.EqualTo(7));
     }
 

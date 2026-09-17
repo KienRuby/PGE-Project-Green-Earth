@@ -1,5 +1,6 @@
 using UnityEngine;
 
+[DefaultExecutionOrder(200)]
 public class CameraFollow : MonoBehaviour
 {
     [Header("Target")]
@@ -139,8 +140,16 @@ public class CameraFollow : MonoBehaviour
 
         UpdateFollow(Time.deltaTime);
 
-        appliedShakeOffset = ScreenShakeService.UpdateAndGetOffset(Time.deltaTime);
-        transform.position += appliedShakeOffset;
+        Vector3 basePosition = transform.position;
+        Vector3 shaken = basePosition + ScreenShakeService.UpdateAndGetOffset(Time.deltaTime);
+        if (MapBoundary.Instance != null)
+        {
+            Vector2 clamped = MapBoundary.Instance.ClampCameraPosition(shaken, GetCameraComponent());
+            shaken.x = clamped.x;
+            shaken.y = clamped.y;
+        }
+        appliedShakeOffset = shaken - basePosition;
+        transform.position = shaken;
     }
 
     private void OnDisable()

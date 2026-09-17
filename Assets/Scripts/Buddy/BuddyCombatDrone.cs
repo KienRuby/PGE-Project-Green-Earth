@@ -82,10 +82,31 @@ public abstract class BuddyCombatDrone : MonoBehaviour
         }
     }
     public Transform FirePoint => firePoint != null ? firePoint : transform;
+    private PlayerAutoShooter cachedShooter;
+
+    /// <summary>
+    /// Bán kính tấn công / phát hiện mục tiêu của Buddy: luôn nhỏ hơn tầm bắn của Player 3m.
+    /// </summary>
+    public float EffectiveAttackRange
+    {
+        get
+        {
+            if (cachedShooter == null && playerTransform != null)
+            {
+                cachedShooter = playerTransform.GetComponent<PlayerAutoShooter>();
+            }
+            if (cachedShooter != null)
+            {
+                return Mathf.Max(1.0f, cachedShooter.SharedAttackRange - 3.0f);
+            }
+            return Mathf.Max(1.0f, targetDetectionRadius);
+        }
+    }
 
     public virtual void Initialize(Transform targetPlayer, int slotIdx, int totalEquipped, int level = 1, BuddyTier tier = BuddyTier.Common)
     {
         playerTransform = targetPlayer;
+        cachedShooter = playerTransform != null ? playerTransform.GetComponent<PlayerAutoShooter>() : null;
         slotIndex = slotIdx;
         totalSlots = Mathf.Max(1, totalEquipped);
         currentLevel = Mathf.Max(1, level);
@@ -292,11 +313,13 @@ public abstract class BuddyCombatDrone : MonoBehaviour
         if (targetScanTimer > 0f) return;
         targetScanTimer = targetRefreshInterval;
 
+        float range = EffectiveAttackRange;
+
         // Kiểm tra target hiện tại còn hợp lệ không
         if (currentTarget != null)
         {
             if (!currentTarget.gameObject.activeInHierarchy || currentTarget.IsDead ||
-                Vector2.Distance(transform.position, currentTarget.transform.position) > targetDetectionRadius * 1.3f)
+                Vector2.Distance(transform.position, currentTarget.transform.position) > range * 1.3f)
             {
                 currentTarget = null;
             }
@@ -311,7 +334,8 @@ public abstract class BuddyCombatDrone : MonoBehaviour
     protected virtual EnemyHealth FindBestTarget()
     {
         Vector2 scanCenter = transform.position;
-        Collider2D[] hits = Physics2D.OverlapCircleAll(scanCenter, targetDetectionRadius, enemyLayer);
+        float range = EffectiveAttackRange;
+        Collider2D[] hits = Physics2D.OverlapCircleAll(scanCenter, range, enemyLayer);
         if (hits == null || hits.Length == 0)
         {
             GameObject[] creeps = GameObject.FindGameObjectsWithTag("Enemy");
@@ -323,7 +347,7 @@ public abstract class BuddyCombatDrone : MonoBehaviour
                 EnemyHealth eh = go.GetComponent<EnemyHealth>() ?? go.GetComponentInParent<EnemyHealth>();
                 if (eh == null || eh.IsDead) continue;
                 float d = Vector2.Distance(scanCenter, go.transform.position);
-                if (d <= targetDetectionRadius && d < minFallbackDist)
+                if (d <= range && d < minFallbackDist)
                 {
                     minFallbackDist = d;
                     bestFallback = eh;
@@ -342,7 +366,7 @@ public abstract class BuddyCombatDrone : MonoBehaviour
             if (health == null || health.IsDead || !health.gameObject.activeInHierarchy) continue;
 
             float dist = Vector2.Distance(scanCenter, health.transform.position);
-            if (dist < minDistance)
+            if (dist < minDistance && dist <= range)
             {
                 minDistance = dist;
                 nearestEnemy = health;

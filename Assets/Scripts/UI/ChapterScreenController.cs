@@ -392,7 +392,6 @@ public class ChapterScreenController : MonoBehaviour
         }
 
         PlayerDataService.SelectedChapterIndex = currentChapterIndex;
-        GameEvents.RaiseChapterPlayed(currentChapterIndex);
 
         loadedSceneName = currentChapter != null && !string.IsNullOrEmpty(currentChapter.gameplaySceneName)
             ? currentChapter.gameplaySceneName

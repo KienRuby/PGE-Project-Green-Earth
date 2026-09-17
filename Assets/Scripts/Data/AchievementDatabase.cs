@@ -10,13 +10,13 @@ public enum AchievementType
     [Tooltip("Số lần nâng cấp tăng bậc (Tier) cho Drone / Buddy.")]
     DroneTierAdvanced,
 
-    [Tooltip("Số lần vào chơi các Chapter.")]
+    [Tooltip("Số lần vào chơi các Chapter kết thúc hợp lệ (thắng hoặc thua, thoát ngang không tính).")]
     ChapterPlayed,
 
     [Tooltip("Số lượng quái vật / boss đã tiêu diệt.")]
     EnemyKilled,
 
-    [Tooltip("Số Chapter đã vượt qua thành công.")]
+    [Tooltip("Số Chapter đã vượt qua thành công (không tính lặp lại).")]
     ChapterCleared
 }
 

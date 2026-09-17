@@ -207,11 +207,30 @@ public class RocketPunchSkill : MonoBehaviour
         activeOrbitingPunch = proj;
     }
 
+    /// <summary>
+    /// Phạm vi phóng của Rocket Punch (Chipset): luôn nhỏ hơn tầm bắn của Player 3m.
+    /// </summary>
+    public float EffectiveLaunchRange
+    {
+        get
+        {
+            if (playerAutoShooter != null)
+            {
+                return Mathf.Max(1.0f, playerAutoShooter.SharedAttackRange - 3.0f);
+            }
+            return 9.0f;
+        }
+    }
+
     private Transform FindTargetEnemy()
     {
-        if (playerAutoShooter != null)
+        if (playerAutoShooter != null && playerAutoShooter.CurrentTarget != null)
         {
-            return playerAutoShooter.CurrentTarget;
+            float dist = Vector2.Distance(GetSharedFirePoint().position, playerAutoShooter.CurrentTarget.position);
+            if (dist <= EffectiveLaunchRange)
+            {
+                return playerAutoShooter.CurrentTarget;
+            }
         }
 
         return null;

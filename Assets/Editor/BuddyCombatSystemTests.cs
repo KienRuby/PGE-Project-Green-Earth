@@ -122,4 +122,33 @@ public class BuddyCombatSystemTests
             Object.DestroyImmediate(playerObj);
         }
     }
+
+    [Test]
+    public void AllBuddyDrones_AttackRange_IsThreeMetersSmallerThanPlayerAttackRange()
+    {
+        GameObject player = new GameObject("Player_BuddyRangeTest");
+        GameObject droneObj = new GameObject("Drone_Test");
+        try
+        {
+            PlayerAutoShooter shooter = player.AddComponent<PlayerAutoShooter>();
+            BuddyCombatDrone drone = droneObj.AddComponent<AssaultBlasterBuddy>();
+
+            // Trước khi Initialize với player: dùng fallback targetDetectionRadius = 9m
+            Assert.AreEqual(9.0f, drone.EffectiveAttackRange, 0.001f);
+
+            // Sau khi Initialize với player: đọc từ PlayerAutoShooter (12m - 3m = 9m)
+            drone.Initialize(player.transform, 0, 1, 1, BuddyTier.Common);
+            Assert.AreEqual(9.0f, drone.EffectiveAttackRange, 0.001f);
+
+            // Khi Player được tăng tầm bắn (+3m -> 15m), tầm bắn của Buddy tăng tương ứng lên 12m
+            shooter.BonusAttackRange = 3.0f;
+            Assert.AreEqual(15.0f, shooter.SharedAttackRange, 0.001f);
+            Assert.AreEqual(12.0f, drone.EffectiveAttackRange, 0.001f);
+        }
+        finally
+        {
+            Object.DestroyImmediate(droneObj);
+            Object.DestroyImmediate(player);
+        }
+    }
 }

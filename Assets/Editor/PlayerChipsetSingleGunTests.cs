@@ -146,6 +146,73 @@ public class PlayerChipsetSingleGunTests
         }
     }
 
+    [Test]
+    public void AllChipsetWeapons_AttackRange_IsThreeMetersSmallerThanPlayerAttackRange()
+    {
+        GameObject player = new GameObject("Player_RangeTest");
+        GameObject gunPivot = new GameObject("GunPivot");
+        GameObject gunSprite = new GameObject("GunSprite");
+        GameObject firePoint = new GameObject("FirePoint");
+
+        try
+        {
+            gunPivot.transform.SetParent(player.transform);
+            gunSprite.transform.SetParent(gunPivot.transform);
+            firePoint.transform.SetParent(gunSprite.transform);
+
+            PlayerAutoShooter shooter = player.AddComponent<PlayerAutoShooter>();
+            // Mặc định SharedAttackRange = 12.0f
+            Assert.That(shooter.SharedAttackRange, Is.EqualTo(12.0f).Within(0.001f));
+            Assert.That(shooter.ChipsetAttackRange, Is.EqualTo(9.0f).Within(0.001f));
+
+            // Test GunTurret (Chipset ID 6)
+            GameObject turretObj = new GameObject("Turret");
+            try
+            {
+                GunTurret turret = turretObj.AddComponent<GunTurret>();
+                turret.Initialize(10, 1f, 10f, 10f, 0f, false, 100, null, null, null, targetProvider: shooter);
+                Assert.That(turret.EffectiveAttackRange, Is.EqualTo(9.0f).Within(0.001f));
+
+                shooter.BonusAttackRange = 3.0f;
+                Assert.That(turret.EffectiveAttackRange, Is.EqualTo(12.0f).Within(0.001f));
+                shooter.BonusAttackRange = 0f;
+            }
+            finally
+            {
+                Object.DestroyImmediate(turretObj);
+            }
+
+            // Test RocketPunchSkill (Chipset ID 3)
+            RocketPunchSkill rocketPunch = player.AddComponent<RocketPunchSkill>();
+            Assert.That(rocketPunch.EffectiveLaunchRange, Is.EqualTo(9.0f).Within(0.001f));
+
+            // Test Legacy Skills (IDs 1, 2, 8, 5)
+            StandardGunSkill stdGun = player.AddComponent<StandardGunSkill>();
+            RifleSkill rifle = player.AddComponent<RifleSkill>();
+            ShotgunSkill shotgun = player.AddComponent<ShotgunSkill>();
+            MultigunSkill multigun = player.AddComponent<MultigunSkill>();
+
+            Assert.That(stdGun.EffectiveAttackRange, Is.EqualTo(9.0f).Within(0.001f));
+            Assert.That(rifle.EffectiveAttackRange, Is.EqualTo(9.0f).Within(0.001f));
+            Assert.That(shotgun.EffectiveAttackRange, Is.EqualTo(9.0f).Within(0.001f));
+            Assert.That(multigun.EffectiveAttackRange, Is.EqualTo(9.0f).Within(0.001f));
+
+            // Dynamic scaling test: Tăng tầm bắn Player lên 15m (+3m bonus)
+            shooter.BonusAttackRange = 3.0f;
+            Assert.That(shooter.SharedAttackRange, Is.EqualTo(15.0f).Within(0.001f));
+            Assert.That(shooter.ChipsetAttackRange, Is.EqualTo(12.0f).Within(0.001f));
+            Assert.That(rocketPunch.EffectiveLaunchRange, Is.EqualTo(12.0f).Within(0.001f));
+            Assert.That(stdGun.EffectiveAttackRange, Is.EqualTo(12.0f).Within(0.001f));
+            Assert.That(rifle.EffectiveAttackRange, Is.EqualTo(12.0f).Within(0.001f));
+            Assert.That(shotgun.EffectiveAttackRange, Is.EqualTo(12.0f).Within(0.001f));
+            Assert.That(multigun.EffectiveAttackRange, Is.EqualTo(12.0f).Within(0.001f));
+        }
+        finally
+        {
+            Object.DestroyImmediate(player);
+        }
+    }
+
     private static void InvokePrivate(object target, string methodName, params object[] arguments)
     {
         MethodInfo method = target.GetType().GetMethod(

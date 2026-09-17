@@ -18,11 +18,16 @@ MonoBehaviour:
   energyCost: 10
   previewBackground: {fileID: 21300000, guid: 0377c92faaf76cc4d97b14ef7cfeeb09, type: 3}
   bossSilhouette: {fileID: -803355726, guid: 5424adb2f9ebec9459ec5817bc67a31c, type: 3}
-  mapGroundSprite: {fileID: 0}
+  mapGroundSprite: {fileID: 21300000, guid: e92326fa91624344e844f543e748a31e, type: 3}
   mapSize: {x: 40, y: 40}
-  mapColor: {r: 1, g: 1, b: 1, a: 1}
+  mapColor: {r: 0.9685534, g: 0.86858594, b: 0.70966333, a: 1}
   groundDrawMode: 2
   playerBoundaryPadding: 0.6
+  enableObstacles: 1
+  obstacleDensity: 4
+  decorationDensity: 5
+  obstacleColliderWidthRatio: 0.55
+  obstacleColliderHeightRatio: 0.2
   flavorText: Going through the vines to look for you, mutants.
   gameplaySceneName: GamePlay
   levelConfigId: dense_jungle_1
