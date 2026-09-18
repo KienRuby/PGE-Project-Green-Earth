@@ -76,12 +76,12 @@ public class BuildBodyController : MonoBehaviour
     [Tooltip("Ảnh nền màu XANH ĐẬM dùng cho các Skin khác (Previous version / chưa trang bị).")]
     [SerializeField] private Sprite darkBlueCardBackground;
 
-    [Header("Body Cards (4 Units)")]
-    [SerializeField] private BodyCardView[] cardViews = new BodyCardView[4];
+    [Header("Body Cards (5 Units: Slot 1 Default, Slots 2-5 AD Units)")]
+    [SerializeField] private BodyCardView[] cardViews = new BodyCardView[5];
 
     [Header("Unit Build Costs")]
-    [Tooltip("Giá Ngọc Đỏ để Build 4 Units (Unit 1: 1000, Unit 2: 1500, Unit 3: 2000, Unit 4: 3000).")]
-    [SerializeField] private int[] unitBuildCosts = new int[4] { 1000, 1500, 2000, 3000 };
+    [Tooltip("Giá Ngọc Đỏ để Build 5 Units (Slot 1 Default: 0, Unit 1: 1000, Unit 2: 1500, Unit 3: 2000, Unit 4: 3000).")]
+    [SerializeField] private int[] unitBuildCosts = new int[5] { 0, 1000, 1500, 2000, 3000 };
 
     [Header("Toast Notification")]
     [SerializeField] private GameObject toastRoot;
@@ -92,8 +92,8 @@ public class BuildBodyController : MonoBehaviour
     {
         get
         {
-            int index = PlayerPrefs.GetInt(EquippedSkinKey, -1);
-            if (index >= 0 && !IsBodyUnlocked(index)) return -1;
+            int index = PlayerPrefs.GetInt(EquippedSkinKey, 0);
+            if (!IsBodyUnlocked(index)) return 0;
             return index;
         }
         set
@@ -122,12 +122,19 @@ public class BuildBodyController : MonoBehaviour
             return unitBuildCosts[index];
         return index switch
         {
-            0 => 1000,
-            1 => 1500,
-            2 => 2000,
-            3 => 3000,
+            0 => 0,
+            1 => 1000,
+            2 => 1500,
+            3 => 2000,
+            4 => 3000,
             _ => 1000
         };
+    }
+
+    public static string GetUnitDisplayName(int index, bool vi)
+    {
+        if (index == 0) return vi ? "Trang phục Mặc định" : "Default Body";
+        return $"AD Unit-{index}";
     }
 
     private void Awake()
@@ -157,6 +164,7 @@ public class BuildBodyController : MonoBehaviour
 
     public static bool IsBodyUnlocked(int index)
     {
+        if (index == 0) return true; // Skin mặc định (Slot 1) luôn mở khóa sẵn khi mới tải game
         return PlayerPrefs.GetInt(GetBodyUnlockKey(index), 0) == 1;
     }
 
@@ -283,20 +291,21 @@ public class BuildBodyController : MonoBehaviour
     private void EquipSkin(int index)
     {
         bool vi = GameSettings.IsVietnamese;
+        string name = GetUnitDisplayName(index, vi);
         if (EquippedSkinIndex == index)
         {
-            ShowToast(vi ? $"Đang sử dụng AD Unit-{index + 1}!" : $"Currently using AD Unit-{index + 1}!");
+            ShowToast(vi ? $"Đang sử dụng {name}!" : $"Currently using {name}!");
             return;
         }
 
         EquippedSkinIndex = index;
         RefreshAllCards();
-        ShowToast(vi ? $"Đã đổi sang trang phục AD Unit-{index + 1}!" : $"Equipped outfit AD Unit-{index + 1}!");
+        ShowToast(vi ? $"Đã đổi sang trang phục {name}!" : $"Equipped outfit {name}!");
     }
 
     private void OnBuildButtonClicked(int index)
     {
-        if (IsBodyUnlocked(index))
+        if (index == 0 || IsBodyUnlocked(index))
         {
             EquipSkin(index);
             return;
@@ -305,12 +314,13 @@ public class BuildBodyController : MonoBehaviour
         int cost = GetBuildCost(index);
         int currentGems = ChipManager.RedGems;
         bool vi = GameSettings.IsVietnamese;
+        string name = GetUnitDisplayName(index, vi);
 
         if (currentGems < cost)
         {
             ShowToast(vi
-                ? $"Không đủ Ngọc Đỏ để Build Unit {index + 1}! Cần {cost:N0} Ngọc Đỏ (Hiện có: {currentGems:N0})"
-                : $"Not enough Red Gems to build Unit {index + 1}! Need {cost:N0} Red Gems (Current: {currentGems:N0})");
+                ? $"Không đủ Ngọc Đỏ để Build {name}! Cần {cost:N0} Ngọc Đỏ (Hiện có: {currentGems:N0})"
+                : $"Not enough Red Gems to build {name}! Need {cost:N0} Red Gems (Current: {currentGems:N0})");
             return;
         }
 
@@ -320,8 +330,8 @@ public class BuildBodyController : MonoBehaviour
             PlayerPrefs.Save();
             EquipSkin(index);
             ShowToast(vi
-                ? $"★ Chúc mừng! Đã Build thành công AD Unit-{index + 1}! ★"
-                : $"★ Congratulations! Successfully built AD Unit-{index + 1}! ★");
+                ? $"★ Chúc mừng! Đã Build thành công {name}! ★"
+                : $"★ Congratulations! Successfully built {name}! ★");
         }
     }
 
@@ -369,10 +379,10 @@ public class BuildBodyController : MonoBehaviour
                 card.changeSkinButton.gameObject.SetActive(isEquipped);
             }
 
-            // 4. Nhóm nút Build: Chỉ hiển thị trên thẻ chưa sở hữu
+            // 4. Nhóm nút Build: Chỉ hiển thị trên thẻ chưa sở hữu (Skin mặc định index 0 luôn coi là đã sở hữu)
             if (card.buildGroup != null)
             {
-                card.buildGroup.SetActive(!isUnlocked);
+                card.buildGroup.SetActive(!isUnlocked && i > 0);
             }
 
             if (card.buildCostText != null)

@@ -18,10 +18,16 @@ using UnityEngine.UI;
 /// - AD Unit-4 có nút Build với giá 500 Ngọc Đỏ.
 /// - Kết nối đầy đủ 100% SerializedProperty với BuildBodyController.
 /// </summary>
+[InitializeOnLoad]
 public static class BuildBodyUIBuilder
 {
     private const string ScenePath = "Assets/Scenes/MainMenu.unity";
     private const string BuildRequestPath = "Assets/Editor/PGE_BuildBodyUI_BuildRequest.txt";
+
+    static BuildBodyUIBuilder()
+    {
+        EditorApplication.delayCall += TryBuildRequestedUI;
+    }
 
     // Sprites Paths
     private const string LabButtonsPath = "Assets/Sprites/UI/Lab/nút màn lab.png";
@@ -30,6 +36,8 @@ public static class BuildBodyUIBuilder
     private const string SlotFramePath = "Assets/Sprites/UI/Buil body/Slot_1_LightBlue.png";
     private const string ChangeSkinBtnPath = "Assets/Sprites/UI/Buil body/Btn_ChangeSkin.png";
     private const string BuildBtnPath = "Assets/Sprites/UI/Buil body/Btn_BuildBody.png";
+    private const string RobotDefaultPath = "Assets/Sprites/UI/Buil body/Robot_Skin_Default.png";
+    private const string MainCharacterSpritePath = "Assets/Sprites/Character/main character.png";
     private const string RobotBluePath = "Assets/Sprites/UI/Buil body/Robot_Skin_Blue.png";
     private const string RobotGreenPath = "Assets/Sprites/UI/Buil body/Robot_Skin_Green.png";
     private const string RobotPurplePath = "Assets/Sprites/UI/Buil body/Robot_Skin_Purple.png";
@@ -63,6 +71,7 @@ public static class BuildBodyUIBuilder
         catch { }
 
         BuildUI();
+        BuildBodySystemTests.RunTests();
     }
 
     [MenuItem("PGE/UI/Build Build Body UI (100% Match)")]
@@ -100,6 +109,12 @@ public static class BuildBodyUIBuilder
         Sprite slotFrame = AssetDatabase.LoadAssetAtPath<Sprite>(SlotFramePath);
         Sprite changeSkinBtnSprite = AssetDatabase.LoadAssetAtPath<Sprite>(ChangeSkinBtnPath);
         Sprite buildBtnSprite = AssetDatabase.LoadAssetAtPath<Sprite>(BuildBtnPath);
+
+        Sprite robotDefault = AssetDatabase.LoadAssetAtPath<Sprite>(RobotDefaultPath);
+        if (robotDefault == null)
+        {
+            robotDefault = AssetDatabase.LoadAllAssetsAtPath(MainCharacterSpritePath).OfType<Sprite>().FirstOrDefault();
+        }
 
         Sprite robotBlue = AssetDatabase.LoadAssetAtPath<Sprite>(RobotBluePath);
         Sprite robotGreen = AssetDatabase.LoadAssetAtPath<Sprite>(RobotGreenPath);
@@ -243,24 +258,37 @@ public static class BuildBodyUIBuilder
         ContentSizeFitter csf = contentObj.GetComponent<ContentSizeFitter>();
         csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-        // 6. Xây dựng 4 Card View
-        BuildBodyController.BodyCardView[] cards = new BuildBodyController.BodyCardView[4];
+        // 6. Xây dựng 5 Card View (Slot 1 Default, Slots 2-5 AD Units)
+        BuildBodyController.BodyCardView[] cards = new BuildBodyController.BodyCardView[5];
 
-        // Dữ liệu 4 card
+        // Dữ liệu 5 card
         var cardInfos = new[]
         {
             new {
-                unitNum = 1,
+                cardName = "Card_Default",
+                unitNameDisplay = "<color=#FFE95C>Default</color>",
+                robot = robotDefault,
+                title = "Default Body",
+                desc = "Start from <color=#FFE95C>Lv.1</color>",
+                status = "Current version",
+                isEquipped = true,
+                isBuild = false,
+                cost = 0
+            },
+            new {
+                cardName = "Card_Unit1",
+                unitNameDisplay = "AD Unit-<color=#FFE95C>1</color>",
                 robot = robotBlue,
                 title = "Basic Body",
                 desc = "Start from <color=#FFE95C>Lv.1</color>",
-                status = "",
+                status = "Previous version",
                 isEquipped = false,
                 isBuild = true,
                 cost = 1000
             },
             new {
-                unitNum = 2,
+                cardName = "Card_Unit2",
+                unitNameDisplay = "AD Unit-<color=#FFE95C>2</color>",
                 robot = robotGreen,
                 title = "",
                 desc = "Bonus <color=#FFE95C>HP+50/DEF+7</color>\nStart from <color=#FFE95C>Lv.2</color>\nAilment Resistance <color=#FFE95C>+10%</color>",
@@ -270,7 +298,8 @@ public static class BuildBodyUIBuilder
                 cost = 1500
             },
             new {
-                unitNum = 3,
+                cardName = "Card_Unit3",
+                unitNameDisplay = "AD Unit-<color=#FFE95C>3</color>",
                 robot = robotPurple,
                 title = "",
                 desc = "Bonus <color=#FFE95C>HP+100/DEF+15</color>\nStart from <color=#FFE95C>Lv.3</color>\nAilment Resistance <color=#FFE95C>+20%</color>\n<color=#FFE95C>Gem Magnet Lv.1</color>",
@@ -280,7 +309,8 @@ public static class BuildBodyUIBuilder
                 cost = 2000
             },
             new {
-                unitNum = 4,
+                cardName = "Card_Unit4",
+                unitNameDisplay = "AD Unit-<color=#FFE95C>4</color>",
                 robot = robotBlack,
                 title = "",
                 desc = "Bonus <color=#FFE95C>HP+250/DEF+35</color>\nStart from <color=#FFE95C>Lv.5</color>",
@@ -291,13 +321,14 @@ public static class BuildBodyUIBuilder
             }
         };
 
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < 5; i++)
         {
             var info = cardInfos[i];
             cards[i] = CreateBodyCard(
                 contentRect,
                 i,
-                info.unitNum,
+                info.cardName,
+                info.unitNameDisplay,
                 info.robot,
                 info.title,
                 info.desc,
@@ -367,8 +398,8 @@ public static class BuildBodyUIBuilder
         so.FindProperty("toastText").objectReferenceValue = toastTMP;
 
         SerializedProperty cardViewsProp = so.FindProperty("cardViews");
-        cardViewsProp.arraySize = 4;
-        for (int i = 0; i < 4; i++)
+        cardViewsProp.arraySize = 5;
+        for (int i = 0; i < 5; i++)
         {
             SerializedProperty cProp = cardViewsProp.GetArrayElementAtIndex(i);
             cProp.FindPropertyRelative("cardRoot").objectReferenceValue = cards[i].cardRoot;
@@ -390,11 +421,12 @@ public static class BuildBodyUIBuilder
         SerializedProperty buildCostsProp = so.FindProperty("unitBuildCosts");
         if (buildCostsProp != null)
         {
-            buildCostsProp.arraySize = 4;
-            buildCostsProp.GetArrayElementAtIndex(0).intValue = 1000;
-            buildCostsProp.GetArrayElementAtIndex(1).intValue = 1500;
-            buildCostsProp.GetArrayElementAtIndex(2).intValue = 2000;
-            buildCostsProp.GetArrayElementAtIndex(3).intValue = 3000;
+            buildCostsProp.arraySize = 5;
+            buildCostsProp.GetArrayElementAtIndex(0).intValue = 0;
+            buildCostsProp.GetArrayElementAtIndex(1).intValue = 1000;
+            buildCostsProp.GetArrayElementAtIndex(2).intValue = 1500;
+            buildCostsProp.GetArrayElementAtIndex(3).intValue = 2000;
+            buildCostsProp.GetArrayElementAtIndex(4).intValue = 3000;
         }
 
         so.ApplyModifiedPropertiesWithoutUndo();
@@ -408,7 +440,8 @@ public static class BuildBodyUIBuilder
     private static BuildBodyController.BodyCardView CreateBodyCard(
         RectTransform parent,
         int index,
-        int unitNum,
+        string cardName,
+        string unitNameDisplay,
         Sprite robotSprite,
         string title,
         string desc,
@@ -426,7 +459,7 @@ public static class BuildBodyUIBuilder
         var view = new BuildBodyController.BodyCardView();
 
         // Card Root
-        GameObject cardObj = new GameObject($"Card_Unit{unitNum}", typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
+        GameObject cardObj = new GameObject(cardName, typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
         cardObj.transform.SetParent(parent, false);
         RectTransform cardRect = cardObj.GetComponent<RectTransform>();
         cardRect.sizeDelta = new Vector2(980f, 330f);
@@ -493,7 +526,7 @@ public static class BuildBodyUIBuilder
         unitNameTMP.fontStyle = FontStyles.Bold;
         unitNameTMP.alignment = TextAlignmentOptions.Center;
         unitNameTMP.color = Color.white;
-        unitNameTMP.text = $"AD Unit-<color=#FFE95C>{unitNum}</color>";
+        unitNameTMP.text = unitNameDisplay;
         view.unitNameText = unitNameTMP;
 
         // 2. Khu vực chữ thông tin ở giữa

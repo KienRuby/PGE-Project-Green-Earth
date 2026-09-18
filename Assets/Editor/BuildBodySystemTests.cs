@@ -74,20 +74,22 @@ public class BuildBodySystemTests
             }
 
             // Test 2: Skin equipping & Background color / Status text logic
-            PlayerPrefs.SetInt(BuildBodyController.GetBodyUnlockKey(1), 1);
-            BuildBodyController.EquippedSkinIndex = 1; // AD Unit-2
-            Assert("Test05_EquippedSkinIndex_Updates", BuildBodyController.EquippedSkinIndex == 1, "EquippedSkinIndex should be 1");
+            PlayerPrefs.SetInt(BuildBodyController.GetBodyUnlockKey(2), 1);
+            BuildBodyController.EquippedSkinIndex = 2; // AD Unit-2 (index 2)
+            Assert("Test05_EquippedSkinIndex_Updates", BuildBodyController.EquippedSkinIndex == 2, "EquippedSkinIndex should be 2");
 
-            // Test 3: All units initially locked & check build costs
+            // Test 3: Slot 0 (Default) is always unlocked from start, while AD Units 1..4 are initially locked
             PlayerPrefs.DeleteKey(BuildBodyController.GetBodyUnlockKey(0));
             PlayerPrefs.DeleteKey(BuildBodyController.GetBodyUnlockKey(1));
             PlayerPrefs.DeleteKey(BuildBodyController.GetBodyUnlockKey(2));
             PlayerPrefs.DeleteKey(BuildBodyController.GetBodyUnlockKey(3));
-            Assert("Test06_AllUnits_InitiallyLocked",
-                !BuildBodyController.IsBodyUnlocked(0) &&
+            PlayerPrefs.DeleteKey(BuildBodyController.GetBodyUnlockKey(4));
+            Assert("Test06_DefaultUnlocked_And_UnitsInitiallyLocked",
+                BuildBodyController.IsBodyUnlocked(0) &&
                 !BuildBodyController.IsBodyUnlocked(1) &&
                 !BuildBodyController.IsBodyUnlocked(2) &&
-                !BuildBodyController.IsBodyUnlocked(3), "All 4 units should be locked initially");
+                !BuildBodyController.IsBodyUnlocked(3) &&
+                !BuildBodyController.IsBodyUnlocked(4), "Default skin must be unlocked, units 1-4 locked initially");
 
             var costCtrlObj = new GameObject("CostTestCtrl");
             costCtrlObj.hideFlags = HideFlags.HideAndDontSave;
@@ -95,10 +97,11 @@ public class BuildBodySystemTests
             try
             {
                 Assert("Test07_BuildCosts_Match",
-                    costCtrl.GetBuildCost(0) == 1000 &&
-                    costCtrl.GetBuildCost(1) == 1500 &&
-                    costCtrl.GetBuildCost(2) == 2000 &&
-                    costCtrl.GetBuildCost(3) == 3000, "Costs must be 1000, 1500, 2000, 3000");
+                    costCtrl.GetBuildCost(0) == 0 &&
+                    costCtrl.GetBuildCost(1) == 1000 &&
+                    costCtrl.GetBuildCost(2) == 1500 &&
+                    costCtrl.GetBuildCost(3) == 2000 &&
+                    costCtrl.GetBuildCost(4) == 3000, "Costs must be 0 (Default), 1000, 1500, 2000, 3000");
             }
             finally
             {

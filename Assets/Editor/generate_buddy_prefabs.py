@@ -27,7 +27,7 @@ prefabs_info = [
         "sprite_id": 701475079,
         "script_guid": "e65366ccded2f6eb9eef87112356bb94",
         "has_projectile": True,
-        "has_vfx": True
+        "has_vfx": False
     },
     {
         "name": "Buddy_RadarEye",
@@ -75,7 +75,7 @@ for p in prefabs_info:
     
     proj_line = f"  projectilePrefab: {{fileID: {projectile_root_id}, guid: {projectile_guid}, type: 3}}\n" if p["has_projectile"] else "  projectilePrefab: {fileID: 0}\n"
     vfx_line = f"  hitVfxPrefab: {{fileID: {vfx_boom_root_id}, guid: {vfx_boom_guid}, type: 3}}\n" if p["has_vfx"] else ""
-    pulse_vfx_line = f"  pulseVfxPrefab: {{fileID: {vfx_boom_root_id}, guid: {vfx_boom_guid}, type: 3}}\n" if p.get("name") == "Buddy_PurifyingDrone" else ""
+    pulse_vfx_line = "  pulseVfxPrefab: {fileID: 0}\n" if p.get("name") == "Buddy_PurifyingDrone" else ""
 
     yaml_content = f"""%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:

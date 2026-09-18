@@ -97,7 +97,7 @@ public static class BuddyPrefabBuilder
         GameObject pPurifying = BuildSingleBuddyPrefab<PurifyingBuddy>("Buddy_PurifyingDrone", 10, "Purifying Drone", spPurifying, (comp, go) =>
         {
             comp.ProjectilePrefab = projPrefab;
-            comp.PulseVfxPrefab = vfxPrefab;
+            comp.PulseVfxPrefab = null;
         });
 
         GameObject pRadarEye = BuildSingleBuddyPrefab<RadarEyeBuddy>("Buddy_RadarEye", 3, "Radar Eye", spRadarEye, (comp, go) =>

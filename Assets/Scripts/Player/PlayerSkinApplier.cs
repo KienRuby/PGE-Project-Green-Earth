@@ -141,22 +141,27 @@ public class PlayerSkinApplier : MonoBehaviour
     };
 
     [Header("Editor Preview")]
-    [Range(0, 3)]
+    [Range(0, 4)]
     public int previewSkinIndex = 0;
 
     public int ActiveAppliedIndex => activeAppliedIndex;
-    private int activeAppliedIndex = -1;
+    private int activeAppliedIndex = 0;
 
     public PlayerSkinConfig CurrentSkin
     {
         get
         {
-            if (isShowingDefault) return null;
-            if (skins != null && activeAppliedIndex >= 0 && activeAppliedIndex < skins.Length)
-                return skins[activeAppliedIndex];
+            if (isShowingDefault || activeAppliedIndex == 0) return null;
+            int configIndex = activeAppliedIndex - 1;
+            if (skins != null && configIndex >= 0 && configIndex < skins.Length)
+                return skins[configIndex];
             int eq = BuildBodyController.EquippedSkinIndex;
-            if (skins != null && eq >= 0 && eq < skins.Length && BuildBodyController.IsBodyUnlocked(eq))
-                return skins[eq];
+            if (eq > 0 && BuildBodyController.IsBodyUnlocked(eq))
+            {
+                int eqConfig = eq - 1;
+                if (skins != null && eqConfig >= 0 && eqConfig < skins.Length)
+                    return skins[eqConfig];
+            }
             return null;
         }
     }
@@ -197,7 +202,7 @@ public class PlayerSkinApplier : MonoBehaviour
     public void ApplyEquippedSkin()
     {
         int equippedIndex = BuildBodyController.EquippedSkinIndex;
-        if (equippedIndex < 0 || skins == null || equippedIndex >= skins.Length || !BuildBodyController.IsBodyUnlocked(equippedIndex))
+        if (equippedIndex <= 0 || !BuildBodyController.IsBodyUnlocked(equippedIndex))
         {
             ApplyDefaultVisuals();
             return;
@@ -213,7 +218,7 @@ public class PlayerSkinApplier : MonoBehaviour
     {
         AutoEnsureVisualSlots();
         isShowingDefault = true;
-        activeAppliedIndex = -1;
+        activeAppliedIndex = 0;
 
         // 1. Áp dụng Sprite mặc định
         if (bodyRenderer != null && defaultBodySprite != null)
@@ -382,9 +387,16 @@ public class PlayerSkinApplier : MonoBehaviour
     /// </summary>
     public void ApplySkin(int skinIndex)
     {
+        if (skinIndex <= 0)
+        {
+            ApplyDefaultVisuals();
+            return;
+        }
+
         if (skins == null || skins.Length == 0) return;
 
-        if (skinIndex < 0 || skinIndex >= skins.Length || !BuildBodyController.IsBodyUnlocked(skinIndex))
+        int configIndex = skinIndex - 1;
+        if (configIndex < 0 || configIndex >= skins.Length || !BuildBodyController.IsBodyUnlocked(skinIndex))
         {
             ApplyDefaultVisuals();
             return;
@@ -392,7 +404,7 @@ public class PlayerSkinApplier : MonoBehaviour
 
         activeAppliedIndex = skinIndex;
         isShowingDefault = false;
-        PlayerSkinConfig skin = skins[skinIndex];
+        PlayerSkinConfig skin = skins[configIndex];
         if (skin == null) return;
 
         AutoEnsureVisualSlots();
@@ -493,8 +505,15 @@ public class PlayerSkinApplier : MonoBehaviour
     /// </summary>
     public void CaptureCurrentSceneTransforms(int skinIndex)
     {
-        if (skinIndex < 0 || skinIndex >= skins.Length) return;
-        PlayerSkinConfig skin = skins[skinIndex];
+        if (skinIndex <= 0)
+        {
+            CaptureCurrentSceneTransformsForDefault();
+            return;
+        }
+
+        int configIndex = skinIndex - 1;
+        if (skins == null || configIndex < 0 || configIndex >= skins.Length) return;
+        PlayerSkinConfig skin = skins[configIndex];
         if (skin == null) return;
 
         AutoEnsureVisualSlots();

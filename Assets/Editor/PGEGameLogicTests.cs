@@ -2381,7 +2381,7 @@ public class PGEGameLogicTests
                 applier.skins[s].leg2Sprite = testSprites[s];
             }
 
-            for (int targetSkin = 0; targetSkin < 4; targetSkin++)
+            for (int targetSkin = 0; targetSkin < 5; targetSkin++)
             {
                 BuildBodyController.EquippedSkinIndex = targetSkin;
                 Assert.That(BuildBodyController.EquippedSkinIndex, Is.EqualTo(targetSkin));
@@ -2389,12 +2389,20 @@ public class PGEGameLogicTests
                 applier.ApplyEquippedSkin();
 
                 Assert.That(applier.ActiveAppliedIndex, Is.EqualTo(targetSkin), $"ActiveAppliedIndex should match skin {targetSkin}");
-                Assert.That(applier.isShowingDefault, Is.False);
-                Assert.That(applier.bodyRenderer.sprite, Is.EqualTo(testSprites[targetSkin]), $"Body sprite should match skin {targetSkin}");
-                Assert.That(applier.gunRenderer.sprite, Is.EqualTo(testSprites[targetSkin]), $"Gun sprite should match skin {targetSkin}");
-                Assert.That(applier.armRenderer.sprite, Is.EqualTo(testSprites[targetSkin]), $"Arm sprite should match skin {targetSkin}");
-                Assert.That(applier.leg1Renderer.sprite, Is.EqualTo(testSprites[targetSkin]), $"Leg1 sprite should match skin {targetSkin}");
-                Assert.That(applier.leg2Renderer.sprite, Is.EqualTo(testSprites[targetSkin]), $"Leg2 sprite should match skin {targetSkin}");
+                if (targetSkin == 0)
+                {
+                    Assert.That(applier.isShowingDefault, Is.True, "Skin 0 should show default visuals");
+                }
+                else
+                {
+                    int skinDataIdx = targetSkin - 1;
+                    Assert.That(applier.isShowingDefault, Is.False, $"Skin {targetSkin} should not show default visuals");
+                    Assert.That(applier.bodyRenderer.sprite, Is.EqualTo(testSprites[skinDataIdx]), $"Body sprite should match skin {targetSkin}");
+                    Assert.That(applier.gunRenderer.sprite, Is.EqualTo(testSprites[skinDataIdx]), $"Gun sprite should match skin {targetSkin}");
+                    Assert.That(applier.armRenderer.sprite, Is.EqualTo(testSprites[skinDataIdx]), $"Arm sprite should match skin {targetSkin}");
+                    Assert.That(applier.leg1Renderer.sprite, Is.EqualTo(testSprites[skinDataIdx]), $"Leg1 sprite should match skin {targetSkin}");
+                    Assert.That(applier.leg2Renderer.sprite, Is.EqualTo(testSprites[skinDataIdx]), $"Leg2 sprite should match skin {targetSkin}");
+                }
             }
 
             for (int s = 0; s < 4; s++)

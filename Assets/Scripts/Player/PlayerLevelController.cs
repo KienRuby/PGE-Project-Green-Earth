@@ -48,9 +48,9 @@ public class PlayerLevelController : MonoBehaviour
         int equippedSkin = BuildBodyController.EquippedSkinIndex;
         int bodyStartingLevel = equippedSkin switch
         {
-            1 => 2,
-            2 => 3,
-            3 => 5,
+            2 => 2,
+            3 => 3,
+            4 => 5,
             _ => 1
         };
         currentLevel = Mathf.Max(startingLevel, bodyStartingLevel);

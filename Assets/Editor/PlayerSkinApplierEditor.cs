@@ -75,27 +75,28 @@ public class PlayerSkinApplierEditor : Editor
         EditorGUILayout.BeginHorizontal();
 
         // Nút Mặc Định (Gốc) để đối chiếu
-        bool isDefault = applier.isShowingDefault;
+        bool isDefault = applier.isShowingDefault || applier.previewSkinIndex == 0;
         GUI.backgroundColor = isDefault ? new Color(1f, 0.78f, 0.15f, 1f) : Color.white;
-        if (GUILayout.Button("↺ MẶC ĐỊNH\n(Đối chiếu)", GUILayout.Height(42), GUILayout.Width(100)))
+        if (GUILayout.Button("↺ MẶC ĐỊNH\n(Slot 1)", GUILayout.Height(42), GUILayout.Width(100)))
         {
             Undo.RecordObject(applier, "Switch to Default Visuals");
+            applier.previewSkinIndex = 0;
             applier.ApplyDefaultVisuals();
             EditorUtility.SetDirty(applier);
         }
 
-        for (int i = 0; i < 4; i++)
+        for (int i = 1; i <= 4; i++)
         {
             bool isCurrent = (!applier.isShowingDefault && applier.previewSkinIndex == i);
             GUI.backgroundColor = isCurrent ? new Color(0.2f, 0.85f, 0.4f, 1f) : Color.white;
 
-            string skinLabel = i == 0 ? "Skin 1\n(Unit-1)" :
-                               i == 1 ? "Skin 2\n(Unit-2)" :
-                               i == 2 ? "Skin 3\n(Unit-3)" : "Skin 4\n(Unit-4)";
+            string skinLabel = i == 1 ? "Skin 1\n(Unit-1)" :
+                               i == 2 ? "Skin 2\n(Unit-2)" :
+                               i == 3 ? "Skin 3\n(Unit-3)" : "Skin 4\n(Unit-4)";
 
             if (GUILayout.Button(skinLabel, GUILayout.Height(42)))
             {
-                Undo.RecordObject(applier, $"Preview Skin {i + 1}");
+                Undo.RecordObject(applier, $"Preview Skin {i}");
                 applier.previewSkinIndex = i;
                 applier.ApplySkin(i);
                 EditorUtility.SetDirty(applier);
@@ -104,7 +105,7 @@ public class PlayerSkinApplierEditor : Editor
         GUI.backgroundColor = Color.white;
         EditorGUILayout.EndHorizontal();
 
-        if (applier.isShowingDefault)
+        if (applier.isShowingDefault || applier.previewSkinIndex == 0)
         {
             EditorGUILayout.Space(4);
             EditorGUILayout.HelpBox(
@@ -141,7 +142,7 @@ public class PlayerSkinApplierEditor : Editor
         else
         {
             EditorGUILayout.Space(4);
-            int newIndex = EditorGUILayout.IntSlider("Skin Slider:", applier.previewSkinIndex, 0, 3);
+            int newIndex = EditorGUILayout.IntSlider("Skin Slider:", applier.previewSkinIndex, 0, 4);
             if (newIndex != applier.previewSkinIndex)
             {
                 applier.previewSkinIndex = newIndex;
@@ -224,14 +225,19 @@ public class PlayerSkinApplierEditor : Editor
         }
         else
         {
+            int configIndex = applier.previewSkinIndex - 1;
+            string skinName = (applier.skins != null && configIndex >= 0 && configIndex < applier.skins.Length)
+                ? applier.skins[configIndex].skinName
+                : $"Skin {applier.previewSkinIndex}";
+
             GUI.backgroundColor = new Color(0.3f, 0.7f, 1f, 1f);
-            if (GUILayout.Button($"💾 LƯU VỊ TRÍ SCENE HIỆN TẠI VÀO SKIN {applier.previewSkinIndex + 1}", GUILayout.Height(36)))
+            if (GUILayout.Button($"💾 LƯU VỊ TRÍ SCENE HIỆN TẠI VÀO SKIN {applier.previewSkinIndex} ({skinName})", GUILayout.Height(36)))
             {
-                Undo.RecordObject(applier, $"Capture Transforms for Skin {applier.previewSkinIndex + 1}");
+                Undo.RecordObject(applier, $"Capture Transforms for Skin {applier.previewSkinIndex}");
                 applier.CaptureCurrentSceneTransforms(applier.previewSkinIndex);
                 EditorUtility.SetDirty(applier);
                 UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(applier.gameObject.scene);
-                Debug.Log($"[PlayerSkinApplierEditor] ✅ Đã lưu toàn bộ tọa độ, tỷ lệ và Sprite trên Scene vào Skin {applier.previewSkinIndex + 1} ({applier.skins[applier.previewSkinIndex].skinName})!");
+                Debug.Log($"[PlayerSkinApplierEditor] ✅ Đã lưu toàn bộ tọa độ, tỷ lệ và Sprite trên Scene vào Skin {applier.previewSkinIndex} ({skinName})!");
             }
             GUI.backgroundColor = Color.white;
             EditorGUILayout.HelpBox("👉 MẸO: Bạn có thể chọn trực tiếp BodyVisual, GunVisual, Leg1Visual trong Scene, dùng công cụ W (Move) và R (Scale) để chỉnh, rồi bấm nút trên để LƯU LẠI!", MessageType.None);
@@ -316,9 +322,9 @@ public class PlayerSkinApplierEditor : Editor
             }
             EditorGUILayout.EndVertical();
         }
-        else if (applier.skins != null && applier.previewSkinIndex >= 0 && applier.previewSkinIndex < applier.skins.Length)
+        else if (applier.skins != null && applier.previewSkinIndex > 0 && (applier.previewSkinIndex - 1) < applier.skins.Length)
         {
-            PlayerSkinConfig activeSkin = applier.skins[applier.previewSkinIndex];
+            PlayerSkinConfig activeSkin = applier.skins[applier.previewSkinIndex - 1];
             if (activeSkin != null)
             {
                 EditorGUILayout.BeginVertical(EditorStyles.helpBox);

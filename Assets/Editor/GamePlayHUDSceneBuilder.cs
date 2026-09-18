@@ -1174,11 +1174,12 @@ public static class GamePlayHUDSceneBuilder
         SerializedProperty skinSpritesProp = so.FindProperty("skinAvatarSprites");
         if (skinSpritesProp != null)
         {
-            skinSpritesProp.arraySize = 4;
-            skinSpritesProp.GetArrayElementAtIndex(0).objectReferenceValue = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Buil body/Robot_Skin_Blue.png");
-            skinSpritesProp.GetArrayElementAtIndex(1).objectReferenceValue = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Buil body/Robot_Skin_Green.png");
-            skinSpritesProp.GetArrayElementAtIndex(2).objectReferenceValue = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Buil body/Robot_Skin_Purple.png");
-            skinSpritesProp.GetArrayElementAtIndex(3).objectReferenceValue = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Buil body/Robot_Skin_Black.png");
+            skinSpritesProp.arraySize = 5;
+            skinSpritesProp.GetArrayElementAtIndex(0).objectReferenceValue = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Buil body/Robot_Skin_Default.png");
+            skinSpritesProp.GetArrayElementAtIndex(1).objectReferenceValue = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Buil body/Robot_Skin_Blue.png");
+            skinSpritesProp.GetArrayElementAtIndex(2).objectReferenceValue = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Buil body/Robot_Skin_Green.png");
+            skinSpritesProp.GetArrayElementAtIndex(3).objectReferenceValue = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Buil body/Robot_Skin_Purple.png");
+            skinSpritesProp.GetArrayElementAtIndex(4).objectReferenceValue = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Buil body/Robot_Skin_Black.png");
         }
         so.FindProperty("characterNameText").objectReferenceValue = charNameTxt;
         so.FindProperty("characterLevelExpText").objectReferenceValue = charLvlTxt;

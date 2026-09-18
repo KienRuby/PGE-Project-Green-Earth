@@ -138,8 +138,8 @@ public class PauseModalController : MonoBehaviour
     [SerializeField] private TMP_Text characterLevelExpText;
 
     [Header("6b. Skin Avatar Sprites")]
-    [Tooltip("Danh sách Sprite đại diện tương ứng với các Skin (0: Unit-1 Blue, 1: Unit-2 Green, 2: Unit-3 Purple, 3: Unit-4 Black).")]
-    [SerializeField] private Sprite[] skinAvatarSprites = new Sprite[4];
+    [Tooltip("Danh sách Sprite đại diện tương ứng với các Skin (0: Default, 1: Unit-1 Blue, 2: Unit-2 Green, 3: Unit-3 Purple, 4: Unit-4 Black).")]
+    [SerializeField] private Sprite[] skinAvatarSprites = new Sprite[5];
 
     public Sprite[] SkinAvatarSprites { get => skinAvatarSprites; set => skinAvatarSprites = value; }
     public Image CharacterAvatarImage => characterAvatarImage;
@@ -762,7 +762,7 @@ public class PauseModalController : MonoBehaviour
             skinIndex = skinApplier.ActiveAppliedIndex;
         }
 
-        skinIndex = Mathf.Clamp(skinIndex, 0, 3);
+        skinIndex = Mathf.Clamp(skinIndex, 0, 4);
 
         Sprite targetSprite = null;
 
@@ -772,10 +772,10 @@ public class PauseModalController : MonoBehaviour
             targetSprite = skinAvatarSprites[skinIndex];
         }
 
-        // 2. Lấy từ cấu hình portraitSprite của PlayerSkinApplier nếu có
-        if (targetSprite == null && skinApplier != null && skinApplier.skins != null && skinIndex < skinApplier.skins.Length)
+        // 2. Lấy từ cấu hình portraitSprite của PlayerSkinApplier nếu có (với AD Units 1-4)
+        if (targetSprite == null && skinApplier != null && skinApplier.skins != null && skinIndex > 0 && (skinIndex - 1) < skinApplier.skins.Length)
         {
-            targetSprite = skinApplier.skins[skinIndex]?.portraitSprite;
+            targetSprite = skinApplier.skins[skinIndex - 1]?.portraitSprite;
         }
 
         // 3. Fallback nạp sprite nếu chưa được gán
@@ -797,11 +797,12 @@ public class PauseModalController : MonoBehaviour
 #if UNITY_EDITOR
         string path = index switch
         {
-            0 => "Assets/Sprites/UI/Buil body/Robot_Skin_Blue.png",
-            1 => "Assets/Sprites/UI/Buil body/Robot_Skin_Green.png",
-            2 => "Assets/Sprites/UI/Buil body/Robot_Skin_Purple.png",
-            3 => "Assets/Sprites/UI/Buil body/Robot_Skin_Black.png",
-            _ => "Assets/Sprites/UI/Buil body/Robot_Skin_Blue.png"
+            0 => "Assets/Sprites/UI/Buil body/Robot_Skin_Default.png",
+            1 => "Assets/Sprites/UI/Buil body/Robot_Skin_Blue.png",
+            2 => "Assets/Sprites/UI/Buil body/Robot_Skin_Green.png",
+            3 => "Assets/Sprites/UI/Buil body/Robot_Skin_Purple.png",
+            4 => "Assets/Sprites/UI/Buil body/Robot_Skin_Black.png",
+            _ => "Assets/Sprites/UI/Buil body/Robot_Skin_Default.png"
         };
         return UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(path);
 #else

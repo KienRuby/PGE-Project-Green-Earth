@@ -77,16 +77,16 @@ public class PlayerStatsManager : MonoBehaviour
         int equippedSkin = BuildBodyController.EquippedSkinIndex;
         int bodyBonusHp = equippedSkin switch
         {
-            1 => 50,
-            2 => 100,
-            3 => 250,
+            2 => 50,
+            3 => 100,
+            4 => 250,
             _ => 0
         };
         int bodyBonusDef = equippedSkin switch
         {
-            1 => 7,
-            2 => 15,
-            3 => 35,
+            2 => 7,
+            3 => 15,
+            4 => 35,
             _ => 0
         };
 
@@ -102,12 +102,12 @@ public class PlayerStatsManager : MonoBehaviour
 
         AilmentResistance = equippedSkin switch
         {
-            1 => 0.10f,
-            2 => 0.20f,
+            2 => 0.10f,
+            3 => 0.20f,
             _ => 0f
         };
 
-        BonusMagnetRadius = (equippedSkin == 2) ? 1.5f : 0f;
+        BonusMagnetRadius = (equippedSkin == 3) ? 1.5f : 0f;
         MagnetPickup magnet = GetComponent<MagnetPickup>();
         if (magnet == null && BonusMagnetRadius > 0f)
         {

@@ -117,8 +117,8 @@ MonoBehaviour:
   spriteRenderer: {fileID: 575149069854738629}
   firePoint: {fileID: 340625045279436027}
   projectilePrefab: {fileID: 9176291970807468248, guid: 7a360c9f713fe5b4ebd236256f3bb53b, type: 3}
-  hitVfxPrefab: {fileID: 3290514725870574986, guid: 2019a65776aecea44abb57cfdb6e0df5, type: 3}
-  pulseVfxPrefab: {fileID: 3290514725870574986, guid: 2019a65776aecea44abb57cfdb6e0df5, type: 3}
+  hitVfxPrefab: {fileID: 0}
+  pulseVfxPrefab: {fileID: 0}
 --- !u!1 &884185856593895193
 GameObject:
   m_ObjectHideFlags: 0

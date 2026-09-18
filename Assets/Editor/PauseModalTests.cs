@@ -820,6 +820,8 @@ public class PauseModalTests
         avatarObj.transform.SetParent(root.transform);
         Image avatarImg = avatarObj.GetComponent<Image>();
 
+        Sprite spriteDefault = Sprite.Create(new Texture2D(2, 2), new Rect(0, 0, 2, 2), Vector2.zero);
+        spriteDefault.name = "Robot_Skin_Default";
         Sprite spriteBlue = Sprite.Create(new Texture2D(2, 2), new Rect(0, 0, 2, 2), Vector2.zero);
         spriteBlue.name = "Robot_Skin_Blue";
         Sprite spriteGreen = Sprite.Create(new Texture2D(2, 2), new Rect(0, 0, 2, 2), Vector2.zero);
@@ -829,37 +831,43 @@ public class PauseModalTests
         Sprite spriteBlack = Sprite.Create(new Texture2D(2, 2), new Rect(0, 0, 2, 2), Vector2.zero);
         spriteBlack.name = "Robot_Skin_Black";
 
-        Sprite[] skinSprites = new Sprite[4] { spriteBlue, spriteGreen, spritePurple, spriteBlack };
+        Sprite[] skinSprites = new Sprite[5] { spriteDefault, spriteBlue, spriteGreen, spritePurple, spriteBlack };
 
         PauseModalController pauseCtrl = root.AddComponent<PauseModalController>();
         pauseCtrl.SetSkinAvatarSpritesForTesting(skinSprites, avatarImg);
 
         try
         {
-            // Unit 1: Blue (index 0)
+            // Slot 1: Default (index 0)
             BuildBodyController.EquippedSkinIndex = 0;
             pauseCtrl.RefreshCharacterAvatar();
-            Assert.That(avatarImg.sprite, Is.EqualTo(spriteBlue), "Skin index 0 should display Robot_Skin_Blue");
+            Assert.That(avatarImg.sprite, Is.EqualTo(spriteDefault), "Skin index 0 should display Robot_Skin_Default");
 
-            // Unit 2: Green (index 1)
+            // Slot 2: Blue (Unit-1, index 1)
             BuildBodyController.EquippedSkinIndex = 1;
             pauseCtrl.RefreshCharacterAvatar();
-            Assert.That(avatarImg.sprite, Is.EqualTo(spriteGreen), "Skin index 1 should display Robot_Skin_Green");
+            Assert.That(avatarImg.sprite, Is.EqualTo(spriteBlue), "Skin index 1 should display Robot_Skin_Blue");
 
-            // Unit 3: Purple (index 2)
+            // Slot 3: Green (Unit-2, index 2)
             BuildBodyController.EquippedSkinIndex = 2;
             pauseCtrl.RefreshCharacterAvatar();
-            Assert.That(avatarImg.sprite, Is.EqualTo(spritePurple), "Skin index 2 should display Robot_Skin_Purple");
+            Assert.That(avatarImg.sprite, Is.EqualTo(spriteGreen), "Skin index 2 should display Robot_Skin_Green");
 
-            // Unit 4: Black (index 3)
+            // Slot 4: Purple (Unit-3, index 3)
             BuildBodyController.EquippedSkinIndex = 3;
             pauseCtrl.RefreshCharacterAvatar();
-            Assert.That(avatarImg.sprite, Is.EqualTo(spriteBlack), "Skin index 3 should display Robot_Skin_Black");
+            Assert.That(avatarImg.sprite, Is.EqualTo(spritePurple), "Skin index 3 should display Robot_Skin_Purple");
+
+            // Slot 5: Black (Unit-4, index 4)
+            BuildBodyController.EquippedSkinIndex = 4;
+            pauseCtrl.RefreshCharacterAvatar();
+            Assert.That(avatarImg.sprite, Is.EqualTo(spriteBlack), "Skin index 4 should display Robot_Skin_Black");
         }
         finally
         {
             BuildBodyController.EquippedSkinIndex = origSkin;
             Object.DestroyImmediate(root);
+            Object.DestroyImmediate(spriteDefault);
             Object.DestroyImmediate(spriteBlue);
             Object.DestroyImmediate(spriteGreen);
             Object.DestroyImmediate(spritePurple);
@@ -876,12 +884,18 @@ public class PauseModalTests
         avatarObj.transform.SetParent(root.transform);
         Image avatarImg = avatarObj.GetComponent<Image>();
 
+        Sprite spriteDefault = Sprite.Create(new Texture2D(2, 2), new Rect(0, 0, 2, 2), Vector2.zero);
+        spriteDefault.name = "Robot_Skin_Default";
         Sprite spriteBlue = Sprite.Create(new Texture2D(2, 2), new Rect(0, 0, 2, 2), Vector2.zero);
+        spriteBlue.name = "Robot_Skin_Blue";
         Sprite spriteGreen = Sprite.Create(new Texture2D(2, 2), new Rect(0, 0, 2, 2), Vector2.zero);
+        spriteGreen.name = "Robot_Skin_Green";
         Sprite spritePurple = Sprite.Create(new Texture2D(2, 2), new Rect(0, 0, 2, 2), Vector2.zero);
+        spritePurple.name = "Robot_Skin_Purple";
         Sprite spriteBlack = Sprite.Create(new Texture2D(2, 2), new Rect(0, 0, 2, 2), Vector2.zero);
+        spriteBlack.name = "Robot_Skin_Black";
 
-        Sprite[] skinSprites = new Sprite[4] { spriteBlue, spriteGreen, spritePurple, spriteBlack };
+        Sprite[] skinSprites = new Sprite[5] { spriteDefault, spriteBlue, spriteGreen, spritePurple, spriteBlack };
 
         PauseModalController pauseCtrl = root.AddComponent<PauseModalController>();
         pauseCtrl.SetSkinAvatarSpritesForTesting(skinSprites, avatarImg);
@@ -889,18 +903,19 @@ public class PauseModalTests
         try
         {
             BuildBodyController.EquippedSkinIndex = 0;
-            // Event change to Green (1)
-            BuildBodyController.EquippedSkinIndex = 1;
-            Assert.That(avatarImg.sprite, Is.EqualTo(spriteGreen), "Changing skin to 1 should update avatar to Green via event");
+            // Event change to Green (Slot 3, index 2)
+            BuildBodyController.EquippedSkinIndex = 2;
+            Assert.That(avatarImg.sprite, Is.EqualTo(spriteGreen), "Changing skin to 2 should update avatar to Green via event");
 
-            // Event change to Black (3)
-            BuildBodyController.EquippedSkinIndex = 3;
-            Assert.That(avatarImg.sprite, Is.EqualTo(spriteBlack), "Changing skin to 3 should update avatar to Black via event");
+            // Event change to Black (Slot 5, index 4)
+            BuildBodyController.EquippedSkinIndex = 4;
+            Assert.That(avatarImg.sprite, Is.EqualTo(spriteBlack), "Changing skin to 4 should update avatar to Black via event");
         }
         finally
         {
             BuildBodyController.EquippedSkinIndex = origSkin;
             Object.DestroyImmediate(root);
+            Object.DestroyImmediate(spriteDefault);
             Object.DestroyImmediate(spriteBlue);
             Object.DestroyImmediate(spriteGreen);
             Object.DestroyImmediate(spritePurple);
