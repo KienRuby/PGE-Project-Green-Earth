@@ -158,6 +158,9 @@ public class SpinningBladeSkill : MonoBehaviour
 
         // 3. TẤT CẢ CÁC DAO LUÔN BAY NGAY SÁT BÊN CẠNH NHAU (Khóa khoảng cách góc bladeSpacingAngle)
         int bladeCount = activeBlades.Count;
+        int metaTier = GetMetaTier();
+        bool isGuaranteedPierceActive = metaTier >= 5 && ((Time.time % 20f) <= 5f);
+
         if (bladeCount > 0)
         {
             Vector3 playerPos = transform.position;
@@ -167,6 +170,8 @@ public class SpinningBladeSkill : MonoBehaviour
             {
                 SpinningBladeProjectile blade = activeBlades[i];
                 if (blade == null) continue;
+
+                blade.SetGuaranteedPierce(isGuaranteedPierceActive);
 
                 // Dao thứ i nằm ngay sát sườn dao trước đó (cách nhau đúng bladeSpacingAngle, KHÔNG trượt tách rời)
                 float bladeAngle = baseOrbitAngle - (i * bladeSpacingAngle);
@@ -250,6 +255,10 @@ public class SpinningBladeSkill : MonoBehaviour
             OnBladeDestroyed
         );
 
+        int metaTier = GetMetaTier();
+        bool isGuaranteedPierceActive = metaTier >= 5 && ((Time.time % 20f) <= 5f);
+        proj.SetGuaranteedPierce(isGuaranteedPierceActive);
+
         activeBlades.Add(proj);
     }
 
@@ -261,16 +270,28 @@ public class SpinningBladeSkill : MonoBehaviour
         }
     }
 
-    public void CalculateMetaTierBonuses(out float cooldownReduction, out float speedMultiplier)
+    public int GetMetaTier()
     {
-        cooldownReduction = 0f;
-        speedMultiplier = 1.0f;
-
         int metaTier = 1;
         if (PlayerDataService.LoadChipsetItemData(4, out _, out int savedTier, out _, out _, out _))
         {
             metaTier = Mathf.Clamp(savedTier, 1, 5);
         }
+        return metaTier;
+    }
+
+    public void CalculateMetaTierBonuses(out float cooldownReduction, out float speedMultiplier)
+    {
+        CalculateMetaTierBonuses(out cooldownReduction, out speedMultiplier, out _);
+    }
+
+    public void CalculateMetaTierBonuses(out float cooldownReduction, out float speedMultiplier, out float generationSpeedReduction)
+    {
+        cooldownReduction = 0f;
+        speedMultiplier = 1.0f;
+        generationSpeedReduction = 0f;
+
+        int metaTier = GetMetaTier();
 
         // Tier 2 (Rare): ATK Speed +9%
         if (metaTier >= 2)
@@ -278,22 +299,24 @@ public class SpinningBladeSkill : MonoBehaviour
             cooldownReduction += 0.09f;
         }
 
-        // Tier 3 (Epic): ATK Speed +18%
+        // Tier 3 (Unique): ATK Speed +18%, Generation speed -30%
         if (metaTier >= 3)
         {
             cooldownReduction += 0.18f;
+            generationSpeedReduction += 0.30f;
         }
 
-        // Tier 4 (Legendary): Spin Speed +36%
+        // Tier 4 (Epic): Spin Speed +36%
         if (metaTier >= 4)
         {
             speedMultiplier += 0.36f;
         }
 
-        // Tier 5 (Secret): ATK Speed +36%
+        // Tier 5 (Holo): ATK Speed +36%, Generation speed -36%, Guaranteed Pierce (5s, CD 15s)
         if (metaTier >= 5)
         {
             cooldownReduction += 0.36f;
+            generationSpeedReduction += 0.36f;
         }
     }
 
@@ -305,8 +328,9 @@ public class SpinningBladeSkill : MonoBehaviour
 
     public float GetCurrentCooldown()
     {
-        CalculateMetaTierBonuses(out float cooldownReduction, out _);
-        float baseCooldown = GetCurrentConfig().cooldown * (1.0f - cooldownReduction);
+        CalculateMetaTierBonuses(out float cooldownReduction, out _, out float generationSpeedReduction);
+        float totalReduction = Mathf.Clamp(cooldownReduction + generationSpeedReduction, 0f, 0.85f);
+        float baseCooldown = GetCurrentConfig().cooldown * (1.0f - totalReduction);
         float finalCooldown = baseCooldown / Mathf.Max(0.1f, attackSpeedMultiplier);
         return Mathf.Max(0.15f, finalCooldown);
     }

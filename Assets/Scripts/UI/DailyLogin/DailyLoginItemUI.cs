@@ -114,6 +114,10 @@ public class DailyLoginItemUI : MonoBehaviour
     }
 #endif
 
+    private void OnDisable()
+    {
+    }
+
     private void OnDestroy()
     {
         if (claimButton != null)
@@ -507,6 +511,7 @@ public class DailyLoginItemUI : MonoBehaviour
                 {
                     claimButtonText.gameObject.SetActive(false);
                 }
+
                 var colorsClaim = claimButton.colors;
                 colorsClaim.disabledColor = Color.white;
                 claimButton.colors = colorsClaim;
@@ -682,7 +687,7 @@ public class DailyLoginItemUI : MonoBehaviour
             return;
         }
 
-        // TRƯỜNG HỢP 2: Bấm nút "Claim again" (Xem quảng cáo nhận quà x2)
+        // TRƯỜNG HỢP 2: Bấm nút "Claim again" (Xem quảng cáo nhận quà x2, tối đa 1 lần/ngày)
         if (currentButtonState == DailyButtonState.ClaimAgain)
         {
             // Kiểm tra kết nối mạng Wifi/4G
@@ -693,7 +698,7 @@ public class DailyLoginItemUI : MonoBehaviour
                 return;
             }
 
-            // Kiểm tra xem đã xem quảng cáo hôm nay chưa
+            // Kiểm tra xem đã xem quảng cáo hôm nay chưa (Chỉ cho phép 1 lần/ngày)
             if (DailyLoginManager.Instance != null && DailyLoginManager.Instance.HasClaimedAdToday())
             {
                 Debug.LogWarning("[DailyLoginItemUI] ⚠️ Đã xem quảng cáo nhận thưởng hôm nay rồi! Chuyển sang nút Obtained.");
@@ -706,16 +711,17 @@ public class DailyLoginItemUI : MonoBehaviour
                 StartCoroutine(PunchScaleRoutine(claimButton.transform));
             }
 
-            // Kích hoạt xem quảng cáo nhận thưởng
-            AdRewardService.ShowRewardedAd((success) =>
+            // Kích hoạt xem quảng cáo nhận thưởng với AdPlacement.DailyReward
+            AdRewardService.ShowRewardedAd(AdPlacement.DailyReward, (success) =>
             {
                 if (success)
                 {
-                    // Trao thêm quà cho ngày hôm nay
+                    // Trao thêm quà cho ngày hôm nay và đánh dấu đã xem hôm nay
                     if (DailyLoginManager.Instance != null)
                     {
                         DailyLoginManager.Instance.TryClaimAgainWithAd();
                     }
+                    // Chuyển vĩnh viễn sang Obtained trong ngày, không có cooldown
                     SetButtonVisual(DailyButtonState.Obtained);
                 }
                 else

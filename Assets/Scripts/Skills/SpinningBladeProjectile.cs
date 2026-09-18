@@ -49,10 +49,17 @@ public class SpinningBladeProjectile : MonoBehaviour, IPoolable
     private LayerMask enemyLayer;
     private ContactFilter2D contactFilter;
     private readonly Collider2D[] vortexBuffer = new Collider2D[32];
+    private bool isGuaranteedPierce = false;
 
     public bool IsInVortexMode => isInVortexMode;
     public bool IsActive => !isDestroyed;
     public float CurrentOrbitAngle { get; set; }
+    public bool IsGuaranteedPierce => isGuaranteedPierce;
+
+    public void SetGuaranteedPierce(bool enabled)
+    {
+        isGuaranteedPierce = enabled;
+    }
 
     private void Awake()
     {
@@ -205,7 +212,10 @@ public class SpinningBladeProjectile : MonoBehaviour, IPoolable
             ChipsetBattleStats.RecordDamage(4, damage);
             SpawnHitVfx(other.transform.position);
 
-            remainingHits--;
+            if (!isGuaranteedPierce)
+            {
+                remainingHits--;
+            }
 
             // 2. Kiểm tra nếu hết số lần chém -> Biến mất hoặc tạo Lốc Xoáy (Cấp 5)
             if (remainingHits <= 0)
@@ -291,6 +301,7 @@ public class SpinningBladeProjectile : MonoBehaviour, IPoolable
     {
         isDestroyed = false;
         isInVortexMode = false;
+        isGuaranteedPierce = false;
         vortexTimer = 0f;
         FixTrailMaterial();
         if (trailRenderer != null)
@@ -303,6 +314,7 @@ public class SpinningBladeProjectile : MonoBehaviour, IPoolable
     {
         isDestroyed = true;
         isInVortexMode = false;
+        isGuaranteedPierce = false;
         onDestroyedCallback = null;
         if (trailRenderer != null)
         {

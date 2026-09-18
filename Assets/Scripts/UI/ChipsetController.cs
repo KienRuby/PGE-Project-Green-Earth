@@ -397,6 +397,7 @@ public class ChipsetController : MonoBehaviour
     // 3 Decks holding IDs of equipped chips (10 slots each)
     private int[][] deckEquippedIds = new int[3][];
     private List<ChipsetCardUI> spawnedInventoryCards = new List<ChipsetCardUI>();
+    private bool isStarted;
 
     private static readonly Color SelectedPresetColor = new Color32(255, 203, 73, 255);
     private static readonly Color NormalPresetColor = new Color32(18, 58, 68, 255);
@@ -423,6 +424,7 @@ public class ChipsetController : MonoBehaviour
         RefreshSortButtons();
         RefreshEquippedGrid();
         RefreshInventory();
+        isStarted = true;
     }
 
     private void Update()
@@ -483,6 +485,19 @@ public class ChipsetController : MonoBehaviour
         ChipManager.OnRedGemsChanged += HandleCurrencyChanged;
         ChipManager.OnAdvanceStonesChanged += HandleCurrencyChanged;
         PlayerDataService.OnChipsetPiecesChanged += HandleChipsetPiecesChanged;
+
+        // Rewards may arrive while this tab is disabled and unsubscribed.
+        SyncChipsetProgressFromSave();
+        if (isStarted)
+        {
+            RefreshTopBar();
+            RefreshEquippedGrid();
+            RefreshInventory();
+            if (detailModal != null && detailModal.activeSelf && selectedDetailChip != null)
+            {
+                RefreshDetailModal();
+            }
+        }
     }
 
     private void OnDisable()
@@ -524,6 +539,7 @@ public class ChipsetController : MonoBehaviour
             allChips = CreateSavedDatabase();
         }
 
+        SyncChipsetProgressFromSave();
         ApplyTierUnlockRulesToCatalog();
         InitializeDefaultDecks();
         activeDeckIndex = PlayerDataService.ActiveChipsetDeckIndex;
@@ -747,26 +763,40 @@ public class ChipsetController : MonoBehaviour
         List<ChipItemData> result = CreateDefaultDatabase();
         foreach (ChipItemData chip in result)
         {
-            if (!PlayerDataService.LoadChipsetItemData(
-                    chip.id,
-                    out int savedLevel,
-                    out int savedTier,
-                    out int savedCount,
-                    out int savedRequiredCount,
-                    out bool savedHasStar))
-            {
-                continue;
-            }
-
-            chip.tier = (ChipTier)Mathf.Clamp(savedTier, (int)ChipTier.Magic, (int)ChipTier.Holographic);
-            chip.level = Mathf.Clamp(savedLevel, 1, ChipItemData.GetMaxLevelForTier(chip.tier));
-            chip.count = Mathf.Max(0, savedCount);
-            chip.requiredCount = Mathf.Max(0, savedRequiredCount);
-            chip.hasStar = savedHasStar;
-            chip.tierEnhanceCount = PlayerDataService.LoadChipsetTierEnhanceCount(chip.id);
-            chip.enhanceCost = PlayerDataService.LoadChipsetEnhanceCost(chip.id, chip.enhanceCost);
+            LoadSavedChipProgress(chip);
         }
         return result;
+    }
+
+    private void SyncChipsetProgressFromSave()
+    {
+        // Update existing objects so equipped cards and an open detail keep their references.
+        foreach (ChipItemData chip in allChips)
+        {
+            if (chip != null) LoadSavedChipProgress(chip);
+        }
+    }
+
+    private static void LoadSavedChipProgress(ChipItemData chip)
+    {
+        if (!PlayerDataService.LoadChipsetItemData(
+                chip.id,
+                out int savedLevel,
+                out int savedTier,
+                out int savedCount,
+                out int savedRequiredCount,
+                out bool savedHasStar))
+        {
+            return;
+        }
+
+        chip.tier = (ChipTier)Mathf.Clamp(savedTier, (int)ChipTier.Magic, (int)ChipTier.Holographic);
+        chip.level = Mathf.Clamp(savedLevel, 1, ChipItemData.GetMaxLevelForTier(chip.tier));
+        chip.count = Mathf.Max(0, savedCount);
+        chip.requiredCount = Mathf.Max(0, savedRequiredCount);
+        chip.hasStar = savedHasStar;
+        chip.tierEnhanceCount = PlayerDataService.LoadChipsetTierEnhanceCount(chip.id);
+        chip.enhanceCost = PlayerDataService.LoadChipsetEnhanceCost(chip.id, chip.enhanceCost);
     }
 
     /// <summary>
@@ -1424,7 +1454,7 @@ public class ChipsetController : MonoBehaviour
 
         // 4. Description & Base Stats
         if (detailDescText != null) detailDescText.text = selectedDetailChip.description;
-        if (detailBaseStatsText != null) detailBaseStatsText.text = selectedDetailChip.baseStatsSummary;
+        if (detailBaseStatsText != null) detailBaseStatsText.text = GetDynamicBaseStatsSummary(selectedDetailChip);
 
         // 5. 4 Tier Perk Rows with color tags
         string[] tierNames = { "Rare", "Unique", "Epic", "Holo" };
@@ -1783,6 +1813,126 @@ public class ChipsetController : MonoBehaviour
     public static bool IsTierPerkUnlocked(ChipTier tier, int perkRowIndex)
     {
         return perkRowIndex >= 0 && perkRowIndex < 4 && GetFrameIndex(tier) > perkRowIndex;
+    }
+
+    public static string GetDynamicBaseStatsSummary(ChipItemData chip)
+    {
+        if (chip == null) return string.Empty;
+        int tierIdx = GetFrameIndex(chip.tier); // 0: Magic/Green, 1: Rare/Blue, 2: Unique/Purple, 3: Epic/Yellow, 4: Holo/Red
+
+        switch (chip.id)
+        {
+            case 1: // Standard Gun
+            {
+                float atkMultiplier = tierIdx >= 1 ? 1.15f : 1.0f;
+                float finalAtk = 53f * atkMultiplier;
+                string speedText = tierIdx >= 2 ? "Very Fast" : "Fast";
+                string summary = $"ATK <color=#FFCB49>{finalAtk:F0}</color>\n<color=#FFCB49>{speedText}</color> ATK Speed";
+                if (tierIdx >= 3) summary += "\nLife Steal <color=#FFCB49>+5%</color>";
+                if (tierIdx >= 4) summary += "\n<color=#FFCB49>50%</color> Ricochet Chance";
+                return summary;
+            }
+            case 2: // Rifle
+            {
+                float atkMultiplier = 1.0f;
+                if (tierIdx >= 1) atkMultiplier += 0.25f;
+                if (tierIdx >= 3) atkMultiplier += 0.80f;
+                if (tierIdx >= 4) atkMultiplier += 0.85f;
+                float finalAtk = 10.5f * atkMultiplier;
+                string speedText = tierIdx >= 4 ? "Extreme" : (tierIdx >= 2 ? "Ultra Fast" : "Fast");
+                return $"ATK <color=#FFCB49>{finalAtk:F1}</color>\n<color=#FFCB49>{speedText}</color> ATK Speed";
+            }
+            case 3: // Rocket Punch
+            {
+                float dmgMultiplier = 1.0f;
+                if (tierIdx >= 1) dmgMultiplier += 0.40f;
+                if (tierIdx >= 4) dmgMultiplier += 1.80f;
+                float directAtk = 70f * dmgMultiplier;
+                float aoeAtk = 37f * dmgMultiplier;
+                string speedText = tierIdx >= 2 ? "Normal" : "Slow";
+                string summary = $"ATK <color=#FFCB49>{directAtk:F0}</color> / AoE ATK <color=#FFCB49>{aoeAtk:F0}</color>\n<color=#FFCB49>{speedText}</color> ATK Speed";
+                if (tierIdx >= 3) summary += "\nAoE Radius <color=#FFCB49>+40%</color>";
+                return summary;
+            }
+            case 4: // Spinning Blade
+            {
+                string speedText = tierIdx >= 4 ? "Ultra Fast" : (tierIdx >= 2 ? "Fast" : (tierIdx >= 1 ? "Fast" : "Normal"));
+                string summary = $"ATK <color=#FFCB49>36</color>\n<color=#FFCB49>{speedText}</color> ATK Speed";
+                if (tierIdx >= 3) summary += "\nSpin Speed <color=#FFCB49>+36%</color>";
+                if (tierIdx >= 4) summary += "\n<color=#FFCB49>Guaranteed Pierce</color> (5s, CD 15s)";
+                return summary;
+            }
+            case 5: // Multigun
+            {
+                float atkMultiplier = 1.0f;
+                if (tierIdx >= 1) atkMultiplier += 0.05f;
+                if (tierIdx >= 3) atkMultiplier += 0.10f;
+                float finalAtk = 19f * atkMultiplier;
+                int shells = tierIdx >= 4 ? 5 : 3;
+                string speedText = tierIdx >= 2 ? "Normal" : "Slow";
+                string summary = $"ATK <color=#FFCB49>{finalAtk:F0}</color> | {shells} shells\n<color=#FFCB49>{speedText}</color> ATK Speed";
+                if (tierIdx >= 4) summary += "\n<color=#FFCB49>360° Bullet Storm</color> (5s, CD 115s)";
+                return summary;
+            }
+            case 6: // Gun Turret
+            {
+                float dmgMultiplier = 1.0f;
+                if (tierIdx >= 2) dmgMultiplier += 0.15f;
+                if (tierIdx >= 4) dmgMultiplier += 0.30f;
+                float finalAtk = 27f * dmgMultiplier;
+
+                float duration = 10f;
+                if (tierIdx >= 1) duration *= 1.20f;
+                if (tierIdx >= 3) duration *= 1.20f;
+                if (tierIdx >= 4) duration *= 1.30f;
+
+                float cd = tierIdx >= 2 ? (8.4f * 0.70f) : 8.4f;
+                return $"Turret ATK <color=#FFCB49>{finalAtk:F0}</color> | Duration {duration:F1}s | CD {cd:F1}s\n<color=#FFCB49>Normal</color> ATK Speed";
+            }
+            case 7: // Spiky Discus
+            {
+                int discusCount = 1;
+                if (tierIdx >= 1) discusCount++;
+                if (tierIdx >= 3) discusCount++;
+                if (tierIdx >= 4) discusCount++;
+                string spinSpeed = tierIdx >= 4 ? "Ultra Fast (+65%)" : (tierIdx >= 2 ? "Fast (+30%)" : "Normal");
+                return $"Discus ATK <color=#FFCB49>30</color> | {discusCount} Discus\n<color=#FFCB49>{spinSpeed}</color> Spin Speed";
+            }
+            case 8: // Shotgun
+            {
+                float atkMultiplier = 1.0f;
+                if (tierIdx >= 1) atkMultiplier += 0.15f;
+                if (tierIdx >= 2) atkMultiplier += 0.15f;
+                if (tierIdx >= 3) atkMultiplier += 0.25f;
+                float finalAtk = 86f * atkMultiplier;
+                string summary = $"ATK <color=#FFCB49>{finalAtk:F0}</color>\n<color=#FFCB49>Slow</color> ATK Speed";
+                if (tierIdx >= 4) summary += "\n<color=#FFCB49>Double Fire</color> (10 pellets)";
+                return summary;
+            }
+            case 9: // Energy Jumper Cables
+            {
+                float lifeSteal = 2.3f;
+                if (tierIdx >= 1) lifeSteal += 1.0f;
+                if (tierIdx >= 2) lifeSteal += 5.0f;
+                if (tierIdx >= 3) lifeSteal += 8.0f;
+                if (tierIdx >= 4) lifeSteal += 10.0f;
+                string summary = $"Life Steal <color=#FFCB49>{lifeSteal:F1}%</color>";
+                if (tierIdx >= 1) summary += "\n<color=#40DAD2>All Weapons Gain Life Steal</color>";
+                return summary;
+            }
+            case 10: // High-Explosive Mine
+            {
+                float dmgMultiplier = 1.0f;
+                if (tierIdx >= 1) dmgMultiplier += 0.20f;
+                if (tierIdx >= 3) dmgMultiplier += 0.55f;
+                if (tierIdx >= 4) dmgMultiplier += 1.44f;
+                float finalAtk = 27f * dmgMultiplier;
+                float cd = tierIdx >= 2 ? (5.55f * 0.80f) : 5.55f;
+                return $"Mine AoE ATK <color=#FFCB49>{finalAtk:F0}</color>\nCooldown: {cd:F2}s";
+            }
+            default:
+                return chip.baseStatsSummary ?? string.Empty;
+        }
     }
 
     private static string GetFrameColorName(ChipTier tier)

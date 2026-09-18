@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
@@ -30,11 +31,20 @@ public class Projectile : MonoBehaviour, IPoolable
     [Tooltip("Prefab hiệu ứng nổ (VFX Boom).")]
     [SerializeField] private GameObject explosionVfxPrefab;
 
+    [Header("Perk Attributes")]
+    [SerializeField] private float extraLifeStealPercent = 0f;
+    [SerializeField] private bool canRicochet = false;
+    [SerializeField] private float ricochetChance = 0f;
+    [SerializeField] private int maxRicochetCount = 1;
+    [SerializeField] private float ricochetRadius = 6.0f;
+
     private Rigidbody2D rb;
     private Vector2 moveDirection;
     private float lifeTimer;
     private Transform targetEnemy;
     private int sourceChipsetId;
+    private int currentRicochetRemaining;
+    private readonly HashSet<int> hitEnemyIds = new HashSet<int>();
 
     public bool IsHoming
     {
@@ -45,6 +55,15 @@ public class Projectile : MonoBehaviour, IPoolable
     public int Damage => damage;
     public float MoveSpeed => moveSpeed;
     public bool IsCritical { get; set; }
+
+    public void SetupPerks(float extraLifeSteal, bool ricochet, float ricochetProb)
+    {
+        extraLifeStealPercent = extraLifeSteal;
+        canRicochet = ricochet;
+        ricochetChance = ricochetProb;
+        currentRicochetRemaining = ricochet ? maxRicochetCount : 0;
+        hitEnemyIds.Clear();
+    }
 
     private void Awake()
     {
@@ -61,6 +80,8 @@ public class Projectile : MonoBehaviour, IPoolable
     private void OnEnable()
     {
         lifeTimer = lifeTime;
+        currentRicochetRemaining = canRicochet ? maxRicochetCount : 0;
+        hitEnemyIds.Clear();
     }
 
     private void Update()
@@ -179,6 +200,7 @@ public class Projectile : MonoBehaviour, IPoolable
                 if (damageable is EnemyHealth eh)
                 {
                     eh.TakeDamage(damage, IsCritical);
+                    hitEnemyIds.Add(eh.gameObject.GetInstanceID());
                 }
                 else
                 {
@@ -186,6 +208,30 @@ public class Projectile : MonoBehaviour, IPoolable
                 }
                 ChipsetBattleStats.RecordDamage(sourceChipsetId, damage);
                 EnergyJumperCablesSkill.TriggerLifeSteal(damage, isMainWeapon: true);
+
+                if (extraLifeStealPercent > 0f)
+                {
+                    PlayerHealth playerHealth = FindObjectOfType<PlayerHealth>();
+                    if (playerHealth != null && !playerHealth.IsDead)
+                    {
+                        int heal = Mathf.Max(1, Mathf.RoundToInt(damage * extraLifeStealPercent));
+                        playerHealth.Heal(heal);
+                    }
+                }
+
+                if (canRicochet && currentRicochetRemaining > 0 && Random.value < ricochetChance)
+                {
+                    currentRicochetRemaining--;
+                    Transform nextTarget = FindNextRicochetTarget(transform.position);
+                    if (nextTarget != null)
+                    {
+                        Vector2 nextDir = ((Vector2)nextTarget.position - (Vector2)transform.position).normalized;
+                        SetDirection(nextDir);
+                        SetTarget(nextTarget);
+                        lifeTimer = lifeTime;
+                        return;
+                    }
+                }
             }
 
             Despawn();
@@ -228,6 +274,29 @@ public class Projectile : MonoBehaviour, IPoolable
                 EnergyJumperCablesSkill.TriggerLifeSteal(damage, isMainWeapon: true);
             }
         }
+    }
+
+    private Transform FindNextRicochetTarget(Vector3 origin)
+    {
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(origin, ricochetRadius, 1 << 7);
+        Transform best = null;
+        float minDist = float.MaxValue;
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            Collider2D col = colliders[i];
+            if (col == null) continue;
+            EnemyHealth eh = col.GetComponentInParent<EnemyHealth>();
+            if (eh != null && !eh.IsDead && !hitEnemyIds.Contains(eh.gameObject.GetInstanceID()))
+            {
+                float dist = Vector2.Distance(origin, eh.transform.position);
+                if (dist < minDist)
+                {
+                    minDist = dist;
+                    best = eh.transform;
+                }
+            }
+        }
+        return best;
     }
 
     private void Despawn()

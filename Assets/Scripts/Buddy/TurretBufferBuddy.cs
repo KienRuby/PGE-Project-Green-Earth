@@ -31,11 +31,62 @@ public class TurretBufferBuddy : BuddyCombatDrone
     [SerializeField] private Color plasmaColor = new Color(0.2f, 1f, 0.8f, 1f);
 
     private float buffTimer;
+    private static TurretBufferBuddy activeInstance;
+
+    public static float GetActiveTurretDurationBonus()
+    {
+        BuddyTier tier = BuddyTier.Common;
+        if (activeInstance != null)
+        {
+            tier = activeInstance.currentTier;
+        }
+        else
+        {
+            int activeDeck = PlayerDataService.ActiveBuddyDeckIndex;
+            int[] equipped = PlayerDataService.LoadBuddyDeck(activeDeck, new int[] { 1, 2, 10 });
+            if (equipped != null && System.Array.IndexOf(equipped, 2) >= 0)
+            {
+                BuddyItemData data = new BuddyItemData { id = 2, level = 1, tier = BuddyTier.Common };
+                PlayerDataService.LoadBuddyProgress(data);
+                tier = data.tier;
+            }
+            else
+            {
+                return 0f;
+            }
+        }
+
+        int tierLevel = (int)tier;
+        if (tierLevel >= 5) return 1.20f;
+        if (tierLevel >= 4) return 0.90f;
+        if (tierLevel >= 3) return 0.60f;
+        if (tierLevel >= 2) return 0.30f;
+        return 0.10f;
+    }
 
     public GameObject ProjectilePrefab
     {
         get => projectilePrefab;
         set => projectilePrefab = value;
+    }
+
+    public override void Initialize(Transform targetPlayer, int slotIdx, int totalEquipped, int level = 1, BuddyTier tier = BuddyTier.Common)
+    {
+        base.Initialize(targetPlayer, slotIdx, totalEquipped, level, tier);
+        activeInstance = this;
+        if (currentTier >= BuddyTier.Epic)
+        {
+            GunTurret.GlobalTurretFireRateMultiplier = 1.25f;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (activeInstance == this)
+        {
+            activeInstance = null;
+            GunTurret.GlobalTurretFireRateMultiplier = 1.0f;
+        }
     }
 
     protected override void Awake()
@@ -63,6 +114,7 @@ public class TurretBufferBuddy : BuddyCombatDrone
 
     private void TriggerBuffPulse()
     {
+        int tierLevel = (int)currentTier;
         // 1. Tìm các tháp súng đang hoạt động trên sàn đấu
         GunTurret[] turrets = FindObjectsOfType<GunTurret>();
         if (turrets != null && turrets.Length > 0)
@@ -71,6 +123,12 @@ public class TurretBufferBuddy : BuddyCombatDrone
             {
                 if (t != null && t.gameObject.activeInHierarchy)
                 {
+                    // Rare+ (tierLevel >= 2): Pulse Extends Active Turrets (+3s)
+                    if (tierLevel >= 2)
+                    {
+                        t.AddDuration(3.0f);
+                    }
+
                     // Tạo hiệu ứng chớp màu xanh neon buff cho tháp dựa theo buffMultiplier
                     SpriteRenderer sr = t.GetComponentInChildren<SpriteRenderer>();
                     if (sr != null)

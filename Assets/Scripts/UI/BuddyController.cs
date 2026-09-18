@@ -1626,9 +1626,9 @@ public class BuddyController : MonoBehaviour
             string tierColorHex;
             switch (selectedDetailBuddy.tier)
             {
-                case BuddyTier.Magic: tierColorHex = "#38BDF8"; break;
-                case BuddyTier.Rare: tierColorHex = "#38BDF8"; break; // Blue as in requirements
-                case BuddyTier.Unique: tierColorHex = "#F472B6"; break; // Pink-Purple
+                case BuddyTier.Magic: tierColorHex = "#22C55E"; break; // Green
+                case BuddyTier.Rare: tierColorHex = "#38BDF8"; break; // Blue
+                case BuddyTier.Unique: tierColorHex = "#C084FC"; break; // Purple
                 case BuddyTier.Epic: tierColorHex = "#FACC15"; break; // Yellow
                 case BuddyTier.Holographic: tierColorHex = "#FB7185"; break; // Red
                 default: tierColorHex = "#22C55E"; break; // Common Green
@@ -1638,11 +1638,11 @@ public class BuddyController : MonoBehaviour
 
         // 3. Description & Base Stat
         if (detailDescText != null) detailDescText.text = selectedDetailBuddy.description;
-        if (detailBaseStatText != null) detailBaseStatText.text = selectedDetailBuddy.baseStatText;
+        if (detailBaseStatText != null) detailBaseStatText.text = GetDynamicBaseStatText(selectedDetailBuddy);
 
         // 4. 4 Tier Perk Rows with icons and active tags
         string[] tierNames = { "Rare", "Unique", "Epic", "Holo" };
-        string[] tierColors = { "#38BDF8", "#F472B6", "#FACC15", "#FB7185" };
+        string[] tierColors = { "#38BDF8", "#C084FC", "#FACC15", "#FB7185" };
         string[] perkTexts = {
             selectedDetailBuddy.magicPerkText,
             selectedDetailBuddy.rarePerkText,
@@ -1652,7 +1652,7 @@ public class BuddyController : MonoBehaviour
 
         for (int i = 0; i < 4; i++)
         {
-            bool isUnlocked = (int)selectedDetailBuddy.tier > i;
+            bool isUnlocked = (int)selectedDetailBuddy.tier > i + 1;
             if (perkRowIcons != null && i < perkRowIcons.Length && perkRowIcons[i] != null)
             {
                 if (isUnlocked && unlockedCheckSprite != null)
@@ -2022,7 +2022,9 @@ public class BuddyController : MonoBehaviour
     public void LoadFrameSpritesIfMissing()
     {
 #if UNITY_EDITOR
-        if (frameSprites == null || frameSprites.Length < 6 || frameSprites.Any(s => s == null))
+        bool needsReload = frameSprites == null || frameSprites.Length < 6 || frameSprites.Any(s => s == null)
+            || (frameSprites.Length >= 5 && frameSprites[3] == frameSprites[4]); // Fix old duplicate yellow bug
+        if (needsReload)
         {
             Sprite green = null;
             string iconPath = "Assets/Sprites/UI/Buddy/icon buddy.png";
@@ -2036,12 +2038,12 @@ public class BuddyController : MonoBehaviour
 
             frameSprites = new Sprite[6]
             {
-                green,            // Common
-                blue ?? green,    // Magic
-                purple ?? green,  // Rare
-                yellow ?? green,  // Unique
-                yellow ?? green,  // Epic
-                red ?? green      // Holographic
+                green,            // Common (0) - Green
+                green,            // Magic (1) - Green
+                blue ?? green,    // Rare (2) - Blue
+                purple ?? green,  // Unique (3) - Purple
+                yellow ?? green,  // Epic (4) - Yellow
+                red ?? green      // Holographic (5) - Red
             };
         }
 
@@ -2077,6 +2079,61 @@ public class BuddyController : MonoBehaviour
             return frameSprites[index];
         }
         return (frameSprites != null && frameSprites.Length > 0) ? frameSprites[0] : null;
+    }
+
+    public static string GetDynamicBaseStatText(BuddyItemData buddy)
+    {
+        if (buddy == null) return string.Empty;
+        int tierLevel = (int)buddy.tier; // 0: Common, 1: Magic, 2: Rare, 3: Unique, 4: Epic, 5: Holo
+
+        switch (buddy.id)
+        {
+            case 1: // Sloy (Frost Sentinel)
+            {
+                float atk = 20.4f * (1f + (buddy.level - 1) * 0.15f) * (1f + tierLevel * 0.2f);
+                int slowPercent = tierLevel >= 3 ? 50 : (tierLevel >= 2 ? 42 : 35);
+                string summary = $"Drone ATK <color=#FFCB49>{atk:F1}</color>, Slow <color=#FFCB49>{slowPercent}%</color>";
+                if (tierLevel >= 4) summary += "\n<color=#40DAD2>Area Slow (3.0m Radius)</color>";
+                if (tierLevel >= 5) summary += "\n<color=#FB7185>Blizzard Blast (+30% AoE Dmg)</color>";
+                return summary;
+            }
+            case 2: // Turret Buffer
+            {
+                int bonusDuration = tierLevel >= 5 ? 120 : (tierLevel >= 4 ? 90 : (tierLevel >= 3 ? 60 : (tierLevel >= 2 ? 30 : 10)));
+                string summary = $"All Turrets' Duration <color=#FFCB49>+{bonusDuration}%</color>";
+                if (tierLevel >= 2) summary += "\n<color=#40DAD2>Pulse Extends Active Turrets (+3s)</color>";
+                if (tierLevel >= 4) summary += "\n<color=#FB7185>Turret Overdrive (+25% Fire Rate)</color>";
+                return summary;
+            }
+            case 3: // Radar Eye
+            {
+                string summary = "All Weapons' CRIT Rate <color=#FFCB49>+5%</color>";
+                if (tierLevel >= 2) summary += "\nCRIT Damage <color=#FFCB49>+20%</color>";
+                if (tierLevel >= 3) summary += "\nScan Range <color=#FFCB49>+30%</color>";
+                if (tierLevel >= 4) summary += "\nWeakpoint DMG <color=#FFCB49>+30%</color>";
+                if (tierLevel >= 5) summary += "\nTarget Lock <color=#FFCB49>+30%</color>";
+                return summary;
+            }
+            case 4: // Assault Blaster
+            {
+                string summary = "All Weapons' ATK <color=#FFCB49>+12%</color>";
+                if (tierLevel >= 2) summary += "\nBlaster ATK <color=#FFCB49>+20%</color>";
+                if (tierLevel >= 3) summary += "\nFire Rate <color=#FFCB49>+30%</color>";
+                if (tierLevel >= 4) summary += "\nDual Shot 2nd Pellet ATK <color=#FFCB49>+30%</color>";
+                if (tierLevel >= 5) summary += "\n<color=#FB7185>Overheat Surge</color> (+30% Rapid Fire)";
+                return summary;
+            }
+            case 10: // Purifying Drone
+            {
+                int resist = tierLevel >= 4 ? 26 : (tierLevel >= 3 ? 17 : (tierLevel >= 2 ? 10 : 5));
+                string summary = $"Ailment Resistance <color=#FFCB49>{resist}%</color>";
+                if (tierLevel >= 1) summary += "\n<color=#40DAD2>Purifying Pulse Heals +10 HP</color>";
+                if (tierLevel >= 5) summary += "\n<color=#FB7185>Emergency Cleanse & Shield (CD 30s)</color>";
+                return summary;
+            }
+            default:
+                return buddy.baseStatText ?? string.Empty;
+        }
     }
 
     private void ShowToast(string message)

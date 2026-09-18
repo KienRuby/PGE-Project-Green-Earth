@@ -351,6 +351,11 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
         if (damage <= 0)
             return;
 
+        if (RadarEyeBuddy.CurrentWeakpointTarget != null && RadarEyeBuddy.CurrentWeakpointTarget == this)
+        {
+            damage = Mathf.RoundToInt(damage * 1.30f);
+        }
+
         CurrentHealth -= damage;
         CurrentHealth = Mathf.Clamp(CurrentHealth, 0, maxHealth);
 

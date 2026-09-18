@@ -181,11 +181,12 @@ public class GunTurretSkill : MonoBehaviour
             bonusDmg = stats.BonusDamage;
         }
 
-        int finalDamage = config.damage + bonusDmg;
+        CalculateMetaTierBonuses(out float durationMultiplier, out _, out float damageMultiplier);
+        float buddyDurationMultiplier = 1f + TurretBufferBuddy.GetActiveTurretDurationBonus();
+        float duration = config.duration * durationMultiplier * buddyDurationMultiplier;
+        int finalDamage = Mathf.RoundToInt((config.damage + bonusDmg) * damageMultiplier);
         float fireRate = config.fireRate;
         float bulletSpeed = 12f;
-        CalculateMetaTierBonuses(out float durationMultiplier, out _);
-        float duration = config.duration * durationMultiplier;
         float explosiveChance = config.explosiveChance;
         bool hasRegen = config.hasHealthRegen;
         int health = config.turretHealth;
@@ -242,8 +243,14 @@ public class GunTurretSkill : MonoBehaviour
     /// </summary>
     public void CalculateMetaTierBonuses(out float durationMultiplier, out float cooldownMultiplier)
     {
+        CalculateMetaTierBonuses(out durationMultiplier, out cooldownMultiplier, out _);
+    }
+
+    public void CalculateMetaTierBonuses(out float durationMultiplier, out float cooldownMultiplier, out float damageMultiplier)
+    {
         durationMultiplier = 1.0f;
         cooldownMultiplier = 1.0f;
+        damageMultiplier = 1.0f;
 
         int metaTier = 1;
         if (PlayerDataService.LoadChipsetItemData(6, out _, out int savedTier, out _, out _, out _))
@@ -257,10 +264,11 @@ public class GunTurretSkill : MonoBehaviour
             durationMultiplier += 0.20f;
         }
 
-        // Tier 3 (Epic / Purple Frame): Turret Cooldown -30%
+        // Tier 3 (Epic / Purple Frame): Turret Cooldown -30%, ATK +15%
         if (metaTier >= 3)
         {
             cooldownMultiplier -= 0.30f;
+            damageMultiplier += 0.15f;
         }
 
         // Tier 4 (Legendary / Yellow Frame): Turret Duration +20%
@@ -269,10 +277,11 @@ public class GunTurretSkill : MonoBehaviour
             durationMultiplier += 0.20f;
         }
 
-        // Tier 5 (Secret / Red Frame): Turret Duration +30%
+        // Tier 5 (Secret / Red Frame): Turret Duration +30%, ATK +30%
         if (metaTier >= 5)
         {
             durationMultiplier += 0.30f;
+            damageMultiplier += 0.30f;
         }
     }
 
@@ -284,7 +293,8 @@ public class GunTurretSkill : MonoBehaviour
 
     public int GetCurrentDamage()
     {
-        return GetCurrentConfig().damage;
+        CalculateMetaTierBonuses(out _, out _, out float damageMultiplier);
+        return Mathf.RoundToInt(GetCurrentConfig().damage * damageMultiplier);
     }
 
     public float GetCurrentDuration()

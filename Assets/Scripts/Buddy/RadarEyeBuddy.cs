@@ -20,6 +20,7 @@ public class RadarEyeBuddy : BuddyCombatDrone
     [SerializeField] private Color radarColor = new Color(0.2f, 0.9f, 1f, 0.9f);
 
     private float beamTimer;
+    public static EnemyHealth CurrentWeakpointTarget { get; private set; }
 
     protected override void Awake()
     {
@@ -44,6 +45,25 @@ public class RadarEyeBuddy : BuddyCombatDrone
         }
     }
 
+    protected override void ApplyLevelAndTierScaling()
+    {
+        base.ApplyLevelAndTierScaling();
+        int tierLevel = (int)currentTier;
+
+        // Unique (Tier 3): Scan Range +30%
+        if (tierLevel >= 3)
+        {
+            targetDetectionRadius = 9.0f * 1.30f;
+        }
+
+        // Holo (Tier 5): Target Lock +30% (Beam duration +30%, Cooldown -30%)
+        if (tierLevel >= 5)
+        {
+            beamDuration = 0.4f * 1.30f;
+            attackCooldown = Mathf.Max(0.2f, attackCooldown * 0.70f);
+        }
+    }
+
     protected override void Update()
     {
         base.Update();
@@ -61,12 +81,14 @@ public class RadarEyeBuddy : BuddyCombatDrone
                 else
                 {
                     laserBeam.enabled = false;
+                    if (CurrentWeakpointTarget == currentTarget) CurrentWeakpointTarget = null;
                 }
             }
 
-            if (beamTimer <= 0f && laserBeam != null)
+            if (beamTimer <= 0f)
             {
-                laserBeam.enabled = false;
+                if (laserBeam != null) laserBeam.enabled = false;
+                if (CurrentWeakpointTarget == currentTarget) CurrentWeakpointTarget = null;
             }
         }
     }
@@ -84,14 +106,26 @@ public class RadarEyeBuddy : BuddyCombatDrone
             beamTimer = beamDuration;
         }
 
+        int tierLevel = (int)currentTier;
+        if (tierLevel >= 4)
+        {
+            CurrentWeakpointTarget = target;
+        }
+
         // Gây sát thương quét điểm yếu (có tỷ lệ chí mạng cao)
         bool isCrit = Random.value < (0.25f + bonusCritRate);
-        int finalDamage = isCrit ? Mathf.RoundToInt(baseDamage * 1.5f) : baseDamage;
+        float critMult = isCrit ? 1.5f : 1.0f;
+        float weakpointMult = tierLevel >= 4 ? 1.30f : 1.0f;
+        int finalDamage = Mathf.RoundToInt(baseDamage * critMult * weakpointMult);
         target.TakeDamage(finalDamage, isCrit);
     }
 
     private void OnDestroy()
     {
+        if (CurrentWeakpointTarget != null)
+        {
+            CurrentWeakpointTarget = null;
+        }
         if (laserBeam != null && laserBeam.material != null)
         {
             Destroy(laserBeam.material);

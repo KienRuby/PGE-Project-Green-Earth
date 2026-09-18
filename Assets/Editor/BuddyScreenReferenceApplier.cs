@@ -18,7 +18,7 @@ public static class BuddyScreenReferenceApplier
     private const string MainMenuScenePath = "Assets/Scenes/MainMenu.unity";
     private const string IconSheetPath = "Assets/Sprites/UI/Buddy/icon buddy.png";
     private const string ButtonSheetPath = "Assets/Sprites/UI/Buddy/nút màn buddy.png";
-    private const string AppliedKey = "PGE.BuddyScreenReferenceApplier.v9";
+    private const string AppliedKey = "PGE.BuddyScreenReferenceApplier.v10";
 
     static BuddyScreenReferenceApplier()
     {
@@ -144,7 +144,7 @@ public static class BuddyScreenReferenceApplier
             icons.GetArrayElementAtIndex(i).objectReferenceValue = sprite;
         }
 
-        // Frame Sprites: 6 tiers: Common (Green), Magic (Blue), Rare (Purple), Unique (Yellow), Epic (Yellow), Holographic (Red)
+        // Frame Sprites: 6 tiers: Common (Green), Magic (Green), Rare (Blue), Unique (Purple), Epic (Yellow), Holographic (Red)
         Sprite frameGreen = sourceIcons.TryGetValue("openLocke", out var g) ? g : null;
         Sprite frameBlue = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Buddy/openLocke_Blue.png") ?? frameGreen;
         Sprite framePurple = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Buddy/openLocke_Purple.png") ?? frameGreen;
@@ -154,9 +154,9 @@ public static class BuddyScreenReferenceApplier
         SerializedProperty frames = serialized.FindProperty("frameSprites");
         frames.arraySize = 6;
         frames.GetArrayElementAtIndex(0).objectReferenceValue = frameGreen;
-        frames.GetArrayElementAtIndex(1).objectReferenceValue = frameBlue;
-        frames.GetArrayElementAtIndex(2).objectReferenceValue = framePurple;
-        frames.GetArrayElementAtIndex(3).objectReferenceValue = frameYellow;
+        frames.GetArrayElementAtIndex(1).objectReferenceValue = frameGreen;
+        frames.GetArrayElementAtIndex(2).objectReferenceValue = frameBlue;
+        frames.GetArrayElementAtIndex(3).objectReferenceValue = framePurple;
         frames.GetArrayElementAtIndex(4).objectReferenceValue = frameYellow;
         frames.GetArrayElementAtIndex(5).objectReferenceValue = frameRed;
 

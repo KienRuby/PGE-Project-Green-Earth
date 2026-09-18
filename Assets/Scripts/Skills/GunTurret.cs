@@ -108,6 +108,14 @@ public class GunTurret : MonoBehaviour, IPoolable, IDamageable
     public int CurrentHealth => currentHealth;
     public int MaxHealth => maxHealth;
 
+    public void AddDuration(float extraSeconds)
+    {
+        if (extraSeconds > 0f && durationTimer > 0f)
+        {
+            durationTimer += extraSeconds;
+        }
+    }
+
     /// <summary>
     /// Phạm vi tấn công của Gun Turret (Chipset): luôn nhỏ hơn tầm bắn của Player 3m.
     /// </summary>

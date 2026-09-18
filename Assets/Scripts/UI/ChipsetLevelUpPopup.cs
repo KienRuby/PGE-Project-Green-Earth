@@ -37,7 +37,7 @@ public class ChipsetLevelUpPopup : MonoBehaviour
 
     [Header("Gameplay")]
     [SerializeField] private PlayerLevelController playerLevelController;
-    [SerializeField, Min(1)] private int choicesPerLevel = 4;
+    [SerializeField, Range(1, 3)] private int choicesPerLevel = 3;
     [SerializeField, Min(0)] private int rerollRedGemCost = 20;
     [SerializeField, Min(0)] private int maxRerollsPerLevel = 2;
 
@@ -46,6 +46,7 @@ public class ChipsetLevelUpPopup : MonoBehaviour
     [SerializeField] private CanvasGroup popupCanvasGroup;
     [SerializeField] private RectTransform titleTransform;
     [SerializeField] private ChipsetChoiceCardUI[] choiceCards;
+    [SerializeField] private Sprite bonusChoiceBackground;
     [SerializeField] private UnityEngine.UI.Button rerollButton;
     [SerializeField] private TMP_Text rerollCostText;
     [SerializeField] private UnityEngine.UI.Image rerollCurrencyIcon;
@@ -67,6 +68,7 @@ public class ChipsetLevelUpPopup : MonoBehaviour
     private System.Random random;
     private Coroutine transitionRoutine;
     private int currentRerollCount;
+    private int currentChoiceCount = 3;
     private bool isShowing;
     private bool acceptingInput;
     private bool ownsTimeScale;
@@ -243,6 +245,11 @@ public class ChipsetLevelUpPopup : MonoBehaviour
             return;
         }
         currentRerollCount = 0;
+        currentChoiceCount = Mathf.Clamp(choicesPerLevel, 1, 3);
+        if (RollBonusChoice(PlayerDataService.GetItemLevel("CHIPSET SELECTION"), random.NextDouble()))
+        {
+            currentChoiceCount = 4;
+        }
         isShowing = true;
         acceptingInput = false;
 
@@ -266,7 +273,7 @@ public class ChipsetLevelUpPopup : MonoBehaviour
         List<ChipItemData> eligibleCatalog = catalog
             .Where(item => item != null && GetRuntimeLevel(item.id) < MaxRuntimeChipLevel)
             .ToList();
-        currentOffers.AddRange(SelectDistinctOffers(eligibleCatalog, Mathf.Min(choicesPerLevel, choiceCards?.Length ?? 0), random));
+        currentOffers.AddRange(SelectDistinctOffers(eligibleCatalog, Mathf.Min(currentChoiceCount, choiceCards?.Length ?? 0), random));
 
         for (int i = 0; i < (choiceCards?.Length ?? 0); i++)
         {
@@ -290,10 +297,17 @@ public class ChipsetLevelUpPopup : MonoBehaviour
                 currentRuntimeLevel,
                 GetOfferDescription(offer),
                 HandleChipSelected);
+            if (i == 3 && bonusChoiceBackground != null) card.SetBackgroundSprite(bonusChoiceBackground);
             card.SetInteractionEnabled(false);
         }
 
         RefreshRerollState();
+    }
+
+    public static bool RollBonusChoice(int labLevel, double roll)
+    {
+        // Same 3% per level shown by the Lab's Chipset Selection tooltip.
+        return roll < Mathf.Clamp(labLevel, 0, PlayerDataService.MaxLabItemLevel) * 0.03;
     }
 
     private IEnumerator PlayOpenAnimation()

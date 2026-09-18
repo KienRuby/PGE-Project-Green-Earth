@@ -122,6 +122,13 @@ public class ChipsetChoiceCardUI : MonoBehaviour
         }
     }
 
+    public void SetBackgroundSprite(Sprite sprite)
+    {
+        if (backgroundImage == null || sprite == null) return;
+        backgroundImage.sprite = sprite;
+        backgroundImage.color = Color.white;
+    }
+
     public void SetInteractionEnabled(bool enabled)
     {
         if (selectButton != null) selectButton.interactable = enabled && boundData != null;

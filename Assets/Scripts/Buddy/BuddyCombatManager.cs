@@ -190,6 +190,16 @@ public class BuddyCombatManager : MonoBehaviour
     private void ApplyPassiveBuffs(List<int> validIds)
     {
         PlayerAutoShooter autoShooter = GetComponent<PlayerAutoShooter>();
+        if (autoShooter == null && transform.parent != null)
+        {
+            autoShooter = transform.parent.GetComponent<PlayerAutoShooter>();
+        }
+        if (autoShooter == null)
+        {
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            if (player != null) autoShooter = player.GetComponent<PlayerAutoShooter>();
+        }
+
         if (autoShooter == null) return;
 
         float critBonus = 0f;
@@ -197,9 +207,16 @@ public class BuddyCombatManager : MonoBehaviour
 
         foreach (int id in validIds)
         {
-            if (id == 3) // Radar Eye: +5% CRIT Rate
+            BuddyItemData itemData = new BuddyItemData { id = id, level = 1, tier = BuddyTier.Common };
+            PlayerDataService.LoadBuddyProgress(itemData);
+
+            if (id == 3) // Radar Eye
             {
                 critBonus += 0.05f;
+                if (itemData.tier >= BuddyTier.Rare)
+                {
+                    autoShooter.ArtifactCritDamageMultiplier += 0.20f;
+                }
             }
             else if (id == 4) // Assault Blaster: +12% All Weapons ATK
             {
@@ -232,6 +249,7 @@ public class BuddyCombatManager : MonoBehaviour
     private void OnDestroy()
     {
         if (Instance == this) Instance = null;
+        GunTurret.GlobalTurretFireRateMultiplier = 1f;
         ClearAllDrones();
     }
 }

@@ -146,6 +146,13 @@ public class PlayerAutoShooter : MonoBehaviour
         set => artifactCritBonus = Mathf.Max(0f, value);
     }
 
+    private float artifactCritDamageMultiplier = 1f;
+    public float ArtifactCritDamageMultiplier
+    {
+        get => artifactCritDamageMultiplier;
+        set => artifactCritDamageMultiplier = Mathf.Max(0.5f, value);
+    }
+
     public WeaponData CurrentEquippedWeapon => currentEquippedWeapon;
     public bool IsAttacking { get; private set; }
     public int CurrentDamage => Mathf.RoundToInt((currentDamage + bonusDamage) * artifactDamageMultiplier);
@@ -840,6 +847,16 @@ public class PlayerAutoShooter : MonoBehaviour
         float sourceCritChance = chipsetId == 1 && level >= 3 ? 0.10f : 0f;
         bool homing = chipsetId == 5 && level >= 3;
         bool radial = chipsetId == 5 && level >= 5;
+        if (chipsetId == 5 && PlayerDataService.GetChipTier(5) == ChipTier.Holographic)
+        {
+            // Holo Perk: 360° Bullet Storm (5s, CD 115s)
+            bool isBulletStorm = (Time.time % 120f) <= 5f;
+            if (isBulletStorm)
+            {
+                radial = true;
+                projectileCount = Mathf.Max(projectileCount, 8);
+            }
+        }
 
         if (chipsetId == 1 && projectileCount > 1) spread = 6f;
         if (chipsetId == 2 && projectileCount > 1) spread = 3f;
@@ -1022,7 +1039,7 @@ public class PlayerAutoShooter : MonoBehaviour
                 bool isCrit = totalCrit > 0f && Random.value < totalCrit;
                 if (isCrit)
                 {
-                    finalDamage = Mathf.RoundToInt(finalDamage * 1.5f);
+                    finalDamage = Mathf.RoundToInt(finalDamage * 1.5f * artifactCritDamageMultiplier);
                 }
 
                 projectileScript.Setup(finalDamage, Mathf.Max(0.1f, speed), Mathf.Max(0.1f, range));
@@ -1031,6 +1048,15 @@ public class PlayerAutoShooter : MonoBehaviour
                 projectileScript.SetDamageSource(sourceChipsetId);
                 projectileScript.SetDirection(direction);
                 projectileScript.SetTarget(currentTarget);
+
+                if (sourceChipsetId == 1)
+                {
+                    ChipTier tier = PlayerDataService.GetChipTier(1);
+                    float extraLifeSteal = tier >= ChipTier.Epic ? 0.05f : 0f;
+                    bool canRicochet = tier == ChipTier.Holographic;
+                    float ricochetChance = canRicochet ? 0.50f : 0f;
+                    projectileScript.SetupPerks(extraLifeSteal, canRicochet, ricochetChance);
+                }
             }
         }
     }

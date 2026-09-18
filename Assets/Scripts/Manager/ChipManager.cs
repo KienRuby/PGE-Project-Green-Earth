@@ -38,11 +38,11 @@ public sealed class ChipManager : MonoBehaviour
     // INSPECTOR CONFIGURATION: TEST MODE & BALANCES
     // =========================================================================
     [Header("=== TEST MODE CONFIGURATION (VÔ HẠN CHIP & NĂNG LƯỢNG TRONG EDITOR) ===")]
-    [Tooltip("Bật chế độ Test để có vô hạn chip & năng lượng thử nghiệm toàn bộ Lab, Shop, Chipset, Buddy, Chapter.")]
+    [Tooltip("Dùng số dư Test nhập bên dưới trong Editor. Bật thêm Infinite Chips In Test Mode nếu muốn tiêu không giới hạn.")]
     [SerializeField] private bool enableTestMode = true;
 
     [Tooltip("Khi bật Test Mode, số chip và năng lượng sẽ không bị trừ khi tiêu/nâng cấp (luôn luôn thành công).")]
-    [SerializeField] private bool infiniteChipsInTestMode = true;
+    [SerializeField] private bool infiniteChipsInTestMode = false;
 
     [Tooltip("Tự động cưỡng chế TẮT Test Mode và Vô Hạn Chip khi build ra APK / Mobile Release (ngăn chặn hoàn toàn rủi ro quên tắt trước khi build).")]
     [SerializeField] private bool autoDisableInNonEditorBuilds = true;
@@ -127,7 +127,8 @@ public sealed class ChipManager : MonoBehaviour
     // =========================================================================
     // LIFECYCLE & INITIALIZATION
     // =========================================================================
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    // Let the scene's serialized manager initialize before creating a fallback.
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void AutoInitialize()
     {
         if (instance == null)
@@ -167,11 +168,7 @@ public sealed class ChipManager : MonoBehaviour
             DontDestroyOnLoad(gameObject);
         }
 
-#if UNITY_EDITOR
-        // TỰ ĐỘNG BẬT VÔ HẠN TIỀN TỆ & NĂNG LƯỢNG KHI TEST TRONG UNITY EDITOR
-        enableTestMode = true;
-        infiniteChipsInTestMode = true;
-#else
+#if !UNITY_EDITOR
         // TỰ ĐỘNG CƯỠNG CHẾ TẮT TEST MODE & VÔ HẠN KHI BUILD RA APK / NỀN TẢNG THỰC TẾ
         enableTestMode = false;
         infiniteChipsInTestMode = false;

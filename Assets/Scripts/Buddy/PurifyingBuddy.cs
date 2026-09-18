@@ -26,6 +26,38 @@ public class PurifyingBuddy : BuddyCombatDrone
     [SerializeField] private Color stealthWingColor = new Color(0.1f, 0.7f, 1f, 1f);
 
     private float pulseTimer;
+    private float emergencyShieldCooldownTimer = 0f;
+    private static PurifyingBuddy activeInstance;
+
+    public static int GetAilmentResistance()
+    {
+        BuddyTier tier = BuddyTier.Common;
+        if (activeInstance != null)
+        {
+            tier = activeInstance.currentTier;
+        }
+        else
+        {
+            int activeDeck = PlayerDataService.ActiveBuddyDeckIndex;
+            int[] equipped = PlayerDataService.LoadBuddyDeck(activeDeck, new int[] { 1, 2, 10 });
+            if (equipped != null && System.Array.IndexOf(equipped, 10) >= 0)
+            {
+                BuddyItemData data = new BuddyItemData { id = 10, level = 1, tier = BuddyTier.Common };
+                PlayerDataService.LoadBuddyProgress(data);
+                tier = data.tier;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        int tierLevel = (int)tier;
+        if (tierLevel >= 4) return 26;
+        if (tierLevel >= 3) return 17;
+        if (tierLevel >= 2) return 10;
+        return 5;
+    }
 
     public GameObject ProjectilePrefab
     {
@@ -37,6 +69,17 @@ public class PurifyingBuddy : BuddyCombatDrone
     {
         get => pulseVfxPrefab;
         set => pulseVfxPrefab = value;
+    }
+
+    public override void Initialize(Transform targetPlayer, int slotIdx, int totalEquipped, int level = 1, BuddyTier tier = BuddyTier.Common)
+    {
+        base.Initialize(targetPlayer, slotIdx, totalEquipped, level, tier);
+        activeInstance = this;
+    }
+
+    private void OnDestroy()
+    {
+        if (activeInstance == this) activeInstance = null;
     }
 
     protected override void Awake()
@@ -51,6 +94,32 @@ public class PurifyingBuddy : BuddyCombatDrone
     {
         base.Update();
         UpdatePurificationPulse(Time.deltaTime);
+        UpdateEmergencyShield(Time.deltaTime);
+    }
+
+    private void UpdateEmergencyShield(float deltaTime)
+    {
+        if (emergencyShieldCooldownTimer > 0f)
+        {
+            emergencyShieldCooldownTimer -= deltaTime;
+        }
+
+        int tierLevel = (int)currentTier;
+        if (tierLevel >= 5 && emergencyShieldCooldownTimer <= 0f && playerTransform != null)
+        {
+            PlayerHealth ph = playerTransform.GetComponent<PlayerHealth>();
+            if (ph != null && !ph.IsDead && ph.CurrentHealth <= ph.MaxHealth * 0.4f)
+            {
+                ph.SetMaxShield(Mathf.Max(ph.MaxShield, 50));
+                ph.AddShield(50);
+                ph.Heal(25);
+                emergencyShieldCooldownTimer = 30f;
+                if (pulseVfxPrefab != null)
+                {
+                    Instantiate(pulseVfxPrefab, playerTransform.position, Quaternion.identity);
+                }
+            }
+        }
     }
 
     private void UpdatePurificationPulse(float deltaTime)
@@ -66,6 +135,17 @@ public class PurifyingBuddy : BuddyCombatDrone
     private void TriggerPurificationPulse()
     {
         Vector3 pulseCenter = playerTransform != null ? playerTransform.position : transform.position;
+
+        // Magic+ (Tier 1+): Purifying Pulse Heals +10 HP
+        int tierLevel = (int)currentTier;
+        if (tierLevel >= 1 && playerTransform != null)
+        {
+            PlayerHealth ph = playerTransform.GetComponent<PlayerHealth>();
+            if (ph != null && !ph.IsDead)
+            {
+                ph.Heal(10);
+            }
+        }
 
         // Quét quái vật xung quanh
         Collider2D[] colliders = Physics2D.OverlapCircleAll(pulseCenter, pulseRadius, enemyLayer);

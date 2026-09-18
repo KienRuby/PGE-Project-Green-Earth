@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,6 +15,8 @@ public class DailyLoginAdButtonTests
     public void SetUp()
     {
         AdRewardService.ForceOfflineTestMode = false;
+        AdRewardService.IgnoreCooldownForTesting = false;
+        AdRewardService.ResetAllCooldowns();
 
         // Reset player prefs
         PlayerPrefs.DeleteKey(DailyLoginManager.CurrentDayKey);
@@ -54,6 +56,8 @@ public class DailyLoginAdButtonTests
     public void TearDown()
     {
         AdRewardService.ForceOfflineTestMode = false;
+        AdRewardService.IgnoreCooldownForTesting = false;
+        AdRewardService.ResetAllCooldowns();
         if (rootObj != null) UnityEngine.Object.DestroyImmediate(rootObj);
         if (loginManager != null) UnityEngine.Object.DestroyImmediate(loginManager.gameObject);
     }

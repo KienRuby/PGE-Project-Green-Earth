@@ -85,6 +85,7 @@ public sealed class VictoryPanelController : MonoBehaviour
     private bool victoryVisible;
     private bool vipBonusClaimed;
     private bool ownsGameplayPause;
+    private bool isReturningHome;
     private TMP_FontAsset runtimeFont;
     private Material runtimeFontMaterial;
 
@@ -118,6 +119,7 @@ public sealed class VictoryPanelController : MonoBehaviour
 
     private void Awake()
     {
+        isReturningHome = false;
         if (victoryPanel == null)
         {
             BuildRuntimeFallbackUi();
@@ -217,6 +219,7 @@ public sealed class VictoryPanelController : MonoBehaviour
 
         victoryVisible = true;
         vipBonusClaimed = false;
+        isReturningHome = false;
 
         playerLevelController?.LockLevelUpsForVictory();
         chipsetLevelUpPopup?.CancelForVictory();
@@ -493,12 +496,22 @@ public sealed class VictoryPanelController : MonoBehaviour
 
     public void ReturnHome()
     {
+        if (isReturningHome) return;
+        isReturningHome = true;
+
         ownsGameplayPause = false;
         Time.timeScale = 1f;
-        if (!string.IsNullOrWhiteSpace(homeSceneName))
+
+        if (homeButton != null) homeButton.interactable = false;
+        if (vipTripleButton != null) vipTripleButton.interactable = false;
+
+        AdRewardService.ShowInterstitialAd(() =>
         {
-            SceneManager.LoadScene(homeSceneName);
-        }
+            if (!string.IsNullOrWhiteSpace(homeSceneName))
+            {
+                SceneManager.LoadScene(homeSceneName);
+            }
+        });
     }
 
     private IEnumerator PlayReveal()

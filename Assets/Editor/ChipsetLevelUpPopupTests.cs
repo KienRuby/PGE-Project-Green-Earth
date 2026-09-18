@@ -4,6 +4,19 @@ using UnityEngine;
 
 public class ChipsetLevelUpPopupTests
 {
+    [TestCase(0, 0.0, false)]
+    [TestCase(1, 0.029, true)]
+    [TestCase(1, 0.03, false)]
+    [TestCase(3, 0.089, true)]
+    [TestCase(3, 0.09, false)]
+    [TestCase(4, 0.119, true)]
+    [TestCase(4, 0.12, false)]
+    [TestCase(10, 0.30, false)]
+    public void BonusChoice_UsesLabUnlockAndThreePercentPerLevel(int level, double roll, bool expected)
+    {
+        Assert.That(ChipsetLevelUpPopup.RollBonusChoice(level, roll), Is.EqualTo(expected));
+    }
+
     [Test]
     public void MechanicalParticles_OnlyUseGlyphsSupportedByTheirFont()
     {

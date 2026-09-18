@@ -55,9 +55,12 @@ public sealed class PlayerRunEndController : MonoBehaviour
     private bool rewardsGranted;
     private bool ownsGameplayPause;
     private bool waitingForRewardedAd;
+    private bool hasRevivedThisRun = false;
+    private bool isReturningHome = false;
     private float timeScaleBeforePrompt = 1f;
     private Coroutine reviveRevealRoutine;
     private Coroutine gameOverRevealRoutine;
+    private Coroutine reviveCountdownRoutine;
     private int pendingDataChipReward;
     private int pendingRedGemReward;
 
@@ -69,9 +72,18 @@ public sealed class PlayerRunEndController : MonoBehaviour
 
     public bool IsRevivePromptVisible => revivePanel != null && revivePanel.activeSelf;
     public bool IsGameOverVisible => gameOverPanel != null && gameOverPanel.activeSelf;
+    public bool HasRevivedThisRun => hasRevivedThisRun;
+
+    public void ResetReviveForNewRun()
+    {
+        hasRevivedThisRun = false;
+        isReturningHome = false;
+    }
 
     private void Awake()
     {
+        hasRevivedThisRun = false;
+        isReturningHome = false;
         ResolveGameplayReferences();
 
         EnsureDetailsUiComponents();
@@ -82,6 +94,8 @@ public sealed class PlayerRunEndController : MonoBehaviour
 
     private void OnEnable()
     {
+        hasRevivedThisRun = false;
+        isReturningHome = false;
         ResolveGameplayReferences();
         EnsureDetailsUiComponents();
         if (playerHealth != null)
@@ -107,11 +121,21 @@ public sealed class PlayerRunEndController : MonoBehaviour
         {
             playerDeathController.OnDeathCompleted -= HandleDeathSequenceCompleted;
         }
+        if (reviveCountdownRoutine != null)
+        {
+            StopCoroutine(reviveCountdownRoutine);
+            reviveCountdownRoutine = null;
+        }
     }
 
     private void OnDestroy()
     {
         UnbindButtons();
+        if (reviveCountdownRoutine != null)
+        {
+            StopCoroutine(reviveCountdownRoutine);
+            reviveCountdownRoutine = null;
+        }
         if (ownsGameplayPause)
         {
             Time.timeScale = 1f;
@@ -180,6 +204,12 @@ public sealed class PlayerRunEndController : MonoBehaviour
         if (resultResolved)
             return;
 
+        if (hasRevivedThisRun)
+        {
+            ChooseNo();
+            return;
+        }
+
         timeScaleBeforePrompt = Time.timeScale > 0f ? Time.timeScale : 1f;
         ownsGameplayPause = true;
         Time.timeScale = 0f;
@@ -196,12 +226,23 @@ public sealed class PlayerRunEndController : MonoBehaviour
     {
         if (!resultResolved && playerHealth != null && playerHealth.IsDead)
         {
+            if (hasRevivedThisRun)
+            {
+                ChooseNo();
+                return;
+            }
             ShowRevivePrompt();
         }
     }
 
     private void ShowRevivePrompt()
     {
+        if (hasRevivedThisRun)
+        {
+            ChooseNo();
+            return;
+        }
+
         SetPanelActive(gameOverPanel, false);
         SetPanelActive(revivePanel, true);
         waitingForRewardedAd = false;
@@ -214,11 +255,14 @@ public sealed class PlayerRunEndController : MonoBehaviour
 
         if (reviveRevealRoutine != null) StopCoroutine(reviveRevealRoutine);
         reviveRevealRoutine = StartCoroutine(PlayReviveReveal());
+
+        if (reviveCountdownRoutine != null) StopCoroutine(reviveCountdownRoutine);
+        reviveCountdownRoutine = StartCoroutine(ReviveCountdownRoutine());
     }
 
     public bool TryGemRevive()
     {
-        if (resultResolved || playerHealth == null)
+        if (resultResolved || playerHealth == null || hasRevivedThisRun)
             return false;
 
         if (!ChipManager.TrySpendRedGems(reviveGemCost))
@@ -249,6 +293,14 @@ public sealed class PlayerRunEndController : MonoBehaviour
         if (resultResolved || playerHealth == null || !playerHealth.Revive(0.5f, 2f))
             return false;
 
+        hasRevivedThisRun = true;
+
+        if (reviveCountdownRoutine != null)
+        {
+            StopCoroutine(reviveCountdownRoutine);
+            reviveCountdownRoutine = null;
+        }
+
         if (playerDeathController != null)
         {
             playerDeathController.ResetForRevive();
@@ -267,21 +319,30 @@ public sealed class PlayerRunEndController : MonoBehaviour
 
     private void OnAdReviveClicked()
     {
-        if (resultResolved || waitingForRewardedAd)
+        if (resultResolved || waitingForRewardedAd || hasRevivedThisRun)
             return;
 
-        Action<Action<bool>> request = OnRewardedReviveRequested;
-        if (request == null)
+        if (!AdRewardService.IsNetworkAvailable)
         {
             if (reviveFeedbackText != null)
-                reviveFeedbackText.text = "REWARDED ADS NOT CONFIGURED";
+                reviveFeedbackText.text = "NO NETWORK CONNECTION";
+            RefreshReviveButtons();
             return;
         }
 
         waitingForRewardedAd = true;
         RefreshReviveButtons();
         if (reviveFeedbackText != null) reviveFeedbackText.text = "LOADING AD...";
-        request.Invoke(CompleteRewardedAd);
+
+        Action<Action<bool>> request = OnRewardedReviveRequested;
+        if (request != null)
+        {
+            request.Invoke(CompleteRewardedAd);
+        }
+        else
+        {
+            AdRewardService.ShowRewardedAd(AdPlacement.Revive, CompleteRewardedAd);
+        }
     }
 
     public void CompleteRewardedAd(bool rewardEarned)
@@ -290,8 +351,11 @@ public sealed class PlayerRunEndController : MonoBehaviour
             return;
 
         waitingForRewardedAd = false;
-        if (rewardEarned && CompleteRevive())
-            return;
+        if (rewardEarned)
+        {
+            if (CompleteRevive())
+                return;
+        }
 
         if (reviveFeedbackText != null)
             reviveFeedbackText.text = rewardEarned ? "REVIVE FAILED" : "AD NOT COMPLETED";
@@ -301,11 +365,49 @@ public sealed class PlayerRunEndController : MonoBehaviour
     private void RefreshReviveButtons()
     {
         if (gemReviveButton != null)
-            gemReviveButton.interactable = !waitingForRewardedAd && ChipManager.HasEnoughRedGems(reviveGemCost);
+            gemReviveButton.interactable = !waitingForRewardedAd && !hasRevivedThisRun && ChipManager.HasEnoughRedGems(reviveGemCost);
         if (adReviveButton != null)
-            adReviveButton.interactable = !waitingForRewardedAd;
+            adReviveButton.interactable = !waitingForRewardedAd && !hasRevivedThisRun && AdRewardService.IsNetworkAvailable;
         if (noButton != null)
             noButton.interactable = !waitingForRewardedAd;
+    }
+
+    private IEnumerator ReviveCountdownRoutine()
+    {
+        float promptAutoTimeout = 60f; // Tự động chuyển Game Over nếu người chơi không tương tác
+
+        while (IsRevivePromptVisible && !resultResolved)
+        {
+            promptAutoTimeout -= Time.unscaledDeltaTime;
+            if (promptAutoTimeout <= 0f)
+            {
+                ChooseNo();
+                yield break;
+            }
+
+            yield return null;
+        }
+        reviveCountdownRoutine = null;
+    }
+
+    public void ChooseNo()
+    {
+        if (resultResolved)
+            return;
+
+        if (reviveCountdownRoutine != null)
+        {
+            StopCoroutine(reviveCountdownRoutine);
+            reviveCountdownRoutine = null;
+        }
+
+        resultResolved = true;
+        GameEvents.RaiseChapterPlayed(PlayerDataService.SelectedChapterIndex);
+        SetPanelActive(revivePanel, false);
+        PopulateGameOverResult();
+        SetPanelActive(gameOverPanel, true);
+        if (gameOverRevealRoutine != null) StopCoroutine(gameOverRevealRoutine);
+        gameOverRevealRoutine = StartCoroutine(PlayGameOverReveal());
     }
 
     private IEnumerator PlayReviveReveal()
@@ -331,19 +433,6 @@ public sealed class PlayerRunEndController : MonoBehaviour
         reviveRevealRoutine = null;
     }
 
-    public void ChooseNo()
-    {
-        if (resultResolved)
-            return;
-
-        resultResolved = true;
-        GameEvents.RaiseChapterPlayed(PlayerDataService.SelectedChapterIndex);
-        SetPanelActive(revivePanel, false);
-        PopulateGameOverResult();
-        SetPanelActive(gameOverPanel, true);
-        if (gameOverRevealRoutine != null) StopCoroutine(gameOverRevealRoutine);
-        gameOverRevealRoutine = StartCoroutine(PlayGameOverReveal());
-    }
 
     private IEnumerator PlayGameOverReveal()
     {
@@ -569,12 +658,22 @@ public sealed class PlayerRunEndController : MonoBehaviour
 
     public void ReturnHome()
     {
+        if (isReturningHome) return;
+        isReturningHome = true;
+
         ownsGameplayPause = false;
         Time.timeScale = 1f;
-        if (!string.IsNullOrWhiteSpace(homeSceneName))
+
+        if (getRewardButton != null) getRewardButton.interactable = false;
+        if (vipTripleButton != null) vipTripleButton.interactable = false;
+
+        AdRewardService.ShowInterstitialAd(() =>
         {
-            SceneManager.LoadScene(homeSceneName);
-        }
+            if (!string.IsNullOrWhiteSpace(homeSceneName))
+            {
+                SceneManager.LoadScene(homeSceneName);
+            }
+        });
     }
 
     public void ResolveWithVictory()

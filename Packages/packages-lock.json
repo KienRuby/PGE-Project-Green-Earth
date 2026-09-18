@@ -1,5 +1,14 @@
 {
   "dependencies": {
+    "com.google.ads.mobile": {
+      "version": "file:com.google.ads.mobile",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.google.external-dependency-manager": "1.2.187",
+        "com.unity.modules.androidjni": "1.0.0"
+      }
+    },
     "com.google.external-dependency-manager": {
       "version": "https://github.com/googlesamples/unity-jar-resolver.git?path=/upm#v1.2.188",
       "depth": 0,

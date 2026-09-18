@@ -1,5 +1,16 @@
 {
+  "scopedRegistries": [
+    {
+      "name": "package.openupm.com",
+      "url": "https://package.openupm.com",
+      "scopes": [
+        "com.google.ads.mobile",
+        "com.google.external-dependency-manager"
+      ]
+    }
+  ],
   "dependencies": {
+    "com.google.ads.mobile": "file:com.google.ads.mobile",
     "com.google.play.games": "file:com.google.play.games",
     "com.google.external-dependency-manager": "https://github.com/googlesamples/unity-jar-resolver.git?path=/upm#v1.2.188",
     "com.harumak.unityscreennavigator": "https://github.com/Haruma-K/UnityScreenNavigator.git?path=/Assets/UnityScreenNavigator",

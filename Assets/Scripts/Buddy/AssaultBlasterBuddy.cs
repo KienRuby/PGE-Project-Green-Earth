@@ -29,11 +29,31 @@ public class AssaultBlasterBuddy : BuddyCombatDrone
         set => projectilePrefab = value;
     }
 
+    private int burstCount = 0;
+
     protected override void Awake()
     {
         base.Awake();
         baseDamage = 20;
         attackCooldown = 0.75f; // Tốc độ bắn nhanh
+    }
+
+    protected override void ApplyLevelAndTierScaling()
+    {
+        base.ApplyLevelAndTierScaling();
+        int tierLevel = (int)currentTier;
+
+        // Rare (Tier 2): Blaster ATK +20%
+        if (tierLevel >= 2)
+        {
+            baseDamage = Mathf.RoundToInt(baseDamage * 1.20f);
+        }
+
+        // Unique (Tier 3): Fire Rate +30%
+        if (tierLevel >= 3)
+        {
+            attackCooldown = Mathf.Max(0.18f, attackCooldown * 0.70f);
+        }
     }
 
     protected override void Update()
@@ -57,24 +77,29 @@ public class AssaultBlasterBuddy : BuddyCombatDrone
     {
         if (target == null || target.IsDead) yield break;
 
+        burstCount++;
         // Phát đạn 1 (Lệch nhẹ sang trái)
-        FireSingleBlasterShot(target, -0.15f);
+        FireSingleBlasterShot(target, -0.15f, 1.0f);
 
-        yield return new WaitForSeconds(twinShotDelay);
+        // Holo (Tier 5): Overheat Surge (+30% Rapid Fire) - every 4 bursts delay is halved
+        float currentDelay = (currentTier >= BuddyTier.Holographic && (burstCount % 4 == 0)) ? (twinShotDelay * 0.5f) : twinShotDelay;
+        yield return new WaitForSeconds(currentDelay);
 
         if (target != null && !target.IsDead)
         {
-            // Phát đạn 2 (Lệch nhẹ sang phải)
-            FireSingleBlasterShot(target, 0.15f);
+            // Epic (Tier 4): Dual Shot 2nd Pellet ATK +30%
+            float secondShotMultiplier = currentTier >= BuddyTier.Epic ? 1.30f : 1.0f;
+            FireSingleBlasterShot(target, 0.15f, secondShotMultiplier);
         }
     }
 
-    private void FireSingleBlasterShot(EnemyHealth target, float lateralOffset)
+    private void FireSingleBlasterShot(EnemyHealth target, float lateralOffset, float damageMultiplier = 1.0f)
     {
         Vector3 basePos = FirePoint.position;
         Vector2 dir = ((Vector2)target.transform.position - (Vector2)basePos).normalized;
         Vector2 normal = new Vector2(-dir.y, dir.x);
         Vector3 spawnPos = basePos + (Vector3)(normal * lateralOffset);
+        int finalDamage = Mathf.RoundToInt(baseDamage * damageMultiplier);
 
         if (projectilePrefab != null)
         {
@@ -82,7 +107,7 @@ public class AssaultBlasterBuddy : BuddyCombatDrone
             Projectile proj = projObj.GetComponent<Projectile>();
             if (proj != null)
             {
-                proj.Setup(baseDamage, projectileSpeed, EffectiveAttackRange);
+                proj.Setup(finalDamage, projectileSpeed, EffectiveAttackRange);
                 proj.SetDirection(dir);
                 proj.SetTarget(target.transform);
                 proj.IsHoming = true;
@@ -96,7 +121,7 @@ public class AssaultBlasterBuddy : BuddyCombatDrone
         }
         else
         {
-            target.TakeDamage(baseDamage);
+            target.TakeDamage(finalDamage);
         }
     }
 }

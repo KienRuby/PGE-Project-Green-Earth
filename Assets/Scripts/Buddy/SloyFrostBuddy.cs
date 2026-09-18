@@ -44,12 +44,37 @@ public class SloyFrostBuddy : BuddyCombatDrone
         attackCooldown = 1.4f;
     }
 
+    protected override void ApplyLevelAndTierScaling()
+    {
+        base.ApplyLevelAndTierScaling();
+        int tierLevel = (int)currentTier;
+
+        // Rare (Tier 2): 42% Slow, Unique+ (Tier 3+): 50% Slow
+        if (tierLevel >= 3)
+        {
+            slowPercentage = 0.50f;
+        }
+        else if (tierLevel >= 2)
+        {
+            slowPercentage = 0.42f;
+        }
+        else
+        {
+            slowPercentage = 0.35f;
+        }
+    }
+
     protected override void ExecuteAttack(EnemyHealth target)
     {
         if (target == null || target.IsDead) return;
 
         Vector3 spawnPos = FirePoint.position;
         Vector2 direction = ((Vector2)target.transform.position - (Vector2)spawnPos).normalized;
+
+        int tierLevel = (int)currentTier;
+        bool isAreaSlow = tierLevel >= 4;
+        bool isBlizzardBlast = tierLevel >= 5;
+        int aoeDamage = isBlizzardBlast ? Mathf.RoundToInt(baseDamage * 0.30f) : 0;
 
         if (projectilePrefab != null)
         {
@@ -72,16 +97,42 @@ public class SloyFrostBuddy : BuddyCombatDrone
 
             // Gắn component áp dụng hiệu ứng làm chậm khi trúng đích
             FrostHitEffect slowApplier = projObj.AddComponent<FrostHitEffect>();
-            slowApplier.Setup(slowPercentage, slowDuration, hitVfxPrefab);
+            slowApplier.Setup(slowPercentage, slowDuration, hitVfxPrefab, isAreaSlow, isBlizzardBlast, aoeDamage, enemyLayer);
         }
         else
         {
             // Dự phòng gây sát thương và làm chậm trực tiếp nếu không có prefab đạn
             target.TakeDamage(baseDamage);
             ApplySlowToEnemy(target.gameObject);
+            if (isAreaSlow)
+            {
+                ApplyAreaSlowAndBlast(target.transform.position, aoeDamage, isBlizzardBlast);
+            }
             if (hitVfxPrefab != null)
             {
                 Instantiate(hitVfxPrefab, target.transform.position, Quaternion.identity);
+            }
+        }
+    }
+
+    private void ApplyAreaSlowAndBlast(Vector3 center, int aoeDamage, bool isBlizzardBlast)
+    {
+        Collider2D[] hits = Physics2D.OverlapCircleAll(center, 3.0f, enemyLayer.value != 0 ? enemyLayer : (1 << 7));
+        if (hits != null)
+        {
+            System.Collections.Generic.HashSet<EnemyHealth> processed = new System.Collections.Generic.HashSet<EnemyHealth>();
+            foreach (var hit in hits)
+            {
+                if (hit == null) continue;
+                EnemyHealth target = hit.GetComponent<EnemyHealth>() ?? hit.GetComponentInParent<EnemyHealth>();
+                if (target != null && !target.IsDead && processed.Add(target))
+                {
+                    ApplySlowToEnemy(target.gameObject);
+                    if (isBlizzardBlast && aoeDamage > 0)
+                    {
+                        target.TakeDamage(aoeDamage);
+                    }
+                }
             }
         }
     }
@@ -112,12 +163,20 @@ public class SloyFrostBuddy : BuddyCombatDrone
         private float slowPercent;
         private float duration;
         private GameObject vfx;
+        private bool isAreaSlow;
+        private bool isBlizzardBlast;
+        private int aoeDamage;
+        private LayerMask enemyLayer;
 
-        public void Setup(float slowPct, float dur, GameObject vfxPrefab)
+        public void Setup(float slowPct, float dur, GameObject vfxPrefab, bool areaSlow, bool blizzardBlast, int blizzardDmg, LayerMask mask)
         {
             slowPercent = slowPct;
             duration = dur;
             vfx = vfxPrefab;
+            isAreaSlow = areaSlow;
+            isBlizzardBlast = blizzardBlast;
+            aoeDamage = blizzardDmg;
+            enemyLayer = mask;
         }
 
         private void OnTriggerEnter2D(Collider2D other)
@@ -126,9 +185,43 @@ public class SloyFrostBuddy : BuddyCombatDrone
             EnemyHealth eh = other.GetComponent<EnemyHealth>() ?? other.GetComponentInParent<EnemyHealth>();
             if (eh != null)
             {
-                EnemyMovement em = eh.GetComponent<EnemyMovement>() ?? eh.GetComponentInParent<EnemyMovement>();
-                if (em != null) em.ApplySlow(slowPercent, duration);
-                if (vfx != null) Instantiate(vfx, eh.transform.position, Quaternion.identity);
+                Vector3 hitPos = eh.transform.position;
+                if (isAreaSlow)
+                {
+                    ApplyAreaSlow(hitPos);
+                }
+                else
+                {
+                    EnemyMovement em = eh.GetComponent<EnemyMovement>() ?? eh.GetComponentInParent<EnemyMovement>();
+                    if (em != null) em.ApplySlow(slowPercent, duration);
+                    if (vfx != null) Instantiate(vfx, hitPos, Quaternion.identity);
+                }
+            }
+        }
+
+        private void ApplyAreaSlow(Vector3 center)
+        {
+            if (vfx != null) Instantiate(vfx, center, Quaternion.identity);
+
+            Collider2D[] hits = Physics2D.OverlapCircleAll(center, 3.0f, enemyLayer.value != 0 ? enemyLayer : (1 << 7));
+            if (hits != null)
+            {
+                System.Collections.Generic.HashSet<EnemyHealth> processed = new System.Collections.Generic.HashSet<EnemyHealth>();
+                foreach (var hit in hits)
+                {
+                    if (hit == null) continue;
+                    EnemyHealth target = hit.GetComponent<EnemyHealth>() ?? hit.GetComponentInParent<EnemyHealth>();
+                    if (target != null && !target.IsDead && processed.Add(target))
+                    {
+                        EnemyMovement em = target.GetComponent<EnemyMovement>() ?? target.GetComponentInParent<EnemyMovement>();
+                        if (em != null) em.ApplySlow(slowPercent, duration);
+
+                        if (isBlizzardBlast && aoeDamage > 0)
+                        {
+                            target.TakeDamage(aoeDamage);
+                        }
+                    }
+                }
             }
         }
     }
