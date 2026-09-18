@@ -133,20 +133,9 @@ public static class ArtifactSystemSetup
             GetSprite("Artifact_Chip")
         );
 
-        // Giữ lại Spare Battery để tương thích ngược cho các unit test cũ nếu có
-        ArtifactData legacyBattery = CreateOrUpdateArtifact(
-            "spare_battery",
-            "Spare Battery",
-            "Eco-friendly product you can recharge.",
-            ArtifactStatType.MaxHealthPercent,
-            15f,
-            new Color32(46, 229, 240, 255),
-            new Color32(11, 45, 60, 255)
-        );
-
-        // 8. Cập nhật ArtifactDatabase trong Data & Resources với 7 Artifact mới
-        CreateOrUpdateDatabase("Assets/Data/Artifacts/ArtifactDatabase.asset", disc, brick, usb, butter, cooler, rocket, chip, legacyBattery);
-        CreateOrUpdateDatabase("Assets/Resources/ArtifactDatabase.asset", disc, brick, usb, butter, cooler, rocket, chip, legacyBattery);
+        // 8. Cập nhật ArtifactDatabase trong Data & Resources với đúng 7 Cổ Vật chính thức
+        CreateOrUpdateDatabase("Assets/Data/Artifacts/ArtifactDatabase.asset", disc, brick, usb, butter, cooler, rocket, chip);
+        CreateOrUpdateDatabase("Assets/Resources/ArtifactDatabase.asset", disc, brick, usb, butter, cooler, rocket, chip);
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();

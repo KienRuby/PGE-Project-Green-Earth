@@ -53,7 +53,11 @@ public class SoundData
     public string SoundId => soundId;
     public AudioCategory Category => category;
     public AudioClip[] Clips => clips;
-    public float BaseVolume => baseVolume;
+    public float BaseVolume
+    {
+        get => baseVolume;
+        set => baseVolume = Mathf.Clamp01(value);
+    }
     public Vector2 PitchRange => pitchRange;
     public float SpatialBlend => spatialBlend;
     public float MinDistance => minDistance;

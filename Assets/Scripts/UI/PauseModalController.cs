@@ -9,7 +9,7 @@ using UnityEngine.UI;
 /// <summary>
 /// Quản lý giao diện Pause Menu trong màn chơi GamePlay theo đúng mẫu thiết kế pixel:
 /// - 3 Tab chính: STATS, CHIPSET, ARTIFACT
-/// - Trong STATS: 3 Sub-tab (DEF, Attack, Other) + Thẻ nhân vật Bernard (Cấp độ, Exp %)
+/// - Trong STATS: 3 Sub-tab (DEF, Attack, Other) + Thẻ nhân vật Adam (Cấp độ, Exp %)
 /// - Các chỉ số đọc trực tiếp từ PlayerHealth, PlayerStatsManager, PlayerLevelController
 /// - 2 Nút hành động dưới cùng: Tiếp tục chơi (Resume ▶) và Trở về màn hình chính (Home 🏠)
 /// </summary>
@@ -693,7 +693,7 @@ public class PauseModalController : MonoBehaviour
         // 1. Character Name & Level
         if (characterNameText != null)
         {
-            characterNameText.text = "Bernard";
+            characterNameText.text = "Adam";
         }
 
         if (characterLevelExpText != null)

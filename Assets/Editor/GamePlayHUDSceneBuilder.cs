@@ -943,8 +943,8 @@ public static class GamePlayHUDSceneBuilder
         avatarImg.rectTransform.anchoredPosition = new Vector2(0f, 100f);
         avatarImg.rectTransform.sizeDelta = new Vector2(220f, 220f);
 
-        // Character Name "Bernard"
-        TMP_Text charNameTxt = CreateText("CharName", charCardObj.transform, "Bernard", 36f, Cream, TextAlignmentOptions.Center);
+        // Character Name "Adam"
+        TMP_Text charNameTxt = CreateText("CharName", charCardObj.transform, "Adam", 36f, Cream, TextAlignmentOptions.Center);
         charNameTxt.fontStyle = FontStyles.Bold;
         charNameTxt.rectTransform.anchoredPosition = new Vector2(0f, -140f);
         charNameTxt.rectTransform.sizeDelta = new Vector2(300f, 50f);

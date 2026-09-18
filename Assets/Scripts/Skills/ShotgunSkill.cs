@@ -275,6 +275,14 @@ public class ShotgunSkill : MonoBehaviour
 
         // Muzzle Flash VFX
         SpawnMuzzleFlash(spawnPos, Quaternion.Euler(0f, 0f, baseAngle));
+        if (SoundManager.Instance != null && SoundManager.Instance.sfxShotgun != null)
+        {
+            SoundManager.Instance.PlayShotgun();
+        }
+        else
+        {
+            AudioManager.Instance?.PlayPlayerGunShot(true);
+        }
 
         float spreadAngle = GetSpreadAngle();
         float angleStep = pelletsPerShot > 1 ? spreadAngle / (pelletsPerShot - 1) : 0f;

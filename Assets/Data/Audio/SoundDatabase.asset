@@ -12,4 +12,215 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdcae36c20214814da76bd37980e8c5c, type: 3}
   m_Name: SoundDatabase
   m_EditorClassIdentifier: 
-  sounds: []
+  sounds:
+  - soundId: BGM_MainMenu
+    category: 1
+    clips:
+    - {fileID: 8300000, guid: f0c2404c3498b85419f3a33419d1cfaf, type: 3}
+    baseVolume: 0.6
+    pitchRange: {x: 1, y: 1}
+    spatialBlend: 0
+    minDistance: 0
+    maxDistance: 0
+    rolloffMode: 0
+    cooldown: 0.5
+    maxSimultaneous: 8
+  - soundId: BGM_Combat
+    category: 1
+    clips:
+    - {fileID: 8300000, guid: f0c2404c3498b85419f3a33419d1cfaf, type: 3}
+    baseVolume: 0.6
+    pitchRange: {x: 1, y: 1}
+    spatialBlend: 0
+    minDistance: 0
+    maxDistance: 0
+    rolloffMode: 0
+    cooldown: 0.5
+    maxSimultaneous: 8
+  - soundId: SFX_GunShot_Standard
+    category: 2
+    clips:
+    - {fileID: 8300000, guid: 62a918da264ee9b4d8af6b3fe04b8679, type: 3}
+    baseVolume: 0.32
+    pitchRange: {x: 0.95, y: 1.05}
+    spatialBlend: 0
+    minDistance: 0
+    maxDistance: 0
+    rolloffMode: 0
+    cooldown: 0.05
+    maxSimultaneous: 8
+  - soundId: SFX_Enemy_Death
+    category: 2
+    clips:
+    - {fileID: 8300000, guid: b649b558a5681d140a35812329a70c33, type: 3}
+    baseVolume: 0.85
+    pitchRange: {x: 0.95, y: 1.05}
+    spatialBlend: 0
+    minDistance: 0
+    maxDistance: 0
+    rolloffMode: 0
+    cooldown: 0.05
+    maxSimultaneous: 8
+  - soundId: SFX_Pickup_Item
+    category: 2
+    clips:
+    - {fileID: 8300000, guid: 3621a96ea64684b48896f00eb451eee1, type: 3}
+    baseVolume: 0.8
+    pitchRange: {x: 0.95, y: 1.05}
+    spatialBlend: 0
+    minDistance: 0
+    maxDistance: 0
+    rolloffMode: 0
+    cooldown: 0.03
+    maxSimultaneous: 8
+  - soundId: SFX_Pickup_EXP
+    category: 2
+    clips:
+    - {fileID: 8300000, guid: 3621a96ea64684b48896f00eb451eee1, type: 3}
+    baseVolume: 0.8
+    pitchRange: {x: 0.95, y: 1.05}
+    spatialBlend: 0
+    minDistance: 0
+    maxDistance: 0
+    rolloffMode: 0
+    cooldown: 0.03
+    maxSimultaneous: 8
+  - soundId: SFX_Player_Death
+    category: 2
+    clips:
+    - {fileID: 8300000, guid: fc5067d3f2077254e99585e640ff147d, type: 3}
+    baseVolume: 0.85
+    pitchRange: {x: 1, y: 1}
+    spatialBlend: 0
+    minDistance: 0
+    maxDistance: 0
+    rolloffMode: 0
+    cooldown: 0.5
+    maxSimultaneous: 8
+  - soundId: SFX_Player_Hurt
+    category: 2
+    clips:
+    - {fileID: 8300000, guid: fc5067d3f2077254e99585e640ff147d, type: 3}
+    baseVolume: 0.8
+    pitchRange: {x: 0.95, y: 1.05}
+    spatialBlend: 0
+    minDistance: 0
+    maxDistance: 0
+    rolloffMode: 0
+    cooldown: 0.1
+    maxSimultaneous: 8
+  - soundId: UI_ButtonClick
+    category: 4
+    clips:
+    - {fileID: 8300000, guid: a5006dfee9133c54b980ba87a27fae99, type: 3}
+    baseVolume: 0.8
+    pitchRange: {x: 1, y: 1}
+    spatialBlend: 0
+    minDistance: 0
+    maxDistance: 0
+    rolloffMode: 0
+    cooldown: 0.03
+    maxSimultaneous: 8
+  - soundId: UI_TabSwitch
+    category: 4
+    clips:
+    - {fileID: 8300000, guid: a5006dfee9133c54b980ba87a27fae99, type: 3}
+    baseVolume: 0.8
+    pitchRange: {x: 1, y: 1}
+    spatialBlend: 0
+    minDistance: 0
+    maxDistance: 0
+    rolloffMode: 0
+    cooldown: 0.03
+    maxSimultaneous: 8
+
+  - soundId: SFX_Punch_Spawn
+    category: 2
+    clips:
+    - {fileID: 8300000, guid: d064ccdf18d13854faa1fed9a4a8b91c, type: 3}
+    baseVolume: 0.6
+    pitchRange: {x: 1, y: 1}
+    spatialBlend: 0
+    minDistance: 1
+    maxDistance: 30
+    rolloffMode: 0
+    cooldown: 0
+    maxSimultaneous: 0
+
+  - soundId: SFX_Punch_Hit
+    category: 2
+    clips:
+    - {fileID: 8300000, guid: b98a1442d377b7249a3cd92ada3d841b, type: 3}
+    baseVolume: 0.6
+    pitchRange: {x: 1, y: 1}
+    spatialBlend: 0
+    minDistance: 1
+    maxDistance: 30
+    rolloffMode: 0
+    cooldown: 0
+    maxSimultaneous: 0
+
+  - soundId: SFX_Boomer_Hit
+    category: 2
+    clips:
+    - {fileID: 8300000, guid: ddf8bbd14a4e7b24b9d822902431a4ba, type: 3}
+    baseVolume: 0.6
+    pitchRange: {x: 1, y: 1}
+    spatialBlend: 0
+    minDistance: 1
+    maxDistance: 30
+    rolloffMode: 0
+    cooldown: 0
+    maxSimultaneous: 0
+
+  - soundId: SFX_GunShot_Shotgun
+    category: 2
+    clips:
+    - {fileID: 8300000, guid: 3cff6b2ea428a1a4294b1b3dac339975, type: 3}
+    baseVolume: 0.8
+    pitchRange: {x: 1, y: 1}
+    spatialBlend: 0
+    minDistance: 1
+    maxDistance: 30
+    rolloffMode: 0
+    cooldown: 0
+    maxSimultaneous: 0
+
+  - soundId: SFX_Explosion_Small
+    category: 2
+    clips:
+    - {fileID: 8300000, guid: b98a1442d377b7249a3cd92ada3d841b, type: 3}
+    baseVolume: 0.6
+    pitchRange: {x: 0.95, y: 1.05}
+    spatialBlend: 0
+    minDistance: 1
+    maxDistance: 30
+    rolloffMode: 0
+    cooldown: 0.05
+    maxSimultaneous: 8
+
+  - soundId: SFX_Explosion_Large
+    category: 2
+    clips:
+    - {fileID: 8300000, guid: b98a1442d377b7249a3cd92ada3d841b, type: 3}
+    baseVolume: 0.6
+    pitchRange: {x: 0.9, y: 1.1}
+    spatialBlend: 0
+    minDistance: 1
+    maxDistance: 30
+    rolloffMode: 0
+    cooldown: 0.05
+    maxSimultaneous: 8
+
+  - soundId: SFX_Level_Up
+    category: 2
+    clips:
+    - {fileID: 8300000, guid: 3621a96ea64684b48896f00eb451eee1, type: 3}
+    baseVolume: 0.8
+    pitchRange: {x: 1.1, y: 1.2}
+    spatialBlend: 0
+    minDistance: 1
+    maxDistance: 30
+    rolloffMode: 0
+    cooldown: 0.1
+    maxSimultaneous: 4

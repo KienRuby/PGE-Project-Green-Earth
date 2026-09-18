@@ -337,6 +337,7 @@ public class GameplayEventPickup : MonoBehaviour
         GameplayEventModalController modal = GameplayEventModalController.Instance;
         if (modal != null)
         {
+            AudioManager.Instance?.PlaySFX(SoundIdConst.SFX_PICKUP_ITEM);
             modal.Show(assignedEvent, onCompleted: () =>
             {
                 Destroy(gameObject);

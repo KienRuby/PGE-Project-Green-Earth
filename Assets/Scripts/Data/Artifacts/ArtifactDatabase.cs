@@ -40,44 +40,34 @@ public class ArtifactDatabase : ScriptableObject
     }
 
     /// <summary>
-    /// Khởi tạo 4 Artifact mẫu theo 4 ảnh chụp thực tế nếu danh mục đang trống.
+    /// Khởi tạo 7 Cổ vật chính thức nếu danh mục đang trống.
     /// </summary>
     public void InitializeDefaults()
     {
         if (artifacts == null) artifacts = new List<ArtifactData>();
         if (artifacts.Count > 0) return;
 
-        // 1. Spare Battery (HP +15%)
-        ArtifactData battery = CreateInstance<ArtifactData>();
-        battery.id = "spare_battery";
-        battery.artifactName = "Spare Battery";
-        battery.loreDescription = "Eco-friendly product you can recharge.";
-        battery.statType = ArtifactStatType.MaxHealthPercent;
-        battery.statValue = 15f;
-        battery.icon = Resources.Load<Sprite>("UI/Artifact/spare_battery");
-        artifacts.Add(battery);
+        // 1. Data Disc (CD) - Crit Rate +10%
+        ArtifactData disc = CreateInstance<ArtifactData>();
+        disc.id = "data_disc";
+        disc.artifactName = "Data Disc";
+        disc.loreDescription = "Shiny optical disc storing lost battle simulations and ancient data.";
+        disc.statType = ArtifactStatType.CritRatePercent;
+        disc.statValue = 10f;
+        disc.icon = Resources.Load<Sprite>("UI/Artifact/data_disc");
+        artifacts.Add(disc);
 
-        // 2. Carbon Scales (Ranged DEF +10%)
-        ArtifactData scales = CreateInstance<ArtifactData>();
-        scales.id = "carbon_scales";
-        scales.artifactName = "Carbon Scales";
-        scales.loreDescription = "Vinyl 1, it likes me.\nVinyl 2, it doesn't like me.";
-        scales.statType = ArtifactStatType.RangedDefensePercent;
-        scales.statValue = 10f;
-        scales.icon = Resources.Load<Sprite>("UI/Artifact/carbon_scales");
-        artifacts.Add(scales);
+        // 2. Modular Brick (LEGO) - DEF +12
+        ArtifactData brick = CreateInstance<ArtifactData>();
+        brick.id = "modular_brick";
+        brick.artifactName = "Modular Brick";
+        brick.loreDescription = "Interlocking plastic toy brick. Incredibly durable construction.";
+        brick.statType = ArtifactStatType.DamageReduction;
+        brick.statValue = 12f;
+        brick.icon = Resources.Load<Sprite>("UI/Artifact/modular_brick");
+        artifacts.Add(brick);
 
-        // 3. Strong Cooler (Turret ATK Speed +20%)
-        ArtifactData cooler = CreateInstance<ArtifactData>();
-        cooler.id = "strong_cooler";
-        cooler.artifactName = "Strong Cooler";
-        cooler.loreDescription = "Cools down Turrets when they overheat.";
-        cooler.statType = ArtifactStatType.TurretAttackSpeedPercent;
-        cooler.statValue = 20f;
-        cooler.icon = Resources.Load<Sprite>("UI/Artifact/strong_cooler");
-        artifacts.Add(cooler);
-
-        // 4. Kung Fu Data USB (All Weapons' ATK +9%)
+        // 3. Kung Fu Data USB (USB) - All Weapons' ATK +9%
         ArtifactData usb = CreateInstance<ArtifactData>();
         usb.id = "kung_fu_usb";
         usb.artifactName = "Kung Fu Data USB";
@@ -87,25 +77,45 @@ public class ArtifactDatabase : ScriptableObject
         usb.icon = Resources.Load<Sprite>("UI/Artifact/kung_fu_usb");
         artifacts.Add(usb);
 
-        // 5. Titanium Fabric (DEF +10)
-        ArtifactData titanium = CreateInstance<ArtifactData>();
-        titanium.id = "titanium_fabric";
-        titanium.artifactName = "Titanium Fabric";
-        titanium.loreDescription = "Sturdy titanium. Covers the body.";
-        titanium.statType = ArtifactStatType.DamageReduction;
-        titanium.statValue = 10f;
-        titanium.icon = Resources.Load<Sprite>("UI/Artifact/titanium_fabric");
-        artifacts.Add(titanium);
+        // 4. Energy Butter (Bơ / Phô mai) - HP +15%
+        ArtifactData butter = CreateInstance<ArtifactData>();
+        butter.id = "energy_butter";
+        butter.artifactName = "Energy Butter";
+        butter.loreDescription = "High-calorie organic nutrient block that enhances biological vitality.";
+        butter.statType = ArtifactStatType.MaxHealthPercent;
+        butter.statValue = 15f;
+        butter.icon = Resources.Load<Sprite>("UI/Artifact/energy_butter");
+        artifacts.Add(butter);
 
-        // 6. Metal Band-aid (HP +12%)
-        ArtifactData bandAid = CreateInstance<ArtifactData>();
-        bandAid.id = "metal_band_aid";
-        bandAid.artifactName = "Metal Band-aid";
-        bandAid.loreDescription = "A specialized nanotech medical bandage found in abandoned bunkers.";
-        bandAid.statType = ArtifactStatType.MaxHealthPercent;
-        bandAid.statValue = 12f;
-        bandAid.icon = Resources.Load<Sprite>("UI/Artifact/metal_band_aid") ?? Resources.Load<Sprite>("UI/ArtifactChest/hop_mau_nho");
-        artifacts.Add(bandAid);
+        // 5. Strong Cooler (Quạt tản nhiệt) - Turret ATK Speed +20%
+        ArtifactData cooler = CreateInstance<ArtifactData>();
+        cooler.id = "strong_cooler";
+        cooler.artifactName = "Strong Cooler";
+        cooler.loreDescription = "Cools down Turrets when they overheat.";
+        cooler.statType = ArtifactStatType.TurretAttackSpeedPercent;
+        cooler.statValue = 20f;
+        cooler.icon = Resources.Load<Sprite>("UI/Artifact/strong_cooler");
+        artifacts.Add(cooler);
+
+        // 6. Signal Rocket (Tên lửa / Pháo) - Move Speed +12%
+        ArtifactData rocket = CreateInstance<ArtifactData>();
+        rocket.id = "signal_rocket";
+        rocket.artifactName = "Signal Rocket";
+        rocket.loreDescription = "Miniature rocket propulsion unit. Boosts overall movement speed.";
+        rocket.statType = ArtifactStatType.MoveSpeedPercent;
+        rocket.statValue = 12f;
+        rocket.icon = Resources.Load<Sprite>("UI/Artifact/signal_rocket");
+        artifacts.Add(rocket);
+
+        // 7. Quantum Microchip (Chip vi mạch) - Ranged DEF +15%
+        ArtifactData chip = CreateInstance<ArtifactData>();
+        chip.id = "quantum_chip";
+        chip.artifactName = "Quantum Microchip";
+        chip.loreDescription = "Advanced silicon processor that calculates incoming ranged projectile vectors.";
+        chip.statType = ArtifactStatType.RangedDefensePercent;
+        chip.statValue = 15f;
+        chip.icon = Resources.Load<Sprite>("UI/Artifact/quantum_chip");
+        artifacts.Add(chip);
     }
 
     /// <summary>

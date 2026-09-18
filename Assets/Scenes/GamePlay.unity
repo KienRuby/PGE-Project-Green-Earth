@@ -122,6 +122,130 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &9912001
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 9912002}
+  - component: {fileID: 9912003}
+  - component: {fileID: 9912004}
+  m_Layer: 0
+  m_Name: '[SoundManager]'
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &9912002
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9912001}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &9912003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9912001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b1a6c8e93529de47ad5013c5efe0219, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  autoPlayBgmOnStart: 1
+  bgmMenu: {fileID: 8300000, guid: f0c2404c3498b85419f3a33419d1cfaf, type: 3}
+  bgmMenuVolume: 0.6
+  bgmGameplay: {fileID: 8300000, guid: f0c2404c3498b85419f3a33419d1cfaf, type: 3}
+  bgmGameplayVolume: 0.6
+  bgmBoss: {fileID: 0}
+  bgmBossVolume: 0.6
+  customBgmList: []
+  sfxGunShot: {fileID: 8300000, guid: 62a918da264ee9b4d8af6b3fe04b8679, type: 3}
+  sfxGunShotVolume: 0.32
+  sfxShotgun: {fileID: 8300000, guid: 3cff6b2ea428a1a4294b1b3dac339975, type: 3}
+  sfxShotgunVolume: 0.8
+  sfxExplosion: {fileID: 8300000, guid: b98a1442d377b7249a3cd92ada3d841b, type: 3}
+  sfxExplosionVolume: 0.6
+  sfxPunch: {fileID: 8300000, guid: d064ccdf18d13854faa1fed9a4a8b91c, type: 3}
+  sfxPunchVolume: 0.6
+  sfxBoomer: {fileID: 8300000, guid: ddf8bbd14a4e7b24b9d822902431a4ba, type: 3}
+  sfxBoomerVolume: 0.6
+  sfxPlayerHurt: {fileID: 8300000, guid: fc5067d3f2077254e99585e640ff147d, type: 3}
+  sfxPlayerHurtVolume: 0.8
+  sfxPlayerDeath: {fileID: 8300000, guid: fc5067d3f2077254e99585e640ff147d, type: 3}
+  sfxPlayerDeathVolume: 0.85
+  sfxEnemyDeath: {fileID: 8300000, guid: b649b558a5681d140a35812329a70c33, type: 3}
+  sfxEnemyDeathVolume: 0.85
+  sfxItemPickup: {fileID: 8300000, guid: 3621a96ea64684b48896f00eb451eee1, type: 3}
+  sfxItemPickupVolume: 0.8
+  sfxLevelUp: {fileID: 8300000, guid: 3621a96ea64684b48896f00eb451eee1, type: 3}
+  sfxLevelUpVolume: 0.8
+  customSfxList: []
+  vfxLaserBeam: {fileID: 0}
+  vfxLaserBeamVolume: 0.7
+  vfxFireBurst: {fileID: 0}
+  vfxFireBurstVolume: 0.7
+  vfxIceShatter: {fileID: 0}
+  vfxIceShatterVolume: 0.7
+  vfxLightningStrike: {fileID: 0}
+  vfxLightningStrikeVolume: 0.7
+  vfxShieldActivate: {fileID: 0}
+  vfxShieldActivateVolume: 0.7
+  customVfxList: []
+  uiButtonClick: {fileID: 8300000, guid: a5006dfee9133c54b980ba87a27fae99, type: 3}
+  uiButtonClickVolume: 0.8
+  uiPopupOpen: {fileID: 8300000, guid: a5006dfee9133c54b980ba87a27fae99, type: 3}
+  uiPopupOpenVolume: 0.8
+  uiPopupClose: {fileID: 8300000, guid: a5006dfee9133c54b980ba87a27fae99, type: 3}
+  uiPopupCloseVolume: 0.8
+  uiRewardClaim: {fileID: 0}
+  uiRewardClaimVolume: 0.85
+  uiError: {fileID: 0}
+  uiErrorVolume: 0.8
+  customUiList: []
+  database: {fileID: 11400000, guid: 5ac41857aaa340e6a235219ef1ff95dc, type: 2}
+  bgmVolume: 1
+  sfxVolume: 1
+  vfxVolume: 1
+  uiVolume: 1
+  isBgmEnabled: 1
+  isSfxEnabled: 1
+--- !u!114 &9912004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9912001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6eeeaab3718227248b369ca4b5925e55, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  database: {fileID: 11400000, guid: 5ac41857aaa340e6a235219ef1ff95dc, type: 2}
+  initialPoolSize: 32
+  canGrowPool: 1
+  masterVolume: 1
+  bgmVolume: 1
+  sfxVolume: 1
+  vfxVolume: 1
+  uiVolume: 1
+  ambientVolume: 1
 --- !u!1 &9916329
 GameObject:
   m_ObjectHideFlags: 0
@@ -7881,7 +8005,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1906739619}
   m_HandleRect: {fileID: 1906739618}
   m_Direction: 2
-  m_Value: 0
+  m_Value: 1
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -23418,7 +23542,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Bernard
+  m_text: Adam
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 88378fd6127ec3345802e6c374507f19, type: 2}
   m_sharedMaterial: {fileID: 2100000, guid: 686cfa7cdb111f748aa18d4495b8bbea, type: 2}
@@ -37116,6 +37240,7 @@ CanvasRenderer:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
+  - {fileID: 9912002}
   - {fileID: 519420032}
   - {fileID: 78188129}
   - {fileID: 296717346}

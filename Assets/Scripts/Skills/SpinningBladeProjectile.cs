@@ -208,6 +208,8 @@ public class SpinningBladeProjectile : MonoBehaviour, IPoolable
             if (damageable is EnemyHealth enemyHealth && enemyHealth.IsDead) return;
 
             // 1. Gây sát thương lên quái vật va chạm
+            if (damageable is EnemyHealth)
+                AudioManager.Instance?.PlaySFX(SoundIdConst.SFX_BOOMER_HIT);
             damageable.TakeDamage(damage);
             ChipsetBattleStats.RecordDamage(4, damage);
             SpawnHitVfx(other.transform.position);

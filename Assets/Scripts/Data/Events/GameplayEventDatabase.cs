@@ -50,14 +50,14 @@ public class GameplayEventDatabase : ScriptableObject
         {
             new GameplayEventOption(
                 "To purge mutants",
-                "\"Then you'd better hurry up and get\nmoving.\"\n\nThe creature places its hand on Bernard's\nbody\nand transfers energy to him.",
+                "\"Then you'd better hurry up and get\nmoving.\"\n\nThe creature places its hand on Adam's\nbody\nand transfers energy to him.",
                 "Move Speed +5%",
                 EventRewardType.StatBuff_MoveSpeedPercent,
                 5f
             ),
             new GameplayEventOption(
                 "To annihilate creatures",
-                "\"A worthy target. Take this kinetic booster.\"\n\nThe Android adjusts Bernard's servo-motors.",
+                "\"A worthy target. Take this kinetic booster.\"\n\nThe Android adjusts Adam's servo-motors.",
                 "Move Speed +8%",
                 EventRewardType.StatBuff_MoveSpeedPercent,
                 8f
@@ -83,10 +83,10 @@ public class GameplayEventDatabase : ScriptableObject
             new GameplayEventOption(
                 "Go to the room on the left",
                 "He finds an Artifact Box.",
-                "You've obtained Metal Band-aid.",
-                EventRewardType.Artifact_Grant,
+                "You've found an Artifact Box.",
+                EventRewardType.ArtifactBox_Open,
                 0f,
-                "metal_band_aid"
+                ""
             ),
             new GameplayEventOption(
                 "Go to the room on the right",
@@ -97,7 +97,7 @@ public class GameplayEventDatabase : ScriptableObject
             ),
             new GameplayEventOption(
                 "Leave.",
-                "Bernard leaves the bunker undisturbed.",
+                "Adam leaves the bunker undisturbed.",
                 "",
                 EventRewardType.None
             )
@@ -115,7 +115,7 @@ public class GameplayEventDatabase : ScriptableObject
         {
             new GameplayEventOption(
                 "Inject into bio-circuitry",
-                "Bernard injects the bioactive compound into his energy core.\nNanites rapidly seal outer hull fractures.",
+                "Adam injects the bioactive compound into his energy core.\nNanites rapidly seal outer hull fractures.",
                 "HP +25%",
                 EventRewardType.Health_HealPercent,
                 25f
@@ -130,7 +130,7 @@ public class GameplayEventDatabase : ScriptableObject
             ),
             new GameplayEventOption(
                 "Leave.",
-                "Unwilling to risk unknown chemical contamination, Bernard moves on.",
+                "Unwilling to risk unknown chemical contamination, Adam moves on.",
                 "",
                 EventRewardType.None
             )
@@ -148,7 +148,7 @@ public class GameplayEventDatabase : ScriptableObject
         {
             new GameplayEventOption(
                 "Download tactical records",
-                "Bernard interfaces with the helmet's data core.\nArchived combat maneuvers synchronize into his motor reflexes.",
+                "Adam interfaces with the helmet's data core.\nArchived combat maneuvers synchronize into his motor reflexes.",
                 "Move Speed +7%",
                 EventRewardType.StatBuff_MoveSpeedPercent,
                 7f
@@ -162,7 +162,7 @@ public class GameplayEventDatabase : ScriptableObject
             ),
             new GameplayEventOption(
                 "Leave.",
-                "Bernard pays silent respect to the fallen vanguard and continues on.",
+                "Adam pays silent respect to the fallen vanguard and continues on.",
                 "",
                 EventRewardType.None
             )
@@ -180,7 +180,7 @@ public class GameplayEventDatabase : ScriptableObject
         {
             new GameplayEventOption(
                 "Consume HP to start engine",
-                "*Vzzzzz*\n\nHe has to consume HP to charge it, but he\nis able to start the engine.\nBernard obtains significant data from it.",
+                "*Vzzzzz*\n\nHe has to consume HP to charge it, but he\nis able to start the engine.\nAdam obtains significant data from it.",
                 "HP -5%\n[Big Battery] Level +1",
                 EventRewardType.Health_ConsumePercent,
                 5f,
@@ -188,7 +188,7 @@ public class GameplayEventDatabase : ScriptableObject
             ),
             new GameplayEventOption(
                 "Leave.",
-                "Bernard decides not to waste energy and leaves.",
+                "Adam decides not to waste energy and leaves.",
                 "",
                 EventRewardType.None
             )

@@ -535,6 +535,7 @@ public class PlayerHealth : MonoBehaviour, IDamageable
             return;
 
         IsDead = true;
+        AudioManager.Instance?.PlaySFX(SoundIdConst.SFX_PLAYER_DEATH);
 
         Debug.Log("Player đã chết!");
 

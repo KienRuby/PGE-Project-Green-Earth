@@ -84,6 +84,15 @@ public sealed class GameAudioSettingsRuntime : MonoBehaviour
 
     public void ApplySettingsNow()
     {
+        // Include dynamically created menu and modal controls.
+        foreach (UnityEngine.UI.Selectable control in UnityEngine.UI.Selectable.allSelectablesArray)
+        {
+            if ((control is UnityEngine.UI.Button || control is UnityEngine.UI.Toggle)
+                && control.GetComponent<UIAudioTrigger>() == null)
+            {
+                control.gameObject.AddComponent<UIAudioTrigger>();
+            }
+        }
         AudioSource[] sources = FindObjectsOfType<AudioSource>(true);
         for (int i = 0; i < sources.Length; i++)
         {

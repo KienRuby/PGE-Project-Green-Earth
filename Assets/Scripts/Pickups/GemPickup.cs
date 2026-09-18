@@ -123,6 +123,7 @@ public class GemPickup : MonoBehaviour, IPoolable
 
     public void Collect()
     {
+        AudioManager.Instance?.PlaySFX(SoundIdConst.SFX_PICKUP_ITEM);
         switch (gemType)
         {
             case GemType.GreenExp:

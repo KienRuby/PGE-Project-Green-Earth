@@ -80,6 +80,7 @@ public class PooledAudioSource : MonoBehaviour
         }
 
         audioSource.clip = clip;
+        audioSource.priority = data.Category == AudioCategory.UI ? 16 : 128;
         audioSource.pitch = data.GetRandomPitch();
         audioSource.spatialBlend = data.SpatialBlend;
         audioSource.minDistance = data.MinDistance;
@@ -122,6 +123,7 @@ public class PooledAudioSource : MonoBehaviour
         }
 
         audioSource.clip = clip;
+        audioSource.priority = category == AudioCategory.UI ? 16 : 128;
         audioSource.pitch = pitch;
         audioSource.spatialBlend = spatialBlend;
         audioSource.loop = loop;
@@ -194,7 +196,6 @@ public class PooledAudioSource : MonoBehaviour
         }
 
         followTarget = null;
-        currentData = null;
 
         if (AudioManager.Instance != null)
         {
@@ -204,11 +205,13 @@ public class PooledAudioSource : MonoBehaviour
         {
             gameObject.SetActive(false);
         }
+        // ReturnToPool needs the sound ID to release its concurrency slot.
+        currentData = null;
     }
 
     private IEnumerator AutoRecycleCoroutine(float duration)
     {
-        yield return new WaitForSeconds(duration);
+        yield return new WaitForSecondsRealtime(duration);
         StopAndRecycle();
     }
 

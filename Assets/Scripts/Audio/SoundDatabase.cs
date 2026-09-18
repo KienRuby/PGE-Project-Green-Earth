@@ -98,4 +98,29 @@ public class SoundDatabase : ScriptableObject
             soundLookup[data.SoundId] = data;
         }
     }
+
+    /// <summary>
+    /// Cập nhật âm lượng cơ sở (BaseVolume) cho một SoundId.
+    /// </summary>
+    public bool SetSoundVolume(string soundId, float volume)
+    {
+        if (TryGetSound(soundId, out SoundData data))
+        {
+            data.BaseVolume = volume;
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Lấy âm lượng cơ sở của một SoundId (hoặc mặc định 1f nếu không tìm thấy).
+    /// </summary>
+    public float GetSoundVolume(string soundId, float defaultVolume = 1f)
+    {
+        if (TryGetSound(soundId, out SoundData data))
+        {
+            return data.BaseVolume;
+        }
+        return defaultVolume;
+    }
 }

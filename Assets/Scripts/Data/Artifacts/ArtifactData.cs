@@ -105,9 +105,9 @@ public class ArtifactData : ScriptableObject
             }
 
             // 3. Fallback theo từ khóa định danh đặc biệt
-            if (normalized.Contains("band_aid") || normalized.Contains("hop_mau") || normalized.Contains("first_aid"))
+            if (normalized.Contains("hop_mau") || normalized.Contains("first_aid"))
             {
-                Sprite s = Resources.Load<Sprite>("UI/Artifact/metal_band_aid") ?? Resources.Load<Sprite>("UI/ArtifactChest/hop_mau_nho");
+                Sprite s = Resources.Load<Sprite>("UI/ArtifactChest/hop_mau_nho");
                 if (s != null) { icon = s; return s; }
             }
         }
@@ -139,10 +139,9 @@ public class ArtifactData : ScriptableObject
         }
 
         // 5. Fallback cuối cùng: nạp bất kỳ sprite artifact có sẵn nào để tuyệt đối không bao giờ bị ô vuông màu lỗi
-        Sprite defaultFallback = Resources.Load<Sprite>("UI/Artifact/metal_band_aid")
-                              ?? Resources.Load<Sprite>("UI/Artifact/quantum_core")
-                              ?? Resources.Load<Sprite>("UI/Artifact/kung_fu_data_usb")
-                              ?? Resources.Load<Sprite>("UI/Artifact/carbon_scales");
+        Sprite defaultFallback = Resources.Load<Sprite>("UI/Artifact/data_disc")
+                              ?? Resources.Load<Sprite>("UI/Artifact/energy_butter")
+                              ?? Resources.Load<Sprite>("UI/Artifact/modular_brick");
         if (defaultFallback != null) { icon = defaultFallback; return defaultFallback; }
 
         return null;

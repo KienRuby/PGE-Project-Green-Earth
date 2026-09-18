@@ -353,6 +353,8 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
         {
             if (damageable is EnemyHealth enemyHealth && enemyHealth.IsDead) return;
 
+            if (damageable is EnemyHealth)
+                AudioManager.Instance?.PlaySFX(SoundIdConst.SFX_PUNCH_HIT);
             damageable.TakeDamage(directDamage);
             ChipsetBattleStats.RecordDamage(3, directDamage);
             Explode();

@@ -397,6 +397,17 @@ public static class BuildBodyUIBuilder
         so.FindProperty("toastRoot").objectReferenceValue = toastObj;
         so.FindProperty("toastText").objectReferenceValue = toastTMP;
 
+        LabUpgradeController labCtrl = labPanel.GetComponent<LabUpgradeController>();
+        if (labCtrl != null)
+        {
+            SerializedObject labSo = new SerializedObject(labCtrl);
+            SerializedProperty tRootProp = labSo.FindProperty("toastRoot");
+            SerializedProperty tTextProp = labSo.FindProperty("toastText");
+            if (tRootProp != null) tRootProp.objectReferenceValue = toastObj;
+            if (tTextProp != null) tTextProp.objectReferenceValue = toastTMP;
+            labSo.ApplyModifiedPropertiesWithoutUndo();
+        }
+
         SerializedProperty cardViewsProp = so.FindProperty("cardViews");
         cardViewsProp.arraySize = 5;
         for (int i = 0; i < 5; i++)

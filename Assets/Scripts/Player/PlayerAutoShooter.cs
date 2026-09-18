@@ -865,6 +865,7 @@ public class PlayerAutoShooter : MonoBehaviour
 
         SpawnMuzzleFlash(spawnPosition, baseAngle);
         ChipsetBattleStats.RecordAttack(chipsetId, projectileCount);
+        PlayGunAudio(chipsetId == 8);
 
         if (projectileCount <= 1)
         {
@@ -916,6 +917,7 @@ public class PlayerAutoShooter : MonoBehaviour
 
         // Kích hoạt hiệu ứng tóe lửa / khói tại nòng súng (Muzzle Flash VFX)
         SpawnMuzzleFlash(spawnPosition, baseAngle);
+        PlayGunAudio(false);
 
         if (currentBulletsPerShot <= 1)
         {
@@ -1085,6 +1087,32 @@ public class PlayerAutoShooter : MonoBehaviour
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(attackPoint.position, 0.1f);
             Gizmos.DrawRay(attackPoint.position, attackPoint.right * 1f);
+        }
+    }
+
+    private void PlayGunAudio(bool shotgun)
+    {
+        if (shotgun)
+        {
+            if (SoundManager.Instance != null && SoundManager.Instance.sfxShotgun != null)
+            {
+                SoundManager.Instance.PlayShotgun();
+            }
+            else
+            {
+                AudioManager.Instance?.PlayPlayerGunShot(true);
+            }
+        }
+        else
+        {
+            if (SoundManager.Instance != null && SoundManager.Instance.sfxGunShot != null)
+            {
+                SoundManager.Instance.PlayGunShot();
+            }
+            else
+            {
+                AudioManager.Instance?.PlayPlayerGunShot(false);
+            }
         }
     }
 }

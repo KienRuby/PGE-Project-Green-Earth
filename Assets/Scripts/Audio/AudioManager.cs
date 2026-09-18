@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Quản lý âm thanh trung tâm cho toàn bộ Game (PGE - Project Green Earth).
@@ -86,19 +87,44 @@ public class AudioManager : MonoBehaviour
         }
         else if (Instance != this)
         {
-            Destroy(gameObject);
+            // The scene object can also host SoundManager and other components.
+            enabled = false;
+            Destroy(this);
         }
     }
 
     private void OnEnable()
     {
+        if (Instance != this) return;
         GameSettings.Changed += SyncWithGameSettings;
+        SceneManager.sceneLoaded += HandleSceneLoaded;
+        GameEvents.OnEnemyKilled += HandleEnemyKilled;
         SyncWithGameSettings();
     }
 
     private void OnDisable()
     {
         GameSettings.Changed -= SyncWithGameSettings;
+        SceneManager.sceneLoaded -= HandleSceneLoaded;
+        GameEvents.OnEnemyKilled -= HandleEnemyKilled;
+    }
+
+    private void Start()
+    {
+        // Also cover starting Play directly in a scene without an initial scene callback.
+        if (Instance == this && string.IsNullOrEmpty(currentBgmId))
+            HandleSceneLoaded(SceneManager.GetActiveScene(), LoadSceneMode.Single);
+    }
+    private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (mode == LoadSceneMode.Additive) return;
+        PlayBGM(scene.name.IndexOf("game", StringComparison.OrdinalIgnoreCase) >= 0
+            ? SoundIdConst.BGM_COMBAT : SoundIdConst.BGM_MAIN_MENU);
+    }
+
+    private void HandleEnemyKilled()
+    {
+        PlaySFX(SoundIdConst.SFX_ENEMY_DEATH);
     }
 
     private void OnDestroy()
@@ -122,6 +148,7 @@ public class AudioManager : MonoBehaviour
         GameObject bgmObjectA = new GameObject("BGM_Channel_A");
         bgmObjectA.transform.SetParent(transform);
         bgmSourceA = bgmObjectA.AddComponent<AudioSource>();
+        bgmSourceA.priority = 0;
         bgmSourceA.loop = true;
         bgmSourceA.playOnAwake = false;
         bgmSourceA.spatialBlend = 0f;
@@ -129,6 +156,7 @@ public class AudioManager : MonoBehaviour
         GameObject bgmObjectB = new GameObject("BGM_Channel_B");
         bgmObjectB.transform.SetParent(transform);
         bgmSourceB = bgmObjectB.AddComponent<AudioSource>();
+        bgmSourceB.priority = 0;
         bgmSourceB.loop = true;
         bgmSourceB.playOnAwake = false;
         bgmSourceB.spatialBlend = 0f;
@@ -175,6 +203,7 @@ public class AudioManager : MonoBehaviour
         isBgmMuted = !GameSettings.BgmEnabled;
         isSfxMuted = !GameSettings.SfxEnabled;
         isVfxMuted = !GameSettings.SfxEnabled; // VFX gộp chung kênh SFX theo thiết lập người dùng
+        isUiMuted = !GameSettings.SfxEnabled;
 
         UpdateAllAudioVolumes();
     }
@@ -458,7 +487,13 @@ public class AudioManager : MonoBehaviour
         return pooled;
     }
 
-    private PooledAudioSource PlaySoundInternal(string soundId, Vector3 position, Transform followTarget, Vector3 offset, bool loop, float volumeMultiplier, AudioCategory forcedCategory)
+    /// <summary>Phát âm thanh tiếng súng người chơi (có giới hạn tần suất chống cộng dồn sóng âm gây chói tai).</summary>
+    public PooledAudioSource PlayPlayerGunShot(bool shotgun = false)
+    {
+        return PlaySoundInternal(shotgun ? SoundIdConst.SFX_GUN_SHOT_SHOTGUN : SoundIdConst.SFX_GUN_SHOT_STANDARD, Vector3.zero,
+            null, Vector3.zero, false, 1f, AudioCategory.SFX, shotgun);
+    }
+    private PooledAudioSource PlaySoundInternal(string soundId, Vector3 position, Transform followTarget, Vector3 offset, bool loop, float volumeMultiplier, AudioCategory forcedCategory, bool unthrottled = false)
     {
         if (string.IsNullOrEmpty(soundId) || database == null) return null;
 
@@ -469,7 +504,7 @@ public class AudioManager : MonoBehaviour
 
         // Kiểm tra Cooldown chống spam
         float currentTime = Time.unscaledTime;
-        if (lastPlayTimeMap.TryGetValue(soundId, out float lastTime))
+        if (!unthrottled && lastPlayTimeMap.TryGetValue(soundId, out float lastTime))
         {
             if (currentTime - lastTime < data.Cooldown)
             {
@@ -479,19 +514,20 @@ public class AudioManager : MonoBehaviour
         lastPlayTimeMap[soundId] = currentTime;
 
         // Kiểm tra giới hạn số lượng phát đồng thời
-        if (data.MaxSimultaneous > 0)
+        if (!unthrottled && data.MaxSimultaneous > 0)
         {
             activeCountMap.TryGetValue(soundId, out int currentCount);
             if (currentCount >= data.MaxSimultaneous)
             {
                 return null; // Vượt quá số lượng phát đồng thời cho phép
             }
-            activeCountMap[soundId] = currentCount + 1;
         }
 
-        PooledAudioSource pooled = GetPooledSource();
+        PooledAudioSource pooled = GetPooledSource(unthrottled);
         if (pooled == null) return null;
 
+        activeCountMap.TryGetValue(soundId, out int playingCount);
+        activeCountMap[soundId] = playingCount + 1;
         pooled.gameObject.SetActive(true);
         pooled.Play(data, position, followTarget, offset, loop, volumeMultiplier);
         return pooled;
@@ -501,7 +537,7 @@ public class AudioManager : MonoBehaviour
     // POOL MANAGEMENT
     // =========================================================================
 
-    private PooledAudioSource GetPooledSource()
+    private PooledAudioSource GetPooledSource(bool forceGrow = false)
     {
         PooledAudioSource source = null;
 
@@ -511,7 +547,7 @@ public class AudioManager : MonoBehaviour
             if (source != null) break;
         }
 
-        if (source == null && canGrowPool)
+        if (source == null && (canGrowPool || forceGrow))
         {
             source = CreatePooledAudioSource();
             availablePool.Dequeue(); // Lấy ra khỏi queue vừa enqueue trong Create

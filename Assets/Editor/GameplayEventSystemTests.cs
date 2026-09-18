@@ -133,12 +133,12 @@ namespace PGE.Tests
             playerObj.transform.SetParent(testContainer.transform);
             PlayerArtifactInventory inv = playerObj.GetComponent<PlayerArtifactInventory>();
 
-            ArtifactData bandAid = ArtifactDatabase.Instance.GetById("metal_band_aid");
-            Assert.IsNotNull(bandAid, "Metal Band-aid phải có trong ArtifactDatabase");
+            ArtifactData art = ArtifactDatabase.Instance.GetById("energy_butter") ?? (ArtifactDatabase.Instance.artifacts.Count > 0 ? ArtifactDatabase.Instance.artifacts[0] : null);
+            Assert.IsNotNull(art, "Cổ vật phải có trong ArtifactDatabase");
 
-            bool equipped = inv.EquipArtifact(bandAid);
+            bool equipped = inv.EquipArtifact(art);
             Assert.IsTrue(equipped);
-            Assert.IsTrue(inv.HasArtifact("metal_band_aid"));
+            Assert.IsTrue(inv.HasArtifact(art.id));
         }
 
         [Test]

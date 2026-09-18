@@ -596,6 +596,44 @@ public static class PlayerDataService
         return (ChipTier)Mathf.Clamp(tierVal, 1, 5);
     }
 
+    /// <summary>
+    /// Lấy số lượng mảnh Chipset hiện có trong kho theo ID.
+    /// </summary>
+    public static int GetChipsetPieceCount(int chipId)
+    {
+        if (LoadChipsetItemData(chipId, out _, out _, out int count, out _, out _))
+        {
+            return Mathf.Max(0, count);
+        }
+        // Fallback kiểm tra mặc định của chip Standard Gun (ID 1 có 5 mảnh ban đầu)
+        return chipId == 1 ? 5 : 0;
+    }
+
+    /// <summary>
+    /// Trừ số lượng mảnh Chipset trong kho khi chế tạo hoặc nâng cấp.
+    /// </summary>
+    public static bool TrySpendChipsetPieces(int chipId, int amount)
+    {
+        if (amount <= 0) return true;
+        int current = GetChipsetPieceCount(chipId);
+        if (current < amount) return false;
+
+        LoadChipsetItemData(chipId, out int level, out int tier, out _, out int reqCount, out bool hasStar);
+        SaveChipsetItemData(chipId, level, tier, current - amount, reqCount, hasStar);
+        return true;
+    }
+
+    /// <summary>
+    /// Thêm số lượng mảnh Chipset vào kho.
+    /// </summary>
+    public static void AddChipsetPieces(int chipId, int amount)
+    {
+        if (amount <= 0) return;
+        int current = GetChipsetPieceCount(chipId);
+        LoadChipsetItemData(chipId, out int level, out int tier, out _, out int reqCount, out bool hasStar);
+        SaveChipsetItemData(chipId, level, tier, current + amount, reqCount, hasStar);
+    }
+
     // =========================================================================
     // BUDDY DECK & PROGRESS PERSISTENCE
     // =========================================================================

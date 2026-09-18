@@ -126,6 +126,7 @@ public class SpikyDiscusProjectile : MonoBehaviour, IPoolable
 
             lastHitTimePerEnemy[enemyId] = Time.time;
 
+            AudioManager.Instance?.PlaySFX(SoundIdConst.SFX_BOOMER_HIT);
             enemy.TakeDamage(damage);
             ChipsetBattleStats.RecordDamage(7, damage);
             EnergyJumperCablesSkill.TriggerLifeSteal(damage, false);

@@ -209,6 +209,80 @@ public class LabStatDetailTests
     }
 
     [Test]
+    public void LabUpgradeController_WhenInsufficientChips_ShowsEnglishToastAndAllowsInteraction()
+    {
+        GameObject labObj = new GameObject("LabInsufficientChipsTest", typeof(RectTransform));
+        GameObject btnObj = new GameObject("UpgradeButton", typeof(RectTransform));
+        btnObj.transform.SetParent(labObj.transform, false);
+        Image btnImg = btnObj.AddComponent<Image>();
+        Button btn = btnObj.AddComponent<Button>();
+        btn.targetGraphic = btnImg;
+
+        GameObject textObj = new GameObject("ResultText", typeof(RectTransform));
+        textObj.transform.SetParent(labObj.transform, false);
+        TextMeshProUGUI resultTmp = textObj.AddComponent<TextMeshProUGUI>();
+
+        GameObject toastObj = new GameObject("BuildBodyToast", typeof(RectTransform));
+        toastObj.transform.SetParent(labObj.transform, false);
+        GameObject toastTextObj = new GameObject("ToastText", typeof(RectTransform));
+        toastTextObj.transform.SetParent(toastObj.transform, false);
+        TextMeshProUGUI toastTmp = toastTextObj.AddComponent<TextMeshProUGUI>();
+        toastObj.SetActive(false);
+
+        LabUpgradeController controller = labObj.AddComponent<LabUpgradeController>();
+        var so = new UnityEditor.SerializedObject(controller);
+        so.FindProperty("upgradeButton").objectReferenceValue = btn;
+        so.FindProperty("resultText").objectReferenceValue = resultTmp;
+        so.FindProperty("toastRoot").objectReferenceValue = toastObj;
+        so.FindProperty("toastText").objectReferenceValue = toastTmp;
+        so.FindProperty("basePrice").intValue = 300;
+        so.ApplyModifiedPropertiesWithoutUndo();
+
+        var itemsField = typeof(LabUpgradeController).GetField("items",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        itemsField.SetValue(controller, new[]
+        {
+            new LabUpgradeController.ItemEntry
+            {
+                itemName = "HP",
+                rarity = LabUpgradeController.ItemRarity.Common,
+                dropWeight = 1f,
+                level = 1
+            }
+        });
+
+        int initialChips = PlayerDataService.DataChips;
+        try
+        {
+            PlayerDataService.DataChips = 50; // Less than 300 required
+
+            var refreshMethod = typeof(LabUpgradeController).GetMethod("RefreshMainView",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            refreshMethod.Invoke(controller, null);
+
+            // Button must still be interactable so player can click it to see feedback
+            Assert.IsTrue(btn.interactable, "Upgrade button must remain interactable when insufficient chips.");
+
+            System.Reflection.MethodInfo startRollMethod = typeof(LabUpgradeController).GetMethod("StartRoll",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            startRollMethod.Invoke(controller, null);
+
+            // Toast must be active and show the English message
+            Assert.IsTrue(toastObj.activeSelf, "Toast banner must be shown when player lacks chips.");
+            Assert.AreEqual("You don't have enough Data Chips! Earn more and come back.", toastTmp.text);
+
+            // Result text above UPGRADE button must show English feedback
+            Assert.AreEqual("NOT ENOUGH DATA CHIPS! EARN MORE AND COME BACK", resultTmp.text);
+            Assert.AreEqual(50, PlayerDataService.DataChips, "Data Chips must not be spent.");
+        }
+        finally
+        {
+            PlayerDataService.DataChips = initialChips;
+            Object.DestroyImmediate(labObj);
+        }
+    }
+
+    [Test]
     public void LabUpgradeController_RefreshMainView_PreservesDesignerUpgradeButtonColor()
     {
         GameObject labObj = new GameObject("LabUpgradeColorTest", typeof(RectTransform));

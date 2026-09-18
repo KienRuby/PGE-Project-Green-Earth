@@ -862,6 +862,130 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8789721}
   m_CullTransparentMesh: 1
+--- !u!1 &9912001
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 9912002}
+  - component: {fileID: 9912003}
+  - component: {fileID: 9912004}
+  m_Layer: 0
+  m_Name: '[SoundManager]'
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &9912002
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9912001}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &9912003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9912001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b1a6c8e93529de47ad5013c5efe0219, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  autoPlayBgmOnStart: 1
+  bgmMenu: {fileID: 8300000, guid: f0c2404c3498b85419f3a33419d1cfaf, type: 3}
+  bgmMenuVolume: 0.6
+  bgmGameplay: {fileID: 8300000, guid: f0c2404c3498b85419f3a33419d1cfaf, type: 3}
+  bgmGameplayVolume: 0.6
+  bgmBoss: {fileID: 0}
+  bgmBossVolume: 0.6
+  customBgmList: []
+  sfxGunShot: {fileID: 8300000, guid: 62a918da264ee9b4d8af6b3fe04b8679, type: 3}
+  sfxGunShotVolume: 0.32
+  sfxShotgun: {fileID: 8300000, guid: 3cff6b2ea428a1a4294b1b3dac339975, type: 3}
+  sfxShotgunVolume: 0.8
+  sfxExplosion: {fileID: 8300000, guid: b98a1442d377b7249a3cd92ada3d841b, type: 3}
+  sfxExplosionVolume: 1
+  sfxPunch: {fileID: 8300000, guid: d064ccdf18d13854faa1fed9a4a8b91c, type: 3}
+  sfxPunchVolume: 1
+  sfxBoomer: {fileID: 8300000, guid: ddf8bbd14a4e7b24b9d822902431a4ba, type: 3}
+  sfxBoomerVolume: 0.6
+  sfxPlayerHurt: {fileID: 8300000, guid: fc5067d3f2077254e99585e640ff147d, type: 3}
+  sfxPlayerHurtVolume: 0.8
+  sfxPlayerDeath: {fileID: 8300000, guid: fc5067d3f2077254e99585e640ff147d, type: 3}
+  sfxPlayerDeathVolume: 0.85
+  sfxEnemyDeath: {fileID: 8300000, guid: b649b558a5681d140a35812329a70c33, type: 3}
+  sfxEnemyDeathVolume: 0.85
+  sfxItemPickup: {fileID: 8300000, guid: 3621a96ea64684b48896f00eb451eee1, type: 3}
+  sfxItemPickupVolume: 0.8
+  sfxLevelUp: {fileID: 8300000, guid: 3621a96ea64684b48896f00eb451eee1, type: 3}
+  sfxLevelUpVolume: 0.8
+  customSfxList: []
+  vfxLaserBeam: {fileID: 0}
+  vfxLaserBeamVolume: 0.7
+  vfxFireBurst: {fileID: 0}
+  vfxFireBurstVolume: 0.7
+  vfxIceShatter: {fileID: 0}
+  vfxIceShatterVolume: 0.7
+  vfxLightningStrike: {fileID: 0}
+  vfxLightningStrikeVolume: 0.7
+  vfxShieldActivate: {fileID: 0}
+  vfxShieldActivateVolume: 0.7
+  customVfxList: []
+  uiButtonClick: {fileID: 8300000, guid: a5006dfee9133c54b980ba87a27fae99, type: 3}
+  uiButtonClickVolume: 0.8
+  uiPopupOpen: {fileID: 8300000, guid: a5006dfee9133c54b980ba87a27fae99, type: 3}
+  uiPopupOpenVolume: 0.8
+  uiPopupClose: {fileID: 8300000, guid: a5006dfee9133c54b980ba87a27fae99, type: 3}
+  uiPopupCloseVolume: 0.8
+  uiRewardClaim: {fileID: 0}
+  uiRewardClaimVolume: 0.85
+  uiError: {fileID: 0}
+  uiErrorVolume: 0.8
+  customUiList: []
+  database: {fileID: 11400000, guid: 5ac41857aaa340e6a235219ef1ff95dc, type: 2}
+  bgmVolume: 1
+  sfxVolume: 1
+  vfxVolume: 1
+  uiVolume: 1
+  isBgmEnabled: 1
+  isSfxEnabled: 1
+--- !u!114 &9912004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9912001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6eeeaab3718227248b369ca4b5925e55, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  database: {fileID: 11400000, guid: 5ac41857aaa340e6a235219ef1ff95dc, type: 2}
+  initialPoolSize: 32
+  canGrowPool: 1
+  masterVolume: 1
+  bgmVolume: 1
+  sfxVolume: 1
+  vfxVolume: 1
+  uiVolume: 1
+  ambientVolume: 1
 --- !u!1 &10352368
 GameObject:
   m_ObjectHideFlags: 0
@@ -919,7 +1043,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: LV.43
+  m_text: LV.42
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 88378fd6127ec3345802e6c374507f19, type: 2}
   m_sharedMaterial: {fileID: 2100000, guid: 686cfa7cdb111f748aa18d4495b8bbea, type: 2}
@@ -1471,6 +1595,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 17719927}
+  - component: {fileID: 17719928}
   m_Layer: 0
   m_Name: RobotPetPanel
   m_TagString: Untagged
@@ -1506,6 +1631,51 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &17719928
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 17719926}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d64e2756f5aa4cbb8a64b84cf641d936, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  slotButtons:
+  - {fileID: 626122752}
+  - {fileID: 939797053}
+  - {fileID: 2066693566}
+  slotImages:
+  - {fileID: 626122749}
+  - {fileID: 939797050}
+  - {fileID: 2066693563}
+  slotTexts:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  slotNormalSprite: {fileID: 0}
+  slotActiveSprite: {fileID: 0}
+  slotActiveColor: {r: 1, g: 0.8, b: 0.2, a: 1}
+  slotNormalColor: {r: 0.9, g: 0.45, b: 0.35, a: 1}
+  detailPanel: {fileID: 837661896}
+  selectedPetCardImage: {fileID: 1168707323}
+  selectedPetIconImage: {fileID: 0}
+  petNameText: {fileID: 1856809682}
+  petDescText: {fileID: 2011175936}
+  craftButton: {fileID: 1965040152}
+  byTierButton: {fileID: 2032476324}
+  byQuantityButton: {fileID: 1188786814}
+  inventoryContainer: {fileID: 17719927}
+  emptyStateHint: {fileID: 0}
+  petCardPrefab: {fileID: 0}
+  cardPosY: -1010
+  cardWidth: 157
+  cardHeight: 197
+  cardSpacing: 110
+  emptyCardFrameSprite: {fileID: 21300000, guid: bac24db28fa2ed14b969909b609b57f3, type: 3}
+  defaultPetIcon: {fileID: 0}
 --- !u!1 &20090435
 GameObject:
   m_ObjectHideFlags: 0
@@ -4552,7 +4722,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &55981860
 RectTransform:
   m_ObjectHideFlags: 0
@@ -7094,7 +7264,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -40828008, guid: 46057652adfb23646b92e7503cbcbebb, type: 3}
+  m_Sprite: {fileID: 1258304572, guid: 46057652adfb23646b92e7503cbcbebb, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -8792,7 +8962,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &108978455
 RectTransform:
   m_ObjectHideFlags: 0
@@ -9336,10 +9506,10 @@ MonoBehaviour:
   - id: 3
     buddyName: Radar Eye
     iconKey: drone-antenna-eye
-    tier: 3
+    tier: 4
     level: 42
-    count: 53
-    requiredCount: 46
+    count: 7
+    requiredCount: 75
     enhanceCost: 110267728
     description: Scans hostiles and pinpoints critical weaknesses.
     baseStatText: All Weapons' CRIT Rate <color=#FFCB49>+5%</color>
@@ -11177,7 +11347,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: be20d15c0b744c5cbc37681a45bb812b, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 0eac2eb5be5c4a1a83fec71deddc62e4, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -16562,7 +16732,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: LV.42
+  m_text: LV.43
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 88378fd6127ec3345802e6c374507f19, type: 2}
   m_sharedMaterial: {fileID: 2100000, guid: 686cfa7cdb111f748aa18d4495b8bbea, type: 2}
@@ -32103,7 +32273,7 @@ MonoBehaviour:
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 0
-  m_FillAmount: 0.5652174
+  m_FillAmount: 0.093333334
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
@@ -32815,7 +32985,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 26/46
+  m_text: 7/75
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 88378fd6127ec3345802e6c374507f19, type: 2}
   m_sharedMaterial: {fileID: 2100000, guid: 686cfa7cdb111f748aa18d4495b8bbea, type: 2}
@@ -45459,6 +45629,7 @@ GameObject:
   - component: {fileID: 626122748}
   - component: {fileID: 626122750}
   - component: {fileID: 626122749}
+  - component: {fileID: 626122752}
   m_Layer: 0
   m_Name: RobotPreset1
   m_TagString: Untagged
@@ -45523,6 +45694,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 626122747}
   m_CullTransparentMesh: 1
+--- !u!114 &626122752
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 626122747}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Navigation:
+    m_Mode: 0
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.96, g: 0.96, b: 0.96, a: 1}
+    m_PressedColor: {r: 0.78, g: 0.78, b: 0.78, a: 1}
+    m_SelectedColor: {r: 0.96, g: 0.96, b: 0.96, a: 1}
+    m_DisabledColor: {r: 0.78, g: 0.78, b: 0.78, a: 0.5}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 626122749}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &626236898
 GameObject:
   m_ObjectHideFlags: 0
@@ -46156,7 +46371,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &636276885
 RectTransform:
   m_ObjectHideFlags: 0
@@ -50408,8 +50623,8 @@ RectTransform:
   - {fileID: 90009966}
   - {fileID: 1358685131}
   - {fileID: 197689675}
-  - {fileID: 1193777766}
   - {fileID: 108978455}
+  - {fileID: 1193777766}
   - {fileID: 1861979331}
   m_Father: {fileID: 1364133274}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -61754,7 +61969,8 @@ MonoBehaviour:
   craftButton: {fileID: 882000191}
   exitButton: {fileID: 882000196}
   craftablePets:
-  - petName: Pink Bat
+  - id: 0
+    petName: Pink Bat
     petIcon: {fileID: 21300000, guid: 42a6d548f72ebae4e8c24f06e0de5c4c, type: 3}
     description: Emits supersonic waves that confuse nearby enemies.
     levelText: LV.01
@@ -61762,23 +61978,26 @@ MonoBehaviour:
     progressFillRatio: 0
     frameSprite: {fileID: 21300000, guid: bf8017a72e40b0e49b17deea9beb1d01, type: 3}
     ingredients:
-    - itemName: Spiky discus
+    - chipsetId: 0
+      itemName: Rocket punch
       frameSprite: {fileID: 21300000, guid: bf8017a72e40b0e49b17deea9beb1d01, type: 3}
-      iconSprite: {fileID: -1958027733, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
+      iconSprite: {fileID: 2130773083, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
       levelText: LV.01
       progressText: 7/9
       progressFillRatio: 0.7777778
       currentCount: 7
       requiredCount: 2
-    - itemName: Spiky discus
+    - chipsetId: 0
+      itemName: Multigun
       frameSprite: {fileID: 21300000, guid: 6f3d4cf65b7e36f4fbb10be45b45854f, type: 3}
-      iconSprite: {fileID: 1525522922, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
+      iconSprite: {fileID: -370857278, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
       levelText: LV.05
       progressText: 1/15
       progressFillRatio: 0.06666667
       currentCount: 1
       requiredCount: 2
-  - petName: Green Slime
+  - id: 0
+    petName: Green Slime
     petIcon: {fileID: 21300000, guid: 3ecda248919ea644d97e86717d304bce, type: 3}
     description: Generates a sticky aura slowing enemy movements.
     levelText: LV.01
@@ -61786,23 +62005,26 @@ MonoBehaviour:
     progressFillRatio: 0
     frameSprite: {fileID: 21300000, guid: bf8017a72e40b0e49b17deea9beb1d01, type: 3}
     ingredients:
-    - itemName: Spiky discus
+    - chipsetId: 0
+      itemName: Spinning blade
       frameSprite: {fileID: 21300000, guid: bf8017a72e40b0e49b17deea9beb1d01, type: 3}
-      iconSprite: {fileID: -1958027733, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
+      iconSprite: {fileID: 1525522922, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
       levelText: LV.01
       progressText: 7/9
       progressFillRatio: 0.7777778
       currentCount: 7
       requiredCount: 2
-    - itemName: Spiky discus
+    - chipsetId: 0
+      itemName: Energy cables
       frameSprite: {fileID: 21300000, guid: 6f3d4cf65b7e36f4fbb10be45b45854f, type: 3}
-      iconSprite: {fileID: 1525522922, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
+      iconSprite: {fileID: 1736317296, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
       levelText: LV.05
       progressText: 1/15
       progressFillRatio: 0.06666667
       currentCount: 1
       requiredCount: 2
-  - petName: Cyber Spider
+  - id: 0
+    petName: Cyber Spider
     petIcon: {fileID: 21300000, guid: 1c44c61535f09ffd686f3346567786b3, type: 3}
     description: Weaves plasma webs that trap and electrify foes.
     levelText: LV.01
@@ -61810,23 +62032,26 @@ MonoBehaviour:
     progressFillRatio: 0
     frameSprite: {fileID: 21300000, guid: bf8017a72e40b0e49b17deea9beb1d01, type: 3}
     ingredients:
-    - itemName: Spiky discus
+    - chipsetId: 0
+      itemName: Gun turret
       frameSprite: {fileID: 21300000, guid: bf8017a72e40b0e49b17deea9beb1d01, type: 3}
-      iconSprite: {fileID: -1958027733, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
+      iconSprite: {fileID: -1704925112, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
       levelText: LV.01
       progressText: 7/9
       progressFillRatio: 0.7777778
       currentCount: 7
       requiredCount: 2
-    - itemName: Spiky discus
+    - chipsetId: 0
+      itemName: High-explosive mine
       frameSprite: {fileID: 21300000, guid: 6f3d4cf65b7e36f4fbb10be45b45854f, type: 3}
-      iconSprite: {fileID: 1525522922, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
+      iconSprite: {fileID: 563165159, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
       levelText: LV.05
       progressText: 1/15
       progressFillRatio: 0.06666667
       currentCount: 1
       requiredCount: 2
-  - petName: Viper Bot
+  - id: 0
+    petName: Viper Bot
     petIcon: {fileID: 21300000, guid: 404b0ea9d9cd8fad51e9ce9b4a6dea65, type: 3}
     description: Spits venom darts that inflict continuous damage.
     levelText: LV.01
@@ -61834,31 +62059,35 @@ MonoBehaviour:
     progressFillRatio: 0
     frameSprite: {fileID: 21300000, guid: bf8017a72e40b0e49b17deea9beb1d01, type: 3}
     ingredients:
-    - itemName: Spiky discus
+    - chipsetId: 0
+      itemName: Rifle
       frameSprite: {fileID: 21300000, guid: bf8017a72e40b0e49b17deea9beb1d01, type: 3}
-      iconSprite: {fileID: -1958027733, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
+      iconSprite: {fileID: 983117041, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
       levelText: LV.01
       progressText: 7/9
       progressFillRatio: 0.7777778
       currentCount: 7
       requiredCount: 2
-    - itemName: Spiky discus
+    - chipsetId: 0
+      itemName: Energy cables
       frameSprite: {fileID: 21300000, guid: 6f3d4cf65b7e36f4fbb10be45b45854f, type: 3}
-      iconSprite: {fileID: 1525522922, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
+      iconSprite: {fileID: 1736317296, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
       levelText: LV.05
       progressText: 1/15
       progressFillRatio: 0.06666667
       currentCount: 1
       requiredCount: 2
-  - petName: Cydog
+  - id: 0
+    petName: Cydog
     petIcon: {fileID: 21300000, guid: 909e5a088368956230dd0814ad526e82, type: 3}
-    description: Increases Bernard's Max HP.
+    description: Increases Adam's Max HP.
     levelText: LV.01
     progressText: 0/3
     progressFillRatio: 0
     frameSprite: {fileID: 21300000, guid: bf8017a72e40b0e49b17deea9beb1d01, type: 3}
     ingredients:
-    - itemName: Spiky discus
+    - chipsetId: 0
+      itemName: Spiky discus
       frameSprite: {fileID: 21300000, guid: bf8017a72e40b0e49b17deea9beb1d01, type: 3}
       iconSprite: {fileID: -1958027733, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
       levelText: LV.01
@@ -61866,15 +62095,17 @@ MonoBehaviour:
       progressFillRatio: 0.7777778
       currentCount: 7
       requiredCount: 2
-    - itemName: Spiky discus
+    - chipsetId: 0
+      itemName: Shotgun
       frameSprite: {fileID: 21300000, guid: 6f3d4cf65b7e36f4fbb10be45b45854f, type: 3}
-      iconSprite: {fileID: 1525522922, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
+      iconSprite: {fileID: 838293656, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
       levelText: LV.05
       progressText: 1/15
       progressFillRatio: 0.06666667
       currentCount: 1
       requiredCount: 2
-  - petName: Iron Shell
+  - id: 0
+    petName: Iron Shell
     petIcon: {fileID: 21300000, guid: 6ac816cc294a25cf0047caff14a1d4bc, type: 3}
     description: Forms an energy barrier absorbing incoming damage.
     levelText: LV.01
@@ -61882,23 +62113,26 @@ MonoBehaviour:
     progressFillRatio: 0
     frameSprite: {fileID: 21300000, guid: bf8017a72e40b0e49b17deea9beb1d01, type: 3}
     ingredients:
-    - itemName: Spiky discus
+    - chipsetId: 0
+      itemName: Gun turret
       frameSprite: {fileID: 21300000, guid: bf8017a72e40b0e49b17deea9beb1d01, type: 3}
-      iconSprite: {fileID: -1958027733, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
+      iconSprite: {fileID: -1704925112, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
       levelText: LV.01
       progressText: 7/9
       progressFillRatio: 0.7777778
       currentCount: 7
       requiredCount: 2
-    - itemName: Spiky discus
+    - chipsetId: 0
+      itemName: Standard gun
       frameSprite: {fileID: 21300000, guid: 6f3d4cf65b7e36f4fbb10be45b45854f, type: 3}
-      iconSprite: {fileID: 1525522922, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
+      iconSprite: {fileID: -1419096040, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
       levelText: LV.05
       progressText: 1/15
       progressFillRatio: 0.06666667
       currentCount: 1
       requiredCount: 2
-  - petName: Turbo Snail
+  - id: 0
+    petName: Turbo Snail
     petIcon: {fileID: 21300000, guid: 85a7bfa5385316ef5eea9abf30cf22bd, type: 3}
     description: Leaves a cryogenic trail that freezes pursuing enemies.
     levelText: LV.01
@@ -61906,17 +62140,19 @@ MonoBehaviour:
     progressFillRatio: 0
     frameSprite: {fileID: 21300000, guid: bf8017a72e40b0e49b17deea9beb1d01, type: 3}
     ingredients:
-    - itemName: Spiky discus
+    - chipsetId: 0
+      itemName: Spinning blade
       frameSprite: {fileID: 21300000, guid: bf8017a72e40b0e49b17deea9beb1d01, type: 3}
-      iconSprite: {fileID: -1958027733, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
+      iconSprite: {fileID: 1525522922, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
       levelText: LV.01
       progressText: 7/9
       progressFillRatio: 0.7777778
       currentCount: 7
       requiredCount: 2
-    - itemName: Spiky discus
+    - chipsetId: 0
+      itemName: Spiky discus
       frameSprite: {fileID: 21300000, guid: 6f3d4cf65b7e36f4fbb10be45b45854f, type: 3}
-      iconSprite: {fileID: 1525522922, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
+      iconSprite: {fileID: -1958027733, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
       levelText: LV.05
       progressText: 1/15
       progressFillRatio: 0.06666667
@@ -64340,7 +64576,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Increases Bernard's Max HP.
+  m_text: Increases Adam's Max HP.
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 88378fd6127ec3345802e6c374507f19, type: 2}
   m_sharedMaterial: {fileID: 2100000, guid: 7e255aaa102f5b6418f84b4c763f3dc4, type: 2}
@@ -65759,7 +65995,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 1525522922, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
+  m_Sprite: {fileID: 838293656, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -71243,6 +71479,7 @@ GameObject:
   - component: {fileID: 939797049}
   - component: {fileID: 939797051}
   - component: {fileID: 939797050}
+  - component: {fileID: 939797053}
   m_Layer: 0
   m_Name: RobotPreset2
   m_TagString: Untagged
@@ -71307,6 +71544,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 939797048}
   m_CullTransparentMesh: 1
+--- !u!114 &939797053
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 939797048}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Navigation:
+    m_Mode: 0
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.96, g: 0.96, b: 0.96, a: 1}
+    m_PressedColor: {r: 0.78, g: 0.78, b: 0.78, a: 1}
+    m_SelectedColor: {r: 0.96, g: 0.96, b: 0.96, a: 1}
+    m_DisabledColor: {r: 0.78, g: 0.78, b: 0.78, a: 0.5}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 939797050}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &940148247
 GameObject:
   m_ObjectHideFlags: 0
@@ -77767,7 +78048,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1027721770
 RectTransform:
   m_ObjectHideFlags: 0
@@ -87048,7 +87329,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 1029f6716ad5e3146b216afa8e2dc31b, type: 3}
+  m_Sprite: {fileID: 21300000, guid: bac24db28fa2ed14b969909b609b57f3, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -88465,6 +88746,7 @@ GameObject:
   - component: {fileID: 1188786810}
   - component: {fileID: 1188786812}
   - component: {fileID: 1188786811}
+  - component: {fileID: 1188786814}
   m_Layer: 0
   m_Name: RobotByQuantity
   m_TagString: Untagged
@@ -88529,6 +88811,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1188786809}
   m_CullTransparentMesh: 1
+--- !u!114 &1188786814
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1188786809}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Navigation:
+    m_Mode: 0
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.96, g: 0.96, b: 0.96, a: 1}
+    m_PressedColor: {r: 0.78, g: 0.78, b: 0.78, a: 1}
+    m_SelectedColor: {r: 0.96, g: 0.96, b: 0.96, a: 1}
+    m_DisabledColor: {r: 0.78, g: 0.78, b: 0.78, a: 0.5}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 1188786811}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1191280391
 GameObject:
   m_ObjectHideFlags: 0
@@ -88783,7 +89109,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1193777766
 RectTransform:
   m_ObjectHideFlags: 0
@@ -91344,7 +91670,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1220895267
 RectTransform:
   m_ObjectHideFlags: 0
@@ -101156,7 +101482,7 @@ MonoBehaviour:
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 0
-  m_FillAmount: 1
+  m_FillAmount: 0.5652174
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
@@ -137779,8 +138105,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 237, y: -198}
-  m_SizeDelta: {x: 560, y: 56}
+  m_AnchoredPosition: {x: 237, y: -180}
+  m_SizeDelta: {x: 560, y: 50}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1856809682
 MonoBehaviour:
@@ -137802,7 +138128,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Cydog
+  m_text: Slot 1 (Empty)
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 88378fd6127ec3345802e6c374507f19, type: 2}
   m_sharedMaterial: {fileID: 2100000, guid: 686cfa7cdb111f748aa18d4495b8bbea, type: 2}
@@ -138287,7 +138613,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 53/46
+  m_text: 26/46
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 88378fd6127ec3345802e6c374507f19, type: 2}
   m_sharedMaterial: {fileID: 2100000, guid: 686cfa7cdb111f748aa18d4495b8bbea, type: 2}
@@ -153411,8 +153737,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 237, y: -256}
-  m_SizeDelta: {x: 590, y: 55}
+  m_AnchoredPosition: {x: 237, y: -240}
+  m_SizeDelta: {x: 580, y: 150}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &2011175936
 MonoBehaviour:
@@ -153434,7 +153760,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Increases Bernard's Max HP.
+  m_text: "Ch\u01B0a c\xF3 Robot Pet n\xE0o \u0111\u01B0\u1EE3c trang b\u1ECB v\xE0o
+    slot n\xE0y.\nH\xE3y ch\u1EBF t\u1EA1o v\xE0 trang b\u1ECB Pet!"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 88378fd6127ec3345802e6c374507f19, type: 2}
   m_sharedMaterial: {fileID: 2100000, guid: 686cfa7cdb111f748aa18d4495b8bbea, type: 2}
@@ -153461,15 +153788,15 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 34
-  m_fontSizeBase: 34
+  m_fontSize: 26
+  m_fontSizeBase: 26
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 1
   m_HorizontalAlignment: 1
-  m_VerticalAlignment: 512
+  m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_wordSpacing: 0
@@ -154670,6 +154997,7 @@ GameObject:
   - component: {fileID: 2032476320}
   - component: {fileID: 2032476322}
   - component: {fileID: 2032476321}
+  - component: {fileID: 2032476324}
   m_Layer: 0
   m_Name: RobotByTier
   m_TagString: Untagged
@@ -154734,6 +155062,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2032476319}
   m_CullTransparentMesh: 1
+--- !u!114 &2032476324
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2032476319}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Navigation:
+    m_Mode: 0
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.96, g: 0.96, b: 0.96, a: 1}
+    m_PressedColor: {r: 0.78, g: 0.78, b: 0.78, a: 1}
+    m_SelectedColor: {r: 0.96, g: 0.96, b: 0.96, a: 1}
+    m_DisabledColor: {r: 0.78, g: 0.78, b: 0.78, a: 0.5}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 2032476321}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &2034505376
 GameObject:
   m_ObjectHideFlags: 0
@@ -155835,7 +156207,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 1258304572, guid: 46057652adfb23646b92e7503cbcbebb, type: 3}
+  m_Sprite: {fileID: -40828008, guid: 46057652adfb23646b92e7503cbcbebb, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -157310,6 +157682,7 @@ GameObject:
   - component: {fileID: 2066693562}
   - component: {fileID: 2066693564}
   - component: {fileID: 2066693563}
+  - component: {fileID: 2066693566}
   m_Layer: 0
   m_Name: RobotPreset3
   m_TagString: Untagged
@@ -157374,6 +157747,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2066693561}
   m_CullTransparentMesh: 1
+--- !u!114 &2066693566
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2066693561}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Navigation:
+    m_Mode: 0
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.96, g: 0.96, b: 0.96, a: 1}
+    m_PressedColor: {r: 0.78, g: 0.78, b: 0.78, a: 1}
+    m_SelectedColor: {r: 0.96, g: 0.96, b: 0.96, a: 1}
+    m_DisabledColor: {r: 0.78, g: 0.78, b: 0.78, a: 0.5}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 2066693563}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &2067546061
 GameObject:
   m_ObjectHideFlags: 0
@@ -158012,6 +158429,8 @@ MonoBehaviour:
   pityProgressSlider: {fileID: 0}
   pityInfoButton: {fileID: 1950000004}
   pityGuaranteePanel: {fileID: 1950000012}
+  toastRoot: {fileID: 572259718}
+  toastText: {fileID: 1098814382}
   statTooltip: {fileID: 2110000130}
   lockIconSprite: {fileID: -680185359, guid: bf7f0a782d48d6d45942b31e8b57a7b1, type: 3}
   maxStatLevel: 10
@@ -167535,6 +167954,7 @@ CanvasRenderer:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
+  - {fileID: 9912002}
   - {fileID: 1403725269}
   - {fileID: 2112537527}
   - {fileID: 608759886}

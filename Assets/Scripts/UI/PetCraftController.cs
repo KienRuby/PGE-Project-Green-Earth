@@ -8,12 +8,14 @@ using UnityEngine.UI;
 /// Điều khiển giao diện Chế Tạo Pet (Crafting Pet) theo thiết kế Hình 3.
 /// Quản lý việc lựa chọn pet trên lồng ấp, hiển thị nguyên liệu yêu cầu,
 /// và thực thi chế tạo hoặc thoát.
+/// Đã được refactor tích hợp với PetService và PlayerDataService.
 /// </summary>
 public class PetCraftController : MonoBehaviour
 {
     [System.Serializable]
     public class CraftIngredientData
     {
+        public int chipsetId;
         public string itemName;
         public Sprite frameSprite;
         public Sprite iconSprite;
@@ -27,6 +29,7 @@ public class PetCraftController : MonoBehaviour
     [System.Serializable]
     public class CraftablePetData
     {
+        public int id;
         public string petName;
         public Sprite petIcon;
         public string description;
@@ -103,10 +106,7 @@ public class PetCraftController : MonoBehaviour
     private void Awake()
     {
         SetupButtonListeners();
-        if (craftablePets == null || craftablePets.Count == 0)
-        {
-            InitializeDefaultPetData();
-        }
+        SyncWithPetService();
     }
 
     private void Start()
@@ -133,7 +133,21 @@ public class PetCraftController : MonoBehaviour
     private void OnEnable()
     {
         FitReferenceLayout();
+        PetService.OnPetDataChanged += HandlePetDataChanged;
         SelectPet(selectedPetIndex);
+    }
+
+    private void OnDisable()
+    {
+        PetService.OnPetDataChanged -= HandlePetDataChanged;
+    }
+
+    private void HandlePetDataChanged()
+    {
+        if (gameObject.activeInHierarchy)
+        {
+            SelectPet(selectedPetIndex);
+        }
     }
 
     public void SetupButtonListeners()
@@ -182,7 +196,7 @@ public class PetCraftController : MonoBehaviour
     {
         if (craftablePets == null || craftablePets.Count == 0)
         {
-            InitializeDefaultPetData();
+            SyncWithPetService();
         }
 
         if (index < 0 || index >= craftablePets.Count) return;
@@ -217,21 +231,37 @@ public class PetCraftController : MonoBehaviour
         if (craftingPetName != null) craftingPetName.text = pet.petName;
         if (craftingPetDesc != null) craftingPetDesc.text = pet.description;
 
+        // Lấy nguyên liệu thời gian thực từ PlayerDataService
+        PetData svcPet = PetService.GetPetData(selectedPetIndex);
+
         // Cập nhật nguyên liệu 1
-        if (pet.ingredients != null && pet.ingredients.Count > 0)
+        if (svcPet != null && svcPet.ingredients != null && svcPet.ingredients.Count > 0)
         {
-            var ing1 = pet.ingredients[0];
+            var ing1 = svcPet.ingredients[0];
+            int currentCount = PlayerDataService.GetChipsetPieceCount(ing1.chipsetId);
+            int reqCount = ing1.requiredCount;
+
             if (ingredientSlot1 != null) ingredientSlot1.SetActive(true);
-            if (ing1Frame != null && ing1.frameSprite != null) ing1Frame.sprite = ing1.frameSprite;
-            if (ing1Icon != null && ing1.iconSprite != null) ing1Icon.sprite = ing1.iconSprite;
+
+            Sprite frame1 = ing1.frameSprite != null ? ing1.frameSprite : PetService.GetChipsetFrame(0);
+            if (ing1Frame != null && frame1 != null)
+                ing1Frame.sprite = frame1;
+
+            Sprite icon1 = ing1.iconSprite != null ? ing1.iconSprite : PetService.GetChipsetIcon(ing1.chipsetId);
+            if (ing1Icon != null)
+            {
+                ing1Icon.sprite = icon1;
+                ing1Icon.enabled = (icon1 != null);
+            }
+
             if (ing1Level != null) ing1Level.text = ing1.levelText;
-            if (ing1Progress != null) ing1Progress.text = ing1.progressText;
-            if (ing1ProgressFill != null) ing1ProgressFill.fillAmount = ing1.progressFillRatio;
-            if (ing1Name != null) ing1Name.text = ing1.itemName;
+            if (ing1Progress != null) ing1Progress.text = $"{currentCount}/{reqCount}";
+            if (ing1ProgressFill != null) ing1ProgressFill.fillAmount = Mathf.Clamp01((float)currentCount / Mathf.Max(1, reqCount));
+            if (ing1Name != null) ing1Name.text = ing1.chipsetName;
             if (ing1Count != null)
             {
-                string colorHex = ing1.currentCount >= ing1.requiredCount ? "#FFCC00" : "#FF3333";
-                ing1Count.text = $"<color={colorHex}>{ing1.currentCount}</color>/{ing1.requiredCount}";
+                string colorHex = currentCount >= reqCount ? "#FFCC00" : "#FF3333";
+                ing1Count.text = $"<color={colorHex}>{currentCount}</color>/{reqCount}";
             }
         }
         else if (ingredientSlot1 != null)
@@ -240,20 +270,33 @@ public class PetCraftController : MonoBehaviour
         }
 
         // Cập nhật nguyên liệu 2
-        if (pet.ingredients != null && pet.ingredients.Count > 1)
+        if (svcPet != null && svcPet.ingredients != null && svcPet.ingredients.Count > 1)
         {
-            var ing2 = pet.ingredients[1];
+            var ing2 = svcPet.ingredients[1];
+            int currentCount = PlayerDataService.GetChipsetPieceCount(ing2.chipsetId);
+            int reqCount = ing2.requiredCount;
+
             if (ingredientSlot2 != null) ingredientSlot2.SetActive(true);
-            if (ing2Frame != null && ing2.frameSprite != null) ing2Frame.sprite = ing2.frameSprite;
-            if (ing2Icon != null && ing2.iconSprite != null) ing2Icon.sprite = ing2.iconSprite;
+
+            Sprite frame2 = ing2.frameSprite != null ? ing2.frameSprite : PetService.GetChipsetFrame(1);
+            if (ing2Frame != null && frame2 != null)
+                ing2Frame.sprite = frame2;
+
+            Sprite icon2 = ing2.iconSprite != null ? ing2.iconSprite : PetService.GetChipsetIcon(ing2.chipsetId);
+            if (ing2Icon != null)
+            {
+                ing2Icon.sprite = icon2;
+                ing2Icon.enabled = (icon2 != null);
+            }
+
             if (ing2Level != null) ing2Level.text = ing2.levelText;
-            if (ing2Progress != null) ing2Progress.text = ing2.progressText;
-            if (ing2ProgressFill != null) ing2ProgressFill.fillAmount = ing2.progressFillRatio;
-            if (ing2Name != null) ing2Name.text = ing2.itemName;
+            if (ing2Progress != null) ing2Progress.text = $"{currentCount}/{reqCount}";
+            if (ing2ProgressFill != null) ing2ProgressFill.fillAmount = Mathf.Clamp01((float)currentCount / Mathf.Max(1, reqCount));
+            if (ing2Name != null) ing2Name.text = ing2.chipsetName;
             if (ing2Count != null)
             {
-                string colorHex = ing2.currentCount >= ing2.requiredCount ? "#FFCC00" : "#FF3333";
-                ing2Count.text = $"<color={colorHex}>{ing2.currentCount}</color>/{ing2.requiredCount}";
+                string colorHex = currentCount >= reqCount ? "#FFCC00" : "#FF3333";
+                ing2Count.text = $"<color={colorHex}>{currentCount}</color>/{reqCount}";
             }
         }
         else if (ingredientSlot2 != null)
@@ -262,87 +305,115 @@ public class PetCraftController : MonoBehaviour
         }
 
         // Cập nhật trạng thái nút Craft
-        bool canCraft = true;
-        if (pet.ingredients != null)
-        {
-            foreach (var ing in pet.ingredients)
-            {
-                if (ing.currentCount < ing.requiredCount)
-                {
-                    canCraft = false;
-                    break;
-                }
-            }
-        }
+        bool isAlreadyOwned = PetService.IsPetOwned(selectedPetIndex);
+        bool canCraft = PetService.CanCraft(selectedPetIndex);
+
         if (craftButton != null)
         {
             craftButton.interactable = canCraft;
+
+            TMP_Text btnText = craftButton.GetComponentInChildren<TMP_Text>(true);
+            if (btnText != null)
+            {
+                if (isAlreadyOwned)
+                {
+                    btnText.text = "Crafted";
+                }
+                else
+                {
+                    btnText.text = "Craft";
+                }
+            }
         }
     }
 
     private void OnCraftButtonClicked()
     {
-        CraftablePetData pet = craftablePets[selectedPetIndex];
-        string petName = pet != null ? pet.petName : "Pet";
-        Debug.Log($"[PetCraftController] Đang chế tạo: {petName}!");
+        if (!PetService.CanCraft(selectedPetIndex))
+        {
+            Debug.LogWarning($"[PetCraftController] Không đủ nguyên liệu hoặc đã sở hữu Pet ID {selectedPetIndex}!");
+            return;
+        }
+
+        bool success = PetService.CraftPet(selectedPetIndex);
+        if (success)
+        {
+            string petName = craftablePets[selectedPetIndex] != null ? craftablePets[selectedPetIndex].petName : "Pet";
+            Debug.Log($"[PetCraftController] Đã chế tạo thành công: {petName}!");
+
+            // Reload UI ngay lập tức
+            SelectPet(selectedPetIndex);
+        }
+    }
+
+    public void SyncWithPetService()
+    {
+        var svcList = PetService.AllPets;
+        if (craftablePets == null) craftablePets = new List<CraftablePetData>();
+
+        // Nếu đã có cấu hình trong scene, bảo lưu sprite frame/icon
+        bool hadExisting = craftablePets.Count >= 7;
+
+        if (!hadExisting)
+        {
+            craftablePets.Clear();
+            for (int i = 0; i < svcList.Count; i++)
+            {
+                var sp = svcList[i];
+                var cp = new CraftablePetData
+                {
+                    id = sp.id,
+                    petName = sp.petName,
+                    description = sp.description,
+                    levelText = sp.levelText,
+                    progressText = sp.progressText,
+                    progressFillRatio = sp.progressFillRatio,
+                    petIcon = sp.petIcon,
+                    frameSprite = sp.frameSprite
+                };
+
+                for (int j = 0; j < sp.ingredients.Count; j++)
+                {
+                    var si = sp.ingredients[j];
+                    cp.ingredients.Add(new CraftIngredientData
+                    {
+                        chipsetId = si.chipsetId,
+                        itemName = si.chipsetName,
+                        levelText = si.levelText,
+                        progressText = si.progressText,
+                        progressFillRatio = si.progressFillRatio,
+                        requiredCount = si.requiredCount,
+                        frameSprite = si.frameSprite != null ? si.frameSprite : PetService.GetChipsetFrame(j == 0 ? 0 : 1),
+                        iconSprite = si.iconSprite != null ? si.iconSprite : PetService.GetChipsetIcon(si.chipsetId)
+                    });
+                }
+
+                craftablePets.Add(cp);
+            }
+        }
+        else
+        {
+            // Cập nhật ID, tên, icon và frame theo PetService
+            for (int i = 0; i < craftablePets.Count && i < svcList.Count; i++)
+            {
+                craftablePets[i].id = svcList[i].id;
+                craftablePets[i].petName = svcList[i].petName;
+                craftablePets[i].description = svcList[i].description;
+                for (int j = 0; j < craftablePets[i].ingredients.Count && j < svcList[i].ingredients.Count; j++)
+                {
+                    var sIng = svcList[i].ingredients[j];
+                    craftablePets[i].ingredients[j].chipsetId = sIng.chipsetId;
+                    craftablePets[i].ingredients[j].itemName = sIng.chipsetName;
+                    craftablePets[i].ingredients[j].requiredCount = sIng.requiredCount;
+                    craftablePets[i].ingredients[j].iconSprite = sIng.iconSprite != null ? sIng.iconSprite : PetService.GetChipsetIcon(sIng.chipsetId);
+                    craftablePets[i].ingredients[j].frameSprite = sIng.frameSprite != null ? sIng.frameSprite : PetService.GetChipsetFrame(j == 0 ? 0 : 1);
+                }
+            }
+        }
     }
 
     public void InitializeDefaultPetData()
     {
-        if (craftablePets == null) craftablePets = new List<CraftablePetData>();
-        if (craftablePets.Count >= 7) return;
-        craftablePets.Clear();
-
-        string[] names = { "Pink Bat", "Green Slime", "Cyber Spider", "Viper Bot", "Cydog", "Iron Shell", "Turbo Snail" };
-        string[] descs = {
-            "Emits supersonic waves that confuse nearby enemies.",
-            "Generates a sticky aura slowing enemy movements.",
-            "Weaves plasma webs that trap and electrify foes.",
-            "Spits venom darts that inflict continuous damage.",
-            "Increases Bernard's Max HP.",
-            "Forms an energy barrier absorbing incoming damage.",
-            "Leaves a cryogenic trail that freezes pursuing enemies."
-        };
-
-        for (int i = 0; i < 7; i++)
-        {
-            var p = new CraftablePetData
-            {
-                petName = names[i],
-                petIcon = domePetIcons != null && i < domePetIcons.Length && domePetIcons[i] != null
-                    ? domePetIcons[i].sprite : null,
-                frameSprite = craftingPetFrame != null ? craftingPetFrame.sprite : null,
-                description = descs[i],
-                levelText = "LV.01",
-                progressText = "0/3",
-                progressFillRatio = 0f
-            };
-
-            p.ingredients.Add(new CraftIngredientData
-            {
-                itemName = "Spiky discus",
-                frameSprite = ing1Frame != null ? ing1Frame.sprite : null,
-                iconSprite = ing1Icon != null ? ing1Icon.sprite : null,
-                levelText = "LV.01",
-                progressText = "7/9",
-                progressFillRatio = 7f / 9f,
-                currentCount = 7,
-                requiredCount = 2
-            });
-
-            p.ingredients.Add(new CraftIngredientData
-            {
-                itemName = "Spiky discus",
-                frameSprite = ing2Frame != null ? ing2Frame.sprite : null,
-                iconSprite = ing2Icon != null ? ing2Icon.sprite : null,
-                levelText = "LV.05",
-                progressText = "1/15",
-                progressFillRatio = 1f / 15f,
-                currentCount = 1,
-                requiredCount = 2
-            });
-
-            craftablePets.Add(p);
-        }
+        SyncWithPetService();
     }
 }

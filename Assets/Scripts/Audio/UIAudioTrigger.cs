@@ -6,7 +6,7 @@ using UnityEngine.EventSystems;
 /// Component gắn vào các thành phần UI (Button, Toggle, Tab, Popup...)
 /// để tự động phát âm thanh khi Click hoặc Hover mà không cần viết code thủ công.
 /// </summary>
-public class UIAudioTrigger : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler
+public class UIAudioTrigger : MonoBehaviour, IPointerClickHandler, IPointerDownHandler, ISubmitHandler, IPointerEnterHandler
 {
     [Header("Click / Select Sound")]
     [Tooltip("Mã định danh SoundId khi Click vào UI (ví dụ: UI_ButtonClick, UI_TabSwitch)")]
@@ -34,40 +34,21 @@ public class UIAudioTrigger : MonoBehaviour, IPointerClickHandler, IPointerEnter
         button = GetComponent<Button>();
         toggle = GetComponent<Toggle>();
 
-        if (button != null)
-        {
-            button.onClick.AddListener(OnButtonClick);
-        }
-
-        if (toggle != null)
-        {
-            toggle.onValueChanged.AddListener(OnToggleChanged);
-        }
     }
 
-    private void OnDestroy()
+    // Input handlers survive UI controllers rebuilding Button.onClick listeners.
+    public void OnPointerDown(PointerEventData eventData)
     {
-        if (button != null)
-        {
-            button.onClick.RemoveListener(OnButtonClick);
-        }
-
-        if (toggle != null)
-        {
-            toggle.onValueChanged.RemoveListener(OnToggleChanged);
-        }
+        if (eventData.button != PointerEventData.InputButton.Left) return;
+        if (button != null && button.IsInteractable() || toggle != null && toggle.IsInteractable())
+            PlayClick();
     }
 
-    private void OnButtonClick()
+    public void OnSubmit(BaseEventData eventData)
     {
-        PlayClick();
+        if (button != null && button.IsInteractable() || toggle != null && toggle.IsInteractable())
+            PlayClick();
     }
-
-    private void OnToggleChanged(bool state)
-    {
-        PlayClick();
-    }
-
     public void OnPointerClick(PointerEventData eventData)
     {
         // Nếu không có Button hoặc Toggle (chẳng hạn UI Image, Panel) thì tự kích hoạt

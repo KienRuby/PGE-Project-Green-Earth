@@ -178,6 +178,13 @@ public class LabUpgradeController : MonoBehaviour
     [Tooltip("Panel giao diện hiển thị chi tiết tiến độ bảo hiểm lượt roll (PityGuaranteePanel).")]
     [SerializeField] private PityGuaranteePanel pityGuaranteePanel;
 
+    [Header("Toast Notification")]
+    [Tooltip("Panel Toast thông báo ở dưới màn hình.")]
+    [SerializeField] private GameObject toastRoot;
+
+    [Tooltip("Text của Toast thông báo.")]
+    [SerializeField] private TMP_Text toastText;
+
     [Header("Stat Tooltip & Lock Icon")]
     [Tooltip("Bảng hiển thị chi tiết cấp tiếp theo của chỉ số hoặc ??? khi đang khóa.")]
     [SerializeField] private LabStatTooltip statTooltip;
@@ -346,6 +353,74 @@ public class LabUpgradeController : MonoBehaviour
             cg.interactable = true;
             cg.blocksRaycasts = true;
         }
+
+        EnsureToastReferences();
+    }
+
+    private void EnsureToastReferences()
+    {
+        if (toastRoot == null || toastText == null)
+        {
+            Transform foundToast = transform.Find("BuildBodyToast")
+                ?? transform.Find("LabToast")
+                ?? transform.parent?.Find("BuildBodyToast")
+                ?? transform.root?.Find("BuildBodyToast");
+
+            if (foundToast != null)
+            {
+                if (toastRoot == null)
+                {
+                    toastRoot = foundToast.gameObject;
+                }
+
+                if (toastText == null)
+                {
+                    toastText = foundToast.GetComponentInChildren<TMP_Text>(true);
+                }
+            }
+        }
+    }
+
+    public void ShowToast(string message)
+    {
+        EnsureToastReferences();
+
+        if (toastRoot != null && toastText != null)
+        {
+            toastText.text = message;
+            toastRoot.SetActive(false);
+            toastRoot.SetActive(true);
+            CancelInvoke(nameof(HideToast));
+            Invoke(nameof(HideToast), 2.5f);
+        }
+    }
+
+    private void HideToast()
+    {
+        if (toastRoot != null)
+        {
+            toastRoot.SetActive(false);
+        }
+    }
+
+    private void ResetResultText()
+    {
+        if (resultText != null && !isRolling)
+        {
+            resultText.text = IsAllItemsMaxed() ? "ALL STATS MAXED OUT (LV.10)" : "ROLL FOR A RANDOM UPGRADE";
+        }
+    }
+
+    private void ShowInsufficientChipsFeedback()
+    {
+        if (resultText != null)
+        {
+            resultText.text = "NOT ENOUGH DATA CHIPS! EARN MORE AND COME BACK";
+            CancelInvoke(nameof(ResetResultText));
+            Invoke(nameof(ResetResultText), 2.5f);
+        }
+
+        ShowToast("You don't have enough Data Chips! Earn more and come back.");
     }
 
     private void Start()
@@ -448,6 +523,9 @@ public class LabUpgradeController : MonoBehaviour
         ChipManager.OnTestModeChanged -= HandleTestModeChanged;
 
         StopEnergyRecovery();
+        CancelInvoke(nameof(ResetResultText));
+        CancelInvoke(nameof(HideToast));
+        HideToast();
 
         if (!isRolling || pendingItemIndex < 0)
         {
@@ -481,10 +559,19 @@ public class LabUpgradeController : MonoBehaviour
             statTooltip.Hide();
         }
 
-        if (isRolling || IsAllItemsMaxed() || !ChipManager.HasEnoughDataChips(currentPrice))
+        if (isRolling || IsAllItemsMaxed())
         {
             return;
         }
+
+        if (!ChipManager.HasEnoughDataChips(currentPrice))
+        {
+            ShowInsufficientChipsFeedback();
+            return;
+        }
+
+        CancelInvoke(nameof(ResetResultText));
+        HideToast();
 
         activeGuaranteedRarity = null;
         if (enablePitySystem)
@@ -995,10 +1082,10 @@ public class LabUpgradeController : MonoBehaviour
             resultText.text = "ALL STATS MAXED OUT (LV.10)";
         }
 
-        bool canRoll = !isRolling && !allMaxed && ChipManager.HasEnoughDataChips(currentPrice) && GetTotalRarityWeight() > 0f;
+        bool canInteract = !isRolling && !allMaxed && GetTotalRarityWeight() > 0f;
         if (upgradeButton != null)
         {
-            upgradeButton.interactable = canRoll;
+            upgradeButton.interactable = canInteract;
         }
     }
 

@@ -36,6 +36,10 @@ public static class SoundIdConst
     public const string BGM_VICTORY = "BGM_Victory";
     public const string BGM_DEFEAT = "BGM_Defeat";
 
+    public const string SFX_PUNCH_SPAWN = "SFX_Punch_Spawn";
+    public const string SFX_PUNCH_HIT = "SFX_Punch_Hit";
+    public const string SFX_BOOMER_HIT = "SFX_Boomer_Hit";
+
     // SFX Gameplay
     public const string SFX_GUN_SHOT_STANDARD = "SFX_GunShot_Standard";
     public const string SFX_GUN_SHOT_SHOTGUN = "SFX_GunShot_Shotgun";

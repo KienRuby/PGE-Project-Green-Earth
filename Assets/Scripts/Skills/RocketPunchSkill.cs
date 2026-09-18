@@ -205,6 +205,7 @@ public class RocketPunchSkill : MonoBehaviour
         proj.SetSharedTargetProvider(playerAutoShooter);
 
         activeOrbitingPunch = proj;
+        AudioManager.Instance?.PlaySFX(SoundIdConst.SFX_PUNCH_SPAWN);
     }
 
     /// <summary>

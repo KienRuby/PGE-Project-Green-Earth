@@ -337,6 +337,8 @@ public class ArtifactBoxPickup : MonoBehaviour
             return;
         }
 
+        AudioManager.Instance?.PlaySFX(SoundIdConst.SFX_PICKUP_ITEM);
+
         // Giữ rương đóng phát sáng phía sau popup; chỉ tắt collider để không nhận lặp lại.
         Collider2D col = GetComponent<Collider2D>();
         if (col != null) col.enabled = false;
