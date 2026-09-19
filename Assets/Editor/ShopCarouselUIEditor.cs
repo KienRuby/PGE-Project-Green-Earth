@@ -61,7 +61,6 @@ public class ShopCarouselUIEditor : Editor
             {
                 Undo.RecordObjects(pages, "Sync Carousel Cards Size");
                 carousel.SyncSizeToAllPages(carousel.CurrentPage);
-                Debug.Log($"[ShopCarouselUI] Đã đồng bộ kích thước từ thẻ {carousel.CurrentPage + 1} sang tất cả các thẻ còn lại trong Carousel!");
                 SceneView.RepaintAll();
             }
         }

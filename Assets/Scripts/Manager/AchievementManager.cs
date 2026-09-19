@@ -381,7 +381,6 @@ public sealed class AchievementManager : MonoBehaviour
                 // Kiểm tra xem vừa mới đạt mục tiêu
                 if (current < def.targetValue && next >= def.targetValue)
                 {
-                    Debug.Log($"[AchievementManager] 🏆 Hoàn thành Achievement: '{def.title}' ({next}/{def.targetValue})!");
                     OnAchievementCompleted?.Invoke(def);
                 }
             }
@@ -462,7 +461,6 @@ public sealed class AchievementManager : MonoBehaviour
             SetClaimed(id, true);
             PlayerPrefs.Save();
 
-            Debug.Log($"[AchievementManager] ✅ Đã nhận thưởng Achievement '{def.title}' thành công!");
 
             // 3. Bắn event thông báo
             OnAchievementClaimed?.Invoke(def);
@@ -535,7 +533,6 @@ public sealed class AchievementManager : MonoBehaviour
             }
         }
         OnAchievementUpdated?.Invoke();
-        Debug.Log("[AchievementManager] 🌟 Đã đặt toàn bộ Achievements về trạng thái Hoàn thành (Get)!");
     }
 
     [ContextMenu("Debug: Reset All Achievements")]
@@ -555,21 +552,18 @@ public sealed class AchievementManager : MonoBehaviour
         PlayerPrefs.DeleteKey(ClearedChaptersMaskKey);
         PlayerPrefs.Save();
         OnAchievementUpdated?.Invoke();
-        Debug.Log("[AchievementManager] 🧹 Đã reset toàn bộ tiến độ Achievements!");
     }
 
     [ContextMenu("Debug: Add 100 Enemy Kills")]
     public void DebugAdd100EnemyKills()
     {
         AddProgress(AchievementType.EnemyKilled, 100);
-        Debug.Log("[AchievementManager] ⚔️ +100 Enemy Kills.");
     }
 
     [ContextMenu("Debug: Add 1 Drone Upgrade")]
     public void DebugAdd1DroneUpgrade()
     {
         AddProgress(AchievementType.DroneTierAdvanced, 1);
-        Debug.Log("[AchievementManager] 🤖 +1 Drone Upgrade.");
     }
 #endif
 }

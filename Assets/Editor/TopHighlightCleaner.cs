@@ -42,10 +42,6 @@ namespace PGE.EditorTools
                 EditorSceneManager.CloseScene(s, true);
             }
 
-            if (total > 0)
-            {
-                Debug.Log($"[TopHighlightCleaner] ✅ Đã dọn sạch {total} object TopHighlight trong toàn bộ scene!");
-            }
             return total;
         }
 
@@ -55,10 +51,6 @@ namespace PGE.EditorTools
             if (activeScene.isLoaded)
             {
                 int removed = CleanScene(activeScene);
-                if (removed > 0)
-                {
-                    Debug.Log($"[TopHighlightCleaner] ✅ Tự động dọn dẹp {removed} object TopHighlight trong scene {activeScene.name}!");
-                }
             }
         }
 

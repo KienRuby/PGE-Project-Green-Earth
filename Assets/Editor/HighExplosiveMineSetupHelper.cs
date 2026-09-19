@@ -61,7 +61,6 @@ public static class HighExplosiveMineSetupHelper
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
 
-        Debug.Log($"[HighExplosiveMineSetupHelper] ✅ Đã tạo Prefab thành công tại: {PrefabPath} với scale (0.1632, 0.1632, 0.1632)!");
     }
 }
 #endif

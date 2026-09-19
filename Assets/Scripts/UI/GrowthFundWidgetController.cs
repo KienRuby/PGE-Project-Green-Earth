@@ -37,7 +37,6 @@ public class GrowthFundWidgetController : MonoBehaviour
 
     private void OnFundClicked()
     {
-        Debug.Log("[GrowthFund] Đã mở gói Growth Fund.");
         if (bottomNavController != null)
         {
             bottomNavController.Select(0); // Mở Shop tab

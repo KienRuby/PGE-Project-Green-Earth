@@ -61,7 +61,8 @@ public class ReviveVFX : MonoBehaviour, IPoolable
 
         if (animator != null)
         {
-            animator.Play(0, 0, 0f);
+            animator.Rebind();
+            animator.Update(0f);
         }
     }
 

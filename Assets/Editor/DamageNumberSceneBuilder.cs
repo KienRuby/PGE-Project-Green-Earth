@@ -67,7 +67,6 @@ public static class DamageNumberSceneBuilder
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
 
-        Debug.Log("[Damage Numbers] Đã cài đặt thành công hệ thống Damage Numbers (kèm viền đen) vào scene GamePlay!");
     }
 
     public static GameObject CreateOrUpdatePrefab()

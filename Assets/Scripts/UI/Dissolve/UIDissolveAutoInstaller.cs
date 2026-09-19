@@ -95,10 +95,6 @@ public static class UIDissolveAutoInstaller
             }
         }
 
-        if (count > 0)
-        {
-            Debug.Log($"[UIDissolveAutoInstaller] Đã tự động gắn và cấu hình UIDissolveController cho {count} Popup/Modal trong scene: {SceneManager.GetActiveScene().name}");
-        }
 
         return count;
     }

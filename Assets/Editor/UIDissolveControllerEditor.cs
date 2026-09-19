@@ -58,7 +58,6 @@ public class UIDissolveControllerEditor : Editor
             }
             else
             {
-                Debug.Log("[UIDissolve] Để kiểm tra hoạt họa mượt mà đầy đủ Coroutine, vui lòng ấn Play Mode.");
             }
         }
 

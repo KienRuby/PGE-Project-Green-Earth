@@ -534,30 +534,157 @@ public class ChapterSystemTests
         ChapterDatabase db = ScriptableObject.CreateInstance<ChapterDatabase>();
         db.SetChaptersForTesting(new System.Collections.Generic.List<ChapterData> { chapter });
 
-        // Unlocked state: Background is bright (Color.white), Boss is bright (Color.white)
-        ctrl.SetDatabaseForTesting(db, 0);
-        Assert.That(ctrl.IsCurrentChapterLocked(), Is.False);
-        Assert.That(bossImg.color, Is.EqualTo(ctrl.UnlockedBossColor));
-        Assert.That(bgImg.color, Is.EqualTo(ctrl.UnlockedBackgroundColor));
-        Assert.That(bossGo.activeSelf, Is.True);
-        Assert.That(lockOverlay.activeSelf, Is.False);
+        int originalUnlocked = PlayerDataService.UnlockedChapterIndex;
+        try
+        {
+            // Trạng thái mới tải game (chưa vượt Chapter 1, UnlockedChapterIndex = 0):
+            // Chapter 1 mở khóa để chơi, background sáng, nhưng Boss phải TỐI ĐEN
+            PlayerDataService.UnlockedChapterIndex = 0;
+            ctrl.SetDatabaseForTesting(db, 0);
+            Assert.That(ctrl.IsCurrentChapterLocked(), Is.False, "Chapter 1 phải mở khóa để chơi.");
+            Assert.That(ctrl.IsCurrentChapterCleared(), Is.False, "Chapter 1 chưa vượt qua.");
+            Assert.That(bossImg.color, Is.EqualTo(ctrl.LockedBossColor), "Boss Chapter 1 phải tối màu đen khi chưa thắng.");
+            Assert.That(bgImg.color, Is.EqualTo(ctrl.UnlockedBackgroundColor), "Background Chapter 1 vẫn sáng bình thường.");
+            Assert.That(bossGo.activeSelf, Is.True);
+            Assert.That(lockOverlay.activeSelf, Is.False);
 
-        // Locked state: Background is dark, Boss is pitch black
-        chapter.isLocked = true;
-        ctrl.RefreshChapterView();
-        Assert.That(ctrl.IsCurrentChapterLocked(), Is.True);
-        Assert.That(bossImg.color, Is.EqualTo(ctrl.LockedBossColor));
-        Assert.That(bgImg.color, Is.EqualTo(ctrl.LockedBackgroundColor));
-        Assert.That(bossGo.activeSelf, Is.True);
-        Assert.That(lockOverlay.activeSelf, Is.True);
+            // Trạng thái đã thắng Chapter 1 (UnlockedChapterIndex >= 1):
+            // Boss sáng rõ (Color.white)
+            PlayerDataService.UnlockedChapterIndex = 1;
+            ctrl.RefreshChapterView();
+            Assert.That(ctrl.IsCurrentChapterCleared(), Is.True, "Chapter 1 đã được vượt qua.");
+            Assert.That(bossImg.color, Is.EqualTo(ctrl.UnlockedBossColor), "Boss Chapter 1 phải sáng khi đã thắng Chapter 1.");
+            Assert.That(bgImg.color, Is.EqualTo(ctrl.UnlockedBackgroundColor));
 
-        GameObject.DestroyImmediate(bgGo);
-        GameObject.DestroyImmediate(bossGo);
-        GameObject.DestroyImmediate(lockOverlay);
-        GameObject.DestroyImmediate(labelGo);
-        GameObject.DestroyImmediate(costBox);
-        GameObject.DestroyImmediate(go);
-        ScriptableObject.DestroyImmediate(chapter);
+            // Locked state: Background is dark, Boss is pitch black
+            chapter.isLocked = true;
+            ctrl.RefreshChapterView();
+            Assert.That(ctrl.IsCurrentChapterLocked(), Is.True);
+            Assert.That(bossImg.color, Is.EqualTo(ctrl.LockedBossColor));
+            Assert.That(bgImg.color, Is.EqualTo(ctrl.LockedBackgroundColor));
+            Assert.That(bossGo.activeSelf, Is.True);
+            Assert.That(lockOverlay.activeSelf, Is.True);
+        }
+        finally
+        {
+            PlayerDataService.UnlockedChapterIndex = originalUnlocked;
+            GameObject.DestroyImmediate(bgGo);
+            GameObject.DestroyImmediate(bossGo);
+            GameObject.DestroyImmediate(lockOverlay);
+            GameObject.DestroyImmediate(labelGo);
+            GameObject.DestroyImmediate(costBox);
+            GameObject.DestroyImmediate(go);
+            ScriptableObject.DestroyImmediate(chapter);
+            ScriptableObject.DestroyImmediate(db);
+        }
+    }
+
+    [Test]
+    public void ChapterScreenController_MultiChapter_BossOnlyBrightWhenChapterCleared()
+    {
+        GameObject go = new GameObject("TestMultiChapterBossLighting");
+        ChapterScreenController ctrl = go.AddComponent<ChapterScreenController>();
+
+        GameObject bgGo = new GameObject("Bg");
+        Image bgImg = bgGo.AddComponent<Image>();
+
+        GameObject bossGo = new GameObject("Boss");
+        Image bossImg = bossGo.AddComponent<Image>();
+
+        GameObject lockOverlay = new GameObject("LockOverlay");
+        GameObject labelGo = new GameObject("Label");
+        TMPro.TextMeshProUGUI label = labelGo.AddComponent<TMPro.TextMeshProUGUI>();
+        GameObject costBox = new GameObject("CostBox");
+
+        ctrl.SetLockStateForTesting(lockOverlay, label, costBox);
+        ctrl.SetPreviewImagesForTesting(bgImg, bossImg);
+
+        ChapterData c1 = ScriptableObject.CreateInstance<ChapterData>();
+        c1.chapterNumber = 1;
+        c1.chapterTitle = "Chapter 1";
+
+        ChapterData c2 = ScriptableObject.CreateInstance<ChapterData>();
+        c2.chapterNumber = 2;
+        c2.chapterTitle = "Chapter 2";
+
+        ChapterData c3 = ScriptableObject.CreateInstance<ChapterData>();
+        c3.chapterNumber = 3;
+        c3.chapterTitle = "Chapter 3";
+
+        ChapterDatabase db = ScriptableObject.CreateInstance<ChapterDatabase>();
+        db.SetChaptersForTesting(new List<ChapterData> { c1, c2, c3 });
+
+        int originalUnlocked = PlayerDataService.UnlockedChapterIndex;
+        int originalSelected = PlayerDataService.SelectedChapterIndex;
+        try
+        {
+            // 1. Mới tải game: UnlockedChapterIndex = 0 (Chưa vượt chapter nào)
+            PlayerDataService.UnlockedChapterIndex = 0;
+
+            // Chapter 1: Chơi được, nhưng boss TỐI ĐEN vì chưa thắng
+            ctrl.SetDatabaseForTesting(db, 0);
+            Assert.That(ctrl.IsCurrentChapterLocked(), Is.False);
+            Assert.That(ctrl.IsCurrentChapterCleared(), Is.False);
+            Assert.That(bossImg.color, Is.EqualTo(ctrl.LockedBossColor), "Mới tải game: Boss Chapter 1 phải tối đen.");
+
+            // Chapter 2: Khóa, boss TỐI ĐEN
+            ctrl.SetDatabaseForTesting(db, 1);
+            Assert.That(ctrl.IsCurrentChapterLocked(), Is.True);
+            Assert.That(ctrl.IsCurrentChapterCleared(), Is.False);
+            Assert.That(bossImg.color, Is.EqualTo(ctrl.LockedBossColor), "Mới tải game: Boss Chapter 2 phải tối đen.");
+
+            // 2. Thắng Chapter 1 -> Mở khóa Chapter 2 (UnlockedChapterIndex = 1)
+            PlayerDataService.UnlockedChapterIndex = 1;
+
+            // Chapter 1: Đã thắng -> Boss SÁNG RÕ
+            ctrl.SetDatabaseForTesting(db, 0);
+            Assert.That(ctrl.IsCurrentChapterCleared(), Is.True);
+            Assert.That(bossImg.color, Is.EqualTo(ctrl.UnlockedBossColor), "Thắng Chapter 1: Boss Chapter 1 phải SÁNG.");
+
+            // Chapter 2: Đã mở khóa chơi được, nhưng boss vẫn TỐI ĐEN vì chưa thắng Chapter 2
+            ctrl.SetDatabaseForTesting(db, 1);
+            Assert.That(ctrl.IsCurrentChapterLocked(), Is.False);
+            Assert.That(ctrl.IsCurrentChapterCleared(), Is.False);
+            Assert.That(bossImg.color, Is.EqualTo(ctrl.LockedBossColor), "Chapter 2 mở khóa nhưng chưa thắng: Boss Chapter 2 phải tối đen.");
+
+            // Chapter 3: Khóa, boss TỐI ĐEN
+            ctrl.SetDatabaseForTesting(db, 2);
+            Assert.That(ctrl.IsCurrentChapterLocked(), Is.True);
+            Assert.That(bossImg.color, Is.EqualTo(ctrl.LockedBossColor));
+
+            // 3. Thắng Chapter 2 -> Mở khóa Chapter 3 (UnlockedChapterIndex = 2)
+            PlayerDataService.UnlockedChapterIndex = 2;
+
+            // Chapter 1: Vẫn sáng
+            ctrl.SetDatabaseForTesting(db, 0);
+            Assert.That(bossImg.color, Is.EqualTo(ctrl.UnlockedBossColor));
+
+            // Chapter 2: Đã thắng -> Boss SÁNG RÕ
+            ctrl.SetDatabaseForTesting(db, 1);
+            Assert.That(ctrl.IsCurrentChapterCleared(), Is.True);
+            Assert.That(bossImg.color, Is.EqualTo(ctrl.UnlockedBossColor), "Thắng Chapter 2: Boss Chapter 2 phải SÁNG.");
+
+            // Chapter 3: Mở khóa chơi được, nhưng boss vẫn TỐI ĐEN
+            ctrl.SetDatabaseForTesting(db, 2);
+            Assert.That(ctrl.IsCurrentChapterLocked(), Is.False);
+            Assert.That(ctrl.IsCurrentChapterCleared(), Is.False);
+            Assert.That(bossImg.color, Is.EqualTo(ctrl.LockedBossColor), "Chapter 3 mở khóa nhưng chưa thắng: Boss Chapter 3 phải tối đen.");
+        }
+        finally
+        {
+            PlayerDataService.UnlockedChapterIndex = originalUnlocked;
+            PlayerDataService.SelectedChapterIndex = originalSelected;
+            GameObject.DestroyImmediate(bgGo);
+            GameObject.DestroyImmediate(bossGo);
+            GameObject.DestroyImmediate(lockOverlay);
+            GameObject.DestroyImmediate(labelGo);
+            GameObject.DestroyImmediate(costBox);
+            GameObject.DestroyImmediate(go);
+            ScriptableObject.DestroyImmediate(c1);
+            ScriptableObject.DestroyImmediate(c2);
+            ScriptableObject.DestroyImmediate(c3);
+            ScriptableObject.DestroyImmediate(db);
+        }
     }
 
     [Test]

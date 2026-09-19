@@ -339,7 +339,6 @@ public class PetCraftController : MonoBehaviour
         if (success)
         {
             string petName = craftablePets[selectedPetIndex] != null ? craftablePets[selectedPetIndex].petName : "Pet";
-            Debug.Log($"[PetCraftController] Đã chế tạo thành công: {petName}!");
 
             // Reload UI ngay lập tức
             SelectPet(selectedPetIndex);

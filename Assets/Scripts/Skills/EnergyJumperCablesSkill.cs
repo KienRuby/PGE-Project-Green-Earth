@@ -115,7 +115,6 @@ public class EnergyJumperCablesSkill : MonoBehaviour
             playerHealth.SetMaxShield(shieldCap);
         }
 
-        Debug.Log($"[EnergyJumperCablesSkill] Cáp Hồi Máu đã lên Cấp {currentLevel}! (Life Steal: {GetCalculatedLifeStealPercent() * 100f:F1}%, All Weapons: {currentLevel >= 3})");
     }
 
     /// <summary>

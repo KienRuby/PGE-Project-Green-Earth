@@ -50,14 +50,12 @@ public class SoundManagerEditor : Editor
             sm.ApplyBalancedDefaults();
             EditorUtility.SetDirty(sm);
             serializedObject.Update();
-            Debug.Log("[SoundManagerEditor] ✅ Đã khôi phục bộ âm lượng cân bằng chuẩn phòng thu!");
         }
 
         GUI.backgroundColor = new Color(0.3f, 0.6f, 0.9f);
         if (GUILayout.Button("🔄 Đồng Bộ Sang Database", GUILayout.Height(30)))
         {
             sm.SyncToDatabase();
-            Debug.Log("[SoundManagerEditor] ✅ Đã đồng bộ âm lượng riêng sang SoundDatabase!");
         }
 
         GUI.backgroundColor = new Color(0.9f, 0.4f, 0.4f);

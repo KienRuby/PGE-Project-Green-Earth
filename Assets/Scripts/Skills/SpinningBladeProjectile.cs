@@ -50,6 +50,7 @@ public class SpinningBladeProjectile : MonoBehaviour, IPoolable
     private ContactFilter2D contactFilter;
     private readonly Collider2D[] vortexBuffer = new Collider2D[32];
     private bool isGuaranteedPierce = false;
+    private static Material sharedFallbackTrailMaterial;
 
     public bool IsInVortexMode => isInVortexMode;
     public bool IsActive => !isDestroyed;
@@ -107,13 +108,22 @@ public class SpinningBladeProjectile : MonoBehaviour, IPoolable
         {
             if (trailRenderer.sharedMaterial == null || trailRenderer.sharedMaterial.shader == null || trailRenderer.sharedMaterial.shader.name == "Hidden/InternalErrorShader")
             {
-                Shader spriteShader = Shader.Find("Sprites/Default")
-                    ?? Shader.Find("Universal Render Pipeline/2D/Sprite-Unlit-Default")
-                    ?? Shader.Find("Legacy Shaders/Particles/Alpha Blended");
-
-                if (spriteShader != null)
+                if (sharedFallbackTrailMaterial == null)
                 {
-                    trailRenderer.material = new Material(spriteShader);
+                    Shader spriteShader = Shader.Find("Sprites/Default")
+                        ?? Shader.Find("Universal Render Pipeline/2D/Sprite-Unlit-Default")
+                        ?? Shader.Find("Legacy Shaders/Particles/Alpha Blended");
+
+                    if (spriteShader != null)
+                    {
+                        sharedFallbackTrailMaterial = new Material(spriteShader);
+                        sharedFallbackTrailMaterial.name = "SpinningBlade_SharedTrailMaterial";
+                    }
+                }
+
+                if (sharedFallbackTrailMaterial != null)
+                {
+                    trailRenderer.sharedMaterial = sharedFallbackTrailMaterial;
                 }
             }
         }

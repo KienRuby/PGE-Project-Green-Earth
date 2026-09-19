@@ -363,7 +363,6 @@ public class ArtifactBoxPickup : MonoBehaviour
                 },
                 onThrowAway: () =>
                 {
-                    Debug.Log($"[ArtifactBoxPickup] Người chơi đã bỏ qua (Throw away): {assignedArtifact.artifactName}");
                     Destroy(gameObject);
                 }
             );

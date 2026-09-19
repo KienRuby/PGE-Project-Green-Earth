@@ -175,7 +175,6 @@ public class MultigunSkill : MonoBehaviour
         isUnlocked = true;
         currentLevel = Mathf.Clamp(targetLevel, 1, 5);
         LoadMetaTierBonuses();
-        Debug.Log($"[MultigunSkill] Súng Đa Tia đã lên Cấp {currentLevel}! (Damage/Tia: {GetCalculatedDamage()}, Shells: {GetTotalShellCount()}, Fire Interval: {GetCalculatedFireInterval():F2}s, 360 Storm: {currentLevel >= 5})");
     }
 
     private void Update()

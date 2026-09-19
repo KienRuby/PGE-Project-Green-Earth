@@ -398,7 +398,6 @@ public sealed class DailyLoginManager : MonoBehaviour
             if (daysDifference > 1 && database.streakMode == StreakResetMode.ResetToDay1OnMissedDay)
             {
                 // Bỏ lỡ > 1 ngày -> Reset về Day 1
-                Debug.Log($"[DailyLoginManager] ⚠️ Bỏ lỡ {daysDifference} ngày. Reset streak về Day 1.");
                 CurrentLoginDay = 1;
                 ClaimedMask = 0;
             }
@@ -415,7 +414,6 @@ public sealed class DailyLoginManager : MonoBehaviour
                         // Đã xong Day 7
                         if (database.day7Mode == Day7LoopMode.LoopToDay1)
                         {
-                            Debug.Log("[DailyLoginManager] 🔄 Hoàn thành Day 7. Bắt đầu chu kỳ 7 ngày mới!");
                             CurrentLoginDay = 1;
                             ClaimedMask = 0;
                             CycleCount++;
@@ -469,7 +467,6 @@ public sealed class DailyLoginManager : MonoBehaviour
             LastClaimDateUtc = GetEffectiveDateStringUtc();
             PlayerPrefs.Save();
 
-            Debug.Log($"[DailyLoginManager] ✅ Nhận thưởng Day {current:00} thành công!");
 
             // 3. Bắn event thông báo cho AchievementManager & UI
             OnDailyRewardClaimed?.Invoke(current, dayData.rewards);
@@ -524,7 +521,6 @@ public sealed class DailyLoginManager : MonoBehaviour
         {
             RewardService.GrantRewards(dayData.rewards);
             MarkAdClaimedToday();
-            Debug.Log($"[DailyLoginManager] 🎬🎁 Đã nhận thêm phần thưởng Day {current:00} qua xem quảng cáo!");
             OnDailyRewardClaimed?.Invoke(current, dayData.rewards);
             OnDailyLoginStateChanged?.Invoke();
             return true;
@@ -552,7 +548,6 @@ public sealed class DailyLoginManager : MonoBehaviour
         PlayerPrefs.Save();
         CurrentLoginDay = 1;
         OnDailyLoginStateChanged?.Invoke();
-        Debug.Log("[DailyLoginManager] 🧹 Đã reset toàn bộ dữ liệu Daily Login!");
     }
 
     [ContextMenu("Debug: Advance 1 Day (Tua sang ngày tiếp theo)")]
@@ -579,7 +574,6 @@ public sealed class DailyLoginManager : MonoBehaviour
         PlayerPrefs.Save();
 
         OnDailyLoginStateChanged?.Invoke();
-        Debug.Log($"[DailyLoginManager] ⏩ Đã tua sang Day {CurrentLoginDay:00} (Available to claim).");
     }
 
     [ContextMenu("Debug: Force Make Today Available")]
@@ -591,7 +585,6 @@ public sealed class DailyLoginManager : MonoBehaviour
         LastAdClaimDateUtc = string.Empty;
         PlayerPrefs.Save();
         OnDailyLoginStateChanged?.Invoke();
-        Debug.Log($"[DailyLoginManager] 🔓 Đã mở khóa Day {current:00} sang trạng thái Available.");
     }
 #endif
 }

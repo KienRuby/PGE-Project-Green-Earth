@@ -103,8 +103,10 @@ public class AssaultBlasterBuddy : BuddyCombatDrone
 
         if (projectilePrefab != null)
         {
-            GameObject projObj = Instantiate(projectilePrefab, spawnPos, Quaternion.identity);
-            Projectile proj = projObj.GetComponent<Projectile>();
+            GameObject projObj = PoolManager.Instance != null
+                ? PoolManager.Instance.Spawn(projectilePrefab, spawnPos, Quaternion.identity)
+                : Instantiate(projectilePrefab, spawnPos, Quaternion.identity);
+            Projectile proj = projObj != null ? projObj.GetComponent<Projectile>() : null;
             if (proj != null)
             {
                 proj.Setup(finalDamage, projectileSpeed, EffectiveAttackRange);

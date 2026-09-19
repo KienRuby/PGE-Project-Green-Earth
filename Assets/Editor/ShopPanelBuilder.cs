@@ -115,7 +115,6 @@ public static class ShopPanelBuilder
         Sprite dotSprite = AssetDatabase.LoadAssetAtPath<Sprite>(DotSpritePath);
         Sprite infoSprite = AssetDatabase.LoadAssetAtPath<Sprite>(InfoIconPath);
 
-        Debug.Log($"[ShopPanelBuilder] Loaded {allSprites.Length} shop sprites from atlas.");
 
         // 2. Find ShopPanel (under Canvas/Content)
         GameObject shopPanel = FindShopPanelInCanvas();
@@ -710,7 +709,6 @@ public static class ShopPanelBuilder
         EditorUtility.SetDirty(shopPanel);
         EditorSceneManager.SaveScene(currentScene);
 
-        Debug.Log($"[ShopPanelBuilder] Successfully built full visual ShopPanel with all 28 sprites and {offerButtons.Count} interactive offers! Total height = {totalContentHeight}px");
     }
 
     private static Sprite GetSprite(Dictionary<string, Sprite> map, string name)

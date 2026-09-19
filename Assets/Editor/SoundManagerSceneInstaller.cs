@@ -34,7 +34,6 @@ public static class SoundManagerSceneInstaller
 
     public static void SetupAll()
     {
-        Debug.Log("[SoundManagerSceneInstaller] >>> Bắt đầu cấu hình SoundManager & SoundDatabase...");
 
         // 1. Nạp các AudioClip từ thư mục Assets/Audio
         AudioClip bgmClip = AssetDatabase.LoadAssetAtPath<AudioClip>(SoundBackgroundPath);
@@ -60,7 +59,6 @@ public static class SoundManagerSceneInstaller
         InstallIntoScenePath(GamePlayScenePath, bgmClip, gunShotClip, enemyDeathClip, itemPickupClip, playerDeathClip, uiClip);
 
         AssetDatabase.SaveAssets();
-        Debug.Log("[SoundManagerSceneInstaller] ✅ Đã hoàn tất cài đặt [SoundManager] vào Hierarchy!");
     }
 
     private static void PopulateSoundDatabase(string dbPath, AudioClip bgm, AudioClip gunShot, AudioClip enemyDeath, AudioClip itemPickup, AudioClip playerDeath, AudioClip ui)
@@ -163,13 +161,11 @@ public static class SoundManagerSceneInstaller
             }
         }
 
-        bool isNew = false;
         if (targetObj == null)
         {
             targetObj = new GameObject("[SoundManager]");
             SceneManager.MoveGameObjectToScene(targetObj, scene);
             targetObj.transform.SetAsFirstSibling();
-            isNew = true;
         }
 
         SoundDatabase db = AssetDatabase.LoadAssetAtPath<SoundDatabase>(ResourcesDatabasePath)
@@ -227,7 +223,6 @@ public static class SoundManagerSceneInstaller
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
 
-        Debug.Log($"[SoundManagerSceneInstaller] {(isNew ? "✨ Đã tạo mới" : "🔄 Đã cập nhật")} GameObject '{targetObj.name}' trong Scene '{scene.name}'!");
     }
 }
 #endif

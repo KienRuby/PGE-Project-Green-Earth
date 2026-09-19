@@ -244,7 +244,6 @@ public class HealthBoxDropSystemTests
         sb.AppendLine("================================================================================");
 
         string report = sb.ToString();
-        Debug.Log(report);
         try
         {
             File.WriteAllText(ReportPath, report);

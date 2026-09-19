@@ -26,7 +26,6 @@ public static class PlayerSkinSpriteSlicer
             }
         }
         AssetDatabase.Refresh();
-        Debug.Log("[PlayerSkinSpriteSlicer] All player skins in folders 1, 2, 3, 4 successfully re-sliced.");
     }
 
     private static void SliceSkinTexture(string assetPath, int skinIndex)

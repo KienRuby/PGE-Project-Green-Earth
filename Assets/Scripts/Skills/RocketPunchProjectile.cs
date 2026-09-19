@@ -81,6 +81,8 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
     private Transform currentTargetEnemy;
     private PlayerAutoShooter sharedTargetProvider;
     private readonly HashSet<int> hitEnemiesInExplosion = new HashSet<int>();
+    private static Material sharedFallbackTrailMaterial;
+    private static readonly Collider2D[] sharedExplosionBuffer = new Collider2D[64];
 
     public RocketPunchState State => state;
 
@@ -146,13 +148,22 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
         {
             if (trailRenderer.sharedMaterial == null || trailRenderer.sharedMaterial.shader == null || trailRenderer.sharedMaterial.shader.name == "Hidden/InternalErrorShader")
             {
-                Shader spriteShader = Shader.Find("Sprites/Default") 
-                    ?? Shader.Find("Universal Render Pipeline/2D/Sprite-Unlit-Default")
-                    ?? Shader.Find("Legacy Shaders/Particles/Alpha Blended");
-
-                if (spriteShader != null)
+                if (sharedFallbackTrailMaterial == null)
                 {
-                    trailRenderer.material = new Material(spriteShader);
+                    Shader spriteShader = Shader.Find("Sprites/Default") 
+                        ?? Shader.Find("Universal Render Pipeline/2D/Sprite-Unlit-Default")
+                        ?? Shader.Find("Legacy Shaders/Particles/Alpha Blended");
+
+                    if (spriteShader != null)
+                    {
+                        sharedFallbackTrailMaterial = new Material(spriteShader);
+                        sharedFallbackTrailMaterial.name = "RocketPunch_SharedTrailMaterial";
+                    }
+                }
+
+                if (sharedFallbackTrailMaterial != null)
+                {
+                    trailRenderer.sharedMaterial = sharedFallbackTrailMaterial;
                 }
             }
         }
@@ -387,10 +398,10 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
         }
 
         hitEnemiesInExplosion.Clear();
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(explosionPos, aoeRadius);
-        for (int i = 0; i < colliders.Length; i++)
+        int hitCount = Physics2D.OverlapCircleNonAlloc(explosionPos, aoeRadius, sharedExplosionBuffer);
+        for (int i = 0; i < hitCount; i++)
         {
-            Collider2D col = colliders[i];
+            Collider2D col = sharedExplosionBuffer[i];
             if (col == null) continue;
 
             EnemyHealth enemy = col.GetComponentInParent<EnemyHealth>();

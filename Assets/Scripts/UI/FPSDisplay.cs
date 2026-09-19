@@ -24,6 +24,7 @@ public class FPSDisplay : MonoBehaviour
     private Rect rect;
     private string displayText = "60 FPS";
 
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void AutoInitialize()
     {
@@ -34,6 +35,7 @@ public class FPSDisplay : MonoBehaviour
             DontDestroyOnLoad(go);
         }
     }
+#endif
 
     private void Awake()
     {
@@ -76,6 +78,9 @@ public class FPSDisplay : MonoBehaviour
 
     private void OnGUI()
     {
+#if !DEVELOPMENT_BUILD && !UNITY_EDITOR
+        return;
+#endif
         if (!showFPS) return;
 
         if (style == null)

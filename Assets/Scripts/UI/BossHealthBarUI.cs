@@ -249,7 +249,6 @@ public class BossHealthBarUI : MonoBehaviour
         UpdateHealthText(currentBossHealth.CurrentHealth, currentBossHealth.MaxHealth);
         FadeVisible(true, 0.35f);
 
-        Debug.Log($"[BossHealthBarUI] 🎯 Đã kết nối thanh máu với Boss: {bossObj.name} (HP: {currentBossHealth.CurrentHealth}/{currentBossHealth.MaxHealth})");
     }
 
     public static string SanitizeBossDisplayName(string value)

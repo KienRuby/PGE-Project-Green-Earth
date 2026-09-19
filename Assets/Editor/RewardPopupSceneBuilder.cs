@@ -150,7 +150,6 @@ public static class RewardPopupSceneBuilder
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
-        Debug.Log("[RewardPopupSceneBuilder] ✅ Đã xây dựng hoàn tất Reward Popup trong MainMenu scene!");
     }
 
     public static void EnsureDatabasesCreated()
@@ -170,7 +169,6 @@ public static class RewardPopupSceneBuilder
             dailyDb = ScriptableObject.CreateInstance<DailyLoginDatabase>();
             dailyDb.PopulateDefault7Days();
             AssetDatabase.CreateAsset(dailyDb, DailyLoginDbPath);
-            Debug.Log($"[RewardPopupSceneBuilder] Đã tạo ScriptableObject: {DailyLoginDbPath}");
         }
 
         AchievementDatabase achDb = AssetDatabase.LoadAssetAtPath<AchievementDatabase>(AchievementDbPath);
@@ -179,7 +177,6 @@ public static class RewardPopupSceneBuilder
             achDb = ScriptableObject.CreateInstance<AchievementDatabase>();
             achDb.PopulateDefaultAchievements();
             AssetDatabase.CreateAsset(achDb, AchievementDbPath);
-            Debug.Log($"[RewardPopupSceneBuilder] Đã tạo ScriptableObject: {AchievementDbPath}");
         }
 
         AssetDatabase.SaveAssets();

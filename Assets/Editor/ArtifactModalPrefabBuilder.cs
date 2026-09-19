@@ -43,7 +43,6 @@ public static class ArtifactModalPrefabBuilder
         AssetDatabase.OpenAsset(prefab);
         Selection.activeObject = prefab;
 
-        Debug.Log($"[ArtifactModalPrefabBuilder] ✅ Đã tạo Prefab thành công tại: {PrefabPath}. Bạn có thể tự do chỉnh sửa font chữ, kích thước, vị trí trong cửa sổ Inspector!");
     }
 
     [MenuItem("PGE/UI/2. Bake Modal directly into GamePlay Scene", false, 51)]
@@ -74,7 +73,6 @@ public static class ArtifactModalPrefabBuilder
         Selection.activeGameObject = modalObj;
         EditorSceneManager.MarkSceneDirty(currentScene);
 
-        Debug.Log("[ArtifactModalPrefabBuilder] ✅ Đã đặt GameObject 'ArtifactFoundModal' vào Canvas của Scene! Bạn có thể bật Active lên và dùng chuột kéo thả căn chỉnh tự do!");
     }
 
     private static GameObject BuildModalGameObject()

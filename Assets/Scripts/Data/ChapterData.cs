@@ -175,7 +175,6 @@ public class ChapterData : ScriptableObject
             waves.Add(wave);
         }
 
-        Debug.Log($"[ChapterData] ✅ Đã tự động tạo {totalWaves} Wave cho Chapter '{chapterTitle}' (Độ khó Chapter: x{chapterDifficultyMultiplier:F2}, Tăng sức mạnh mỗi wave: +{wavePowerGrowthRate * 100:F1}%).");
     }
 
     /// <summary>

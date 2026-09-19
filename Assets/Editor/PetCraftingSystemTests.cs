@@ -174,5 +174,40 @@ public class PetCraftingSystemTests
             }
         }
     }
+
+    [Test]
+    public void Test_06_PetCardsAndIcons_AreDistinctAndCorrect()
+    {
+        var allPets = PetService.AllPets;
+        Assert.AreEqual(7, allPets.Count, "Phải có đúng 7 loại Pet trong hệ thống!");
+
+        string[] expectedIcons = { "Pet_Bat", "Pet_Slime", "Pet_Spider", "Pet_Snake", "Pet_Dog", "Pet_Turtle", "Pet_Snail" };
+        HashSet<Sprite> uniqueIcons = new HashSet<Sprite>();
+
+        for (int i = 0; i < allPets.Count; i++)
+        {
+            var pet = allPets[i];
+            Assert.IsNotNull(pet.petIcon, $"Pet ID {i} ({pet.petName}) bắt buộc phải có petIcon!");
+            Assert.AreEqual(expectedIcons[i], pet.petIcon.name, $"Pet ID {i} ({pet.petName}) phải có icon '{expectedIcons[i]}', không được dùng sai icon!");
+            Assert.IsTrue(uniqueIcons.Add(pet.petIcon), $"Pet ID {i} ({pet.petName}) không được dùng trùng icon với Pet khác!");
+
+            if (i == 0)
+            {
+                Assert.IsNotNull(pet.cardSprite, "Pink Bat (ID 0) phải có Card_Pet_Bat");
+                Assert.AreEqual("Card_Pet_Bat", pet.cardSprite.name);
+            }
+            else if (i == 4)
+            {
+                Assert.IsNotNull(pet.cardSprite, "Cydog (ID 4) phải có Card_Pet_Dog");
+                Assert.AreEqual("Card_Pet_Dog", pet.cardSprite.name);
+            }
+            else
+            {
+                // Slime, Spider, Snake, Turtle, Snail KHÔNG được gán Card_Pet_Bat hay Card_Pet_Dog
+                Assert.IsTrue(pet.cardSprite == null || pet.cardSprite.name.Contains("Empty"),
+                    $"Pet ID {i} ({pet.petName}) không được dùng Card_Pet_Bat hay Card_Pet_Dog! Phải dùng Card_Slot_Empty + petIcon riêng.");
+            }
+        }
+    }
 }
 #endif

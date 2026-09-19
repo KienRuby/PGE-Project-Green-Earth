@@ -160,7 +160,6 @@ public class ChapterMapManager : MonoBehaviour
         transform.position = new Vector3(0f, 0f, groundZPosition);
         CenterRenderedFloor();
 
-        Debug.Log($"[ChapterMapManager] 🗺️ Đã thiết lập Bản đồ cho '{chapter.chapterTitle}' (Sprite: {(targetSprite != null ? targetSprite.name : "None")}, Size: {chapter.mapSize.x}x{chapter.mapSize.y}m, Padding: {chapter.playerBoundaryPadding}m)");
     }
 
     private void ApplyFallbackConfig()

@@ -135,7 +135,6 @@ public static class PityUIBuilder
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
 
-        Debug.Log("[PityUIBuilder] ✅ Đã xây dựng thành công giao diện PityInfoButton & PityGuaranteePanel trong MainMenu.unity!");
     }
 
     private static void LoadAssets()
@@ -565,7 +564,6 @@ public static class PityUIBuilder
         }
 
         PrefabUtility.SaveAsPrefabAssetAndConnect(instance, PrefabPath, InteractionMode.AutomatedAction);
-        Debug.Log($"[PityUIBuilder] Đã lưu Prefab tại {PrefabPath}");
     }
 }
 #endif

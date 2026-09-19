@@ -355,7 +355,6 @@ public static class BuddyShopSyncTestRunner
         sb.AppendLine("================================================================================");
 
         string report = sb.ToString();
-        Debug.Log(report);
 
         try
         {

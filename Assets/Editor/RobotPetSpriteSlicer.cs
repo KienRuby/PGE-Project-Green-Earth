@@ -96,7 +96,6 @@ public static class RobotPetSpriteSlicer
         dataProvider.Apply();
         importer.SaveAndReimport();
 
-        Debug.Log($"[RobotPetSpriteSlicer] Successfully sliced {spriteRects.Length} sprites for {TexturePath}.");
     }
 }
 #endif

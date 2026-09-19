@@ -51,7 +51,6 @@ public static class AutoCleanMainMenuGarbage
 
         foreach (var obj in toDelete)
         {
-            Debug.Log($"[AutoClean] Đã tự động xóa đối tượng rác: {obj.name}");
             Undo.DestroyObjectImmediate(obj);
             deletedCount++;
         }
@@ -60,7 +59,6 @@ public static class AutoCleanMainMenuGarbage
         {
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
-            Debug.Log($"[AutoClean] >>> ĐÃ DỌN DẸP THÀNH CÔNG {deletedCount} ĐỐI TƯỢNG RÁC VÀ ĐÃ LƯU SCENE MAINMENU! <<<");
         }
 
         // Tự động gắn các nút Info và Modal tỷ lệ mở hộp nếu chưa có
@@ -73,7 +71,6 @@ public static class AutoCleanMainMenuGarbage
 
         if (chipCard != null && chipCard.transform.Find("Button_Info") == null)
         {
-            Debug.Log("[AutoClean] Box_Chipset_1x chưa có nút Info. Để tạo lại đầy đủ giao diện, hãy dùng menu 'PGE/UI/Rebuild Shop Panel (Full Visual)'.");
         }
     }
 }

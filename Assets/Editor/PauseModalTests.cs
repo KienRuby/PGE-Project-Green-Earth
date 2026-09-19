@@ -72,7 +72,6 @@ public class PauseModalTests
         }
         catch { }
 
-        Debug.Log(report);
         return report;
     }
 #endif

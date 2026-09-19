@@ -16,11 +16,11 @@ MonoBehaviour:
   chapterTitle: Toxic Swamp
   totalWaves: 10
   energyCost: 10
-  previewBackground: {fileID: 21300000, guid: 0377c92faaf76cc4d97b14ef7cfeeb09, type: 3}
-  bossSilhouette: {fileID: 1588443712, guid: 5424adb2f9ebec9459ec5817bc67a31c, type: 3}
-  mapGroundSprite: {fileID: 21300000, guid: e92326fa91624344e844f543e748a31e, type: 3}
+  previewBackground: {fileID: 21300000, guid: 8f142ca49d7fbd649a3c1ff032d9d2bd, type: 3}
+  bossSilhouette: {fileID: 2594576651089119482, guid: fe333c7c7740539458b615ad4a280fb4, type: 3}
+  mapGroundSprite: {fileID: 21300000, guid: 8f142ca49d7fbd649a3c1ff032d9d2bd, type: 3}
   mapSize: {x: 40, y: 40}
-  mapColor: {r: 0.9685534, g: 0.86858594, b: 0.70966333, a: 1}
+  mapColor: {r: 1, g: 1, b: 1, a: 1}
   groundDrawMode: 2
   playerBoundaryPadding: 0.6
   enableObstacles: 1
@@ -46,12 +46,24 @@ MonoBehaviour:
   - enemyPrefab: {fileID: 249402678474551263, guid: e9b7463808b4ee340950a632a574d9fa, type: 3}
     spawnWeight: 10
     unlockTime: 0
-  chapterBossPrefab: {fileID: 1010797112834101214, guid: 616d9ac7cedf5eb46b9e23335d25aa30, type: 3}
+  - enemyPrefab: {fileID: 4324828960199475504, guid: 539cffbfef6ef3f4e92a8bc92277f00e, type: 3}
+    spawnWeight: 10
+    unlockTime: 0
+  - enemyPrefab: {fileID: 3101542578677405259, guid: b9db6630064d4f34d9bdc1aa5bb4957d, type: 3}
+    spawnWeight: 10
+    unlockTime: 0
+  - enemyPrefab: {fileID: 4797510177921823075, guid: 10aba45d3fb613f44979689062c64518, type: 3}
+    spawnWeight: 10
+    unlockTime: 0
+  - enemyPrefab: {fileID: 3935541986530011981, guid: 9bb4a2b9c230a14438883574dc7b7c93, type: 3}
+    spawnWeight: 10
+    unlockTime: 0
+  chapterBossPrefab: {fileID: 8391691189738749272, guid: 1fff8b24914067f488115810b8f2490a, type: 3}
   waves:
   - waveName: Wave 1
-    totalEnemiesToSpawn: 30
-    maxConcurrentEnemies: 25
-    spawnInterval: 1
+    totalEnemiesToSpawn: 72
+    maxConcurrentEnemies: 30
+    spawnInterval: 0.7
     enemiesPerSpawn: 2
     enemyPool: []
     healthMultiplier: 1.5
@@ -65,9 +77,9 @@ MonoBehaviour:
     breakDurationAfterWave: 1
     waveDuration: 24
   - waveName: Wave 2
-    totalEnemiesToSpawn: 36
-    maxConcurrentEnemies: 28
-    spawnInterval: 1
+    totalEnemiesToSpawn: 79
+    maxConcurrentEnemies: 31
+    spawnInterval: 0.7
     enemiesPerSpawn: 2
     enemyPool: []
     healthMultiplier: 1.6
@@ -81,10 +93,10 @@ MonoBehaviour:
     breakDurationAfterWave: 1
     waveDuration: 26
   - waveName: Wave 3
-    totalEnemiesToSpawn: 42
-    maxConcurrentEnemies: 30
-    spawnInterval: 1
-    enemiesPerSpawn: 3
+    totalEnemiesToSpawn: 82
+    maxConcurrentEnemies: 33
+    spawnInterval: 0.7
+    enemiesPerSpawn: 2
     enemyPool: []
     healthMultiplier: 1.7
     damageMultiplier: 1.52
@@ -97,10 +109,10 @@ MonoBehaviour:
     breakDurationAfterWave: 1
     waveDuration: 28
   - waveName: Wave 4
-    totalEnemiesToSpawn: 50
-    maxConcurrentEnemies: 32
-    spawnInterval: 1
-    enemiesPerSpawn: 3
+    totalEnemiesToSpawn: 85
+    maxConcurrentEnemies: 35
+    spawnInterval: 0.7
+    enemiesPerSpawn: 2
     enemyPool: []
     healthMultiplier: 1.8
     damageMultiplier: 1.6
@@ -113,10 +125,10 @@ MonoBehaviour:
     breakDurationAfterWave: 1
     waveDuration: 30
   - waveName: Wave 5
-    totalEnemiesToSpawn: 58
-    maxConcurrentEnemies: 35
-    spawnInterval: 1
-    enemiesPerSpawn: 3
+    totalEnemiesToSpawn: 88
+    maxConcurrentEnemies: 36
+    spawnInterval: 0.7
+    enemiesPerSpawn: 2
     enemyPool: []
     healthMultiplier: 1.9
     damageMultiplier: 1.68
@@ -129,10 +141,10 @@ MonoBehaviour:
     breakDurationAfterWave: 1
     waveDuration: 30
   - waveName: Wave 6
-    totalEnemiesToSpawn: 66
+    totalEnemiesToSpawn: 91
     maxConcurrentEnemies: 38
-    spawnInterval: 1
-    enemiesPerSpawn: 3
+    spawnInterval: 0.7
+    enemiesPerSpawn: 2
     enemyPool: []
     healthMultiplier: 2
     damageMultiplier: 1.75
@@ -145,10 +157,10 @@ MonoBehaviour:
     breakDurationAfterWave: 1
     waveDuration: 32
   - waveName: Wave 7
-    totalEnemiesToSpawn: 75
+    totalEnemiesToSpawn: 94
     maxConcurrentEnemies: 40
-    spawnInterval: 1
-    enemiesPerSpawn: 4
+    spawnInterval: 0.7
+    enemiesPerSpawn: 3
     enemyPool: []
     healthMultiplier: 2.1
     damageMultiplier: 1.82
@@ -161,10 +173,10 @@ MonoBehaviour:
     breakDurationAfterWave: 1
     waveDuration: 32
   - waveName: Wave 8
-    totalEnemiesToSpawn: 85
-    maxConcurrentEnemies: 42
-    spawnInterval: 1
-    enemiesPerSpawn: 4
+    totalEnemiesToSpawn: 96
+    maxConcurrentEnemies: 41
+    spawnInterval: 0.7
+    enemiesPerSpawn: 3
     enemyPool: []
     healthMultiplier: 2.2
     damageMultiplier: 1.9
@@ -177,10 +189,10 @@ MonoBehaviour:
     breakDurationAfterWave: 1
     waveDuration: 35
   - waveName: Wave 9
-    totalEnemiesToSpawn: 96
-    maxConcurrentEnemies: 45
-    spawnInterval: 1
-    enemiesPerSpawn: 4
+    totalEnemiesToSpawn: 101
+    maxConcurrentEnemies: 43
+    spawnInterval: 0.6
+    enemiesPerSpawn: 3
     enemyPool: []
     healthMultiplier: 2.3
     damageMultiplier: 2
@@ -193,10 +205,10 @@ MonoBehaviour:
     breakDurationAfterWave: 1
     waveDuration: 35
   - waveName: BOSS
-    totalEnemiesToSpawn: 115
-    maxConcurrentEnemies: 50
-    spawnInterval: 1
-    enemiesPerSpawn: 4
+    totalEnemiesToSpawn: 108
+    maxConcurrentEnemies: 45
+    spawnInterval: 0.6
+    enemiesPerSpawn: 3
     enemyPool: []
     healthMultiplier: 3
     damageMultiplier: 2.6

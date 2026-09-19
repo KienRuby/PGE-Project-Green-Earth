@@ -173,7 +173,6 @@ public sealed class ChipManager : MonoBehaviour
         enableTestMode = false;
         infiniteChipsInTestMode = false;
         autoDisableInNonEditorBuilds = true;
-        Debug.Log("[ChipManager] Đã tự động TẮT Test Mode & Vô Hạn Chip/Năng Lượng cho bản Build Release.");
 #endif
 
         InitializeDefaultBalances();
@@ -578,28 +577,24 @@ public sealed class ChipManager : MonoBehaviour
         enableTestMode = !enableTestMode;
         NotifyAllBalancesChanged();
         OnTestModeChanged?.Invoke(enableTestMode);
-        Debug.Log($"[ChipManager] Test Mode: {(enableTestMode ? "BẬT (VÔ HẠN CHIP)" : "TẮT (Bình thường)")}");
     }
 
     [ContextMenu("Set 9,999,999 Data Chips")]
     public void CheatMaxDataChips()
     {
         DataChips = 9999999;
-        Debug.Log($"[ChipManager] Đã đặt DataChips = {DataChips:N0}");
     }
 
     [ContextMenu("Set 9,999,999 Red Gems")]
     public void CheatMaxRedGems()
     {
         RedGems = 9999999;
-        Debug.Log($"[ChipManager] Đã đặt RedGems = {RedGems:N0}");
     }
 
     [ContextMenu("Set 9,999 Advance Stones")]
     public void CheatMaxAdvanceStones()
     {
         AdvanceStones = 9999;
-        Debug.Log($"[ChipManager] Đã đặt AdvanceStones = {AdvanceStones:N0}");
     }
 
     [ContextMenu("Reset Balances to Defaults")]
@@ -612,6 +607,5 @@ public sealed class ChipManager : MonoBehaviour
         PlayerDataService.AdvanceStones = defaultStartingAdvanceStones;
         PlayerPrefs.Save();
         NotifyAllBalancesChanged();
-        Debug.Log("[ChipManager] Đã reset toàn bộ số dư về mặc định ban đầu.");
     }
 }

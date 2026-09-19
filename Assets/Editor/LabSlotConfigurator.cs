@@ -252,7 +252,6 @@ public static class LabSlotConfigurator
         controllerSO.ApplyModifiedProperties();
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
-        Debug.Log("[LabSlotConfigurator] Successfully configured all 16 slots like Slot01 with full card sprites!");
     }
 }
 #endif

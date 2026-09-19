@@ -294,6 +294,36 @@ public static class PlayerDataService
     }
 
     /// <summary>
+    /// Kiểm tra xem một Chapter (0-based index: 0 = Chapter 1, 1 = Chapter 2,...) đã được vượt qua (chiến thắng) hay chưa.
+    /// - Khi mới tải game: UnlockedChapterIndex = 0 (chưa vượt qua Chapter nào).
+    /// - Khi thắng Chapter 1 (index 0): UnlockedChapterIndex tăng lên >= 1.
+    /// </summary>
+    public static bool IsChapterCleared(int chapterIndex)
+    {
+        if (chapterIndex < 0) return false;
+        if (UnlockedChapterIndex > chapterIndex) return true;
+        int mask = PlayerPrefs.GetInt(AchievementManager.ClearedChaptersMaskKey, 0);
+        if ((mask & (1 << chapterIndex)) != 0) return true;
+        return false;
+    }
+
+    /// <summary>
+    /// Đánh dấu Chapter đã hoàn thành (chiến thắng/vượt qua).
+    /// </summary>
+    public static void MarkChapterCleared(int chapterIndex)
+    {
+        if (chapterIndex < 0) return;
+        if (UnlockedChapterIndex <= chapterIndex)
+        {
+            UnlockedChapterIndex = chapterIndex + 1;
+        }
+        int mask = PlayerPrefs.GetInt(AchievementManager.ClearedChaptersMaskKey, 0);
+        mask |= (1 << chapterIndex);
+        PlayerPrefs.SetInt(AchievementManager.ClearedChaptersMaskKey, mask);
+        PlayerPrefs.Save();
+    }
+
+    /// <summary>
     /// ID của vũ khí đang được trang bị/lựa chọn (mặc định: "blaster").
     /// </summary>
     public static string SelectedWeaponId

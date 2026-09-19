@@ -279,7 +279,6 @@ public class HealthBoxPickup : MonoBehaviour
             int healAmount = Mathf.Max(1, Mathf.RoundToInt(playerHealth.MaxHealth * healPercent));
             playerHealth.Heal(healAmount);
             AudioManager.Instance?.PlaySFX(SoundIdConst.SFX_PICKUP_ITEM);
-            Debug.Log($"[HealthBoxPickup] ❤️ Nhặt {(boxType == HealthBoxType.Small ? "Hộp máu nhỏ" : "Hộp máu lớn")}! Hồi {healAmount} HP ({Mathf.RoundToInt(healPercent * 100)}% Max HP). HP: {playerHealth.CurrentHealth}/{playerHealth.MaxHealth}");
         }
 
         // Tắt collider để tránh kích hoạt lặp lại

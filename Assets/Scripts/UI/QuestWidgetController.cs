@@ -134,7 +134,6 @@ public class QuestWidgetController : MonoBehaviour
         SetQuestClaimed(currentQuest.questId, true);
         RefreshQuestView();
 
-        Debug.Log($"[QuestWidget] Đã nhận thưởng Quest thành công: {currentQuest.rewardAmount} {currentQuest.rewardType}");
         return true;
     }
 

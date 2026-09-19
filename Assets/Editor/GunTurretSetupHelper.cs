@@ -28,7 +28,6 @@ public static class GunTurretSetupHelper
         SetupPlayerInGamePlayScene();
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
-        Debug.Log("[GunTurretSetupHelper] ✅ Đã cấu hình thành công GunTurret.prefab và Player trong GamePlay.unity!");
     }
 
     public static void SetupGunTurretPrefab()
@@ -76,7 +75,6 @@ public static class GunTurretSetupHelper
 
             so.ApplyModifiedPropertiesWithoutUndo();
             PrefabUtility.SaveAsPrefabAsset(prefabContents, TurretPrefabPath);
-            Debug.Log("[GunTurretSetupHelper] ✅ Đã cập nhật GunTurret.prefab với đầy đủ liên kết nòng súng và đạn.");
         }
         finally
         {
@@ -144,7 +142,6 @@ public static class GunTurretSetupHelper
         EditorUtility.SetDirty(playerObj);
         EditorSceneManager.MarkSceneDirty(gamePlayScene);
         EditorSceneManager.SaveScene(gamePlayScene);
-        Debug.Log("[GunTurretSetupHelper] ✅ Đã cấu hình GunTurretSkill & PlayerChipsetSkillManager trên Player trong GamePlay.unity");
     }
 
     private static void TryAutoSetupGunTurret()

@@ -989,7 +989,7 @@ public class PlayerAutoShooter : MonoBehaviour
             Animator animator = flashObj.GetComponent<Animator>();
             if (animator != null)
             {
-                animator.Play(0, -1, 0f);
+                animator.Play(0, 0, 0f);
             }
         }
     }

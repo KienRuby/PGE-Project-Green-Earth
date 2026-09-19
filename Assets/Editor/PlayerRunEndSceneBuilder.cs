@@ -93,7 +93,6 @@ public static class PlayerRunEndSceneBuilder
         EditorSceneManager.SaveScene(scene);
         AssetDatabase.SaveAssets();
         if (!wasAlreadyLoaded) EditorSceneManager.CloseScene(scene, true);
-        Debug.Log("[PlayerRunEndSceneBuilder] Đã setup Revive Panel độc lập.");
     }
 
     [MenuItem("PGE/UI/Build Game Over Panel Only")]
@@ -173,7 +172,6 @@ public static class PlayerRunEndSceneBuilder
         EditorSceneManager.SaveScene(scene);
         AssetDatabase.SaveAssets();
         if (!wasAlreadyLoaded) EditorSceneManager.CloseScene(scene, true);
-        Debug.Log("[PlayerRunEndSceneBuilder] Đã setup Game Over và Damage Details Modal đồng bộ.");
     }
 
     public static void Build()
@@ -263,7 +261,6 @@ public static class PlayerRunEndSceneBuilder
         EditorUtility.SetDirty(canvas);
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
-        Debug.Log("[PlayerRunEndSceneBuilder] Đã tạo Revive Panel, Game Over Panel và Damage Details Popup.");
     }
 
     private static GameObject BuildRevivePanel(

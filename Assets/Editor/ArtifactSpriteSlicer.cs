@@ -108,7 +108,6 @@ public static class ArtifactSpriteSlicer
         dataProvider.Apply();
         importer.SaveAndReimport();
 
-        Debug.Log($"[ArtifactSpriteSlicer] ✅ Đã cắt và chuẩn hóa tên thành công cho 9 sprite trong {TexturePath}!");
     }
 }
 #endif

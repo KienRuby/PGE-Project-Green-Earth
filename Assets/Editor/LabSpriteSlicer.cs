@@ -84,7 +84,6 @@ public static class LabSpriteSlicer
         dataProvider.Apply();
         importer.SaveAndReimport();
 
-        Debug.Log($"[LabSpriteSlicer] Successfully sliced {spriteRects.Length} sprites for {TexturePath} with MaxTextureSize 4096.");
     }
 }
 #endif

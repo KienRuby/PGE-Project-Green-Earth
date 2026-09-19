@@ -95,6 +95,8 @@ public class BossMovement : MonoBehaviour, IPoolable
 
     private static readonly int RunAnimationHash = Animator.StringToHash("Run");
     private static readonly int IdleAnimationHash = Animator.StringToHash("Idle");
+    private int activeRunAnimationHash = RunAnimationHash;
+    private int activeIdleAnimationHash = IdleAnimationHash;
 
     public void SetScaleMultiplier(float multiplier)
     {
@@ -130,6 +132,29 @@ public class BossMovement : MonoBehaviour, IPoolable
         health = GetComponent<EnemyHealth>();
         rangedAttack = GetComponent<BossRangedAttack>();
         animator = GetComponent<Animator>() ?? GetComponentInChildren<Animator>();
+
+        if (animator != null)
+        {
+            int walkHash = Animator.StringToHash("Walk");
+            if (animator.HasState(0, walkHash) && !animator.HasState(0, RunAnimationHash))
+            {
+                activeRunAnimationHash = walkHash;
+            }
+            else
+            {
+                activeRunAnimationHash = RunAnimationHash;
+            }
+
+            if (!animator.HasState(0, IdleAnimationHash))
+            {
+                activeIdleAnimationHash = activeRunAnimationHash;
+            }
+            else
+            {
+                activeIdleAnimationHash = IdleAnimationHash;
+            }
+        }
+
         spriteRenderers = GetComponentsInChildren<SpriteRenderer>(true);
 
         if (spriteRenderers != null && spriteRenderers.Length > 0)
@@ -202,7 +227,7 @@ public class BossMovement : MonoBehaviour, IPoolable
             if (player == null || !player.gameObject.activeInHierarchy)
             {
                 if (rb != null) rb.velocity = Vector2.zero;
-                PlayAnimation(IdleAnimationHash);
+                PlayAnimation(activeIdleAnimationHash);
                 return;
             }
         }
@@ -216,7 +241,7 @@ public class BossMovement : MonoBehaviour, IPoolable
 
             case BossState.Windup:
                 rb.velocity = Vector2.zero;
-                PlayAnimation(IdleAnimationHash);
+                PlayAnimation(activeIdleAnimationHash);
                 stateTimer -= Time.fixedDeltaTime;
                 // Khóa hướng ngắm vào Player trong lúc tích lực
                 if (player != null)
@@ -231,7 +256,7 @@ public class BossMovement : MonoBehaviour, IPoolable
                 break;
 
             case BossState.Dash:
-                PlayAnimation(RunAnimationHash);
+                PlayAnimation(activeRunAnimationHash);
                 float currentDashSpeed = (moveSpeed * (isEnraged ? enrageSpeedMultiplier : 1f)) * dashSpeedMultiplier;
                 MoveInsideMap(rb.position + dashDirection * currentDashSpeed * Time.fixedDeltaTime);
                 stateTimer -= Time.fixedDeltaTime;
@@ -243,7 +268,7 @@ public class BossMovement : MonoBehaviour, IPoolable
 
             case BossState.Recover:
                 rb.velocity = Vector2.zero;
-                PlayAnimation(IdleAnimationHash);
+                PlayAnimation(activeIdleAnimationHash);
                 stateTimer -= Time.fixedDeltaTime;
                 if (stateTimer <= 0f)
                 {
@@ -257,7 +282,7 @@ public class BossMovement : MonoBehaviour, IPoolable
     {
         if (player == null)
         {
-            PlayAnimation(IdleAnimationHash);
+            PlayAnimation(activeIdleAnimationHash);
             return;
         }
 
@@ -271,14 +296,14 @@ public class BossMovement : MonoBehaviour, IPoolable
         if (rangeState == BossRangedAttack.TargetRangeState.InRange)
         {
             rb.velocity = Vector2.zero;
-            PlayAnimation(IdleAnimationHash);
+            PlayAnimation(activeIdleAnimationHash);
             return;
         }
 
         if (rangedAttack == null && distance <= stoppingDistance)
         {
             rb.velocity = Vector2.zero;
-            PlayAnimation(IdleAnimationHash);
+            PlayAnimation(activeIdleAnimationHash);
             return;
         }
 
@@ -286,7 +311,7 @@ public class BossMovement : MonoBehaviour, IPoolable
         float effectiveSpeed = moveSpeed * (isEnraged ? enrageSpeedMultiplier : 1f);
         Vector2 targetPos = rb.position + moveDir * effectiveSpeed * Time.fixedDeltaTime;
         MoveInsideMap(targetPos);
-        PlayAnimation(RunAnimationHash);
+        PlayAnimation(activeRunAnimationHash);
     }
 
     private void MoveInsideMap(Vector2 targetPosition)
@@ -323,7 +348,10 @@ public class BossMovement : MonoBehaviour, IPoolable
         if (animator == null || currentAnimationHash == stateHash) return;
 
         currentAnimationHash = stateHash;
-        animator.Play(stateHash, 0, 0f);
+        if (animator.HasState(0, stateHash))
+        {
+            animator.Play(stateHash, 0, 0f);
+        }
     }
 
     /// <summary>
@@ -397,7 +425,6 @@ public class BossMovement : MonoBehaviour, IPoolable
         if (health.CurrentHealth <= health.MaxHealth * enrageHealthPercent)
         {
             isEnraged = true;
-            Debug.Log($"[BossMovement] ⚡ BOSS CUỒNG NỘ! (Máu < {enrageHealthPercent * 100}%) Tốc độ và tần suất húc tăng mạnh!");
             SetSpritesColor(enrageColor);
         }
     }
@@ -439,7 +466,7 @@ public class BossMovement : MonoBehaviour, IPoolable
         dashTimer = Random.Range(dashCooldown * 0.5f, dashCooldown);
         RestoreSpritesColor();
         currentAnimationHash = 0;
-        PlayAnimation(RunAnimationHash);
+        PlayAnimation(activeRunAnimationHash);
     }
 
     public void OnReturnToPool()

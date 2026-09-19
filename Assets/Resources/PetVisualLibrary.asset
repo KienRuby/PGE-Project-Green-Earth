@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f7b3c41a2e5d678901234567890abcd, type: 3}
+  m_Name: PetVisualLibrary
+  m_EditorClassIdentifier: 
+  petSprites:
+  - {fileID: 21300000, guid: 42a6d548f72ebae4e8c24f06e0de5c4c, type: 3}
+  - {fileID: 21300000, guid: 3ecda248919ea644d97e86717d304bce, type: 3}
+  - {fileID: 21300000, guid: 1c44c61535f09ffd686f3346567786b3, type: 3}
+  - {fileID: 21300000, guid: 404b0ea9d9cd8fad51e9ce9b4a6dea65, type: 3}
+  - {fileID: 21300000, guid: 909e5a088368956230dd0814ad526e82, type: 3}
+  - {fileID: 21300000, guid: 6ac816cc294a25cf0047caff14a1d4bc, type: 3}
+  - {fileID: 21300000, guid: 85a7bfa5385316ef5eea9abf30cf22bd, type: 3}

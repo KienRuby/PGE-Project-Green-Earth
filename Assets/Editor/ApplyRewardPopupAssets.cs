@@ -115,7 +115,6 @@ namespace PGE.EditorTools
             Canvas.ForceUpdateCanvases();
             EditorSceneManager.MarkSceneDirty(popup.gameObject.scene);
             EditorSceneManager.SaveScene(popup.gameObject.scene);
-            Debug.Log("[RewardReference] Applied and saved reference layout.");
             CaptureBoth();
         }
 
@@ -272,7 +271,6 @@ namespace PGE.EditorTools
                 output.Apply();
                 System.IO.Directory.CreateDirectory("Temp/RewardReference");
                 System.IO.File.WriteAllBytes("Temp/RewardReference/" + name + ".png", output.EncodeToPNG());
-                Debug.Log("[RewardReference] Captured " + name);
             }
             finally
             {
@@ -311,7 +309,6 @@ namespace PGE.EditorTools
                 scene = EditorSceneManager.OpenScene("Assets/Scenes/MainMenu.unity", OpenSceneMode.Single);
             }
 
-            Debug.Log($"[ApplyRewardPopupAssets] Target Scene: '{scene.name}' (Path: '{scene.path}', rootCount={scene.rootCount})");
 
             // 1. Load sliced sprites from sprite sheets and Extracted folder
             Sprite btnGetAch = LoadSprite("Assets/Sprites/UI/Reward/Extracted/Btn_Get.png", "Assets/Sprites/UI/Reward/nút màn achievements.png", "Btn_Get");
@@ -351,7 +348,6 @@ namespace PGE.EditorTools
 
             var achItems = achItemsList.ToArray();
             var dailyItems = dailyItemsList.OrderBy(d => d.name).ToArray();
-            Debug.Log($"[ApplyRewardPopupAssets] Found {achItems.Length} Achievement items, {dailyItems.Length} Daily Login items.");
             foreach (var item in achItems)
             {
                 SerializedObject so = new SerializedObject(item);
@@ -731,7 +727,6 @@ namespace PGE.EditorTools
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
-            Debug.Log($"[ApplyRewardPopupAssets] Đã áp dụng toàn bộ Real Sliced Sprites & Badges vào {achItems.Length} Achievement items và {dailyItems.Length} Daily Login items trong MainMenu!");
         }
 
         private static (Sprite sprite, string amount)[] GetDefaultDayRewards(int day, Sprite energy, Sprite gem, Sprite chip)

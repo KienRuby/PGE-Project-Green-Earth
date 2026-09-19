@@ -16,11 +16,9 @@ namespace PGE.EditorTools
                 if (Directory.Exists(burstCacheDir))
                 {
                     Directory.Delete(burstCacheDir, true);
-                    Debug.Log("<color=green>[PGE]</color> Đã xóa sạch thư mục Library/BurstCache!");
                 }
                 else
                 {
-                    Debug.Log("<color=yellow>[PGE]</color> Thư mục Library/BurstCache hiện không tồn tại hoặc đã được dọn.");
                 }
             }
             catch (System.Exception ex)
@@ -30,7 +28,6 @@ namespace PGE.EditorTools
 
             AssetDatabase.Refresh();
             UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
-            Debug.Log("<color=green>[PGE]</color> Đã kích hoạt làm mới Domain Reload & Recompile.");
         }
     }
 }

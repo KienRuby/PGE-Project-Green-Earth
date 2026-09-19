@@ -78,11 +78,9 @@ public class AdMobManager : MonoBehaviour
     /// </summary>
     public void InitializeAdMob()
     {
-        Debug.Log("[AdMobManager] Initializing Google Mobile Ads SDK...");
         MobileAds.Initialize(initStatus =>
         {
             isSdkInitialized = true;
-            Debug.Log("[AdMobManager] Google Mobile Ads SDK Initialized successfully!");
             LoadRewardedAd();
             LoadInterstitialAd();
         });
@@ -101,7 +99,6 @@ public class AdMobManager : MonoBehaviour
 
         DestroyRewardedAd();
 
-        Debug.Log($"[AdMobManager] Loading rewarded ad with Unit ID: {rewardedAdUnitId}...");
         isLoadingRewarded = true;
 
         var adRequest = new AdRequest();
@@ -116,7 +113,6 @@ public class AdMobManager : MonoBehaviour
             }
 
             rewardedAd = ad;
-            Debug.Log("[AdMobManager] Rewarded ad loaded and ready to show!");
 
             RegisterRewardedAdEvents(rewardedAd);
         });
@@ -126,7 +122,6 @@ public class AdMobManager : MonoBehaviour
     {
         ad.OnAdFullScreenContentClosed += () =>
         {
-            Debug.Log("[AdMobManager] Rewarded ad closed by user. Preloading next ad...");
             NotifyRewardResult(false);
             LoadRewardedAd();
         };
@@ -163,7 +158,6 @@ public class AdMobManager : MonoBehaviour
 
             rewardedAd.Show(reward =>
             {
-                Debug.Log($"[AdMobManager] User earned reward: {reward.Type} (Amount: {reward.Amount})");
                 userEarnedReward = true;
             });
 
@@ -178,7 +172,6 @@ public class AdMobManager : MonoBehaviour
             LoadRewardedAd();
 
 #if UNITY_EDITOR
-            Debug.Log("[AdMobManager] [Editor Mode] Simulating rewarded ad completion for testing.");
             onComplete?.Invoke(true);
 #else
             onComplete?.Invoke(false);
@@ -218,7 +211,6 @@ public class AdMobManager : MonoBehaviour
 
         DestroyInterstitialAd();
 
-        Debug.Log($"[AdMobManager] Loading interstitial ad with Unit ID: {interstitialAdUnitId}...");
         isLoadingInterstitial = true;
 
         var adRequest = new AdRequest();
@@ -233,7 +225,6 @@ public class AdMobManager : MonoBehaviour
             }
 
             interstitialAd = ad;
-            Debug.Log("[AdMobManager] Interstitial ad loaded and ready to show!");
 
             RegisterInterstitialEvents(interstitialAd);
         });
@@ -243,7 +234,6 @@ public class AdMobManager : MonoBehaviour
     {
         ad.OnAdFullScreenContentClosed += () =>
         {
-            Debug.Log("[AdMobManager] Interstitial ad closed. Preloading next ad...");
             NotifyInterstitialResult();
             LoadInterstitialAd();
         };
@@ -284,7 +274,6 @@ public class AdMobManager : MonoBehaviour
             LoadInterstitialAd();
 
 #if UNITY_EDITOR
-            Debug.Log("[AdMobManager] [Editor Mode] Simulating interstitial ad completed.");
 #endif
             onComplete?.Invoke();
         }

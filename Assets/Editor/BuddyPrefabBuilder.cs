@@ -117,7 +117,6 @@ public static class BuddyPrefabBuilder
         SetupPlayerInGamePlayScene(pSloy, pTurret, pPurifying, pRadarEye, pAssault);
 
         EditorPrefs.SetBool(AutoBuiltKey, true);
-        Debug.Log("[BuddyPrefabBuilder] ✅ Đã tạo thành công 5 Prefab Buddy và liên kết vào Player trong GamePlay.unity!");
     }
 
     private static GameObject BuildSingleBuddyPrefab<T>(

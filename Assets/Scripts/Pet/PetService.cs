@@ -197,6 +197,55 @@ public static class PetService
         return null;
     }
 
+    private static PetVisualLibrary cachedPetVisualLib;
+
+    public static PetVisualLibrary PetVisualLib
+    {
+        get
+        {
+            if (cachedPetVisualLib == null)
+            {
+                cachedPetVisualLib = Resources.Load<PetVisualLibrary>("PetVisualLibrary");
+#if UNITY_EDITOR
+                if (cachedPetVisualLib == null)
+                {
+                    cachedPetVisualLib = UnityEditor.AssetDatabase.LoadAssetAtPath<PetVisualLibrary>("Assets/Resources/PetVisualLibrary.asset");
+                }
+#endif
+            }
+            return cachedPetVisualLib;
+        }
+    }
+
+    /// <summary>
+    /// Lấy Sprite hiển thị cho Pet theo ID (0: Pink Bat -> 6: Turbo Snail).
+    /// Đảm bảo hoạt động an toàn cả trong Editor và Build Runtime.
+    /// </summary>
+    public static Sprite GetPetSprite(int petId)
+    {
+        if (petId < 0 || petId >= 7) return null;
+
+        var lib = PetVisualLib;
+        if (lib != null && lib.petSprites != null && petId < lib.petSprites.Length && lib.petSprites[petId] != null)
+        {
+            return lib.petSprites[petId];
+        }
+
+        if (allPets != null && petId < allPets.Count && allPets[petId] != null && allPets[petId].petIcon != null)
+        {
+            return allPets[petId].petIcon;
+        }
+
+#if UNITY_EDITOR
+        string[] spriteNames = { "Pet_Bat", "Pet_Slime", "Pet_Spider", "Pet_Snake", "Pet_Dog", "Pet_Turtle", "Pet_Snail" };
+        if (petId < spriteNames.Length)
+        {
+            return UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>($"Assets/Sprites/UI/Buddy/Craft_Sliced/{spriteNames[petId]}.png");
+        }
+#endif
+        return null;
+    }
+
     private static void LoadAssetSpritesIfAvailable()
     {
         // Đồng bộ icon và frame chuẩn xác cho nguyên liệu của toàn bộ Pet
@@ -214,29 +263,32 @@ public static class PetService
                     ing.frameSprite = GetChipsetFrame(j == 0 ? 0 : 1);
                 }
             }
-        }
-#if UNITY_EDITOR
-        string[] spriteNames = { "Pet_Bat", "Pet_Slime", "Pet_Spider", "Pet_Snake", "Pet_Dog", "Pet_Turtle", "Pet_Snail" };
-        string[] cardNames = { "Card_Pet_Bat", "Card_Pet_Bat", "Card_Pet_Bat", "Card_Pet_Bat", "Card_Pet_Dog", "Card_Pet_Dog", "Card_Pet_Dog" };
 
+            // Tự động gán petIcon từ PetVisualLib hoặc sprite asset
+            allPets[i].petIcon = GetPetSprite(allPets[i].id);
+        }
+
+#if UNITY_EDITOR
+        string[] cardNames = { "Card_Pet_Bat", null, null, null, "Card_Pet_Dog", null, null };
         Sprite emptyCardSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Buddy/RobotPet_Sliced/Card_Slot_Empty.png");
         Sprite defaultFrame = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Buddy/Craft_Sliced/Panel_CraftingPet.png");
 
-        for (int i = 0; i < allPets.Count && i < spriteNames.Length; i++)
+        for (int i = 0; i < allPets.Count && i < cardNames.Length; i++)
         {
             if (allPets[i].petIcon == null)
             {
-                allPets[i].petIcon = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>($"Assets/Sprites/UI/Buddy/Craft_Sliced/{spriteNames[i]}.png");
+                allPets[i].petIcon = GetPetSprite(allPets[i].id);
             }
+
             if (allPets[i].frameSprite == null)
             {
                 allPets[i].frameSprite = defaultFrame;
             }
-            if (allPets[i].cardSprite == null)
-            {
-                Sprite directCard = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>($"Assets/Sprites/UI/Buddy/RobotPet_Sliced/{cardNames[i]}.png");
-                allPets[i].cardSprite = directCard != null ? directCard : emptyCardSprite;
-            }
+
+            Sprite directCard = !string.IsNullOrEmpty(cardNames[i])
+                ? UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>($"Assets/Sprites/UI/Buddy/RobotPet_Sliced/{cardNames[i]}.png")
+                : null;
+            allPets[i].cardSprite = directCard;
         }
 #endif
     }
@@ -314,7 +366,6 @@ public static class PetService
         PlayerPrefs.SetInt(OwnedKeyPrefix + petId, 1);
         PlayerPrefs.Save();
 
-        Debug.Log($"[PetService] Chế tạo thành công Pet: {pet.petName} (ID: {petId})!");
 
         OnPetCrafted?.Invoke(petId);
         OnPetDataChanged?.Invoke();
@@ -418,6 +469,32 @@ public static class PetService
             PlayerPrefs.SetInt(ActiveSlotKey, Mathf.Clamp(value, 0, MaxEquippedSlots - 1));
             PlayerPrefs.Save();
         }
+    }
+
+    /// <summary>
+    /// Lấy ID của con Pet duy nhất được mang vào trận đấu (tối đa 1 con Pet).
+    /// Ưu tiên lấy từ slot đang chọn (ActiveSlotIndex), nếu trống thì lấy từ slot đầu tiên có trang bị.
+    /// Trả về -1 nếu không có Pet nào được trang bị.
+    /// </summary>
+    public static int GetActiveBattlePetId()
+    {
+        int activeSlot = ActiveSlotIndex;
+        int activePetId = GetEquippedPetId(activeSlot);
+        if (activePetId >= 0 && IsPetOwned(activePetId))
+        {
+            return activePetId;
+        }
+
+        int[] slots = LoadEquippedSlots();
+        for (int i = 0; i < slots.Length; i++)
+        {
+            if (slots[i] >= 0 && IsPetOwned(slots[i]))
+            {
+                return slots[i];
+            }
+        }
+
+        return -1;
     }
 
     public static void ResetPetDataForTesting()

@@ -176,7 +176,6 @@ public class RifleSkill : MonoBehaviour
         isUnlocked = true;
         currentLevel = Mathf.Clamp(targetLevel, 1, 5);
         LoadMetaTierBonuses();
-        Debug.Log($"[RifleSkill] Rifle đã lên Cấp {currentLevel}! (Dmg: {GetCalculatedDamage()}, Cooldown: {GetCalculatedFireInterval():F3}s)");
     }
 
     private void Update()

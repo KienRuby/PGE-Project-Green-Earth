@@ -30,7 +30,6 @@ public static class ChipsetDevDataHelper
         }
 
         PlayerPrefs.Save();
-        Debug.Log("[ChipsetDevDataHelper] ✅ Đã thiết lập TÀI KHOẢN MỚI HOÀN TOÀN: Toàn bộ 15+ Chipset đều ở CẤP 1 (Khung Xanh Lá Magic, 0 mảnh thẻ)!");
     }
 
     [MenuItem("PGE/Account Data/Apply Dev Test Profile (High Levels & Holo/Epic/Unique)")]
@@ -83,7 +82,6 @@ public static class ChipsetDevDataHelper
         PlayerDataService.SaveChipsetItemData(15, 18, (int)ChipTier.Epic, 486, 15, false);
 
         PlayerPrefs.Save();
-        Debug.Log("[ChipsetDevDataHelper] ✅ Đã nạp thành công PROFILE TEST DEV: Rifle LV.24 Đỏ, Standard LV.18 Vàng, Blade LV.14 Tím, Shotgun LV.09 Xanh, v.v.!");
     }
 }
 #endif

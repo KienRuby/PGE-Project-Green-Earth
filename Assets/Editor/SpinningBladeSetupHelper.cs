@@ -32,7 +32,6 @@ public static class SpinningBladeSetupHelper
         SetupPrefabAndScene();
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
-        Debug.Log("[SpinningBladeSetupHelper] ✅ Đã cấu hình thành công SpinningBlade.prefab và Player trong GamePlay.unity!");
     }
 
     public static void SetupPrefabAndScene()
@@ -141,7 +140,6 @@ public static class SpinningBladeSetupHelper
         if (sceneBladeObj != null)
         {
             GameObject.DestroyImmediate(sceneBladeObj);
-            Debug.Log("[SpinningBladeSetupHelper] Đã dọn dẹp SpinningBlade GameObject tạm ở root scene.");
         }
 
         // 4. Gắn kỹ năng lên Player trong GamePlay Scene

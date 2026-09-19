@@ -267,7 +267,6 @@ public sealed class ShopController : MonoBehaviour
             float elapsed = Time.unscaledTime - lastTransactionTime;
             if (elapsed < transactionCooldown)
             {
-                Debug.Log($"[SHOP] Purchase rejected: Rapid click detected. Cooldown remaining: {transactionCooldown - elapsed:F2}s");
                 return false;
             }
         }
@@ -375,15 +374,6 @@ public sealed class ShopController : MonoBehaviour
         // 6. Structured Audit Log (Requirement 19)
         int redGemsAfter = ChipManager.RedGems;
         int rewardBalanceAfter = GetRewardBalance(offer.reward);
-        Debug.Log($"[SHOP] Transaction Success:\n" +
-                  $"  ItemID: {offer.id}\n" +
-                  $"  Price: {offer.price} {offer.currency}\n" +
-                  $"  BalanceBefore: {redGemsBefore}\n" +
-                  $"  BalanceAfter: {redGemsAfter}\n" +
-                  $"  Reward: {offer.reward} x{offer.rewardAmount}\n" +
-                  $"  QuantityBefore: {rewardBalanceBefore}\n" +
-                  $"  QuantityAfter: {rewardBalanceAfter}\n" +
-                  $"  TransactionSuccess: true");
 
         ShowMessage(BuildSuccessMessage(offer, lastBoxDrops));
 
@@ -650,10 +640,6 @@ public sealed class ShopController : MonoBehaviour
         }
 
         RefreshView();
-        Debug.Log($"[SHOP] Development Purchase Success:\n" +
-                  $"  ItemID: {offer.id}\n" +
-                  $"  Reward: {pack.SuccessMessage}\n" +
-                  $"  TransactionSuccess: true");
         ShowMessage(pack.SuccessMessage);
         return true;
     }
@@ -1007,7 +993,6 @@ public sealed class ShopController : MonoBehaviour
         }
         PlayerPrefs.Save();
         RefreshView();
-        Debug.Log("[ShopController] All daily shop claims have been reset!");
     }
 }
 

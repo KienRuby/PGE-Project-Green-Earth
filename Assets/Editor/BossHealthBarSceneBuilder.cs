@@ -201,7 +201,6 @@ public static class BossHealthBarSceneBuilder
         EditorSceneManager.MarkSceneDirty(activeScene);
         EditorSceneManager.SaveScene(activeScene);
 
-        Debug.Log("[BossHealthBarSceneBuilder] 🎉 ĐÃ XÂY DỰNG XONG THANH MÁU BOSS CHUẨN ĐẸP 100%!");
         Selection.activeGameObject = bossContainerObj;
     }
 

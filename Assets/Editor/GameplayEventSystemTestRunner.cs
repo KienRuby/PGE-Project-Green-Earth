@@ -33,7 +33,6 @@ namespace PGE.Tests
                     count++;
                 }
             }
-            Debug.Log($"[Clean] Đã dọn dẹp sạch {count} đối tượng rác khỏi Scene!");
         }
 
         public static string RunAllTestsAndSaveReport()
@@ -84,7 +83,6 @@ namespace PGE.Tests
             sb.AppendLine("================================================================================");
 
             string report = sb.ToString();
-            Debug.Log(report);
 
             try
             {

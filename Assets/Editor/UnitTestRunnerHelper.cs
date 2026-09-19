@@ -54,7 +54,6 @@ public static class UnitTestRunnerHelper
             log.AppendLine($"Skipped: {result.SkipCount}");
 
             File.WriteAllText("TestExecutionSummary.txt", log.ToString());
-            Debug.Log(log.ToString());
 
             if (Application.isBatchMode)
             {

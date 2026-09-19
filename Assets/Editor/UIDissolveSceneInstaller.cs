@@ -37,7 +37,6 @@ public static class UIDissolveSceneInstaller
             {
                 EditorSceneManager.MarkSceneDirty(scene);
                 EditorSceneManager.SaveScene(scene);
-                Debug.Log($"[UIDissolveSceneInstaller] Đã gắn {attachedInScene} controller trong scene {scenePath} và lưu scene.");
             }
         }
 

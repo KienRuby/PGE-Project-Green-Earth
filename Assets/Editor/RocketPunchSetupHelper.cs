@@ -30,7 +30,6 @@ public static class RocketPunchSetupHelper
         SetupPlayerInScene();
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
-        Debug.Log("[RocketPunchSetupHelper] ✅ Đã lưu và bảo toàn nguyên vẹn Sprite/Scale của RocketPunch.prefab!");
     }
 
     private static void SetupPlayerInScene()

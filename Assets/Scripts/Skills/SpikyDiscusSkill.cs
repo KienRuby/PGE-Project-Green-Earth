@@ -173,7 +173,6 @@ public class SpikyDiscusSkill : MonoBehaviour
         SyncDiscusCount();
         UpdateAllDiscusAttributes();
 
-        Debug.Log($"[SpikyDiscusSkill] Đĩa Gai đã lên Cấp {currentLevel}! (Total Discus: {GetTargetDiscusCount()}, Orbit Speed: {GetCalculatedOrbitSpeed():F1}°/s, Dmg: {GetCalculatedDamage()})");
     }
 
     private void Update()

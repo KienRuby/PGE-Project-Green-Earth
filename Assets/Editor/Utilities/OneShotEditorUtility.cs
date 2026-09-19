@@ -126,7 +126,6 @@ public static class OneShotEditorUtility
                         if (AssetDatabase.DeleteAsset(path))
                         {
                             deleted++;
-                            Debug.Log($"[OneShotEditorUtility] 🧹 Đã tự hủy và dọn sạch file script: {path}");
                         }
                     }
                 }

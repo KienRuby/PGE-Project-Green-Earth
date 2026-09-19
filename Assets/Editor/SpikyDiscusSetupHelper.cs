@@ -60,7 +60,6 @@ public static class SpikyDiscusSetupHelper
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
 
-        Debug.Log($"[SpikyDiscusSetupHelper] ✅ Đã tạo Prefab thành công tại: {PrefabPath} với scale (0.1632, 0.1632, 0.1632)!");
     }
 }
 #endif

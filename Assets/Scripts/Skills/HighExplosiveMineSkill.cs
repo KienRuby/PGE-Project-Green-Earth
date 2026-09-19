@@ -139,7 +139,6 @@ public class HighExplosiveMineSkill : MonoBehaviour
             nextDropTime = Time.time + GetCalculatedCooldown();
         }
 
-        Debug.Log($"[HighExplosiveMineSkill] Mìn Nổ đã lên Cấp {currentLevel}! (Dmg: {GetCalculatedDamage()}, CD: {GetCalculatedCooldown():F2}s, Radius: {GetExplosionRadius():F1}m)");
     }
 
     private void Update()

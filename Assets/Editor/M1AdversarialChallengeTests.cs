@@ -96,7 +96,6 @@ namespace PGE.Tests.Adversarial
             try
             {
                 File.WriteAllText(ReportPath, reportText);
-                Debug.Log(reportText);
             }
             catch (Exception ex)
             {

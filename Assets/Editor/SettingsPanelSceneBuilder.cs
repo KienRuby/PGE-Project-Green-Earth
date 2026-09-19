@@ -84,7 +84,6 @@ public static class SettingsPanelSceneBuilder
         SettingsPanelController existing = canvas.GetComponentInChildren<SettingsPanelController>(true);
         if (existing != null)
         {
-            Debug.Log($"[SettingsPanel] SettingsPanel đã tồn tại: {existing.gameObject.name}. Đang cập nhật lại tham chiếu...");
             existing.AutoWireReferencesIfMissing();
             existing.BindButtonListeners();
             existing.RefreshLabels();
@@ -94,7 +93,6 @@ public static class SettingsPanelSceneBuilder
             EditorSceneManager.MarkSceneDirty(activeScene);
             EditorSceneManager.SaveScene(activeScene);
             Selection.activeGameObject = existing.gameObject;
-            Debug.Log("<color=#00FF88>[SettingsPanel] Đã cập nhật xong SettingsPanel trong Hierarchy!</color>");
             return;
         }
 
@@ -129,7 +127,6 @@ public static class SettingsPanelSceneBuilder
         EditorSceneManager.SaveScene(activeScene);
 
         Selection.activeGameObject = panel.gameObject;
-        Debug.Log($"<color=#00FF88>[SettingsPanel] ĐÃ TẠO THÀNH CÔNG GameObject 'SettingsPanel' tĩnh trong Hierarchy của {MainMenuScenePath}!</color>");
     }
 
     [MenuItem("PGE/UI/Build Settings Panel in GamePlay", priority = 102)]
@@ -166,7 +163,6 @@ public static class SettingsPanelSceneBuilder
         SettingsPanelController existing = canvas.GetComponentInChildren<SettingsPanelController>(true);
         if (existing != null)
         {
-            Debug.Log($"[SettingsPanel] SettingsPanel đã tồn tại trong GamePlay: {existing.gameObject.name}. Đang cập nhật lại tham chiếu...");
             existing.IsGameplayMode = true;
             existing.AutoWireReferencesIfMissing();
             existing.ApplyLayoutForCurrentScene();
@@ -178,7 +174,6 @@ public static class SettingsPanelSceneBuilder
             EditorSceneManager.MarkSceneDirty(activeScene);
             EditorSceneManager.SaveScene(activeScene);
             Selection.activeGameObject = existing.gameObject;
-            Debug.Log("<color=#00FF88>[SettingsPanel] Đã cập nhật xong SettingsPanel trong GamePlay!</color>");
             return;
         }
 
@@ -206,7 +201,6 @@ public static class SettingsPanelSceneBuilder
         EditorSceneManager.SaveScene(activeScene);
 
         Selection.activeGameObject = panel.gameObject;
-        Debug.Log($"<color=#00FF88>[SettingsPanel] ĐÃ TẠO THÀNH CÔNG GameObject 'SettingsPanel' tĩnh trong Hierarchy của {GamePlayScenePath}!</color>");
     }
 }
 #endif

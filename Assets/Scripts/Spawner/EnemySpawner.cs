@@ -356,7 +356,6 @@ public class EnemySpawner : MonoBehaviour
             if (customWaves != null && customWaves.Count > 0)
             {
                 waves = new List<WaveConfig>(customWaves);
-                Debug.Log($"[EnemySpawner] 🛠️ Đã nạp {waves.Count} Custom Waves được tùy chỉnh từ MainMenu cho Chapter {selectedIndex + 1}! (Thưởng vượt ải: +{stageVictoryDataChipReward} Chips, +{stageVictoryRedGemReward} Gems)");
             }
         }
         else
@@ -383,7 +382,6 @@ public class EnemySpawner : MonoBehaviour
                     waves[waves.Count - 1].customBossPrefab = currentChapter.chapterBossPrefab;
                 }
 
-                Debug.Log($"[EnemySpawner] 🎮 Đã nạp thành công bộ Wave riêng của Chapter {currentChapter.chapterNumber}: '{currentChapter.chapterTitle}' ({waves.Count} waves, Thưởng vượt ải: +{stageVictoryDataChipReward} Chips, +{stageVictoryRedGemReward} Gems)!");
             }
             else if (waves == null || waves.Count == 0)
             {
@@ -545,7 +543,6 @@ public class EnemySpawner : MonoBehaviour
 
         currentState = config.isBossWave ? WaveState.BossFight : WaveState.InWave;
 
-        Debug.Log($"[EnemySpawner] Bắt đầu {config.waveName} (Wave {currentWaveIndex + 1}/{waves.Count}): Thời lượng = {config.waveDuration}s, Tổng quái = {config.totalEnemiesToSpawn}, Giới hạn cùng lúc = {config.maxConcurrentEnemies}, Boss = {config.isBossWave}");
 
         OnWaveStarted?.Invoke(currentWaveIndex + 1, waves.Count);
         NotifyWaveProgress();
@@ -598,7 +595,7 @@ public class EnemySpawner : MonoBehaviour
 
         if (enableSpawnDebugLogs)
         {
-            Debug.Log($"[Spawn Test] Tọa độ tính toán: {spawnPosition} | Tọa độ thực tế của Enemy: {enemyObj.transform.position}");
+            Debug.Log($"[EnemySpawner Debug] Spawn: {prefabToSpawn.name} tại {spawnPosition}");
         }
 
         enemiesSpawnedInWave++;
@@ -686,7 +683,6 @@ public class EnemySpawner : MonoBehaviour
             }
         }
 
-        Debug.Log($"[EnemySpawner] ⚠️ CẢNH BÁO: BOSS ĐÃ XUẤT HIỆN! ({bossObj.name})");
         OnBossSpawned?.Invoke(bossObj);
     }
 
@@ -764,7 +760,6 @@ public class EnemySpawner : MonoBehaviour
         if (chance > 0f && Random.value <= chance)
         {
             DropTable.SpawnArtifactBox(enemy.transform.position);
-            Debug.Log($"[EnemySpawner] 🎁 Quái {(isElite ? "Elite" : "Thường")} đã rơi Hộp Cổ Vật (Artifact Box) tại {enemy.transform.position}!");
         }
     }
 
@@ -776,13 +771,11 @@ public class EnemySpawner : MonoBehaviour
             activeBosses.Remove(boss);
             bossesKilledInWave++;
 
-            Debug.Log($"[EnemySpawner] 🎉 BOSS ĐÃ BỊ TIÊU DIỆT!");
             OnBossDefeated?.Invoke();
 
             if (bossArtifactDropChance > 0f && Random.value <= bossArtifactDropChance)
             {
                 DropTable.SpawnArtifactBox(boss.transform.position);
-                Debug.Log($"[EnemySpawner] 🎁 Boss đã rơi Hộp Cổ Vật (Artifact Box) tại {boss.transform.position}!");
             }
 
             // Đồng loạt tiêu diệt toàn bộ enemy trên sàn đấu khi Boss bị tiêu diệt
@@ -816,14 +809,12 @@ public class EnemySpawner : MonoBehaviour
 
     private void CompleteCurrentWave(WaveConfig config)
     {
-        Debug.Log($"[EnemySpawner] ✅ Hoàn thành {config.waveName} (Wave {currentWaveIndex + 1}/{waves.Count})!");
         OnWaveCompleted?.Invoke(currentWaveIndex + 1);
 
         if (dropArtifactOnWaveClear && playerTransform != null)
         {
             Vector3 dropPos = playerTransform.position + (Vector3)Random.insideUnitCircle.normalized * 3.5f;
             DropTable.SpawnArtifactBox(dropPos);
-            Debug.Log($"[EnemySpawner] 🎁 Hoàn thành Wave {currentWaveIndex + 1} - Đã rơi Hộp Cổ Vật tại {dropPos}!");
         }
 
         if (currentWaveIndex + 1 >= waves.Count)
@@ -883,7 +874,6 @@ public class EnemySpawner : MonoBehaviour
     {
         if (!bypassChapterLimit && artifactsSpawnedInChapter >= maxArtifactDropsPerChapter)
         {
-            Debug.Log($"[EnemySpawner] ℹ️ Đã đạt giới hạn tối đa {maxArtifactDropsPerChapter} Hộp Cổ Vật trong Chapter này ({artifactsSpawnedInChapter}/{maxArtifactDropsPerChapter}).");
             return null;
         }
 
@@ -891,7 +881,6 @@ public class EnemySpawner : MonoBehaviour
         GameObject boxObj = DropTable.SpawnArtifactBox(spawnPos);
         artifactsSpawnedInChapter++;
 
-        Debug.Log($"[EnemySpawner] 🎁 Đã sinh Hộp Cổ Vật ngẫu nhiên trên bản đồ ({artifactsSpawnedInChapter}/{maxArtifactDropsPerChapter}) tại {spawnPos}. Vòng tròn dấu '?' sẽ hiển thị ở mép màn hình!");
         return boxObj;
     }
 
@@ -933,7 +922,6 @@ public class EnemySpawner : MonoBehaviour
         if (useTimedArtifactSpawning)
         {
             artifactSpawnTimer = Random.Range(minInitialArtifactDelay, maxInitialArtifactDelay);
-            Debug.Log($"[EnemySpawner] ⏱️ Hộp Cổ Vật đầu tiên sẽ xuất hiện sau {artifactSpawnTimer:F1}s (khoảng {minInitialArtifactDelay}-{maxInitialArtifactDelay}s).");
         }
         else
         {
@@ -1000,7 +988,6 @@ public class EnemySpawner : MonoBehaviour
             {
                 artifactSpawnTimer = Random.Range(minArtifactRespawnInterval, maxArtifactRespawnInterval);
                 isArtifactRespawnTimerActive = true;
-                Debug.Log($"[EnemySpawner] ⏱️ Hộp Cổ Vật tiếp theo sẽ xuất hiện lại sau {artifactSpawnTimer:F1}s (khoảng {minArtifactRespawnInterval}-{maxArtifactRespawnInterval}s).");
             }
 
             artifactSpawnTimer -= dt;
@@ -1050,7 +1037,6 @@ public class EnemySpawner : MonoBehaviour
     {
         if (!bypassChapterLimit && gameplayEventsSpawnedInChapter >= maxGameplayEventsPerChapter)
         {
-            Debug.Log($"[EnemySpawner] ℹ️ Đã đạt giới hạn tối đa {maxGameplayEventsPerChapter} Sự Kiện Gameplay trong Chapter này ({gameplayEventsSpawnedInChapter}/{maxGameplayEventsPerChapter}).");
             return null;
         }
 
@@ -1075,7 +1061,6 @@ public class EnemySpawner : MonoBehaviour
         }
 
         gameplayEventsSpawnedInChapter++;
-        Debug.Log($"[EnemySpawner] ❓ Đã sinh Sự Kiện Gameplay ({pickup.AssignedEvent?.eventTitle ?? "Random"}) ({gameplayEventsSpawnedInChapter}/{maxGameplayEventsPerChapter}) tại {spawnPos}. Vòng tròn dấu '?' sẽ hiển thị ở mép màn hình!");
         return eventObj;
     }
 
@@ -1089,7 +1074,6 @@ public class EnemySpawner : MonoBehaviour
         if (useTimedGameplayEventSpawning)
         {
             gameplayEventSpawnTimer = Random.Range(minInitialGameplayEventDelay, maxInitialGameplayEventDelay);
-            Debug.Log($"[EnemySpawner] ⏱️ Sự Kiện Gameplay đầu tiên sẽ xuất hiện sau {gameplayEventSpawnTimer:F1}s.");
         }
         else
         {
@@ -1146,7 +1130,6 @@ public class EnemySpawner : MonoBehaviour
             {
                 gameplayEventSpawnTimer = Random.Range(minGameplayEventRespawnInterval, maxGameplayEventRespawnInterval);
                 isGameplayEventRespawnTimerActive = true;
-                Debug.Log($"[EnemySpawner] ⏱️ Sự Kiện Gameplay tiếp theo sẽ xuất hiện lại sau {gameplayEventSpawnTimer:F1}s.");
             }
 
             gameplayEventSpawnTimer -= dt;
@@ -1200,7 +1183,6 @@ public class EnemySpawner : MonoBehaviour
         currentState = WaveState.StageVictory;
         PlayerLevelController.Instance?.LockLevelUpsForVictory();
 
-        Debug.Log($"[EnemySpawner] 🏆🏆 CHIẾN THẮNG MÀN CHƠI (STAGE CLEAR)! TOÀN BỘ WAVE ĐÃ ĐƯỢC CHINH PHỤC!");
 
         // Đồng loạt tiêu diệt toàn bộ quái vật còn lại trên bản đồ bằng animation Die & Fade out
         KillAllActiveEnemies();
@@ -1210,7 +1192,6 @@ public class EnemySpawner : MonoBehaviour
         if (currentSelected >= PlayerDataService.UnlockedChapterIndex)
         {
             PlayerDataService.UnlockedChapterIndex = currentSelected + 1;
-            Debug.Log($"[EnemySpawner] Đã mở khóa Chapter tiếp theo: {PlayerDataService.UnlockedChapterIndex + 1}");
         }
 
         // Tặng thưởng vượt ải
@@ -1562,7 +1543,6 @@ public class EnemySpawner : MonoBehaviour
             waves.Add(wave);
         }
 
-        Debug.Log($"[EnemySpawner] Đã tự động tạo {count} Wave cấu hình chuẩn. Wave {count} là Boss Wave!");
     }
 
     public void SetWavesForTesting(List<WaveConfig> testWaves)

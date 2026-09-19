@@ -148,7 +148,6 @@ public static class VictorySceneBuilder
         EditorSceneManager.SaveScene(scene);
         AssetDatabase.SaveAssets();
         if (openedAdditively) EditorSceneManager.CloseScene(scene, true);
-        Debug.Log("[VictorySceneBuilder] Đã dựng VictoryPanel hoàn toàn theo ảnh mẫu Image 2 (Crest cánh vàng + Data/Gem rows + Details + 2 nút Get Reward).");
     }
 
     private static RectTransform BuildRewardRow(Transform parent, string name, Vector2 position, Sprite iconSprite, string defaultText, out TMP_Text rewardText)

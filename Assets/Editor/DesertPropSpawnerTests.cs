@@ -59,4 +59,34 @@ public class DesertPropSpawnerTests
         Assert.That(decorationCount, Is.EqualTo(5));
         Assert.That(obstacleCount, Is.GreaterThanOrEqualTo(1));
     }
+
+    [Test]
+    public void Map2_MutantForestPrefabFolder_ContainsSixPrefabsWithSpriteRenderers()
+    {
+        string[] guids = AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/Prefabs/Map 2 - Mutant Forest" });
+        Assert.That(guids.Length, Is.EqualTo(6), "Map 2 phải có đủ 6 prefab.");
+
+        foreach (string guid in guids)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            Assert.That(prefab, Is.Not.Null, $"Không thể tải prefab: {path}");
+            Assert.That(prefab.GetComponentInChildren<SpriteRenderer>(), Is.Not.Null, $"Prefab thiếu SpriteRenderer: {path}");
+        }
+    }
+
+    [Test]
+    public void Map3_ToxicSwampPrefabFolder_ContainsSevenPrefabsWithSpriteRenderers()
+    {
+        string[] guids = AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/Prefabs/Map 3 - Toxic Swamp" });
+        Assert.That(guids.Length, Is.EqualTo(7), "Map 3 phải có đủ 7 prefab.");
+
+        foreach (string guid in guids)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            Assert.That(prefab, Is.Not.Null, $"Không thể tải prefab: {path}");
+            Assert.That(prefab.GetComponentInChildren<SpriteRenderer>(), Is.Not.Null, $"Prefab thiếu SpriteRenderer: {path}");
+        }
+    }
 }

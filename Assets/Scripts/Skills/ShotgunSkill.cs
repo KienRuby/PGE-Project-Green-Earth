@@ -181,7 +181,6 @@ public class ShotgunSkill : MonoBehaviour
         isUnlocked = true;
         currentLevel = Mathf.Clamp(targetLevel, 1, 5);
         LoadMetaTierBonuses();
-        Debug.Log($"[ShotgunSkill] Shotgun đã lên Cấp {currentLevel}! (Total Dmg: {GetCalculatedTotalDamage()}, Cooldown: {GetCalculatedFireInterval():F2}s, Spread: {GetSpreadAngle()}°)");
     }
 
     private void Update()

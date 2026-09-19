@@ -76,7 +76,6 @@ public static class UIDissolveNoiseGenerator
         }
 
         File.WriteAllBytes(absolutePath, pngData);
-        Debug.Log($"[UIDissolve] Đã lưu Noise Texture vào: {absolutePath} ({pngData.Length} bytes)");
 
 #if UNITY_EDITOR
         AssetDatabase.ImportAsset(fullRelativePath, ImportAssetOptions.ForceUpdate);

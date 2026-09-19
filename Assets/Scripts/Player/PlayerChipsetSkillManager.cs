@@ -112,7 +112,6 @@ public class PlayerChipsetSkillManager : MonoBehaviour
             if (playerAutoShooter != null)
             {
                 playerAutoShooter.ApplyChipsetWeaponUpgrade(1, runtimeLevel);
-                Debug.Log($"[PlayerChipsetSkillManager] Standard Gun cấp {runtimeLevel} đã tăng trực tiếp khẩu súng mặc định.");
             }
             ChipsetBattleStats.RegisterChipset(1, runtimeLevel, 20);
             return;
@@ -124,7 +123,6 @@ public class PlayerChipsetSkillManager : MonoBehaviour
             if (playerAutoShooter != null)
             {
                 playerAutoShooter.ApplyChipsetWeaponUpgrade(2, runtimeLevel);
-                Debug.Log($"[PlayerChipsetSkillManager] Rifle cấp {runtimeLevel} đã tăng trực tiếp khẩu súng mặc định.");
             }
             ChipsetBattleStats.RegisterChipset(2, runtimeLevel, 25);
             return;
@@ -136,7 +134,6 @@ public class PlayerChipsetSkillManager : MonoBehaviour
             if (playerAutoShooter != null)
             {
                 playerAutoShooter.ApplyChipsetWeaponUpgrade(8, runtimeLevel);
-                Debug.Log($"[PlayerChipsetSkillManager] Shotgun cấp {runtimeLevel} đã tăng trực tiếp khẩu súng mặc định.");
             }
             ChipsetBattleStats.RegisterChipset(8, runtimeLevel, 40);
             return;
@@ -148,7 +145,6 @@ public class PlayerChipsetSkillManager : MonoBehaviour
             if (playerAutoShooter != null)
             {
                 playerAutoShooter.ApplyChipsetWeaponUpgrade(5, runtimeLevel);
-                Debug.Log($"[PlayerChipsetSkillManager] Multigun cấp {runtimeLevel} đã tăng trực tiếp khẩu súng mặc định.");
             }
             ChipsetBattleStats.RegisterChipset(5, runtimeLevel, 15);
             return;
@@ -161,7 +157,6 @@ public class PlayerChipsetSkillManager : MonoBehaviour
             {
                 highExplosiveMineSkill.UnlockOrUpgrade(runtimeLevel);
                 ChipsetBattleStats.RegisterChipset(10, runtimeLevel, highExplosiveMineSkill.GetCalculatedDamage());
-                Debug.Log($"[PlayerChipsetSkillManager] Đã kích hoạt/nâng cấp High-Explosive Mine lên cấp {runtimeLevel}!");
             }
             return;
         }
@@ -173,7 +168,6 @@ public class PlayerChipsetSkillManager : MonoBehaviour
             {
                 energyJumperCablesSkill.UnlockOrUpgrade(runtimeLevel);
                 ChipsetBattleStats.RegisterChipset(9, runtimeLevel, 0);
-                Debug.Log($"[PlayerChipsetSkillManager] Đã kích hoạt/nâng cấp Energy Jumper Cables lên cấp {runtimeLevel}!");
             }
             return;
         }
@@ -185,7 +179,6 @@ public class PlayerChipsetSkillManager : MonoBehaviour
             {
                 spikyDiscusSkill.UnlockOrUpgrade(runtimeLevel);
                 ChipsetBattleStats.RegisterChipset(7, runtimeLevel, spikyDiscusSkill.GetCalculatedDamage());
-                Debug.Log($"[PlayerChipsetSkillManager] Đã kích hoạt/nâng cấp Spiky Discus lên cấp {runtimeLevel}!");
             }
             return;
         }
@@ -197,7 +190,6 @@ public class PlayerChipsetSkillManager : MonoBehaviour
             {
                 gunTurretSkill.UnlockOrUpgrade(runtimeLevel);
                 ChipsetBattleStats.RegisterChipset(6, runtimeLevel, gunTurretSkill.GetCurrentDamage());
-                Debug.Log($"[PlayerChipsetSkillManager] Đã kích hoạt/nâng cấp Gun Turret lên cấp {runtimeLevel}!");
             }
             return;
         }
@@ -209,7 +201,6 @@ public class PlayerChipsetSkillManager : MonoBehaviour
             {
                 rocketPunchSkill.UnlockOrUpgrade(runtimeLevel);
                 ChipsetBattleStats.RegisterChipset(3, runtimeLevel, rocketPunchSkill.GetCurrentConfig().directDamage);
-                Debug.Log($"[PlayerChipsetSkillManager] Đã kích hoạt/nâng cấp Rocket Punch lên cấp {runtimeLevel}!");
             }
             return;
         }
@@ -221,7 +212,6 @@ public class PlayerChipsetSkillManager : MonoBehaviour
             {
                 spinningBladeSkill.UnlockOrUpgrade(runtimeLevel);
                 ChipsetBattleStats.RegisterChipset(4, runtimeLevel, spinningBladeSkill.GetCurrentConfig().damage);
-                Debug.Log($"[PlayerChipsetSkillManager] Đã kích hoạt/nâng cấp Spinning Blade lên cấp {runtimeLevel}!");
             }
             return;
         }

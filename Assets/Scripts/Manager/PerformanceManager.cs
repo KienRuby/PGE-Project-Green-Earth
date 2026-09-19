@@ -48,6 +48,7 @@ public class PerformanceManager : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void AutoInitialize()
     {
+        Debug.unityLogger.filterLogType = LogType.Warning;
         if (Instance == null)
         {
             GameObject go = new GameObject("[PerformanceManager]");
@@ -59,6 +60,7 @@ public class PerformanceManager : MonoBehaviour
 
     private void Awake()
     {
+        Debug.unityLogger.filterLogType = LogType.Warning;
         if (Instance == null)
         {
             Instance = this;
@@ -108,7 +110,6 @@ public class PerformanceManager : MonoBehaviour
             detectedRefreshRate = 60;
         }
 
-        Debug.Log($"[PerformanceManager] 🖥️ Đã nhận diện tần số quét màn hình: {detectedRefreshRate}Hz");
     }
 
     public void SetFrameRateMode(FrameRateMode mode)
@@ -161,7 +162,6 @@ public class PerformanceManager : MonoBehaviour
         QualitySettings.vSyncCount = 0;
         Application.targetFrameRate = target;
 
-        Debug.Log($"[PerformanceManager] 🚀 Thiết lập Target FPS: {target} FPS (Frame Budget: {(1000f / target):F2} ms)");
         OnTargetFrameRateChanged?.Invoke(target);
     }
 

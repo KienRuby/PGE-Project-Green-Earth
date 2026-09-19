@@ -193,6 +193,27 @@ public class ChapterScreenController : MonoBehaviour
         return currentChapterIndex > PlayerDataService.UnlockedChapterIndex;
     }
 
+    /// <summary>
+    /// Kiểm tra xem Chapter đang xem đã được người chơi chiến thắng/vượt qua hay chưa.
+    /// </summary>
+    public bool IsCurrentChapterCleared()
+    {
+        return IsChapterCleared(currentChapterIndex);
+    }
+
+    /// <summary>
+    /// Kiểm tra xem một Chapter (0-based index) đã được chiến thắng/vượt qua hay chưa.
+    /// </summary>
+    public bool IsChapterCleared(int chapterIndex)
+    {
+        if (chapterIndex < 0) return false;
+        if (currentChapter != null && currentChapterIndex == chapterIndex && currentChapter.isLocked)
+        {
+            return false;
+        }
+        return PlayerDataService.IsChapterCleared(chapterIndex);
+    }
+
     public void RefreshChapterView()
     {
         if (chapterDatabase != null && chapterDatabase.Count > 0)
@@ -201,6 +222,7 @@ public class ChapterScreenController : MonoBehaviour
         }
 
         bool isLocked = IsCurrentChapterLocked();
+        bool isCleared = IsCurrentChapterCleared();
 
         if (currentChapter != null)
         {
@@ -230,7 +252,7 @@ public class ChapterScreenController : MonoBehaviour
                     bossSilhouetteImage.sprite = currentChapter.bossSilhouette;
                 }
                 bossSilhouetteImage.gameObject.SetActive(true);
-                bossSilhouetteImage.color = isLocked ? lockedBossColor : unlockedBossColor;
+                bossSilhouetteImage.color = isCleared ? unlockedBossColor : lockedBossColor;
             }
 
             if (lockOverlay != null)
@@ -272,7 +294,7 @@ public class ChapterScreenController : MonoBehaviour
             if (bossSilhouetteImage != null)
             {
                 bossSilhouetteImage.gameObject.SetActive(true);
-                bossSilhouetteImage.color = isLocked ? lockedBossColor : unlockedBossColor;
+                bossSilhouetteImage.color = isCleared ? unlockedBossColor : lockedBossColor;
             }
             if (waveBadgeText != null) waveBadgeText.text = "WAVE: 01/05";
             if (flavorText != null) flavorText.text = "Mutant spores have been detected on the outskirts.";
@@ -397,7 +419,6 @@ public class ChapterScreenController : MonoBehaviour
             ? currentChapter.gameplaySceneName
             : "GamePlay";
 
-        Debug.Log($"[ChapterScreen] Bắt đầu Chapter: {currentChapterIndex + 1} ({currentChapter?.chapterTitle}), Nạp scene: {loadedSceneName}");
         if (loadScene)
         {
             SceneManager.LoadScene(loadedSceneName);

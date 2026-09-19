@@ -87,7 +87,6 @@ public class PlayerLevelController : MonoBehaviour
         {
             currentExp -= MaxEXP;
             currentLevel++;
-            Debug.Log($"[PlayerLevel] 🎉 LÊN CẤP! Level hiện tại: {currentLevel}, EXP dư: {currentExp}/{MaxEXP}");
             OnLevelUp?.Invoke(currentLevel);
             GameEvents.RaisePlayerLevelUp(currentLevel);
         }

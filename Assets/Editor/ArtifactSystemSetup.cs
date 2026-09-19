@@ -140,7 +140,6 @@ public static class ArtifactSystemSetup
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
 
-        Debug.Log("[ArtifactSystemSetup] ✅ Đã cập nhật hoàn tất 7 Cổ vật mới với Sprite cắt từ sheet và ArtifactDatabase!");
     }
 
     private static ArtifactData CreateOrUpdateArtifact(
@@ -332,7 +331,6 @@ public static class ArtifactSystemSetup
         }
 
         UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
-        Debug.Log("[ArtifactSystemSetup] ✅ Đã cập nhật 7 Cổ vật mới (CD, Lego, USB, Butter, Cooler, Rocket, Chip) vào Pause Modal thành công!");
     }
 
     public static void SetupArtifactDetailDialogInScene(PauseModalController pauseCtrl)

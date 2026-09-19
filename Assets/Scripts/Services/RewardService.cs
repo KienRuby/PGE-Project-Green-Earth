@@ -38,7 +38,6 @@ public static class RewardService
         }
 
         OnRewardGranted?.Invoke(reward);
-        Debug.Log($"[RewardService] 🎁 Đã trao phần thưởng: +{reward.amount} {reward.type}");
         return true;
     }
 

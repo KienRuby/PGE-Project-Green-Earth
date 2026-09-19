@@ -119,7 +119,6 @@ public static class ChapterMenuSceneBuilder
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
-        Debug.Log("[ChapterMenuSceneBuilder] ✅ Đã xây dựng hoàn tất Chapter Screen tại Canvas/Content/ChapterPanel!");
     }
 
     public static GameObject BuildChapterPanel(RectTransform contentParent, TMP_FontAsset fontAsset)

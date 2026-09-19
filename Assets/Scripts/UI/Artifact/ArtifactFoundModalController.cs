@@ -266,7 +266,6 @@ public class ArtifactFoundModalController : MonoBehaviour
             sunburstEffect.EnsureRayGraphic();
         }
 
-        Debug.Log($"[ArtifactFoundModalController] 🎉 ĐÃ MỞ BẢNG CỔ VẬT: {artifact.artifactName} - {artifact.GetFormattedStatText()}");
     }
 
     /// <summary>

@@ -137,7 +137,6 @@ public class BuddyCombatManager : MonoBehaviour
 
         if (equippedIds == null || equippedIds.Length == 0)
         {
-            Debug.Log("[BuddyCombatManager] Không có Buddy nào được trang bị trong Deck hiện tại.");
             return;
         }
 
@@ -157,7 +156,6 @@ public class BuddyCombatManager : MonoBehaviour
 
         if (validIds.Count == 0) return;
 
-        Debug.Log($"[BuddyCombatManager] Bắt đầu đưa {validIds.Count} Buddy vào trận đấu (Deck {activeDeck + 1}): [{string.Join(", ", validIds)}]");
 
         for (int i = 0; i < validIds.Count; i++)
         {

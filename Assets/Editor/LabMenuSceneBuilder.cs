@@ -165,7 +165,6 @@ public static class LabMenuSceneBuilder
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
-        Debug.Log("[LabMenuSceneBuilder] Functional BuddyPanel rebuilt in MainMenu.");
     }
 
     [MenuItem("PGE/UI/Rebuild Chipset Panel")]
@@ -240,7 +239,6 @@ public static class LabMenuSceneBuilder
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
-        Debug.Log("[LabMenuSceneBuilder] Functional ChipsetPanel rebuilt in MainMenu.");
     }
 
     [MenuItem("PGE/UI/Apply Green Chipset Card Frames")]
@@ -322,7 +320,6 @@ public static class LabMenuSceneBuilder
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
-        Debug.Log($"[LabMenuSceneBuilder] Applied green frames and card element positions to {cards.Length} Chipset cards.");
     }
 
     [MenuItem("PGE/UI/Apply Selected BottomBar Layout To All Chipset Cards")]
@@ -373,7 +370,6 @@ public static class LabMenuSceneBuilder
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
-        Debug.Log($"[LabMenuSceneBuilder] Copied selected BottomBar RectTransform to {updatedCount} Chipset cards.");
     }
 
     [MenuItem("PGE/UI/Apply UpgradeArrow Layout To All Chipset Cards")]
@@ -430,7 +426,6 @@ public static class LabMenuSceneBuilder
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
-        Debug.Log($"[LabMenuSceneBuilder] Applied UpgradeArrowGroup layout (Pos: {targetPos}, Size: {targetSize}) to {updatedCount} Chipset cards.");
     }
 
     [MenuItem("PGE/UI/Apply Fill Bar To All Chipset Cards")]
@@ -472,7 +467,6 @@ public static class LabMenuSceneBuilder
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
-        Debug.Log($"[LabMenuSceneBuilder] Applied progress fill bar to {updatedCount} Chipset cards in MainMenu.");
     }
 
     [MenuItem("PGE/UI/Rebuild Shop Panel")]
@@ -552,7 +546,6 @@ public static class LabMenuSceneBuilder
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
-        Debug.Log("[LabMenuSceneBuilder] Functional ShopPanel rebuilt in MainMenu.");
     }
 
     private static void TryBuildRequestedShopPanel()
@@ -808,7 +801,6 @@ public static class LabMenuSceneBuilder
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
-        Debug.Log($"[LabMenuSceneBuilder] Successfully cleaned up {destroyedCount} duplicate modal GameObjects in MainMenu.");
     }
 
     private static int CleanDuplicatesFor(Transform parent, string targetName, ref GameObject keepObj)
@@ -1049,7 +1041,6 @@ public static class LabMenuSceneBuilder
         }
 
         AssetDatabase.SaveAssets();
-        Debug.Log("[LabMenuSceneBuilder] Updated 16 Lab stats, lock icons & tooltip in MainMenu.");
     }
 
     private static void BuildLabMenuScene()
@@ -1102,7 +1093,6 @@ public static class LabMenuSceneBuilder
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
-        Debug.Log($"PGE Main Menu UI created successfully: {ScenePath}. Preview: {ChipsetPreviewPath}");
     }
 
     private static void ClearGeneratedFallbackGlyph()
@@ -1428,7 +1418,6 @@ public static class LabMenuSceneBuilder
         }
 
         cachedChipsetSprites = list.ToArray();
-        Debug.Log($"[Chipset] Cached {cachedChipsetSprites.Length} user uploaded and sliced sprites.");
     }
 
     private static void ConfigureBuddyTextures()
@@ -1510,7 +1499,6 @@ public static class LabMenuSceneBuilder
     private static void CacheBuddySprites()
     {
         cachedBuddySprites = AssetDatabase.LoadAllAssetsAtPath(BuddyAtlasPath).OfType<Sprite>().ToArray();
-        Debug.Log($"[Buddy] Cached {cachedBuddySprites.Length} sprites: {string.Join(", ", cachedBuddySprites.Select(s => s.name))}");
     }
 
     private static Sprite LoadBuddySprite(string spriteName)

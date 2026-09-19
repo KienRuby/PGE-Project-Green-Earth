@@ -140,7 +140,6 @@ public static class ShopSpriteSlicer
         dataProvider.Apply();
         importer.SaveAndReimport();
 
-        Debug.Log($"[ShopSpriteSlicer] Successfully sliced {spriteRects.Length} sprites for {TexturePath}.");
     }
 
     [MenuItem("PGE/UI/Slice All Shop Textures")]
@@ -226,7 +225,6 @@ public static class ShopSpriteSlicer
         dataProvider.Apply();
         importer.SaveAndReimport();
 
-        Debug.Log($"[ShopSpriteSlicer] Successfully sliced {spriteRects.Length} box sprites for {BoxShopTexturePath}.");
     }
 }
 #endif

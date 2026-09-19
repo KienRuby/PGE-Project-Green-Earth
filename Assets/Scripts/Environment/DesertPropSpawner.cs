@@ -36,10 +36,27 @@ public class DesertPropSpawner : MonoBehaviour
         public Vector2 scaleMultiplierRange = new Vector2(0.9f, 1.1f);
     }
 
+    [Serializable]
+    public sealed class ChapterPropConfig
+    {
+        [Tooltip("Số thứ tự Chapter (1: Sa mạc, 2: Rừng đột biến, 3: Đầm lầy độc,...)")]
+        public int chapterNumber = 1;
+
+        [Tooltip("Tên gợi nhớ của Chapter")]
+        public string chapterName = "Chapter";
+
+        [Tooltip("Danh sách prefab chướng ngại vật & trang trí cho Chapter này.")]
+        public List<PropEntry> props = new List<PropEntry>();
+    }
+
     [SerializeField, Min(1)] private int desertChapterNumber = 1;
     [SerializeField] private bool spawnOnlyInDesertChapter = false;
 
+    [Tooltip("Danh sách prefab mặc định (Chapter 1 - Sa mạc)")]
     [SerializeField] private List<PropEntry> props = new List<PropEntry>();
+
+    [Tooltip("Danh sách cấu hình chướng ngại vật theo từng Chapter riêng biệt")]
+    [SerializeField] private List<ChapterPropConfig> chapterPropsList = new List<ChapterPropConfig>();
 
     [SerializeField, Min(0f)] private float obstacleDensity = 1.5f;
     [SerializeField, Min(0f)] private float decorationDensity = 3f;
@@ -52,6 +69,8 @@ public class DesertPropSpawner : MonoBehaviour
 
     [SerializeField, Range(0.05f, 1f)] private float colliderWidthRatio = 0.55f;
     [SerializeField, Range(0.05f, 0.5f)] private float colliderHeightRatio = 0.2f;
+    [Tooltip("Bật để Enemy có thể đi xuyên qua chướng ngại vật (chỉ chặn Player). Tắt nếu muốn chướng ngại vật chặn cả quái vật.")]
+    [SerializeField] private bool allowEnemiesToPassThrough = true;
 
     [SerializeField] private bool useRandomSeed;
     [SerializeField] private int randomSeed = 12345;
@@ -66,6 +85,8 @@ public class DesertPropSpawner : MonoBehaviour
     private System.Random random;
 
     public IReadOnlyList<PropEntry> Props => props;
+    public IReadOnlyList<ChapterPropConfig> ChapterPropsList => chapterPropsList;
+    public List<ChapterPropConfig> ChapterPropsListEditable => chapterPropsList;
     public float ObstacleDensity => obstacleDensity;
     public float DecorationDensity => decorationDensity;
 
@@ -74,17 +95,99 @@ public class DesertPropSpawner : MonoBehaviour
         Generate();
     }
 
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        EnsureDefaultChapterConfigs();
+    }
+
+    public void EnsureDefaultChapterConfigs()
+    {
+        if (chapterPropsList == null)
+        {
+            chapterPropsList = new List<ChapterPropConfig>();
+        }
+
+        EnsureChapterInternal(2, "Rừng đột biến (Mutant Forest)");
+        EnsureChapterInternal(3, "Đầm lầy độc (Toxic Swamp)");
+    }
+
+    private void EnsureChapterInternal(int chNum, string chName)
+    {
+        ChapterPropConfig config = chapterPropsList.Find(c => c != null && c.chapterNumber == chNum);
+        if (config == null)
+        {
+            config = new ChapterPropConfig
+            {
+                chapterNumber = chNum,
+                chapterName = chName,
+                props = new List<PropEntry>()
+            };
+            chapterPropsList.Add(config);
+        }
+
+        if (config.props == null)
+        {
+            config.props = new List<PropEntry>();
+        }
+
+        if (config.props.Count == 0)
+        {
+            PopulateDefaultPropsForChapter(config.props, chNum);
+        }
+    }
+
+    private static void PopulateDefaultPropsForChapter(List<PropEntry> targetProps, int chNum)
+    {
+        targetProps.Clear();
+        if (chNum == 2)
+        {
+            AddPropEntry(targetProps, "Assets/Prefabs/Map 2 - Mutant Forest/nam_tim.prefab", PropKind.Obstacle, true);
+            AddPropEntry(targetProps, "Assets/Prefabs/Map 2 - Mutant Forest/cay_hoa_xoan.prefab", PropKind.Obstacle, true);
+            AddPropEntry(targetProps, "Assets/Prefabs/Map 2 - Mutant Forest/bui_cay.prefab", PropKind.Obstacle, true);
+            AddPropEntry(targetProps, "Assets/Prefabs/Map 2 - Mutant Forest/bui_co_1.prefab", PropKind.Decoration, false);
+            AddPropEntry(targetProps, "Assets/Prefabs/Map 2 - Mutant Forest/bui_co_2.prefab", PropKind.Decoration, false);
+            AddPropEntry(targetProps, "Assets/Prefabs/Map 2 - Mutant Forest/bui_co_doi.prefab", PropKind.Decoration, false);
+        }
+        else if (chNum == 3)
+        {
+            AddPropEntry(targetProps, "Assets/Prefabs/Map 3 - Toxic Swamp/tang_da.prefab", PropKind.Obstacle, true);
+            AddPropEntry(targetProps, "Assets/Prefabs/Map 3 - Toxic Swamp/cum_cay_cam.prefab", PropKind.Obstacle, true);
+            AddPropEntry(targetProps, "Assets/Prefabs/Map 3 - Toxic Swamp/cay_bup_cam.prefab", PropKind.Obstacle, true);
+            AddPropEntry(targetProps, "Assets/Prefabs/Map 3 - Toxic Swamp/nam_bach_tuoc.prefab", PropKind.Obstacle, true);
+            AddPropEntry(targetProps, "Assets/Prefabs/Map 3 - Toxic Swamp/mam_vang.prefab", PropKind.Decoration, false);
+            AddPropEntry(targetProps, "Assets/Prefabs/Map 3 - Toxic Swamp/mam_xanh.prefab", PropKind.Decoration, false);
+            AddPropEntry(targetProps, "Assets/Prefabs/Map 3 - Toxic Swamp/bui_hoa_xanh.prefab", PropKind.Decoration, false);
+        }
+    }
+
+    private static void AddPropEntry(List<PropEntry> targetProps, string path, PropKind kind, bool blockPlayer)
+    {
+        GameObject prefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(path);
+        if (prefab == null) return;
+
+        targetProps.Add(new PropEntry
+        {
+            prefab = prefab,
+            kind = kind,
+            blockPlayer = blockPlayer,
+            weight = 1f,
+            scaleMultiplierRange = new Vector2(0.9f, 1.1f)
+        });
+    }
+#endif
+
     [ContextMenu("Regenerate Desert Props")]
     public void Generate()
     {
-        GenerateInternal(false, false);
+        GenerateInternal(false, false, -1);
     }
 
     /// <summary>
     /// Tạo bố cục xem trước ngay trong Scene View, không cần vào Play Mode.
-    /// Preview không được lưu vào scene và không phụ thuộc chapter đang chạy.
+    /// Preview không được lưu vào scene và có thể chỉ định chapter cụ thể.
     /// </summary>
-    public void GeneratePreview()
+    public void GeneratePreview(int chapterNum = -1)
     {
         if (Application.isPlaying)
         {
@@ -92,10 +195,10 @@ public class DesertPropSpawner : MonoBehaviour
             return;
         }
 
-        GenerateInternal(true, true);
+        GenerateInternal(true, true, chapterNum);
     }
 
-    private void GenerateInternal(bool ignoreChapterFilter, bool isEditorPreview)
+    private void GenerateInternal(bool ignoreChapterFilter, bool isEditorPreview, int previewChapterNum = -1)
     {
         mapBoundary = GetComponent<MapBoundary>();
         chapterMapManager = GetComponent<ChapterMapManager>();
@@ -106,11 +209,40 @@ public class DesertPropSpawner : MonoBehaviour
             return;
         }
 
+        int activeChapterNum = previewChapterNum > 0
+            ? previewChapterNum
+            : (chapterMapManager != null && chapterMapManager.ActiveChapterData != null
+                ? chapterMapManager.ActiveChapterData.chapterNumber
+                : desertChapterNumber);
+
+        if (isEditorPreview)
+        {
+            SpriteRenderer sr = GetComponent<SpriteRenderer>();
+            if (sr != null)
+            {
+                string groundSpritePath = null;
+                if (activeChapterNum == 1) groundSpritePath = "Assets/Sprites/Backround/Map/nền.png";
+                else if (activeChapterNum == 2) groundSpritePath = "Assets/Sprites/Backround/Map/nền (1).png";
+                else if (activeChapterNum == 3) groundSpritePath = "Assets/Sprites/Backround/Map/nền (2).png";
+
+#if UNITY_EDITOR
+                if (!string.IsNullOrEmpty(groundSpritePath))
+                {
+                    Sprite s = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(groundSpritePath);
+                    if (s != null)
+                    {
+                        sr.sprite = s;
+                    }
+                }
+#endif
+            }
+        }
+
         random = useRandomSeed
             ? new System.Random(randomSeed)
             : new System.Random(unchecked(Environment.TickCount * 397 ^ GetInstanceID()));
 
-        generatedRoot = new GameObject("Generated Desert Props").transform;
+        generatedRoot = new GameObject($"Generated Props (Chapter {activeChapterNum})").transform;
         generatedRoot.SetParent(transform, false);
         generatedRoot.localPosition = new Vector3(0f, 0f, -10f);
         if (isEditorPreview)
@@ -134,8 +266,8 @@ public class DesertPropSpawner : MonoBehaviour
             ? currentChapter.obstacleColliderHeightRatio
             : colliderHeightRatio;
 
-        SpawnKind(PropKind.Decoration, CalculateSpawnCount(area, currentDecorationDensity), decorationMinSpacing, currentWidthRatio, currentHeightRatio);
-        SpawnKind(PropKind.Obstacle, CalculateSpawnCount(area, currentObstacleDensity), obstacleMinSpacing, currentWidthRatio, currentHeightRatio);
+        SpawnKind(PropKind.Decoration, CalculateSpawnCount(area, currentDecorationDensity), decorationMinSpacing, currentWidthRatio, currentHeightRatio, activeChapterNum);
+        SpawnKind(PropKind.Obstacle, CalculateSpawnCount(area, currentObstacleDensity), obstacleMinSpacing, currentWidthRatio, currentHeightRatio, activeChapterNum);
     }
 
     [ContextMenu("Clear Generated Desert Props")]
@@ -144,20 +276,20 @@ public class DesertPropSpawner : MonoBehaviour
         obstaclePositions.Clear();
         decorationPositions.Clear();
 
-        Transform oldRoot = transform.Find("Generated Desert Props");
-        if (oldRoot == null)
+        List<Transform> toDestroy = new List<Transform>();
+        for (int i = 0; i < transform.childCount; i++)
         {
-            generatedRoot = null;
-            return;
+            Transform child = transform.GetChild(i);
+            if (child.name.StartsWith("Generated"))
+            {
+                toDestroy.Add(child);
+            }
         }
 
-        if (Application.isPlaying)
+        foreach (var t in toDestroy)
         {
-            Destroy(oldRoot.gameObject);
-        }
-        else
-        {
-            DestroyImmediate(oldRoot.gameObject);
+            if (Application.isPlaying) Destroy(t.gameObject);
+            else DestroyImmediate(t.gameObject);
         }
 
         generatedRoot = null;
@@ -175,9 +307,34 @@ public class DesertPropSpawner : MonoBehaviour
         return chapter != null && chapter.chapterNumber == desertChapterNumber;
     }
 
-    private void SpawnKind(PropKind kind, int targetCount, float minSpacing, float widthRatio, float heightRatio)
+    public List<PropEntry> GetCurrentPropsList(int chapterNum = -1)
     {
-        List<PropEntry> candidates = GetCandidates(kind);
+        if (chapterNum <= 0)
+        {
+            ChapterData chapter = chapterMapManager != null ? chapterMapManager.ActiveChapterData : null;
+            chapterNum = chapter != null ? chapter.chapterNumber : desertChapterNumber;
+        }
+
+        if (chapterPropsList != null)
+        {
+            for (int i = 0; i < chapterPropsList.Count; i++)
+            {
+                if (chapterPropsList[i] != null && chapterPropsList[i].chapterNumber == chapterNum)
+                {
+                    if (chapterPropsList[i].props != null && chapterPropsList[i].props.Count > 0)
+                    {
+                        return chapterPropsList[i].props;
+                    }
+                }
+            }
+        }
+
+        return props;
+    }
+
+    private void SpawnKind(PropKind kind, int targetCount, float minSpacing, float widthRatio, float heightRatio, int chapterNum = -1)
+    {
+        List<PropEntry> candidates = GetCandidates(kind, chapterNum);
         if (candidates.Count == 0 || targetCount <= 0)
         {
             return;
@@ -205,12 +362,13 @@ public class DesertPropSpawner : MonoBehaviour
         }
     }
 
-    private List<PropEntry> GetCandidates(PropKind kind)
+    private List<PropEntry> GetCandidates(PropKind kind, int chapterNum = -1)
     {
+        List<PropEntry> activeProps = GetCurrentPropsList(chapterNum);
         List<PropEntry> result = new List<PropEntry>();
-        for (int i = 0; i < props.Count; i++)
+        for (int i = 0; i < activeProps.Count; i++)
         {
-            PropEntry entry = props[i];
+            PropEntry entry = activeProps[i];
             if (entry != null && entry.prefab != null && entry.kind == kind && entry.weight > 0f)
             {
                 result.Add(entry);
@@ -302,11 +460,14 @@ public class DesertPropSpawner : MonoBehaviour
 
     private void ConfigureCollision(GameObject instance, bool blocksPlayer, float widthRatio, float heightRatio)
     {
+        int enemyLayerMask = allowEnemiesToPassThrough ? LayerMask.GetMask("Enemy") : 0;
+
         Collider2D[] colliders = instance.GetComponentsInChildren<Collider2D>(true);
         for (int i = 0; i < colliders.Length; i++)
         {
             colliders[i].enabled = blocksPlayer;
             colliders[i].isTrigger = false;
+            colliders[i].excludeLayers = enemyLayerMask;
         }
 
         if (!blocksPlayer || colliders.Length > 0)
@@ -328,6 +489,7 @@ public class DesertPropSpawner : MonoBehaviour
         collider.offset = new Vector2(
             spriteBounds.center.x,
             spriteBounds.min.y + collider.size.y * 0.5f);
+        collider.excludeLayers = enemyLayerMask;
     }
 
     private void ConfigureSorting(GameObject instance, PropKind kind, float y)

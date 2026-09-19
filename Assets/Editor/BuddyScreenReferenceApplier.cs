@@ -50,7 +50,6 @@ public static class BuddyScreenReferenceApplier
                 c.EnsureEquippedSlotsMatchTemplate();
                 c.RefreshEquippedGrid();
             }
-            Debug.Log($"[BuddyScreenReferenceApplier] Đã rebuild {controllers.Length} EquippedSlots trong Play mode.");
             return;
         }
 
@@ -112,7 +111,6 @@ public static class BuddyScreenReferenceApplier
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
             EditorPrefs.SetBool(AppliedKey, true);
-            Debug.Log($"[BuddyScreenReferenceApplier] Đã hoàn thiện {controllers.Length} BuddyPanel bằng asset gốc.");
         }
         finally
         {

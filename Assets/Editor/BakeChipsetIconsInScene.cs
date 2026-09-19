@@ -173,7 +173,6 @@ public static class BakeChipsetIconsInScene
         if (EditorApplication.isPlayingOrWillChangePlaymode) return;
 
         EditorSceneManager.MarkSceneDirty(chipsetPanelObj.scene);
-        Debug.Log("[BakeChipsetIcons] ✅ Đã gắn thành công toàn bộ 10 Icon, Khung và Nút bấm trực tiếp vào Scene MainMenu!");
     }
 
     [MenuItem("PGE/Bake Buddy Icons In Scene")]
@@ -336,7 +335,6 @@ public static class BakeChipsetIconsInScene
         if (EditorApplication.isPlayingOrWillChangePlaymode) return;
 
         EditorSceneManager.MarkSceneDirty(buddyPanelObj.scene);
-        Debug.Log("[BakeBuddyIcons] ✅ Đã gắn thành công toàn bộ Icon, Khung và Nút bấm trực tiếp cho màn hình Buddy!");
     }
 
     private static void BakeBuddyCard(Transform cardTransform, Sprite iconSprite, Sprite frameSprite, string level, string progress)

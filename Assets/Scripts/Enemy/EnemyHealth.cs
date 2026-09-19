@@ -87,7 +87,11 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     public float DamageFlashDuration
     {
         get => damageFlashDuration;
-        set => damageFlashDuration = Mathf.Max(0f, value);
+        set
+        {
+            damageFlashDuration = Mathf.Max(0f, value);
+            cachedFlashWait = new WaitForSeconds(damageFlashDuration);
+        }
     }
 
     private int baseMaxHealth;
@@ -141,10 +145,12 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     private SpriteRenderer[] spriteRenderers;
     private Color[] initialSpriteColors;
     private Coroutine flashRoutine;
+    private WaitForSeconds cachedFlashWait;
     private float cachedDeathDuration;
     private bool hasDeathTriggerParam;
     private string defaultAnimationState = "run";
     private int defaultStateHash;
+    private int deathStateHash;
     private Coroutine deathRoutine;
     private Vector3 initialRootScale;
 
@@ -164,6 +170,7 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
         baseExpReward = expReward;
         baseDataChipReward = dataChipReward;
         baseRedGemReward = redGemReward;
+        cachedFlashWait = new WaitForSeconds(damageFlashDuration);
         initialRootScale = transform.localScale;
         colliders = GetComponentsInChildren<Collider2D>(true);
         animator = GetComponent<Animator>() ?? GetComponentInChildren<Animator>();
@@ -257,36 +264,92 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     private void CacheDeathAnimationSettings()
     {
         cachedDeathDuration = fallbackDeathDuration;
+        deathStateHash = 0;
+        defaultStateHash = 0;
+
         if (animator != null && animator.runtimeAnimatorController != null)
         {
             AnimationClip[] clips = animator.runtimeAnimatorController.animationClips;
+
+            // 1. Tìm State Die/Death hợp lệ có trên Animator layer 0
+            string[] candidateDeathStates = new string[]
+            {
+                deathAnimationState, "Die", "Death", "DeathBigcreep", "Deathcreep2", "DieBig", "death", "die"
+            };
+            for (int i = 0; i < candidateDeathStates.Length; i++)
+            {
+                if (string.IsNullOrEmpty(candidateDeathStates[i])) continue;
+                int hash = Animator.StringToHash(candidateDeathStates[i]);
+                if (animator.HasState(0, hash))
+                {
+                    deathAnimationState = candidateDeathStates[i];
+                    deathStateHash = hash;
+                    break;
+                }
+            }
+
+            // Fallback qua clips nếu candidate chưa khớp state
             if (clips != null)
             {
                 foreach (AnimationClip clip in clips)
                 {
-                    if (clip != null)
+                    if (clip == null) continue;
+
+                    if (string.Equals(clip.name, deathAnimationState, StringComparison.OrdinalIgnoreCase))
                     {
-                        if (string.Equals(clip.name, deathAnimationState, StringComparison.OrdinalIgnoreCase) ||
-                            string.Equals(clip.name, "DieBig", StringComparison.OrdinalIgnoreCase))
+                        cachedDeathDuration = clip.length;
+                    }
+                    else if (cachedDeathDuration <= 0f && (
+                        string.Equals(clip.name, "DieBig", StringComparison.OrdinalIgnoreCase) ||
+                        clip.name.IndexOf("death", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                        clip.name.IndexOf("die", StringComparison.OrdinalIgnoreCase) >= 0))
+                    {
+                        cachedDeathDuration = clip.length;
+                        if (deathStateHash == 0)
                         {
-                            cachedDeathDuration = clip.length;
-                        }
-                        else if (string.Equals(clip.name, "run", StringComparison.OrdinalIgnoreCase) ||
-                                 string.Equals(clip.name, "Run", StringComparison.OrdinalIgnoreCase) ||
-                                 string.Equals(clip.name, "runbig", StringComparison.OrdinalIgnoreCase) ||
-                                 string.Equals(clip.name, "walk", StringComparison.OrdinalIgnoreCase) ||
-                                 string.Equals(clip.name, "idle", StringComparison.OrdinalIgnoreCase))
-                        {
-                            defaultAnimationState = clip.name;
-                            defaultStateHash = Animator.StringToHash(clip.name);
+                            int clipHash = Animator.StringToHash(clip.name);
+                            if (animator.HasState(0, clipHash))
+                            {
+                                deathAnimationState = clip.name;
+                                deathStateHash = clipHash;
+                            }
                         }
                     }
                 }
             }
-            if (defaultStateHash == 0 && !string.IsNullOrEmpty(defaultAnimationState))
+
+            // 2. Tìm State di chuyển / mặc định hợp lệ có trên Animator layer 0
+            string[] candidateDefaultStates = new string[]
             {
-                defaultStateHash = Animator.StringToHash(defaultAnimationState);
+                defaultAnimationState, "run", "Run", "Walk", "walk", "WalkBigcreep", "Walkcreep1", "runbig", "Idle", "idle"
+            };
+            for (int i = 0; i < candidateDefaultStates.Length; i++)
+            {
+                if (string.IsNullOrEmpty(candidateDefaultStates[i])) continue;
+                int hash = Animator.StringToHash(candidateDefaultStates[i]);
+                if (animator.HasState(0, hash))
+                {
+                    defaultAnimationState = candidateDefaultStates[i];
+                    defaultStateHash = hash;
+                    break;
+                }
             }
+
+            if (defaultStateHash == 0 && clips != null)
+            {
+                foreach (AnimationClip clip in clips)
+                {
+                    if (clip == null) continue;
+                    int hash = Animator.StringToHash(clip.name);
+                    if (animator.HasState(0, hash))
+                    {
+                        defaultAnimationState = clip.name;
+                        defaultStateHash = hash;
+                        break;
+                    }
+                }
+            }
+
             hasDeathTriggerParam = HasParameter(animator, deathAnimationTrigger, AnimatorControllerParameterType.Trigger);
         }
     }
@@ -472,13 +535,7 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     private IEnumerator PlayDeathAnimationAndDespawn(Vector3 lockedPos, Quaternion lockedRot, Vector3 lockedScale)
     {
         float animDuration = cachedDeathDuration > 0f ? cachedDeathDuration : fallbackDeathDuration;
-        bool isSingleSprite = transform.childCount == 0;
-
-        // Nếu là quái single-sprite (như BigCreep), giới hạn thời gian diễn hoạt chết gọn gàng (0.4s)
-        if (isSingleSprite)
-        {
-            animDuration = Mathf.Min(0.4f, animDuration);
-        }
+        bool isSquashDeath = transform.childCount == 0 && GetComponent<BossEnemy>() == null && (cachedDeathDuration <= 0f || cachedDeathDuration <= 0.45f);
 
         if (animator == null)
         {
@@ -495,7 +552,11 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
             {
                 animator.SetTrigger(deathAnimationTrigger);
             }
-            else
+            else if (deathStateHash != 0 && animator.HasState(0, deathStateHash))
+            {
+                animator.Play(deathStateHash, 0, 0f);
+            }
+            else if (!string.IsNullOrEmpty(deathAnimationState) && animator.HasState(0, Animator.StringToHash(deathAnimationState)))
             {
                 animator.Play(deathAnimationState, 0, 0f);
             }
@@ -504,13 +565,13 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
         float animWait = Mathf.Max(0.05f, animDuration + destroyDelay);
         float elapsed = 0f;
 
-        // Giai đoạn 1: Giữ cố định tọa độ tại chỗ và phát trọn vẹn animation Die
+        // Giai đoạn 1: Giữ cố định tọa độ tại chỗ và phát trọn vẹn animation Die/Death (không lặp)
         while (elapsed < animWait)
         {
             transform.position = lockedPos;
             transform.rotation = lockedRot;
 
-            if (isSingleSprite)
+            if (isSquashDeath)
             {
                 // Hiệu ứng Squash mượt mà: co xẹp Y xuống 35% và giãn nhẹ X 15%, giữ nguyên 100% hướng mặt
                 float t = Mathf.Clamp01(elapsed / animWait);
@@ -530,21 +591,27 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
         }
 
         transform.position = lockedPos;
-        Vector3 finalDeathScale = isSingleSprite
+        Vector3 finalDeathScale = isSquashDeath
             ? new Vector3(lockedScale.x * 1.15f, lockedScale.y * 0.35f, lockedScale.z)
             : lockedScale;
         transform.localScale = finalDeathScale;
 
-        // Khóa đúng pose cuối của Die trong suốt thời gian fade.
+        // Dừng animation ở frame cuối cùng (normalizedTime = 1.0f) và khóa tốc độ speed = 0 (không lặp lại)
         if (animator != null && animator.gameObject.activeInHierarchy)
         {
-            animator.Play(deathAnimationState, 0, 0.999f);
+            if (deathStateHash != 0 && animator.HasState(0, deathStateHash))
+            {
+                animator.Play(deathStateHash, 0, 1.0f);
+            }
+            else if (!string.IsNullOrEmpty(deathAnimationState) && animator.HasState(0, Animator.StringToHash(deathAnimationState)))
+            {
+                animator.Play(deathAnimationState, 0, 1.0f);
+            }
             animator.Update(0f);
             animator.speed = 0f;
-            animator.enabled = false;
         }
 
-        // Giai đoạn 2: Hiệu ứng Mờ dần (Fade Out) từ màu hiện tại về Alpha = 0
+        // Giai đoạn 2: Hiệu ứng Mờ dần (Fade Out) từ màu hiện tại về Alpha = 0 trong khi giữ nguyên frame cuối
         if (fadeOutDuration > 0f && spriteRenderers != null && spriteRenderers.Length > 0)
         {
             float fadeElapsed = 0f;
@@ -714,11 +781,11 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
             animator.ResetTrigger(deathAnimationTrigger);
         }
 
-        if (defaultStateHash != 0)
+        if (defaultStateHash != 0 && animator.HasState(0, defaultStateHash))
         {
             animator.Play(defaultStateHash, 0, 0f);
         }
-        else if (!string.IsNullOrEmpty(defaultAnimationState))
+        else if (!string.IsNullOrEmpty(defaultAnimationState) && animator.HasState(0, Animator.StringToHash(defaultAnimationState)))
         {
             animator.Play(defaultAnimationState, 0, 0f);
         }
@@ -784,7 +851,7 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
             }
         }
 
-        yield return new WaitForSeconds(damageFlashDuration);
+        yield return cachedFlashWait ?? (cachedFlashWait = new WaitForSeconds(damageFlashDuration));
 
         RestoreSpriteColors();
         flashRoutine = null;

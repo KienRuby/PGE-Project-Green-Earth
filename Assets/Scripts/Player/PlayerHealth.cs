@@ -158,8 +158,12 @@ public class PlayerHealth : MonoBehaviour, IDamageable
     private Color[] initialSpriteColors;
     private Coroutine flashRoutine;
 
+    public static PlayerHealth Instance { get; private set; }
+
     private void Awake()
     {
+        Instance = this;
+
         if (baseMaxHealth <= 0)
         {
             baseMaxHealth = maxHealth;
@@ -365,7 +369,6 @@ public class PlayerHealth : MonoBehaviour, IDamageable
 
         invincibleTimer = invincibleTime;
 
-        Debug.Log($"Player nhận {effectiveDamage} damage (gốc {damage}, giáp giảm {damageReduction}, Shield còn {currentShield}/{maxShield}). HP: {CurrentHealth}/{maxHealth}");
 
         OnHealthChanged?.Invoke(CurrentHealth, maxHealth);
 
@@ -537,7 +540,6 @@ public class PlayerHealth : MonoBehaviour, IDamageable
         IsDead = true;
         AudioManager.Instance?.PlaySFX(SoundIdConst.SFX_PLAYER_DEATH);
 
-        Debug.Log("Player đã chết!");
 
         OnPlayerDeath?.Invoke();
     }
@@ -553,6 +555,11 @@ public class PlayerHealth : MonoBehaviour, IDamageable
 
     private void OnDestroy()
     {
+        if (Instance == this)
+        {
+            Instance = null;
+        }
+
         if (flashRoutine != null)
         {
             StopCoroutine(flashRoutine);

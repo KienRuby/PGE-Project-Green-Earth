@@ -233,6 +233,7 @@ public class DamageNumber : MonoBehaviour, IPoolable
     private float targetScaleFactor = 1f;
     private float elapsedTime;
     private bool isRunning;
+    private float lastAppliedAlpha = -1f;
     private bool isCrit;
     private MeshRenderer meshRenderer;
 
@@ -388,8 +389,11 @@ public class DamageNumber : MonoBehaviour, IPoolable
         healOutlineColor = heal;
     }
 
+    private static Material sharedNormalMaterial;
+    private static Material sharedCritMaterial;
+
     /// <summary>
-    /// Áp dụng trực tiếp thiết lập màu viền lên TextMeshPro Material.
+    /// Áp dụng trực tiếp thiết lập màu viền lên TextMeshPro Material dùng chung.
     /// </summary>
     public void ApplyOutline()
     {
@@ -398,36 +402,39 @@ public class DamageNumber : MonoBehaviour, IPoolable
             textComponent = GetComponent<TMP_Text>();
         }
 
-        if (textComponent == null) return;
-
-        // Bảo vệ an toàn: Nếu fontSharedMaterial chưa được gán hoặc đang import asset,
-        // tuyệt đối không gọi textComponent.fontMaterial vì TMP sẽ throw ArgumentNullException (source null).
-        if (textComponent.fontSharedMaterial == null) return;
-
-        // Chỉ tạo và chỉnh fontMaterial instance khi đang trong Play mode để tránh rò rỉ bộ nhớ
-        // và tránh lỗi serialization trong OnValidate / Asset Import của Unity Editor.
+        if (textComponent == null || textComponent.fontSharedMaterial == null) return;
         if (!Application.isPlaying) return;
 
-        Material mat = textComponent.fontMaterial;
-        if (mat != null)
+        if (isCrit)
         {
-            mat.EnableKeyword(ShaderUtilities.Keyword_Outline);
-            mat.SetColor(ShaderUtilities.ID_OutlineColor, outlineColor);
-            mat.SetFloat(ShaderUtilities.ID_OutlineWidth, outlineWidth);
-
-            if (isCrit)
+            if (sharedCritMaterial == null)
             {
-                mat.EnableKeyword(ShaderUtilities.Keyword_Underlay);
-                mat.SetColor(ShaderUtilities.ID_UnderlayColor, new Color(0.96f, 0.96f, 0.52f, 0.85f));
-                mat.SetFloat(ShaderUtilities.ID_UnderlayDilate, 0.25f);
-                mat.SetFloat(ShaderUtilities.ID_UnderlaySoftness, 0.45f);
-                mat.SetFloat(ShaderUtilities.ID_UnderlayOffsetX, 0f);
-                mat.SetFloat(ShaderUtilities.ID_UnderlayOffsetY, 0f);
+                sharedCritMaterial = new Material(textComponent.fontSharedMaterial);
+                sharedCritMaterial.name = "TMP_Crit_SharedMaterial";
+                sharedCritMaterial.EnableKeyword(ShaderUtilities.Keyword_Outline);
+                sharedCritMaterial.SetColor(ShaderUtilities.ID_OutlineColor, outlineColor);
+                sharedCritMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, outlineWidth);
+                sharedCritMaterial.EnableKeyword(ShaderUtilities.Keyword_Underlay);
+                sharedCritMaterial.SetColor(ShaderUtilities.ID_UnderlayColor, new Color(0.96f, 0.96f, 0.52f, 0.85f));
+                sharedCritMaterial.SetFloat(ShaderUtilities.ID_UnderlayDilate, 0.25f);
+                sharedCritMaterial.SetFloat(ShaderUtilities.ID_UnderlaySoftness, 0.45f);
+                sharedCritMaterial.SetFloat(ShaderUtilities.ID_UnderlayOffsetX, 0f);
+                sharedCritMaterial.SetFloat(ShaderUtilities.ID_UnderlayOffsetY, 0f);
             }
-            else
+            textComponent.fontSharedMaterial = sharedCritMaterial;
+        }
+        else
+        {
+            if (sharedNormalMaterial == null)
             {
-                mat.DisableKeyword(ShaderUtilities.Keyword_Underlay);
+                sharedNormalMaterial = new Material(textComponent.fontSharedMaterial);
+                sharedNormalMaterial.name = "TMP_Normal_SharedMaterial";
+                sharedNormalMaterial.EnableKeyword(ShaderUtilities.Keyword_Outline);
+                sharedNormalMaterial.SetColor(ShaderUtilities.ID_OutlineColor, outlineColor);
+                sharedNormalMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, outlineWidth);
+                sharedNormalMaterial.DisableKeyword(ShaderUtilities.Keyword_Underlay);
             }
+            textComponent.fontSharedMaterial = sharedNormalMaterial;
         }
     }
 
@@ -451,24 +458,24 @@ public class DamageNumber : MonoBehaviour, IPoolable
         // 1. Định dạng nội dung hiển thị
         if (textComponent != null)
         {
-            string numStr = amount > 0 ? amount.ToString() : "0";
+            int safeAmount = Mathf.Max(0, amount);
             switch (type)
             {
                 case DamageType.Critical:
-                    textComponent.text = numStr;
+                    textComponent.SetText("{0}", safeAmount);
                     textComponent.fontStyle = FontStyles.Bold | FontStyles.Italic;
                     break;
                 case DamageType.PlayerDamage:
-                    textComponent.text = "-" + numStr;
+                    textComponent.SetText("-{0}", safeAmount);
                     textComponent.fontStyle = FontStyles.Bold;
                     break;
                 case DamageType.Heal:
-                    textComponent.text = "+" + numStr;
+                    textComponent.SetText("+{0}", safeAmount);
                     textComponent.fontStyle = FontStyles.Bold;
                     break;
                 case DamageType.Normal:
                 default:
-                    textComponent.text = numStr;
+                    textComponent.SetText("{0}", safeAmount);
                     textComponent.fontStyle = FontStyles.Bold;
                     break;
             }
@@ -606,6 +613,9 @@ public class DamageNumber : MonoBehaviour, IPoolable
 
     private void ApplyColorAndGradient(float alpha)
     {
+        if (Mathf.Abs(lastAppliedAlpha - alpha) < 0.005f) return;
+        lastAppliedAlpha = alpha;
+
         if (textComponent != null)
         {
             Color c = baseColor;
@@ -706,6 +716,7 @@ public class DamageNumber : MonoBehaviour, IPoolable
     {
         elapsedTime = 0f;
         isRunning = true;
+        lastAppliedAlpha = -1f;
     }
 
     public void OnReturnToPool()
@@ -726,26 +737,16 @@ public class DamageNumber : MonoBehaviour, IPoolable
 
     /// <summary>
     /// Tự động nhận diện biên giới bên trái thực tế của con số đầu tiên trong chuỗi số sát thương.
-    /// Tính toán dựa trên cấu trúc hình học thực của glyph (TMP_CharacterInfo).
+    /// Không gọi ForceMeshUpdate() trên Main Thread để tránh spike CPU.
     /// </summary>
     public float GetFirstCharacterLeftEdge()
     {
         if (textComponent == null) return 0f;
 
-        textComponent.ForceMeshUpdate();
-        TMP_TextInfo textInfo = textComponent.textInfo;
-
-        if (textInfo != null && textInfo.characterCount > 0)
+        float prefWidth = textComponent.preferredWidth;
+        if (prefWidth > 0.001f)
         {
-            for (int i = 0; i < textInfo.characterCount; i++)
-            {
-                TMP_CharacterInfo charInfo = textInfo.characterInfo[i];
-                if (charInfo.isVisible)
-                {
-                    // Lấy tọa độ X nhỏ nhất của glyph con số đầu tiên
-                    return Mathf.Min(charInfo.bottomLeft.x, charInfo.topLeft.x);
-                }
-            }
+            return -prefWidth * 0.5f;
         }
 
         return textComponent.textBounds.min.x;

@@ -590,7 +590,6 @@ public class PlayerDeathController : MonoBehaviour
             yield return new WaitForSecondsRealtime(completionDelay);
         }
 
-        Debug.Log("[PlayerDeathController] Hiệu ứng nổ Player VFX Boom hoàn tất.");
 
         onDeathComplete?.Invoke();
         OnDeathCompleted?.Invoke();
@@ -632,7 +631,7 @@ public class PlayerDeathController : MonoBehaviour
         {
             animator.SetBool(deathStateName, true);
         }
-        else
+        else if (animator.HasState(0, Animator.StringToHash(deathStateName)))
         {
             animator.Play(deathStateName, 0, 0f);
         }
@@ -763,7 +762,7 @@ public class PlayerDeathController : MonoBehaviour
             {
                 animator.SetBool(deathStateName, true);
             }
-            else
+            else if (animator.HasState(0, Animator.StringToHash(deathStateName)))
             {
                 animator.Play(deathStateName, 0, 0f);
             }
@@ -871,7 +870,6 @@ public class PlayerDeathController : MonoBehaviour
         // =========================================================================
         // BƯỚC 5: HOÀN TẤT VÀ DỌN DẸP
         // =========================================================================
-        Debug.Log("[PlayerDeathController] 1-Second Golden Star Particle Explosion VFX hoàn tất.");
 
         onDeathComplete?.Invoke();
         OnDeathCompleted?.Invoke();

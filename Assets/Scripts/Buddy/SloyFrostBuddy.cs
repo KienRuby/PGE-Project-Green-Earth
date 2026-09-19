@@ -78,8 +78,10 @@ public class SloyFrostBuddy : BuddyCombatDrone
 
         if (projectilePrefab != null)
         {
-            GameObject projObj = Instantiate(projectilePrefab, spawnPos, Quaternion.identity);
-            Projectile proj = projObj.GetComponent<Projectile>();
+            GameObject projObj = PoolManager.Instance != null
+                ? PoolManager.Instance.Spawn(projectilePrefab, spawnPos, Quaternion.identity)
+                : Instantiate(projectilePrefab, spawnPos, Quaternion.identity);
+            Projectile proj = projObj != null ? projObj.GetComponent<Projectile>() : null;
             if (proj != null)
             {
                 proj.Setup(baseDamage, projectileSpeed, EffectiveAttackRange);
@@ -89,15 +91,22 @@ public class SloyFrostBuddy : BuddyCombatDrone
             }
 
             // Đổi màu xanh băng cho đạn để nhận diện chiêu thức
-            SpriteRenderer sr = projObj.GetComponentInChildren<SpriteRenderer>();
-            if (sr != null)
+            if (projObj != null)
             {
-                sr.color = frostColor;
-            }
+                SpriteRenderer sr = projObj.GetComponentInChildren<SpriteRenderer>();
+                if (sr != null)
+                {
+                    sr.color = frostColor;
+                }
 
-            // Gắn component áp dụng hiệu ứng làm chậm khi trúng đích
-            FrostHitEffect slowApplier = projObj.AddComponent<FrostHitEffect>();
-            slowApplier.Setup(slowPercentage, slowDuration, hitVfxPrefab, isAreaSlow, isBlizzardBlast, aoeDamage, enemyLayer);
+                // Gắn/tái sử dụng component áp dụng hiệu ứng làm chậm khi trúng đích
+                FrostHitEffect slowApplier = projObj.GetComponent<FrostHitEffect>();
+                if (slowApplier == null)
+                {
+                    slowApplier = projObj.AddComponent<FrostHitEffect>();
+                }
+                slowApplier.Setup(slowPercentage, slowDuration, hitVfxPrefab, isAreaSlow, isBlizzardBlast, aoeDamage, enemyLayer);
+            }
         }
         else
         {
@@ -158,7 +167,7 @@ public class SloyFrostBuddy : BuddyCombatDrone
     /// <summary>
     /// Component hỗ trợ kích hoạt hiệu ứng làm chậm khi đạn va chạm quái vật.
     /// </summary>
-    private class FrostHitEffect : MonoBehaviour
+    public class FrostHitEffect : MonoBehaviour
     {
         private float slowPercent;
         private float duration;

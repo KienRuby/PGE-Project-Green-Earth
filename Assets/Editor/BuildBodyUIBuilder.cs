@@ -445,7 +445,6 @@ public static class BuildBodyUIBuilder
         // 9. Lưu Scene
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
-        Debug.Log("[BuildBodyUIBuilder] ✅ Đã xây dựng hoàn tất giao diện Build Body theo mẫu 100%!");
     }
 
     private static BuildBodyController.BodyCardView CreateBodyCard(
@@ -663,22 +662,6 @@ public static class BuildBodyUIBuilder
         bbImg.raycastTarget = true;
         Button bbBtn = buildBtnObj.GetComponent<Button>();
         bbBtn.targetGraphic = bbImg;
-
-        GameObject bbTextObj = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI));
-        bbTextObj.transform.SetParent(bbRect, false);
-        RectTransform bbtRect = bbTextObj.GetComponent<RectTransform>();
-        bbtRect.anchorMin = Vector2.zero;
-        bbtRect.anchorMax = Vector2.one;
-        bbtRect.offsetMin = Vector2.zero;
-        bbtRect.offsetMax = Vector2.zero;
-
-        TextMeshProUGUI bbtTMP = bbTextObj.GetComponent<TextMeshProUGUI>();
-        if (font != null) bbtTMP.font = font;
-        bbtTMP.fontSize = 36f;
-        bbtTMP.fontStyle = FontStyles.Bold;
-        bbtTMP.color = Color.white;
-        bbtTMP.alignment = TextAlignmentOptions.Center;
-        bbtTMP.text = "Build";
 
         // Giá Build (Icon + Text)
         GameObject costObj = new GameObject("CostRow", typeof(RectTransform), typeof(HorizontalLayoutGroup));

@@ -41,11 +41,18 @@ public class RobotPetController : MonoBehaviour
     [SerializeField] public GameObject emptyStateHint;
     [SerializeField] public GameObject petCardPrefab;
 
+    [Header("Thanh cuộn Inventory")]
+    [SerializeField] public ScrollRect inventoryScrollRect;
+    [SerializeField] public RectTransform inventoryViewport;
+    [SerializeField] public RectTransform inventoryContent;
+
     [Header("Cấu hình vị trí hàng Card Pet đã sở hữu")]
     [SerializeField] public float cardPosY = -1010f;
     [SerializeField] public float cardWidth = 157f;
     [SerializeField] public float cardHeight = 197f;
     [SerializeField] public float cardSpacing = 110f;
+    [SerializeField] public int columns = 3;
+    [SerializeField] public float cardRowSpacing = 225f;
 
     [Header("Sprite tài nguyên")]
     [SerializeField] public Sprite emptyCardFrameSprite;
@@ -61,6 +68,7 @@ public class RobotPetController : MonoBehaviour
 
     private void Awake()
     {
+        EnsureScrollView();
         HidePlaceholderCards();
         AutoWireReferencesIfMissing();
         SetupButtonListeners();
@@ -244,17 +252,25 @@ public class RobotPetController : MonoBehaviour
                 if (petNameText != null) petNameText.text = pet.petName;
                 if (petDescText != null) petDescText.text = pet.description;
 
+                bool hasBakedCard = pet.cardSprite != null && !pet.cardSprite.name.Contains("Empty");
                 if (selectedPetCardImage != null)
                 {
-                    selectedPetCardImage.sprite = pet.cardSprite != null ? pet.cardSprite : emptyCardFrameSprite;
+                    selectedPetCardImage.sprite = hasBakedCard ? pet.cardSprite : emptyCardFrameSprite;
                     selectedPetCardImage.color = Color.white;
                 }
 
                 if (selectedPetIconImage != null)
                 {
-                    Sprite icon = pet.petIcon != null ? pet.petIcon : defaultPetIcon;
-                    selectedPetIconImage.sprite = icon;
-                    selectedPetIconImage.enabled = icon != null;
+                    if (hasBakedCard)
+                    {
+                        selectedPetIconImage.enabled = false;
+                    }
+                    else
+                    {
+                        Sprite icon = pet.petIcon != null ? pet.petIcon : defaultPetIcon;
+                        selectedPetIconImage.sprite = icon;
+                        selectedPetIconImage.enabled = icon != null;
+                    }
                 }
                 return;
             }
@@ -304,15 +320,33 @@ public class RobotPetController : MonoBehaviour
     /// </summary>
     public void RefreshInventory()
     {
+        EnsureScrollView();
         HidePlaceholderCards();
         List<int> ownedIds = PetService.GetOwnedPetIds();
 
         // Xóa các card cũ đã tạo
         foreach (var c in spawnedCards)
         {
-            if (c != null) Destroy(c);
+            if (c != null)
+            {
+                if (Application.isPlaying) Destroy(c);
+                else DestroyImmediate(c);
+            }
         }
         spawnedCards.Clear();
+
+        if (inventoryContent != null)
+        {
+            for (int i = inventoryContent.childCount - 1; i >= 0; i--)
+            {
+                Transform child = inventoryContent.GetChild(i);
+                if (child != null && child.name.StartsWith("Card_Pet_"))
+                {
+                    if (Application.isPlaying) Destroy(child.gameObject);
+                    else DestroyImmediate(child.gameObject);
+                }
+            }
+        }
 
         if (inventoryContainer == null) return;
 
@@ -322,6 +356,10 @@ public class RobotPetController : MonoBehaviour
             if (emptyStateHint != null)
             {
                 emptyStateHint.SetActive(true);
+            }
+            if (inventoryContent != null)
+            {
+                inventoryContent.sizeDelta = new Vector2(inventoryContent.sizeDelta.x, 500f);
             }
             return;
         }
@@ -357,6 +395,15 @@ public class RobotPetController : MonoBehaviour
             GameObject cardObj = CreatePetCardUI(pet, i, ownedPets.Count);
             spawnedCards.Add(cardObj);
         }
+
+        // Cập nhật chiều cao của Content trong ScrollView để cuộn mượt mà
+        int cols = Mathf.Max(1, columns);
+        int rowCount = (ownedPets.Count + cols - 1) / cols;
+        float totalHeight = Mathf.Max(430f, rowCount * cardRowSpacing + 20f);
+        if (inventoryContent != null)
+        {
+            inventoryContent.sizeDelta = new Vector2(inventoryContent.sizeDelta.x, totalHeight);
+        }
     }
 
     private GameObject CreatePetCardUI(PetData pet, int index, int totalCount)
@@ -369,15 +416,34 @@ public class RobotPetController : MonoBehaviour
         rect.anchorMax = new Vector2(0.5f, 1f);
         rect.pivot = new Vector2(0.5f, 1f);
 
-        // Tính vị trí X theo hàng ngang
-        float totalWidth = totalCount * cardWidth + (totalCount - 1) * cardSpacing;
-        float startX = -totalWidth / 2f + cardWidth / 2f;
-        float xPos = startX + index * (cardWidth + cardSpacing);
-        rect.anchoredPosition = new Vector2(xPos, cardPosY);
+        // Tính vị trí X và Y theo lưới cột (mặc định 3 cột mỗi hàng)
+        int cols = Mathf.Max(1, columns);
+        int col = index % cols;
+        int row = index / cols;
+
+        float xPos;
+        if (totalCount < cols)
+        {
+            // Nếu tổng số card ít hơn số cột (1 hoặc 2 card), căn giữa dòng đầu tiên
+            float totalWidth = totalCount * cardWidth + (totalCount - 1) * cardSpacing;
+            float startX = -totalWidth / 2f + cardWidth / 2f;
+            xPos = startX + index * (cardWidth + cardSpacing);
+        }
+        else
+        {
+            // Lưới 3 cột chuẩn: col 0 = -267, col 1 = 0, col 2 = +267 (khớp với cardSpacing 110f và cardWidth 157f)
+            float startX = -(cols - 1) * (cardWidth + cardSpacing) / 2f;
+            xPos = startX + col * (cardWidth + cardSpacing);
+        }
+
+        // Bắt đầu từ 0f bên dưới Viewport (đã cách 2 nút By Tier / By Quantity một khoảng an toàn)
+        float yPos = inventoryScrollRect != null ? (-row * cardRowSpacing) : (cardPosY - row * cardRowSpacing);
+        rect.anchoredPosition = new Vector2(xPos, yPos);
         rect.sizeDelta = new Vector2(cardWidth, cardHeight);
 
         Image cardImg = cardGo.GetComponent<Image>();
-        cardImg.sprite = pet.cardSprite != null ? pet.cardSprite : emptyCardFrameSprite;
+        bool hasBakedCard = pet.cardSprite != null && !pet.cardSprite.name.Contains("Empty");
+        cardImg.sprite = hasBakedCard ? pet.cardSprite : emptyCardFrameSprite;
         cardImg.preserveAspect = true;
 
         EnsureFontAndMaterial();
@@ -389,7 +455,7 @@ public class RobotPetController : MonoBehaviour
         lvlRect.anchorMin = new Vector2(0f, 1f);
         lvlRect.anchorMax = new Vector2(1f, 1f);
         lvlRect.pivot = new Vector2(0.5f, 1f);
-        lvlRect.anchoredPosition = new Vector2(0f, 0f);
+        lvlRect.anchoredPosition = new Vector2(0f, -10f);
         lvlRect.sizeDelta = new Vector2(0f, 36f);
 
         TextMeshProUGUI lvlText = lvlGo.GetComponent<TextMeshProUGUI>();
@@ -409,7 +475,7 @@ public class RobotPetController : MonoBehaviour
         countRect.anchorMin = new Vector2(0f, 0f);
         countRect.anchorMax = new Vector2(1f, 0f);
         countRect.pivot = new Vector2(0.5f, 0f);
-        countRect.anchoredPosition = new Vector2(0f, 8f);
+        countRect.anchoredPosition = new Vector2(0f, 35f);
         countRect.sizeDelta = new Vector2(0f, 32f);
 
         TextMeshProUGUI countText = countGo.GetComponent<TextMeshProUGUI>();
@@ -431,8 +497,8 @@ public class RobotPetController : MonoBehaviour
         countText.alignment = TextAlignmentOptions.Center;
         countText.raycastTarget = false;
 
-        // Nếu Card dùng Card_Slot_Empty thì thêm Image PetIcon ở giữa
-        if (cardImg.sprite == emptyCardFrameSprite && pet.petIcon != null)
+        // Nếu Card không có sprite nướng sẵn (Slime, Spider, Snake, Turtle, Snail), thêm Image PetIcon ở giữa
+        if (!hasBakedCard && pet.petIcon != null)
         {
             GameObject iconGo = new GameObject("PetIcon", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
             iconGo.transform.SetParent(cardGo.transform, false);
@@ -440,8 +506,8 @@ public class RobotPetController : MonoBehaviour
             iconRect.anchorMin = new Vector2(0.5f, 0.5f);
             iconRect.anchorMax = new Vector2(0.5f, 0.5f);
             iconRect.pivot = new Vector2(0.5f, 0.5f);
-            iconRect.anchoredPosition = new Vector2(0f, 0f);
-            iconRect.sizeDelta = new Vector2(90f, 90f);
+            iconRect.anchoredPosition = new Vector2(0f, 15f);
+            iconRect.sizeDelta = new Vector2(100f, 100f);
 
             Image iconImg = iconGo.GetComponent<Image>();
             iconImg.sprite = pet.petIcon;
@@ -505,11 +571,121 @@ public class RobotPetController : MonoBehaviour
         }
     }
 
+    public void EnsureScrollView()
+    {
+        if (inventoryScrollRect != null && inventoryContent != null)
+        {
+            // Luôn đảm bảo vị trí bắt đầu từ -1005f (dưới 2 nút By Tier / By Quantity) và chiều cao 430f
+            RectTransform srt = inventoryScrollRect.GetComponent<RectTransform>();
+            if (srt != null)
+            {
+                srt.anchorMin = new Vector2(0.5f, 1f);
+                srt.anchorMax = new Vector2(0.5f, 1f);
+                srt.pivot = new Vector2(0.5f, 1f);
+                srt.anchoredPosition = new Vector2(0f, -1005f);
+                srt.sizeDelta = new Vector2(1000f, 430f);
+            }
+            inventoryContainer = inventoryContent;
+            return;
+        }
+
+        Transform existingScroll = transform.Find("InventoryScrollView");
+        GameObject scrollGo;
+        if (existingScroll != null)
+        {
+            scrollGo = existingScroll.gameObject;
+        }
+        else
+        {
+            scrollGo = new GameObject("InventoryScrollView", typeof(RectTransform), typeof(ScrollRect));
+            scrollGo.transform.SetParent(transform, false);
+        }
+
+        RectTransform scrollRectTransform = scrollGo.GetComponent<RectTransform>();
+        scrollRectTransform.anchorMin = new Vector2(0.5f, 1f);
+        scrollRectTransform.anchorMax = new Vector2(0.5f, 1f);
+        scrollRectTransform.pivot = new Vector2(0.5f, 1f);
+        scrollRectTransform.anchoredPosition = new Vector2(0f, -1005f);
+        scrollRectTransform.sizeDelta = new Vector2(1000f, 430f);
+
+        // Đảm bảo ScrollView vẽ trước (nằm dưới) 2 nút By Tier và By Quantity
+        Transform bt = transform.Find("RobotByTier");
+        if (bt != null)
+        {
+            scrollGo.transform.SetSiblingIndex(Mathf.Max(0, bt.GetSiblingIndex() - 1));
+        }
+
+        inventoryScrollRect = scrollGo.GetComponent<ScrollRect>();
+        inventoryScrollRect.horizontal = false;
+        inventoryScrollRect.vertical = true;
+        inventoryScrollRect.movementType = ScrollRect.MovementType.Elastic;
+        inventoryScrollRect.elasticity = 0.1f;
+        inventoryScrollRect.inertia = true;
+        inventoryScrollRect.decelerationRate = 0.135f;
+        inventoryScrollRect.scrollSensitivity = 30f;
+
+        // Viewport
+        Transform vpTransform = scrollGo.transform.Find("Viewport");
+        GameObject vpGo;
+        if (vpTransform != null)
+        {
+            vpGo = vpTransform.gameObject;
+        }
+        else
+        {
+            vpGo = new GameObject("Viewport", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(RectMask2D));
+            vpGo.transform.SetParent(scrollGo.transform, false);
+        }
+
+        inventoryViewport = vpGo.GetComponent<RectTransform>();
+        inventoryViewport.anchorMin = Vector2.zero;
+        inventoryViewport.anchorMax = Vector2.one;
+        inventoryViewport.pivot = new Vector2(0.5f, 0.5f);
+        inventoryViewport.offsetMin = Vector2.zero;
+        inventoryViewport.offsetMax = Vector2.zero;
+
+        Image vpImg = vpGo.GetComponent<Image>();
+        if (vpImg != null)
+        {
+            vpImg.color = new Color(0f, 0f, 0f, 0f);
+            vpImg.raycastTarget = true;
+        }
+
+        RectMask2D mask = vpGo.GetComponent<RectMask2D>() ?? vpGo.AddComponent<RectMask2D>();
+
+        // Content
+        Transform contentTransform = vpGo.transform.Find("Content");
+        GameObject contentGo;
+        if (contentTransform != null)
+        {
+            contentGo = contentTransform.gameObject;
+        }
+        else
+        {
+            contentGo = new GameObject("Content", typeof(RectTransform));
+            contentGo.transform.SetParent(vpGo.transform, false);
+        }
+
+        inventoryContent = contentGo.GetComponent<RectTransform>();
+        inventoryContent.anchorMin = new Vector2(0.5f, 1f);
+        inventoryContent.anchorMax = new Vector2(0.5f, 1f);
+        inventoryContent.pivot = new Vector2(0.5f, 1f);
+        inventoryContent.anchoredPosition = Vector2.zero;
+        inventoryContent.sizeDelta = new Vector2(1000f, 430f);
+
+        inventoryScrollRect.viewport = inventoryViewport;
+        inventoryScrollRect.content = inventoryContent;
+
+        inventoryContainer = inventoryContent;
+    }
+
     public void AutoWireReferencesIfMissing()
     {
+        EnsureScrollView();
+
         if (inventoryContainer == null)
         {
-            inventoryContainer = transform;
+            inventoryContainer = inventoryContent != null ? inventoryContent : transform;
         }
 
         // Auto wire slot buttons
@@ -542,6 +718,30 @@ public class RobotPetController : MonoBehaviour
             {
                 Transform c = detailPanel.transform.Find("SelectedPetCard");
                 if (c != null) selectedPetCardImage = c.GetComponent<Image>();
+            }
+
+            if (selectedPetIconImage == null && selectedPetCardImage != null)
+            {
+                Transform iconTransform = selectedPetCardImage.transform.Find("PetIcon");
+                if (iconTransform != null)
+                {
+                    selectedPetIconImage = iconTransform.GetComponent<Image>();
+                }
+                else
+                {
+                    GameObject iconGo = new GameObject("PetIcon", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+                    iconGo.transform.SetParent(selectedPetCardImage.transform, false);
+                    RectTransform iconRect = iconGo.GetComponent<RectTransform>();
+                    iconRect.anchorMin = new Vector2(0.5f, 0.5f);
+                    iconRect.anchorMax = new Vector2(0.5f, 0.5f);
+                    iconRect.pivot = new Vector2(0.5f, 0.5f);
+                    iconRect.anchoredPosition = new Vector2(0f, 15f);
+                    iconRect.sizeDelta = new Vector2(100f, 100f);
+
+                    selectedPetIconImage = iconGo.GetComponent<Image>();
+                    selectedPetIconImage.preserveAspect = true;
+                    selectedPetIconImage.raycastTarget = false;
+                }
             }
 
             if (petNameText == null)

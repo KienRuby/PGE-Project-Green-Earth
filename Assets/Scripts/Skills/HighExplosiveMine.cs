@@ -32,6 +32,7 @@ public class HighExplosiveMine : MonoBehaviour, IPoolable
     private Vector3 baseScale = Vector3.one;
     private Coroutine activeRoutine;
     private readonly Collider2D[] hitBuffer = new Collider2D[64];
+    private static readonly HashSet<int> sharedHitEnemies = new HashSet<int>();
 
     public int Damage => damage;
     public float ExplosionRadius => explosionRadius;
@@ -184,7 +185,7 @@ public class HighExplosiveMine : MonoBehaviour, IPoolable
 
         // 2. Gây sát thương AoE diện rộng và Làm chậm
         int hitCount = Physics2D.OverlapCircleNonAlloc(explosionPos, explosionRadius, hitBuffer);
-        var hitEnemies = new HashSet<int>();
+        sharedHitEnemies.Clear();
 
         for (int i = 0; i < hitCount; i++)
         {
@@ -196,8 +197,8 @@ public class HighExplosiveMine : MonoBehaviour, IPoolable
             if (enemy == null || enemy.IsDead || !enemy.gameObject.activeInHierarchy) continue;
 
             int id = enemy.gameObject.GetInstanceID();
-            if (hitEnemies.Contains(id)) continue;
-            hitEnemies.Add(id);
+            if (sharedHitEnemies.Contains(id)) continue;
+            sharedHitEnemies.Add(id);
 
             enemy.TakeDamage(damage);
             ChipsetBattleStats.RecordDamage(10, damage);

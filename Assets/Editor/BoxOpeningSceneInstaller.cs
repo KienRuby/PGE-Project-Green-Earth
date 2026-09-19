@@ -258,7 +258,6 @@ public static class BoxOpeningSceneInstaller
             EditorUtility.SetDirty(driver);
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
-            Debug.Log($"[BoxOpeningInstaller] Installed exact reference box flow with {boxSets.Length} chest sets, {chipsetVisuals.Length} chipset visuals, and {buddyVisuals.Length} buddy visuals.");
         }
         finally
         {
@@ -390,7 +389,6 @@ public static class BoxOpeningSceneInstaller
         EditorUtility.SetDirty(controller);
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
-        Debug.Log($"[BoxOpeningInstaller] Upgraded existing result grid with {items?.arraySize ?? 0} quantity-effect references.");
     }
 
     private static void WireShopControllers(IEnumerable<ShopController> shopControllers, BoxOpeningController controller)

@@ -121,7 +121,6 @@ public static class RewardSpriteSlicer
         dataProvider.Apply();
         importer.SaveAndReimport();
 
-        Debug.Log($"[RewardSpriteSlicer] Successfully sliced {spriteRects.Length} sprites for {assetPath} with MaxTextureSize 4096.");
     }
 }
 #endif

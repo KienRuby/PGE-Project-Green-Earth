@@ -31,8 +31,10 @@ public class GemPickup : MonoBehaviour, IPoolable
     [SerializeField] private int value = 10;
     [SerializeField] private float magnetAttractionSpeed = 14f;
     [SerializeField] private float pickupRadius = 0.8f;
+#pragma warning disable 0414
     [SerializeField] private float idleFloatSpeed = 3f;
     [SerializeField] private float idleFloatAmount = 0.1f;
+#pragma warning restore 0414
 
     [Header("Visual")]
     [SerializeField] private SpriteRenderer spriteRenderer;
@@ -85,12 +87,6 @@ public class GemPickup : MonoBehaviour, IPoolable
             {
                 Collect();
             }
-        }
-        else
-        {
-            // Idle floating animation
-            float offset = Mathf.Sin((Time.time - spawnTime) * idleFloatSpeed) * idleFloatAmount;
-            transform.position = initialSpawnPosition + new Vector3(0f, offset, 0f);
         }
     }
 

@@ -35,7 +35,6 @@ public class ShopScrollerWindow : EditorWindow
                 EditorUtility.SetDirty(shopPanel);
                 EditorSceneManager.MarkSceneDirty(scene);
                 EditorSceneManager.SaveScene(scene);
-                Debug.Log("[ShopScrollerWindow] Đã tự động gắn ShopEditModeScroller vào ShopPanel trong MainMenu scene!");
             }
         }
     }
@@ -255,7 +254,6 @@ public class ShopScrollerWindow : EditorWindow
                         {
                             Undo.RecordObjects(pages, "Sync Sizes");
                             c.SyncSizeToAllPages(c.CurrentPage);
-                            Debug.Log($"[ShopScrollerWindow] Đã đồng bộ kích thước các thẻ trong {c.name}!");
                             SceneView.RepaintAll();
                         }
                     }

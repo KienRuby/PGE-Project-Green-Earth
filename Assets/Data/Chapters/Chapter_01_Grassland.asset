@@ -17,7 +17,7 @@ MonoBehaviour:
   totalWaves: 10
   energyCost: 10
   previewBackground: {fileID: 896282970, guid: d9e98077defe2e542af60da1db6ba24d, type: 3}
-  bossSilhouette: {fileID: 21300000, guid: f69b6363b6220a24faa3bb42da143ecd, type: 3}
+  bossSilhouette: {fileID: 6798517206012601216, guid: fe333c7c7740539458b615ad4a280fb4, type: 3}
   mapGroundSprite: {fileID: 21300000, guid: e92326fa91624344e844f543e748a31e, type: 3}
   mapSize: {x: 40, y: 40}
   mapColor: {r: 0.9685534, g: 0.86858594, b: 0.70966333, a: 1}
@@ -37,8 +37,8 @@ MonoBehaviour:
   autoGenerateWaves: 1
   chapterDifficultyMultiplier: 1
   wavePowerGrowthRate: 0.08
-  defaultWaveDuration: 10
-  finalBossWaveDuration: 20
+  defaultWaveDuration: 30
+  finalBossWaveDuration: 60
   chapterEnemyPool:
   - enemyPrefab: {fileID: 6558628254369202594, guid: cae7dc80e82b3b14bade28b18c3b19ff, type: 3}
     spawnWeight: 10
@@ -49,9 +49,9 @@ MonoBehaviour:
   chapterBossPrefab: {fileID: 1010797112834101214, guid: 616d9ac7cedf5eb46b9e23335d25aa30, type: 3}
   waves:
   - waveName: Wave 1
-    totalEnemiesToSpawn: 15
-    maxConcurrentEnemies: 15
-    spawnInterval: 1
+    totalEnemiesToSpawn: 50
+    maxConcurrentEnemies: 25
+    spawnInterval: 0.8
     enemiesPerSpawn: 2
     enemyPool:
     - enemyPrefab: {fileID: 6558628254369202594, guid: cae7dc80e82b3b14bade28b18c3b19ff, type: 3}
@@ -66,11 +66,11 @@ MonoBehaviour:
     bossCount: 1
     bossSpawnDelay: 0
     breakDurationAfterWave: 1
-    waveDuration: 10
+    waveDuration: 30
   - waveName: Wave 2
-    totalEnemiesToSpawn: 20
-    maxConcurrentEnemies: 20
-    spawnInterval: 1
+    totalEnemiesToSpawn: 55
+    maxConcurrentEnemies: 26
+    spawnInterval: 0.8
     enemiesPerSpawn: 2
     enemyPool:
     - enemyPrefab: {fileID: 6558628254369202594, guid: cae7dc80e82b3b14bade28b18c3b19ff, type: 3}
@@ -85,11 +85,11 @@ MonoBehaviour:
     bossCount: 1
     bossSpawnDelay: 0
     breakDurationAfterWave: 1
-    waveDuration: 10
+    waveDuration: 30
   - waveName: Wave 3
-    totalEnemiesToSpawn: 25
-    maxConcurrentEnemies: 22
-    spawnInterval: 1
+    totalEnemiesToSpawn: 57
+    maxConcurrentEnemies: 28
+    spawnInterval: 0.8
     enemiesPerSpawn: 2
     enemyPool:
     - enemyPrefab: {fileID: 6558628254369202594, guid: cae7dc80e82b3b14bade28b18c3b19ff, type: 3}
@@ -107,11 +107,11 @@ MonoBehaviour:
     bossCount: 1
     bossSpawnDelay: 0
     breakDurationAfterWave: 1
-    waveDuration: 10
+    waveDuration: 30
   - waveName: Wave 4
-    totalEnemiesToSpawn: 30
-    maxConcurrentEnemies: 24
-    spawnInterval: 1
+    totalEnemiesToSpawn: 59
+    maxConcurrentEnemies: 30
+    spawnInterval: 0.8
     enemiesPerSpawn: 2
     enemyPool:
     - enemyPrefab: {fileID: 6558628254369202594, guid: cae7dc80e82b3b14bade28b18c3b19ff, type: 3}
@@ -129,11 +129,11 @@ MonoBehaviour:
     bossCount: 1
     bossSpawnDelay: 0
     breakDurationAfterWave: 1
-    waveDuration: 10
+    waveDuration: 30
   - waveName: Wave 5
-    totalEnemiesToSpawn: 35
-    maxConcurrentEnemies: 26
-    spawnInterval: 1
+    totalEnemiesToSpawn: 61
+    maxConcurrentEnemies: 31
+    spawnInterval: 0.7
     enemiesPerSpawn: 2
     enemyPool:
     - enemyPrefab: {fileID: 6558628254369202594, guid: cae7dc80e82b3b14bade28b18c3b19ff, type: 3}
@@ -151,11 +151,11 @@ MonoBehaviour:
     bossCount: 1
     bossSpawnDelay: 0
     breakDurationAfterWave: 1
-    waveDuration: 10
+    waveDuration: 30
   - waveName: Wave 6
-    totalEnemiesToSpawn: 40
-    maxConcurrentEnemies: 28
-    spawnInterval: 1
+    totalEnemiesToSpawn: 63
+    maxConcurrentEnemies: 33
+    spawnInterval: 0.7
     enemiesPerSpawn: 2
     enemyPool:
     - enemyPrefab: {fileID: 6558628254369202594, guid: cae7dc80e82b3b14bade28b18c3b19ff, type: 3}
@@ -173,12 +173,12 @@ MonoBehaviour:
     bossCount: 1
     bossSpawnDelay: 0
     breakDurationAfterWave: 1
-    waveDuration: 10
+    waveDuration: 30
   - waveName: Wave 7
-    totalEnemiesToSpawn: 45
-    maxConcurrentEnemies: 30
-    spawnInterval: 1
-    enemiesPerSpawn: 3
+    totalEnemiesToSpawn: 65
+    maxConcurrentEnemies: 35
+    spawnInterval: 0.7
+    enemiesPerSpawn: 2
     enemyPool:
     - enemyPrefab: {fileID: 6558628254369202594, guid: cae7dc80e82b3b14bade28b18c3b19ff, type: 3}
       spawnWeight: 50
@@ -195,12 +195,12 @@ MonoBehaviour:
     bossCount: 1
     bossSpawnDelay: 0
     breakDurationAfterWave: 1
-    waveDuration: 10
+    waveDuration: 30
   - waveName: Wave 8
-    totalEnemiesToSpawn: 50
-    maxConcurrentEnemies: 32
-    spawnInterval: 1
-    enemiesPerSpawn: 3
+    totalEnemiesToSpawn: 67
+    maxConcurrentEnemies: 36
+    spawnInterval: 0.7
+    enemiesPerSpawn: 2
     enemyPool:
     - enemyPrefab: {fileID: 6558628254369202594, guid: cae7dc80e82b3b14bade28b18c3b19ff, type: 3}
       spawnWeight: 40
@@ -217,12 +217,12 @@ MonoBehaviour:
     bossCount: 1
     bossSpawnDelay: 0
     breakDurationAfterWave: 1
-    waveDuration: 10
+    waveDuration: 30
   - waveName: Wave 9
-    totalEnemiesToSpawn: 55
-    maxConcurrentEnemies: 35
-    spawnInterval: 1
-    enemiesPerSpawn: 3
+    totalEnemiesToSpawn: 70
+    maxConcurrentEnemies: 38
+    spawnInterval: 0.7
+    enemiesPerSpawn: 2
     enemyPool:
     - enemyPrefab: {fileID: 6558628254369202594, guid: cae7dc80e82b3b14bade28b18c3b19ff, type: 3}
       spawnWeight: 40
@@ -239,12 +239,12 @@ MonoBehaviour:
     bossCount: 1
     bossSpawnDelay: 0
     breakDurationAfterWave: 1
-    waveDuration: 10
+    waveDuration: 30
   - waveName: BOSS
-    totalEnemiesToSpawn: 60
+    totalEnemiesToSpawn: 75
     maxConcurrentEnemies: 40
-    spawnInterval: 1
-    enemiesPerSpawn: 3
+    spawnInterval: 0.7
+    enemiesPerSpawn: 2
     enemyPool:
     - enemyPrefab: {fileID: 6558628254369202594, guid: cae7dc80e82b3b14bade28b18c3b19ff, type: 3}
       spawnWeight: 50
@@ -261,4 +261,4 @@ MonoBehaviour:
     bossCount: 1
     bossSpawnDelay: 2
     breakDurationAfterWave: 2
-    waveDuration: 10
+    waveDuration: 60

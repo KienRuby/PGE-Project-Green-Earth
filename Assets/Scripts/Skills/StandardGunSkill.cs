@@ -180,7 +180,6 @@ public class StandardGunSkill : MonoBehaviour
         isUnlocked = true;
         currentLevel = Mathf.Clamp(targetLevel, 1, 5);
         LoadMetaTierBonuses();
-        Debug.Log($"[StandardGunSkill] Standard Gun đã lên Cấp {currentLevel}! (Dmg: {GetCalculatedDamage()}, Cooldown: {GetCalculatedFireInterval():F2}s)");
     }
 
     private void Update()

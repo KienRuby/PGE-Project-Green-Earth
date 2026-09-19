@@ -63,7 +63,6 @@ public class PlayerSkinApplierEditor : Editor
             applier.AutoEnsureVisualSlots();
             applier.ApplySkin(applier.previewSkinIndex);
             EditorUtility.SetDirty(applier);
-            Debug.Log("[PlayerSkinApplierEditor] Đã kiểm tra và đồng bộ Visual Slots thành công!");
         }
         EditorGUILayout.EndHorizontal();
 
@@ -172,7 +171,6 @@ public class PlayerSkinApplierEditor : Editor
             }
             EditorUtility.SetDirty(applier);
             UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(applier.gameObject.scene);
-            Debug.Log("[PlayerSkinApplierEditor] Đã căn lại toàn bộ xương cha về tọa độ hoạt hình mặc định!");
         }
         EditorGUILayout.HelpBox("💡 Bấm nút này nếu bạn lỡ dùng phím W kéo nhầm các Xương cha ('thân', 'GunSprite', 'Tay', 'Chan 1', 'chan 2') làm lệch cả nhân vật.", MessageType.None);
         EditorGUILayout.EndVertical();
@@ -190,7 +188,6 @@ public class PlayerSkinApplierEditor : Editor
                 applier.CaptureCurrentSceneTransformsForDefault();
                 EditorUtility.SetDirty(applier);
                 UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(applier.gameObject.scene);
-                Debug.Log("[PlayerSkinApplierEditor] ✅ Đã lưu toàn bộ tọa độ, tỷ lệ và Sprite trên Scene vào Bản Mặc Định (Default)!");
             }
             GUI.backgroundColor = Color.white;
 
@@ -204,7 +201,6 @@ public class PlayerSkinApplierEditor : Editor
                     applier.CopyDefaultTransformsToSkin1();
                     EditorUtility.SetDirty(applier);
                     UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(applier.gameObject.scene);
-                    Debug.Log("[PlayerSkinApplierEditor] ✅ Đã đồng bộ tọa độ Bản Mặc Định sang Skin 1 (AD Unit-1)!");
                 }
             }
 
@@ -216,7 +212,6 @@ public class PlayerSkinApplierEditor : Editor
                     applier.ResetDefaultTransformsToZero();
                     EditorUtility.SetDirty(applier);
                     UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(applier.gameObject.scene);
-                    Debug.Log("[PlayerSkinApplierEditor] Đã đặt lại tọa độ Bản Mặc Định về (0,0,0)!");
                 }
             }
             EditorGUILayout.EndHorizontal();
@@ -237,7 +232,6 @@ public class PlayerSkinApplierEditor : Editor
                 applier.CaptureCurrentSceneTransforms(applier.previewSkinIndex);
                 EditorUtility.SetDirty(applier);
                 UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(applier.gameObject.scene);
-                Debug.Log($"[PlayerSkinApplierEditor] ✅ Đã lưu toàn bộ tọa độ, tỷ lệ và Sprite trên Scene vào Skin {applier.previewSkinIndex} ({skinName})!");
             }
             GUI.backgroundColor = Color.white;
             EditorGUILayout.HelpBox("👉 MẸO: Bạn có thể chọn trực tiếp BodyVisual, GunVisual, Leg1Visual trong Scene, dùng công cụ W (Move) và R (Scale) để chỉnh, rồi bấm nút trên để LƯU LẠI!", MessageType.None);

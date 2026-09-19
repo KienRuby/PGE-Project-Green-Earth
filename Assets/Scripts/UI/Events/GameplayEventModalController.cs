@@ -290,7 +290,6 @@ public class GameplayEventModalController : MonoBehaviour
                 if (movement != null)
                 {
                     movement.AddMoveSpeedPercent(option.rewardValue);
-                    Debug.Log($"[GameplayEvent] 🏃 Áp dụng tăng tốc chạy +{option.rewardValue}%. Tốc độ mới: {movement.EffectiveSpeed}");
                 }
                 break;
 
@@ -304,13 +303,11 @@ public class GameplayEventModalController : MonoBehaviour
                     if (dmg > 0)
                     {
                         healthToDamage.TakeDamage(dmg);
-                        Debug.Log($"[GameplayEvent] ⚡ Tiêu hao -{option.rewardValue}% HP ({dmg} sát thương). Còn lại: {healthToDamage.CurrentHealth}");
                     }
 
                     if (string.Equals(option.rewardItemId, "big-battery", StringComparison.OrdinalIgnoreCase))
                     {
                         healthToDamage.AddMaxHealth(25);
-                        Debug.Log($"[GameplayEvent] 🔋 [Big Battery] Level +1: Tăng Máu tối đa +25!");
                     }
                     else if (string.Equals(option.rewardItemId, "movespeed_buff", StringComparison.OrdinalIgnoreCase))
                     {
@@ -318,7 +315,6 @@ public class GameplayEventModalController : MonoBehaviour
                         if (move != null)
                         {
                             move.AddMoveSpeedPercent(10f);
-                            Debug.Log($"[GameplayEvent] 🏃 [Overclock] Tăng Tốc độ di chuyển +10%! Tốc độ mới: {move.EffectiveSpeed}");
                         }
                     }
                 }
@@ -330,7 +326,6 @@ public class GameplayEventModalController : MonoBehaviour
                 {
                     int heal = Mathf.RoundToInt(100 * (option.rewardValue / 100f));
                     healthToHeal.TakeDamage(-heal); // TakeDamage nhận số âm để hồi máu hoặc logic hồi máu
-                    Debug.Log($"[GameplayEvent] 💖 Hồi phục +{option.rewardValue}% HP (+{heal} HP).");
                 }
                 break;
 
@@ -341,7 +336,6 @@ public class GameplayEventModalController : MonoBehaviour
                     if (art != null && PlayerArtifactInventory.Instance != null)
                     {
                         PlayerArtifactInventory.Instance.EquipArtifact(art);
-                        Debug.Log($"[GameplayEvent] 🎁 Người chơi nhận được Cổ vật: {art.artifactName}");
                     }
                 }
                 break;
@@ -354,7 +348,6 @@ public class GameplayEventModalController : MonoBehaviour
                     if (randomArt != null)
                     {
                         PlayerArtifactInventory.Instance.EquipArtifact(randomArt);
-                        Debug.Log($"[GameplayEvent] 🎁 Người chơi mở Hộp Cổ vật nhận: {randomArt.artifactName}");
                     }
                 }
                 break;

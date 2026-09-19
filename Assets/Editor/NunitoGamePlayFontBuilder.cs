@@ -53,7 +53,6 @@ public static class NunitoGamePlayFontBuilder
         }
 
         AssetDatabase.SaveAssets();
-        Debug.Log($"[Nunito Font] Đã áp dụng Nunito có viền cho {totalChangedCount} chữ trong {changedSceneCount} scene thuộc Build Settings.");
     }
 
     private static int ApplyToScene(Scene scene, TMP_FontAsset fontAsset, Material strokeMaterial)

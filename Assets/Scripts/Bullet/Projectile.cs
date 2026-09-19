@@ -45,6 +45,10 @@ public class Projectile : MonoBehaviour, IPoolable
     private int sourceChipsetId;
     private int currentRicochetRemaining;
     private readonly HashSet<int> hitEnemyIds = new HashSet<int>();
+    private SpriteRenderer spriteRenderer;
+    private Color defaultColor = Color.white;
+    private bool hasCachedColor = false;
+    private static readonly Collider2D[] SharedOverlapBuffer = new Collider2D[64];
 
     public bool IsHoming
     {
@@ -74,6 +78,13 @@ public class Projectile : MonoBehaviour, IPoolable
             rb.interpolation = RigidbodyInterpolation2D.None;
             rb.bodyType = RigidbodyType2D.Kinematic;
             rb.useFullKinematicContacts = true;
+        }
+
+        spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        if (spriteRenderer != null)
+        {
+            defaultColor = spriteRenderer.color;
+            hasCachedColor = true;
         }
     }
 
@@ -211,7 +222,7 @@ public class Projectile : MonoBehaviour, IPoolable
 
                 if (extraLifeStealPercent > 0f)
                 {
-                    PlayerHealth playerHealth = FindObjectOfType<PlayerHealth>();
+                    PlayerHealth playerHealth = PlayerHealth.Instance != null ? PlayerHealth.Instance : FindObjectOfType<PlayerHealth>();
                     if (playerHealth != null && !playerHealth.IsDead)
                     {
                         int heal = Mathf.Max(1, Mathf.RoundToInt(damage * extraLifeStealPercent));
@@ -260,10 +271,10 @@ public class Projectile : MonoBehaviour, IPoolable
             }
         }
 
-        Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(transform.position, explosionRadius);
-        for (int i = 0; i < hitEnemies.Length; i++)
+        int hitCount = Physics2D.OverlapCircleNonAlloc(transform.position, explosionRadius, SharedOverlapBuffer);
+        for (int i = 0; i < hitCount; i++)
         {
-            Collider2D col = hitEnemies[i];
+            Collider2D col = SharedOverlapBuffer[i];
             if (col == null) continue;
 
             EnemyHealth enemy = col.GetComponentInParent<EnemyHealth>();
@@ -278,12 +289,12 @@ public class Projectile : MonoBehaviour, IPoolable
 
     private Transform FindNextRicochetTarget(Vector3 origin)
     {
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(origin, ricochetRadius, 1 << 7);
+        int count = Physics2D.OverlapCircleNonAlloc(origin, ricochetRadius, SharedOverlapBuffer, 1 << 7);
         Transform best = null;
         float minDist = float.MaxValue;
-        for (int i = 0; i < colliders.Length; i++)
+        for (int i = 0; i < count; i++)
         {
-            Collider2D col = colliders[i];
+            Collider2D col = SharedOverlapBuffer[i];
             if (col == null) continue;
             EnemyHealth eh = col.GetComponentInParent<EnemyHealth>();
             if (eh != null && !eh.IsDead && !hitEnemyIds.Contains(eh.gameObject.GetInstanceID()))
@@ -316,6 +327,36 @@ public class Projectile : MonoBehaviour, IPoolable
         }
     }
 
+    public void ResetCustomModifiers()
+    {
+        if (spriteRenderer == null)
+        {
+            spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        }
+
+        if (spriteRenderer != null && hasCachedColor)
+        {
+            spriteRenderer.color = defaultColor;
+        }
+
+        var frostEffect = GetComponent<SloyFrostBuddy.FrostHitEffect>();
+        if (frostEffect != null)
+        {
+            Destroy(frostEffect);
+        }
+
+        isHoming = false;
+        isExplosive = false;
+        IsCritical = false;
+        targetEnemy = null;
+        sourceChipsetId = 0;
+        extraLifeStealPercent = 0f;
+        canRicochet = false;
+        ricochetChance = 0f;
+        currentRicochetRemaining = 0;
+        hitEnemyIds.Clear();
+    }
+
     public void OnSpawnFromPool()
     {
         lifeTimer = lifeTime;
@@ -326,6 +367,7 @@ public class Projectile : MonoBehaviour, IPoolable
         {
             rb.velocity = Vector2.zero;
         }
+        ResetCustomModifiers();
     }
 
     public void OnReturnToPool()
@@ -338,5 +380,6 @@ public class Projectile : MonoBehaviour, IPoolable
         {
             rb.velocity = Vector2.zero;
         }
+        ResetCustomModifiers();
     }
 }

@@ -93,7 +93,6 @@ public static class GamePlayHUDSceneBuilder
             EditorSceneManager.CloseScene(scene, true);
         }
 
-        Debug.Log("[GamePlayHUDSceneBuilder] ✅ Đã build riêng Chipset Level Up Popup vào GamePlay scene.");
     }
 
     public static void BuildGamePlayHUD()
@@ -396,7 +395,6 @@ public static class GamePlayHUDSceneBuilder
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
 
-        Debug.Log("[GamePlayHUDSceneBuilder] ✅ Đã khởi tạo thành công HUD, Boss Health Bar & Pause Menu chuẩn pixel cho GamePlay!");
     }
 
     private static GameObject BuildChipsetLevelUpPopup(
@@ -1362,7 +1360,6 @@ public static class PauseChipsetHierarchySync
         if (changed > 0)
         {
             SceneView.RepaintAll();
-            Debug.Log($"[PauseChipsetHierarchySync] Đã chuyển {changed} Pause chipset template sang khung Level Up editable. Hãy Save scene sau khi kiểm tra.");
         }
     }
 }

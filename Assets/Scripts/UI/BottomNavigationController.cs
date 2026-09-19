@@ -784,7 +784,6 @@ public class BottomNavigationController : MonoBehaviour
         }
 
         UnityEditor.EditorUtility.SetDirty(this);
-        Debug.Log("[BottomNav] ✅ Đã tự động liên kết thành công 5 cặp Sprite cho các tab (Shop, Lab, Chapter, Chipset, Buddy)!");
     }
 #endif
 }

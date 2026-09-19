@@ -18,6 +18,7 @@ public class PooledAudioSource : MonoBehaviour
     private Coroutine fadeCoroutine;
     private float targetVolume = 1f;
     private bool isRecycled = false;
+    private float recycleTimer = -1f;
 
     public AudioSource Source => audioSource;
     public SoundData CurrentData => currentData;
@@ -39,6 +40,19 @@ public class PooledAudioSource : MonoBehaviour
                 audioSource = gameObject.AddComponent<AudioSource>();
             }
             audioSource.playOnAwake = false;
+        }
+    }
+
+    private void Update()
+    {
+        if (recycleTimer > 0f)
+        {
+            recycleTimer -= Time.unscaledDeltaTime;
+            if (recycleTimer <= 0f)
+            {
+                recycleTimer = -1f;
+                StopAndRecycle();
+            }
         }
     }
 
@@ -99,7 +113,7 @@ public class PooledAudioSource : MonoBehaviour
         {
             // Dự trù thời gian thực phát theo pitch
             float realDuration = clip.length / Mathf.Max(0.01f, Mathf.Abs(audioSource.pitch));
-            lifetimeCoroutine = StartCoroutine(AutoRecycleCoroutine(realDuration));
+            recycleTimer = realDuration;
         }
     }
 
@@ -137,7 +151,7 @@ public class PooledAudioSource : MonoBehaviour
         if (!loop)
         {
             float realDuration = clip.length / Mathf.Max(0.01f, Mathf.Abs(pitch));
-            lifetimeCoroutine = StartCoroutine(AutoRecycleCoroutine(realDuration));
+            recycleTimer = realDuration;
         }
     }
 
@@ -175,6 +189,7 @@ public class PooledAudioSource : MonoBehaviour
     {
         if (isRecycled) return;
         isRecycled = true;
+        recycleTimer = -1f;
 
         if (lifetimeCoroutine != null)
         {

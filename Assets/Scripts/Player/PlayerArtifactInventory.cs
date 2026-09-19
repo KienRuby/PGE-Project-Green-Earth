@@ -122,7 +122,6 @@ public class PlayerArtifactInventory : MonoBehaviour
         ApplyAllArtifactBuffs();
 
         OnArtifactEquipped?.Invoke(artifact);
-        Debug.Log($"[PlayerArtifactInventory] ✅ Đã nhận Artifact: {artifact.artifactName} ({artifact.GetFormattedStatText()})");
 
         return true;
     }

@@ -890,7 +890,6 @@ public class WaveHUDController : MonoBehaviour
             victoryTitleText.text = "STAGE CLEAR!";
         }
 
-        Debug.Log("[WaveHUD] 🎉 Hiển thị bảng Chiến Thắng màn chơi!");
     }
 
     private void UpdateWaveDisplay(int currentWave, int totalWaves)
@@ -1033,7 +1032,6 @@ public class WaveHUDController : MonoBehaviour
     public void OnReturnToMenuClicked()
     {
         Time.timeScale = 1f;
-        Debug.Log($"[WaveHUD] Nạp Scene: {mainMenuSceneName}");
         SceneManager.LoadScene(mainMenuSceneName);
     }
 
