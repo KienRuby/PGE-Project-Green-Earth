@@ -112,7 +112,7 @@ public class LocalizationSystemTests
         Assert.That(GameSettings.GetLanguageDisplayName("English"), Is.EqualTo("English"));
         Assert.That(GameSettings.GetLanguageDisplayName("Tiếng Việt"), Is.EqualTo("Tiếng Việt"));
         Assert.That(GameSettings.GetLanguageDisplayName("Vietnamese"), Is.EqualTo("Tiếng Việt"));
-        Assert.That(GameSettings.GetLanguageDisplayName("Chinese"), Does.Contain("中文"));
+        Assert.That(GameSettings.GetLanguageDisplayName("Chinese"), Is.EqualTo("Chinese"));
         Assert.That(GameSettings.GetLanguageDisplayName("Russian"), Does.Contain("Русский"));
     }
 
@@ -136,7 +136,7 @@ public class LocalizationSystemTests
             Transform viBtn = options.Find("VietnameseButton");
             Assert.That(viBtn, Is.Not.Null);
             TMP_Text viText = viBtn.GetComponentInChildren<TMP_Text>(true);
-            Assert.That(viText.text, Does.Contain("✓"));
+            Assert.That(viText.text, Does.Contain("•"));
             Assert.That(viText.text, Does.Contain("Tiếng Việt"));
 
             // Switch to English via EnglishButton

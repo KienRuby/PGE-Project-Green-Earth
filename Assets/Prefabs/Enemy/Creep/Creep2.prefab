@@ -280,6 +280,7 @@ MonoBehaviour:
   isTrigger: 1
   ignoreShadowsAndUI: 1
   removeLegacyRootColliders: 1
+  updatePerFrame: 0
   entries:
   - renderer: {fileID: 6744754080646802527}
     collider: {fileID: 186299278729720192}

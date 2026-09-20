@@ -121,7 +121,7 @@ public static class GameSettings
             case VietnameseLanguage:
                 return "Tiếng Việt";
             case ChineseLanguage:
-                return "中文 (Chinese)";
+                return "Chinese";
             case RussianLanguage:
                 return "Русский (Russian)";
             case EnglishLanguage:

@@ -26,8 +26,39 @@ public class MultigunProjectile : MonoBehaviour, IPoolable
     private readonly HashSet<int> hitEnemyInstanceIds = new HashSet<int>();
     private readonly Collider2D[] enemyBuffer = new Collider2D[16];
     private ContactFilter2D contactFilter;
+    private static readonly RaycastHit2D[] SharedCastBuffer = new RaycastHit2D[16];
+    private static int hitLayerMask = 0;
+    private static int HitLayerMask
+    {
+        get
+        {
+            if (hitLayerMask == 0)
+            {
+                hitLayerMask = LayerMask.GetMask("Enemy", "Obstacle");
+                if (hitLayerMask == 0) hitLayerMask = LayerMask.GetMask("Default");
+            }
+            return hitLayerMask;
+        }
+    }
+
+    private static int obstacleLayerMask = -1;
+    private static int ObstacleLayerMask
+    {
+        get
+        {
+            if (obstacleLayerMask == -1)
+            {
+                obstacleLayerMask = LayerMask.GetMask("Obstacle");
+                if (obstacleLayerMask == 0) obstacleLayerMask = LayerMask.GetMask("Default");
+            }
+            return obstacleLayerMask;
+        }
+    }
 
     public int Damage => damage;
+
+    private CircleCollider2D circleCol;
+    private float cachedCastRadius = 0.12f;
 
     private void Awake()
     {
@@ -38,6 +69,12 @@ public class MultigunProjectile : MonoBehaviour, IPoolable
             rb.interpolation = RigidbodyInterpolation2D.None;
             rb.bodyType = RigidbodyType2D.Kinematic;
             rb.useFullKinematicContacts = true;
+        }
+
+        circleCol = GetComponent<CircleCollider2D>();
+        if (circleCol != null)
+        {
+            cachedCastRadius = Mathf.Max(0.05f, circleCol.radius * Mathf.Abs(transform.lossyScale.x));
         }
 
         if (enemyLayer.value == 0)
@@ -77,14 +114,55 @@ public class MultigunProjectile : MonoBehaviour, IPoolable
 
     private void FixedUpdate()
     {
+        float stepDist = moveSpeed * Time.fixedDeltaTime;
+        Vector2 currentPos = rb != null ? rb.position : (Vector2)transform.position;
+
+        if (moveDirection.sqrMagnitude > 0.001f && stepDist > 0f)
+        {
+            int hitCount = Physics2D.CircleCastNonAlloc(currentPos, cachedCastRadius, moveDirection, SharedCastBuffer, stepDist, HitLayerMask);
+            if (hitCount > 0)
+            {
+                // Sắp xếp tăng dần theo khoảng cách (First Contact First Hit)
+                for (int i = 0; i < hitCount - 1; i++)
+                {
+                    int minIdx = i;
+                    for (int j = i + 1; j < hitCount; j++)
+                    {
+                        if (SharedCastBuffer[j].distance < SharedCastBuffer[minIdx].distance)
+                        {
+                            minIdx = j;
+                        }
+                    }
+                    if (minIdx != i)
+                    {
+                        var temp = SharedCastBuffer[i];
+                        SharedCastBuffer[i] = SharedCastBuffer[minIdx];
+                        SharedCastBuffer[minIdx] = temp;
+                    }
+                }
+
+                for (int i = 0; i < hitCount; i++)
+                {
+                    RaycastHit2D hit = SharedCastBuffer[i];
+                    if (hit.collider == null) continue;
+
+                    Vector2 hitPoint = hit.point != Vector2.zero ? hit.point : (currentPos + moveDirection * hit.distance);
+                    if (ResolveHit(hit.collider, hitPoint))
+                    {
+                        return;
+                    }
+                }
+            }
+        }
+
         if (rb != null)
         {
-            Vector2 nextPos = rb.position + moveDirection * (moveSpeed * Time.fixedDeltaTime);
+            Vector2 nextPos = rb.position + moveDirection * stepDist;
             rb.MovePosition(nextPos);
         }
         else
         {
-            transform.position += (Vector3)(moveDirection * (moveSpeed * Time.fixedDeltaTime));
+            transform.position += (Vector3)(moveDirection * stepDist);
         }
     }
 
@@ -122,7 +200,8 @@ public class MultigunProjectile : MonoBehaviour, IPoolable
 
         if (homingTarget != null)
         {
-            Vector2 targetPos = homingTarget.position;
+            EnemyHealth targetEh = homingTarget.GetComponent<EnemyHealth>();
+            Vector2 targetPos = targetEh != null ? targetEh.AimPoint : (Vector2)homingTarget.position;
             Vector2 currentPos = transform.position;
             Vector2 desiredDir = (targetPos - currentPos).normalized;
 
@@ -134,8 +213,10 @@ public class MultigunProjectile : MonoBehaviour, IPoolable
     private Transform FindHomingTarget()
     {
         int hitCount = Physics2D.OverlapCircle(transform.position, homingRange, contactFilter, enemyBuffer);
-        Transform closest = null;
-        float minSqr = Mathf.Infinity;
+        Transform bestBoss = null;
+        float minBossDistSqr = Mathf.Infinity;
+        Transform bestNormal = null;
+        float minNormalDistSqr = Mathf.Infinity;
         Vector2 currentPos = transform.position;
 
         for (int i = 0; i < hitCount; i++)
@@ -146,15 +227,26 @@ public class MultigunProjectile : MonoBehaviour, IPoolable
             EnemyHealth enemy = col.GetComponentInParent<EnemyHealth>();
             if (enemy == null || enemy.IsDead || !enemy.gameObject.activeInHierarchy) continue;
 
-            float distSqr = ((Vector2)enemy.transform.position - currentPos).sqrMagnitude;
-            if (distSqr < minSqr)
+            float distSqr = ((Vector2)enemy.AimPoint - currentPos).sqrMagnitude;
+            if (enemy.IsBoss)
             {
-                minSqr = distSqr;
-                closest = enemy.transform;
+                if (distSqr < minBossDistSqr)
+                {
+                    minBossDistSqr = distSqr;
+                    bestBoss = enemy.transform;
+                }
+            }
+            else
+            {
+                if (distSqr < minNormalDistSqr)
+                {
+                    minNormalDistSqr = distSqr;
+                    bestNormal = enemy.transform;
+                }
             }
         }
 
-        return closest;
+        return bestBoss != null ? bestBoss : bestNormal;
     }
 
     private void RotateProjectile()
@@ -165,35 +257,61 @@ public class MultigunProjectile : MonoBehaviour, IPoolable
         transform.rotation = Quaternion.Euler(0f, 0f, angle);
     }
 
-    private void OnTriggerEnter2D(Collider2D other)
+    private bool ResolveHit(Collider2D hitCollider, Vector2 hitPoint)
     {
-        if (other == null) return;
-        if (other.CompareTag("Player") || other.CompareTag("BulletPlayer")) return;
+        if (hitCollider == null) return false;
+        if (hitCollider.CompareTag("Player") || hitCollider.CompareTag("BulletPlayer")) return false;
 
-        IDamageable damageable = other.GetComponentInParent<IDamageable>();
+        // 1. Chướng ngại vật (Obstacle) - Không thể xuyên qua
+        if (hitCollider.gameObject.layer == LayerMask.NameToLayer("Obstacle") || hitCollider.CompareTag("Obstacle"))
+        {
+            if (!hitCollider.isTrigger)
+            {
+                transform.position = hitPoint;
+                if (rb != null) rb.position = hitPoint;
+                Despawn();
+                return true;
+            }
+            return false;
+        }
+
+        // 2. Kẻ địch (Enemy)
+        IDamageable damageable = hitCollider.GetComponentInParent<IDamageable>();
         if (damageable != null)
         {
             EnemyHealth enemyHealth = damageable as EnemyHealth;
             if (enemyHealth != null)
             {
-                if (enemyHealth.IsDead) return;
+                if (enemyHealth.IsDead || !enemyHealth.gameObject.activeInHierarchy) return false;
 
                 int enemyId = enemyHealth.gameObject.GetInstanceID();
-                if (hitEnemyInstanceIds.Contains(enemyId)) return;
+                if (hitEnemyInstanceIds.Contains(enemyId)) return false;
                 hitEnemyInstanceIds.Add(enemyId);
             }
+
+            transform.position = hitPoint;
+            if (rb != null) rb.position = hitPoint;
 
             damageable.TakeDamage(damage);
             EnergyJumperCablesSkill.TriggerLifeSteal(damage, false);
 
             Despawn();
-            return;
+            return true;
         }
 
-        if (!other.isTrigger)
+        if (!hitCollider.isTrigger)
         {
             Despawn();
+            return true;
         }
+
+        return false;
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other == null) return;
+        ResolveHit(other, transform.position);
     }
 
     private void Despawn()

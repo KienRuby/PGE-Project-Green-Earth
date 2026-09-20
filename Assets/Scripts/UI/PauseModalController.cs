@@ -693,7 +693,7 @@ public class PauseModalController : MonoBehaviour
         // 1. Character Name & Level
         if (characterNameText != null)
         {
-            characterNameText.text = "Adam";
+            characterNameText.text = GetActiveCharacterName();
         }
 
         if (characterLevelExpText != null)
@@ -744,6 +744,39 @@ public class PauseModalController : MonoBehaviour
         if (droneAtkValueText != null) droneAtkValueText.text = "0%";
         if (turretAtkValueText != null) turretAtkValueText.text = "0%";
         if (turretDurationValueText != null) turretDurationValueText.text = "0%";
+    }
+
+    /// <summary>
+    /// Lấy tên định danh của nhân vật/skin robot đang hoạt động trong trận đấu.
+    /// Ưu tiên theo PlayerSkinApplier nếu có, sau đó đến BuildBodyController.
+    /// </summary>
+    public string GetActiveCharacterName()
+    {
+        int skinIndex = BuildBodyController.EquippedSkinIndex;
+
+        PlayerSkinApplier skinApplier = FindObjectOfType<PlayerSkinApplier>();
+        if (skinApplier != null && skinApplier.ActiveAppliedIndex >= 0)
+        {
+            skinIndex = skinApplier.ActiveAppliedIndex;
+        }
+
+        skinIndex = Mathf.Clamp(skinIndex, 0, 4);
+
+        if (skinIndex == 0)
+        {
+            return "Adam";
+        }
+
+        if (skinApplier != null && skinApplier.skins != null && skinIndex > 0 && (skinIndex - 1) < skinApplier.skins.Length)
+        {
+            string cfgName = skinApplier.skins[skinIndex - 1]?.skinName;
+            if (!string.IsNullOrEmpty(cfgName))
+            {
+                return cfgName;
+            }
+        }
+
+        return $"AD Unit-{skinIndex}";
     }
 
     /// <summary>

@@ -433,7 +433,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 0, y: -0}
+  m_AnchoredPosition: {x: 251.25, y: -0}
   m_SizeDelta: {x: 81.5625, y: 83.4375}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &5637430
@@ -1670,10 +1670,15 @@ MonoBehaviour:
   inventoryContainer: {fileID: 17719927}
   emptyStateHint: {fileID: 0}
   petCardPrefab: {fileID: 0}
+  inventoryScrollRect: {fileID: 0}
+  inventoryViewport: {fileID: 0}
+  inventoryContent: {fileID: 0}
   cardPosY: -1010
   cardWidth: 157
   cardHeight: 197
   cardSpacing: 110
+  columns: 3
+  cardRowSpacing: 225
   emptyCardFrameSprite: {fileID: 21300000, guid: bac24db28fa2ed14b969909b609b57f3, type: 3}
   defaultPetIcon: {fileID: 0}
 --- !u!1 &20234206
@@ -3728,7 +3733,7 @@ GameObject:
   - component: {fileID: 45764950}
   - component: {fileID: 45764954}
   m_Layer: 5
-  m_Name: EquippedSlot_2_drone-snowflake
+  m_Name: EquippedSlot_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8996,7 +9001,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4282957567
+    rgba: 4278512639
   m_fontColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -9344,25 +9349,27 @@ MonoBehaviour:
   - id: 1
     buddyName: Sloy
     iconKey: drone-snowflake
-    tier: 3
-    level: 43
-    count: 26
-    requiredCount: 46
-    enhanceCost: 127576072
+    tier: 0
+    level: 1
+    count: 0
+    requiredCount: 10
+    enhanceCost: 3500
+    isUnlocked: 1
     description: Fires shells that slow down enemies.
     baseStatText: Drone ATK 20.4, Slow ATK Speed
-    magicPerkText: Slow Duration +20%
-    rarePerkText: Frost Aura Radius +30%
-    uniquePerkText: Freeze Siphon +30%
-    epicPerkText: Blizzard Surge +30%
+    magicPerkText: Frost Shell +20%
+    rarePerkText: Frost Shell +20%
+    uniquePerkText: Area Slow +30%
+    epicPerkText: Blizzard Blast +30%
   - id: 2
     buddyName: Turret Buffer
     iconKey: drone-spider
-    tier: 3
-    level: 42
-    count: 14
-    requiredCount: 46
-    enhanceCost: 110267728
+    tier: 0
+    level: 1
+    count: 0
+    requiredCount: 10
+    enhanceCost: 500
+    isUnlocked: 1
     description: Improves the skills of all Turrets.
     baseStatText: All Turrets' Duration <color=#FFCB49>10%</color>
     magicPerkText: Turret Duration +20%
@@ -9372,11 +9379,12 @@ MonoBehaviour:
   - id: 3
     buddyName: Radar Eye
     iconKey: drone-antenna-eye
-    tier: 4
-    level: 42
-    count: 7
-    requiredCount: 75
-    enhanceCost: 110267728
+    tier: 0
+    level: 1
+    count: 0
+    requiredCount: 10
+    enhanceCost: 500
+    isUnlocked: 1
     description: Scans hostiles and pinpoints critical weaknesses.
     baseStatText: All Weapons' CRIT Rate <color=#FFCB49>+5%</color>
     magicPerkText: CRIT Damage +20%
@@ -9386,11 +9394,12 @@ MonoBehaviour:
   - id: 4
     buddyName: Assault Blaster
     iconKey: drone-cross-visor
-    tier: 3
-    level: 42
-    count: 19
-    requiredCount: 46
-    enhanceCost: 110267728
+    tier: 0
+    level: 1
+    count: 0
+    requiredCount: 10
+    enhanceCost: 500
+    isUnlocked: 1
     description: Continuous twin blaster providing direct firepower.
     baseStatText: All Weapons' ATK <color=#FFCB49>+12%</color>
     magicPerkText: Blaster ATK +20%
@@ -9400,11 +9409,12 @@ MonoBehaviour:
   - id: 10
     buddyName: Purifying Drone
     iconKey: drone-stealth-wing
-    tier: 4
-    level: 42
-    count: 24
-    requiredCount: 75
-    enhanceCost: 110267728
+    tier: 0
+    level: 1
+    count: 0
+    requiredCount: 10
+    enhanceCost: 500
+    isUnlocked: 1
     description: 'Increase the ratio of
 
       Ailment Resistance'
@@ -10971,7 +10981,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 0, y: -0}
+  m_AnchoredPosition: {x: 125.625, y: -0}
   m_SizeDelta: {x: 81.5625, y: 83.4375}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &132360600
@@ -14620,7 +14630,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4291015840
+    rgba: 4294967295
   m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -14829,7 +14839,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4282957567
+    rgba: 4278512639
   m_fontColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -16243,7 +16253,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 0, y: -0}
+  m_AnchoredPosition: {x: 125.625, y: -0}
   m_SizeDelta: {x: 81.5625, y: 83.4375}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &192399527
@@ -26214,7 +26224,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 0, y: -0}
+  m_AnchoredPosition: {x: 125.625, y: -0}
   m_SizeDelta: {x: 81.5625, y: 83.4375}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &330873137
@@ -28173,7 +28183,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4291015840
+    rgba: 4294967295
   m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -29082,7 +29092,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4291015840
+    rgba: 4294967295
   m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -37006,7 +37016,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4282957567
+    rgba: 4278512639
   m_fontColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -41639,8 +41649,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 484, y: -1086}
-  m_SizeDelta: {x: 948, y: 150}
+  m_AnchoredPosition: {x: 474, y: -1039.6875}
+  m_SizeDelta: {x: 948, y: 133.125}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &570588373
 MonoBehaviour:
@@ -49423,7 +49433,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4282957567
+    rgba: 4278512639
   m_fontColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -51838,8 +51848,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 484, y: -90}
-  m_SizeDelta: {x: 948, y: 150}
+  m_AnchoredPosition: {x: 474, y: -66.5625}
+  m_SizeDelta: {x: 948, y: 133.125}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &737471381
 MonoBehaviour:
@@ -53211,7 +53221,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4291015840
+    rgba: 4294967295
   m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -61516,7 +61526,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 0, y: -0}
+  m_AnchoredPosition: {x: 125.625, y: -0}
   m_SizeDelta: {x: 81.5625, y: 83.4375}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &880979314
@@ -67651,7 +67661,7 @@ GameObject:
   - component: {fileID: 894383603}
   - component: {fileID: 894383599}
   m_Layer: 5
-  m_Name: EquippedSlot_0_drone-spider
+  m_Name: EquippedSlot_0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -78259,7 +78269,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4291015840
+    rgba: 4294967295
   m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -81550,7 +81560,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 0, y: -0}
+  m_AnchoredPosition: {x: 125.625, y: -0}
   m_SizeDelta: {x: 81.5625, y: 83.4375}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1077196573
@@ -84506,7 +84516,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!1 &1128263421
 GameObject:
   m_ObjectHideFlags: 0
@@ -94111,7 +94121,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4291015840
+    rgba: 4294967295
   m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -94457,8 +94467,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 484, y: -920}
-  m_SizeDelta: {x: 948, y: 150}
+  m_AnchoredPosition: {x: 474, y: -877.5}
+  m_SizeDelta: {x: 948, y: 133.125}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1260090997
 MonoBehaviour:
@@ -99391,7 +99401,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 0, y: -0}
+  m_AnchoredPosition: {x: 251.25, y: -0}
   m_SizeDelta: {x: 81.5625, y: 83.4375}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1339339607
@@ -100175,7 +100185,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4282957567
+    rgba: 4278512639
   m_fontColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -103195,7 +103205,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: -10}
+  m_AnchoredPosition: {x: 0, y: -178}
   m_SizeDelta: {x: 960, y: 950}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &1398867848
@@ -104655,7 +104665,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 0, y: -0}
+  m_AnchoredPosition: {x: 251.25, y: -0}
   m_SizeDelta: {x: 81.5625, y: 83.4375}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1416703330
@@ -108975,7 +108985,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 0, y: -0}
+  m_AnchoredPosition: {x: 251.25, y: -0}
   m_SizeDelta: {x: 81.5625, y: 83.4375}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1472432608
@@ -111219,7 +111229,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4282957567
+    rgba: 4278512639
   m_fontColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -114660,8 +114670,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 484, y: -754}
-  m_SizeDelta: {x: 948, y: 150}
+  m_AnchoredPosition: {x: 474, y: -715.3125}
+  m_SizeDelta: {x: 948, y: 133.125}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1540368778
 MonoBehaviour:
@@ -118228,7 +118238,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 0, y: -0}
+  m_AnchoredPosition: {x: 251.25, y: -0}
   m_SizeDelta: {x: 81.5625, y: 83.4375}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1583083101
@@ -122084,7 +122094,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4291015840
+    rgba: 4294967295
   m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -123757,7 +123767,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 0, y: -0}
+  m_AnchoredPosition: {x: 251.25, y: -0}
   m_SizeDelta: {x: 81.5625, y: 83.4375}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1665061333
@@ -130697,7 +130707,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 0, y: -0}
+  m_AnchoredPosition: {x: 251.25, y: -0}
   m_SizeDelta: {x: 81.5625, y: 83.4375}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1766220128
@@ -132266,7 +132276,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 1176}
+  m_SizeDelta: {x: 0, y: 1106.25}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &1787972576
 MonoBehaviour:
@@ -133031,7 +133041,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 0, y: -0}
+  m_AnchoredPosition: {x: 125.625, y: -0}
   m_SizeDelta: {x: 81.5625, y: 83.4375}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1800230187
@@ -134249,8 +134259,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 484, y: -256}
-  m_SizeDelta: {x: 948, y: 150}
+  m_AnchoredPosition: {x: 474, y: -228.75}
+  m_SizeDelta: {x: 948, y: 133.125}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1815087584
 MonoBehaviour:
@@ -134854,7 +134864,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4282957567
+    rgba: 4278512639
   m_fontColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -142267,7 +142277,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 0, y: -0}
+  m_AnchoredPosition: {x: 125.625, y: -0}
   m_SizeDelta: {x: 81.5625, y: 83.4375}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1926488291
@@ -142764,8 +142774,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 484, y: -422}
-  m_SizeDelta: {x: 948, y: 150}
+  m_AnchoredPosition: {x: 474, y: -390.9375}
+  m_SizeDelta: {x: 948, y: 133.125}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1935286224
 MonoBehaviour:
@@ -154473,8 +154483,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 484, y: -588}
-  m_SizeDelta: {x: 948, y: 150}
+  m_AnchoredPosition: {x: 474, y: -553.125}
+  m_SizeDelta: {x: 948, y: 133.125}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2034505378
 MonoBehaviour:
@@ -156410,7 +156420,7 @@ GameObject:
   - component: {fileID: 2058402434}
   - component: {fileID: 2058402430}
   m_Layer: 5
-  m_Name: EquippedSlot_1_drone-stealth-wing
+  m_Name: EquippedSlot_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -157766,6 +157776,7 @@ MonoBehaviour:
   rollHighlightColor: {r: 1, g: 0.84313726, b: 0, a: 1}
   highlightBorderSprite: {fileID: 21300000, guid: 7a9b8c1d2e3f405162738495a6b7c8d9, type: 3}
   highlightFlashColor: {r: 1, g: 1, b: 0.7058824, a: 1}
+  itemGridVerticalOffset: -42
 --- !u!225 &2071955752
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -166524,7 +166535,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1111144187082357115, guid: 9a2d06e5042bdf24087919eeb2dff4a4, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1260717167676651373, guid: 9a2d06e5042bdf24087919eeb2dff4a4, type: 3}
       propertyPath: m_LocalScale.y

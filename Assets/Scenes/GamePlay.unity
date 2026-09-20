@@ -27738,6 +27738,7 @@ MonoBehaviour:
   characterNameText: {fileID: 1320990797}
   characterLevelExpText: {fileID: 1205397754}
   skinAvatarSprites:
+  - {fileID: 21300000, guid: 3ed6295907744d43af8ffbdad83d93f9, type: 3}
   - {fileID: 21300000, guid: f51c41b902f7411bb73bea5a451eea29, type: 3}
   - {fileID: 21300000, guid: a0277066b3494a75909d85cf42083af7, type: 3}
   - {fileID: 21300000, guid: 2d3a99253ee74b9988fb54bd2c08379d, type: 3}
@@ -30234,11 +30235,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pools:
   - prefab: {fileID: 9176291970807468248, guid: 7a360c9f713fe5b4ebd236256f3bb53b, type: 3}
-    initialSize: 30
+    initialSize: 80
     canGrow: 1
     logWarnings: 0
   - prefab: {fileID: 249402678474551263, guid: e9b7463808b4ee340950a632a574d9fa, type: 3}
     initialSize: 30
+    canGrow: 1
+    logWarnings: 0
+  - prefab: {fileID: 8869413639510425902, guid: 9b996e0d56a944b4bb2340e5a068acf1, type: 3}
+    initialSize: 15
     canGrow: 1
     logWarnings: 0
 --- !u!4 &1856918226
@@ -35012,7 +35017,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   damageNumberPrefab: {fileID: 1580813595225278284, guid: c4ebbbcf176b31b4f8401283b25595bb, type: 3}
-  initialPoolSize: 60
+  initialPoolSize: 100
   fontAsset: {fileID: 11400000, guid: 88378fd6127ec3345802e6c374507f19, type: 2}
   strokeMaterial: {fileID: 2100000, guid: 686cfa7cdb111f748aa18d4495b8bbea, type: 2}
   defaultFontSize: 2.4

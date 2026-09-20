@@ -74,6 +74,16 @@ public class PityGuaranteePanel : MonoBehaviour
     {
         EnsureComponentsCached();
         SetupListeners();
+
+        // This panel uses its own pop/fade animation. If an older scene
+        // instance still contains a UIDissolveController, restore and disable
+        // it so it cannot leave dissolve materials on the panel between opens.
+        UIDissolveController legacyDissolve = GetComponent<UIDissolveController>();
+        if (legacyDissolve != null)
+        {
+            legacyDissolve.ResetDissolve();
+            legacyDissolve.enabled = false;
+        }
     }
 
     private void OnEnable()
@@ -113,6 +123,12 @@ public class PityGuaranteePanel : MonoBehaviour
             StopCoroutine(animateRoutine);
             animateRoutine = null;
         }
+
+        // Never leave a half-populated animation state behind when the panel
+        // is hidden by a parent screen or scene transition.
+        if (windowRect != null) windowRect.localScale = Vector3.one;
+        if (windowCanvasGroup != null) windowCanvasGroup.alpha = 1f;
+        if (dimCanvasGroup != null) dimCanvasGroup.alpha = 1f;
     }
 
     private void Update()
@@ -228,7 +244,20 @@ public class PityGuaranteePanel : MonoBehaviour
     /// </summary>
     public void Open()
     {
-        if (isOpen) return;
+        if (isOpen)
+        {
+            // A repeated click while a transition is running should complete
+            // the current visual state instead of stacking another coroutine.
+            if (animateRoutine != null)
+            {
+                StopCoroutine(animateRoutine);
+                animateRoutine = null;
+                if (windowRect != null) windowRect.localScale = Vector3.one;
+                if (windowCanvasGroup != null) windowCanvasGroup.alpha = 1f;
+                if (dimCanvasGroup != null) dimCanvasGroup.alpha = 1f;
+            }
+            return;
+        }
 
         isOpen = true;
         openedTime = Time.unscaledTime;

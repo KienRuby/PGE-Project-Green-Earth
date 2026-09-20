@@ -128,6 +128,32 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
         largeHealthBoxDropChance = Mathf.Clamp01(largeChance);
     }
 
+    [Header("Boss Classification")]
+    [Tooltip("Đánh dấu đây là Boss (ưu tiên target cao nhất cho Player).")]
+    [SerializeField] private bool isBoss = false;
+
+    private BossEnemy bossEnemy;
+    private Enemy enemyComponent;
+    private bool initialIsBoss;
+
+    public bool IsBoss
+    {
+        get
+        {
+            if (isBoss) return true;
+            if (bossMovement != null || bossEnemy != null) return true;
+            if (enemyComponent != null && enemyComponent.Type == EnemyType.Boss) return true;
+            return false;
+        }
+    }
+
+    public void SetIsBoss(bool value)
+    {
+        isBoss = value;
+    }
+
+    public Vector2 AimPoint => rb != null ? rb.worldCenterOfMass : (Vector2)transform.position;
+
     public event Action<int, int> OnHealthChanged;
     public event Action OnEnemyDeath;
     public event Action<EnemyHealth> OnDeath;
@@ -145,6 +171,8 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     private SpriteRenderer[] spriteRenderers;
     private Color[] initialSpriteColors;
     private Coroutine flashRoutine;
+    private int lastFlashFrame = -1;
+    private float lastFlashTime = -1f;
     private WaitForSeconds cachedFlashWait;
     private float cachedDeathDuration;
     private bool hasDeathTriggerParam;
@@ -176,6 +204,13 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
         animator = GetComponent<Animator>() ?? GetComponentInChildren<Animator>();
         enemyMovement = GetComponent<EnemyMovement>();
         bossMovement = GetComponent<BossMovement>();
+        bossEnemy = GetComponent<BossEnemy>();
+        enemyComponent = GetComponent<Enemy>();
+        initialIsBoss = isBoss;
+        if (bossMovement != null || bossEnemy != null || (enemyComponent != null && enemyComponent.Type == EnemyType.Boss))
+        {
+            isBoss = true;
+        }
         rb = GetComponent<Rigidbody2D>();
         CurrentHealth = maxHealth;
 
@@ -321,7 +356,7 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
             // 2. Tìm State di chuyển / mặc định hợp lệ có trên Animator layer 0
             string[] candidateDefaultStates = new string[]
             {
-                defaultAnimationState, "run", "Run", "Walk", "walk", "WalkBigcreep", "Walkcreep1", "runbig", "Idle", "idle"
+                "Run", "run", "Walk", "walk", "WalkBigcreep", "Walkcreep1", "runbig", "Idle", "idle", defaultAnimationState
             };
             for (int i = 0; i < candidateDefaultStates.Length; i++)
             {
@@ -351,6 +386,16 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
             }
 
             hasDeathTriggerParam = HasParameter(animator, deathAnimationTrigger, AnimatorControllerParameterType.Trigger);
+        }
+    }
+
+    private void OnEnable()
+    {
+        // Khi GameObject được kích hoạt lại (kể cả không qua PoolManager.Get()),
+        // đảm bảo quái luôn ở trạng thái sống và khôi phục animator/visual
+        if (IsDead)
+        {
+            ResetForSpawn();
         }
     }
 
@@ -696,6 +741,8 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
             StopCoroutine(flashRoutine);
             flashRoutine = null;
         }
+        lastFlashFrame = -1;
+        lastFlashTime = -1f;
 
         if (deathRoutine != null)
         {
@@ -705,6 +752,7 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
 
         IsDead = false;
         CurrentHealth = maxHealth;
+        isBoss = initialIsBoss || bossMovement != null || bossEnemy != null || (enemyComponent != null && enemyComponent.Type == EnemyType.Boss);
 
         ResetVisualState();
         ResetPhysicsState();
@@ -776,6 +824,11 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
         animator.enabled = true;
         animator.applyRootMotion = false;
         animator.speed = 1f;
+
+        // Rebind đưa toàn bộ xương và transform hierarchy về Bind Pose gốc của Prefab
+        animator.Rebind();
+        animator.speed = 1f;
+
         if (hasDeathTriggerParam)
         {
             animator.ResetTrigger(deathAnimationTrigger);
@@ -800,12 +853,21 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
 
     /// <summary>
     /// Kích hoạt hiệu ứng chớp đỏ đúng 1 lần duy nhất cho mỗi lần nhận sát thương.
-    /// Nhận bao nhiêu lần sát thương sẽ chớp bấy nhiêu lần riêng biệt.
+    /// Có throttle bảo vệ chống nghẽn CPU/GPU khi nhiều viên đạn (như chùm đạn Shotgun) trúng quái cùng lúc trong 1 frame hoặc khoảng thời gian cực ngắn.
     /// </summary>
     public void TriggerDamageFlash()
     {
         if (!enableDamageFlash || !gameObject.activeInHierarchy)
             return;
+
+        // Nếu quái đã đang trong hiệu ứng chớp đỏ của cùng 1 frame hoặc vừa chớp cách đây < 0.04s, bỏ qua để chống nghẽn CPU/GPU
+        if (Time.frameCount == lastFlashFrame || (Time.time - lastFlashTime < 0.04f && flashRoutine != null))
+        {
+            return;
+        }
+
+        lastFlashFrame = Time.frameCount;
+        lastFlashTime = Time.time;
 
         if (flashRoutine != null)
         {
@@ -905,9 +967,13 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
             StopCoroutine(deathRoutine);
             deathRoutine = null;
         }
-        if (animator != null && hasDeathTriggerParam)
+        if (animator != null)
         {
-            animator.ResetTrigger(deathAnimationTrigger);
+            animator.speed = 1f;
+            if (hasDeathTriggerParam)
+            {
+                animator.ResetTrigger(deathAnimationTrigger);
+            }
         }
         OnDeath = null;
         OnEnemyDeath = null;

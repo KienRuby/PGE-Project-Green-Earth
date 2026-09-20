@@ -236,6 +236,12 @@ public class DamageNumber : MonoBehaviour, IPoolable
     private float lastAppliedAlpha = -1f;
     private bool isCrit;
     private MeshRenderer meshRenderer;
+    private int currentAmount;
+    private DamageType currentType;
+
+    public int CurrentAmount => currentAmount;
+    public DamageType CurrentType => currentType;
+    public bool IsRunning => isRunning;
 
     private void Awake()
     {
@@ -454,6 +460,8 @@ public class DamageNumber : MonoBehaviour, IPoolable
         EnsureComponents();
 
         isCrit = (type == DamageType.Critical);
+        currentType = type;
+        currentAmount = Mathf.Max(0, amount);
 
         // 1. Định dạng nội dung hiển thị
         if (textComponent != null)
@@ -581,6 +589,57 @@ public class DamageNumber : MonoBehaviour, IPoolable
         elapsedTime = 0f;
         isRunning = true;
         gameObject.SetActive(true);
+    }
+
+    /// <summary>
+    /// Cộng dồn sát thương cho cùng một mục tiêu trong cùng một đợt trúng đạn (Shotgun / Multi-hit burst).
+    /// </summary>
+    public void AddDamage(int extraDamage, bool makeCritical = false)
+    {
+        if (extraDamage <= 0) return;
+
+        currentAmount += extraDamage;
+
+        if (makeCritical && !isCrit)
+        {
+            isCrit = true;
+            currentType = DamageType.Critical;
+            baseColor = criticalColor;
+            gradTop = CritGradTop;
+            gradBottom = CritGradBottom;
+            targetScaleFactor *= critScaleMultiplier;
+            SetSorting(sortingLayerName, sortingOrder + 10);
+            ApplyColorAndGradient(1f);
+            ApplyOutline();
+            UpdateCritLayout();
+        }
+
+        if (textComponent != null)
+        {
+            switch (currentType)
+            {
+                case DamageType.Critical:
+                    textComponent.SetText("{0}", currentAmount);
+                    textComponent.fontStyle = FontStyles.Bold | FontStyles.Italic;
+                    break;
+                case DamageType.PlayerDamage:
+                    textComponent.SetText("-{0}", currentAmount);
+                    break;
+                case DamageType.Heal:
+                    textComponent.SetText("+{0}", currentAmount);
+                    break;
+                default:
+                    textComponent.SetText("{0}", currentAmount);
+                    break;
+            }
+        }
+
+        // Hiệu ứng nảy nhẹ khi nhận thêm sát thương dồn
+        targetScaleFactor = Mathf.Min(targetScaleFactor * 1.05f, 2.2f);
+        transform.localScale *= 1.06f;
+        elapsedTime = 0f; // Reset thời gian để số hiển thị trọn vẹn
+        lastAppliedAlpha = -1f;
+        ApplyColorAndGradient(1f);
     }
 
     /// <summary>

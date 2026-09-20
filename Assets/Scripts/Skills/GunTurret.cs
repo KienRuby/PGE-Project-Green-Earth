@@ -346,10 +346,19 @@ public class GunTurret : MonoBehaviour, IPoolable, IDamageable
             hitCount = Physics2D.OverlapBox(center, size, 0f, fallbackFilter, enemyColliderBuffer);
         }
 
-        Transform nearestEnemy = null;
-        float nearestDistanceSqr = Mathf.Infinity;
+        Transform bestBossWithLos = null;
+        float minBossWithLosDistSqr = Mathf.Infinity;
+        Transform bestBossNoLos = null;
+        float minBossNoLosDistSqr = Mathf.Infinity;
+
+        Transform bestEnemyWithLos = null;
+        float minEnemyWithLosDistSqr = Mathf.Infinity;
+        Transform bestEnemyNoLos = null;
+        float minEnemyNoLosDistSqr = Mathf.Infinity;
+
         float maxRangeSqr = maxRange * maxRange;
         Vector2 turretPos = transform.position;
+        int obstacleMask = LayerMask.GetMask("Obstacle");
 
         for (int i = 0; i < hitCount; i++)
         {
@@ -362,22 +371,51 @@ public class GunTurret : MonoBehaviour, IPoolable, IDamageable
 
             Vector2 diff = (Vector2)health.transform.position - turretPos;
             float distSqr = diff.sqrMagnitude;
+            if (distSqr > maxRangeSqr) continue;
 
-            if (distSqr <= maxRangeSqr && distSqr < nearestDistanceSqr)
+            bool isVisible = obstacleMask == 0 || !Physics2D.Linecast(turretPos, health.AimPoint, obstacleMask);
+
+            if (health.IsBoss)
             {
-                nearestDistanceSqr = distSqr;
-                nearestEnemy = health.transform;
+                if (isVisible && distSqr < minBossWithLosDistSqr)
+                {
+                    minBossWithLosDistSqr = distSqr;
+                    bestBossWithLos = health.transform;
+                }
+                else if (!isVisible && distSqr < minBossNoLosDistSqr)
+                {
+                    minBossNoLosDistSqr = distSqr;
+                    bestBossNoLos = health.transform;
+                }
+            }
+            else
+            {
+                if (isVisible && distSqr < minEnemyWithLosDistSqr)
+                {
+                    minEnemyWithLosDistSqr = distSqr;
+                    bestEnemyWithLos = health.transform;
+                }
+                else if (!isVisible && distSqr < minEnemyNoLosDistSqr)
+                {
+                    minEnemyNoLosDistSqr = distSqr;
+                    bestEnemyNoLos = health.transform;
+                }
             }
         }
 
-        currentTarget = nearestEnemy;
+        if (bestBossWithLos != null) currentTarget = bestBossWithLos;
+        else if (bestBossNoLos != null) currentTarget = bestBossNoLos;
+        else if (bestEnemyWithLos != null) currentTarget = bestEnemyWithLos;
+        else currentTarget = bestEnemyNoLos;
     }
 
     private void UpdateAimRotation()
     {
         if (aimPivot == null || currentTarget == null) return;
 
-        Vector2 aimDirection = ((Vector2)currentTarget.position - (Vector2)aimPivot.position).normalized;
+        EnemyHealth eh = currentTarget.GetComponentInParent<EnemyHealth>();
+        Vector2 targetPos = eh != null ? eh.AimPoint : (Vector2)currentTarget.position;
+        Vector2 aimDirection = (targetPos - (Vector2)aimPivot.position).normalized;
         if (aimDirection.sqrMagnitude < 0.001f) return;
 
         float angle = Mathf.Atan2(aimDirection.y, aimDirection.x) * Mathf.Rad2Deg;

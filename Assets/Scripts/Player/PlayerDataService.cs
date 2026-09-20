@@ -30,16 +30,98 @@ public static class PlayerDataService
     public const string BuddyCountKeyPrefix = "PGE.Buddy.Count.";
     public const string BuddyRequiredCountKeyPrefix = "PGE.Buddy.RequiredCount.";
     public const string BuddyEnhanceCostKeyPrefix = "PGE.Buddy.EnhanceCost.";
-
-    // =========================================================================
-    // INITIALIZATION: TARGET FRAMERATE
-    // =========================================================================
+    public const string BuddyUnlockedKeyPrefix = "PGE.Buddy.Unlocked.";
+    // Increment this when a new build must start with a clean local save.
+    // PlayerPrefs survives reinstall/build output replacement on many platforms.
+    // Bumped to 4 for authoritative Buddy system overhaul: clean baseline defaults (quantity 0, tier common, level 1, no equipped).
+    private const int SaveSchemaVersion = 4;
+    private const string SaveSchemaVersionKey = "PGE.Save.SchemaVersion";
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     public static void InitializeApplicationSettings()
     {
+        EnsureSaveSchema();
         Application.targetFrameRate = 60;
         QualitySettings.vSyncCount = 0;
         Screen.orientation = ScreenOrientation.Portrait;
+    }
+
+    private static void EnsureSaveSchema()
+    {
+        int storedVersion = PlayerPrefs.GetInt(SaveSchemaVersionKey, 0);
+        if (storedVersion == SaveSchemaVersion) return;
+
+        ResetAllProgress();
+        PlayerPrefs.SetInt(SaveSchemaVersionKey, SaveSchemaVersion);
+        PlayerPrefs.Save();
+    }
+
+    /// <summary>
+    /// Clears all locally persisted gameplay progress and restores the normal defaults.
+    /// Call this explicitly from a dev/reset button when needed.
+    /// </summary>
+    public static void ResetAllProgress()
+    {
+        PlayerPrefs.DeleteKey(DataChipsKey);
+        PlayerPrefs.DeleteKey(RedGemsKey);
+        PlayerPrefs.DeleteKey(EnergyKey);
+        PlayerPrefs.DeleteKey(AdvanceStonesKey);
+        PlayerPrefs.DeleteKey(NextEnergyUtcKey);
+        PlayerPrefs.DeleteKey(CompletedRollsKey);
+        PlayerPrefs.DeleteKey(LabPityCounterKey);
+        PlayerPrefs.DeleteKey(LabElitePityCounterKey);
+        PlayerPrefs.DeleteKey(LabEpicPityCounterKey);
+        PlayerPrefs.DeleteKey(LabLegendPityCounterKey);
+        PlayerPrefs.DeleteKey(SelectedWeaponIdKey);
+        PlayerPrefs.DeleteKey($"{ItemLevelKeyPrefix}CHIPSET SELECTION");
+        PlayerPrefs.DeleteKey(VipOwnedKey);
+        PlayerPrefs.DeleteKey(ChipsetBoxesKey);
+        PlayerPrefs.DeleteKey(DroneBoxesKey);
+        PlayerPrefs.DeleteKey(SelectedChapterIndexKey);
+        PlayerPrefs.DeleteKey(UnlockedChapterIndexKey);
+        PlayerPrefs.DeleteKey(ChipsetActiveDeckKey);
+        PlayerPrefs.DeleteKey(BuddyActiveDeckKey);
+
+        for (int i = 0; i < 3; i++)
+        {
+            PlayerPrefs.DeleteKey($"{ChipsetDeckPrefix}{i}");
+            PlayerPrefs.SetString($"{BuddyDeckKeyPrefix}{i}", "-1,-1,-1");
+        }
+
+        for (int id = 1; id <= 10; id++)
+        {
+            PlayerPrefs.DeleteKey($"{BuddyLevelKeyPrefix}{id}");
+            PlayerPrefs.DeleteKey($"{BuddyTierKeyPrefix}{id}");
+            PlayerPrefs.DeleteKey($"{BuddyCountKeyPrefix}{id}");
+            PlayerPrefs.DeleteKey($"{BuddyRequiredCountKeyPrefix}{id}");
+            PlayerPrefs.DeleteKey($"{BuddyEnhanceCostKeyPrefix}{id}");
+            PlayerPrefs.DeleteKey($"{BuddyUnlockedKeyPrefix}{id}");
+            PlayerPrefs.DeleteKey($"{ChipsetItemPrefix}{id}Level");
+            PlayerPrefs.DeleteKey($"{ChipsetItemPrefix}{id}Tier");
+            PlayerPrefs.DeleteKey($"{ChipsetItemPrefix}{id}Count");
+            PlayerPrefs.DeleteKey($"{ChipsetItemPrefix}{id}ReqCount");
+            PlayerPrefs.DeleteKey($"{ChipsetItemPrefix}{id}HasStar");
+            PlayerPrefs.DeleteKey($"{ChipsetItemPrefix}{id}TierEnhanceCount");
+            PlayerPrefs.DeleteKey($"{ChipsetItemPrefix}{id}EnhanceCost");
+        }
+
+        // Authoritative clean Buddy baseline for the 5 playable Buddies:
+        // Quantity = 0, Level = 1, Tier = Common (0), Req = 10, Cost = 500/3500, Unlocked = 1.
+        int[] playableBuddyIds = BuddyDatabase.PlayableIds;
+        for (int i = 0; i < playableBuddyIds.Length; i++)
+        {
+            int id = playableBuddyIds[i];
+            PlayerPrefs.SetInt($"{BuddyLevelKeyPrefix}{id}", 1);
+            PlayerPrefs.SetInt($"{BuddyTierKeyPrefix}{id}", 0);
+            PlayerPrefs.SetInt($"{BuddyCountKeyPrefix}{id}", 0);
+            PlayerPrefs.SetInt($"{BuddyRequiredCountKeyPrefix}{id}", 10);
+            PlayerPrefs.SetInt($"{BuddyEnhanceCostKeyPrefix}{id}", id == 1 ? 3500 : 500);
+            PlayerPrefs.SetInt($"{BuddyUnlockedKeyPrefix}{id}", 1);
+        }
+
+        for (int item = 0; item < 64; item++)
+        {
+            PlayerPrefs.DeleteKey($"{ItemLevelKeyPrefix}{item}");
+        }
     }
 
     // =========================================================================
@@ -734,12 +816,19 @@ public static class PlayerDataService
     public static void LoadBuddyProgress(BuddyItemData data)
     {
         if (data == null) return;
-        data.level = Mathf.Max(1, PlayerPrefs.GetInt($"{BuddyLevelKeyPrefix}{data.id}", data.level));
-        data.tier = (BuddyTier)PlayerPrefs.GetInt($"{BuddyTierKeyPrefix}{data.id}", (int)data.tier);
-        data.count = GetBuddyPieceCount(data.id, data.count);
-        int savedRequiredCount = PlayerPrefs.GetInt($"{BuddyRequiredCountKeyPrefix}{data.id}", data.requiredCount);
+        var def = BuddyDatabase.GetDefinition(data.id);
+        int defCost = def != null ? def.defaultEnhanceCost : (data.id == 1 ? 3500 : 500);
+        int defReq = def != null ? def.defaultRequiredCount : 10;
+        int defLevel = def != null ? def.defaultLevel : 1;
+        BuddyTier defTier = def != null ? def.defaultTier : BuddyTier.Common;
+
+        data.level = Mathf.Max(1, PlayerPrefs.GetInt($"{BuddyLevelKeyPrefix}{data.id}", defLevel));
+        data.tier = (BuddyTier)PlayerPrefs.GetInt($"{BuddyTierKeyPrefix}{data.id}", (int)defTier);
+        data.count = GetBuddyPieceCount(data.id, 0);
+        int savedRequiredCount = PlayerPrefs.GetInt($"{BuddyRequiredCountKeyPrefix}{data.id}", defReq);
         data.requiredCount = data.tier >= BuddyTier.Holographic ? 0 : Mathf.Max(1, savedRequiredCount);
-        data.enhanceCost = Mathf.Max(0, PlayerPrefs.GetInt($"{BuddyEnhanceCostKeyPrefix}{data.id}", data.enhanceCost));
+        data.enhanceCost = Mathf.Max(0, PlayerPrefs.GetInt($"{BuddyEnhanceCostKeyPrefix}{data.id}", defCost));
+        data.isUnlocked = PlayerPrefs.GetInt($"{BuddyUnlockedKeyPrefix}{data.id}", 1) == 1;
     }
 
     public static void SaveBuddyProgress(BuddyItemData data)
@@ -752,8 +841,39 @@ public static class PlayerDataService
             $"{BuddyRequiredCountKeyPrefix}{data.id}",
             data.tier >= BuddyTier.Holographic ? 0 : Mathf.Max(1, data.requiredCount));
         PlayerPrefs.SetInt($"{BuddyEnhanceCostKeyPrefix}{data.id}", Mathf.Max(0, data.enhanceCost));
+        PlayerPrefs.SetInt($"{BuddyUnlockedKeyPrefix}{data.id}", data.isUnlocked ? 1 : 0);
         PlayerPrefs.Save();
         OnBuddyPiecesChanged?.Invoke(data.id, Mathf.Max(0, data.count));
+    }
+
+    public static bool IsBuddyUnlocked(int buddyId)
+    {
+        return PlayerPrefs.GetInt($"{BuddyUnlockedKeyPrefix}{buddyId}", 1) == 1;
+    }
+
+    public static int[] ValidateAndSanitizeBuddyDeck(int[] deck)
+    {
+        int[] normalized = NormalizeBuddyDeck(deck);
+        System.Collections.Generic.HashSet<int> seen = new System.Collections.Generic.HashSet<int>();
+        for (int i = 0; i < normalized.Length; i++)
+        {
+            int id = normalized[i];
+            if (id <= 0)
+            {
+                normalized[i] = -1;
+                continue;
+            }
+
+            if (!BuddyDatabase.IsPlayable(id) || seen.Contains(id) || !IsBuddyUnlocked(id))
+            {
+                normalized[i] = -1;
+            }
+            else
+            {
+                seen.Add(id);
+            }
+        }
+        return normalized;
     }
 
     public static int GetBuddyPieceCount(int buddyId, int defaultValue = 0)

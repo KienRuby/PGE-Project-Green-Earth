@@ -431,6 +431,11 @@ public class SettingsPanelController : MonoBehaviour, IPointerClickHandler
     {
         if (button == null) return;
 
+        // Toggle buttons are state-driven by GameSettings. Unity's default
+        // ColorTint/SpriteSwap transition can immediately overwrite the OFF
+        // sprite on pointer-down, making every click appear stuck on ON.
+        button.transition = UnityEngine.UI.Selectable.Transition.None;
+
         UnityEngine.UI.Image img = button.GetComponent<UnityEngine.UI.Image>()
                                 ?? button.targetGraphic as UnityEngine.UI.Image;
         if (img != null && sprite != null)
@@ -454,6 +459,9 @@ public class SettingsPanelController : MonoBehaviour, IPointerClickHandler
 
             var shadow = button.GetComponent<UnityEngine.UI.Shadow>();
             if (shadow != null) shadow.enabled = true;
+            // Keep a deterministic visual even when a build has no sliced
+            // sprite reference assigned in the scene.
+            img.color = isEnabled ? Color.white : new Color32(120, 120, 120, 255);
         }
 
         if (textComponent != null)
@@ -473,7 +481,15 @@ public class SettingsPanelController : MonoBehaviour, IPointerClickHandler
     public void LoadSettingSpritesIfMissing()
     {
 #if UNITY_EDITOR
-        if (bgmOnSprite == null || englishOnSprite == null || headerSprite == null)
+        if (headerSprite == null ||
+            bgmOnSprite == null || bgmOffSprite == null ||
+            sfxOnSprite == null || sfxOffSprite == null ||
+            englishOnSprite == null || englishOffSprite == null ||
+            showDamageOnSprite == null || showDamageOffSprite == null ||
+            dynamicPadOnSprite == null || fixedPadOnSprite == null ||
+            dynamicFixedPadOffSprite == null ||
+            screenShakeOnSprite == null || screenShakeOffSprite == null ||
+            reviewOnSprite == null || googleLoginSprite == null || appleSignInSprite == null)
         {
             string spriteSheetPath = "Assets/Sprites/UI/setting/nút màn setting.png";
             Sprite[] allSprites = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(spriteSheetPath)
@@ -506,6 +522,39 @@ public class SettingsPanelController : MonoBehaviour, IPointerClickHandler
             }
         }
 #endif
+
+        // Build/runtime fallback. Scene references may be empty because the
+        // sprites are sub-assets of a sliced sheet; load the same sheet from
+        // Resources so OFF sprites also work in a player build.
+        if (bgmOffSprite == null || sfxOffSprite == null || screenShakeOffSprite == null)
+        {
+            Sprite[] runtimeSprites = Resources.LoadAll<Sprite>("UI/setting/nút màn setting");
+            for (int i = 0; i < runtimeSprites.Length; i++)
+            {
+                Sprite spr = runtimeSprites[i];
+                switch (spr.name)
+                {
+                    case "Setting": headerSprite = headerSprite ?? spr; break;
+                    case "BGM ON": bgmOnSprite = bgmOnSprite ?? spr; break;
+                    case "BGM OFF": bgmOffSprite = bgmOffSprite ?? spr; break;
+                    case "SFX ON": sfxOnSprite = sfxOnSprite ?? spr; break;
+                    case "SFX OFF": sfxOffSprite = sfxOffSprite ?? spr; break;
+                    case "English":
+                    case "English ON": englishOnSprite = englishOnSprite ?? spr; break;
+                    case "English OFF": englishOffSprite = englishOffSprite ?? spr; break;
+                    case "Show Damage On": showDamageOnSprite = showDamageOnSprite ?? spr; break;
+                    case "Show Damage Off": showDamageOffSprite = showDamageOffSprite ?? spr; break;
+                    case "Dynamic Pad On": dynamicPadOnSprite = dynamicPadOnSprite ?? spr; break;
+                    case "Fixed Pad ON": fixedPadOnSprite = fixedPadOnSprite ?? spr; break;
+                    case "Dynamic-Fixed Pad OFF": dynamicFixedPadOffSprite = dynamicFixedPadOffSprite ?? spr; break;
+                    case "Screen Shake ON": screenShakeOnSprite = screenShakeOnSprite ?? spr; break;
+                    case "Screen Shake OFF": screenShakeOffSprite = screenShakeOffSprite ?? spr; break;
+                    case "Write a review On": reviewOnSprite = reviewOnSprite ?? spr; break;
+                    case "Log in with Google": googleLoginSprite = googleLoginSprite ?? spr; break;
+                    case "Sign in with Apple": appleSignInSprite = appleSignInSprite ?? spr; break;
+                }
+            }
+        }
     }
 
     private static void SetToggleLabel(TMP_Text label, string title, bool enabled, string secondLine = null)
@@ -771,7 +820,8 @@ public class SettingsPanelController : MonoBehaviour, IPointerClickHandler
             string displayName = GameSettings.GetLanguageDisplayName(language);
             bool isActive = string.Equals(GameSettings.NormalizeLanguage(language), currentLang, StringComparison.OrdinalIgnoreCase);
 
-            txt.text = isActive ? $"✓  {displayName}" : displayName;
+            txt.text = isActive ? $"•  {displayName}" : displayName;
+            txt.color = isActive ? OnColor : Color.white;
         }
     }
 

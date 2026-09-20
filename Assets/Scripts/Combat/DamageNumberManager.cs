@@ -15,7 +15,7 @@ public class DamageNumberManager : MonoBehaviour
     [SerializeField] private DamageNumber damageNumberPrefab;
 
     [Tooltip("Số lượng đối tượng nạp sẵn ban đầu.")]
-    [SerializeField] private int initialPoolSize = 60;
+    [SerializeField] private int initialPoolSize = 100;
 
     [Tooltip("Font chữ TextMeshPro (mặc định Nunito SDF).")]
     [SerializeField] private TMP_FontAsset fontAsset;
@@ -526,16 +526,45 @@ public class DamageNumberManager : MonoBehaviour
     }
 #endif
 
+    private struct RecentDamageEntry
+    {
+        public Vector3 position;
+        public int frame;
+        public float time;
+        public DamageNumber instance;
+    }
+
+    private readonly RecentDamageEntry[] recentEntries = new RecentDamageEntry[8];
+    private int recentEntryIndex = 0;
     private Vector3 lastSpawnPos;
     private float lastSpawnTime;
     private int consecutiveHitCount;
 
     public void SpawnDamage(Vector3 worldPosition, int damage, DamageType type = DamageType.Normal, float extraScale = 1f)
     {
+        int currentFrame = Time.frameCount;
+        float now = Time.time;
+
+        // 1. Gom số sát thương (Aggregation): Nếu nhiều mảnh đạn trúng cùng 1 mục tiêu trong cùng 1 frame hoặc < 0.035s
+        for (int i = 0; i < recentEntries.Length; i++)
+        {
+            ref RecentDamageEntry entry = ref recentEntries[i];
+            if (entry.instance != null && entry.instance.gameObject.activeSelf && entry.instance.IsRunning)
+            {
+                if ((entry.frame == currentFrame || (now - entry.time < 0.035f)) &&
+                    Vector3.Distance(worldPosition, entry.position) <= 0.45f)
+                {
+                    entry.instance.AddDamage(damage, type == DamageType.Critical);
+                    entry.time = now;
+                    return;
+                }
+            }
+        }
+
+        // 2. Nếu là mục tiêu mới hoặc đợt bắn mới, lấy đối tượng mới từ pool
         DamageNumber instance = GetFromPool();
         if (instance != null)
         {
-            float now = Time.time;
             if (now - lastSpawnTime < 0.22f && Vector3.Distance(worldPosition, lastSpawnPos) < 0.85f)
             {
                 consecutiveHitCount++;
@@ -567,6 +596,15 @@ public class DamageNumberManager : MonoBehaviour
                 Color outline = GetOutlineForType(type);
                 instance.SetOutlineColor(outline, defaultOutlineWidth);
             }
+
+            recentEntries[recentEntryIndex] = new RecentDamageEntry
+            {
+                position = worldPosition,
+                frame = currentFrame,
+                time = now,
+                instance = instance
+            };
+            recentEntryIndex = (recentEntryIndex + 1) % recentEntries.Length;
         }
     }
 

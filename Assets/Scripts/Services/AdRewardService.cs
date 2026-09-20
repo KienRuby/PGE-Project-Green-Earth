@@ -182,6 +182,18 @@ public static class AdRewardService
             return;
         }
 
+        // Daily Login has a calendar-day limit, not the generic 60-second ad
+        // cooldown. Enforce it at the service boundary so every caller obeys
+        // the same one-ad-per-day rule.
+        if (placement == AdPlacement.DailyReward &&
+            DailyLoginManager.Instance != null &&
+            DailyLoginManager.Instance.HasClaimedAdToday())
+        {
+            Debug.LogWarning("[AdRewardService] Daily rewarded ad already claimed today.");
+            onComplete?.Invoke(false);
+            return;
+        }
+
         if (IsOnCooldown(placement))
         {
             float remaining = GetRemainingCooldown(placement);
@@ -190,8 +202,11 @@ public static class AdRewardService
             return;
         }
 
+        bool completed = false;
         void WrappedComplete(bool success)
         {
+            if (completed) return;
+            completed = true;
             onComplete?.Invoke(success);
         }
 

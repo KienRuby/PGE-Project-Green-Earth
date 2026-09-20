@@ -128,6 +128,12 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
     private void Start()
     {
         ResolveReferences();
+        if (slotState == BuddySlotState.Empty || slotState == BuddySlotState.Locked)
+        {
+            ApplyEmptyVisuals();
+            return;
+        }
+
         EnsureProgressBar();
         if (boundData != null)
         {
@@ -157,6 +163,11 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
             {
                 if (this == null) return;
                 ResolveReferences();
+                if (slotState == BuddySlotState.Empty || slotState == BuddySlotState.Locked)
+                {
+                    ApplyEmptyVisuals();
+                    return;
+                }
                 EnsureProgressBar();
                 if (boundData != null)
                 {
@@ -660,27 +671,58 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
         }
     }
 
+    public void ApplyEmptyVisuals()
+    {
+        SetEquippedBadge(false);
+
+        if (normalContentGroup != null) normalContentGroup.SetActive(false);
+        if (emptySlotGroup != null) emptySlotGroup.SetActive(slotState == BuddySlotState.Empty);
+        if (lockedSlotGroup != null) lockedSlotGroup.SetActive(slotState == BuddySlotState.Locked);
+
+        if (droneIconImage != null)
+        {
+            droneIconImage.enabled = false;
+            droneIconImage.gameObject.SetActive(false);
+        }
+
+        if (levelText != null)
+        {
+            levelText.text = "";
+            levelText.gameObject.SetActive(false);
+        }
+
+        if (progressText != null)
+        {
+            progressText.text = "";
+            progressText.gameObject.SetActive(false);
+        }
+
+        if (progressFillImage != null)
+        {
+            progressFillImage.fillAmount = 0f;
+            progressFillImage.enabled = false;
+            progressFillImage.gameObject.SetActive(false);
+        }
+
+        if (progressTrackImage != null)
+        {
+            progressTrackImage.enabled = false;
+            progressTrackImage.gameObject.SetActive(false);
+        }
+
+        if (upgradeArrowGroup != null)
+        {
+            upgradeArrowGroup.SetActive(false);
+        }
+    }
+
     public void SetupEmpty(Sprite frameSprite, Action onEmptyClick = null)
     {
         ResolveReferences();
         boundData = null;
         slotState = BuddySlotState.Empty;
         onEmptySlotClicked = onEmptyClick;
-        SetEquippedBadge(false);
-
-        if (normalContentGroup != null) normalContentGroup.SetActive(false);
-        if (emptySlotGroup != null) emptySlotGroup.SetActive(true);
-        if (lockedSlotGroup != null) lockedSlotGroup.SetActive(false);
-
-        if (normalContentGroup == null)
-        {
-            if (droneIconImage != null) droneIconImage.gameObject.SetActive(false);
-            if (levelText != null) levelText.gameObject.SetActive(false);
-            if (progressFillImage != null) progressFillImage.gameObject.SetActive(false);
-            if (progressText != null) progressText.gameObject.SetActive(false);
-        }
-
-        if (upgradeArrowGroup != null) upgradeArrowGroup.SetActive(false);
+        ApplyEmptyVisuals();
 
         if (cardFrameImage != null)
         {
@@ -703,21 +745,7 @@ public class BuddyCardUI : MonoBehaviour, IPointerClickHandler
         boundData = null;
         slotState = BuddySlotState.Locked;
         onLockedSlotClicked = onLockedClick;
-        SetEquippedBadge(false);
-
-        if (normalContentGroup != null) normalContentGroup.SetActive(false);
-        if (emptySlotGroup != null) emptySlotGroup.SetActive(false);
-        if (lockedSlotGroup != null) lockedSlotGroup.SetActive(true);
-
-        if (normalContentGroup == null)
-        {
-            if (droneIconImage != null) droneIconImage.gameObject.SetActive(false);
-            if (levelText != null) levelText.gameObject.SetActive(false);
-            if (progressFillImage != null) progressFillImage.gameObject.SetActive(false);
-            if (progressText != null) progressText.gameObject.SetActive(false);
-        }
-
-        if (upgradeArrowGroup != null) upgradeArrowGroup.SetActive(false);
+        ApplyEmptyVisuals();
 
         if (cardFrameImage != null)
         {

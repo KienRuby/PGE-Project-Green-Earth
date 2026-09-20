@@ -52,6 +52,11 @@ public class BuddyCombatManager : MonoBehaviour
 
     private void Awake()
     {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
         Instance = this;
     }
 
@@ -133,20 +138,23 @@ public class BuddyCombatManager : MonoBehaviour
         ClearAllDrones();
 
         int activeDeck = PlayerDataService.ActiveBuddyDeckIndex;
-        int[] equippedIds = PlayerDataService.LoadBuddyDeck(activeDeck, new int[] { 1, 2, 10 });
+        int[] equippedIds = PlayerDataService.LoadBuddyDeck(activeDeck, fallback: null);
 
         if (equippedIds == null || equippedIds.Length == 0)
         {
+            Debug.Log("[BuddyBattle] Equipped Buddy Count = 0");
             return;
         }
 
+        int[] sanitized = PlayerDataService.ValidateAndSanitizeBuddyDeck(equippedIds);
+
         // Lọc danh sách ID hợp lệ (> 0), tối đa MaxCombatDrones (3)
         List<int> validIds = new List<int>();
-        for (int i = 0; i < equippedIds.Length; i++)
+        for (int i = 0; i < sanitized.Length; i++)
         {
-            if (equippedIds[i] > 0)
+            if (sanitized[i] > 0)
             {
-                validIds.Add(equippedIds[i]);
+                validIds.Add(sanitized[i]);
                 if (validIds.Count >= MaxCombatDrones)
                 {
                     break;
@@ -154,8 +162,8 @@ public class BuddyCombatManager : MonoBehaviour
             }
         }
 
+        Debug.Log($"[BuddyBattle] Equipped Buddy Count = {validIds.Count}");
         if (validIds.Count == 0) return;
-
 
         for (int i = 0; i < validIds.Count; i++)
         {
@@ -170,6 +178,8 @@ public class BuddyCombatManager : MonoBehaviour
             // Đọc thông số level và tier của Buddy từ PlayerPrefs
             BuddyItemData itemData = new BuddyItemData { id = buddyId, level = 1, tier = BuddyTier.Common };
             PlayerDataService.LoadBuddyProgress(itemData);
+
+            Debug.Log($"[BuddyBattle] Spawn buddy = {buddyId} ({prefab.name}) at slot {i}");
 
             GameObject droneObj = Instantiate(prefab, transform.position, Quaternion.identity);
             droneObj.name = $"Buddy_{prefab.name}_{i}";

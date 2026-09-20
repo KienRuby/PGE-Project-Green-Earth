@@ -43,7 +43,7 @@ public class TurretBufferBuddy : BuddyCombatDrone
         else
         {
             int activeDeck = PlayerDataService.ActiveBuddyDeckIndex;
-            int[] equipped = PlayerDataService.LoadBuddyDeck(activeDeck, new int[] { 1, 2, 10 });
+            int[] equipped = PlayerDataService.LoadBuddyDeck(activeDeck, fallback: null);
             if (equipped != null && System.Array.IndexOf(equipped, 2) >= 0)
             {
                 BuddyItemData data = new BuddyItemData { id = 2, level = 1, tier = BuddyTier.Common };

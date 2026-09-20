@@ -139,13 +139,13 @@ public class HealthBoxPickup : MonoBehaviour
         if (boxType == HealthBoxType.Small)
         {
             healPercent = 0.10f; // 10% Max HP
-            visualWorldSize = 0.45f;
+            visualWorldSize = 0.30f;
             triggerRadius = 0.35f;
         }
         else
         {
             healPercent = 0.20f; // 20% Max HP
-            visualWorldSize = 0.65f;
+            visualWorldSize = 0.433f;
             triggerRadius = 0.45f;
         }
 

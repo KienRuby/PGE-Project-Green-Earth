@@ -26,6 +26,7 @@ public class BuddyItemData
     public int count = 0;
     public int requiredCount = 3;
     public int enhanceCost = 500;
+    public bool isUnlocked = true;
     public string description;
     public string baseStatText;
     public string magicPerkText;
@@ -69,6 +70,7 @@ public class BuddyItemData
             count = this.count,
             requiredCount = this.requiredCount,
             enhanceCost = this.enhanceCost,
+            isUnlocked = this.isUnlocked,
             description = this.description,
             baseStatText = this.baseStatText,
             magicPerkText = this.magicPerkText,
@@ -376,141 +378,19 @@ public class BuddyController : MonoBehaviour
         for (int d = 0; d < 3; d++)
         {
             int[] loaded = PlayerDataService.LoadBuddyDeck(d, new int[] { -1, -1, -1 });
-            if (loaded == null || loaded.Length != 3)
-            {
-                int[] fixedDeck = new int[3] { -1, -1, -1 };
-                if (loaded != null)
-                {
-                    for (int i = 0; i < Mathf.Min(loaded.Length, 3); i++)
-                    {
-                        fixedDeck[i] = loaded[i];
-                    }
-                }
-                loaded = fixedDeck;
-            }
-            deckEquippedIds[d] = loaded;
+            deckEquippedIds[d] = PlayerDataService.ValidateAndSanitizeBuddyDeck(loaded);
         }
         if (slotUnlocked == null || slotUnlocked.Length != 3)
         {
             slotUnlocked = new bool[] { true, true, true };
         }
 
-        NormalizeActiveBuddyList();
-
-        if (allBuddies.Count == ActiveDroneIds.Length)
+        allBuddies = new List<BuddyItemData>();
+        foreach (int buddyId in BuddyDatabase.PlayableIds)
         {
-            foreach (var b in allBuddies)
-            {
-                if (b == null) continue;
-                if (b.id == 1 || b.iconKey == "drone-snowflake")
-                {
-                    b.buddyName = "Sloy";
-                    b.tier = BuddyTier.Common;
-                    b.description = "Fires shells that slow down enemies.";
-                    b.baseStatText = "Drone ATK 20.4, Slow ATK Speed";
-                }
-                PlayerDataService.LoadBuddyProgress(b);
-            }
-            return;
-        }
-
-        allBuddies = new List<BuddyItemData>
-        {
-            // 1. Drone Snowflake (Sloy / Frost Sentinel)
-            new BuddyItemData
-            {
-                id = 1,
-                buddyName = "Sloy",
-                iconKey = "drone-snowflake",
-                tier = BuddyTier.Common,
-                level = 8,
-                count = 0,
-                requiredCount = 10,
-                enhanceCost = 3500,
-                description = "Fires shells that slow down enemies.",
-                baseStatText = "Drone ATK 20.4, Slow ATK Speed",
-                magicPerkText = "Frost Shell +20%",
-                rarePerkText = "Frost Shell +20%",
-                uniquePerkText = "Area Slow +30%",
-                epicPerkText = "Blizzard Blast +30%"
-            },
-            // 2. Drone Spider (Turret Buffer - As in user screenshot)
-            new BuddyItemData
-            {
-                id = 2,
-                buddyName = "Turret Buffer",
-                iconKey = "drone-spider",
-                tier = BuddyTier.Common,
-                level = 1,
-                count = 0,
-                requiredCount = 10,
-                enhanceCost = 500,
-                description = "Improves the skills of all Turrets.",
-                baseStatText = "All Turrets' Duration <color=#FFCB49>10%</color>",
-                magicPerkText = "Turret Duration +20%",
-                rarePerkText = "Turret Duration +30%",
-                uniquePerkText = "Turret Duration +30%",
-                epicPerkText = "Turret Duration +30%"
-            },
-            // 3. Drone Antenna Eye (Radar Eye)
-            new BuddyItemData
-            {
-                id = 3,
-                buddyName = "Radar Eye",
-                iconKey = "drone-antenna-eye",
-                tier = BuddyTier.Common,
-                level = 1,
-                count = 0,
-                requiredCount = 10,
-                enhanceCost = 500,
-                description = "Scans hostiles and pinpoints critical weaknesses.",
-                baseStatText = "All Weapons' CRIT Rate <color=#FFCB49>+5%</color>",
-                magicPerkText = "CRIT Damage +20%",
-                rarePerkText = "Scan Range +30%",
-                uniquePerkText = "Weakpoint Bonus +30%",
-                epicPerkText = "Target Lock +30%"
-            },
-            // 4. Drone Cross Visor (Assault Blaster)
-            new BuddyItemData
-            {
-                id = 4,
-                buddyName = "Assault Blaster",
-                iconKey = "drone-cross-visor",
-                tier = BuddyTier.Common,
-                level = 1,
-                count = 0,
-                requiredCount = 10,
-                enhanceCost = 500,
-                description = "Continuous twin blaster providing direct firepower.",
-                baseStatText = "All Weapons' ATK <color=#FFCB49>+12%</color>",
-                magicPerkText = "Blaster ATK +20%",
-                rarePerkText = "Fire Rate +30%",
-                uniquePerkText = "Dual Shot ATK +30%",
-                epicPerkText = "Overheat Surge +30%"
-            },
-            // 5. Purifying Drone (ID 10, matches user screenshot 2)
-            new BuddyItemData
-            {
-                id = 10,
-                buddyName = "Purifying Drone",
-                iconKey = "drone-stealth-wing",
-                tier = BuddyTier.Common,
-                level = 1,
-                count = 0,
-                requiredCount = 10,
-                enhanceCost = 500,
-                description = "Increase the ratio of\nAilment Resistance",
-                baseStatText = "Ailment Resistance 5%",
-                magicPerkText = "Ailment Resistance +5%",
-                rarePerkText = "Ailment Resistance +7%",
-                uniquePerkText = "Ailment Resistance +9%",
-                epicPerkText = "Remove Ailment Instantly (cooldown 30s)"
-            }
-        };
-
-        foreach (BuddyItemData buddy in allBuddies)
-        {
+            BuddyItemData buddy = BuddyDatabase.CreateDefaultRuntimeData(buddyId);
             PlayerDataService.LoadBuddyProgress(buddy);
+            allBuddies.Add(buddy);
         }
     }
 
@@ -881,6 +761,42 @@ public class BuddyController : MonoBehaviour
                                  GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name.Equals("EquippedRow", StringComparison.OrdinalIgnoreCase));
 
         ConfigureEquippedRowLayout(equippedRowT);
+        if (equippedRowT == null) return;
+
+        // Ensure exactly three equipped slots:
+        // 1. Remove any extra children beyond 3
+        while (equippedRowT.childCount > PlayerDataService.MaxEquippedDronesPerDeck)
+        {
+            Transform extra = equippedRowT.GetChild(equippedRowT.childCount - 1);
+            if (Application.isPlaying) Destroy(extra.gameObject);
+            else DestroyImmediate(extra.gameObject);
+        }
+
+        // 2. If fewer than 3, instantiate template to reach 3
+        Transform template = FindTemplateForBuddy(null);
+        while (equippedRowT.childCount < PlayerDataService.MaxEquippedDronesPerDeck && template != null)
+        {
+            int index = equippedRowT.childCount;
+            GameObject clone = Instantiate(template.gameObject, equippedRowT);
+            clone.name = $"EquippedSlot_{index}";
+            SetupSlotTransformAndLayout(clone.transform, index);
+        }
+
+        // 3. Configure each of the 3 slots once
+        for (int i = 0; i < equippedRowT.childCount; i++)
+        {
+            Transform child = equippedRowT.GetChild(i);
+            child.name = $"EquippedSlot_{i}";
+            SetupSlotTransformAndLayout(child, i);
+
+            BuddyCardUI card = child.GetComponent<BuddyCardUI>() ?? child.gameObject.AddComponent<BuddyCardUI>();
+            if (child.GetComponent<Button>() == null) child.gameObject.AddComponent<Button>();
+            card.EnsureProgressBar();
+            if (equippedSlots != null && i < equippedSlots.Length)
+            {
+                equippedSlots[i] = card;
+            }
+        }
     }
 
     public void AutoWireDetailModalReferencesIfMissing()
@@ -1324,104 +1240,38 @@ public class BuddyController : MonoBehaviour
             int buddyId = (currentDeck != null && i < currentDeck.Length) ? currentDeck[i] : -1;
             bool isLocked = buddyId == -2 || (slotUnlocked != null && i < slotUnlocked.Length && !slotUnlocked[i]);
 
-            Transform existingSlot = null;
-            if (i < equippedRowT.childCount)
+            Transform slotT = i < equippedRowT.childCount ? equippedRowT.GetChild(i) : null;
+            if (slotT == null) continue;
+
+            BuddyCardUI card = slotT.GetComponent<BuddyCardUI>() ?? slotT.gameObject.AddComponent<BuddyCardUI>();
+            if (slotT.GetComponent<Button>() == null) slotT.gameObject.AddComponent<Button>();
+            card.EnsureProgressBar();
+            equippedSlots[i] = card;
+
+            Sprite frame = GetFrameSprite(BuddyTier.Common);
+
+            if (isLocked)
             {
-                existingSlot = equippedRowT.GetChild(i);
+                card.SetupLocked(frame, () => ShowToast($"Slot {slotIndex + 1} locked!"));
             }
-
-            if (isLocked || buddyId <= 0)
+            else if (buddyId <= 0)
             {
-                string expectedEmptyName = $"EquippedSlot_{i}";
-                bool isCorrectEmpty = existingSlot != null && existingSlot.name == expectedEmptyName && existingSlot.GetComponent<BuddyCardUI>() != null;
-
-                if (!isCorrectEmpty)
-                {
-                    Transform defaultTemplate = FindTemplateForBuddy(null);
-                    if (defaultTemplate != null)
-                    {
-                        GameObject clone = Instantiate(defaultTemplate.gameObject, equippedRowT);
-                        clone.name = expectedEmptyName;
-                        SetupSlotTransformAndLayout(clone.transform, i);
-
-                        if (existingSlot != null)
-                        {
-                            if (Application.isPlaying) Destroy(existingSlot.gameObject);
-                            else DestroyImmediate(existingSlot.gameObject);
-                        }
-                        existingSlot = clone.transform;
-                    }
-                }
-
-                if (existingSlot != null)
-                {
-                    BuddyCardUI card = existingSlot.GetComponent<BuddyCardUI>() ?? existingSlot.gameObject.AddComponent<BuddyCardUI>();
-                    if (existingSlot.GetComponent<Button>() == null) existingSlot.gameObject.AddComponent<Button>();
-                    card.EnsureProgressBar();
-
-                    Sprite frame = GetFrameSprite(BuddyTier.Common);
-                    if (isLocked)
-                    {
-                        card.SetupLocked(frame, () => ShowToast($"Slot {slotIndex + 1} locked!"));
-                    }
-                    else
-                    {
-                        card.SetupEmpty(emptySlotFrameSprite ?? frame, () => ShowToast("Empty Slot! Please select a Drone below to equip."));
-                    }
-                    card.SetEquippedBadge(false);
-                    equippedSlots[i] = card;
-                }
+                card.SetupEmpty(emptySlotFrameSprite ?? frame, () => ShowToast("Empty Slot! Please select a Drone below to equip."));
             }
             else
             {
                 BuddyItemData buddy = allBuddies.FirstOrDefault(b => b.id == buddyId);
                 if (buddy == null)
                 {
-                    Sprite frame = GetFrameSprite(BuddyTier.Common);
-                    if (existingSlot != null)
-                    {
-                        BuddyCardUI card = existingSlot.GetComponent<BuddyCardUI>() ?? existingSlot.gameObject.AddComponent<BuddyCardUI>();
-                        card.SetupEmpty(emptySlotFrameSprite ?? frame, () => ShowToast("Empty Slot! Please select a Drone below to equip."));
-                        card.SetEquippedBadge(false);
-                        equippedSlots[i] = card;
-                    }
-                    continue;
+                    card.SetupEmpty(emptySlotFrameSprite ?? frame, () => ShowToast("Empty Slot! Please select a Drone below to equip."));
                 }
-
-                string expectedEquippedName = $"EquippedSlot_{i}_{buddy.iconKey}";
-                bool isCorrectDroneClone = existingSlot != null && existingSlot.name == expectedEquippedName && existingSlot.GetComponent<BuddyCardUI>() != null;
-
-                if (!isCorrectDroneClone)
+                else
                 {
-                    // Bê nguyên vẹn template của chính con Drone đó lên slot!
-                    Transform droneTemplate = FindTemplateForBuddy(buddy);
-                    if (droneTemplate != null)
-                    {
-                        GameObject clone = Instantiate(droneTemplate.gameObject, equippedRowT);
-                        clone.name = expectedEquippedName;
-                        SetupSlotTransformAndLayout(clone.transform, i);
-
-                        if (existingSlot != null)
-                        {
-                            if (Application.isPlaying) Destroy(existingSlot.gameObject);
-                            else DestroyImmediate(existingSlot.gameObject);
-                        }
-                        existingSlot = clone.transform;
-                    }
-                }
-
-                if (existingSlot != null)
-                {
-                    BuddyCardUI card = existingSlot.GetComponent<BuddyCardUI>() ?? existingSlot.gameObject.AddComponent<BuddyCardUI>();
-                    if (existingSlot.GetComponent<Button>() == null) existingSlot.gameObject.AddComponent<Button>();
-                    card.EnsureProgressBar();
                     card.EnsureUpgradeArrow(upgradeArrowSprite);
-
                     Sprite icon = GetIconSprite(buddy);
                     Sprite buddyFrame = GetFrameSprite(buddy.tier);
                     card.Setup(buddy, icon, buddyFrame, (b) => OpenDetailModalFromEquippedSlot(b, slotIndex), QuickUpgradeBuddy);
                     card.SetEquippedBadge(false);
-                    equippedSlots[i] = card;
                 }
             }
         }
@@ -1743,26 +1593,12 @@ public class BuddyController : MonoBehaviour
 
         if (detailEquipBtnText != null)
         {
-            if (openedFromEquippedSlotIndex >= 0)
-            {
-                detailEquipBtnText.text = "UNEQUIP";
-            }
-            else
-            {
-                detailEquipBtnText.text = isEquipped ? "EQUIPPED" : "EQUIP";
-            }
+            detailEquipBtnText.text = (openedFromEquippedSlotIndex >= 0 || isEquipped) ? "UNEQUIP" : "EQUIP";
         }
 
         if (detailEquipBtn != null)
         {
-            if (openedFromEquippedSlotIndex >= 0)
-            {
-                detailEquipBtn.interactable = true;
-            }
-            else
-            {
-                detailEquipBtn.interactable = !isEquipped;
-            }
+            detailEquipBtn.interactable = true;
         }
     }
 
@@ -1836,6 +1672,8 @@ public class BuddyController : MonoBehaviour
             : null;
         if (currentDeck == null) return;
 
+        Debug.Log($"[Buddy] ToggleEquip for {selectedDetailBuddy.buddyName} (ID={selectedDetailBuddy.id}). OpenedFromSlot={openedFromEquippedSlotIndex}");
+
         if (openedFromEquippedSlotIndex >= 0)
         {
             int slot = openedFromEquippedSlotIndex;
@@ -1844,6 +1682,7 @@ public class BuddyController : MonoBehaviour
                 currentDeck[slot] = -1;
             }
             PlayerDataService.SaveBuddyDeck(activeDeckIndex, currentDeck);
+            Debug.Log($"[Buddy] Unequipped {selectedDetailBuddy.buddyName} from Slot {slot + 1}");
             ShowToast($"Unequipped {selectedDetailBuddy.buddyName} from Slot {slot + 1}");
             openedFromEquippedSlotIndex = -1;
 
@@ -1861,6 +1700,7 @@ public class BuddyController : MonoBehaviour
         {
             currentDeck[indexInDeck] = -1;
             PlayerDataService.SaveBuddyDeck(activeDeckIndex, currentDeck);
+            Debug.Log($"[Buddy] Unequipped {selectedDetailBuddy.buddyName} from Slot {indexInDeck + 1}");
             ShowToast($"Unequipped {selectedDetailBuddy.buddyName} from Slot {indexInDeck + 1}");
             if (detailModal != null)
             {
@@ -1885,12 +1725,14 @@ public class BuddyController : MonoBehaviour
         if (emptyIndex >= 0)
         {
             currentDeck[emptyIndex] = selectedDetailBuddy.id;
+            Debug.Log($"[Buddy] Equipped {selectedDetailBuddy.buddyName} to Slot {emptyIndex + 1}");
             ShowToast($"Equipped {selectedDetailBuddy.buddyName} to Slot {emptyIndex + 1}");
         }
         else
         {
-            currentDeck[0] = selectedDetailBuddy.id;
-            ShowToast($"Replaced Slot 1 with {selectedDetailBuddy.buddyName}");
+            Debug.LogWarning("[Buddy] All slots full! Unequip a drone first.");
+            ShowToast("All slots full! Unequip a drone first.");
+            return;
         }
 
         PlayerDataService.SaveBuddyDeck(activeDeckIndex, currentDeck);

@@ -356,6 +356,8 @@ public abstract class BuddyCombatDrone : MonoBehaviour
             return bestFallback;
         }
 
+        EnemyHealth bestBoss = null;
+        float minBossDistance = float.MaxValue;
         EnemyHealth nearestEnemy = null;
         float minDistance = float.MaxValue;
 
@@ -365,15 +367,29 @@ public abstract class BuddyCombatDrone : MonoBehaviour
             EnemyHealth health = hits[i].GetComponent<EnemyHealth>() ?? hits[i].GetComponentInParent<EnemyHealth>();
             if (health == null || health.IsDead || !health.gameObject.activeInHierarchy) continue;
 
-            float dist = Vector2.Distance(scanCenter, health.transform.position);
-            if (dist < minDistance && dist <= range)
+            float dist = Vector2.Distance(scanCenter, health.AimPoint);
+            if (dist <= range)
             {
-                minDistance = dist;
-                nearestEnemy = health;
+                if (health.IsBoss)
+                {
+                    if (dist < minBossDistance)
+                    {
+                        minBossDistance = dist;
+                        bestBoss = health;
+                    }
+                }
+                else
+                {
+                    if (dist < minDistance)
+                    {
+                        minDistance = dist;
+                        nearestEnemy = health;
+                    }
+                }
             }
         }
 
-        return nearestEnemy;
+        return bestBoss != null ? bestBoss : nearestEnemy;
     }
 
     protected virtual void UpdateCombat(float deltaTime)

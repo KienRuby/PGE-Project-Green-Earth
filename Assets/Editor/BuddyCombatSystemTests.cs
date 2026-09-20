@@ -124,6 +124,28 @@ public class BuddyCombatSystemTests
     }
 
     [Test]
+    public void BuddyCombatManager_ZeroEquippedDrones_SpawnsZeroDrones()
+    {
+        GameObject playerObj = new GameObject("Player_ZeroTest");
+        try
+        {
+            int[] testDeck = new int[] { -1, -1, -1 };
+            PlayerDataService.ActiveBuddyDeckIndex = 0;
+            PlayerDataService.SaveBuddyDeck(0, testDeck);
+
+            BuddyCombatManager manager = playerObj.AddComponent<BuddyCombatManager>();
+            manager.EnsureRegisteredPrefabsLoaded();
+            manager.SpawnEquippedBuddies();
+
+            Assert.AreEqual(0, manager.ActiveDrones.Count, "Manager must spawn 0 drones when all deck slots are -1.");
+        }
+        finally
+        {
+            Object.DestroyImmediate(playerObj);
+        }
+    }
+
+    [Test]
     public void AllBuddyDrones_AttackRange_IsThreeMetersSmallerThanPlayerAttackRange()
     {
         GameObject player = new GameObject("Player_BuddyRangeTest");

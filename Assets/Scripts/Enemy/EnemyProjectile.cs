@@ -16,6 +16,19 @@ public class EnemyProjectile : MonoBehaviour, IPoolable
     private Rigidbody2D rb;
     private Vector2 direction;
     private float lifeTimer;
+    private static int obstacleLayerMask = -1;
+    private static int ObstacleLayerMask
+    {
+        get
+        {
+            if (obstacleLayerMask == -1)
+            {
+                obstacleLayerMask = LayerMask.GetMask("Obstacle");
+                if (obstacleLayerMask == 0) obstacleLayerMask = LayerMask.GetMask("Default");
+            }
+            return obstacleLayerMask;
+        }
+    }
 
     public int Damage => damage;
     public float MoveSpeed => moveSpeed;
@@ -39,7 +52,29 @@ public class EnemyProjectile : MonoBehaviour, IPoolable
 
     private void FixedUpdate()
     {
-        rb.MovePosition(rb.position + direction * (moveSpeed * Time.fixedDeltaTime));
+        float stepDist = moveSpeed * Time.fixedDeltaTime;
+        Vector2 currentPos = rb != null ? rb.position : (Vector2)transform.position;
+
+        if (direction.sqrMagnitude > 0.001f && stepDist > 0f)
+        {
+            RaycastHit2D hit = Physics2D.Raycast(currentPos, direction, stepDist, ObstacleLayerMask);
+            if (hit.collider != null && !hit.collider.isTrigger)
+            {
+                transform.position = hit.point;
+                if (rb != null) rb.position = hit.point;
+                Despawn();
+                return;
+            }
+        }
+
+        if (rb != null)
+        {
+            rb.MovePosition(rb.position + direction * stepDist);
+        }
+        else
+        {
+            transform.position += (Vector3)(direction * stepDist);
+        }
     }
 
     public void Setup(Vector2 moveDirection, int damageAmount, float speed, float maxRange)

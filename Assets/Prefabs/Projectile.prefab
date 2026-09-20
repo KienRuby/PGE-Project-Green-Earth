@@ -14,8 +14,6 @@ GameObject:
   - component: {fileID: 172988563996321232}
   - component: {fileID: 3209699997234469457}
   - component: {fileID: 1351955403336106607}
-  - component: {fileID: 9176291970807468250}
-  - component: {fileID: -7545078886252391276}
   m_Layer: 0
   m_Name: Projectile
   m_TagString: BulletPlayer
@@ -149,8 +147,8 @@ CapsuleCollider2D:
   m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0.06641543, y: 0.016116295}
-  m_Size: {x: 2.1932604, y: 0.49420536}
+  m_Offset: {x: 0, y: 0}
+  m_Size: {x: 1.34, y: 0.88}
   m_Direction: 1
 --- !u!114 &3209699997234469457
 MonoBehaviour:
@@ -198,82 +196,3 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &9176291970807468250
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9176291970807468248}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: eebc33a6fa864a4bb5286eb25b8247ed, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  autoDetectChildren: 1
-  isTrigger: 1
-  ignoreShadowsAndUI: 1
-  removeLegacyRootColliders: 1
-  entries:
-  - renderer: {fileID: 61426843851735792}
-    collider: {fileID: -7545078886252391276}
-    lastSprite: {fileID: -749266574, guid: 9ca7b47ea3c8aec47be3480c06466b16, type: 3}
---- !u!60 &-7545078886252391276
-PolygonCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9176291970807468248}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ForceSendLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ForceReceiveLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ContactCaptureLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_CallbackLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_IsTrigger: 1
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1.37, y: 0.92}
-    newSize: {x: 1, y: 2}
-    adaptiveTilingThreshold: 0.5
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  m_Points:
-    m_Paths:
-    - - {x: 0.625, y: 0.30750272}
-      - {x: 0.41875002, y: 0.4762527}
-      - {x: 0.025000047, y: 0.4762527}
-      - {x: -0.5187499, y: 0.23250273}
-      - {x: -0.68749994, y: 0.045002744}
-      - {x: -0.68749994, y: -0.067497246}
-      - {x: -0.46249992, y: -0.14249724}
-      - {x: -0.46249992, y: -0.21749724}
-      - {x: -0.29374993, y: -0.29249725}
-      - {x: 0.08125004, y: -0.46124724}
-      - {x: 0.3625, y: -0.46124724}
-      - {x: 0.58750004, y: -0.32999724}
-      - {x: 0.68125004, y: -0.17999724}
-      - {x: 0.68125004, y: 0.23250273}
-  m_UseDelaunayMesh: 0

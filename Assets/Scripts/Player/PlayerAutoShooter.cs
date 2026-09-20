@@ -130,6 +130,7 @@ public class PlayerAutoShooter : MonoBehaviour
 
     // Buffer cố định để quét quái không sinh rác GC
     private readonly Collider2D[] enemyColliderBuffer = new Collider2D[64];
+    private readonly HashSet<int> evaluatedEnemyIds = new HashSet<int>();
     private ContactFilter2D contactFilter;
 
     private float artifactDamageMultiplier = 1f;
@@ -591,6 +592,15 @@ public class PlayerAutoShooter : MonoBehaviour
             currentTarget = null;
             targetSearchTimer = 0f;
         }
+        else
+        {
+            EnemyHealth curEh = currentTarget.GetComponentInParent<EnemyHealth>();
+            if (curEh == null || curEh.IsDead || !curEh.gameObject.activeInHierarchy)
+            {
+                currentTarget = null;
+                targetSearchTimer = 0f;
+            }
+        }
 
         if (targetSearchTimer > 0f)
             return;
@@ -651,11 +661,24 @@ public class PlayerAutoShooter : MonoBehaviour
             }
         }
 
-        Transform nearestEnemy = null;
-        float nearestDistanceSqr = Mathf.Infinity;
+        evaluatedEnemyIds.Clear();
+
+        Transform bestBossWithLos = null;
+        float minBossWithLosDistSqr = Mathf.Infinity;
+
+        Transform bestBossNoLos = null;
+        float minBossNoLosDistSqr = Mathf.Infinity;
+
+        Transform bestEnemyWithLos = null;
+        float minEnemyWithLosDistSqr = Mathf.Infinity;
+
+        Transform bestEnemyNoLos = null;
+        float minEnemyNoLosDistSqr = Mathf.Infinity;
+
         float effectiveRange = currentAttackRange + bonusAttackRange;
         float attackRangeSqr = effectiveRange * effectiveRange;
         Vector2 playerPosition = transform.position;
+        int obstacleMask = LayerMask.GetMask("Obstacle");
 
         for (int i = 0; i < hitCount; i++)
         {
@@ -666,25 +689,170 @@ public class PlayerAutoShooter : MonoBehaviour
             if (health == null || health.IsDead || !health.gameObject.activeInHierarchy)
                 continue;
 
-            Vector2 difference = (Vector2)health.transform.position - playerPosition;
-            float distanceSqr = difference.sqrMagnitude;
+            int instanceId = health.gameObject.GetInstanceID();
+            if (!evaluatedEnemyIds.Add(instanceId))
+                continue; // Tránh tính lặp lại quái vật có nhiều collider (nhất là Boss)
+
+            Vector2 diff = (Vector2)health.transform.position - playerPosition;
+            float distanceSqr = diff.sqrMagnitude;
 
             if (distanceSqr > attackRangeSqr)
                 continue;
 
-            if (distanceSqr < nearestDistanceSqr)
+            bool isVisible = obstacleMask == 0 || !Physics2D.Linecast(playerPosition, health.AimPoint, obstacleMask);
+
+            if (health.IsBoss)
             {
-                nearestDistanceSqr = distanceSqr;
-                nearestEnemy = health.transform;
+                if (isVisible)
+                {
+                    if (distanceSqr < minBossWithLosDistSqr)
+                    {
+                        minBossWithLosDistSqr = distanceSqr;
+                        bestBossWithLos = health.transform;
+                    }
+                }
+                else
+                {
+                    if (distanceSqr < minBossNoLosDistSqr)
+                    {
+                        minBossNoLosDistSqr = distanceSqr;
+                        bestBossNoLos = health.transform;
+                    }
+                }
+            }
+            else
+            {
+                if (isVisible)
+                {
+                    if (distanceSqr < minEnemyWithLosDistSqr)
+                    {
+                        minEnemyWithLosDistSqr = distanceSqr;
+                        bestEnemyWithLos = health.transform;
+                    }
+                }
+                else
+                {
+                    if (distanceSqr < minEnemyNoLosDistSqr)
+                    {
+                        minEnemyNoLosDistSqr = distanceSqr;
+                        bestEnemyNoLos = health.transform;
+                    }
+                }
             }
         }
 
-        currentTarget = nearestEnemy;
+        // Bậc ưu tiên tuyển chọn mục tiêu:
+        // Tier 1: Boss có tầm nhìn trực tiếp (LOS)
+        // Tier 2: Boss bị vật cản che
+        // Tier 3: Quái thường có tầm nhìn trực tiếp (LOS)
+        // Tier 4: Quái thường bị vật cản che
+        Transform candidateTarget = null;
+        bool candidateIsBoss = false;
+
+        if (bestBossWithLos != null)
+        {
+            candidateTarget = bestBossWithLos;
+            candidateIsBoss = true;
+        }
+        else if (bestBossNoLos != null)
+        {
+            candidateTarget = bestBossNoLos;
+            candidateIsBoss = true;
+        }
+        else if (bestEnemyWithLos != null)
+        {
+            candidateTarget = bestEnemyWithLos;
+            candidateIsBoss = false;
+        }
+        else if (bestEnemyNoLos != null)
+        {
+            candidateTarget = bestEnemyNoLos;
+            candidateIsBoss = false;
+        }
+
+        // Cơ chế Target Hysteresis & Anti-Flicker:
+        // 1. Nếu đang ngắm Boss hợp lệ trong tầm, quái thường tuyệt đối KHÔNG ĐƯỢC cướp target.
+        // 2. Nếu đang ngắm quái thường mà Boss xuất hiện trong tầm, lập tức chuyển target sang Boss (zero-delay).
+        // 3. Nếu giữa 2 Boss hoặc 2 Quái thường có khoảng cách xấp xỉ nhau, áp dụng ngưỡng trễ (hysteresis) tránh rung lắc tâm ngắm.
+        if (currentTarget != null && currentTarget.gameObject.activeInHierarchy)
+        {
+            EnemyHealth curHealth = currentTarget.GetComponentInParent<EnemyHealth>();
+            if (curHealth != null && !curHealth.IsDead && curHealth.gameObject.activeInHierarchy)
+            {
+                float curDistSqr = ((Vector2)curHealth.transform.position - playerPosition).sqrMagnitude;
+                float maxAllowedRange = effectiveRange + 0.5f; // Ngưỡng đệm rời tầm đánh
+
+                if (curDistSqr <= maxAllowedRange * maxAllowedRange)
+                {
+                    if (curHealth.IsBoss)
+                    {
+                        if (candidateIsBoss && candidateTarget != currentTarget)
+                        {
+                            bool curHasLos = obstacleMask == 0 || !Physics2D.Linecast(playerPosition, curHealth.AimPoint, obstacleMask);
+                            bool candidateHasLos = candidateTarget == bestBossWithLos;
+
+                            if (!curHasLos && candidateHasLos)
+                            {
+                                currentTarget = candidateTarget;
+                            }
+                            else if (curHasLos == candidateHasLos)
+                            {
+                                float candidateDistSqr = candidateTarget == bestBossWithLos ? minBossWithLosDistSqr : minBossNoLosDistSqr;
+                                if (candidateDistSqr < curDistSqr - 1.0f)
+                                {
+                                    currentTarget = candidateTarget;
+                                }
+                            }
+                        }
+                        // Nếu candidate không phải Boss, giữ nguyên Boss hiện tại
+                        return;
+                    }
+                    else
+                    {
+                        // Đang ngắm quái thường: Nếu có Boss xuất hiện -> Chuyển sang Boss ngay lập tức!
+                        if (candidateIsBoss)
+                        {
+                            currentTarget = candidateTarget;
+                            return;
+                        }
+
+                        if (candidateTarget != null && candidateTarget != currentTarget)
+                        {
+                            bool curHasLos = obstacleMask == 0 || !Physics2D.Linecast(playerPosition, curHealth.AimPoint, obstacleMask);
+                            bool candidateHasLos = candidateTarget == bestEnemyWithLos;
+
+                            if (!curHasLos && candidateHasLos)
+                            {
+                                currentTarget = candidateTarget;
+                            }
+                            else if (curHasLos == candidateHasLos)
+                            {
+                                float candidateDistSqr = candidateTarget == bestEnemyWithLos ? minEnemyWithLosDistSqr : minEnemyNoLosDistSqr;
+                                if (candidateDistSqr < curDistSqr - 0.5f)
+                                {
+                                    currentTarget = candidateTarget;
+                                }
+                            }
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+        currentTarget = candidateTarget;
     }
 
     // =====================================================
     // XOAY SÚNG & NÒNG SÚNG 360 ĐỘ KHÔNG GÓC CHẾT
     // =====================================================
+
+    public Vector2 GetTargetAimPoint(Transform target)
+    {
+        if (target == null) return Vector2.zero;
+        EnemyHealth eh = target.GetComponentInParent<EnemyHealth>();
+        return eh != null ? eh.AimPoint : (Vector2)target.position;
+    }
 
     private void UpdateGunAndAttackPointRotation()
     {
@@ -692,7 +860,8 @@ public class PlayerAutoShooter : MonoBehaviour
 
         if (currentTarget != null)
         {
-            aimDirection = ((Vector2)currentTarget.position - (Vector2)transform.position).normalized;
+            Vector2 targetAimPos = GetTargetAimPoint(currentTarget);
+            aimDirection = (targetAimPos - (Vector2)transform.position).normalized;
         }
         else if (aimMoveDirectionWhenIdle && playerMovement != null && playerMovement.MoveDirection.sqrMagnitude > 0.01f)
         {
@@ -816,7 +985,8 @@ public class PlayerAutoShooter : MonoBehaviour
 
         // Chỉ khai hỏa vũ khí chipset khi mục tiêu nằm trong tầm bắn của chipset (nhỏ hơn Player 3m)
         Vector3 spawnPosition = attackPoint != null ? attackPoint.position : transform.position;
-        float distToTarget = Vector2.Distance(spawnPosition, currentTarget.position);
+        Vector2 targetAimPos = GetTargetAimPoint(currentTarget);
+        float distToTarget = Vector2.Distance(spawnPosition, targetAimPos);
         if (distToTarget > ChipsetAttackRange) return;
 
         TryFireChipsetWeapon(1);
@@ -836,7 +1006,8 @@ public class PlayerAutoShooter : MonoBehaviour
     private void FireChipsetWeapon(int chipsetId)
     {
         Vector3 spawnPosition = attackPoint != null ? attackPoint.position : transform.position;
-        Vector2 baseDirection = ((Vector2)currentTarget.position - (Vector2)spawnPosition).normalized;
+        Vector2 targetAimPos = GetTargetAimPoint(currentTarget);
+        Vector2 baseDirection = (targetAimPos - (Vector2)spawnPosition).normalized;
         float baseAngle = Mathf.Atan2(baseDirection.y, baseDirection.x) * Mathf.Rad2Deg;
         int level = GetChipsetWeaponLevel(chipsetId);
         int projectileCount = GetChipsetWeaponProjectileCount(chipsetId);
@@ -912,7 +1083,8 @@ public class PlayerAutoShooter : MonoBehaviour
 
         // Vị trí nòng súng (đạn luôn luôn xuất phát tại nòng súng)
         Vector3 spawnPosition = attackPoint != null ? attackPoint.position : transform.position;
-        Vector2 baseDirection = ((Vector2)currentTarget.position - (Vector2)spawnPosition).normalized;
+        Vector2 targetAimPos = GetTargetAimPoint(currentTarget);
+        Vector2 baseDirection = (targetAimPos - (Vector2)spawnPosition).normalized;
         float baseAngle = Mathf.Atan2(baseDirection.y, baseDirection.x) * Mathf.Rad2Deg;
 
         // Kích hoạt hiệu ứng tóe lửa / khói tại nòng súng (Muzzle Flash VFX)

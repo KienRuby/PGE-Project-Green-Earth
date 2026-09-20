@@ -15,10 +15,20 @@ public class EnemyMovement : MonoBehaviour, IPoolable
     [SerializeField] private float separationRadius = 0.9f;
 
     [Tooltip("Lực đẩy chống xếp chồng (trọng số tách đàn). Càng lớn thì quái càng giữ khoảng cách tốt.")]
-    [SerializeField] private float separationWeight = 2.5f;
+    [SerializeField] private float separationWeight = 1.0f;
 
     [Tooltip("LayerMask của quái vật để quét va chạm tách đàn (tự động gán Layer 'Enemy' nếu để trống).")]
     [SerializeField] private LayerMask enemyLayer;
+
+    [Header("Obstacle Navigation & Avoidance")]
+    [Tooltip("LayerMask của chướng ngại vật (tự động tìm 'Obstacle' nếu để trống).")]
+    [SerializeField] private LayerMask obstacleLayer;
+
+    [Tooltip("Cự ly cảm biến phía trước để lượn qua mép chướng ngại vật, chống đâm mặt vào tường.")]
+    [SerializeField] private float feelerDistance = 0.75f;
+
+    [Tooltip("Khoảng đệm an toàn khi tìm góc bo của chướng ngại vật.")]
+    [SerializeField] private float obstaclePadding = 0.45f;
 
     [Header("Facing / Flipping")]
     [Tooltip("Tự động lật hướng mặt (quay trái/phải) về phía Player.")]
@@ -40,7 +50,9 @@ public class EnemyMovement : MonoBehaviour, IPoolable
     private float stunTimer = 0f;
 
     private static readonly Collider2D[] sharedCollidersBuffer = new Collider2D[16];
+    private static readonly RaycastHit2D[] sharedObstacleHitBuffer = new RaycastHit2D[8];
     private ContactFilter2D contactFilter;
+    private ContactFilter2D obstacleFilter;
     private float baseMoveSpeed;
     private Vector2 cachedSeparationForce;
     private int instanceId;
@@ -48,6 +60,16 @@ public class EnemyMovement : MonoBehaviour, IPoolable
     private float knockbackTimer;
     private float slowTimer;
     private float currentSlowPercent;
+
+    // Detour & Navigation
+    private Vector2 detourWaypoint;
+    private bool isDetourActive = false;
+    private float nextPathCheckTime = 0f;
+
+    // Anti-Stuck Detection
+    private Vector2 lastSamplePos;
+    private float stuckCheckTimer = 0f;
+    private int stuckCount = 0;
 
     public bool IsStunned => stunTimer > 0f;
     public Transform CurrentTarget => player;
@@ -63,7 +85,6 @@ public class EnemyMovement : MonoBehaviour, IPoolable
         float sign = (isFacingRight ^ initialFacingLeft) ? 1f : -1f;
         transform.localScale = new Vector3(Mathf.Abs(initialScale.x) * sign, initialScale.y, initialScale.z);
     }
-
 
     public void ApplyStun(float duration)
     {
@@ -115,6 +136,22 @@ public class EnemyMovement : MonoBehaviour, IPoolable
             useLayerMask = enemyLayer.value != 0,
             useTriggers = true
         };
+
+        if (obstacleLayer.value == 0)
+        {
+            obstacleLayer = LayerMask.GetMask("Obstacle");
+            if (obstacleLayer.value == 0)
+            {
+                obstacleLayer = LayerMask.GetMask("Default");
+            }
+        }
+
+        obstacleFilter = new ContactFilter2D
+        {
+            useTriggers = false,
+            layerMask = obstacleLayer,
+            useLayerMask = true
+        };
     }
 
     private void Start()
@@ -147,7 +184,8 @@ public class EnemyMovement : MonoBehaviour, IPoolable
         if (knockbackTimer > 0f)
         {
             knockbackTimer -= Time.fixedDeltaTime;
-            rb.MovePosition(rb.position + knockbackVelocity * Time.fixedDeltaTime);
+            Vector2 kbDelta = knockbackVelocity * Time.fixedDeltaTime;
+            MoveWithObstacleSlide(kbDelta);
             knockbackVelocity = Vector2.Lerp(knockbackVelocity, Vector2.zero, Time.fixedDeltaTime * 8f);
             return;
         }
@@ -175,10 +213,24 @@ public class EnemyMovement : MonoBehaviour, IPoolable
         Vector2 playerDirection = CalculatePlayerDirection();
         Vector2 separationForce = CalculateSeparationForce();
 
-        // Kết hợp hướng đuổi Player và lực đẩy chống xếp chồng
-        Vector2 finalDirection = playerDirection + separationForce * separationWeight;
+        Vector2 sep = separationForce;
+        if (sep.sqrMagnitude > 1f)
+        {
+            sep.Normalize();
+        }
 
-        if (finalDirection.sqrMagnitude > 1f)
+        // Lực tách đàn chỉ đóng vai trò phân tán đàn quái thành vòng cung bao vây Player
+        float effectiveSepWeight = Mathf.Clamp(separationWeight, 0f, 1.0f);
+        Vector2 finalDirection = playerDirection + sep * effectiveSepWeight;
+
+        // Đảm bảo quái luôn kiên định lao về phía Player, không bao giờ bị lực tách đàn đẩy lùi ngược lại
+        if (playerDirection.sqrMagnitude > 0.01f && Vector2.Dot(finalDirection, playerDirection) < 0.2f)
+        {
+            Vector2 tangent = Vector2.Perpendicular(playerDirection);
+            if (Vector2.Dot(tangent, sep) < 0f) tangent = -tangent;
+            finalDirection = (playerDirection * 0.75f + tangent * 0.25f).normalized;
+        }
+        else if (finalDirection.sqrMagnitude > 1f)
         {
             finalDirection.Normalize();
         }
@@ -194,10 +246,53 @@ public class EnemyMovement : MonoBehaviour, IPoolable
             }
         }
 
-        Vector2 newPosition = rb.position + finalDirection * effectiveSpeed * Time.fixedDeltaTime;
-        rb.MovePosition(newPosition);
+        Vector2 moveDelta = finalDirection * (effectiveSpeed * Time.fixedDeltaTime);
+        MoveWithObstacleSlide(moveDelta);
 
         UpdateFacingDirection();
+    }
+
+    /// <summary>
+    /// Chống xuyên thấu tuyệt đối (Hard Clamping): Kiểm tra chướng ngại vật trước khi dịch chuyển.
+    /// Nếu chạm vật cản, trượt dọc theo bề mặt chướng ngại vật thay vì đi xuyên qua.
+    /// </summary>
+    private void MoveWithObstacleSlide(Vector2 delta)
+    {
+        float distance = delta.magnitude;
+        if (distance < 0.0001f) return;
+
+        Vector2 dir = delta / distance;
+        int hitCount = rb.Cast(dir, obstacleFilter, sharedObstacleHitBuffer, distance + 0.03f);
+
+        RaycastHit2D validHit = default;
+        bool hasHit = false;
+
+        for (int i = 0; i < hitCount; i++)
+        {
+            RaycastHit2D hit = sharedObstacleHitBuffer[i];
+            if (hit.collider != null && !hit.collider.isTrigger && hit.collider.gameObject != gameObject)
+            {
+                validHit = hit;
+                hasHit = true;
+                break;
+            }
+        }
+
+        if (hasHit)
+        {
+            float allowedDist = Mathf.Max(0f, validHit.distance - 0.02f);
+            Vector2 normal = validHit.normal;
+            float leftoverFraction = 1f - Mathf.Clamp01(allowedDist / (distance + 0.03f));
+            Vector2 leftover = delta * leftoverFraction;
+            Vector2 slideDelta = leftover - Vector2.Dot(leftover, normal) * normal;
+
+            Vector2 newPos = rb.position + dir * allowedDist + slideDelta;
+            rb.MovePosition(newPos);
+        }
+        else
+        {
+            rb.MovePosition(rb.position + delta);
+        }
     }
 
     private void LateUpdate()
@@ -229,55 +324,210 @@ public class EnemyMovement : MonoBehaviour, IPoolable
     }
 
     /// <summary>
-    /// Tính toán hướng di chuyển tới Player và giữ khoảng cách không đè lên Player.
+    /// Tính toán hướng di chuyển áp sát Player thông minh:
+    /// 1. Kiểm tra tầm nhìn (Line of Sight) tới Player.
+    /// 2. Nếu bị chặn bởi chướng ngại vật: Tính toán các điểm góc bo (contour corners) và chọn đường ngắn nhất.
+    /// 3. Cảm biến tia (Feeler rays) phía trước giúp lượn mượt quanh mép đá, không đập mặt vào tường.
+    /// 4. Cơ chế chống kẹt (Anti-stuck) tự đổi hướng thoát hiểm.
+    /// 5. Phân luồng Staggered theo frame để tối ưu CPU cực đại cho 50+ quái.
     /// </summary>
     private Vector2 CalculatePlayerDirection()
     {
         if (player == null) return Vector2.zero;
 
-        Vector2 toPlayer = (Vector2)player.position - rb.position;
+        Vector2 myPos = rb.position;
+        Vector2 targetPos = (Vector2)player.position;
+        Vector2 toPlayer = targetPos - myPos;
         float distanceToPlayer = toPlayer.magnitude;
 
         if (distanceToPlayer <= 0.001f)
         {
-            // Trùng vị trí 100% với player -> đẩy ra theo hướng ổn định dựa trên InstanceID
             int id = instanceId != 0 ? instanceId : GetInstanceID();
             float angle = (id & 0xFFFF) * (Mathf.PI * 2f / 65536f);
             return new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
         }
 
-        // 1. Khi Player đang chủ động di chuyển về phía quái này, quái sẽ né dạt sang 2 bên để nhường đường
-        if (playerMovement == null && player != null)
-        {
-            playerMovement = player.GetComponent<PlayerMovement>();
-        }
+        Vector2 directDir = toPlayer / distanceToPlayer;
 
-        if (playerMovement != null && playerMovement.MoveDirection.sqrMagnitude > 0.05f)
-        {
-            Vector2 playerMoveDir = playerMovement.MoveDirection.normalized;
-            Vector2 toThisEnemy = -toPlayer; // Vector từ tâm Player tới Quái
-            float dot = Vector2.Dot(playerMoveDir, toThisEnemy.normalized);
+        // 1. Phân luồng Staggered: Chỉ kiểm tra Line of Sight và tính toán đường vòng theo chu kỳ so le
+        bool shouldEvaluatePath = ((Time.frameCount + instanceId) % 4) == 0 || Time.time >= nextPathCheckTime;
 
-            // Quái nằm ở phía trước hướng Player đang đi và ở cự ly gần
-            if (dot > 0.1f && distanceToPlayer < stoppingDistance * 2.2f)
+        if (shouldEvaluatePath)
+        {
+            RaycastHit2D losHit = Physics2D.Linecast(myPos, targetPos, obstacleFilter.layerMask);
+
+            if (losHit.collider == null)
             {
-                Vector2 sideDir = Vector2.Perpendicular(playerMoveDir);
-                if (Vector2.Dot(sideDir, toThisEnemy) < 0f)
-                {
-                    sideDir = -sideDir;
-                }
-                return (sideDir * 1.6f + toThisEnemy.normalized * 0.4f).normalized;
+                // Tầm nhìn thông suốt -> Lao thẳng về phía Player
+                isDetourActive = false;
+                nextPathCheckTime = Time.time + 0.25f;
+            }
+            else
+            {
+                // Bị chướng ngại vật che chắn -> Tìm điểm góc bo ngắn nhất
+                EvaluateShortestDetour(myPos, targetPos, directDir, losHit.collider);
+                nextPathCheckTime = Time.time + 0.18f;
             }
         }
 
-        // 2. Nếu quái đã áp sát quá gần Player (< stoppingDistance), đẩy nhẹ ra để không đè vào lòng Player
-        if (distanceToPlayer < stoppingDistance)
+        // 2. Định hướng di chuyển chính: Hoặc bám theo waypoint đi vòng, hoặc bám theo Player
+        Vector2 desiredDir = directDir;
+        if (isDetourActive)
         {
-            float pushBack = 1f - (distanceToPlayer / stoppingDistance);
-            return -toPlayer.normalized * pushBack;
+            float distToWaypoint = Vector2.Distance(myPos, detourWaypoint);
+            if (distToWaypoint < 0.35f)
+            {
+                // Đã đến điểm bo góc -> Hủy waypoint để frame sau kiểm tra LOS lại
+                isDetourActive = false;
+            }
+            else
+            {
+                Vector2 toWaypoint = detourWaypoint - myPos;
+                if (toWaypoint.sqrMagnitude > 0.0001f)
+                {
+                    desiredDir = toWaypoint.normalized;
+                }
+            }
         }
 
-        return toPlayer.normalized;
+        // 3. Cảm biến tia phía trước (Feeler Rays) chống đâm mặt vào tường
+        desiredDir = ApplyObstacleGliding(myPos, desiredDir);
+
+        // 4. Kiểm tra chống kẹt (Anti-Stuck Recovery)
+        stuckCheckTimer += Time.fixedDeltaTime;
+        if (stuckCheckTimer >= 0.4f)
+        {
+            stuckCheckTimer = 0f;
+            if (lastSamplePos != Vector2.zero && Vector2.Distance(myPos, lastSamplePos) < 0.06f && distanceToPlayer > stoppingDistance)
+            {
+                stuckCount++;
+                if (stuckCount >= 2)
+                {
+                    // Đang bị kẹt góc -> Bẻ lái 90 độ theo phương tiếp tuyến để thoát kẹt
+                    Vector2 escapeTangent = Vector2.Perpendicular(directDir);
+                    if ((instanceId & 1) == 0) escapeTangent = -escapeTangent;
+                    desiredDir = (desiredDir * 0.3f + escapeTangent * 0.7f).normalized;
+                    isDetourActive = false;
+                    stuckCount = 0;
+                }
+            }
+            else
+            {
+                stuckCount = 0;
+            }
+            lastSamplePos = myPos;
+        }
+
+        return desiredDir;
+    }
+
+    /// <summary>
+    /// Tính toán 4 góc bo của chướng ngại vật bị chắn và chọn góc có tổng quãng đường (Cost) ngắn nhất tới Player.
+    /// </summary>
+    private void EvaluateShortestDetour(Vector2 myPos, Vector2 targetPos, Vector2 directDir, Collider2D obstacle)
+    {
+        if (obstacle == null) return;
+
+        Bounds b = obstacle.bounds;
+        float pad = obstaclePadding;
+        Vector2 min = (Vector2)b.min - new Vector2(pad, pad);
+        Vector2 max = (Vector2)b.max + new Vector2(pad, pad);
+
+        Vector2[] corners = {
+            new Vector2(min.x, min.y),
+            new Vector2(min.x, max.y),
+            new Vector2(max.x, min.y),
+            new Vector2(max.x, max.y)
+        };
+
+        float bestCost = float.MaxValue;
+        Vector2 bestCorner = myPos + directDir;
+        bool foundValidCorner = false;
+
+        for (int i = 0; i < 4; i++)
+        {
+            Vector2 corner = corners[i];
+
+            // Giữ điểm góc nằm trong map
+            if (MapBoundary.Instance != null && !MapBoundary.Instance.IsInsideMap(corner, 0.2f))
+            {
+                continue;
+            }
+
+            // Kiểm tra điểm góc có bị nằm trong collider chướng ngại vật khác không
+            if (Physics2D.OverlapPoint(corner, obstacleFilter.layerMask) != null)
+            {
+                continue;
+            }
+
+            // Cost = Quãng đường từ Enemy tới góc + Quãng đường từ góc tới Player
+            float distToCorner = Vector2.Distance(myPos, corner);
+            float distCornerToPlayer = Vector2.Distance(corner, targetPos);
+            float totalCost = distToCorner + distCornerToPlayer;
+
+            // Kiểm tra quái có nhìn thấy góc bo này không
+            bool isCornerVisible = !Physics2D.Linecast(myPos, corner, obstacleFilter.layerMask);
+            if (!isCornerVisible)
+            {
+                totalCost += 1.5f; // Điểm phạt nếu góc bị khuất
+            }
+
+            if (totalCost < bestCost)
+            {
+                bestCost = totalCost;
+                bestCorner = corner;
+                foundValidCorner = true;
+            }
+        }
+
+        if (foundValidCorner)
+        {
+            detourWaypoint = bestCorner;
+            isDetourActive = true;
+        }
+    }
+
+    /// <summary>
+    /// Bắn cảm biến tia phía trước (Feeler Rays) để lượn mượt quanh mép chướng ngại vật, không bao giờ đập mặt vào tường.
+    /// </summary>
+    private Vector2 ApplyObstacleGliding(Vector2 myPos, Vector2 currentDir)
+    {
+        if (currentDir.sqrMagnitude < 0.0001f) return currentDir;
+
+        // Bắn 3 tia: thẳng, lệch trái 28 độ, lệch phải 28 độ
+        Vector2 leftDir = Quaternion.Euler(0f, 0f, 28f) * currentDir;
+        Vector2 rightDir = Quaternion.Euler(0f, 0f, -28f) * currentDir;
+
+        RaycastHit2D centerHit = Physics2D.Raycast(myPos, currentDir, feelerDistance, obstacleFilter.layerMask);
+        RaycastHit2D leftHit = Physics2D.Raycast(myPos, leftDir, feelerDistance * 0.85f, obstacleFilter.layerMask);
+        RaycastHit2D rightHit = Physics2D.Raycast(myPos, rightDir, feelerDistance * 0.85f, obstacleFilter.layerMask);
+
+        RaycastHit2D mostCriticalHit = default;
+        if (centerHit.collider != null && !centerHit.collider.isTrigger)
+        {
+            mostCriticalHit = centerHit;
+        }
+        else if (leftHit.collider != null && !leftHit.collider.isTrigger)
+        {
+            mostCriticalHit = leftHit;
+        }
+        else if (rightHit.collider != null && !rightHit.collider.isTrigger)
+        {
+            mostCriticalHit = rightHit;
+        }
+
+        if (mostCriticalHit.collider != null)
+        {
+            Vector2 normal = mostCriticalHit.normal;
+            // Chiếu vector di chuyển trượt theo tiếp tuyến bề mặt chướng ngại vật
+            Vector2 slide = currentDir - Vector2.Dot(currentDir, normal) * normal;
+            if (slide.sqrMagnitude > 0.001f)
+            {
+                return (currentDir * 0.25f + slide.normalized * 0.75f).normalized;
+            }
+        }
+
+        return currentDir;
     }
 
     /// <summary>
@@ -371,6 +621,13 @@ public class EnemyMovement : MonoBehaviour, IPoolable
         moveSpeed = BaseMoveSpeed;
         stunTimer = 0f;
         cachedSeparationForce = Vector2.zero;
+        isDetourActive = false;
+        detourWaypoint = Vector2.zero;
+        nextPathCheckTime = 0f;
+        stuckCheckTimer = 0f;
+        stuckCount = 0;
+        lastSamplePos = Vector2.zero;
+
         if (initialScale != Vector3.zero)
         {
             transform.localScale = initialScale;
@@ -388,6 +645,13 @@ public class EnemyMovement : MonoBehaviour, IPoolable
         moveSpeed = BaseMoveSpeed;
         stunTimer = 0f;
         cachedSeparationForce = Vector2.zero;
+        isDetourActive = false;
+        detourWaypoint = Vector2.zero;
+        nextPathCheckTime = 0f;
+        stuckCheckTimer = 0f;
+        stuckCount = 0;
+        lastSamplePos = Vector2.zero;
+
         if (basePrefabScale != Vector3.zero)
         {
             initialScale = basePrefabScale;
@@ -406,5 +670,12 @@ public class EnemyMovement : MonoBehaviour, IPoolable
 
         Gizmos.color = Color.cyan;
         Gizmos.DrawWireSphere(transform.position, stoppingDistance);
+
+        if (isDetourActive)
+        {
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawLine(transform.position, detourWaypoint);
+            Gizmos.DrawWireSphere(detourWaypoint, 0.2f);
+        }
     }
 }

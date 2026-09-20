@@ -194,6 +194,23 @@ public class MultigunSkill : MonoBehaviour
 
     private Transform FindNearestEnemy()
     {
+        // 1. Đồng bộ mục tiêu từ PlayerAutoShooter nếu đang nhắm Boss trong tầm
+        if (playerAutoShooter != null && playerAutoShooter.CurrentTarget != null && playerAutoShooter.CurrentTarget.gameObject.activeInHierarchy)
+        {
+            EnemyHealth targetHealth = playerAutoShooter.CurrentTarget.GetComponentInParent<EnemyHealth>();
+            if (targetHealth != null && !targetHealth.IsDead && targetHealth.gameObject.activeInHierarchy)
+            {
+                if (targetHealth.IsBoss)
+                {
+                    float d = Vector2.Distance(playerTransform.position, targetHealth.AimPoint);
+                    if (d <= EffectiveAttackRange)
+                    {
+                        return playerAutoShooter.CurrentTarget;
+                    }
+                }
+            }
+        }
+
         Vector2 center = playerTransform.position;
         float currentRange = EffectiveAttackRange;
         int hitCount = Physics2D.OverlapCircle(center, currentRange, contactFilter, enemyBuffer);
@@ -204,8 +221,17 @@ public class MultigunSkill : MonoBehaviour
             hitCount = Physics2D.OverlapCircle(center, currentRange, fallback, enemyBuffer);
         }
 
-        Transform nearest = null;
-        float minDistanceSqr = Mathf.Infinity;
+        Transform bestBossWithLos = null;
+        float minBossWithLosDistSqr = Mathf.Infinity;
+        Transform bestBossNoLos = null;
+        float minBossNoLosDistSqr = Mathf.Infinity;
+
+        Transform bestEnemyWithLos = null;
+        float minEnemyWithLosDistSqr = Mathf.Infinity;
+        Transform bestEnemyNoLos = null;
+        float minEnemyNoLosDistSqr = Mathf.Infinity;
+
+        int obstacleMask = LayerMask.GetMask("Obstacle");
 
         for (int i = 0; i < hitCount; i++)
         {
@@ -216,14 +242,40 @@ public class MultigunSkill : MonoBehaviour
             if (enemy == null || enemy.IsDead || !enemy.gameObject.activeInHierarchy) continue;
 
             float distSqr = ((Vector2)enemy.transform.position - center).sqrMagnitude;
-            if (distSqr < minDistanceSqr)
+            bool isVisible = obstacleMask == 0 || !Physics2D.Linecast(center, enemy.AimPoint, obstacleMask);
+
+            if (enemy.IsBoss)
             {
-                minDistanceSqr = distSqr;
-                nearest = enemy.transform;
+                if (isVisible && distSqr < minBossWithLosDistSqr)
+                {
+                    minBossWithLosDistSqr = distSqr;
+                    bestBossWithLos = enemy.transform;
+                }
+                else if (!isVisible && distSqr < minBossNoLosDistSqr)
+                {
+                    minBossNoLosDistSqr = distSqr;
+                    bestBossNoLos = enemy.transform;
+                }
+            }
+            else
+            {
+                if (isVisible && distSqr < minEnemyWithLosDistSqr)
+                {
+                    minEnemyWithLosDistSqr = distSqr;
+                    bestEnemyWithLos = enemy.transform;
+                }
+                else if (!isVisible && distSqr < minEnemyNoLosDistSqr)
+                {
+                    minEnemyNoLosDistSqr = distSqr;
+                    bestEnemyNoLos = enemy.transform;
+                }
             }
         }
 
-        return nearest;
+        if (bestBossWithLos != null) return bestBossWithLos;
+        if (bestBossNoLos != null) return bestBossNoLos;
+        if (bestEnemyWithLos != null) return bestEnemyWithLos;
+        return bestEnemyNoLos;
     }
 
     private void FireMultigunBarrage(Transform target)
@@ -258,7 +310,9 @@ public class MultigunSkill : MonoBehaviour
             Vector2 baseDir = Vector2.right;
             if (target != null)
             {
-                baseDir = ((Vector2)target.position - (Vector2)baseSpawnPos).normalized;
+                EnemyHealth targetEh = target.GetComponentInParent<EnemyHealth>();
+                Vector2 targetPos = targetEh != null ? targetEh.AimPoint : (Vector2)target.position;
+                baseDir = (targetPos - (Vector2)baseSpawnPos).normalized;
             }
             float baseAngle = Mathf.Atan2(baseDir.y, baseDir.x) * Mathf.Rad2Deg;
             float spreadCone = 50f;

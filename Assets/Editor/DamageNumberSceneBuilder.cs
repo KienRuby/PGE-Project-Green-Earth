@@ -55,7 +55,7 @@ public static class DamageNumberSceneBuilder
             so.FindProperty("strokeMaterial").objectReferenceValue = mat;
         }
 
-        so.FindProperty("initialPoolSize").intValue = 60;
+        so.FindProperty("initialPoolSize").intValue = 100;
         so.FindProperty("defaultFontSize").floatValue = 2.4f;
         so.FindProperty("defaultOutlineColor").colorValue = Color.black;
         so.FindProperty("defaultOutlineWidth").floatValue = 0.28f;

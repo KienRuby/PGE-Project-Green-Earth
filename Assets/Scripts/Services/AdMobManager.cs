@@ -120,12 +120,6 @@ public class AdMobManager : MonoBehaviour
 
     private void RegisterRewardedAdEvents(RewardedAd ad)
     {
-        ad.OnAdFullScreenContentClosed += () =>
-        {
-            NotifyRewardResult(false);
-            LoadRewardedAd();
-        };
-
         ad.OnAdFullScreenContentFailed += (AdError error) =>
         {
             Debug.LogError($"[AdMobManager] Rewarded ad failed to show: {error.GetMessage()}");
@@ -161,10 +155,10 @@ public class AdMobManager : MonoBehaviour
                 userEarnedReward = true;
             });
 
-            rewardedAd.OnAdFullScreenContentClosed += () =>
-            {
-                NotifyRewardResult(userEarnedReward);
-            };
+            // The ad instance is single-use. Attach exactly one completion
+            // callback for this show; registering one during Load and another
+            // during Show caused duplicate rewards / stuck UI callbacks.
+            rewardedAd.OnAdFullScreenContentClosed += () => NotifyRewardResult(userEarnedReward);
         }
         else
         {

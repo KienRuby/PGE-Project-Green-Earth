@@ -22,9 +22,40 @@ public class RifleProjectile : MonoBehaviour, IPoolable
     private float lifeTimer;
     private int currentPierceRemaining;
     private readonly HashSet<int> hitEnemyInstanceIds = new HashSet<int>();
+    private static readonly RaycastHit2D[] SharedCastBuffer = new RaycastHit2D[16];
+    private static int hitLayerMask = 0;
+    private static int HitLayerMask
+    {
+        get
+        {
+            if (hitLayerMask == 0)
+            {
+                hitLayerMask = LayerMask.GetMask("Enemy", "Obstacle");
+                if (hitLayerMask == 0) hitLayerMask = LayerMask.GetMask("Default");
+            }
+            return hitLayerMask;
+        }
+    }
+
+    private static int obstacleLayerMask = -1;
+    private static int ObstacleLayerMask
+    {
+        get
+        {
+            if (obstacleLayerMask == -1)
+            {
+                obstacleLayerMask = LayerMask.GetMask("Obstacle");
+                if (obstacleLayerMask == 0) obstacleLayerMask = LayerMask.GetMask("Default");
+            }
+            return obstacleLayerMask;
+        }
+    }
 
     public int Damage => damage;
     public float MoveSpeed => moveSpeed;
+
+    private CircleCollider2D circleCol;
+    private float cachedCastRadius = 0.12f;
 
     private void Awake()
     {
@@ -35,6 +66,12 @@ public class RifleProjectile : MonoBehaviour, IPoolable
             rb.interpolation = RigidbodyInterpolation2D.None;
             rb.bodyType = RigidbodyType2D.Kinematic;
             rb.useFullKinematicContacts = true;
+        }
+
+        circleCol = GetComponent<CircleCollider2D>();
+        if (circleCol != null)
+        {
+            cachedCastRadius = Mathf.Max(0.05f, circleCol.radius * Mathf.Abs(transform.lossyScale.x));
         }
     }
 
@@ -55,14 +92,55 @@ public class RifleProjectile : MonoBehaviour, IPoolable
 
     private void FixedUpdate()
     {
+        float stepDist = moveSpeed * Time.fixedDeltaTime;
+        Vector2 currentPos = rb != null ? rb.position : (Vector2)transform.position;
+
+        if (moveDirection.sqrMagnitude > 0.001f && stepDist > 0f)
+        {
+            int hitCount = Physics2D.CircleCastNonAlloc(currentPos, cachedCastRadius, moveDirection, SharedCastBuffer, stepDist, HitLayerMask);
+            if (hitCount > 0)
+            {
+                // Sắp xếp tăng dần theo khoảng cách (First Contact First Hit)
+                for (int i = 0; i < hitCount - 1; i++)
+                {
+                    int minIdx = i;
+                    for (int j = i + 1; j < hitCount; j++)
+                    {
+                        if (SharedCastBuffer[j].distance < SharedCastBuffer[minIdx].distance)
+                        {
+                            minIdx = j;
+                        }
+                    }
+                    if (minIdx != i)
+                    {
+                        var temp = SharedCastBuffer[i];
+                        SharedCastBuffer[i] = SharedCastBuffer[minIdx];
+                        SharedCastBuffer[minIdx] = temp;
+                    }
+                }
+
+                for (int i = 0; i < hitCount; i++)
+                {
+                    RaycastHit2D hit = SharedCastBuffer[i];
+                    if (hit.collider == null) continue;
+
+                    Vector2 hitPoint = hit.point != Vector2.zero ? hit.point : (currentPos + moveDirection * hit.distance);
+                    if (ResolveHit(hit.collider, hitPoint))
+                    {
+                        return;
+                    }
+                }
+            }
+        }
+
         if (rb != null)
         {
-            Vector2 nextPos = rb.position + moveDirection * (moveSpeed * Time.fixedDeltaTime);
+            Vector2 nextPos = rb.position + moveDirection * stepDist;
             rb.MovePosition(nextPos);
         }
         else
         {
-            transform.position += (Vector3)(moveDirection * (moveSpeed * Time.fixedDeltaTime));
+            transform.position += (Vector3)(moveDirection * stepDist);
         }
     }
 
@@ -101,27 +179,40 @@ public class RifleProjectile : MonoBehaviour, IPoolable
         transform.rotation = Quaternion.Euler(0f, 0f, angle);
     }
 
-    private void OnTriggerEnter2D(Collider2D other)
+    private bool ResolveHit(Collider2D hitCollider, Vector2 hitPoint)
     {
-        if (other == null) return;
+        if (hitCollider == null) return false;
+        if (hitCollider.CompareTag("Player") || hitCollider.CompareTag("BulletPlayer")) return false;
 
-        if (other.CompareTag("Player") || other.CompareTag("BulletPlayer"))
+        // 1. Chướng ngại vật (Obstacle) - Không thể xuyên qua
+        if (hitCollider.gameObject.layer == LayerMask.NameToLayer("Obstacle") || hitCollider.CompareTag("Obstacle"))
         {
-            return;
+            if (!hitCollider.isTrigger)
+            {
+                transform.position = hitPoint;
+                if (rb != null) rb.position = hitPoint;
+                Despawn();
+                return true;
+            }
+            return false;
         }
 
-        IDamageable damageable = other.GetComponentInParent<IDamageable>();
+        // 2. Kẻ địch (Enemy)
+        IDamageable damageable = hitCollider.GetComponentInParent<IDamageable>();
         if (damageable != null)
         {
             EnemyHealth enemyHealth = damageable as EnemyHealth;
             if (enemyHealth != null)
             {
-                if (enemyHealth.IsDead) return;
+                if (enemyHealth.IsDead || !enemyHealth.gameObject.activeInHierarchy) return false;
 
                 int enemyId = enemyHealth.gameObject.GetInstanceID();
-                if (hitEnemyInstanceIds.Contains(enemyId)) return;
+                if (hitEnemyInstanceIds.Contains(enemyId)) return false;
                 hitEnemyInstanceIds.Add(enemyId);
             }
+
+            transform.position = hitPoint;
+            if (rb != null) rb.position = hitPoint;
 
             damageable.TakeDamage(damage);
 
@@ -140,17 +231,26 @@ public class RifleProjectile : MonoBehaviour, IPoolable
 
             if (shouldPierce)
             {
-                return; // Đạn tiếp tục bay xuyên qua quái
+                return false; // Đạn tiếp tục bay xuyên qua quái
             }
 
             Despawn();
-            return;
+            return true;
         }
 
-        if (!other.isTrigger)
+        if (!hitCollider.isTrigger)
         {
             Despawn();
+            return true;
         }
+
+        return false;
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other == null) return;
+        ResolveHit(other, transform.position);
     }
 
     private void Despawn()

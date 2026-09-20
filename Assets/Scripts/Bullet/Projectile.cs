@@ -45,10 +45,46 @@ public class Projectile : MonoBehaviour, IPoolable
     private int sourceChipsetId;
     private int currentRicochetRemaining;
     private readonly HashSet<int> hitEnemyIds = new HashSet<int>();
+    private bool isDespawning = false;
     private SpriteRenderer spriteRenderer;
     private Color defaultColor = Color.white;
     private bool hasCachedColor = false;
     private static readonly Collider2D[] SharedOverlapBuffer = new Collider2D[64];
+    private static readonly RaycastHit2D[] SharedCastBuffer = new RaycastHit2D[16];
+    private static int obstacleLayerMask = -1;
+    private static int hitLayerMask = 0;
+
+    private static int HitLayerMask
+    {
+        get
+        {
+            if (hitLayerMask == 0)
+            {
+                hitLayerMask = LayerMask.GetMask("Enemy", "Obstacle");
+                if (hitLayerMask == 0)
+                {
+                    hitLayerMask = LayerMask.GetMask("Default");
+                }
+            }
+            return hitLayerMask;
+        }
+    }
+
+    private static int ObstacleLayerMask
+    {
+        get
+        {
+            if (obstacleLayerMask == -1)
+            {
+                obstacleLayerMask = LayerMask.GetMask("Obstacle");
+                if (obstacleLayerMask == 0)
+                {
+                    obstacleLayerMask = LayerMask.GetMask("Default");
+                }
+            }
+            return obstacleLayerMask;
+        }
+    }
 
     public bool IsHoming
     {
@@ -69,6 +105,9 @@ public class Projectile : MonoBehaviour, IPoolable
         hitEnemyIds.Clear();
     }
 
+    private CircleCollider2D circleCol;
+    private float cachedCastRadius = 0.12f;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -78,6 +117,12 @@ public class Projectile : MonoBehaviour, IPoolable
             rb.interpolation = RigidbodyInterpolation2D.None;
             rb.bodyType = RigidbodyType2D.Kinematic;
             rb.useFullKinematicContacts = true;
+        }
+
+        circleCol = GetComponent<CircleCollider2D>();
+        if (circleCol != null)
+        {
+            cachedCastRadius = Mathf.Max(0.05f, circleCol.radius * Mathf.Abs(transform.lossyScale.x));
         }
 
         spriteRenderer = GetComponentInChildren<SpriteRenderer>();
@@ -93,6 +138,7 @@ public class Projectile : MonoBehaviour, IPoolable
         lifeTimer = lifeTime;
         currentRicochetRemaining = canRicochet ? maxRicochetCount : 0;
         hitEnemyIds.Clear();
+        isDespawning = false;
     }
 
     private void Update()
@@ -148,14 +194,56 @@ public class Projectile : MonoBehaviour, IPoolable
             RotateProjectile();
         }
 
+        float stepDist = moveSpeed * Time.fixedDeltaTime;
+        Vector2 currentPos = rb != null ? rb.position : (Vector2)transform.position;
+
+        // Quét liên tục kiểm tra va chạm vật thể đầu tiên (Enemy + Obstacle)
+        if (moveDirection.sqrMagnitude > 0.001f && stepDist > 0f)
+        {
+            int hitCount = Physics2D.CircleCastNonAlloc(currentPos, cachedCastRadius, moveDirection, SharedCastBuffer, stepDist, HitLayerMask);
+            if (hitCount > 0)
+            {
+                // Sắp xếp tăng dần theo khoảng cách (First Contact First Hit)
+                for (int i = 0; i < hitCount - 1; i++)
+                {
+                    int minIdx = i;
+                    for (int j = i + 1; j < hitCount; j++)
+                    {
+                        if (SharedCastBuffer[j].distance < SharedCastBuffer[minIdx].distance)
+                        {
+                            minIdx = j;
+                        }
+                    }
+                    if (minIdx != i)
+                    {
+                        var temp = SharedCastBuffer[i];
+                        SharedCastBuffer[i] = SharedCastBuffer[minIdx];
+                        SharedCastBuffer[minIdx] = temp;
+                    }
+                }
+
+                for (int i = 0; i < hitCount; i++)
+                {
+                    RaycastHit2D hit = SharedCastBuffer[i];
+                    if (hit.collider == null) continue;
+
+                    Vector2 hitPoint = hit.point != Vector2.zero ? hit.point : (currentPos + moveDirection * hit.distance);
+                    if (ResolveHit(hit.collider, hitPoint))
+                    {
+                        return;
+                    }
+                }
+            }
+        }
+
         if (rb != null)
         {
-            Vector2 nextPos = rb.position + moveDirection * (moveSpeed * Time.fixedDeltaTime);
+            Vector2 nextPos = rb.position + moveDirection * stepDist;
             rb.MovePosition(nextPos);
         }
         else
         {
-            transform.position += (Vector3)(moveDirection * (moveSpeed * Time.fixedDeltaTime));
+            transform.position += (Vector3)(moveDirection * stepDist);
         }
     }
 
@@ -183,24 +271,46 @@ public class Projectile : MonoBehaviour, IPoolable
         if (vfx != null) explosionVfxPrefab = vfx;
     }
 
-    private void OnTriggerEnter2D(Collider2D other)
+    private bool ResolveHit(Collider2D hitCollider, Vector2 hitPoint)
     {
-        if (other == null) return;
+        if (isDespawning || hitCollider == null) return false;
 
         // Tránh bắn trúng Player hoặc các viên đạn khác (Fast Path Tag Check)
-        if (other.CompareTag("Player") || other.CompareTag("BulletPlayer"))
+        if (hitCollider.CompareTag("Player") || hitCollider.CompareTag("BulletPlayer"))
         {
-            return;
+            return false;
         }
 
-        IDamageable damageable = other.GetComponentInParent<IDamageable>();
+        // 1. Chướng ngại vật (Obstacle)
+        if (hitCollider.gameObject.layer == LayerMask.NameToLayer("Obstacle") || hitCollider.CompareTag("Obstacle"))
+        {
+            if (!hitCollider.isTrigger)
+            {
+                transform.position = hitPoint;
+                if (rb != null) rb.position = hitPoint;
+                if (isExplosive) Explode();
+                isDespawning = true;
+                Despawn();
+                return true;
+            }
+            return false;
+        }
+
+        // 2. Kẻ địch (Enemy)
+        IDamageable damageable = hitCollider.GetComponentInParent<IDamageable>();
         if (damageable != null)
         {
-            // Tránh gọi GetComponentInParent lần 2
-            if (damageable is EnemyHealth enemyHealth && enemyHealth.IsDead)
+            EnemyHealth eh = damageable as EnemyHealth;
+            if (eh != null)
             {
-                return;
+                if (eh.IsDead || !eh.gameObject.activeInHierarchy) return false;
+                int enemyId = eh.gameObject.GetInstanceID();
+                if (hitEnemyIds.Contains(enemyId)) return false;
+                hitEnemyIds.Add(enemyId);
             }
+
+            transform.position = hitPoint;
+            if (rb != null) rb.position = hitPoint;
 
             if (isExplosive)
             {
@@ -208,15 +318,15 @@ public class Projectile : MonoBehaviour, IPoolable
             }
             else
             {
-                if (damageable is EnemyHealth eh)
+                if (eh != null)
                 {
                     eh.TakeDamage(damage, IsCritical);
-                    hitEnemyIds.Add(eh.gameObject.GetInstanceID());
                 }
                 else
                 {
                     damageable.TakeDamage(damage);
                 }
+
                 ChipsetBattleStats.RecordDamage(sourceChipsetId, damage);
                 EnergyJumperCablesSkill.TriggerLifeSteal(damage, isMainWeapon: true);
 
@@ -240,21 +350,32 @@ public class Projectile : MonoBehaviour, IPoolable
                         SetDirection(nextDir);
                         SetTarget(nextTarget);
                         lifeTimer = lifeTime;
-                        return;
+                        return true;
                     }
                 }
             }
 
+            isDespawning = true;
             Despawn();
-            return;
+            return true;
         }
 
         // Tự hủy nếu đạn đâm vào tường hoặc vật cản vật lý (không phải trigger)
-        if (!other.isTrigger)
+        if (!hitCollider.isTrigger)
         {
             if (isExplosive) Explode();
+            isDespawning = true;
             Despawn();
+            return true;
         }
+
+        return false;
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (isDespawning || other == null) return;
+        ResolveHit(other, (Vector2)transform.position);
     }
 
     private void Explode()
@@ -271,7 +392,8 @@ public class Projectile : MonoBehaviour, IPoolable
             }
         }
 
-        int hitCount = Physics2D.OverlapCircleNonAlloc(transform.position, explosionRadius, SharedOverlapBuffer);
+        Vector2 explosionCenter = transform.position;
+        int hitCount = Physics2D.OverlapCircleNonAlloc(explosionCenter, explosionRadius, SharedOverlapBuffer);
         for (int i = 0; i < hitCount; i++)
         {
             Collider2D col = SharedOverlapBuffer[i];
@@ -280,6 +402,12 @@ public class Projectile : MonoBehaviour, IPoolable
             EnemyHealth enemy = col.GetComponentInParent<EnemyHealth>();
             if (enemy != null && !enemy.IsDead && enemy.gameObject.activeInHierarchy)
             {
+                // Check Line of Sight through obstacles
+                if (Physics2D.Linecast(explosionCenter, enemy.transform.position, ObstacleLayerMask))
+                {
+                    continue; // Sát thương nổ bị vật cản che chắn
+                }
+
                 enemy.TakeDamage(damage, IsCritical);
                 ChipsetBattleStats.RecordDamage(sourceChipsetId, damage);
                 EnergyJumperCablesSkill.TriggerLifeSteal(damage, isMainWeapon: true);
@@ -355,6 +483,7 @@ public class Projectile : MonoBehaviour, IPoolable
         ricochetChance = 0f;
         currentRicochetRemaining = 0;
         hitEnemyIds.Clear();
+        isDespawning = false;
     }
 
     public void OnSpawnFromPool()

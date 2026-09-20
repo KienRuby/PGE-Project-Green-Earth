@@ -97,6 +97,8 @@ public class BossMovement : MonoBehaviour, IPoolable
     private static readonly int IdleAnimationHash = Animator.StringToHash("Idle");
     private int activeRunAnimationHash = RunAnimationHash;
     private int activeIdleAnimationHash = IdleAnimationHash;
+    private ContactFilter2D obstacleFilter;
+    private static readonly RaycastHit2D[] obstacleHitBuffer = new RaycastHit2D[8];
 
     public void SetScaleMultiplier(float multiplier)
     {
@@ -128,6 +130,15 @@ public class BossMovement : MonoBehaviour, IPoolable
         rb.freezeRotation = true;
         basePrefabScale = transform.localScale != Vector3.zero ? transform.localScale : Vector3.one;
         initialScale = basePrefabScale;
+
+        int obstacleLayer = LayerMask.GetMask("Obstacle");
+        if (obstacleLayer == 0) obstacleLayer = LayerMask.GetMask("Default");
+        obstacleFilter = new ContactFilter2D
+        {
+            useTriggers = false,
+            layerMask = obstacleLayer,
+            useLayerMask = true
+        };
 
         health = GetComponent<EnemyHealth>();
         rangedAttack = GetComponent<BossRangedAttack>();
@@ -316,6 +327,29 @@ public class BossMovement : MonoBehaviour, IPoolable
 
     private void MoveInsideMap(Vector2 targetPosition)
     {
+        Vector2 currentPos = rb.position;
+        Vector2 delta = targetPosition - currentPos;
+        float distance = delta.magnitude;
+
+        if (distance > 0.0001f)
+        {
+            Vector2 dir = delta / distance;
+            int count = rb.Cast(dir, obstacleFilter, obstacleHitBuffer, distance + 0.05f);
+            for (int i = 0; i < count; i++)
+            {
+                RaycastHit2D hit = obstacleHitBuffer[i];
+                if (hit.collider != null && !hit.collider.isTrigger && hit.collider.gameObject != gameObject)
+                {
+                    float allowed = Mathf.Max(0f, hit.distance - 0.05f);
+                    Vector2 normal = hit.normal;
+                    Vector2 leftover = delta * (1f - Mathf.Clamp01(allowed / (distance + 0.05f)));
+                    Vector2 slide = leftover - Vector2.Dot(leftover, normal) * normal;
+                    targetPosition = currentPos + dir * allowed + slide;
+                    break;
+                }
+            }
+        }
+
         Vector2 clampedPosition = MapBoundary.Instance != null
             ? MapBoundary.Instance.ClampSpawnPosition(targetPosition, mapBoundaryPadding)
             : targetPosition;

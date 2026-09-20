@@ -26,6 +26,13 @@ public class PlayerMovement : MonoBehaviour
     [Tooltip("LayerMask của quái vật (mặc định tự tìm 'Enemy').")]
     [SerializeField] private LayerMask enemyLayer;
 
+    [Header("Obstacle Collision")]
+    [Tooltip("LayerMask của chướng ngại vật (mặc định tự tìm 'Obstacle').")]
+    [SerializeField] private LayerMask obstacleLayer;
+
+    [Tooltip("Khoảng đệm an toàn chống lọt vào chướng ngại vật.")]
+    [SerializeField] private float obstacleSkinWidth = 0.02f;
+
     [Header("Debug Info (Inspector)")]
     [SerializeField] private Vector2 debugInput;
     [SerializeField] private float debugEffectiveSpeed;
@@ -40,6 +47,8 @@ public class PlayerMovement : MonoBehaviour
     private Vector2 keyboardInput;
     private float nextJoystickSearchTime = 0f;
 
+    private ContactFilter2D obstacleFilter;
+    private static readonly RaycastHit2D[] obstacleHitBuffer = new RaycastHit2D[8];
     private static readonly Collider2D[] nearbyEnemiesBuffer = new Collider2D[24];
 
     public Vector2 MoveDirection => moveInput;
@@ -77,12 +86,29 @@ public class PlayerMovement : MonoBehaviour
         {
             rb.gravityScale = 0f;
             rb.freezeRotation = true;
+            rb.interpolation = RigidbodyInterpolation2D.Interpolate;
         }
 
         if (enemyLayer.value == 0)
         {
             enemyLayer = LayerMask.GetMask("Enemy");
         }
+
+        if (obstacleLayer.value == 0)
+        {
+            obstacleLayer = LayerMask.GetMask("Obstacle");
+            if (obstacleLayer.value == 0)
+            {
+                obstacleLayer = LayerMask.GetMask("Default");
+            }
+        }
+
+        obstacleFilter = new ContactFilter2D
+        {
+            useTriggers = false,
+            layerMask = obstacleLayer,
+            useLayerMask = true
+        };
 
         if (joystick == null)
         {
@@ -153,32 +179,11 @@ public class PlayerMovement : MonoBehaviour
             if (moveInput.sqrMagnitude > 0.001f)
             {
                 PushNearbyEnemies(moveInput);
-            }
-
-            Vector2 targetPos = rb.position + movement * Time.fixedDeltaTime;
-
-            if (MapBoundary.Instance != null)
-            {
-                targetPos = MapBoundary.Instance.ClampPlayerPosition(targetPos);
-                Vector2 diff = targetPos - rb.position;
-                if (Time.fixedDeltaTime > 0.0001f)
-                {
-                    rb.velocity = diff / Time.fixedDeltaTime;
-                }
-                else
-                {
-                    rb.velocity = movement;
-                }
+                MoveAndSlide(movement);
             }
             else
             {
-                rb.velocity = movement;
-            }
-
-            // Khi Player đang chủ động di chuyển, dùng MovePosition để thoát khỏi vòng vây của quái
-            if (moveInput.sqrMagnitude > 0.001f)
-            {
-                rb.MovePosition(targetPos);
+                rb.velocity = Vector2.zero;
             }
         }
         else
@@ -190,6 +195,72 @@ public class PlayerMovement : MonoBehaviour
             }
             transform.position = new Vector3(targetPos.x, targetPos.y, transform.position.z);
         }
+    }
+
+    /// <summary>
+    /// Thuật toán MoveAndSlide 2D: Quét va chạm trước hướng đi đối với chướng ngại vật,
+    /// nếu chạm vật cản thì chiếu trượt theo tiếp tuyến bề mặt, triệt tiêu hoàn toàn rung lắc và xuyên thấu.
+    /// </summary>
+    private void MoveAndSlide(Vector2 movement)
+    {
+        Vector2 remainingDelta = movement * Time.fixedDeltaTime;
+        Vector2 currentPos = rb.position;
+        float skinWidth = obstacleSkinWidth;
+        const int maxBounces = 2;
+
+        for (int bounce = 0; bounce < maxBounces; bounce++)
+        {
+            float distance = remainingDelta.magnitude;
+            if (distance < 0.0001f) break;
+
+            Vector2 dir = remainingDelta / distance;
+            int hitCount = rb.Cast(dir, obstacleFilter, obstacleHitBuffer, distance + skinWidth);
+
+            RaycastHit2D bestHit = default;
+            bool hitFound = false;
+
+            for (int i = 0; i < hitCount; i++)
+            {
+                RaycastHit2D hit = obstacleHitBuffer[i];
+                if (hit.collider != null && !hit.collider.isTrigger && hit.collider.gameObject != gameObject)
+                {
+                    bestHit = hit;
+                    hitFound = true;
+                    break;
+                }
+            }
+
+            if (hitFound)
+            {
+                float advance = Mathf.Max(0f, bestHit.distance - skinWidth);
+                currentPos += dir * advance;
+
+                float fractionLeft = 1f - Mathf.Clamp01(advance / (distance + skinWidth));
+                Vector2 leftover = remainingDelta * fractionLeft;
+                Vector2 normal = bestHit.normal;
+
+                // Chiếu trượt dọc theo mặt tiếp tuyến của chướng ngại vật
+                remainingDelta = leftover - Vector2.Dot(leftover, normal) * normal;
+
+                // Nếu hướng trượt đi ngược lại với hướng di chuyển ban đầu thì triệt tiêu
+                if (Vector2.Dot(remainingDelta, movement) < 0f)
+                {
+                    remainingDelta = Vector2.zero;
+                }
+            }
+            else
+            {
+                currentPos += remainingDelta;
+                break;
+            }
+        }
+
+        if (MapBoundary.Instance != null)
+        {
+            currentPos = MapBoundary.Instance.ClampPlayerPosition(currentPos);
+        }
+
+        rb.MovePosition(currentPos);
     }
 
     /// <summary>
@@ -256,12 +327,15 @@ public class PlayerMovement : MonoBehaviour
         {
             Vector2 position = rb != null ? rb.position : (Vector2)transform.position;
             Vector2 clamped = MapBoundary.Instance.ClampPlayerPosition(position);
-            if (position != clamped || (Vector2)transform.position != clamped)
+            if (position != clamped)
             {
-                transform.position = new Vector3(clamped.x, clamped.y, transform.position.z);
                 if (rb != null)
                 {
                     rb.position = clamped;
+                }
+                else
+                {
+                    transform.position = new Vector3(clamped.x, clamped.y, transform.position.z);
                 }
             }
             if (rb != null)

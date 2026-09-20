@@ -76,6 +76,13 @@ public class EnemyContactDamage : MonoBehaviour, IPoolable
         if (playerHealth.IsDead)
             return;
 
+        // Kiểm tra Line of Sight: Không gây sát thương qua vách chướng ngại vật
+        int obstacleMask = LayerMask.GetMask("Obstacle");
+        if (obstacleMask != 0 && Physics2D.Linecast(transform.position, playerHealth.transform.position, obstacleMask))
+        {
+            return;
+        }
+
         playerHealth.TakeDamage(damage);
 
         nextDamageTime = Time.time + damageInterval;

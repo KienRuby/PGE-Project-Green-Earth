@@ -22,7 +22,6 @@ public static class UIDissolveAutoInstaller
         "ChipsetDetailModal",
         "BlastFurnaceModal",
         "StagePreviewWindow",
-        "PityGuaranteePanel",
         "ChipsetLevelUpPopup",
         "DamageDetailsModal",
         "QuitConfirmDialog",
@@ -104,6 +103,16 @@ public static class UIDissolveAutoInstaller
         if (string.IsNullOrEmpty(objName)) return false;
 
         string cleanName = objName.Trim();
+
+        // PityGuaranteePanel owns its own unscaled pop/fade animation. Letting
+        // the global dissolve installer also wire its close button starts two
+        // competing transitions; the panel is then deactivated while dissolve
+        // materials are still applied and the next open renders the stuck
+        // noisy frame seen after the second click.
+        if (cleanName.Equals("PityGuaranteePanel", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
 
         // 1. Khớp chính xác hoặc chứa từ khóa mục tiêu
         for (int i = 0; i < TargetNameKeywords.Length; i++)

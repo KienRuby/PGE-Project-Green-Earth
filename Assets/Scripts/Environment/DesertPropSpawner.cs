@@ -70,7 +70,7 @@ public class DesertPropSpawner : MonoBehaviour
     [SerializeField, Range(0.05f, 1f)] private float colliderWidthRatio = 0.55f;
     [SerializeField, Range(0.05f, 0.5f)] private float colliderHeightRatio = 0.2f;
     [Tooltip("Bật để Enemy có thể đi xuyên qua chướng ngại vật (chỉ chặn Player). Tắt nếu muốn chướng ngại vật chặn cả quái vật.")]
-    [SerializeField] private bool allowEnemiesToPassThrough = true;
+    [SerializeField] private bool allowEnemiesToPassThrough = false;
 
     [SerializeField] private bool useRandomSeed;
     [SerializeField] private int randomSeed = 12345;
@@ -460,6 +460,17 @@ public class DesertPropSpawner : MonoBehaviour
 
     private void ConfigureCollision(GameObject instance, bool blocksPlayer, float widthRatio, float heightRatio)
     {
+        int obstacleLayer = LayerMask.NameToLayer("Obstacle");
+        if (blocksPlayer && obstacleLayer != -1)
+        {
+            instance.layer = obstacleLayer;
+            Transform[] allChildren = instance.GetComponentsInChildren<Transform>(true);
+            for (int i = 0; i < allChildren.Length; i++)
+            {
+                allChildren[i].gameObject.layer = obstacleLayer;
+            }
+        }
+
         int enemyLayerMask = allowEnemiesToPassThrough ? LayerMask.GetMask("Enemy") : 0;
 
         Collider2D[] colliders = instance.GetComponentsInChildren<Collider2D>(true);
