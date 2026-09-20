@@ -276,6 +276,21 @@ public class StandardGunProjectile : MonoBehaviour, IPoolable
         return false;
     }
 
+    private static readonly Collider2D[] SharedOverlapBuffer = new Collider2D[32];
+    private static int enemyLayerMask = 0;
+    private static int EnemyLayerMask
+    {
+        get
+        {
+            if (enemyLayerMask == 0)
+            {
+                enemyLayerMask = LayerMask.GetMask("Enemy");
+                if (enemyLayerMask == 0) enemyLayerMask = 1 << 7;
+            }
+            return enemyLayerMask;
+        }
+    }
+
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other == null) return;
@@ -284,13 +299,15 @@ public class StandardGunProjectile : MonoBehaviour, IPoolable
 
     private bool TryRicochetToNextEnemy(Vector2 currentHitPos)
     {
-        Collider2D[] nearbyEnemies = Physics2D.OverlapCircleAll(currentHitPos, ricochetRadius);
-        Transform closestEnemy = null;
-        float closestDistanceSqr = Mathf.Infinity;
+        int count = Physics2D.OverlapCircleNonAlloc(currentHitPos, ricochetRadius, SharedOverlapBuffer, EnemyLayerMask);
+        Transform bestBoss = null;
+        float minBossDistSqr = Mathf.Infinity;
+        Transform bestNormal = null;
+        float minNormalDistSqr = Mathf.Infinity;
 
-        for (int i = 0; i < nearbyEnemies.Length; i++)
+        for (int i = 0; i < count; i++)
         {
-            Collider2D col = nearbyEnemies[i];
+            Collider2D col = SharedOverlapBuffer[i];
             if (col == null) continue;
 
             EnemyHealth enemy = col.GetComponentInParent<EnemyHealth>();
@@ -299,17 +316,31 @@ public class StandardGunProjectile : MonoBehaviour, IPoolable
             int id = enemy.gameObject.GetInstanceID();
             if (hitEnemyInstanceIds.Contains(id)) continue;
 
-            float distSqr = ((Vector2)enemy.transform.position - currentHitPos).sqrMagnitude;
-            if (distSqr < closestDistanceSqr)
+            float distSqr = ((Vector2)enemy.AimPoint - currentHitPos).sqrMagnitude;
+            if (enemy.IsBoss)
             {
-                closestDistanceSqr = distSqr;
-                closestEnemy = enemy.transform;
+                if (distSqr < minBossDistSqr)
+                {
+                    minBossDistSqr = distSqr;
+                    bestBoss = enemy.transform;
+                }
+            }
+            else
+            {
+                if (distSqr < minNormalDistSqr)
+                {
+                    minNormalDistSqr = distSqr;
+                    bestNormal = enemy.transform;
+                }
             }
         }
 
-        if (closestEnemy != null)
+        Transform targetToRicochet = bestBoss != null ? bestBoss : bestNormal;
+        if (targetToRicochet != null)
         {
-            Vector2 newDir = ((Vector2)closestEnemy.position - (Vector2)transform.position).normalized;
+            EnemyHealth targetEh = targetToRicochet.GetComponentInParent<EnemyHealth>();
+            Vector2 targetPos = targetEh != null ? targetEh.AimPoint : (Vector2)targetToRicochet.position;
+            Vector2 newDir = (targetPos - (Vector2)transform.position).normalized;
             SetDirection(newDir);
             lifeTimer = lifeTime * 0.75f; // Làm mới thời gian tồn tại cho pha nảy
             return true;

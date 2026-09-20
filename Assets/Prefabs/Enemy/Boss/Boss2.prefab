@@ -864,6 +864,7 @@ MonoBehaviour:
   damageFlashColor: {r: 1, g: 0, b: 0, a: 1}
   damageFlashDuration: 0.15
   hitFlashMaterial: {fileID: 0}
+  isBoss: 0
 --- !u!114 &5389224226086151412
 MonoBehaviour:
   m_ObjectHideFlags: 0

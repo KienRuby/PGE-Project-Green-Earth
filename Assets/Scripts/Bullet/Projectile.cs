@@ -346,7 +346,9 @@ public class Projectile : MonoBehaviour, IPoolable
                     Transform nextTarget = FindNextRicochetTarget(transform.position);
                     if (nextTarget != null)
                     {
-                        Vector2 nextDir = ((Vector2)nextTarget.position - (Vector2)transform.position).normalized;
+                        EnemyHealth nextEh = nextTarget.GetComponentInParent<EnemyHealth>();
+                        Vector2 targetPos = nextEh != null ? nextEh.AimPoint : (Vector2)nextTarget.position;
+                        Vector2 nextDir = (targetPos - (Vector2)transform.position).normalized;
                         SetDirection(nextDir);
                         SetTarget(nextTarget);
                         lifeTimer = lifeTime;
@@ -415,11 +417,28 @@ public class Projectile : MonoBehaviour, IPoolable
         }
     }
 
+    private static int enemyLayerMask = 0;
+    private static int EnemyLayerMask
+    {
+        get
+        {
+            if (enemyLayerMask == 0)
+            {
+                enemyLayerMask = LayerMask.GetMask("Enemy");
+                if (enemyLayerMask == 0) enemyLayerMask = 1 << 7;
+            }
+            return enemyLayerMask;
+        }
+    }
+
     private Transform FindNextRicochetTarget(Vector3 origin)
     {
-        int count = Physics2D.OverlapCircleNonAlloc(origin, ricochetRadius, SharedOverlapBuffer, 1 << 7);
-        Transform best = null;
-        float minDist = float.MaxValue;
+        int count = Physics2D.OverlapCircleNonAlloc(origin, ricochetRadius, SharedOverlapBuffer, EnemyLayerMask);
+        Transform bestBoss = null;
+        float minBossDist = float.MaxValue;
+        Transform bestNormal = null;
+        float minNormalDist = float.MaxValue;
+
         for (int i = 0; i < count; i++)
         {
             Collider2D col = SharedOverlapBuffer[i];
@@ -427,15 +446,26 @@ public class Projectile : MonoBehaviour, IPoolable
             EnemyHealth eh = col.GetComponentInParent<EnemyHealth>();
             if (eh != null && !eh.IsDead && !hitEnemyIds.Contains(eh.gameObject.GetInstanceID()))
             {
-                float dist = Vector2.Distance(origin, eh.transform.position);
-                if (dist < minDist)
+                float dist = Vector2.Distance(origin, eh.AimPoint);
+                if (eh.IsBoss)
                 {
-                    minDist = dist;
-                    best = eh.transform;
+                    if (dist < minBossDist)
+                    {
+                        minBossDist = dist;
+                        bestBoss = eh.transform;
+                    }
+                }
+                else
+                {
+                    if (dist < minNormalDist)
+                    {
+                        minNormalDist = dist;
+                        bestNormal = eh.transform;
+                    }
                 }
             }
         }
-        return best;
+        return bestBoss != null ? bestBoss : bestNormal;
     }
 
     private void Despawn()

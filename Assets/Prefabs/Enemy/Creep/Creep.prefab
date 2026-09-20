@@ -692,6 +692,7 @@ MonoBehaviour:
   damageFlashColor: {r: 0.7294118, g: 0, b: 0.023529412, a: 1}
   damageFlashDuration: 0.12
   hitFlashMaterial: {fileID: 2100000, guid: 2822f1187a894884da86fd7a411b301f, type: 2}
+  isBoss: 0
 --- !u!114 &8303188544550396975
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -711,6 +712,11 @@ MonoBehaviour:
   enemyLayer:
     serializedVersion: 2
     m_Bits: 128
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  feelerDistance: 0.75
+  obstaclePadding: 0.45
   autoFlipFacing: 1
   initialFacingLeft: 1
   flipDeadzone: 0.05
