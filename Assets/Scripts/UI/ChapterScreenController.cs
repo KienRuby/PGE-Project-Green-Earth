@@ -80,6 +80,16 @@ public class ChapterScreenController : MonoBehaviour
     [Tooltip("Màu nút khi Chapter bị khóa.")]
     [SerializeField] private Color lockedButtonColor = new Color32(70, 95, 90, 255);
 
+    [Header("Side Mode Action Buttons")]
+    [Tooltip("Nút Tower Def ở bên trái nút Start.")]
+    [SerializeField] private Button towerDefButton;
+
+    [Tooltip("Nút Gem Mine ở bên phải nút Start.")]
+    [SerializeField] private Button gemMineButton;
+
+    public Button TowerDefButton => towerDefButton;
+    public Button GemMineButton => gemMineButton;
+
     [Header("Preview Lighting & Silhouette Styling")]
     [Tooltip("Màu của quái vật/boss khi Chapter đã mở khóa (sáng rõ).")]
     [SerializeField] private Color unlockedBossColor = Color.white;
@@ -121,6 +131,18 @@ public class ChapterScreenController : MonoBehaviour
             startButton.onClick.AddListener(OnStartButtonClicked);
             SetupStartButtonTransition();
         }
+
+        if (towerDefButton != null)
+        {
+            towerDefButton.onClick.RemoveListener(OnTowerDefClicked);
+            towerDefButton.onClick.AddListener(OnTowerDefClicked);
+        }
+
+        if (gemMineButton != null)
+        {
+            gemMineButton.onClick.RemoveListener(OnGemMineClicked);
+            gemMineButton.onClick.AddListener(OnGemMineClicked);
+        }
     }
 
     private void Start()
@@ -157,6 +179,8 @@ public class ChapterScreenController : MonoBehaviour
         if (prevChapterButton != null) prevChapterButton.onClick.RemoveListener(OnPrevChapterClicked);
         if (nextChapterButton != null) nextChapterButton.onClick.RemoveListener(OnNextChapterClicked);
         if (startButton != null) startButton.onClick.RemoveListener(OnStartButtonClicked);
+        if (towerDefButton != null) towerDefButton.onClick.RemoveListener(OnTowerDefClicked);
+        if (gemMineButton != null) gemMineButton.onClick.RemoveListener(OnGemMineClicked);
     }
 
     public void OnPrevChapterClicked()
@@ -465,5 +489,21 @@ public class ChapterScreenController : MonoBehaviour
         previewBackgroundImage = bg;
         bossSilhouetteImage = boss;
         RefreshChapterView();
+    }
+
+    public void OnTowerDefClicked()
+    {
+        Debug.Log("[ChapterScreenController] Nút Tower Def được nhấn.");
+    }
+
+    public void OnGemMineClicked()
+    {
+        Debug.Log("[ChapterScreenController] Nút Gem Mine được nhấn.");
+    }
+
+    public void SetSideModeButtonsForTesting(Button towerDef, Button gemMine)
+    {
+        towerDefButton = towerDef;
+        gemMineButton = gemMine;
     }
 }
