@@ -89,4 +89,149 @@ public class DesertPropSpawnerTests
             Assert.That(prefab.GetComponentInChildren<SpriteRenderer>(), Is.Not.Null, $"Prefab thiếu SpriteRenderer: {path}");
         }
     }
+
+    [Test]
+    public void ConfigureCollision_WhenEmptyPolygonColliderExists_ReplacesWithValidBoxCollider()
+    {
+        GameObject spawnerGo = new GameObject("TestSpawner", typeof(MapBoundary), typeof(DesertPropSpawner));
+        GameObject propGo = new GameObject("TestObstacle");
+        try
+        {
+            SpriteRenderer sr = propGo.AddComponent<SpriteRenderer>();
+            Texture2D tex = new Texture2D(32, 32);
+            sr.sprite = Sprite.Create(tex, new Rect(0, 0, 32, 32), new Vector2(0.5f, 0.5f), 100f);
+
+            PolygonCollider2D emptyPoly = propGo.AddComponent<PolygonCollider2D>();
+            emptyPoly.pathCount = 0;
+
+            DesertPropSpawner spawner = spawnerGo.GetComponent<DesertPropSpawner>();
+            var method = typeof(DesertPropSpawner).GetMethod("ConfigureCollision", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            Assert.That(method, Is.Not.Null, "ConfigureCollision method must exist.");
+
+            method.Invoke(spawner, new object[] { propGo, true, 0.55f, 0.2f });
+
+            PolygonCollider2D polyAfter = propGo.GetComponent<PolygonCollider2D>();
+            Assert.That(polyAfter, Is.Null, "Empty PolygonCollider2D must be removed.");
+
+            BoxCollider2D boxAfter = propGo.GetComponent<BoxCollider2D>();
+            Assert.That(boxAfter, Is.Not.Null, "BoxCollider2D must be created.");
+            Assert.That(boxAfter.enabled, Is.True, "BoxCollider2D must be enabled.");
+            Assert.That(boxAfter.isTrigger, Is.False, "BoxCollider2D must be a solid collider.");
+            Assert.That(boxAfter.size.x, Is.GreaterThan(0f));
+            Assert.That(boxAfter.size.y, Is.GreaterThan(0f));
+
+            int obstacleLayer = LayerMask.NameToLayer("Obstacle");
+            if (obstacleLayer != -1)
+            {
+                Assert.That(propGo.layer, Is.EqualTo(obstacleLayer), "Obstacle layer must be applied.");
+            }
+        }
+        finally
+        {
+            Object.DestroyImmediate(propGo);
+            Object.DestroyImmediate(spawnerGo);
+        }
+    }
+
+    [Test]
+    public void CayBupCamPrefab_HasCustomBoxColliderConfiguredForTrunk()
+    {
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Map 3 - Toxic Swamp/cay_bup_cam.prefab");
+        Assert.That(prefab, Is.Not.Null, "cay_bup_cam.prefab must exist.");
+
+        BoxCollider2D box = prefab.GetComponent<BoxCollider2D>();
+        Assert.That(box, Is.Not.Null, "cay_bup_cam prefab must have a BoxCollider2D on it.");
+        Assert.That(box.size.x, Is.InRange(0.7f, 0.85f), "BoxCollider2D width must fit the trunk.");
+        Assert.That(box.size.y, Is.InRange(1.45f, 1.8f), "BoxCollider2D height must cover the trunk.");
+        Assert.That(box.offset.y, Is.InRange(-1.8f, -1.4f), "BoxCollider2D offset must be centered on the lower trunk.");
+        Assert.That(box.isTrigger, Is.False, "BoxCollider2D must be solid.");
+    }
+
+    [Test]
+    public void TangDaPrefab_HasCustomBoxColliderConfiguredForRock()
+    {
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Map 3 - Toxic Swamp/tang_da.prefab");
+        Assert.That(prefab, Is.Not.Null, "tang_da.prefab must exist.");
+
+        BoxCollider2D box = prefab.GetComponent<BoxCollider2D>();
+        Assert.That(box, Is.Not.Null, "tang_da prefab must have a BoxCollider2D on it.");
+        Assert.That(box.size.x, Is.InRange(1.6f, 1.9f), "BoxCollider2D width must cover the rock.");
+        Assert.That(box.size.y, Is.InRange(1.1f, 1.4f), "BoxCollider2D height must cover the rock.");
+        Assert.That(box.offset.x, Is.InRange(0.6f, 0.9f), "BoxCollider2D offset X must shift to the rock on the right.");
+        Assert.That(box.offset.y, Is.InRange(-0.4f, -0.15f), "BoxCollider2D offset Y must center on the rock.");
+        Assert.That(box.isTrigger, Is.False, "BoxCollider2D must be solid.");
+    }
+
+    [Test]
+    public void NamBachTuocPrefab_HasCustomBoxColliderConfiguredForTrunk()
+    {
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Map 3 - Toxic Swamp/nam_bach_tuoc.prefab");
+        Assert.That(prefab, Is.Not.Null, "nam_bach_tuoc.prefab must exist.");
+
+        BoxCollider2D box = prefab.GetComponent<BoxCollider2D>();
+        Assert.That(box, Is.Not.Null, "nam_bach_tuoc prefab must have a BoxCollider2D on it.");
+        Assert.That(box.size.x, Is.InRange(1.8f, 2.1f), "BoxCollider2D width must fit the trunk and side mushrooms.");
+        Assert.That(box.size.y, Is.InRange(1.2f, 1.5f), "BoxCollider2D height must cover the lower trunk.");
+        Assert.That(box.offset.y, Is.InRange(-1.3f, -0.9f), "BoxCollider2D offset must be centered on the lower trunk.");
+        Assert.That(box.isTrigger, Is.False, "BoxCollider2D must be solid.");
+    }
+
+    [Test]
+    public void ConfigureSorting_WhenYIsHigh_NeverDropsBelowGroundOrDecoration()
+    {
+        GameObject spawnerGo = new GameObject("TestSpawner", typeof(MapBoundary), typeof(DesertPropSpawner));
+        GameObject propGo = new GameObject("TestObstacle");
+        try
+        {
+            propGo.AddComponent<SpriteRenderer>();
+            DesertPropSpawner spawner = spawnerGo.GetComponent<DesertPropSpawner>();
+            var method = typeof(DesertPropSpawner).GetMethod("ConfigureSorting", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            Assert.That(method, Is.Not.Null, "ConfigureSorting method must exist.");
+
+            // With y = 25f (near top edge of 40x40 map)
+            method.Invoke(spawner, new object[] { propGo, DesertPropSpawner.PropKind.Obstacle, 25f });
+
+            SpriteRenderer sr = propGo.GetComponent<SpriteRenderer>();
+            Assert.That(sr.sortingOrder, Is.GreaterThan(-90), "Obstacle sorting order must stay above decorations (-90) and ground (-100).");
+        }
+        finally
+        {
+            Object.DestroyImmediate(propGo);
+            Object.DestroyImmediate(spawnerGo);
+        }
+    }
+
+    [Test]
+    public void ConfigureCollision_WhenPrefabAlreadyHasValidBoxCollider_PreservesIt()
+    {
+        GameObject spawnerGo = new GameObject("TestSpawner", typeof(MapBoundary), typeof(DesertPropSpawner));
+        GameObject propGo = new GameObject("TestObstacle");
+        try
+        {
+            BoxCollider2D customBox = propGo.AddComponent<BoxCollider2D>();
+            customBox.size = new Vector2(0.76f, 1.64f);
+            customBox.offset = new Vector2(-0.09f, -1.635f);
+
+            DesertPropSpawner spawner = spawnerGo.GetComponent<DesertPropSpawner>();
+            var method = typeof(DesertPropSpawner).GetMethod("ConfigureCollision", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            Assert.That(method, Is.Not.Null);
+
+            method.Invoke(spawner, new object[] { propGo, true, 0.55f, 0.2f });
+
+            BoxCollider2D boxAfter = propGo.GetComponent<BoxCollider2D>();
+            Assert.That(boxAfter, Is.SameAs(customBox), "Custom BoxCollider2D must be preserved.");
+            Assert.That(boxAfter.size.x, Is.EqualTo(0.76f).Within(0.001f));
+            Assert.That(boxAfter.size.y, Is.EqualTo(1.64f).Within(0.001f));
+            Assert.That(boxAfter.offset.x, Is.EqualTo(-0.09f).Within(0.001f));
+            Assert.That(boxAfter.offset.y, Is.EqualTo(-1.635f).Within(0.001f));
+            Assert.That(boxAfter.enabled, Is.True);
+            Assert.That(boxAfter.isTrigger, Is.False);
+        }
+        finally
+        {
+            Object.DestroyImmediate(propGo);
+            Object.DestroyImmediate(spawnerGo);
+        }
+    }
 }
+

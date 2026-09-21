@@ -106,7 +106,8 @@ MonoBehaviour:
   bobbingAmplitude: 0.05
   bobbingFrequency: 2.5
   tiltAmount: 15
-  targetDetectionRadius: 9
+  screenViewportScale: 0.9
+  targetDetectionRadius: 5.16
   targetRefreshInterval: 0.2
   enemyLayer:
     serializedVersion: 2

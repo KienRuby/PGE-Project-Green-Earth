@@ -53,7 +53,8 @@ public class RadarEyeBuddy : BuddyCombatDrone
         // Unique (Tier 3): Scan Range +30%
         if (tierLevel >= 3)
         {
-            targetDetectionRadius = 9.0f * 1.30f;
+            screenViewportScale *= 1.30f;
+            targetDetectionRadius *= 1.30f;
         }
 
         // Holo (Tier 5): Target Lock +30% (Beam duration +30%, Cooldown -30%)

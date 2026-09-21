@@ -885,10 +885,13 @@ MonoBehaviour:
   flipDeadzone: 0.1
   enableDashAttack: 1
   dashCooldown: 5
-  dashWindupDuration: 0.4
+  dashWindupDuration: 0.35
   dashDuration: 0.5
-  dashSpeedMultiplier: 4
-  dashRecoverDuration: 0.4
+  dashSpeedMultiplier: 4.5
+  dashRecoverDuration: 0.35
+  baseDashComboCount: 1
+  enrageDashComboCount: 1
+  enrageDashCooldown: 0
   enableEnrage: 1
   enrageHealthPercent: 0.4
   enrageSpeedMultiplier: 1.35
@@ -913,7 +916,37 @@ MonoBehaviour:
   projectilePrefab: {fileID: 4869308302692197069, guid: 83e399f033884d0cad6218623886ac7c, type: 3}
   projectileDamage: 20
   projectileSpeed: 8
-  skills: []
+  skills:
+  - skillName: Ban thuong
+    pattern: 0
+    projectileCount: 1
+    spreadAngle: 0
+    shotInterval: 0
+    cooldown: 1.8
+  - skillName: Ban lien tuc 5 vien
+    pattern: 0
+    projectileCount: 5
+    spreadAngle: 0
+    shotInterval: 0.15
+    cooldown: 3
+  - skillName: Ban toa 5 vien 50 do
+    pattern: 1
+    projectileCount: 5
+    spreadAngle: 50
+    shotInterval: 0
+    cooldown: 2.8
+  - skillName: Ban toa 20 vien 360 do
+    pattern: 2
+    projectileCount: 20
+    spreadAngle: 360
+    shotInterval: 0
+    cooldown: 3.5
+  - skillName: Ban xoay tron 10 vien
+    pattern: 3
+    projectileCount: 10
+    spreadAngle: 360
+    shotInterval: 0.08
+    cooldown: 3.5
   initialDelay: 1.5
 --- !u!114 &2138462539967652828
 MonoBehaviour:
@@ -947,8 +980,8 @@ MonoBehaviour:
   - {fileID: 3312062618458788451}
   - {fileID: 3883261886704673998}
   - {fileID: 5968249400867083898}
-  bossMovementComponent: {fileID: 0}
-  bossRangedAttackComponent: {fileID: 0}
+  bossMovementComponent: {fileID: 5389224226086151412}
+  bossRangedAttackComponent: {fileID: 7794485977187627855}
   bossTitle: SPIDER-MANTIS PRIME
   enrageThreshold: 0.4
 --- !u!1 &6865556296295060200

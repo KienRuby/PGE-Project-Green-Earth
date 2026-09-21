@@ -55,6 +55,19 @@ public class MultigunProjectile : MonoBehaviour, IPoolable
         }
     }
 
+    private static int obstacleLayerIndex = -1;
+    private static int ObstacleLayerIndex
+    {
+        get
+        {
+            if (obstacleLayerIndex == -1)
+            {
+                obstacleLayerIndex = LayerMask.NameToLayer("Obstacle");
+            }
+            return obstacleLayerIndex;
+        }
+    }
+
     public int Damage => damage;
 
     private CircleCollider2D circleCol;
@@ -263,7 +276,7 @@ public class MultigunProjectile : MonoBehaviour, IPoolable
         if (hitCollider.CompareTag("Player") || hitCollider.CompareTag("BulletPlayer")) return false;
 
         // 1. Chướng ngại vật (Obstacle) - Không thể xuyên qua
-        if (hitCollider.gameObject.layer == LayerMask.NameToLayer("Obstacle") || hitCollider.CompareTag("Obstacle"))
+        if ((ObstacleLayerIndex != -1 && hitCollider.gameObject.layer == ObstacleLayerIndex) || hitCollider.CompareTag("Obstacle"))
         {
             if (!hitCollider.isTrigger)
             {

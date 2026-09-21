@@ -9,7 +9,8 @@ public class BossRangedAttack : MonoBehaviour, IPoolable
     {
         AimedBurst,
         Fan,
-        Radial
+        Radial,
+        Spiral
     }
 
     public enum TargetRangeState
@@ -28,13 +29,13 @@ public class BossRangedAttack : MonoBehaviour, IPoolable
         [Tooltip("Kiểu phân bố hướng đạn.")]
         public ShotPattern pattern = ShotPattern.AimedBurst;
 
-        [Tooltip("Số viên trong một loạt. Với bắn thẳng, các viên được bắn nối tiếp.")]
+        [Tooltip("Số viên trong một loạt. Với bắn thẳng hoặc xoay tròn, các viên được bắn nối tiếp.")]
         [Min(1)] public int projectileCount = 3;
 
         [Tooltip("Góc mở của hình quạt. Không dùng cho bắn thẳng và vòng tròn.")]
         [Range(0f, 360f)] public float spreadAngle = 50f;
 
-        [Tooltip("Khoảng thời gian giữa từng viên của loạt bắn thẳng.")]
+        [Tooltip("Khoảng thời gian giữa từng viên của loạt bắn thẳng hoặc xoay tròn.")]
         [Min(0f)] public float shotInterval = 0.18f;
 
         [Tooltip("Thời gian chờ trước khi Boss có thể dùng kỹ năng tiếp theo.")]
@@ -70,6 +71,7 @@ public class BossRangedAttack : MonoBehaviour, IPoolable
 
     private EnemyHealth health;
     private PlayerHealth targetHealth;
+    private BossMovement bossMovement;
     private Coroutine attackRoutine;
     private float cooldownTimer;
     private float nextTargetSearchTime;
@@ -78,12 +80,15 @@ public class BossRangedAttack : MonoBehaviour, IPoolable
 
     public float AttackRange => attackRange;
     public int SkillCount => skills != null ? skills.Count : 0;
+    public IReadOnlyList<ShootSkill> Skills => skills;
     public EnemyProjectile ProjectilePrefab => projectilePrefab;
     public int BaseProjectileDamage => baseProjectileDamage > 0 ? baseProjectileDamage : projectileDamage;
+    public bool IsAttacking => attackRoutine != null;
 
     private void Awake()
     {
         health = GetComponent<EnemyHealth>();
+        bossMovement = GetComponent<BossMovement>();
         baseProjectileDamage = projectileDamage;
         EnsureDefaultSkills();
     }
@@ -96,6 +101,7 @@ public class BossRangedAttack : MonoBehaviour, IPoolable
     private void Update()
     {
         if (health != null && health.IsDead) return;
+        if (bossMovement != null && bossMovement.CurrentState != BossMovement.BossState.Chase) return;
 
         if (!HasValidTarget())
         {
@@ -172,6 +178,19 @@ public class BossRangedAttack : MonoBehaviour, IPoolable
         return directions;
     }
 
+    public static Vector2[] CalculateSpiralDirections(Vector2 startDirection, int projectileCount)
+    {
+        int count = Mathf.Max(1, projectileCount);
+        Vector2 forward = startDirection.sqrMagnitude > 0f ? startDirection.normalized : Vector2.right;
+        Vector2[] directions = new Vector2[count];
+        float step = 360f / count;
+        for (int i = 0; i < count; i++)
+        {
+            directions[i] = Rotate(forward, step * i);
+        }
+        return directions;
+    }
+
     private IEnumerator ExecuteSkill(ShootSkill skill, int skillIndex)
     {
         if (skill.pattern == ShotPattern.AimedBurst)
@@ -186,6 +205,26 @@ public class BossRangedAttack : MonoBehaviour, IPoolable
                     break;
                 }
                 SpawnProjectile(((Vector2)target.position - (Vector2)transform.position).normalized);
+                if (i < count - 1 && skill.shotInterval > 0f)
+                {
+                    yield return PoolManager.GetWaitForSeconds(skill.shotInterval);
+                }
+            }
+        }
+        else if (skill.pattern == ShotPattern.Spiral)
+        {
+            int count = Mathf.Max(1, skill.projectileCount);
+            Vector2 aimDirection = HasValidTarget()
+                ? ((Vector2)target.position - (Vector2)transform.position).normalized
+                : Vector2.right;
+            Vector2[] directions = CalculateSpiralDirections(aimDirection, count);
+            for (int i = 0; i < directions.Length; i++)
+            {
+                if (health != null && health.IsDead)
+                {
+                    break;
+                }
+                SpawnProjectile(directions[i]);
                 if (i < count - 1 && skill.shotInterval > 0f)
                 {
                     yield return PoolManager.GetWaitForSeconds(skill.shotInterval);

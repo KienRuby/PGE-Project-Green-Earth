@@ -34,9 +34,14 @@ public abstract class BuddyCombatDrone : MonoBehaviour
     [Tooltip("Góc nghiêng tối đa khi di chuyển (độ).")]
     [SerializeField] protected float tiltAmount = 15f;
 
+    [Header("Screen Viewport Targeting")]
+    [Tooltip("Tỷ lệ phạm vi quét so với khung hình màn hình (0.90 = nhỏ hơn phạm vi màn hình 10% để đảm bảo quái vật luôn nằm trọn trong tầm nhìn).")]
+    [Range(0.5f, 1.2f)]
+    [SerializeField] protected float screenViewportScale = 0.90f;
+
     [Header("Combat Targeting")]
-    [Tooltip("Bán kính phát hiện kẻ thù (mét).")]
-    [SerializeField] protected float targetDetectionRadius = 9.0f;
+    [Tooltip("Bán kính phát hiện kẻ thù fallback khi không có Camera (mét). Mặc định xấp xỉ nửa đường chéo màn hình 9:16 (scale 0.90).")]
+    [SerializeField] protected float targetDetectionRadius = 5.16f;
 
     [Tooltip("Tần suất quét mục tiêu (giây).")]
     [SerializeField] protected float targetRefreshInterval = 0.2f;
@@ -82,31 +87,83 @@ public abstract class BuddyCombatDrone : MonoBehaviour
         }
     }
     public Transform FirePoint => firePoint != null ? firePoint : transform;
-    private PlayerAutoShooter cachedShooter;
+    public float ScreenViewportScale
+    {
+        get => screenViewportScale;
+        set => screenViewportScale = Mathf.Clamp(value, 0.3f, 2.0f);
+    }
+
+    private Camera cachedMainCamera;
+
+    protected Camera GetActiveCamera()
+    {
+        if (cachedMainCamera == null || !cachedMainCamera.isActiveAndEnabled)
+        {
+            cachedMainCamera = Camera.main;
+            if (cachedMainCamera == null)
+            {
+                cachedMainCamera = FindObjectOfType<Camera>();
+            }
+        }
+        return cachedMainCamera;
+    }
+
+    public Vector2 GetScreenDetectionCenter()
+    {
+        Camera cam = GetActiveCamera();
+        if (cam != null)
+        {
+            return (Vector2)cam.transform.position;
+        }
+        return playerTransform != null ? (Vector2)playerTransform.position : (Vector2)transform.position;
+    }
+
+    public Vector2 GetScreenDetectionBoxSize()
+    {
+        Camera cam = GetActiveCamera();
+        if (cam != null && cam.orthographic)
+        {
+            float height = cam.orthographicSize * 2f * screenViewportScale;
+            float aspect = cam.aspect > 0.01f ? cam.aspect : (9f / 16f);
+            float width = height * aspect;
+            return new Vector2(width, height);
+        }
+
+        // Fallback dựa trên tỉ lệ màn hình chuẩn dọc 9:16 (orthographicSize 5.0)
+        float fallbackHeight = 10f * screenViewportScale;
+        float fallbackWidth = fallbackHeight * (9f / 16f);
+        return new Vector2(fallbackWidth, fallbackHeight);
+    }
+
+    public bool IsInsideScreenTargetingBounds(Vector2 worldPos, float padding = 0f)
+    {
+        Vector2 center = GetScreenDetectionCenter();
+        Vector2 size = GetScreenDetectionBoxSize();
+        float halfW = (size.x * 0.5f) + padding;
+        float halfH = (size.y * 0.5f) + padding;
+
+        return Mathf.Abs(worldPos.x - center.x) <= halfW &&
+               Mathf.Abs(worldPos.y - center.y) <= halfH;
+    }
 
     /// <summary>
-    /// Bán kính tấn công / phát hiện mục tiêu của Buddy: luôn nhỏ hơn tầm bắn của Player 3m.
+    /// Bán kính tấn công tối đa của Buddy: nhỏ hơn phạm vi màn hình 1 tí.
+    /// Tính toán từ kích thước nửa đường chéo của khung quét màn hình (Screen Viewport).
     /// </summary>
     public float EffectiveAttackRange
     {
         get
         {
-            if (cachedShooter == null && playerTransform != null)
-            {
-                cachedShooter = playerTransform.GetComponent<PlayerAutoShooter>();
-            }
-            if (cachedShooter != null)
-            {
-                return Mathf.Max(1.0f, cachedShooter.SharedAttackRange - 3.0f);
-            }
-            return Mathf.Max(1.0f, targetDetectionRadius);
+            Vector2 boxSize = GetScreenDetectionBoxSize();
+            float halfW = boxSize.x * 0.5f;
+            float halfH = boxSize.y * 0.5f;
+            return Mathf.Sqrt(halfW * halfW + halfH * halfH);
         }
     }
 
     public virtual void Initialize(Transform targetPlayer, int slotIdx, int totalEquipped, int level = 1, BuddyTier tier = BuddyTier.Common)
     {
         playerTransform = targetPlayer;
-        cachedShooter = playerTransform != null ? playerTransform.GetComponent<PlayerAutoShooter>() : null;
         slotIndex = slotIdx;
         totalSlots = Mathf.Max(1, totalEquipped);
         currentLevel = Mathf.Max(1, level);
@@ -313,13 +370,11 @@ public abstract class BuddyCombatDrone : MonoBehaviour
         if (targetScanTimer > 0f) return;
         targetScanTimer = targetRefreshInterval;
 
-        float range = EffectiveAttackRange;
-
-        // Kiểm tra target hiện tại còn hợp lệ không
+        // Kiểm tra target hiện tại còn hợp lệ không và còn nằm trong khung màn hình không (padding 0.5m tránh giật mép)
         if (currentTarget != null)
         {
             if (!currentTarget.gameObject.activeInHierarchy || currentTarget.IsDead ||
-                Vector2.Distance(transform.position, currentTarget.transform.position) > range * 1.3f)
+                !IsInsideScreenTargetingBounds(currentTarget.AimPoint, 0.5f))
             {
                 currentTarget = null;
             }
@@ -333,21 +388,24 @@ public abstract class BuddyCombatDrone : MonoBehaviour
 
     protected virtual EnemyHealth FindBestTarget()
     {
-        Vector2 scanCenter = transform.position;
-        float range = EffectiveAttackRange;
-        Collider2D[] hits = Physics2D.OverlapCircleAll(scanCenter, range, enemyLayer);
+        Vector2 center = GetScreenDetectionCenter();
+        Vector2 boxSize = GetScreenDetectionBoxSize();
+        Collider2D[] hits = Physics2D.OverlapBoxAll(center, boxSize, 0f, enemyLayer);
         if (hits == null || hits.Length == 0)
         {
             GameObject[] creeps = GameObject.FindGameObjectsWithTag("Enemy");
             EnemyHealth bestFallback = null;
             float minFallbackDist = float.MaxValue;
+            Vector2 dronePos = transform.position;
             foreach (var go in creeps)
             {
                 if (go == null || !go.activeInHierarchy) continue;
                 EnemyHealth eh = go.GetComponent<EnemyHealth>() ?? go.GetComponentInParent<EnemyHealth>();
                 if (eh == null || eh.IsDead) continue;
-                float d = Vector2.Distance(scanCenter, go.transform.position);
-                if (d <= range && d < minFallbackDist)
+                if (!IsInsideScreenTargetingBounds(go.transform.position)) continue;
+
+                float d = Vector2.Distance(dronePos, go.transform.position);
+                if (d < minFallbackDist)
                 {
                     minFallbackDist = d;
                     bestFallback = eh;
@@ -360,6 +418,7 @@ public abstract class BuddyCombatDrone : MonoBehaviour
         float minBossDistance = float.MaxValue;
         EnemyHealth nearestEnemy = null;
         float minDistance = float.MaxValue;
+        Vector2 myPos = transform.position;
 
         for (int i = 0; i < hits.Length; i++)
         {
@@ -367,24 +426,24 @@ public abstract class BuddyCombatDrone : MonoBehaviour
             EnemyHealth health = hits[i].GetComponent<EnemyHealth>() ?? hits[i].GetComponentInParent<EnemyHealth>();
             if (health == null || health.IsDead || !health.gameObject.activeInHierarchy) continue;
 
-            float dist = Vector2.Distance(scanCenter, health.AimPoint);
-            if (dist <= range)
+            Vector2 aimPoint = health.AimPoint;
+            if (!IsInsideScreenTargetingBounds(aimPoint)) continue;
+
+            float dist = Vector2.Distance(myPos, aimPoint);
+            if (health.IsBoss)
             {
-                if (health.IsBoss)
+                if (dist < minBossDistance)
                 {
-                    if (dist < minBossDistance)
-                    {
-                        minBossDistance = dist;
-                        bestBoss = health;
-                    }
+                    minBossDistance = dist;
+                    bestBoss = health;
                 }
-                else
+            }
+            else
+            {
+                if (dist < minDistance)
                 {
-                    if (dist < minDistance)
-                    {
-                        minDistance = dist;
-                        nearestEnemy = health;
-                    }
+                    minDistance = dist;
+                    nearestEnemy = health;
                 }
             }
         }
@@ -414,5 +473,13 @@ public abstract class BuddyCombatDrone : MonoBehaviour
 
         baseDamage = Mathf.RoundToInt(baseDamage * levelMultiplier * tierMultiplier);
         attackCooldown = Mathf.Max(0.25f, attackCooldown * (1f - (int)currentTier * 0.05f));
+    }
+
+    protected virtual void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.yellow;
+        Vector2 center = GetScreenDetectionCenter();
+        Vector2 size = GetScreenDetectionBoxSize();
+        Gizmos.DrawWireCube(center, size);
     }
 }

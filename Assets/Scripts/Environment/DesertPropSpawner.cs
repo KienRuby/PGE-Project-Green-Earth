@@ -474,14 +474,26 @@ public class DesertPropSpawner : MonoBehaviour
         int enemyLayerMask = allowEnemiesToPassThrough ? LayerMask.GetMask("Enemy") : 0;
 
         Collider2D[] colliders = instance.GetComponentsInChildren<Collider2D>(true);
+        bool hasValidCollider = false;
         for (int i = 0; i < colliders.Length; i++)
         {
-            colliders[i].enabled = blocksPlayer;
-            colliders[i].isTrigger = false;
-            colliders[i].excludeLayers = enemyLayerMask;
+            Collider2D col = colliders[i];
+            if (col == null) continue;
+
+            if (IsColliderEmptyOrInvalid(col))
+            {
+                if (Application.isPlaying) Destroy(col);
+                else DestroyImmediate(col);
+                continue;
+            }
+
+            col.enabled = blocksPlayer;
+            col.isTrigger = false;
+            col.excludeLayers = enemyLayerMask;
+            hasValidCollider = true;
         }
 
-        if (!blocksPlayer || colliders.Length > 0)
+        if (!blocksPlayer || hasValidCollider)
         {
             return;
         }
@@ -503,12 +515,34 @@ public class DesertPropSpawner : MonoBehaviour
         collider.excludeLayers = enemyLayerMask;
     }
 
+    private static bool IsColliderEmptyOrInvalid(Collider2D col)
+    {
+        if (col == null) return true;
+        if (col is PolygonCollider2D poly)
+        {
+            return poly.pathCount == 0;
+        }
+        if (col is BoxCollider2D box)
+        {
+            return box.size.x <= 0.0001f || box.size.y <= 0.0001f;
+        }
+        if (col is CircleCollider2D circle)
+        {
+            return circle.radius <= 0.0001f;
+        }
+        if (col is CapsuleCollider2D capsule)
+        {
+            return capsule.size.x <= 0.0001f || capsule.size.y <= 0.0001f;
+        }
+        return false;
+    }
+
     private void ConfigureSorting(GameObject instance, PropKind kind, float y)
     {
         SpriteRenderer[] renderers = instance.GetComponentsInChildren<SpriteRenderer>(true);
         int order = kind == PropKind.Decoration
             ? decorationSortingOrder
-            : obstacleSortingBase + Mathf.RoundToInt(-y * 10f);
+            : Mathf.Max(decorationSortingOrder + 1, obstacleSortingBase + Mathf.RoundToInt(-y * 10f));
 
         for (int i = 0; i < renderers.Length; i++)
         {
