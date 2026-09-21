@@ -24,6 +24,10 @@ public static class ChapterMenuSceneBuilder
     private const string ChapterDatabasePath = "Assets/Data/Chapters/ChapterDatabase.asset";
     private const string QuestDataPath = "Assets/Data/Quests/Quest_01_LabUpgrade.asset";
     private const string FontPath = "Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset";
+    private const string QuestBannerSpritePath = "Assets/Sprites/UI/Chapter/btn_quest_banner.png";
+    private const string GrowthFundSpritePath = "Assets/Sprites/UI/Chapter/btn_growth_fund.png";
+    private const string TowerDefSpritePath = "Assets/Sprites/UI/Chapter/btn_tower_def.png";
+    private const string GemMineSpritePath = "Assets/Sprites/UI/Chapter/btn_gem_mine.png";
 
     private static readonly Color Navy = new Color32(8, 39, 69, 255);
     private static readonly Color Border = new Color32(8, 30, 42, 255);
@@ -352,6 +356,13 @@ public static class ChapterMenuSceneBuilder
             costText.rectTransform.sizeDelta = new Vector2(120f, 40f);
         }
 
+        // 4B. Side Mode Action Buttons (Tower Def & Gem Mine)
+        GameObject towerBtnObj = CreateTowerDefButton(chapterPanelTr);
+        Button towerBtn = towerBtnObj != null ? towerBtnObj.GetComponent<Button>() : null;
+
+        GameObject gemMineBtnObj = CreateGemMineButton(chapterPanelTr);
+        Button gemMineBtn = gemMineBtnObj != null ? gemMineBtnObj.GetComponent<Button>() : null;
+
         // 5. Attach ChapterScreenController to ChapterPanel
         ChapterScreenController chapterCtrl = chapterPanelObj.GetComponent<ChapterScreenController>();
         if (chapterCtrl == null)
@@ -379,6 +390,8 @@ public static class ChapterMenuSceneBuilder
         ctrlSO.FindProperty("costBox").objectReferenceValue = costBoxObj;
         ctrlSO.FindProperty("energyCostText").objectReferenceValue = costText;
         ctrlSO.FindProperty("energyCostIcon").objectReferenceValue = costIconImg;
+        ctrlSO.FindProperty("towerDefButton").objectReferenceValue = towerBtn;
+        ctrlSO.FindProperty("gemMineButton").objectReferenceValue = gemMineBtn;
         ctrlSO.ApplyModifiedProperties();
 
         return chapterPanelObj;
@@ -386,57 +399,37 @@ public static class ChapterMenuSceneBuilder
 
     private static GameObject CreateQuestWidget(Transform parent)
     {
-        GameObject questObj = CreateFrame("QuestWidget", parent, Panel, TealBorder, out _);
+        Sprite questSprite = AssetDatabase.LoadAssetAtPath<Sprite>(QuestBannerSpritePath);
+        GameObject questObj = CreateRect("QuestWidget", parent).gameObject;
         RectTransform rect = questObj.GetComponent<RectTransform>();
-        rect.anchorMin = new Vector2(0f, 1f);
-        rect.anchorMax = new Vector2(0f, 1f);
-        rect.pivot = new Vector2(0f, 1f);
+        rect.anchorMin = new Vector2(0f, 0.5f);
+        rect.anchorMax = new Vector2(0f, 0.5f);
+        rect.pivot = new Vector2(0f, 0.5f);
         rect.anchoredPosition = new Vector2(10f, 0f);
-        rect.sizeDelta = new Vector2(480f, 150f);
+        rect.sizeDelta = new Vector2(310f, 160f);
 
-        // Icon (Shield or Armor)
-        Image iconImg = CreateIcon("QuestIcon", questObj.transform, "shield", 54f);
-        iconImg.rectTransform.anchoredPosition = new Vector2(-180f, 15f);
+        Image questImg = questObj.AddComponent<Image>();
+        if (questSprite != null)
+        {
+            questImg.sprite = questSprite;
+        }
+        questImg.color = Color.white;
+        questImg.raycastTarget = true;
+        questImg.preserveAspect = true;
 
-        // Title Quest
-        TMP_Text qTitle = CreateText("QuestTitle", questObj.transform, "Quest", 26f, Yellow, TextAlignmentOptions.Left);
-        qTitle.rectTransform.anchoredPosition = new Vector2(-50f, 32f);
-        qTitle.rectTransform.sizeDelta = new Vector2(220f, 36f);
+        Button questBtn = questObj.AddComponent<Button>();
+        questBtn.targetGraphic = questImg;
 
-        // Description
-        TMP_Text qDesc = CreateText("QuestDesc", questObj.transform, "Upgrade stats\nat the lab", 20f, Cream, TextAlignmentOptions.Left);
-        qDesc.rectTransform.anchoredPosition = new Vector2(-50f, -18f);
-        qDesc.rectTransform.sizeDelta = new Vector2(220f, 56f);
+        Shadow shadow = questObj.AddComponent<Shadow>();
+        shadow.effectColor = new Color32(0, 14, 24, 180);
+        shadow.effectDistance = new Vector2(3f, -4f);
+        shadow.useGraphicAlpha = true;
 
-        // Reward Box (Right)
-        GameObject rewardBoxObj = CreateFrame("RewardBox", questObj.transform, new Color32(11, 55, 72, 200), Border, out _);
-        RectTransform rBoxRect = rewardBoxObj.GetComponent<RectTransform>();
-        rBoxRect.anchoredPosition = new Vector2(145f, 0f);
-        rBoxRect.sizeDelta = new Vector2(140f, 120f);
-
-        // Red Gem Icon
-        Image rIconImg = CreateIcon("RewardIcon", rewardBoxObj.transform, "red-currency", 38f);
-        rIconImg.rectTransform.anchoredPosition = new Vector2(-30f, 25f);
-
-        // Amount (X200)
-        TMP_Text rAmount = CreateText("RewardAmount", rewardBoxObj.transform, "X200", 24f, Cream, TextAlignmentOptions.Left);
-        rAmount.rectTransform.anchoredPosition = new Vector2(25f, 25f);
-        rAmount.rectTransform.sizeDelta = new Vector2(80f, 40f);
-
-        // Button Get
-        GameObject getBtnObj = CreateButton("GetButton", rewardBoxObj.transform, new Vector2(0f, -28f), new Vector2(110f, 42f), "Get", 22f, Green, TealBorder);
-        Button getBtn = getBtnObj.GetComponent<Button>();
-
-        // QuestWidgetController
         QuestWidgetController questCtrl = questObj.AddComponent<QuestWidgetController>();
         QuestData qData = AssetDatabase.LoadAssetAtPath<QuestData>(QuestDataPath);
         SerializedObject qSO = new SerializedObject(questCtrl);
         qSO.FindProperty("currentQuest").objectReferenceValue = qData;
-        qSO.FindProperty("questTitleText").objectReferenceValue = qTitle;
-        qSO.FindProperty("questDescriptionText").objectReferenceValue = qDesc;
-        qSO.FindProperty("rewardIconImage").objectReferenceValue = rIconImg;
-        qSO.FindProperty("rewardAmountText").objectReferenceValue = rAmount;
-        qSO.FindProperty("getButton").objectReferenceValue = getBtn;
+        qSO.FindProperty("getButton").objectReferenceValue = questBtn;
         qSO.ApplyModifiedProperties();
 
         return questObj;
@@ -444,42 +437,100 @@ public static class ChapterMenuSceneBuilder
 
     private static GameObject CreateGrowthFundWidget(Transform parent)
     {
-        GameObject fundObj = CreateFrame("GrowthFundWidget", parent, Panel, TealBorder, out Image fundBg);
+        Sprite fundSprite = AssetDatabase.LoadAssetAtPath<Sprite>(GrowthFundSpritePath);
+        GameObject fundObj = CreateRect("GrowthFundWidget", parent).gameObject;
         RectTransform rect = fundObj.GetComponent<RectTransform>();
-        rect.anchorMin = new Vector2(1f, 1f);
-        rect.anchorMax = new Vector2(1f, 1f);
-        rect.pivot = new Vector2(1f, 1f);
+        rect.anchorMin = new Vector2(1f, 0.5f);
+        rect.anchorMax = new Vector2(1f, 0.5f);
+        rect.pivot = new Vector2(1f, 0.5f);
         rect.anchoredPosition = new Vector2(-10f, 0f);
-        rect.sizeDelta = new Vector2(170f, 150f);
+        rect.sizeDelta = new Vector2(135f, 120f);
+
+        Image fundImg = fundObj.AddComponent<Image>();
+        if (fundSprite != null)
+        {
+            fundImg.sprite = fundSprite;
+        }
+        fundImg.color = Color.white;
+        fundImg.raycastTarget = true;
+        fundImg.preserveAspect = true;
 
         Button fundBtn = fundObj.AddComponent<Button>();
-        fundBtn.targetGraphic = fundBg;
+        fundBtn.targetGraphic = fundImg;
 
-        // Icon Chart / Chip
-        Image chartImg = CreateIcon("ChartIcon", fundObj.transform, "chip-currency", 54f);
-        chartImg.rectTransform.anchoredPosition = new Vector2(0f, 25f);
-
-        // Label Growth Fund
-        TMP_Text fundLabel = CreateText("FundLabel", fundObj.transform, "Growth Fund", 18f, Cream, TextAlignmentOptions.Center);
-        fundLabel.rectTransform.anchoredPosition = new Vector2(0f, -22f);
-        fundLabel.rectTransform.sizeDelta = new Vector2(170f, 30f);
-
-        // Percentage Badge (1500%)
-        GameObject badgeObj = CreateFrame("PercentageBadge", fundObj.transform, Yellow, Border, out _);
-        RectTransform bRect = badgeObj.GetComponent<RectTransform>();
-        bRect.anchoredPosition = new Vector2(0f, -48f);
-        bRect.sizeDelta = new Vector2(120f, 30f);
-
-        TMP_Text percentText = CreateText("PercentageText", badgeObj.transform, "1500%", 20f, Navy, TextAlignmentOptions.Center);
-        Stretch(percentText.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        Shadow shadow = fundObj.AddComponent<Shadow>();
+        shadow.effectColor = new Color32(0, 14, 24, 180);
+        shadow.effectDistance = new Vector2(3f, -4f);
+        shadow.useGraphicAlpha = true;
 
         GrowthFundWidgetController fundCtrl = fundObj.AddComponent<GrowthFundWidgetController>();
         SerializedObject fundSO = new SerializedObject(fundCtrl);
         fundSO.FindProperty("fundButton").objectReferenceValue = fundBtn;
-        fundSO.FindProperty("percentageText").objectReferenceValue = percentText;
         fundSO.ApplyModifiedProperties();
 
         return fundObj;
+    }
+
+    private static GameObject CreateTowerDefButton(Transform parent)
+    {
+        Sprite towerSprite = AssetDatabase.LoadAssetAtPath<Sprite>(TowerDefSpritePath);
+        GameObject towerObj = CreateRect("TowerDefButton", parent).gameObject;
+        RectTransform rect = towerObj.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(0.5f, 0f);
+        rect.anchorMax = new Vector2(0.5f, 0f);
+        rect.pivot = new Vector2(0.5f, 0f);
+        rect.anchoredPosition = new Vector2(-365f, 291f);
+        rect.sizeDelta = new Vector2(180f, 160f);
+
+        Image towerImg = towerObj.AddComponent<Image>();
+        if (towerSprite != null)
+        {
+            towerImg.sprite = towerSprite;
+        }
+        towerImg.color = Color.white;
+        towerImg.raycastTarget = true;
+        towerImg.preserveAspect = true;
+
+        Button towerBtn = towerObj.AddComponent<Button>();
+        towerBtn.targetGraphic = towerImg;
+
+        Shadow shadow = towerObj.AddComponent<Shadow>();
+        shadow.effectColor = new Color32(0, 14, 24, 180);
+        shadow.effectDistance = new Vector2(4f, -5f);
+        shadow.useGraphicAlpha = true;
+
+        return towerObj;
+    }
+
+    private static GameObject CreateGemMineButton(Transform parent)
+    {
+        Sprite mineSprite = AssetDatabase.LoadAssetAtPath<Sprite>(GemMineSpritePath);
+        GameObject mineObj = CreateRect("GemMineButton", parent).gameObject;
+        RectTransform rect = mineObj.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(0.5f, 0f);
+        rect.anchorMax = new Vector2(0.5f, 0f);
+        rect.pivot = new Vector2(0.5f, 0f);
+        rect.anchoredPosition = new Vector2(365f, 291f);
+        rect.sizeDelta = new Vector2(178f, 160f);
+
+        Image mineImg = mineObj.AddComponent<Image>();
+        if (mineSprite != null)
+        {
+            mineImg.sprite = mineSprite;
+        }
+        mineImg.color = Color.white;
+        mineImg.raycastTarget = true;
+        mineImg.preserveAspect = true;
+
+        Button mineBtn = mineObj.AddComponent<Button>();
+        mineBtn.targetGraphic = mineImg;
+
+        Shadow shadow = mineObj.AddComponent<Shadow>();
+        shadow.effectColor = new Color32(0, 14, 24, 180);
+        shadow.effectDistance = new Vector2(4f, -5f);
+        shadow.useGraphicAlpha = true;
+
+        return mineObj;
     }
 
     private static GameObject CreateButton(
