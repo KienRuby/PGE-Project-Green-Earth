@@ -416,13 +416,16 @@ MonoBehaviour:
   initialFacingLeft: 0
   flipDeadzone: 0.1
   enableDashAttack: 1
-  dashCooldown: 7
-  dashWindupDuration: 0.8
-  dashDuration: 0.6
-  dashSpeedMultiplier: 3
-  dashRecoverDuration: 0.4
+  dashCooldown: 6
+  dashWindupDuration: 0.35
+  dashDuration: 0.5
+  dashSpeedMultiplier: 4
+  dashRecoverDuration: 0.35
+  baseDashComboCount: 1
+  enrageDashComboCount: 3
+  enrageDashCooldown: 3
   enableEnrage: 1
-  enrageHealthPercent: 0.4
+  enrageHealthPercent: 0.3
   enrageSpeedMultiplier: 1.35
   enrageCooldownMultiplier: 0.6
   windupColor: {r: 1, g: 0.3, b: 0.3, a: 1}
@@ -445,7 +448,13 @@ MonoBehaviour:
   projectilePrefab: {fileID: 4869308302692197069, guid: 83e399f033884d0cad6218623886ac7c, type: 3}
   projectileDamage: 28
   projectileSpeed: 7
-  skills: []
+  skills:
+  - skillName: Ban thuong
+    pattern: 0
+    projectileCount: 1
+    spreadAngle: 0
+    shotInterval: 0
+    cooldown: 2
   initialDelay: 1.5
 --- !u!114 &6373996838641996303
 MonoBehaviour:
@@ -475,7 +484,7 @@ MonoBehaviour:
   contactDamageComponent: {fileID: 2134582003905055407}
   spriteRenderers:
   - {fileID: 2787730529733650006}
-  bossMovementComponent: {fileID: 0}
-  bossRangedAttackComponent: {fileID: 0}
+  bossMovementComponent: {fileID: 7972883055490307884}
+  bossRangedAttackComponent: {fileID: 840769140353588053}
   bossTitle: BIO-CORROSIVE BEHEMOTH
-  enrageThreshold: 0.4
+  enrageThreshold: 0.3

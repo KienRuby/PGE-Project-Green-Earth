@@ -52,6 +52,18 @@ public class BossMovement : MonoBehaviour, IPoolable
     [Tooltip("Thời gian Boss hồi sức sau khi húc xong (giây).")]
     [SerializeField] private float dashRecoverDuration = 0.4f;
 
+    [Tooltip("Số lần húc liên tục trong 1 chuỗi khi bình thường.")]
+    [Min(1)]
+    [SerializeField] private int baseDashComboCount = 1;
+
+    [Tooltip("Số lần húc liên tục trong 1 chuỗi khi Cuồng nộ (Enrage).")]
+    [Min(1)]
+    [SerializeField] private int enrageDashComboCount = 1;
+
+    [Tooltip("Thời gian hồi chiêu Dash cố định khi Cuồng nộ (nếu > 0, ưu tiên hơn enrageCooldownMultiplier).")]
+    [Min(0f)]
+    [SerializeField] private float enrageDashCooldown = 0f;
+
     [Header("Enrage Phase (Cuồng nộ khi thấp máu)")]
     [Tooltip("Bật trạng thái cuồng nộ khi máu Boss xuống thấp.")]
     [SerializeField] private bool enableEnrage = true;
@@ -84,6 +96,7 @@ public class BossMovement : MonoBehaviour, IPoolable
     private BossState currentState = BossState.Chase;
     private float dashTimer;
     private float stateTimer;
+    private int remainingDashesInCombo = 0;
     private Vector2 dashDirection;
     private float nextPlayerSearchTime;
     private Vector3 basePrefabScale = Vector3.one;
@@ -121,6 +134,13 @@ public class BossMovement : MonoBehaviour, IPoolable
 
     public BossState CurrentState => currentState;
     public bool IsEnraged => isEnraged;
+    public bool EnableDashAttack => enableDashAttack;
+    public float DashSpeedMultiplier => dashSpeedMultiplier;
+    public float DashCooldown => dashCooldown;
+    public int BaseDashComboCount => baseDashComboCount;
+    public int EnrageDashComboCount => enrageDashComboCount;
+    public float EnrageDashCooldown => enrageDashCooldown;
+    public float EnrageHealthPercent => enrageHealthPercent;
 
     private void Awake()
     {
@@ -283,7 +303,15 @@ public class BossMovement : MonoBehaviour, IPoolable
                 stateTimer -= Time.fixedDeltaTime;
                 if (stateTimer <= 0f)
                 {
-                    EndDash();
+                    remainingDashesInCombo--;
+                    if (remainingDashesInCombo > 0 && player != null && player.gameObject.activeInHierarchy)
+                    {
+                        StartWindup(true);
+                    }
+                    else
+                    {
+                        EndDash();
+                    }
                 }
                 break;
         }
@@ -374,7 +402,7 @@ public class BossMovement : MonoBehaviour, IPoolable
     private bool CanStartDashFromCurrentRange()
     {
         if (rangedAttack == null) return true;
-        return rangedAttack.GetTargetRangeState() == BossRangedAttack.TargetRangeState.TooFar;
+        return !rangedAttack.IsAttacking;
     }
 
     private void PlayAnimation(int stateHash)
@@ -420,10 +448,16 @@ public class BossMovement : MonoBehaviour, IPoolable
         }
     }
 
-    private void StartWindup()
+    private void StartWindup(bool isComboFollowup = false)
     {
         currentState = BossState.Windup;
         stateTimer = dashWindupDuration;
+        if (!isComboFollowup)
+        {
+            remainingDashesInCombo = (isEnraged && enrageDashComboCount > 1)
+                ? enrageDashComboCount
+                : Mathf.Max(1, baseDashComboCount);
+        }
         if (player != null)
         {
             dashDirection = ((Vector2)player.position - rb.position).normalized;
@@ -447,8 +481,11 @@ public class BossMovement : MonoBehaviour, IPoolable
     private void EndDash()
     {
         currentState = BossState.Chase;
-        float currentCooldown = isEnraged ? (dashCooldown * enrageCooldownMultiplier) : dashCooldown;
+        float currentCooldown = isEnraged
+            ? (enrageDashCooldown > 0f ? enrageDashCooldown : dashCooldown * enrageCooldownMultiplier)
+            : dashCooldown;
         dashTimer = currentCooldown;
+        remainingDashesInCombo = 0;
         RestoreSpritesColor();
     }
 
@@ -460,6 +497,15 @@ public class BossMovement : MonoBehaviour, IPoolable
         {
             isEnraged = true;
             SetSpritesColor(enrageColor);
+
+            if (enableDashAttack && player != null && player.gameObject.activeInHierarchy)
+            {
+                dashTimer = 0f;
+                if (currentState == BossState.Chase)
+                {
+                    StartWindup(false);
+                }
+            }
         }
     }
 
@@ -492,6 +538,7 @@ public class BossMovement : MonoBehaviour, IPoolable
         moveSpeed = BaseMoveSpeed;
         currentState = BossState.Chase;
         isEnraged = false;
+        remainingDashesInCombo = 0;
         if (initialScale != Vector3.zero)
         {
             transform.localScale = initialScale;
@@ -508,6 +555,7 @@ public class BossMovement : MonoBehaviour, IPoolable
         moveSpeed = BaseMoveSpeed;
         currentState = BossState.Chase;
         isEnraged = false;
+        remainingDashesInCombo = 0;
         if (basePrefabScale != Vector3.zero)
         {
             initialScale = basePrefabScale;

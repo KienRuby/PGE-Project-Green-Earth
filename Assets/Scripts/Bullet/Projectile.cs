@@ -86,6 +86,19 @@ public class Projectile : MonoBehaviour, IPoolable
         }
     }
 
+    private static int obstacleLayerIndex = -1;
+    private static int ObstacleLayerIndex
+    {
+        get
+        {
+            if (obstacleLayerIndex == -1)
+            {
+                obstacleLayerIndex = LayerMask.NameToLayer("Obstacle");
+            }
+            return obstacleLayerIndex;
+        }
+    }
+
     public bool IsHoming
     {
         get => isHoming;
@@ -282,7 +295,14 @@ public class Projectile : MonoBehaviour, IPoolable
         }
 
         // 1. Chướng ngại vật (Obstacle)
-        if (hitCollider.gameObject.layer == LayerMask.NameToLayer("Obstacle") || hitCollider.CompareTag("Obstacle"))
+        bool isObstacle = (ObstacleLayerIndex != -1 && hitCollider.gameObject.layer == ObstacleLayerIndex);
+        if (!isObstacle)
+        {
+            try { isObstacle = hitCollider.CompareTag("Obstacle"); }
+            catch { }
+        }
+
+        if (isObstacle)
         {
             if (!hitCollider.isTrigger)
             {

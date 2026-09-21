@@ -392,6 +392,9 @@ MonoBehaviour:
   dashDuration: 0.5
   dashSpeedMultiplier: 3.5
   dashRecoverDuration: 0.5
+  baseDashComboCount: 1
+  enrageDashComboCount: 1
+  enrageDashCooldown: 0
   enableEnrage: 0
   enrageHealthPercent: 0.2
   enrageSpeedMultiplier: 1.35
@@ -417,24 +420,36 @@ MonoBehaviour:
   projectileDamage: 16
   projectileSpeed: 2
   skills:
-  - skillName: Lien xa nham Player
+  - skillName: Ban thuong
     pattern: 0
-    projectileCount: 3
+    projectileCount: 1
     spreadAngle: 0
-    shotInterval: 0.18
+    shotInterval: 0
+    cooldown: 1.8
+  - skillName: Ban lien tuc 5 vien
+    pattern: 0
+    projectileCount: 5
+    spreadAngle: 0
+    shotInterval: 0.15
     cooldown: 3
-  - skillName: Dan hinh quat
+  - skillName: Ban toa 5 vien 50 do
     pattern: 1
     projectileCount: 5
-    spreadAngle: 55
+    spreadAngle: 50
     shotInterval: 0
-    cooldown: 3
-  - skillName: Dan vong tron
+    cooldown: 2.8
+  - skillName: Ban toa 20 vien 360 do
     pattern: 2
-    projectileCount: 12
-    spreadAngle: 242
+    projectileCount: 20
+    spreadAngle: 360
     shotInterval: 0
-    cooldown: 2
+    cooldown: 3.5
+  - skillName: Ban xoay tron 10 vien
+    pattern: 3
+    projectileCount: 10
+    spreadAngle: 360
+    shotInterval: 0.08
+    cooldown: 3.5
   initialDelay: 3
 --- !u!114 &1010797112834101225
 MonoBehaviour:

@@ -456,12 +456,17 @@ public class PGEGameLogicTests
         Assert.That(radial, Has.Length.EqualTo(4));
         Assert.That(Vector2.Angle(radial[0], radial[1]), Is.EqualTo(90f).Within(0.01f));
         Assert.That(Vector2.Angle(radial[1], radial[2]), Is.EqualTo(90f).Within(0.01f));
+
+        Vector2[] spiral = BossRangedAttack.CalculateSpiralDirections(Vector2.right, 10);
+        Assert.That(spiral, Has.Length.EqualTo(10));
+        Assert.That(Vector2.Angle(spiral[0], spiral[1]), Is.EqualTo(36f).Within(0.01f));
     }
 
     [Test]
     public void BossPrefab_HasConfiguredRangedSkillsAndEnemyProjectile()
     {
-        GameObject bossPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Boss.prefab");
+        GameObject bossPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Enemy/Boss/Boss.prefab");
+        if (bossPrefab == null) bossPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Boss.prefab");
         GameObject projectilePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/BossProjectile.prefab");
 
         Assert.That(bossPrefab, Is.Not.Null);
@@ -471,13 +476,121 @@ public class PGEGameLogicTests
         EnemyProjectile enemyProjectile = projectilePrefab.GetComponent<EnemyProjectile>();
         Assert.That(rangedAttack, Is.Not.Null, "Boss.prefab phải có BossRangedAttack.");
         Assert.That(rangedAttack.ProjectilePrefab, Is.EqualTo(enemyProjectile));
-        Assert.That(rangedAttack.SkillCount, Is.EqualTo(3));
+        Assert.That(rangedAttack.SkillCount, Is.EqualTo(5), "Boss 1 phải có đủ 5 kỹ năng bắn đạn.");
         Assert.That(rangedAttack.AttackRange, Is.GreaterThan(0f));
         Assert.That(enemyProjectile, Is.Not.Null, "BossProjectile.prefab phải có EnemyProjectile.");
 
         AnimationClip bossDie = AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/Animaton/Enemy/Boss/Die.anim");
         Assert.That(bossDie, Is.Not.Null);
         Assert.That(bossDie.isLooping, Is.False, "Animation Die của Boss phải chạy một lần rồi giữ frame cuối.");
+    }
+
+    [Test]
+    public void BossPrefab_HasFiveConfiguredSkills_WithExpectedParameters()
+    {
+        GameObject bossPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Enemy/Boss/Boss.prefab");
+        Assert.That(bossPrefab, Is.Not.Null);
+
+        BossRangedAttack rangedAttack = bossPrefab.GetComponent<BossRangedAttack>();
+        Assert.That(rangedAttack, Is.Not.Null);
+        Assert.That(rangedAttack.SkillCount, Is.EqualTo(5));
+
+        var skills = rangedAttack.Skills;
+        // 1. Ban thuong: 1 vien thang
+        Assert.That(skills[0].skillName, Is.EqualTo("Ban thuong"));
+        Assert.That(skills[0].pattern, Is.EqualTo(BossRangedAttack.ShotPattern.AimedBurst));
+        Assert.That(skills[0].projectileCount, Is.EqualTo(1));
+
+        // 2. Ban lien tuc 5 vien
+        Assert.That(skills[1].skillName, Is.EqualTo("Ban lien tuc 5 vien"));
+        Assert.That(skills[1].pattern, Is.EqualTo(BossRangedAttack.ShotPattern.AimedBurst));
+        Assert.That(skills[1].projectileCount, Is.EqualTo(5));
+        Assert.That(skills[1].shotInterval, Is.GreaterThan(0f));
+
+        // 3. Ban toa 5 vien 50 do
+        Assert.That(skills[2].skillName, Is.EqualTo("Ban toa 5 vien 50 do"));
+        Assert.That(skills[2].pattern, Is.EqualTo(BossRangedAttack.ShotPattern.Fan));
+        Assert.That(skills[2].projectileCount, Is.EqualTo(5));
+        Assert.That(skills[2].spreadAngle, Is.EqualTo(50f));
+
+        // 4. Ban toa 20 vien 360 do
+        Assert.That(skills[3].skillName, Is.EqualTo("Ban toa 20 vien 360 do"));
+        Assert.That(skills[3].pattern, Is.EqualTo(BossRangedAttack.ShotPattern.Radial));
+        Assert.That(skills[3].projectileCount, Is.EqualTo(20));
+
+        // 5. Ban xoay tron 10 vien
+        Assert.That(skills[4].skillName, Is.EqualTo("Ban xoay tron 10 vien"));
+        Assert.That(skills[4].pattern, Is.EqualTo(BossRangedAttack.ShotPattern.Spiral));
+        Assert.That(skills[4].projectileCount, Is.EqualTo(10));
+        Assert.That(skills[4].shotInterval, Is.GreaterThan(0f));
+    }
+
+    [Test]
+    public void Boss2Prefab_HasConfiguredFiveSkillsAndFastDash()
+    {
+        GameObject boss2Prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Enemy/Boss/Boss2.prefab");
+        Assert.That(boss2Prefab, Is.Not.Null, "Boss2.prefab phải tồn tại.");
+
+        BossRangedAttack rangedAttack = boss2Prefab.GetComponent<BossRangedAttack>();
+        Assert.That(rangedAttack, Is.Not.Null, "Boss2 phải có BossRangedAttack.");
+        Assert.That(rangedAttack.SkillCount, Is.EqualTo(5), "Boss 2 phải có đủ 5 kỹ năng bắn đạn.");
+
+        var skills = rangedAttack.Skills;
+        Assert.That(skills[0].skillName, Is.EqualTo("Ban thuong"));
+        Assert.That(skills[0].pattern, Is.EqualTo(BossRangedAttack.ShotPattern.AimedBurst));
+        Assert.That(skills[0].projectileCount, Is.EqualTo(1));
+
+        Assert.That(skills[1].skillName, Is.EqualTo("Ban lien tuc 5 vien"));
+        Assert.That(skills[1].pattern, Is.EqualTo(BossRangedAttack.ShotPattern.AimedBurst));
+        Assert.That(skills[1].projectileCount, Is.EqualTo(5));
+
+        Assert.That(skills[2].skillName, Is.EqualTo("Ban toa 5 vien 50 do"));
+        Assert.That(skills[2].pattern, Is.EqualTo(BossRangedAttack.ShotPattern.Fan));
+        Assert.That(skills[2].projectileCount, Is.EqualTo(5));
+        Assert.That(skills[2].spreadAngle, Is.EqualTo(50f));
+
+        Assert.That(skills[3].skillName, Is.EqualTo("Ban toa 20 vien 360 do"));
+        Assert.That(skills[3].pattern, Is.EqualTo(BossRangedAttack.ShotPattern.Radial));
+        Assert.That(skills[3].projectileCount, Is.EqualTo(20));
+
+        Assert.That(skills[4].skillName, Is.EqualTo("Ban xoay tron 10 vien"));
+        Assert.That(skills[4].pattern, Is.EqualTo(BossRangedAttack.ShotPattern.Spiral));
+        Assert.That(skills[4].projectileCount, Is.EqualTo(10));
+
+        BossMovement bossMovement = boss2Prefab.GetComponent<BossMovement>();
+        Assert.That(bossMovement, Is.Not.Null, "Boss2 phải có BossMovement.");
+        Assert.That(bossMovement.EnableDashAttack, Is.True, "Boss 2 phải bật kỹ năng Húc (Dash).");
+        Assert.That(bossMovement.DashSpeedMultiplier, Is.GreaterThanOrEqualTo(4.0f), "Boss 2 phải có tốc độ húc nhanh (>= 4x).");
+        Assert.That(bossMovement.DashCooldown, Is.LessThanOrEqualTo(5.0f), "Boss 2 phải có hồi chiêu húc <= 5s.");
+    }
+
+    [Test]
+    public void Boss3Prefab_HasFastDash_SingleShot_AndEnrageTripleDash30Percent()
+    {
+        GameObject boss3Prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Enemy/Boss/boss 3.prefab");
+        Assert.That(boss3Prefab, Is.Not.Null, "boss 3.prefab phải tồn tại.");
+
+        // 1. Kỹ năng 2: Bắn thường (1 viên ngắm thẳng)
+        BossRangedAttack rangedAttack = boss3Prefab.GetComponent<BossRangedAttack>();
+        Assert.That(rangedAttack, Is.Not.Null, "Boss 3 phải có BossRangedAttack.");
+        Assert.That(rangedAttack.SkillCount, Is.EqualTo(1), "Boss 3 chỉ có 1 kỹ năng bắn thường.");
+        Assert.That(rangedAttack.Skills[0].skillName, Is.EqualTo("Ban thuong"));
+        Assert.That(rangedAttack.Skills[0].pattern, Is.EqualTo(BossRangedAttack.ShotPattern.AimedBurst));
+        Assert.That(rangedAttack.Skills[0].projectileCount, Is.EqualTo(1));
+
+        // 2. Kỹ năng 1: Húc nhanh về phía player
+        BossMovement bossMovement = boss3Prefab.GetComponent<BossMovement>();
+        Assert.That(bossMovement, Is.Not.Null, "Boss 3 phải có BossMovement.");
+        Assert.That(bossMovement.EnableDashAttack, Is.True, "Boss 3 phải bật kỹ năng Húc (Dash).");
+        Assert.That(bossMovement.DashSpeedMultiplier, Is.GreaterThanOrEqualTo(4.0f), "Boss 3 phải có tốc độ húc nhanh (>= 4x).");
+
+        // 3. Kỹ năng 3: Nổi giận (Enrage tại 30% HP, húc liên tục 3 lần, hồi chiêu 3s)
+        Assert.That(bossMovement.EnrageHealthPercent, Is.EqualTo(0.3f).Within(0.001f), "Ngưỡng cuồng nộ của Boss 3 phải là 30% HP.");
+        Assert.That(bossMovement.EnrageDashComboCount, Is.EqualTo(3), "Khi cuồng nộ Boss 3 phải húc liên tục 3 lần.");
+        Assert.That(bossMovement.EnrageDashCooldown, Is.EqualTo(3.0f).Within(0.001f), "Hồi chiêu húc khi cuồng nộ là 3 giây.");
+
+        BossEnemy bossEnemy = boss3Prefab.GetComponent<BossEnemy>();
+        Assert.That(bossEnemy, Is.Not.Null, "Boss 3 phải có BossEnemy.");
     }
 
     [Test]

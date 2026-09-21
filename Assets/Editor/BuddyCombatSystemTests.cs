@@ -146,29 +146,44 @@ public class BuddyCombatSystemTests
     }
 
     [Test]
-    public void AllBuddyDrones_AttackRange_IsThreeMetersSmallerThanPlayerAttackRange()
+    public void AllBuddyDrones_AttackRange_IsSlightlySmallerThanScreenViewport()
     {
         GameObject player = new GameObject("Player_BuddyRangeTest");
         GameObject droneObj = new GameObject("Drone_Test");
+        GameObject camObj = new GameObject("MainCamera_Test");
         try
         {
-            PlayerAutoShooter shooter = player.AddComponent<PlayerAutoShooter>();
+            Camera cam = camObj.AddComponent<Camera>();
+            cam.tag = "MainCamera";
+            cam.orthographic = true;
+            cam.orthographicSize = 5.0f;
+
             BuddyCombatDrone drone = droneObj.AddComponent<AssaultBlasterBuddy>();
-
-            // Trước khi Initialize với player: dùng fallback targetDetectionRadius = 9m
-            Assert.AreEqual(9.0f, drone.EffectiveAttackRange, 0.001f);
-
-            // Sau khi Initialize với player: đọc từ PlayerAutoShooter (12m - 3m = 9m)
             drone.Initialize(player.transform, 0, 1, 1, BuddyTier.Common);
-            Assert.AreEqual(9.0f, drone.EffectiveAttackRange, 0.001f);
 
-            // Khi Player được tăng tầm bắn (+3m -> 15m), tầm bắn của Buddy tăng tương ứng lên 12m
-            shooter.BonusAttackRange = 3.0f;
-            Assert.AreEqual(15.0f, shooter.SharedAttackRange, 0.001f);
-            Assert.AreEqual(12.0f, drone.EffectiveAttackRange, 0.001f);
+            // Tầm quét hình hộp phải nhỏ hơn kích thước màn hình theo tỷ lệ screenViewportScale = 0.90
+            Vector2 boxSize = drone.GetScreenDetectionBoxSize();
+            float screenHeight = cam.orthographicSize * 2f;
+            float screenWidth = screenHeight * (cam.aspect > 0.01f ? cam.aspect : (9f / 16f));
+
+            Assert.Less(boxSize.x, screenWidth);
+            Assert.Less(boxSize.y, screenHeight);
+            Assert.AreEqual(screenHeight * 0.90f, boxSize.y, 0.01f);
+
+            // EffectiveAttackRange tương ứng bán kính đường chéo tới góc khung quét
+            float halfW = boxSize.x * 0.5f;
+            float halfH = boxSize.y * 0.5f;
+            float expectedRadius = Mathf.Sqrt(halfW * halfW + halfH * halfH);
+            Assert.AreEqual(expectedRadius, drone.EffectiveAttackRange, 0.001f);
+
+            // Kiểm tra quái vật nằm ngoài khung màn hình (ví dụ x=3.5m ở tỷ lệ 9:16) sẽ KHÔNG bị nhắm
+            Assert.IsFalse(drone.IsInsideScreenTargetingBounds(new Vector2(3.5f, 0f)), "Quái ngoài mép ngang màn hình không được lọt vào tầm nhắm.");
+            Assert.IsFalse(drone.IsInsideScreenTargetingBounds(new Vector2(0f, 6.0f)), "Quái ngoài mép dọc màn hình không được lọt vào tầm nhắm.");
+            Assert.IsTrue(drone.IsInsideScreenTargetingBounds(new Vector2(1.0f, 2.0f)), "Quái nằm trọn trong màn hình phải được lọt vào tầm nhắm.");
         }
         finally
         {
+            Object.DestroyImmediate(camObj);
             Object.DestroyImmediate(droneObj);
             Object.DestroyImmediate(player);
         }
