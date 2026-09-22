@@ -778,6 +778,11 @@ public static class ChapterMenuSceneBuilder
         modalSO.FindProperty("entranceCountText").objectReferenceValue = entranceTxt;
         modalSO.ApplyModifiedProperties();
 
+        // 7. Attach DailyGemMineLayoutTuner for live position & size adjustments
+        DailyGemMineLayoutTuner tuner = modalObj.GetComponent<DailyGemMineLayoutTuner>() ?? modalObj.AddComponent<DailyGemMineLayoutTuner>();
+        tuner.AutoFindReferences();
+        tuner.ApplyLayout();
+
         // Modal starts hidden
         modalObj.SetActive(false);
 

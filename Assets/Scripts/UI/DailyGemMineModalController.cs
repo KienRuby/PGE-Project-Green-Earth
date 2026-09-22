@@ -295,6 +295,13 @@ public class DailyGemMineModalController : MonoBehaviour
     {
         transform.SetAsLastSibling();
         SanitizeMaterialsAndEffects();
+
+        DailyGemMineLayoutTuner tuner = GetComponent<DailyGemMineLayoutTuner>();
+        if (tuner != null)
+        {
+            tuner.ApplyLayout();
+        }
+
         CheckDailyReset();
         UpdateCountdownTime();
 
@@ -430,6 +437,7 @@ public class DailyGemMineModalController : MonoBehaviour
     public void RefreshStatusTexts()
     {
         bool isFull = remainingEntrances >= maxEntrances;
+        DailyGemMineLayoutTuner tuner = GetComponent<DailyGemMineLayoutTuner>();
 
         if (resetTimerText != null)
         {
@@ -443,7 +451,13 @@ public class DailyGemMineModalController : MonoBehaviour
             {
                 // Khi đã chơi (-1 lượt trở đi): Hiển thị Reset in time
                 resetTimerText.gameObject.SetActive(true);
-                resetTimerText.rectTransform.anchoredPosition = new Vector2(0f, -225f);
+                Vector2 timerPos = tuner != null ? tuner.resetTimerPosition : new Vector2(0f, -225f);
+                resetTimerText.rectTransform.anchoredPosition = timerPos;
+                if (tuner != null)
+                {
+                    resetTimerText.rectTransform.sizeDelta = tuner.resetTimerSize;
+                    resetTimerText.fontSize = tuner.resetTimerFontSize;
+                }
                 string hStr = remainingHours.ToString("D2");
                 string mStr = remainingMinutes.ToString("D2");
                 resetTimerText.text = $"Reset in: <color=#FFEE33>{hStr}</color> Hour <color=#FFEE33>{mStr}</color> Min Left";
@@ -453,10 +467,19 @@ public class DailyGemMineModalController : MonoBehaviour
         if (entranceCountText != null)
         {
             entranceCountText.text = $"Entrance: <color=#FFEE33>{remainingEntrances}</color> Left";
-            // Khi đủ 5 lượt (không có timer), căn giữa entrance text hài hòa
-            entranceCountText.rectTransform.anchoredPosition = isFull
-                ? new Vector2(0f, -250f)
-                : new Vector2(0f, -275f);
+            if (tuner != null)
+            {
+                entranceCountText.rectTransform.anchoredPosition = isFull ? tuner.entrancePositionFull : tuner.entrancePositionActive;
+                entranceCountText.rectTransform.sizeDelta = tuner.entranceSize;
+                entranceCountText.fontSize = tuner.entranceFontSize;
+            }
+            else
+            {
+                // Khi đủ 5 lượt (không có timer), căn giữa entrance text hài hòa
+                entranceCountText.rectTransform.anchoredPosition = isFull
+                    ? new Vector2(0f, -250f)
+                    : new Vector2(0f, -275f);
+            }
         }
 
         // Khóa / mở nút Start tùy theo số lượt còn lại

@@ -215,5 +215,68 @@ public class DailyGemMineUITests
 
         Object.DestroyImmediate(modalObj);
     }
+
+    [Test]
+    public void DailyGemMineLayoutTuner_ApplyLayout_SynchronizesPositionsAndSizes()
+    {
+        GameObject modalObj = new GameObject("TestModalRoot", typeof(RectTransform));
+        DailyGemMineLayoutTuner tuner = modalObj.AddComponent<DailyGemMineLayoutTuner>();
+
+        GameObject contentObj = new GameObject("ContentRoot", typeof(RectTransform));
+        contentObj.transform.SetParent(modalObj.transform);
+
+        GameObject bannerObj = new GameObject("MonthlyPremiumBanner", typeof(RectTransform));
+        bannerObj.transform.SetParent(contentObj.transform);
+
+        GameObject panelObj = new GameObject("DailyGemMinePanel", typeof(RectTransform));
+        panelObj.transform.SetParent(contentObj.transform);
+
+        tuner.contentAnchoredPosition = new Vector2(10f, 20f);
+        tuner.contentSizeDelta = new Vector2(950f, 1500f);
+        tuner.bannerAnchoredPosition = new Vector2(0f, -5f);
+        tuner.bannerSizeDelta = new Vector2(950f, 280f);
+
+        tuner.ApplyLayout();
+
+        RectTransform contentRect = contentObj.GetComponent<RectTransform>();
+        RectTransform bannerRect = bannerObj.GetComponent<RectTransform>();
+
+        Assert.AreEqual(new Vector2(10f, 20f), contentRect.anchoredPosition);
+        Assert.AreEqual(new Vector2(950f, 1500f), contentRect.sizeDelta);
+        Assert.AreEqual(new Vector2(0f, -5f), bannerRect.anchoredPosition);
+        Assert.AreEqual(new Vector2(950f, 280f), bannerRect.sizeDelta);
+
+        Object.DestroyImmediate(modalObj);
+    }
+
+    [Test]
+    public void DailyGemMineLayoutTuner_PlayModeSync_StatusTextsReadFromTuner()
+    {
+        GameObject modalObj = new GameObject("TestModalRoot", typeof(RectTransform));
+        DailyGemMineModalController ctrl = modalObj.AddComponent<DailyGemMineModalController>();
+        DailyGemMineLayoutTuner tuner = modalObj.AddComponent<DailyGemMineLayoutTuner>();
+
+        GameObject timerObj = new GameObject("TimerText", typeof(RectTransform), typeof(TextMeshProUGUI));
+        GameObject entranceObj = new GameObject("EntranceText", typeof(RectTransform), typeof(TextMeshProUGUI));
+        TMP_Text timerTxt = timerObj.GetComponent<TextMeshProUGUI>();
+        TMP_Text entranceTxt = entranceObj.GetComponent<TextMeshProUGUI>();
+
+        tuner.resetTimerPosition = new Vector2(5f, -230f);
+        tuner.entrancePositionActive = new Vector2(5f, -280f);
+        tuner.resetTimerFontSize = 36f;
+        tuner.entranceFontSize = 36f;
+
+        ctrl.SetUIReferencesForTesting(modalObj, null, null, null, timerTxt, entranceTxt);
+        ctrl.SetEntrances(4, 5); // < 5 lượt -> Hiển thị cả 2 text
+
+        Assert.AreEqual(new Vector2(5f, -230f), timerTxt.rectTransform.anchoredPosition);
+        Assert.AreEqual(new Vector2(5f, -280f), entranceTxt.rectTransform.anchoredPosition);
+        Assert.AreEqual(36f, timerTxt.fontSize);
+        Assert.AreEqual(36f, entranceTxt.fontSize);
+
+        Object.DestroyImmediate(timerObj);
+        Object.DestroyImmediate(entranceObj);
+        Object.DestroyImmediate(modalObj);
+    }
 }
 #endif
