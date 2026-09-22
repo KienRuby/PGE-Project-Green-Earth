@@ -535,8 +535,8 @@ MonoBehaviour:
   randomRedGemAmount: 1
   currencyDropChance: 1
   canDropHealthBox: 1
-  smallHealthBoxDropChance: 0.03
-  largeHealthBoxDropChance: 0.01
+  smallHealthBoxDropChance: 0.015
+  largeHealthBoxDropChance: 0.005
   deathAnimationTrigger: DeathBigcreep
   deathAnimationState: DeathBigcreep
   fallbackDeathDuration: 0.5
@@ -560,8 +560,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 1.1
-  stoppingDistance: 0.7
-  separationRadius: 0.9
+  stoppingDistance: 0.66
+  separationRadius: 0.44
   separationWeight: 2.5
   enemyLayer:
     serializedVersion: 2

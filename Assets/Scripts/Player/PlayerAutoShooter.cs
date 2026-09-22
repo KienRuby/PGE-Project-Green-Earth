@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -1122,7 +1123,15 @@ public class PlayerAutoShooter : MonoBehaviour
         if (chipsetId == 1 && projectileCount > 1) spread = 6f;
         if (chipsetId == 2 && projectileCount > 1) spread = 3f;
         if (chipsetId == 5) spread = radial ? 360f : 50f;
-        if (chipsetId == 8) spread = level >= 3 ? 30f : 45f;
+        if (chipsetId == 8)
+        {
+            FireShotgunPelletBurst(spawnPosition, baseAngle, damage, speed, range, spread);
+            if (level >= 5 || PlayerDataService.GetChipTier(8) == ChipTier.Holographic)
+            {
+                StartCoroutine(ShotgunDoubleTapRoutine(damage, speed, range, spread, baseAngle));
+            }
+            return;
+        }
 
         SpawnMuzzleFlash(spawnPosition, baseAngle);
         ChipsetBattleStats.RecordAttack(chipsetId, projectileCount);
@@ -1158,9 +1167,59 @@ public class PlayerAutoShooter : MonoBehaviour
         }
     }
 
+    private void FireShotgunPelletBurst(Vector3 spawnPosition, float baseAngle, int damage, float speed, float range, float spread)
+    {
+        SpawnMuzzleFlash(spawnPosition, baseAngle);
+        ChipsetBattleStats.RecordAttack(8, 5);
+        PlayGunAudio(true);
+
+        float startAngle = baseAngle - (spread * 0.5f);
+        float angleStep = spread / 4f; // 5 viên đạn tỏa đều góc quạt
+        for (int i = 0; i < 5; i++)
+        {
+            float angle = startAngle + (i * angleStep);
+            float radians = angle * Mathf.Deg2Rad;
+            Vector2 direction = new Vector2(Mathf.Cos(radians), Mathf.Sin(radians));
+            SpawnConfiguredBullet(spawnPosition, direction, angle, damage, speed, range, 0f, false, 8);
+        }
+    }
+
+    private IEnumerator ShotgunDoubleTapRoutine(int damage, float speed, float range, float spread, float lastAngle)
+    {
+        yield return new WaitForSeconds(0.08f);
+        if (this == null || !gameObject.activeInHierarchy) yield break;
+
+        Vector3 spawnPosition = attackPoint != null ? attackPoint.position : transform.position;
+        float aimAngle = lastAngle;
+
+        // Nếu mục tiêu cũ đã bị tiêu diệt bởi loạt bắn thứ nhất, tự động khóa mục tiêu còn sống gần nhất
+        if (currentTarget == null || !currentTarget.gameObject.activeInHierarchy ||
+            (currentTarget.GetComponentInParent<EnemyHealth>()?.IsDead ?? true))
+        {
+            FindNearestEnemy();
+        }
+
+        if (currentTarget != null && currentTarget.gameObject.activeInHierarchy)
+        {
+            EnemyHealth eh = currentTarget.GetComponentInParent<EnemyHealth>();
+            if (eh != null && !eh.IsDead)
+            {
+                Vector2 aimPos = GetTargetAimPoint(currentTarget);
+                Vector2 aimDir = (aimPos - (Vector2)spawnPosition).normalized;
+                if (aimDir.sqrMagnitude > 0.001f)
+                {
+                    aimAngle = Mathf.Atan2(aimDir.y, aimDir.x) * Mathf.Rad2Deg;
+                }
+            }
+        }
+
+        FireShotgunPelletBurst(spawnPosition, aimAngle, damage, speed, range, spread);
+    }
+
     private void OnDisable()
     {
         IsAttacking = false;
+        StopAllCoroutines();
     }
 
     private void Shoot()
@@ -1331,18 +1390,24 @@ public class PlayerAutoShooter : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        Gizmos.color = Color.yellow;
         Vector2 center = GetDetectionCenter();
+        Vector2 boxSize = GetDetectionBoxSize();
 
+        // 1. Khung phạm vi quét mục tiêu (Màu vàng)
+        Gizmos.color = new Color(1f, 0.92f, 0.016f, 0.85f);
         if (detectionShape == DetectionShape.Circle)
         {
             Gizmos.DrawWireSphere(center, detectionRadius + bonusAttackRange);
         }
         else
         {
-            Vector2 boxSize = GetDetectionBoxSize();
             Gizmos.DrawWireCube(center, new Vector3(boxSize.x, boxSize.y, 0f));
         }
+
+        // 2. Vòng tròn tầm bắn tối đa của vũ khí (Màu cam)
+        float totalAttackRange = currentAttackRange + bonusAttackRange;
+        Gizmos.color = new Color(1f, 0.5f, 0f, 0.85f);
+        Gizmos.DrawWireSphere(transform.position, totalAttackRange);
 
         if (attackPoint != null)
         {
@@ -1350,6 +1415,24 @@ public class PlayerAutoShooter : MonoBehaviour
             Gizmos.DrawWireSphere(attackPoint.position, 0.1f);
             Gizmos.DrawRay(attackPoint.position, attackPoint.right * 1f);
         }
+
+#if UNITY_EDITOR
+        GUIStyle labelStyle = new GUIStyle();
+        labelStyle.fontSize = 11;
+        labelStyle.fontStyle = FontStyle.Bold;
+        labelStyle.alignment = TextAnchor.MiddleCenter;
+
+        labelStyle.normal.textColor = new Color(1f, 0.6f, 0.1f);
+        UnityEditor.Handles.Label((Vector2)transform.position + Vector2.down * (totalAttackRange + 0.25f),
+            $"[Tầm bắn tối đa súng: {totalAttackRange:F1}m]", labelStyle);
+
+        labelStyle.normal.textColor = Color.yellow;
+        float topY = (detectionShape == DetectionShape.Circle) 
+            ? (detectionRadius + bonusAttackRange) 
+            : (boxSize.y * 0.5f);
+        UnityEditor.Handles.Label(center + Vector2.up * (topY + 0.25f),
+            $"[Phạm vi quét mục tiêu ({detectionShape})]", labelStyle);
+#endif
     }
 
     private void PlayGunAudio(bool shotgun)

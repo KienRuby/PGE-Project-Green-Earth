@@ -1616,8 +1616,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 1
   joystick: {fileID: 919325254}
-  crowdPushRadius: 1.1
-  crowdPushForce: 4.5
+  crowdPushRadius: 0.32
+  crowdPushForce: 3
+  showCrowdPushGizmosAlways: 0
   enemyLayer:
     serializedVersion: 2
     m_Bits: 0
@@ -2024,7 +2025,7 @@ MonoBehaviour:
     aoeRadius: 2.5
     hasStun: 1
     stunDuration: 1
-    hasLavaPool: 1
+    hasLavaPool: 0
   isUnlocked: 0
   currentSkillLevel: 1
   currentCooldownTimer: 0
@@ -2051,35 +2052,35 @@ MonoBehaviour:
   attackSpeedMultiplier: 1
   levelConfigs:
   - damage: 36
-    cooldown: 1.2
+    cooldown: 3
     hitsPerBlade: 1
     spawnCountPerWave: 1
     maxBladesOnField: 4
     hasVortex: 0
     vortexDuration: 0
   - damage: 50
-    cooldown: 1
+    cooldown: 2.5
     hitsPerBlade: 1
     spawnCountPerWave: 1
     maxBladesOnField: 5
     hasVortex: 0
     vortexDuration: 0
   - damage: 70
-    cooldown: 0.8
+    cooldown: 2
     hitsPerBlade: 2
     spawnCountPerWave: 1
     maxBladesOnField: 6
     hasVortex: 0
     vortexDuration: 0
   - damage: 95
-    cooldown: 0.6
+    cooldown: 1.5
     hitsPerBlade: 2
     spawnCountPerWave: 2
     maxBladesOnField: 8
     hasVortex: 0
     vortexDuration: 0
   - damage: 130
-    cooldown: 0.4
+    cooldown: 1
     hitsPerBlade: 3
     spawnCountPerWave: 2
     maxBladesOnField: 10

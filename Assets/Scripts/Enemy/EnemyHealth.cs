@@ -31,10 +31,10 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     [Tooltip("Cho phép quái rơi hộp máu khi bị tiêu diệt.")]
     [SerializeField] private bool canDropHealthBox = true;
 
-    [Tooltip("Tỷ lệ xuất hiện Hộp Máu Nhỏ (hồi 10% Max HP) khi quái chết (3% = 0.03).")]
+    [Tooltip("Tỷ lệ xuất hiện Hộp Máu Nhỏ (hồi 10% Max HP) khi quái chết (1.5% = 0.015).")]
     [Range(0f, 1f)] [SerializeField] private float smallHealthBoxDropChance = DropTable.SmallHealthBoxDropChance;
 
-    [Tooltip("Tỷ lệ xuất hiện Hộp Máu Lớn (hồi 20% Max HP) khi quái chết (1% = 0.01).")]
+    [Tooltip("Tỷ lệ xuất hiện Hộp Máu Lớn (hồi 20% Max HP) khi quái chết (0.5% = 0.005).")]
     [Range(0f, 1f)] [SerializeField] private float largeHealthBoxDropChance = DropTable.LargeHealthBoxDropChance;
 
     [Header("Death & Animation")]
@@ -556,7 +556,7 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
                 }
             }
 
-            // Cơ hội rơi Hộp Máu (mặc định 5% hộp nhỏ, 3% hộp lớn)
+            // Cơ hội rơi Hộp Máu (mặc định 1.5% hộp nhỏ, 0.5% hộp lớn)
             if (canDropHealthBox)
             {
                 DropTable.TryDropHealthBox(transform.position, smallHealthBoxDropChance, largeHealthBoxDropChance);

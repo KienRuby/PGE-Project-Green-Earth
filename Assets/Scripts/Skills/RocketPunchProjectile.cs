@@ -247,7 +247,7 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
         orbitSpeed = Mathf.Max(30f, orbitSpd);
         hasStun = stunEnabled;
         stunDuration = Mathf.Max(0.1f, stunTime);
-        hasLavaPool = lavaEnabled;
+        hasLavaPool = false; // Đã loại bỏ bãi dung nham theo GDD (Cấp 5 chỉ Stun 1s)
 
         if (explosionVfx != null) explosionVfxPrefab = explosionVfx;
         if (lavaPrefab != null) lavaHazardPrefab = lavaPrefab;

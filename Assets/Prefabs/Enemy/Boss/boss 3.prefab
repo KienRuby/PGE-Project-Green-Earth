@@ -385,8 +385,8 @@ MonoBehaviour:
   randomRedGemAmount: 1
   currencyDropChance: 1
   canDropHealthBox: 1
-  smallHealthBoxDropChance: 0.03
-  largeHealthBoxDropChance: 0.01
+  smallHealthBoxDropChance: 0.015
+  largeHealthBoxDropChance: 0.005
   deathAnimationTrigger: Death
   deathAnimationState: Death
   fallbackDeathDuration: 0.5

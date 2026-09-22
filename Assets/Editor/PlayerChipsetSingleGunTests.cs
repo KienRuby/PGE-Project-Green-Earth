@@ -38,6 +38,39 @@ public class PlayerChipsetSingleGunTests
     }
 
     [Test]
+    public void ShotgunLevelFive_EnablesDoubleTap_FiresTwoSequencesOfFivePellets()
+    {
+        GameObject player = new GameObject("Player");
+
+        try
+        {
+            PlayerAutoShooter shooter = player.AddComponent<PlayerAutoShooter>();
+            ChipsetBattleStats.Reset();
+            shooter.ApplyChipsetWeaponUpgrade(8, 5);
+
+            Assert.That(shooter.GetChipsetWeaponLevel(8), Is.EqualTo(5));
+            Assert.That(shooter.GetChipsetWeaponDamage(8), Is.GreaterThanOrEqualTo(42));
+            Assert.That(shooter.GetChipsetWeaponFireInterval(8), Is.EqualTo(0.7f).Within(0.01f));
+            Assert.That(shooter.GetChipsetWeaponProjectileCount(8), Is.EqualTo(10));
+
+            ChipsetBattleStats.RecordAttack(8, 5);
+            ChipsetBattleStats.RecordAttack(8, 5);
+            ChipsetBattleStats.RecordDamage(8, 210);
+
+            ChipsetBattleStats.Entry entry = ChipsetBattleStats.GetEntry(8);
+            Assert.That(entry, Is.Not.Null);
+            Assert.That(entry.RuntimeLevel, Is.EqualTo(5));
+            Assert.That(entry.AttackCount, Is.EqualTo(2));
+            Assert.That(entry.ProjectileCount, Is.EqualTo(10));
+            Assert.That(entry.TotalDamage, Is.EqualTo(210));
+        }
+        finally
+        {
+            Object.DestroyImmediate(player);
+        }
+    }
+
+    [Test]
     public void MultigunLevelFive_KeepsIndependentDamageAndBattleStats()
     {
         GameObject player = new GameObject("Player");

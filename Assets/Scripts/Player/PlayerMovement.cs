@@ -23,6 +23,9 @@ public class PlayerMovement : MonoBehaviour
     [Tooltip("Lực đẩy quái vật dạt sang 2 bên mở đường thoát cho Player.")]
     [SerializeField] private float crowdPushForce = 4.5f;
 
+    [Tooltip("Luôn hiển thị vòng tròn phạm vi đẩy trong Scene View kể cả khi không bấm chọn Player.")]
+    [SerializeField] private bool showCrowdPushGizmosAlways = false;
+
     [Tooltip("LayerMask của quái vật (mặc định tự tìm 'Enemy').")]
     [SerializeField] private LayerMask enemyLayer;
 
@@ -405,4 +408,52 @@ public class PlayerMovement : MonoBehaviour
 
         keyboardInput = Vector2.ClampMagnitude(keyboardInput, 1f);
     }
+
+#if UNITY_EDITOR
+    private void OnDrawGizmos()
+    {
+        if (showCrowdPushGizmosAlways)
+        {
+            DrawCrowdPushGizmos();
+        }
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        if (!showCrowdPushGizmosAlways)
+        {
+            DrawCrowdPushGizmos();
+        }
+    }
+
+    private void DrawCrowdPushGizmos()
+    {
+        Vector3 pos = transform.position;
+
+        // 1. Vòng tròn bán kính đẩy (Wire circle & Solid disc trong suốt)
+        Gizmos.color = new Color(0f, 0.85f, 1f, 0.9f); // Màu Cyan
+        Gizmos.DrawWireSphere(pos, crowdPushRadius);
+
+        UnityEditor.Handles.color = new Color(0f, 0.85f, 1f, 0.12f);
+        UnityEditor.Handles.DrawSolidDisc(pos, Vector3.forward, crowdPushRadius);
+
+        // 2. Mũi tên minh họa hướng rẽ quái sang 2 bên
+        Vector2 facing = (moveInput.sqrMagnitude > 0.01f) ? moveInput.normalized : Vector2.up;
+        Vector2 rightTangent = Vector2.Perpendicular(facing);
+        Vector2 leftTangent = -rightTangent;
+
+        Gizmos.color = new Color(0.2f, 1f, 0.4f, 0.85f); // Màu xanh lá
+        Gizmos.DrawRay(pos, (Vector3)rightTangent * (crowdPushRadius * 0.9f));
+        Gizmos.DrawRay(pos, (Vector3)leftTangent * (crowdPushRadius * 0.9f));
+
+        // 3. Nhãn thông số hiển thị trực tiếp trong Scene View
+        GUIStyle style = new GUIStyle();
+        style.normal.textColor = new Color(0f, 0.95f, 1f);
+        style.fontSize = 12;
+        style.fontStyle = FontStyle.Bold;
+        style.alignment = TextAnchor.MiddleCenter;
+        UnityEditor.Handles.Label(pos + Vector3.up * (crowdPushRadius + 0.25f),
+            $"[Crowd Push / Lực đẩy quái]\nBán kính: {crowdPushRadius:F2}m | Lực: {crowdPushForce:F1}", style);
+    }
+#endif
 }

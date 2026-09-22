@@ -5,14 +5,14 @@ using UnityEngine;
 
 public enum HealthBoxType
 {
-    Small, // Hồi 10% HP tối đa (5% drop chance)
-    Large  // Hồi 20% HP tối đa (3% drop chance)
+    Small, // Hồi 10% HP tối đa (1.5% drop chance)
+    Large  // Hồi 20% HP tối đa (0.5% drop chance)
 }
 
 /// <summary>
 /// Thực thể Hộp Máu (Health Box / First Aid Kit) rơi trong trận đấu khi tiêu diệt enemy:
-/// - Hộp máu nhỏ (Small): Hồi 10% HP tối đa (5% drop chance).
-/// - Hộp máu lớn (Large): Hồi 20% HP tối đa (3% drop chance).
+/// - Hộp máu nhỏ (Small): Hồi 10% HP tối đa (1.5% drop chance).
+/// - Hộp máu lớn (Large): Hồi 20% HP tối đa (0.5% drop chance).
 /// Hỗ trợ:
 /// - Tự động nạp Sprite từ Resources hoặc procedural fallback.
 /// - Hiệu ứng bay bập bềnh (Idle bobbing) và nhịp thở hào quang nhẹ.

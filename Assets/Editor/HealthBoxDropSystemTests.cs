@@ -107,8 +107,8 @@ public class HealthBoxDropSystemTests
     [Test]
     public void Test03_DropTable_ProbabilitiesRollCorrectly()
     {
-        Assert.AreEqual(0.05f, DropTable.SmallHealthBoxDropChance, 0.0001f, "Tỷ lệ rơi hộp nhỏ mặc định là 5% (0.05).");
-        Assert.AreEqual(0.03f, DropTable.LargeHealthBoxDropChance, 0.0001f, "Tỷ lệ rơi hộp lớn mặc định là 3% (0.03).");
+        Assert.AreEqual(0.015f, DropTable.SmallHealthBoxDropChance, 0.0001f, "Tỷ lệ rơi hộp nhỏ mặc định là 1.5% (0.015).");
+        Assert.AreEqual(0.005f, DropTable.LargeHealthBoxDropChance, 0.0001f, "Tỷ lệ rơi hộp lớn mặc định là 0.5% (0.005).");
 
         int smallCount = 0;
         int largeCount = 0;
@@ -128,12 +128,12 @@ public class HealthBoxDropSystemTests
         float smallRatio = (float)smallCount / totalRolls;
         float largeRatio = (float)largeCount / totalRolls;
 
-        // Cho phép dung sai thống kê Monte Carlo ±1.5%
-        Assert.GreaterOrEqual(smallRatio, 0.035f, $"Tỷ lệ hộp nhỏ ({smallRatio:P2}) phải tiệm cận 5%.");
-        Assert.LessOrEqual(smallRatio, 0.065f, $"Tỷ lệ hộp nhỏ ({smallRatio:P2}) phải tiệm cận 5%.");
+        // Cho phép dung sai thống kê Monte Carlo
+        Assert.GreaterOrEqual(smallRatio, 0.007f, $"Tỷ lệ hộp nhỏ ({smallRatio:P2}) phải tiệm cận 1.5%.");
+        Assert.LessOrEqual(smallRatio, 0.023f, $"Tỷ lệ hộp nhỏ ({smallRatio:P2}) phải tiệm cận 1.5%.");
 
-        Assert.GreaterOrEqual(largeRatio, 0.018f, $"Tỷ lệ hộp lớn ({largeRatio:P2}) phải tiệm cận 3%.");
-        Assert.LessOrEqual(largeRatio, 0.042f, $"Tỷ lệ hộp lớn ({largeRatio:P2}) phải tiệm cận 3%.");
+        Assert.GreaterOrEqual(largeRatio, 0.001f, $"Tỷ lệ hộp lớn ({largeRatio:P2}) phải tiệm cận 0.5%.");
+        Assert.LessOrEqual(largeRatio, 0.012f, $"Tỷ lệ hộp lớn ({largeRatio:P2}) phải tiệm cận 0.5%.");
     }
 
     [Test]

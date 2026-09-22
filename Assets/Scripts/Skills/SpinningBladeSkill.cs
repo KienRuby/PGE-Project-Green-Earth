@@ -60,22 +60,23 @@ public class SpinningBladeSkill : MonoBehaviour
     [SerializeField]
     private SpinningBladeLevelConfig[] levelConfigs = new SpinningBladeLevelConfig[]
     {
-        // Cấp 1: 36 dmg, CD 1.2s, 1 hit, spawn 1, max 4
-        new SpinningBladeLevelConfig { damage = 36, cooldown = 1.2f, hitsPerBlade = 1, spawnCountPerWave = 1, maxBladesOnField = 4, hasVortex = false, vortexDuration = 0f },
-        // Cấp 2: 50 dmg, CD 1.0s, 1 hit, spawn 1, max 5 (quay nhanh hơn)
-        new SpinningBladeLevelConfig { damage = 50, cooldown = 1.0f, hitsPerBlade = 1, spawnCountPerWave = 1, maxBladesOnField = 5, hasVortex = false, vortexDuration = 0f },
-        // Cấp 3: 70 dmg, CD 0.8s, 2 hits (đâm xuyên 2 quái), spawn 1, max 6
-        new SpinningBladeLevelConfig { damage = 70, cooldown = 0.8f, hitsPerBlade = 2, spawnCountPerWave = 1, maxBladesOnField = 6, hasVortex = false, vortexDuration = 0f },
-        // Cấp 4: 95 dmg, CD 0.6s, 2 hits, spawn 2 dao/lần, max 8
-        new SpinningBladeLevelConfig { damage = 95, cooldown = 0.6f, hitsPerBlade = 2, spawnCountPerWave = 2, maxBladesOnField = 8, hasVortex = false, vortexDuration = 0f },
-        // Cấp 5 (Tối thượng): 130 dmg, CD 0.4s, 3 hits, spawn 2 dao/lần, max 10, Lốc xoáy 2s khi nổ
-        new SpinningBladeLevelConfig { damage = 130, cooldown = 0.4f, hitsPerBlade = 3, spawnCountPerWave = 2, maxBladesOnField = 10, hasVortex = true, vortexDuration = 2.0f }
+        // Cấp 1: 36 dmg, CD 3.0s, 1 hit, spawn 1, max 4
+        new SpinningBladeLevelConfig { damage = 36, cooldown = 3.0f, hitsPerBlade = 1, spawnCountPerWave = 1, maxBladesOnField = 4, hasVortex = false, vortexDuration = 0f },
+        // Cấp 2: 50 dmg, CD 2.5s, 1 hit, spawn 1, max 5 (quay nhanh hơn)
+        new SpinningBladeLevelConfig { damage = 50, cooldown = 2.5f, hitsPerBlade = 1, spawnCountPerWave = 1, maxBladesOnField = 5, hasVortex = false, vortexDuration = 0f },
+        // Cấp 3: 70 dmg, CD 2.0s, 2 hits (đâm xuyên 2 quái), spawn 1, max 6
+        new SpinningBladeLevelConfig { damage = 70, cooldown = 2.0f, hitsPerBlade = 2, spawnCountPerWave = 1, maxBladesOnField = 6, hasVortex = false, vortexDuration = 0f },
+        // Cấp 4: 95 dmg, CD 1.5s, 2 hits, spawn 2 dao/lần, max 8
+        new SpinningBladeLevelConfig { damage = 95, cooldown = 1.5f, hitsPerBlade = 2, spawnCountPerWave = 2, maxBladesOnField = 8, hasVortex = false, vortexDuration = 0f },
+        // Cấp 5 (Tối thượng): 130 dmg, CD 1.0s, 3 hits, spawn 2 dao/lần, max 10, Lốc xoáy 2s khi nổ
+        new SpinningBladeLevelConfig { damage = 130, cooldown = 1.0f, hitsPerBlade = 3, spawnCountPerWave = 2, maxBladesOnField = 10, hasVortex = true, vortexDuration = 2.0f }
     };
 
     [Header("Runtime State (Debug)")]
     [SerializeField] private bool isUnlocked = false;
     [SerializeField] private int currentSkillLevel = 1;
     [SerializeField] private float currentCooldownTimer = 0f;
+    [SerializeField] private bool isCooldownActive = false;
     [SerializeField] private float baseOrbitAngle = 0f;
 
     private readonly List<SpinningBladeProjectile> activeBlades = new List<SpinningBladeProjectile>();
@@ -126,6 +127,16 @@ public class SpinningBladeSkill : MonoBehaviour
     {
         cachedOnBladeDestroyed = OnBladeDestroyed;
         RefreshMetaTier();
+
+        if (levelConfigs != null && levelConfigs.Length > 0 && levelConfigs[0].cooldown < 2.0f)
+        {
+            if (levelConfigs.Length >= 1) levelConfigs[0].cooldown = 3.0f;
+            if (levelConfigs.Length >= 2) levelConfigs[1].cooldown = 2.5f;
+            if (levelConfigs.Length >= 3) levelConfigs[2].cooldown = 2.0f;
+            if (levelConfigs.Length >= 4) levelConfigs[3].cooldown = 1.5f;
+            if (levelConfigs.Length >= 5) levelConfigs[4].cooldown = 1.0f;
+        }
+
 #if UNITY_EDITOR
         if (spinningBladePrefab == null)
         {
@@ -147,9 +158,24 @@ public class SpinningBladeSkill : MonoBehaviour
         isUnlocked = true;
         RefreshMetaTier();
 
+        SpinningBladeLevelConfig config = GetCurrentConfig();
         if (activeBlades.Count == 0)
         {
             SpawnBlade();
+            if (activeBlades.Count < config.maxBladesOnField)
+            {
+                isCooldownActive = true;
+                currentCooldownTimer = GetCurrentCooldown();
+            }
+            else
+            {
+                isCooldownActive = false;
+                currentCooldownTimer = 0f;
+            }
+        }
+        else if (activeBlades.Count < config.maxBladesOnField && !isCooldownActive)
+        {
+            isCooldownActive = true;
             currentCooldownTimer = GetCurrentCooldown();
         }
     }
@@ -166,12 +192,21 @@ public class SpinningBladeSkill : MonoBehaviour
         if (baseOrbitAngle >= 360f) baseOrbitAngle -= 360f;
 
         // 2. Dọn dẹp các dao bị hủy hoặc chuyển sang chế độ lốc xoáy
+        bool bladeRemoved = false;
         for (int i = activeBlades.Count - 1; i >= 0; i--)
         {
             if (activeBlades[i] == null || !activeBlades[i].IsActive || activeBlades[i].IsInVortexMode)
             {
                 activeBlades.RemoveAt(i);
+                bladeRemoved = true;
             }
+        }
+
+        SpinningBladeLevelConfig config = GetCurrentConfig();
+        if (bladeRemoved && activeBlades.Count < config.maxBladesOnField && !isCooldownActive)
+        {
+            isCooldownActive = true;
+            currentCooldownTimer = GetCurrentCooldown();
         }
 
         // 3. TẤT CẢ CÁC DAO LUÔN BAY NGAY SÁT BÊN CẠNH NHAU (Khóa khoảng cách góc bladeSpacingAngle)
@@ -200,23 +235,43 @@ public class SpinningBladeSkill : MonoBehaviour
             }
         }
 
-        // 4. Theo thời gian Cooldown, tiếp tục tạo thêm lưỡi dao mới xuất hiện ngay sát bên cạnh
-        currentCooldownTimer -= Time.deltaTime;
-        if (currentCooldownTimer <= 0f)
+        // 4. CHỈ đếm ngược hồi chiêu khi số dao trên sân < maxBladesOnField (chấm dứt đếm ngầm khi đang đầy dao)
+        if (activeBlades.Count < config.maxBladesOnField)
         {
-            SpinningBladeLevelConfig config = GetCurrentConfig();
-            if (activeBlades.Count < config.maxBladesOnField)
+            if (!isCooldownActive)
             {
-                for (int wave = 0; wave < config.spawnCountPerWave; wave++)
+                isCooldownActive = true;
+                currentCooldownTimer = GetCurrentCooldown();
+            }
+            else
+            {
+                currentCooldownTimer -= Time.deltaTime;
+                if (currentCooldownTimer <= 0f)
                 {
+                    for (int wave = 0; wave < config.spawnCountPerWave; wave++)
+                    {
+                        if (activeBlades.Count < config.maxBladesOnField)
+                        {
+                            SpawnBlade();
+                        }
+                    }
+
                     if (activeBlades.Count < config.maxBladesOnField)
                     {
-                        SpawnBlade();
+                        currentCooldownTimer = GetCurrentCooldown();
+                    }
+                    else
+                    {
+                        isCooldownActive = false;
+                        currentCooldownTimer = 0f;
                     }
                 }
             }
-
-            currentCooldownTimer = GetCurrentCooldown();
+        }
+        else
+        {
+            isCooldownActive = false;
+            currentCooldownTimer = 0f;
         }
     }
 
@@ -285,6 +340,13 @@ public class SpinningBladeSkill : MonoBehaviour
         if (activeBlades.Contains(blade))
         {
             activeBlades.Remove(blade);
+        }
+
+        SpinningBladeLevelConfig config = GetCurrentConfig();
+        if (activeBlades.Count < config.maxBladesOnField && !isCooldownActive)
+        {
+            isCooldownActive = true;
+            currentCooldownTimer = GetCurrentCooldown();
         }
     }
 

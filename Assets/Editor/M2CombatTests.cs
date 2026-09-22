@@ -433,7 +433,7 @@ public class M2CombatTests
             Assert.That(lvl5.aoeDamage, Is.EqualTo(160));
             Assert.That(lvl5.cooldown, Is.EqualTo(1.0f).Within(0.01f));
             Assert.That(lvl5.hasStun, Is.True);
-            Assert.That(lvl5.hasLavaPool, Is.True);
+            Assert.That(lvl5.hasLavaPool, Is.False);
         }
         finally
         {

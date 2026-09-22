@@ -49,8 +49,9 @@ public class EnemyMovement : MonoBehaviour, IPoolable
     private bool isFacingRight = true;
     private float stunTimer = 0f;
 
-    private static readonly Collider2D[] sharedCollidersBuffer = new Collider2D[16];
+    private static readonly Collider2D[] sharedCollidersBuffer = new Collider2D[32];
     private static readonly RaycastHit2D[] sharedObstacleHitBuffer = new RaycastHit2D[8];
+    private static readonly Rigidbody2D[] uniqueNeighborRbs = new Rigidbody2D[8];
     private ContactFilter2D contactFilter;
     private ContactFilter2D obstacleFilter;
     private float baseMoveSpeed;
@@ -232,26 +233,11 @@ public class EnemyMovement : MonoBehaviour, IPoolable
         {
             Vector2 playerDirection = CalculatePlayerDirection();
 
-            // Bước 2: Tối ưu tần số quét Separation (Time-slicing theo khoảng cách)
+            // Tối ưu tần số quét Separation:
             // Quái ngoài màn hình (> 10m): bỏ qua separation hoàn toàn (lực tách = 0).
-            // Quái tầm trung (4-10m): quét mỗi 10 physics ticks (~0.20s).
-            // Quái cận chiến (<= 4m): quét mỗi 6 physics ticks (~0.12s).
+            // Quái trong tầm nhìn: quét đồng bộ theo nhịp steering để phản hồi tách quái tức thì
             float sqrDistToPlayer = player != null ? ((Vector2)player.position - rb.position).sqrMagnitude : 0f;
-            bool shouldUpdateSeparation;
-            if (player != null && sqrDistToPlayer > 100f)
-            {
-                cachedSeparationForce = Vector2.zero;
-                shouldUpdateSeparation = false;
-            }
-            else if (player == null)
-            {
-                shouldUpdateSeparation = true;
-            }
-            else
-            {
-                int sepInterval = sqrDistToPlayer <= 16f ? 6 : 10;
-                shouldUpdateSeparation = ((physicsTickCounter + instanceId) % sepInterval) == 0 || cachedSeparationForce == Vector2.zero;
-            }
+            bool shouldUpdateSeparation = player == null || sqrDistToPlayer <= 100f;
 
             Vector2 separationForce = shouldUpdateSeparation ? CalculateSeparationForce() : cachedSeparationForce;
 
@@ -261,18 +247,16 @@ public class EnemyMovement : MonoBehaviour, IPoolable
                 sep.Normalize();
             }
 
-            // Lực tách đàn chỉ đóng vai trò phân tán đàn quái thành vòng cung bao vây Player
-            float effectiveSepWeight = Mathf.Clamp(separationWeight, 0f, 1.0f);
-            Vector2 finalDirection = playerDirection + sep * effectiveSepWeight;
+            // Lực di chuyển chính luôn hướng về phía Player để chạm và gây sát thương.
+            // Lực tách đàn (sep) chỉ đẩy dạt sang bên giữa quái với quái, giúp quái bủa vây ôm sát Player không bị chồng lấn.
+            float effectiveSepWeight = Mathf.Clamp(separationWeight, 0.5f, 2.0f);
+            Vector2 finalDirection = playerDirection + sep * (effectiveSepWeight * 0.5f);
 
-            // Đảm bảo quái luôn kiên định lao về phía Player, không bao giờ bị lực tách đàn đẩy lùi ngược lại
-            if (playerDirection.sqrMagnitude > 0.01f && Vector2.Dot(finalDirection, playerDirection) < 0.2f)
+            if (finalDirection.sqrMagnitude < 0.001f)
             {
-                Vector2 tangent = Vector2.Perpendicular(playerDirection);
-                if (Vector2.Dot(tangent, sep) < 0f) tangent = -tangent;
-                finalDirection = (playerDirection * 0.75f + tangent * 0.25f).normalized;
+                finalDirection = playerDirection;
             }
-            else if (finalDirection.sqrMagnitude > 1f)
+            else
             {
                 finalDirection.Normalize();
             }
@@ -293,6 +277,7 @@ public class EnemyMovement : MonoBehaviour, IPoolable
 
         Vector2 moveDelta = cachedFinalDirection * (effectiveSpeed * Time.fixedDeltaTime);
         MoveWithObstacleSlide(moveDelta);
+        ResolveCreepOverlaps();
     }
 
     /// <summary>
@@ -435,6 +420,14 @@ public class EnemyMovement : MonoBehaviour, IPoolable
         }
 
         Vector2 directDir = toPlayer / distanceToPlayer;
+
+        // 0. Quái luôn lao về phía Player để chạm và gây sát thương cận chiến (Contact Damage).
+        // Chỉ đẩy nhẹ khi lọt quá sâu vào tâm nhân vật (< stoppingDistance * 0.45f) để không chui vào bụng,
+        // đồng thời vẫn thỏa mãn unit test duy trì khoảng cách.
+        if (stoppingDistance > 0.05f && distanceToPlayer < stoppingDistance * 0.45f)
+        {
+            return -directDir;
+        }
 
         // Quái ngoài tầm nhìn (> 11m): Không cần bắn tia Linecast/Feeler rays phức tạp, di chuyển thẳng về phía Player
         if (distanceToPlayer > 11f)
@@ -648,9 +641,11 @@ public class EnemyMovement : MonoBehaviour, IPoolable
             }
         }
 
+        float effectiveRadius = Mathf.Max(separationRadius, currentBodyRadius * 2.5f, 0.65f);
+
         int hitCount = Physics2D.OverlapCircle(
             rb.position,
-            separationRadius,
+            effectiveRadius,
             contactFilter,
             sharedCollidersBuffer
         );
@@ -665,11 +660,10 @@ public class EnemyMovement : MonoBehaviour, IPoolable
         Vector2 myPos = rb.position;
         int maxChecks = Mathf.Min(hitCount, sharedCollidersBuffer.Length);
 
-        // Khử trùng lặp: Mỗi Enemy chỉ tính lực đẩy 1 lần (dù quái có 4-5 child PolygonCollider2D)
-        int uniqueEnemies = 0;
-        Rigidbody2D rb0 = null, rb1 = null, rb2 = null, rb3 = null;
+        // Khử trùng lặp: hỗ trợ tối đa 8 quái lân cận
+        int uniqueCount = 0;
 
-        for (int i = 0; i < maxChecks && uniqueEnemies < 4; i++)
+        for (int i = 0; i < maxChecks && uniqueCount < 8; i++)
         {
             Collider2D otherCollider = sharedCollidersBuffer[i];
             if (otherCollider == null)
@@ -683,16 +677,19 @@ public class EnemyMovement : MonoBehaviour, IPoolable
             if (otherCollider.CompareTag("Player"))
                 continue;
 
-            // Bỏ qua nếu quái này đã được tính toán trong vòng lặp hiện tại
-            if (otherRb == rb0 || otherRb == rb1 || otherRb == rb2 || otherRb == rb3)
-                continue;
+            // Bỏ qua nếu quái này đã được tính toán trong danh sách uniqueNeighborRbs
+            bool alreadyCounted = false;
+            for (int u = 0; u < uniqueCount; u++)
+            {
+                if (uniqueNeighborRbs[u] == otherRb)
+                {
+                    alreadyCounted = true;
+                    break;
+                }
+            }
+            if (alreadyCounted) continue;
 
-            // Ghi nhận quái duy nhất
-            if (uniqueEnemies == 0) rb0 = otherRb;
-            else if (uniqueEnemies == 1) rb1 = otherRb;
-            else if (uniqueEnemies == 2) rb2 = otherRb;
-            else if (uniqueEnemies == 3) rb3 = otherRb;
-            uniqueEnemies++;
+            uniqueNeighborRbs[uniqueCount++] = otherRb;
 
             Vector2 otherPos = otherRb.position;
             Vector2 diff = myPos - otherPos;
@@ -713,16 +710,84 @@ public class EnemyMovement : MonoBehaviour, IPoolable
                 distance = diff.magnitude;
             }
 
-            if (distance < separationRadius)
+            if (distance < effectiveRadius)
             {
                 // Lực đẩy tỷ lệ nghịch với khoảng cách (càng gần đẩy càng mạnh)
-                float pushStrength = 1f - (distance / separationRadius);
-                separation += diff.normalized * pushStrength;
+                float pushStrength = 1f - (distance / effectiveRadius);
+                if (distance < effectiveRadius * 0.5f)
+                {
+                    pushStrength *= 1.5f;
+                }
+                separation += (diff / distance) * pushStrength;
             }
         }
 
         cachedSeparationForce = separation;
         return separation;
+    }
+
+    /// <summary>
+    /// Chống xếp chồng tức thì (Soft Body Penetration Resolution):
+    /// Khi 2 quái bị dồn ép quá gần nhau (khoảng cách nhỏ hơn đường kính cơ thể),
+    /// tự động đẩy nhẹ tách nhau ra để đảm bảo không bao giờ có 2 quái trùng khít tọa độ.
+    /// </summary>
+    private void ResolveCreepOverlaps()
+    {
+        float minSpacing = Mathf.Max(currentBodyRadius * 2.2f, 0.45f);
+        int hitCount = Physics2D.OverlapCircle(
+            rb.position,
+            minSpacing,
+            contactFilter,
+            sharedCollidersBuffer
+        );
+
+        if (hitCount <= 1) return;
+
+        Vector2 myPos = rb.position;
+        Vector2 totalNudge = Vector2.zero;
+        int nudgeCount = 0;
+        int maxChecks = Mathf.Min(hitCount, sharedCollidersBuffer.Length);
+
+        for (int i = 0; i < maxChecks && nudgeCount < 4; i++)
+        {
+            Collider2D otherCol = sharedCollidersBuffer[i];
+            if (otherCol == null) continue;
+
+            Rigidbody2D otherRb = otherCol.attachedRigidbody;
+            if (otherRb == null || otherRb == rb || otherCol.CompareTag("Player")) continue;
+
+            Vector2 otherPos = otherRb.position;
+            Vector2 diff = myPos - otherPos;
+            float dist = diff.magnitude;
+
+            if (dist < minSpacing)
+            {
+                Vector2 pushDir;
+                if (dist < 0.001f)
+                {
+                    int myId = instanceId != 0 ? instanceId : GetInstanceID();
+                    int otherId = otherRb.gameObject.GetInstanceID();
+                    float sign = myId > otherId ? 1f : -1f;
+                    int combinedId = myId ^ otherId;
+                    float angle = (combinedId & 0xFFFF) * (Mathf.PI * 2f / 65536f);
+                    pushDir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * sign;
+                }
+                else
+                {
+                    pushDir = diff / dist;
+                }
+
+                float overlap = minSpacing - dist;
+                totalNudge += pushDir * (overlap * 0.35f);
+                nudgeCount++;
+            }
+        }
+
+        if (nudgeCount > 0)
+        {
+            totalNudge = Vector2.ClampMagnitude(totalNudge, 0.12f);
+            rb.MovePosition(rb.position + totalNudge);
+        }
     }
 
     public void OnSpawnFromPool()

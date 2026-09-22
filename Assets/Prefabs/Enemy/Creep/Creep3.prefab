@@ -589,8 +589,8 @@ MonoBehaviour:
   randomRedGemAmount: 1
   currencyDropChance: 1
   canDropHealthBox: 1
-  smallHealthBoxDropChance: 0.03
-  largeHealthBoxDropChance: 0.01
+  smallHealthBoxDropChance: 0.015
+  largeHealthBoxDropChance: 0.005
   deathAnimationTrigger: Death
   deathAnimationState: Death
   fallbackDeathDuration: 0.5
@@ -614,8 +614,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 2
-  stoppingDistance: 0.7
-  separationRadius: 0.9
+  stoppingDistance: 0.46
+  separationRadius: 0.56
   separationWeight: 2.5
   enemyLayer:
     serializedVersion: 2

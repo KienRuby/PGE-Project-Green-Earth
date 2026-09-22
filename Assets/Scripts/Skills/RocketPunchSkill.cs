@@ -93,6 +93,13 @@ public class RocketPunchSkill : MonoBehaviour
         }
 #endif
 
+        if (levelConfigs != null)
+        {
+            for (int i = 0; i < levelConfigs.Length; i++)
+            {
+                levelConfigs[i].hasLavaPool = false;
+            }
+        }
     }
 
     /// <summary>
