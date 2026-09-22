@@ -573,17 +573,17 @@ public static class ChapterMenuSceneBuilder
         contentRect.anchorMin = new Vector2(0.5f, 0.5f);
         contentRect.anchorMax = new Vector2(0.5f, 0.5f);
         contentRect.pivot = new Vector2(0.5f, 0.5f);
-        contentRect.anchoredPosition = new Vector2(0f, 40f);
-        contentRect.sizeDelta = new Vector2(960f, 1550f);
+        contentRect.anchoredPosition = new Vector2(0f, 25f);
+        contentRect.sizeDelta = new Vector2(980f, 1530f);
 
-        // 4. Monthly Premium Banner
+        // 4. Monthly Premium Banner (with star badge built-in)
         GameObject bannerObj = CreateRect("MonthlyPremiumBanner", contentObj.transform).gameObject;
         RectTransform bannerRect = bannerObj.GetComponent<RectTransform>();
         bannerRect.anchorMin = new Vector2(0.5f, 1f);
         bannerRect.anchorMax = new Vector2(0.5f, 1f);
         bannerRect.pivot = new Vector2(0.5f, 1f);
         bannerRect.anchoredPosition = new Vector2(0f, 0f);
-        bannerRect.sizeDelta = new Vector2(960f, 310f);
+        bannerRect.sizeDelta = new Vector2(980f, 290f);
 
         Image bannerImg = bannerObj.AddComponent<Image>();
         if (bannerSprite != null) bannerImg.sprite = bannerSprite;
@@ -600,8 +600,8 @@ public static class ChapterMenuSceneBuilder
         priceRect.anchorMin = new Vector2(0.5f, 0f);
         priceRect.anchorMax = new Vector2(0.5f, 0f);
         priceRect.pivot = new Vector2(0.5f, 0f);
-        priceRect.anchoredPosition = new Vector2(0f, 25f);
-        priceRect.sizeDelta = new Vector2(280f, 85f);
+        priceRect.anchoredPosition = new Vector2(0f, 20f);
+        priceRect.sizeDelta = new Vector2(290f, 82f);
 
         Image priceImg = priceBtnObj.AddComponent<Image>();
         if (priceBtnSprite != null) priceImg.sprite = priceBtnSprite;
@@ -619,6 +619,7 @@ public static class ChapterMenuSceneBuilder
         }
 
         TMP_Text priceTxt = CreateText("PriceLabel", priceBtnObj.transform, "90.000 đ", 38f, Color.white, TextAlignmentOptions.Center);
+        priceTxt.fontStyle = FontStyles.Bold;
         priceTxt.outlineColor = Navy;
         priceTxt.outlineWidth = 0.22f;
         Stretch(priceTxt.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
@@ -629,8 +630,8 @@ public static class ChapterMenuSceneBuilder
         panelRect.anchorMin = new Vector2(0.5f, 1f);
         panelRect.anchorMax = new Vector2(0.5f, 1f);
         panelRect.pivot = new Vector2(0.5f, 1f);
-        panelRect.anchoredPosition = new Vector2(0f, -325f);
-        panelRect.sizeDelta = new Vector2(960f, 1220f);
+        panelRect.anchoredPosition = new Vector2(0f, -305f);
+        panelRect.sizeDelta = new Vector2(980f, 1200f);
 
         Image panelImg = panelObj.AddComponent<Image>();
         if (panelSprite != null) panelImg.sprite = panelSprite;
@@ -642,22 +643,24 @@ public static class ChapterMenuSceneBuilder
         panelShadow.effectDistance = new Vector2(5f, -6f);
 
         // 5A. Reset Timer Text (Reset in: 09 Hour 26 Min Left)
-        TMP_Text resetTxt = CreateText("ResetTimerText", panelObj.transform, "Reset in: <color=#FFEE33>09</color> Hour <color=#FFEE33>26</color> Min Left", 36f, Cream, TextAlignmentOptions.Center);
+        TMP_Text resetTxt = CreateText("ResetTimerText", panelObj.transform, "Reset in: <color=#FFEE33>09</color> Hour <color=#FFEE33>26</color> Min Left", 34f, Cream, TextAlignmentOptions.Center);
+        resetTxt.fontStyle = FontStyles.Bold;
         resetTxt.rectTransform.anchorMin = new Vector2(0.5f, 1f);
         resetTxt.rectTransform.anchorMax = new Vector2(0.5f, 1f);
         resetTxt.rectTransform.pivot = new Vector2(0.5f, 1f);
-        resetTxt.rectTransform.anchoredPosition = new Vector2(0f, -240f);
-        resetTxt.rectTransform.sizeDelta = new Vector2(850f, 50f);
+        resetTxt.rectTransform.anchoredPosition = new Vector2(0f, -225f);
+        resetTxt.rectTransform.sizeDelta = new Vector2(880f, 44f);
         resetTxt.outlineColor = Navy;
         resetTxt.outlineWidth = 0.2f;
 
         // 5B. Entrance Count Text (Entrance: 5 Left)
-        TMP_Text entranceTxt = CreateText("EntranceCountText", panelObj.transform, "Entrance: <color=#FFEE33>5</color> Left", 36f, Cream, TextAlignmentOptions.Center);
+        TMP_Text entranceTxt = CreateText("EntranceCountText", panelObj.transform, "Entrance: <color=#FFEE33>5</color> Left", 34f, Cream, TextAlignmentOptions.Center);
+        entranceTxt.fontStyle = FontStyles.Bold;
         entranceTxt.rectTransform.anchorMin = new Vector2(0.5f, 1f);
         entranceTxt.rectTransform.anchorMax = new Vector2(0.5f, 1f);
         entranceTxt.rectTransform.pivot = new Vector2(0.5f, 1f);
-        entranceTxt.rectTransform.anchoredPosition = new Vector2(0f, -295f);
-        entranceTxt.rectTransform.sizeDelta = new Vector2(850f, 50f);
+        entranceTxt.rectTransform.anchoredPosition = new Vector2(0f, -275f);
+        entranceTxt.rectTransform.sizeDelta = new Vector2(880f, 44f);
         entranceTxt.outlineColor = Navy;
         entranceTxt.outlineWidth = 0.2f;
 
@@ -667,8 +670,8 @@ public static class ChapterMenuSceneBuilder
         card1Rect.anchorMin = new Vector2(0.5f, 1f);
         card1Rect.anchorMax = new Vector2(0.5f, 1f);
         card1Rect.pivot = new Vector2(0.5f, 1f);
-        card1Rect.anchoredPosition = new Vector2(0f, -360f);
-        card1Rect.sizeDelta = new Vector2(870f, 440f);
+        card1Rect.anchoredPosition = new Vector2(0f, -335f);
+        card1Rect.sizeDelta = new Vector2(890f, 440f);
 
         Image card1Img = card1Obj.AddComponent<Image>();
         if (lvl1Sprite != null) card1Img.sprite = lvl1Sprite;
@@ -681,8 +684,8 @@ public static class ChapterMenuSceneBuilder
         startBtnRect.anchorMin = new Vector2(1f, 0f);
         startBtnRect.anchorMax = new Vector2(1f, 0f);
         startBtnRect.pivot = new Vector2(1f, 0f);
-        startBtnRect.anchoredPosition = new Vector2(-25f, 25f);
-        startBtnRect.sizeDelta = new Vector2(210f, 85f);
+        startBtnRect.anchoredPosition = new Vector2(-25f, 22f);
+        startBtnRect.sizeDelta = new Vector2(220f, 85f);
 
         Image startImg = startBtnObj.AddComponent<Image>();
         if (pinkBtnSprite != null) startImg.sprite = pinkBtnSprite;
@@ -700,6 +703,7 @@ public static class ChapterMenuSceneBuilder
         }
 
         TMP_Text startTxt = CreateText("StartLabel", startBtnObj.transform, "Start", 40f, Color.white, TextAlignmentOptions.Center);
+        startTxt.fontStyle = FontStyles.Bold;
         startTxt.outlineColor = Navy;
         startTxt.outlineWidth = 0.25f;
         Stretch(startTxt.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
@@ -710,48 +714,25 @@ public static class ChapterMenuSceneBuilder
         card2Rect.anchorMin = new Vector2(0.5f, 1f);
         card2Rect.anchorMax = new Vector2(0.5f, 1f);
         card2Rect.pivot = new Vector2(0.5f, 1f);
-        card2Rect.anchoredPosition = new Vector2(0f, -820f);
-        card2Rect.sizeDelta = new Vector2(870f, 380f);
+        card2Rect.anchoredPosition = new Vector2(0f, -795f);
+        card2Rect.sizeDelta = new Vector2(890f, 380f);
 
         Image card2Img = card2Obj.AddComponent<Image>();
         if (lvl2Sprite != null) card2Img.sprite = lvl2Sprite;
         card2Img.color = Color.white;
         card2Img.preserveAspect = false;
 
-        // 6. Close Button (X) at top right of ContentRoot
-        GameObject closeBtnObj = CreateRect("CloseButton", contentObj.transform).gameObject;
-        RectTransform closeRect = closeBtnObj.GetComponent<RectTransform>();
-        closeRect.anchorMin = new Vector2(1f, 1f);
-        closeRect.anchorMax = new Vector2(1f, 1f);
-        closeRect.pivot = new Vector2(1f, 1f);
-        closeRect.anchoredPosition = new Vector2(-15f, -15f);
-        closeRect.sizeDelta = new Vector2(64f, 64f);
-
-        Image closeImg = closeBtnObj.AddComponent<Image>();
-        closeImg.color = new Color32(235, 75, 75, 240);
-        closeImg.raycastTarget = true;
-
-        Button closeBtn = closeBtnObj.AddComponent<Button>();
-        closeBtn.targetGraphic = closeImg;
-
-        TMP_Text closeTxt = CreateText("CloseLabel", closeBtnObj.transform, "X", 36f, Color.white, TextAlignmentOptions.Center);
-        Stretch(closeTxt.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-
-        // 7. Wire up serialized properties in DailyGemMineModalController
+        // 6. Wire up serialized properties in DailyGemMineModalController
         SerializedObject modalSO = new SerializedObject(modalCtrl);
         modalSO.FindProperty("modalRoot").objectReferenceValue = modalObj;
         modalSO.FindProperty("mainPanel").objectReferenceValue = contentRect;
         modalSO.FindProperty("canvasGroup").objectReferenceValue = cg;
         modalSO.FindProperty("backdropButton").objectReferenceValue = backdropBtn;
-        modalSO.FindProperty("closeButton").objectReferenceValue = closeBtn;
+        modalSO.FindProperty("closeButton").objectReferenceValue = null;
         modalSO.FindProperty("monthlyPremiumButton").objectReferenceValue = priceBtn;
         modalSO.FindProperty("startLevel1Button").objectReferenceValue = startBtn;
         modalSO.FindProperty("resetTimerText").objectReferenceValue = resetTxt;
         modalSO.FindProperty("entranceCountText").objectReferenceValue = entranceTxt;
-        modalSO.FindProperty("remainingHours").intValue = 9;
-        modalSO.FindProperty("remainingMinutes").intValue = 26;
-        modalSO.FindProperty("remainingEntrances").intValue = 5;
-        modalSO.FindProperty("maxEntrances").intValue = 5;
         modalSO.ApplyModifiedProperties();
 
         // Modal starts hidden

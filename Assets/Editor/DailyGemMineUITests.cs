@@ -159,6 +159,32 @@ public class DailyGemMineUITests
     }
 
     [Test]
+    public void DailyGemMineModalController_ZeroEntrances_DisablesStartButtonAndPreventsLevelStart()
+    {
+        GameObject modalObj = new GameObject("TestModalRoot", typeof(RectTransform));
+        DailyGemMineModalController ctrl = modalObj.AddComponent<DailyGemMineModalController>();
+
+        GameObject startBtnObj = new GameObject("StartBtn", typeof(RectTransform), typeof(Button));
+        Button startBtn = startBtnObj.GetComponent<Button>();
+
+        ctrl.SetUIReferencesForTesting(modalObj, null, startBtn, null, null, null);
+        ctrl.SetEntrances(0, 5);
+
+        Assert.IsFalse(startBtn.interactable, "Start button must be disabled when entrances == 0");
+
+        int levelStarted = -1;
+        ctrl.OnLevelStarted += lvl => levelStarted = lvl;
+
+        ctrl.OnStartLevel1Clicked();
+
+        Assert.AreEqual(-1, levelStarted, "Level must NOT start when entrances == 0");
+        Assert.AreEqual(0, ctrl.RemainingEntrances);
+
+        Object.DestroyImmediate(startBtnObj);
+        Object.DestroyImmediate(modalObj);
+    }
+
+    [Test]
     public void DailyGemMineModalController_SanitizeMaterialsAndEffects_CleansDissolveMaterial()
     {
         GameObject modalObj = new GameObject("TestModalRoot", typeof(RectTransform), typeof(DailyGemMineModalController));

@@ -7,13 +7,19 @@ using UnityEngine.UI;
 /// Điều khiển giao diện popup Daily Gem Mine (chuẩn AAA Mobile theo mẫu Ảnh 2):
 /// - Banner Monthly Premium ở trên cùng với nút bấm giá 90.000 đ.
 /// - Panel chính Daily Gem Mine với icon thiên thạch đá đỏ, tiêu đề, mô tả.
-/// - Đồng hồ đếm ngược reset dạng: Reset in: [09] Hour [26] Min Left.
-/// - Số lượt vào còn lại dạng: Entrance: [5] Left.
-/// - Các card cấp độ (Level 01 có nút Start hồng, Level 02 có thưởng gem x120-220).
-/// - Nút đóng (X) và click backdrop để quay lại màn hình Chapter.
+/// - Đồng hồ đếm ngược reset dạng: Reset in: [09] Hour [26] Min Left (tự động đếm lùi thời gian thực).
+/// - Số lượt vào còn lại dạng: Entrance: [5] Left (tự động giảm khi vào trận, khóa nút Start khi về 0).
+/// - Lưu trữ tiến độ và lượt chơi bằng PlayerPrefs qua các phiên chơi.
 /// </summary>
 public class DailyGemMineModalController : MonoBehaviour
 {
+    private const string PrefsEntrancesKey = "PGE_DailyGemMine_Entrances";
+    private const string PrefsLastResetDateKey = "PGE_DailyGemMine_LastResetDate";
+    private const string PrefsMonthlyPremiumKey = "PGE_MonthlyPremium_Active";
+
+    public const int DefaultMaxEntrances = 5;
+    public const int PremiumBonusEntrances = 3;
+
     [Header("Modal Containers")]
     [Tooltip("Root GameObject của modal (bật/tắt khi mở/đóng popup).")]
     [SerializeField] private GameObject modalRoot;
@@ -27,7 +33,7 @@ public class DailyGemMineModalController : MonoBehaviour
     [Tooltip("Nút nền đen mờ phía sau để bấm ra ngoài thì đóng.")]
     [SerializeField] private Button backdropButton;
 
-    [Tooltip("Nút đóng (X) ở góc trên modal.")]
+    [Tooltip("Nút đóng (X) tùy chọn.")]
     [SerializeField] private Button closeButton;
 
     [Header("Action Buttons")]
@@ -50,18 +56,24 @@ public class DailyGemMineModalController : MonoBehaviour
     [Header("Runtime State")]
     [SerializeField] private int remainingHours = 9;
     [SerializeField] private int remainingMinutes = 26;
+    [SerializeField] private int remainingSeconds = 0;
     [SerializeField] private int remainingEntrances = 5;
-    [SerializeField] private int maxEntrances = 5;
+    [SerializeField] private int maxEntrances = DefaultMaxEntrances;
+    [SerializeField] private bool useManualTime = false;
+
+    private float nextTimerUpdate = 0f;
 
     public event Action<int> OnLevelStarted;
     public event Action OnMonthlyPremiumPurchased;
     public event Action OnModalOpened;
     public event Action OnModalClosed;
 
-    public bool IsOpen => modalRoot != null && modalRoot.activeSelf;
+    public bool IsOpen => modalRoot != null ? modalRoot.activeSelf : gameObject.activeSelf;
     public int RemainingHours => remainingHours;
     public int RemainingMinutes => remainingMinutes;
+    public int RemainingSeconds => remainingSeconds;
     public int RemainingEntrances => remainingEntrances;
+    public int MaxEntrances => maxEntrances;
     public Button StartLevel1Button => startLevel1Button;
     public Button MonthlyPremiumButton => monthlyPremiumButton;
     public Button CloseButton => closeButton;
@@ -99,17 +111,104 @@ public class DailyGemMineModalController : MonoBehaviour
             startLevel2Button.onClick.RemoveListener(OnStartLevel2Clicked);
             startLevel2Button.onClick.AddListener(OnStartLevel2Clicked);
         }
+
+        LoadSavedData();
     }
 
     private void OnEnable()
     {
         SanitizeMaterialsAndEffects();
+        CheckDailyReset();
+        UpdateCountdownTime();
+        RefreshStatusTexts();
     }
 
     private void Start()
     {
         SanitizeMaterialsAndEffects();
+        LoadSavedData();
         RefreshStatusTexts();
+    }
+
+    private void Update()
+    {
+        if (useManualTime) return;
+
+        if (Time.unscaledTime >= nextTimerUpdate)
+        {
+            nextTimerUpdate = Time.unscaledTime + 1f;
+            UpdateCountdownTime();
+            RefreshStatusTexts();
+        }
+    }
+
+    /// <summary>
+    /// Đọc dữ liệu lượt chơi và ngày reset đã lưu trong PlayerPrefs.
+    /// </summary>
+    public void LoadSavedData()
+    {
+        bool isPremium = PlayerPrefs.GetInt(PrefsMonthlyPremiumKey, 0) == 1;
+        maxEntrances = DefaultMaxEntrances + (isPremium ? PremiumBonusEntrances : 0);
+
+        string todayStr = DateTime.Now.ToString("yyyyMMdd");
+        string savedDate = PlayerPrefs.GetString(PrefsLastResetDateKey, string.Empty);
+
+        if (string.IsNullOrEmpty(savedDate) || savedDate != todayStr)
+        {
+            // Sang ngày mới -> Khôi phục đủ số lượt
+            remainingEntrances = maxEntrances;
+            PlayerPrefs.SetString(PrefsLastResetDateKey, todayStr);
+            PlayerPrefs.SetInt(PrefsEntrancesKey, remainingEntrances);
+            PlayerPrefs.Save();
+        }
+        else
+        {
+            remainingEntrances = PlayerPrefs.GetInt(PrefsEntrancesKey, maxEntrances);
+            remainingEntrances = Mathf.Clamp(remainingEntrances, 0, maxEntrances);
+        }
+
+        UpdateCountdownTime();
+    }
+
+    /// <summary>
+    /// Kiểm tra nếu qua 00:00:00 ngày mới thì tự động reset lại 5 lượt.
+    /// </summary>
+    public void CheckDailyReset()
+    {
+        string todayStr = DateTime.Now.ToString("yyyyMMdd");
+        string savedDate = PlayerPrefs.GetString(PrefsLastResetDateKey, string.Empty);
+
+        if (savedDate != todayStr)
+        {
+            remainingEntrances = maxEntrances;
+            PlayerPrefs.SetString(PrefsLastResetDateKey, todayStr);
+            PlayerPrefs.SetInt(PrefsEntrancesKey, remainingEntrances);
+            PlayerPrefs.Save();
+            Debug.Log($"[DailyGemMine] Đã qua ngày mới ({todayStr}). Tự động reset lại {remainingEntrances} lượt tham gia.");
+        }
+    }
+
+    /// <summary>
+    /// Tính toán thời gian còn lại đến 00:00:00 ngày tiếp theo.
+    /// </summary>
+    private void UpdateCountdownTime()
+    {
+        if (useManualTime) return;
+
+        DateTime now = DateTime.Now;
+        DateTime nextMidnight = now.Date.AddDays(1);
+        TimeSpan diff = nextMidnight - now;
+
+        if (diff.TotalSeconds <= 0)
+        {
+            CheckDailyReset();
+            nextMidnight = DateTime.Now.Date.AddDays(1);
+            diff = nextMidnight - DateTime.Now;
+        }
+
+        remainingHours = Mathf.Max(0, (int)diff.TotalHours);
+        remainingMinutes = Mathf.Clamp(diff.Minutes, 0, 59);
+        remainingSeconds = Mathf.Clamp(diff.Seconds, 0, 59);
     }
 
     /// <summary>
@@ -180,6 +279,8 @@ public class DailyGemMineModalController : MonoBehaviour
     public void OpenModal()
     {
         SanitizeMaterialsAndEffects();
+        CheckDailyReset();
+        UpdateCountdownTime();
 
         if (modalRoot != null)
         {
@@ -208,7 +309,7 @@ public class DailyGemMineModalController : MonoBehaviour
         }
 
         OnModalOpened?.Invoke();
-        Debug.Log("[DailyGemMineModalController] Mở giao diện Daily Gem Mine.");
+        Debug.Log($"[DailyGemMineModalController] Mở giao diện Daily Gem Mine. Số lượt: {remainingEntrances}/{maxEntrances}.");
     }
 
     /// <summary>
@@ -245,7 +346,14 @@ public class DailyGemMineModalController : MonoBehaviour
 
     public void OnMonthlyPremiumClicked()
     {
-        Debug.Log("[DailyGemMineModalController] Người chơi bấm mua Monthly Premium (90.000 đ).");
+        Debug.Log("[DailyGemMineModalController] Người chơi kích hoạt gói Monthly Premium (+3 Gem Mine entrances, +1 Survival, +500 gems).");
+        PlayerPrefs.SetInt(PrefsMonthlyPremiumKey, 1);
+        maxEntrances = DefaultMaxEntrances + PremiumBonusEntrances;
+        remainingEntrances = Mathf.Min(maxEntrances, remainingEntrances + PremiumBonusEntrances);
+        PlayerPrefs.SetInt(PrefsEntrancesKey, remainingEntrances);
+        PlayerPrefs.Save();
+
+        RefreshStatusTexts();
         OnMonthlyPremiumPurchased?.Invoke();
     }
 
@@ -263,11 +371,16 @@ public class DailyGemMineModalController : MonoBehaviour
     {
         if (remainingEntrances <= 0)
         {
-            Debug.LogWarning("[DailyGemMineModalController] Đã hết lượt tham gia Daily Gem Mine hôm nay.");
+            Debug.LogWarning("[DailyGemMineModalController] Không thể bắt đầu: Đã hết lượt tham gia Daily Gem Mine hôm nay (Entrance: 0).");
+            RefreshStatusTexts();
             return;
         }
 
+        // Giảm 1 lượt vào trận và lưu vào PlayerPrefs
         remainingEntrances = Mathf.Max(0, remainingEntrances - 1);
+        PlayerPrefs.SetInt(PrefsEntrancesKey, remainingEntrances);
+        PlayerPrefs.Save();
+
         RefreshStatusTexts();
 
         Debug.Log($"[DailyGemMineModalController] Bắt đầu màn Gem Mine Cấp {level}. Lượt còn lại: {remainingEntrances}.");
@@ -275,22 +388,26 @@ public class DailyGemMineModalController : MonoBehaviour
     }
 
     /// <summary>
-    /// Cập nhật thời gian reset (ví dụ: 09 Hour 26 Min Left với chữ số màu vàng).
+    /// Cập nhật thời gian reset thủ công (dùng cho test hoặc override đặc biệt).
     /// </summary>
-    public void SetRemainingTime(int hours, int minutes)
+    public void SetRemainingTime(int hours, int minutes, int seconds = 0)
     {
+        useManualTime = true;
         remainingHours = Mathf.Max(0, hours);
         remainingMinutes = Mathf.Clamp(minutes, 0, 59);
+        remainingSeconds = Mathf.Clamp(seconds, 0, 59);
         RefreshStatusTexts();
     }
 
     /// <summary>
-    /// Cập nhật số lượt tham gia (ví dụ: Entrance: 5 Left).
+    /// Cập nhật số lượt tham gia thủ công.
     /// </summary>
-    public void SetEntrances(int remaining, int max = 5)
+    public void SetEntrances(int remaining, int max = DefaultMaxEntrances)
     {
         maxEntrances = max;
         remainingEntrances = Mathf.Clamp(remaining, 0, maxEntrances);
+        PlayerPrefs.SetInt(PrefsEntrancesKey, remainingEntrances);
+        PlayerPrefs.Save();
         RefreshStatusTexts();
     }
 
@@ -306,6 +423,19 @@ public class DailyGemMineModalController : MonoBehaviour
         if (entranceCountText != null)
         {
             entranceCountText.text = $"Entrance: <color=#FFEE33>{remainingEntrances}</color> Left";
+        }
+
+        // Khóa / mở nút Start tùy theo số lượt còn lại
+        if (startLevel1Button != null)
+        {
+            bool hasEntrance = remainingEntrances > 0;
+            startLevel1Button.interactable = hasEntrance;
+
+            CanvasGroup btnCg = startLevel1Button.GetComponent<CanvasGroup>();
+            if (btnCg != null)
+            {
+                btnCg.alpha = hasEntrance ? 1f : 0.6f;
+            }
         }
     }
 
@@ -323,6 +453,7 @@ public class DailyGemMineModalController : MonoBehaviour
         closeButton = closeBtn;
         resetTimerText = timerTxt;
         entranceCountText = entranceTxt;
+        useManualTime = true;
         RefreshStatusTexts();
     }
 }
