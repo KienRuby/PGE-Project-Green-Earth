@@ -37,6 +37,7 @@ public static class ChapterMenuSceneBuilder
     private const string PinkStartSpritePath = "Assets/Sprites/UI/GemMine/btn_pink_start.png";
     private const string PinkStartPressedSpritePath = "Assets/Sprites/UI/GemMine/btn_pink_start_pressed.png";
     private const string Level2PreviewSpritePath = "Assets/Sprites/UI/GemMine/preview_level_02.png";
+    private const string RedGemIconSpritePath = "Assets/Sprites/UI/GemMine/icon_red_gem.png";
 
     private static readonly Color Navy = new Color32(8, 39, 69, 255);
     private static readonly Color Border = new Color32(8, 30, 42, 255);
@@ -707,22 +708,185 @@ public static class ChapterMenuSceneBuilder
         entranceTxt.outlineColor = Navy;
         entranceTxt.outlineWidth = 0.2f;
 
-        // 5C. Card Level 1 (with Pink Start button)
-        GameObject card1Obj = CreateRect("Card_Level_01", panelObj.transform).gameObject;
-        RectTransform card1Rect = card1Obj.GetComponent<RectTransform>();
-        card1Rect.anchorMin = new Vector2(0.5f, 1f);
-        card1Rect.anchorMax = new Vector2(0.5f, 1f);
-        card1Rect.pivot = new Vector2(0.5f, 1f);
-        card1Rect.anchoredPosition = new Vector2(0f, -335f);
-        card1Rect.sizeDelta = new Vector2(890f, 440f);
+        // 5C. Scrollable Levels Container (ScrollRect with 5 playable Level Cards)
+        GameObject scrollViewObj = CreateRect("LevelsScrollView", panelObj.transform).gameObject;
+        RectTransform scrollRectTransform = scrollViewObj.GetComponent<RectTransform>();
+        scrollRectTransform.anchorMin = new Vector2(0.5f, 1f);
+        scrollRectTransform.anchorMax = new Vector2(0.5f, 1f);
+        scrollRectTransform.pivot = new Vector2(0.5f, 1f);
+        scrollRectTransform.anchoredPosition = new Vector2(0f, -325f);
+        scrollRectTransform.sizeDelta = new Vector2(920f, 845f);
 
-        Image card1Img = card1Obj.AddComponent<Image>();
-        if (lvl1Sprite != null) card1Img.sprite = lvl1Sprite;
-        card1Img.color = Color.white;
-        card1Img.preserveAspect = false;
+        ScrollRect scrollRect = scrollViewObj.AddComponent<ScrollRect>();
+        scrollRect.horizontal = false;
+        scrollRect.vertical = true;
+        scrollRect.movementType = ScrollRect.MovementType.Elastic;
+        scrollRect.elasticity = 0.1f;
+        scrollRect.inertia = true;
+        scrollRect.decelerationRate = 0.135f;
+        scrollRect.scrollSensitivity = 28f;
 
-        // Pink Start Button inside Card 1 (Bottom Right)
-        GameObject startBtnObj = CreateRect("StartButton", card1Obj.transform).gameObject;
+        // Viewport with RectMask2D
+        GameObject viewportObj = CreateRect("Viewport", scrollViewObj.transform).gameObject;
+        RectTransform viewportRect = viewportObj.GetComponent<RectTransform>();
+        Stretch(viewportRect, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        viewportObj.AddComponent<RectMask2D>();
+        scrollRect.viewport = viewportRect;
+
+        // Content container with VerticalLayoutGroup and ContentSizeFitter
+        GameObject contentListObj = CreateRect("Content", viewportObj.transform).gameObject;
+        RectTransform contentListRect = contentListObj.GetComponent<RectTransform>();
+        contentListRect.anchorMin = new Vector2(0f, 1f);
+        contentListRect.anchorMax = new Vector2(1f, 1f);
+        contentListRect.pivot = new Vector2(0.5f, 1f);
+        contentListRect.anchoredPosition = Vector2.zero;
+        contentListRect.sizeDelta = new Vector2(0f, 0f);
+        scrollRect.content = contentListRect;
+
+        VerticalLayoutGroup vlg = contentListObj.AddComponent<VerticalLayoutGroup>();
+        vlg.padding = new RectOffset(10, 10, 10, 30);
+        vlg.spacing = 25f;
+        vlg.childAlignment = TextAnchor.UpperCenter;
+        vlg.childControlWidth = false;
+        vlg.childControlHeight = false;
+        vlg.childForceExpandWidth = false;
+        vlg.childForceExpandHeight = false;
+
+        ContentSizeFitter csf = contentListObj.AddComponent<ContentSizeFitter>();
+        csf.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+        csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+        // Sprite references for Cards
+        Sprite redGemSprite = AssetDatabase.LoadAssetAtPath<Sprite>(RedGemIconSpritePath);
+
+        // Build 5 Level Cards
+        DailyGemMineLevelCard[] cards = new DailyGemMineLevelCard[5];
+
+        cards[0] = CreateLevelCard(contentListObj.transform, 1, "Gem Mine LV.01", "x60-120", lvl1Sprite, Color.white, pinkBtnSprite, pinkBtnPressedSprite, redGemSprite);
+        cards[1] = CreateLevelCard(contentListObj.transform, 2, "Gem Mine LV.02", "x120-220", lvl2Sprite, Color.white, pinkBtnSprite, pinkBtnPressedSprite, redGemSprite);
+        cards[2] = CreateLevelCard(contentListObj.transform, 3, "Gem Mine LV.03", "x200-350", lvl1Sprite, new Color32(215, 235, 255, 255), pinkBtnSprite, pinkBtnPressedSprite, redGemSprite);
+        cards[3] = CreateLevelCard(contentListObj.transform, 4, "Gem Mine LV.04", "x300-500", lvl2Sprite, new Color32(255, 235, 205, 255), pinkBtnSprite, pinkBtnPressedSprite, redGemSprite);
+        cards[4] = CreateLevelCard(contentListObj.transform, 5, "Gem Mine LV.05", "x450-700", lvl1Sprite, new Color32(235, 215, 255, 255), pinkBtnSprite, pinkBtnPressedSprite, redGemSprite);
+
+        Button startBtn = cards[0] != null ? cards[0].StartButton : null;
+
+        // 6. Wire up serialized properties in DailyGemMineModalController
+        SerializedObject modalSO = new SerializedObject(modalCtrl);
+        modalSO.FindProperty("modalRoot").objectReferenceValue = modalObj;
+        modalSO.FindProperty("mainPanel").objectReferenceValue = contentRect;
+        modalSO.FindProperty("canvasGroup").objectReferenceValue = cg;
+        modalSO.FindProperty("backdropButton").objectReferenceValue = backdropBtn;
+        modalSO.FindProperty("closeButton").objectReferenceValue = null;
+        modalSO.FindProperty("monthlyPremiumButton").objectReferenceValue = priceBtn;
+        modalSO.FindProperty("startLevel1Button").objectReferenceValue = startBtn;
+        modalSO.FindProperty("resetTimerText").objectReferenceValue = resetTxt;
+        modalSO.FindProperty("entranceCountText").objectReferenceValue = entranceTxt;
+        modalSO.FindProperty("levelsScrollRect").objectReferenceValue = scrollRect;
+
+        SerializedProperty cardsProp = modalSO.FindProperty("levelCards");
+        if (cardsProp != null)
+        {
+            cardsProp.arraySize = cards.Length;
+            for (int i = 0; i < cards.Length; i++)
+            {
+                cardsProp.GetArrayElementAtIndex(i).objectReferenceValue = cards[i];
+            }
+        }
+
+        SerializedProperty sceneNameProp = modalSO.FindProperty("gemMineSceneName");
+        if (sceneNameProp != null) sceneNameProp.stringValue = "goalkeeper";
+        modalSO.ApplyModifiedProperties();
+
+        // 7. Attach DailyGemMineLayoutTuner for live position & size adjustments
+        DailyGemMineLayoutTuner tuner = modalObj.GetComponent<DailyGemMineLayoutTuner>() ?? modalObj.AddComponent<DailyGemMineLayoutTuner>();
+        tuner.AutoFindReferences();
+        tuner.ApplyLayout();
+
+        // Modal starts hidden
+        modalObj.SetActive(false);
+
+        return modalObj;
+    }
+
+    private static DailyGemMineLevelCard CreateLevelCard(
+        Transform parent,
+        int level,
+        string title,
+        string reward,
+        Sprite previewSprite,
+        Color previewColor,
+        Sprite pinkBtnSprite,
+        Sprite pinkBtnPressedSprite,
+        Sprite gemIconSprite)
+    {
+        GameObject cardObj = CreateRect($"Card_Level_{level:D2}", parent).gameObject;
+        RectTransform cardRect = cardObj.GetComponent<RectTransform>();
+        cardRect.sizeDelta = new Vector2(890f, 420f);
+
+        LayoutElement le = cardObj.AddComponent<LayoutElement>();
+        le.preferredWidth = 890f;
+        le.preferredHeight = 420f;
+        le.minHeight = 420f;
+
+        // Background Preview Image
+        Image bgImg = cardObj.AddComponent<Image>();
+        if (previewSprite != null) bgImg.sprite = previewSprite;
+        bgImg.color = previewColor;
+        bgImg.preserveAspect = false;
+
+        Shadow cardShadow = cardObj.AddComponent<Shadow>();
+        cardShadow.effectColor = new Color32(0, 14, 24, 200);
+        cardShadow.effectDistance = new Vector2(4f, -5f);
+
+        // Header Banner Bar
+        GameObject headerObj = CreateRect("HeaderBanner", cardObj.transform).gameObject;
+        RectTransform headerRect = headerObj.GetComponent<RectTransform>();
+        headerRect.anchorMin = new Vector2(0f, 1f);
+        headerRect.anchorMax = new Vector2(1f, 1f);
+        headerRect.pivot = new Vector2(0.5f, 1f);
+        headerRect.anchoredPosition = new Vector2(0f, 0f);
+        headerRect.sizeDelta = new Vector2(0f, 90f);
+
+        Image headerImg = headerObj.AddComponent<Image>();
+        headerImg.color = new Color32(0, 0, 0, 180);
+
+        // Title Text (Gem Mine LV.0X)
+        TMP_Text titleTxt = CreateText("TitleText", headerObj.transform, title, 42f, Color.white, TextAlignmentOptions.Left);
+        titleTxt.fontStyle = FontStyles.Bold;
+        titleTxt.outlineColor = Navy;
+        titleTxt.outlineWidth = 0.25f;
+        titleTxt.rectTransform.anchorMin = new Vector2(0f, 0.5f);
+        titleTxt.rectTransform.anchorMax = new Vector2(0f, 0.5f);
+        titleTxt.rectTransform.pivot = new Vector2(0f, 0.5f);
+        titleTxt.rectTransform.anchoredPosition = new Vector2(30f, 0f);
+        titleTxt.rectTransform.sizeDelta = new Vector2(380f, 60f);
+
+        // Reward Gem Icon
+        GameObject gemIconObj = CreateRect("GemIcon", headerObj.transform).gameObject;
+        RectTransform gemRect = gemIconObj.GetComponent<RectTransform>();
+        gemRect.anchorMin = new Vector2(1f, 0.5f);
+        gemRect.anchorMax = new Vector2(1f, 0.5f);
+        gemRect.pivot = new Vector2(1f, 0.5f);
+        gemRect.anchoredPosition = new Vector2(-225f, 0f);
+        gemRect.sizeDelta = new Vector2(46f, 46f);
+
+        Image gemImg = gemIconObj.AddComponent<Image>();
+        if (gemIconSprite != null) gemImg.sprite = gemIconSprite;
+        gemImg.preserveAspect = true;
+
+        // Reward Text (x120-220)
+        TMP_Text rwdTxt = CreateText("RewardText", headerObj.transform, reward, 38f, Color.white, TextAlignmentOptions.Left);
+        rwdTxt.fontStyle = FontStyles.Bold;
+        rwdTxt.outlineColor = Navy;
+        rwdTxt.outlineWidth = 0.25f;
+        rwdTxt.rectTransform.anchorMin = new Vector2(1f, 0.5f);
+        rwdTxt.rectTransform.anchorMax = new Vector2(1f, 0.5f);
+        rwdTxt.rectTransform.pivot = new Vector2(0f, 0.5f);
+        rwdTxt.rectTransform.anchoredPosition = new Vector2(-170f, 0f);
+        rwdTxt.rectTransform.sizeDelta = new Vector2(165f, 50f);
+
+        // Pink Start Button (Bottom-Right)
+        GameObject startBtnObj = CreateRect("StartButton", cardObj.transform).gameObject;
         RectTransform startBtnRect = startBtnObj.GetComponent<RectTransform>();
         startBtnRect.anchorMin = new Vector2(1f, 0f);
         startBtnRect.anchorMax = new Vector2(1f, 0f);
@@ -751,44 +915,19 @@ public static class ChapterMenuSceneBuilder
         startTxt.outlineWidth = 0.25f;
         Stretch(startTxt.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
-        // 5D. Card Level 2 (with header and gem count x120-220)
-        GameObject card2Obj = CreateRect("Card_Level_02", panelObj.transform).gameObject;
-        RectTransform card2Rect = card2Obj.GetComponent<RectTransform>();
-        card2Rect.anchorMin = new Vector2(0.5f, 1f);
-        card2Rect.anchorMax = new Vector2(0.5f, 1f);
-        card2Rect.pivot = new Vector2(0.5f, 1f);
-        card2Rect.anchoredPosition = new Vector2(0f, -795f);
-        card2Rect.sizeDelta = new Vector2(890f, 380f);
+        // Attach DailyGemMineLevelCard
+        DailyGemMineLevelCard cardCtrl = cardObj.AddComponent<DailyGemMineLevelCard>();
+        SerializedObject cardSO = new SerializedObject(cardCtrl);
+        cardSO.FindProperty("levelNumber").intValue = level;
+        cardSO.FindProperty("levelTitleText").objectReferenceValue = titleTxt;
+        cardSO.FindProperty("rewardText").objectReferenceValue = rwdTxt;
+        cardSO.FindProperty("rewardGemIcon").objectReferenceValue = gemImg;
+        cardSO.FindProperty("previewImage").objectReferenceValue = bgImg;
+        cardSO.FindProperty("startButton").objectReferenceValue = startBtn;
+        cardSO.FindProperty("startButtonLabel").objectReferenceValue = startTxt;
+        cardSO.ApplyModifiedProperties();
 
-        Image card2Img = card2Obj.AddComponent<Image>();
-        if (lvl2Sprite != null) card2Img.sprite = lvl2Sprite;
-        card2Img.color = Color.white;
-        card2Img.preserveAspect = false;
-
-        // 6. Wire up serialized properties in DailyGemMineModalController
-        SerializedObject modalSO = new SerializedObject(modalCtrl);
-        modalSO.FindProperty("modalRoot").objectReferenceValue = modalObj;
-        modalSO.FindProperty("mainPanel").objectReferenceValue = contentRect;
-        modalSO.FindProperty("canvasGroup").objectReferenceValue = cg;
-        modalSO.FindProperty("backdropButton").objectReferenceValue = backdropBtn;
-        modalSO.FindProperty("closeButton").objectReferenceValue = null;
-        modalSO.FindProperty("monthlyPremiumButton").objectReferenceValue = priceBtn;
-        modalSO.FindProperty("startLevel1Button").objectReferenceValue = startBtn;
-        modalSO.FindProperty("resetTimerText").objectReferenceValue = resetTxt;
-        modalSO.FindProperty("entranceCountText").objectReferenceValue = entranceTxt;
-        SerializedProperty sceneNameProp = modalSO.FindProperty("gemMineSceneName");
-        if (sceneNameProp != null) sceneNameProp.stringValue = "goalkeeper";
-        modalSO.ApplyModifiedProperties();
-
-        // 7. Attach DailyGemMineLayoutTuner for live position & size adjustments
-        DailyGemMineLayoutTuner tuner = modalObj.GetComponent<DailyGemMineLayoutTuner>() ?? modalObj.AddComponent<DailyGemMineLayoutTuner>();
-        tuner.AutoFindReferences();
-        tuner.ApplyLayout();
-
-        // Modal starts hidden
-        modalObj.SetActive(false);
-
-        return modalObj;
+        return cardCtrl;
     }
 
     private static GameObject CreateButton(

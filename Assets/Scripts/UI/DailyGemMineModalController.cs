@@ -41,11 +41,18 @@ public class DailyGemMineModalController : MonoBehaviour
     [Tooltip("Nút mua gói Monthly Premium (90.000 đ).")]
     [SerializeField] private Button monthlyPremiumButton;
 
-    [Tooltip("Nút Start màu hồng ở Card Level 1.")]
+    [Tooltip("Nút Start màu hồng ở Card Level 1 (dùng cho backward compatibility).")]
     [SerializeField] private Button startLevel1Button;
 
     [Tooltip("Nút / Card Level 2 (tùy chọn).")]
     [SerializeField] private Button startLevel2Button;
+
+    [Header("Scrollable Level Cards (5 Levels)")]
+    [Tooltip("ScrollRect cuộn danh sách 5 Level.")]
+    [SerializeField] private ScrollRect levelsScrollRect;
+
+    [Tooltip("Danh sách 5 Level Card trong ScrollView.")]
+    [SerializeField] private DailyGemMineLevelCard[] levelCards;
 
     [Header("Status Texts")]
     [Tooltip("Text hiển thị đồng hồ Reset in: 09 Hour 26 Min Left.")]
@@ -87,6 +94,8 @@ public class DailyGemMineModalController : MonoBehaviour
     public Button StartLevel1Button => startLevel1Button;
     public Button MonthlyPremiumButton => monthlyPremiumButton;
     public Button CloseButton => closeButton;
+    public ScrollRect LevelsScrollRect => levelsScrollRect;
+    public DailyGemMineLevelCard[] LevelCards => levelCards;
 
     private void Awake()
     {
@@ -122,12 +131,32 @@ public class DailyGemMineModalController : MonoBehaviour
             startLevel2Button.onClick.AddListener(OnStartLevel2Clicked);
         }
 
+        RegisterLevelCardsEvents();
         LoadSavedData();
+    }
+
+    private void RegisterLevelCardsEvents()
+    {
+        if (levelCards == null || levelCards.Length == 0)
+        {
+            levelCards = GetComponentsInChildren<DailyGemMineLevelCard>(true);
+        }
+
+        if (levelCards != null)
+        {
+            foreach (var card in levelCards)
+            {
+                if (card == null) continue;
+                card.OnStartClicked -= StartGemMineLevel;
+                card.OnStartClicked += StartGemMineLevel;
+            }
+        }
     }
 
     private void OnEnable()
     {
         SanitizeMaterialsAndEffects();
+        RegisterLevelCardsEvents();
         CheckDailyReset();
         UpdateCountdownTime();
         RefreshStatusTexts();
@@ -333,6 +362,12 @@ public class DailyGemMineModalController : MonoBehaviour
 
         RefreshStatusTexts();
 
+        if (levelsScrollRect != null)
+        {
+            levelsScrollRect.verticalNormalizedPosition = 1f;
+            levelsScrollRect.velocity = Vector2.zero;
+        }
+
         // Hiệu ứng Pop nảy nhẹ nếu có UIPanelTransition
         UIPanelTransition transition = GetComponent<UIPanelTransition>()
             ?? (mainPanel != null ? mainPanel.GetComponent<UIPanelTransition>() : null);
@@ -514,6 +549,26 @@ public class DailyGemMineModalController : MonoBehaviour
                 btnCg.alpha = hasEntrance ? 1f : 0.6f;
             }
         }
+
+        RefreshLevelCardsState();
+    }
+
+    /// <summary>
+    /// Đồng bộ trạng thái khả dụng của toàn bộ 5 thẻ màn chơi theo số lượt vào còn lại.
+    /// </summary>
+    public void RefreshLevelCardsState()
+    {
+        bool hasEntrances = remainingEntrances > 0;
+
+        if (levelCards != null && levelCards.Length > 0)
+        {
+            for (int i = 0; i < levelCards.Length; i++)
+            {
+                var card = levelCards[i];
+                if (card == null) continue;
+                card.SetInteractable(true, hasEntrances);
+            }
+        }
     }
 
     public void SetUIReferencesForTesting(
@@ -522,7 +577,9 @@ public class DailyGemMineModalController : MonoBehaviour
         Button startLvl1,
         Button closeBtn,
         TMP_Text timerTxt,
-        TMP_Text entranceTxt)
+        TMP_Text entranceTxt,
+        DailyGemMineLevelCard[] cards = null,
+        ScrollRect scrollRect = null)
     {
         modalRoot = root;
         monthlyPremiumButton = premiumBtn;
@@ -530,7 +587,10 @@ public class DailyGemMineModalController : MonoBehaviour
         closeButton = closeBtn;
         resetTimerText = timerTxt;
         entranceCountText = entranceTxt;
+        levelCards = cards;
+        levelsScrollRect = scrollRect;
         useManualTime = true;
+        RegisterLevelCardsEvents();
         RefreshStatusTexts();
     }
 }

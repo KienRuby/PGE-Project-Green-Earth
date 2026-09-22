@@ -279,5 +279,57 @@ public class DailyGemMineUITests
         Object.DestroyImmediate(entranceObj);
         Object.DestroyImmediate(modalObj);
     }
+
+    [Test]
+    public void DailyGemMineModalController_FiveLevelCards_AllWorkAndLockWhenZeroEntrances()
+    {
+        GameObject modalObj = new GameObject("TestModalRoot", typeof(RectTransform));
+        DailyGemMineModalController ctrl = modalObj.AddComponent<DailyGemMineModalController>();
+
+        DailyGemMineLevelCard[] cards = new DailyGemMineLevelCard[5];
+        Button[] buttons = new Button[5];
+
+        for (int i = 0; i < 5; i++)
+        {
+            GameObject cardObj = new GameObject($"Card_{i + 1}", typeof(RectTransform));
+            cardObj.transform.SetParent(modalObj.transform);
+            DailyGemMineLevelCard card = cardObj.AddComponent<DailyGemMineLevelCard>();
+
+            GameObject btnObj = new GameObject("StartBtn", typeof(RectTransform), typeof(Button));
+            btnObj.transform.SetParent(cardObj.transform);
+            Button btn = btnObj.GetComponent<Button>();
+
+            card.SetReferencesForTesting(i + 1, btn, null, null);
+            cards[i] = card;
+            buttons[i] = btn;
+        }
+
+        ctrl.SetUIReferencesForTesting(modalObj, null, null, null, null, null, cards);
+        ctrl.SetEntrances(5, 5);
+
+        // 1. Kiểm tra tất cả các nút đều mở khi còn lượt
+        for (int i = 0; i < 5; i++)
+        {
+            Assert.IsTrue(buttons[i].interactable, $"Level {i + 1} button must be interactable when entrances = 5");
+        }
+
+        // 2. Bấm nút Level 3 -> Kích hoạt đúng level 3 và trừ 1 lượt (còn 4)
+        int startedLevel = -1;
+        ctrl.OnLevelStarted += lvl => startedLevel = lvl;
+
+        buttons[2].onClick.Invoke();
+
+        Assert.AreEqual(3, startedLevel, "Clicking card 3 must trigger Level 3 start");
+        Assert.AreEqual(4, ctrl.RemainingEntrances, "Remaining entrances must decrement to 4");
+
+        // 3. Khi số lượt về 0 -> Toàn bộ 5 nút đều bị khóa
+        ctrl.SetEntrances(0, 5);
+        for (int i = 0; i < 5; i++)
+        {
+            Assert.IsFalse(buttons[i].interactable, $"Level {i + 1} button must be disabled when entrances = 0");
+        }
+
+        Object.DestroyImmediate(modalObj);
+    }
 }
 #endif

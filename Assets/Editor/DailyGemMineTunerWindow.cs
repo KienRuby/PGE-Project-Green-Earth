@@ -166,20 +166,19 @@ public class DailyGemMineTunerWindow : EditorWindow
 
         EditorGUILayout.Space(4);
 
-        // 5. Cards & Start Button
+        // 5. ScrollView & 5 Cards
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-        EditorGUILayout.LabelField("5. Card Level 01 & Nút Start", headerStyle);
-        tuner.card1AnchoredPosition = EditorGUILayout.Vector2Field("Vị trí Card 01", tuner.card1AnchoredPosition);
-        tuner.card1SizeDelta = EditorGUILayout.Vector2Field("Kích thước Card 01", tuner.card1SizeDelta);
+        EditorGUILayout.LabelField("5. Khung cuộn 5 Level & Nút Start", headerStyle);
+        tuner.scrollViewAnchoredPosition = EditorGUILayout.Vector2Field("Vị trí ScrollView (X, Y)", tuner.scrollViewAnchoredPosition);
+        tuner.scrollViewSizeDelta = EditorGUILayout.Vector2Field("Kích thước ScrollView", tuner.scrollViewSizeDelta);
+        tuner.cardSpacing = EditorGUILayout.Slider("Khoảng cách các Card", tuner.cardSpacing, 0f, 60f);
+        tuner.cardSizeDelta = EditorGUILayout.Vector2Field("Kích thước mỗi Card (W, H)", tuner.cardSizeDelta);
 
+        EditorGUILayout.Space(4);
+        EditorGUILayout.LabelField("Nút Start trên các Card", headerStyle);
         tuner.startButtonAnchoredPosition = EditorGUILayout.Vector2Field("Vị trí Nút Start", tuner.startButtonAnchoredPosition);
         tuner.startButtonSizeDelta = EditorGUILayout.Vector2Field("Kích thước Nút Start", tuner.startButtonSizeDelta);
         tuner.startButtonFontSize = EditorGUILayout.Slider("Cỡ chữ Start", tuner.startButtonFontSize, 18f, 60f);
-
-        EditorGUILayout.Space(4);
-        EditorGUILayout.LabelField("Card Level 02", headerStyle);
-        tuner.card2AnchoredPosition = EditorGUILayout.Vector2Field("Vị trí Card 02", tuner.card2AnchoredPosition);
-        tuner.card2SizeDelta = EditorGUILayout.Vector2Field("Kích thước Card 02", tuner.card2SizeDelta);
         EditorGUILayout.EndVertical();
 
         EditorGUILayout.Space(6);

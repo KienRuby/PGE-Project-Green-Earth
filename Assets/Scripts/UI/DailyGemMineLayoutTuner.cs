@@ -21,9 +21,10 @@ public class DailyGemMineLayoutTuner : MonoBehaviour
     [SerializeField] private RectTransform dailyGemMinePanel;
     [SerializeField] private RectTransform resetTimerText;
     [SerializeField] private RectTransform entranceCountText;
+    [SerializeField] private RectTransform levelsScrollView;
+    [SerializeField] private RectTransform levelsContent;
     [SerializeField] private RectTransform cardLevel1;
     [SerializeField] private RectTransform startButton;
-    [SerializeField] private RectTransform cardLevel2;
     [SerializeField] private Image backdropImage;
 
     [Header("=== 1. Content Root (Khung bao toàn bộ) ===")]
@@ -54,25 +55,24 @@ public class DailyGemMineLayoutTuner : MonoBehaviour
     public Vector2 entranceSize = new Vector2(880f, 44f);
     [Range(18f, 60f)] public float entranceFontSize = 34f;
 
-    [Header("=== 7. Card Level 01 ===")]
-    public Vector2 card1AnchoredPosition = new Vector2(0f, -335f);
-    public Vector2 card1SizeDelta = new Vector2(890f, 440f);
+    [Header("=== 7. Khung cuộn Levels ScrollView (5 Levels) ===")]
+    public Vector2 scrollViewAnchoredPosition = new Vector2(0f, -325f);
+    public Vector2 scrollViewSizeDelta = new Vector2(920f, 845f);
+    [Range(0f, 60f)] public float cardSpacing = 25f;
+    public Vector2 cardSizeDelta = new Vector2(890f, 420f);
 
-    [Header("=== 8. Nút Pink Start ===")]
+    [Header("=== 8. Nút Pink Start trên các Card ===")]
     public Vector2 startButtonAnchoredPosition = new Vector2(-25f, 22f);
     public Vector2 startButtonSizeDelta = new Vector2(220f, 85f);
     [Range(18f, 60f)] public float startButtonFontSize = 40f;
 
-    [Header("=== 9. Card Level 02 ===")]
-    public Vector2 card2AnchoredPosition = new Vector2(0f, -795f);
-    public Vector2 card2SizeDelta = new Vector2(890f, 380f);
-
-    [Header("=== 10. Nền tối Backdrop ===")]
+    [Header("=== 9. Nền tối Backdrop ===")]
     public Color backdropColor = new Color(0f, 0f, 0f, 0.86f);
 
     public RectTransform ContentRoot => contentRoot;
     public RectTransform MonthlyPremiumBanner => monthlyPremiumBanner;
     public RectTransform DailyGemMinePanel => dailyGemMinePanel;
+    public RectTransform LevelsScrollView => levelsScrollView;
 
     private void Awake()
     {
@@ -151,17 +151,24 @@ public class DailyGemMineLayoutTuner : MonoBehaviour
                 if (ec != null) entranceCountText = ec.GetComponent<RectTransform>();
             }
 
-            if (cardLevel1 == null)
+            if (levelsScrollView == null)
             {
-                Transform c1 = dailyGemMinePanel.Find("Card_Level_01");
-                if (c1 != null) cardLevel1 = c1.GetComponent<RectTransform>();
+                Transform sv = dailyGemMinePanel.Find("LevelsScrollView");
+                if (sv != null) levelsScrollView = sv.GetComponent<RectTransform>();
             }
 
-            if (cardLevel2 == null)
+            if (cardLevel1 == null)
             {
-                Transform c2 = dailyGemMinePanel.Find("Card_Level_02");
-                if (c2 != null) cardLevel2 = c2.GetComponent<RectTransform>();
+                Transform c1 = dailyGemMinePanel.Find("LevelsScrollView/Viewport/Content/Card_Level_01")
+                    ?? dailyGemMinePanel.Find("Card_Level_01");
+                if (c1 != null) cardLevel1 = c1.GetComponent<RectTransform>();
             }
+        }
+
+        if (levelsScrollView != null && levelsContent == null)
+        {
+            Transform cnt = levelsScrollView.Find("Viewport/Content");
+            if (cnt != null) levelsContent = cnt.GetComponent<RectTransform>();
         }
 
         if (cardLevel1 != null && startButton == null)
@@ -248,39 +255,59 @@ public class DailyGemMineLayoutTuner : MonoBehaviour
             if (t != null) t.fontSize = entranceFontSize;
         }
 
-        // 7. Card Level 1 (Top-Center of Panel)
-        if (cardLevel1 != null)
+        // 7. Levels ScrollView (Cuộn 5 Level)
+        if (levelsScrollView != null)
         {
-            cardLevel1.anchorMin = new Vector2(0.5f, 1f);
-            cardLevel1.anchorMax = new Vector2(0.5f, 1f);
-            cardLevel1.pivot = new Vector2(0.5f, 1f);
-            cardLevel1.anchoredPosition = card1AnchoredPosition;
-            cardLevel1.sizeDelta = card1SizeDelta;
+            levelsScrollView.anchorMin = new Vector2(0.5f, 1f);
+            levelsScrollView.anchorMax = new Vector2(0.5f, 1f);
+            levelsScrollView.pivot = new Vector2(0.5f, 1f);
+            levelsScrollView.anchoredPosition = scrollViewAnchoredPosition;
+            levelsScrollView.sizeDelta = scrollViewSizeDelta;
         }
 
-        // 8. Start Button (Bottom-Right of Card 1)
-        if (startButton != null)
+        if (levelsContent != null)
         {
-            startButton.anchorMin = new Vector2(1f, 0f);
-            startButton.anchorMax = new Vector2(1f, 0f);
-            startButton.pivot = new Vector2(1f, 0f);
-            startButton.anchoredPosition = startButtonAnchoredPosition;
-            startButton.sizeDelta = startButtonSizeDelta;
-            TMP_Text t = startButton.GetComponentInChildren<TMP_Text>(true);
-            if (t != null) t.fontSize = startButtonFontSize;
+            VerticalLayoutGroup vlg = levelsContent.GetComponent<VerticalLayoutGroup>();
+            if (vlg != null)
+            {
+                vlg.spacing = cardSpacing;
+            }
+
+            // Cập nhật kích thước cho từng Level Card trong Content
+            for (int i = 0; i < levelsContent.childCount; i++)
+            {
+                Transform child = levelsContent.GetChild(i);
+                if (child is RectTransform childRect)
+                {
+                    childRect.sizeDelta = cardSizeDelta;
+                    LayoutElement le = child.GetComponent<LayoutElement>();
+                    if (le != null)
+                    {
+                        le.preferredWidth = cardSizeDelta.x;
+                        le.preferredHeight = cardSizeDelta.y;
+                        le.minHeight = cardSizeDelta.y;
+                    }
+
+                    // Start Button trên card
+                    Transform sb = child.Find("StartButton");
+                    if (sb is RectTransform sbRect)
+                    {
+                        sbRect.anchoredPosition = startButtonAnchoredPosition;
+                        sbRect.sizeDelta = startButtonSizeDelta;
+                        TMP_Text t = sb.GetComponentInChildren<TMP_Text>(true);
+                        if (t != null) t.fontSize = startButtonFontSize;
+                    }
+                }
+            }
+        }
+        else if (cardLevel1 != null)
+        {
+            // Fallback nếu không có scrollview
+            cardLevel1.anchoredPosition = scrollViewAnchoredPosition;
+            cardLevel1.sizeDelta = cardSizeDelta;
         }
 
-        // 9. Card Level 2 (Top-Center of Panel)
-        if (cardLevel2 != null)
-        {
-            cardLevel2.anchorMin = new Vector2(0.5f, 1f);
-            cardLevel2.anchorMax = new Vector2(0.5f, 1f);
-            cardLevel2.pivot = new Vector2(0.5f, 1f);
-            cardLevel2.anchoredPosition = card2AnchoredPosition;
-            cardLevel2.sizeDelta = card2SizeDelta;
-        }
-
-        // 10. Backdrop
+        // 8. Backdrop
         if (backdropImage != null)
         {
             backdropImage.color = backdropColor;
@@ -336,10 +363,24 @@ public class DailyGemMineLayoutTuner : MonoBehaviour
             if (t != null) entranceFontSize = t.fontSize;
         }
 
+        if (levelsScrollView != null)
+        {
+            scrollViewAnchoredPosition = levelsScrollView.anchoredPosition;
+            scrollViewSizeDelta = levelsScrollView.sizeDelta;
+        }
+
+        if (levelsContent != null)
+        {
+            VerticalLayoutGroup vlg = levelsContent.GetComponent<VerticalLayoutGroup>();
+            if (vlg != null)
+            {
+                cardSpacing = vlg.spacing;
+            }
+        }
+
         if (cardLevel1 != null)
         {
-            card1AnchoredPosition = cardLevel1.anchoredPosition;
-            card1SizeDelta = cardLevel1.sizeDelta;
+            cardSizeDelta = cardLevel1.sizeDelta;
         }
 
         if (startButton != null)
@@ -348,12 +389,6 @@ public class DailyGemMineLayoutTuner : MonoBehaviour
             startButtonSizeDelta = startButton.sizeDelta;
             TMP_Text t = startButton.GetComponentInChildren<TMP_Text>(true);
             if (t != null) startButtonFontSize = t.fontSize;
-        }
-
-        if (cardLevel2 != null)
-        {
-            card2AnchoredPosition = cardLevel2.anchoredPosition;
-            card2SizeDelta = cardLevel2.sizeDelta;
         }
 
         if (backdropImage != null)
@@ -390,15 +425,14 @@ public class DailyGemMineLayoutTuner : MonoBehaviour
         entranceSize = new Vector2(880f, 44f);
         entranceFontSize = 34f;
 
-        card1AnchoredPosition = new Vector2(0f, -335f);
-        card1SizeDelta = new Vector2(890f, 440f);
+        scrollViewAnchoredPosition = new Vector2(0f, -325f);
+        scrollViewSizeDelta = new Vector2(920f, 845f);
+        cardSpacing = 25f;
+        cardSizeDelta = new Vector2(890f, 420f);
 
         startButtonAnchoredPosition = new Vector2(-25f, 22f);
         startButtonSizeDelta = new Vector2(220f, 85f);
         startButtonFontSize = 40f;
-
-        card2AnchoredPosition = new Vector2(0f, -795f);
-        card2SizeDelta = new Vector2(890f, 380f);
 
         backdropColor = new Color(0f, 0f, 0f, 0.86f);
 
