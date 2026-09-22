@@ -290,7 +290,7 @@ public class ChapterScreenController : MonoBehaviour
 
             if (waveBadgeText != null)
             {
-                waveBadgeText.text = $"WAVE: 01/{currentChapter.totalWaves:00}";
+                waveBadgeText.text = $"WAVE 01/{currentChapter.totalWaves:00}";
             }
 
             if (flavorText != null)
@@ -324,7 +324,7 @@ public class ChapterScreenController : MonoBehaviour
                 bossSilhouetteImage.gameObject.SetActive(true);
                 bossSilhouetteImage.color = isCleared ? unlockedBossColor : lockedBossColor;
             }
-            if (waveBadgeText != null) waveBadgeText.text = "WAVE: 01/05";
+            if (waveBadgeText != null) waveBadgeText.text = "WAVE 01/05";
             if (flavorText != null) flavorText.text = "Mutant spores have been detected on the outskirts.";
             if (energyCostText != null) energyCostText.text = "X 5";
             if (startButtonLabel != null) startButtonLabel.text = isLocked ? "Locked" : "Start";
