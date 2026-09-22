@@ -87,8 +87,12 @@ public class ChapterScreenController : MonoBehaviour
     [Tooltip("Nút Gem Mine ở bên phải nút Start.")]
     [SerializeField] private Button gemMineButton;
 
+    [Tooltip("Modal Daily Gem Mine hiển thị khi bấm nút Gem Mine.")]
+    [SerializeField] private DailyGemMineModalController gemMineModal;
+
     public Button TowerDefButton => towerDefButton;
     public Button GemMineButton => gemMineButton;
+    public DailyGemMineModalController GemMineModal => gemMineModal;
 
     [Header("Preview Lighting & Silhouette Styling")]
     [Tooltip("Màu của quái vật/boss khi Chapter đã mở khóa (sáng rõ).")]
@@ -532,11 +536,29 @@ public class ChapterScreenController : MonoBehaviour
     public void OnGemMineClicked()
     {
         Debug.Log("[ChapterScreenController] Nút Gem Mine được nhấn.");
+        if (gemMineModal == null)
+        {
+            gemMineModal = FindObjectOfType<DailyGemMineModalController>(true);
+        }
+
+        if (gemMineModal != null)
+        {
+            gemMineModal.OpenModal();
+        }
+        else
+        {
+            Debug.LogWarning("[ChapterScreenController] Chưa gán gemMineModal trong ChapterScreenController.");
+        }
     }
 
     public void SetSideModeButtonsForTesting(Button towerDef, Button gemMine)
     {
         towerDefButton = towerDef;
         gemMineButton = gemMine;
+    }
+
+    public void SetGemMineModalForTesting(DailyGemMineModalController modal)
+    {
+        gemMineModal = modal;
     }
 }

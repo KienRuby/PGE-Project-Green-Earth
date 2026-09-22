@@ -14,10 +14,30 @@ using UnityEngine.UI;
 /// Xây dựng UI bên trong Canvas/Content/ChapterPanel dùng chung shell và visual assets với Lab/Shop.
 /// Menu: PGE > UI > Build Chapter Screen
 /// </summary>
+[InitializeOnLoad]
 public static class ChapterMenuSceneBuilder
 {
     private const string ScenePath = "Assets/Scenes/MainMenu.unity";
     private const string BuildRequestPath = "Assets/Editor/PGE_ChapterUI_BuildRequest.txt";
+
+    static ChapterMenuSceneBuilder()
+    {
+        EditorApplication.delayCall += CheckAutoBuild;
+    }
+
+    private static void CheckAutoBuild()
+    {
+        if (File.Exists(BuildRequestPath))
+        {
+            try
+            {
+                File.Delete(BuildRequestPath);
+            }
+            catch {}
+
+            BuildChapterScreenScene();
+        }
+    }
     private const string IconAtlasPath = "Assets/UI/Lab/Generated/lab-icon-atlas.png";
     private const string BackgroundPath = "Assets/UI/Lab/Generated/lab-background.png";
     private const string StartButtonSpritePath = "Assets/Sprites/UI/nút start.png";
@@ -29,6 +49,14 @@ public static class ChapterMenuSceneBuilder
     private const string GrowthFundSpritePath = "Assets/Sprites/UI/Chapter/btn_growth_fund.png";
     private const string TowerDefSpritePath = "Assets/Sprites/UI/Chapter/btn_tower_def.png";
     private const string GemMineSpritePath = "Assets/Sprites/UI/Chapter/btn_gem_mine.png";
+    private const string MonthlyPremiumSpritePath = "Assets/Sprites/UI/GemMine/bg_monthly_premium.png";
+    private const string PriceButtonSpritePath = "Assets/Sprites/UI/GemMine/btn_yellow_price.png";
+    private const string PriceButtonPressedSpritePath = "Assets/Sprites/UI/GemMine/btn_yellow_price_pressed.png";
+    private const string DailyGemMinePanelSpritePath = "Assets/Sprites/UI/GemMine/bg_daily_gem_mine_panel_clean.png";
+    private const string Level1PreviewSpritePath = "Assets/Sprites/UI/GemMine/preview_level_01.png";
+    private const string PinkStartSpritePath = "Assets/Sprites/UI/GemMine/btn_pink_start.png";
+    private const string PinkStartPressedSpritePath = "Assets/Sprites/UI/GemMine/btn_pink_start_pressed.png";
+    private const string Level2PreviewSpritePath = "Assets/Sprites/UI/GemMine/preview_level_02.png";
 
     private static readonly Color Navy = new Color32(8, 39, 69, 255);
     private static readonly Color Border = new Color32(8, 30, 42, 255);
@@ -366,6 +394,10 @@ public static class ChapterMenuSceneBuilder
         GameObject gemMineBtnObj = CreateGemMineButton(chapterPanelTr);
         Button gemMineBtn = gemMineBtnObj != null ? gemMineBtnObj.GetComponent<Button>() : null;
 
+        // 4C. Daily Gem Mine Modal (Popup mở ra khi bấm nút Gem Mine)
+        GameObject gemMineModalObj = BuildDailyGemMineModal(chapterPanelTr, font);
+        DailyGemMineModalController gemMineModal = gemMineModalObj != null ? gemMineModalObj.GetComponent<DailyGemMineModalController>() : null;
+
         // 5. Attach ChapterScreenController to ChapterPanel
         ChapterScreenController chapterCtrl = chapterPanelObj.GetComponent<ChapterScreenController>();
         if (chapterCtrl == null)
@@ -395,6 +427,7 @@ public static class ChapterMenuSceneBuilder
         ctrlSO.FindProperty("energyCostIcon").objectReferenceValue = costIconImg;
         ctrlSO.FindProperty("towerDefButton").objectReferenceValue = towerBtn;
         ctrlSO.FindProperty("gemMineButton").objectReferenceValue = gemMineBtn;
+        ctrlSO.FindProperty("gemMineModal").objectReferenceValue = gemMineModal;
         ctrlSO.ApplyModifiedProperties();
 
         return chapterPanelObj;
@@ -503,6 +536,198 @@ public static class ChapterMenuSceneBuilder
         shadow.useGraphicAlpha = true;
 
         return towerObj;
+    }
+
+    public static GameObject BuildDailyGemMineModal(Transform parent, TMP_FontAsset fontAsset)
+    {
+        Sprite bannerSprite = AssetDatabase.LoadAssetAtPath<Sprite>(MonthlyPremiumSpritePath);
+        Sprite priceBtnSprite = AssetDatabase.LoadAssetAtPath<Sprite>(PriceButtonSpritePath);
+        Sprite priceBtnPressedSprite = AssetDatabase.LoadAssetAtPath<Sprite>(PriceButtonPressedSpritePath);
+        Sprite panelSprite = AssetDatabase.LoadAssetAtPath<Sprite>(DailyGemMinePanelSpritePath);
+        Sprite lvl1Sprite = AssetDatabase.LoadAssetAtPath<Sprite>(Level1PreviewSpritePath);
+        Sprite pinkBtnSprite = AssetDatabase.LoadAssetAtPath<Sprite>(PinkStartSpritePath);
+        Sprite pinkBtnPressedSprite = AssetDatabase.LoadAssetAtPath<Sprite>(PinkStartPressedSpritePath);
+        Sprite lvl2Sprite = AssetDatabase.LoadAssetAtPath<Sprite>(Level2PreviewSpritePath);
+
+        // 1. Root Modal Object
+        GameObject modalObj = CreateRect("DailyGemMineModal", parent).gameObject;
+        RectTransform modalRect = modalObj.GetComponent<RectTransform>();
+        Stretch(modalRect, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+
+        CanvasGroup cg = modalObj.AddComponent<CanvasGroup>();
+        cg.alpha = 1f;
+        cg.interactable = true;
+        cg.blocksRaycasts = true;
+
+        DailyGemMineModalController modalCtrl = modalObj.AddComponent<DailyGemMineModalController>();
+
+        // 2. Backdrop Dim (Touch outside to dismiss)
+        GameObject backdropObj = CreateRect("Backdrop", modalObj.transform).gameObject;
+        RectTransform backdropRect = backdropObj.GetComponent<RectTransform>();
+        Stretch(backdropRect, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        Image backdropImg = backdropObj.AddComponent<Image>();
+        backdropImg.color = new Color32(0, 0, 0, 220);
+        backdropImg.raycastTarget = true;
+        Button backdropBtn = backdropObj.AddComponent<Button>();
+
+        // 3. Content Root (Centered container for Banner + Main Panel)
+        GameObject contentObj = CreateRect("ContentRoot", modalObj.transform).gameObject;
+        RectTransform contentRect = contentObj.GetComponent<RectTransform>();
+        contentRect.anchorMin = new Vector2(0.5f, 0.5f);
+        contentRect.anchorMax = new Vector2(0.5f, 0.5f);
+        contentRect.pivot = new Vector2(0.5f, 0.5f);
+        contentRect.anchoredPosition = new Vector2(0f, 25f);
+        contentRect.sizeDelta = new Vector2(980f, 1530f);
+
+        // 4. Monthly Premium Banner (with star badge & 90.000 đ button baked into sprite)
+        GameObject bannerObj = CreateRect("MonthlyPremiumBanner", contentObj.transform).gameObject;
+        RectTransform bannerRect = bannerObj.GetComponent<RectTransform>();
+        bannerRect.anchorMin = new Vector2(0.5f, 1f);
+        bannerRect.anchorMax = new Vector2(0.5f, 1f);
+        bannerRect.pivot = new Vector2(0.5f, 1f);
+        bannerRect.anchoredPosition = new Vector2(0f, 0f);
+        bannerRect.sizeDelta = new Vector2(980f, 290f);
+
+        Image bannerImg = bannerObj.AddComponent<Image>();
+        if (bannerSprite != null) bannerImg.sprite = bannerSprite;
+        bannerImg.color = Color.white;
+        bannerImg.preserveAspect = false;
+
+        Shadow bannerShadow = bannerObj.AddComponent<Shadow>();
+        bannerShadow.effectColor = new Color32(0, 14, 24, 200);
+        bannerShadow.effectDistance = new Vector2(4f, -5f);
+
+        // 4A. Hitbox Button (90.000 đ) over Monthly Premium Banner (transparent raycast target)
+        GameObject priceBtnObj = CreateRect("PriceButton", bannerObj.transform).gameObject;
+        RectTransform priceRect = priceBtnObj.GetComponent<RectTransform>();
+        priceRect.anchorMin = new Vector2(0.5f, 0f);
+        priceRect.anchorMax = new Vector2(0.5f, 0f);
+        priceRect.pivot = new Vector2(0.5f, 0f);
+        priceRect.anchoredPosition = new Vector2(0f, 15f);
+        priceRect.sizeDelta = new Vector2(300f, 90f);
+
+        Image priceImg = priceBtnObj.AddComponent<Image>();
+        priceImg.color = Color.clear;
+        priceImg.raycastTarget = true;
+
+        Button priceBtn = priceBtnObj.AddComponent<Button>();
+        priceBtn.targetGraphic = priceImg;
+
+        // 5. Daily Gem Mine Main Panel
+        GameObject panelObj = CreateRect("DailyGemMinePanel", contentObj.transform).gameObject;
+        RectTransform panelRect = panelObj.GetComponent<RectTransform>();
+        panelRect.anchorMin = new Vector2(0.5f, 1f);
+        panelRect.anchorMax = new Vector2(0.5f, 1f);
+        panelRect.pivot = new Vector2(0.5f, 1f);
+        panelRect.anchoredPosition = new Vector2(0f, -305f);
+        panelRect.sizeDelta = new Vector2(980f, 1200f);
+
+        Image panelImg = panelObj.AddComponent<Image>();
+        if (panelSprite != null) panelImg.sprite = panelSprite;
+        panelImg.color = Color.white;
+        panelImg.preserveAspect = false;
+
+        Shadow panelShadow = panelObj.AddComponent<Shadow>();
+        panelShadow.effectColor = new Color32(0, 14, 24, 220);
+        panelShadow.effectDistance = new Vector2(5f, -6f);
+
+        // 5A. Reset Timer Text (Reset in: 09 Hour 26 Min Left)
+        TMP_Text resetTxt = CreateText("ResetTimerText", panelObj.transform, "Reset in: <color=#FFEE33>09</color> Hour <color=#FFEE33>26</color> Min Left", 34f, Cream, TextAlignmentOptions.Center);
+        resetTxt.fontStyle = FontStyles.Bold;
+        resetTxt.rectTransform.anchorMin = new Vector2(0.5f, 1f);
+        resetTxt.rectTransform.anchorMax = new Vector2(0.5f, 1f);
+        resetTxt.rectTransform.pivot = new Vector2(0.5f, 1f);
+        resetTxt.rectTransform.anchoredPosition = new Vector2(0f, -225f);
+        resetTxt.rectTransform.sizeDelta = new Vector2(880f, 44f);
+        resetTxt.outlineColor = Navy;
+        resetTxt.outlineWidth = 0.2f;
+
+        // 5B. Entrance Count Text (Entrance: 5 Left)
+        TMP_Text entranceTxt = CreateText("EntranceCountText", panelObj.transform, "Entrance: <color=#FFEE33>5</color> Left", 34f, Cream, TextAlignmentOptions.Center);
+        entranceTxt.fontStyle = FontStyles.Bold;
+        entranceTxt.rectTransform.anchorMin = new Vector2(0.5f, 1f);
+        entranceTxt.rectTransform.anchorMax = new Vector2(0.5f, 1f);
+        entranceTxt.rectTransform.pivot = new Vector2(0.5f, 1f);
+        entranceTxt.rectTransform.anchoredPosition = new Vector2(0f, -275f);
+        entranceTxt.rectTransform.sizeDelta = new Vector2(880f, 44f);
+        entranceTxt.outlineColor = Navy;
+        entranceTxt.outlineWidth = 0.2f;
+
+        // 5C. Card Level 1 (with Pink Start button)
+        GameObject card1Obj = CreateRect("Card_Level_01", panelObj.transform).gameObject;
+        RectTransform card1Rect = card1Obj.GetComponent<RectTransform>();
+        card1Rect.anchorMin = new Vector2(0.5f, 1f);
+        card1Rect.anchorMax = new Vector2(0.5f, 1f);
+        card1Rect.pivot = new Vector2(0.5f, 1f);
+        card1Rect.anchoredPosition = new Vector2(0f, -335f);
+        card1Rect.sizeDelta = new Vector2(890f, 440f);
+
+        Image card1Img = card1Obj.AddComponent<Image>();
+        if (lvl1Sprite != null) card1Img.sprite = lvl1Sprite;
+        card1Img.color = Color.white;
+        card1Img.preserveAspect = false;
+
+        // Pink Start Button inside Card 1 (Bottom Right)
+        GameObject startBtnObj = CreateRect("StartButton", card1Obj.transform).gameObject;
+        RectTransform startBtnRect = startBtnObj.GetComponent<RectTransform>();
+        startBtnRect.anchorMin = new Vector2(1f, 0f);
+        startBtnRect.anchorMax = new Vector2(1f, 0f);
+        startBtnRect.pivot = new Vector2(1f, 0f);
+        startBtnRect.anchoredPosition = new Vector2(-25f, 22f);
+        startBtnRect.sizeDelta = new Vector2(220f, 85f);
+
+        Image startImg = startBtnObj.AddComponent<Image>();
+        if (pinkBtnSprite != null) startImg.sprite = pinkBtnSprite;
+        startImg.color = Color.white;
+        startImg.preserveAspect = false;
+
+        Button startBtn = startBtnObj.AddComponent<Button>();
+        startBtn.targetGraphic = startImg;
+        if (pinkBtnPressedSprite != null)
+        {
+            startBtn.transition = Selectable.Transition.SpriteSwap;
+            SpriteState ss = startBtn.spriteState;
+            ss.pressedSprite = pinkBtnPressedSprite;
+            startBtn.spriteState = ss;
+        }
+
+        TMP_Text startTxt = CreateText("StartLabel", startBtnObj.transform, "Start", 40f, Color.white, TextAlignmentOptions.Center);
+        startTxt.fontStyle = FontStyles.Bold;
+        startTxt.outlineColor = Navy;
+        startTxt.outlineWidth = 0.25f;
+        Stretch(startTxt.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+
+        // 5D. Card Level 2 (with header and gem count x120-220)
+        GameObject card2Obj = CreateRect("Card_Level_02", panelObj.transform).gameObject;
+        RectTransform card2Rect = card2Obj.GetComponent<RectTransform>();
+        card2Rect.anchorMin = new Vector2(0.5f, 1f);
+        card2Rect.anchorMax = new Vector2(0.5f, 1f);
+        card2Rect.pivot = new Vector2(0.5f, 1f);
+        card2Rect.anchoredPosition = new Vector2(0f, -795f);
+        card2Rect.sizeDelta = new Vector2(890f, 380f);
+
+        Image card2Img = card2Obj.AddComponent<Image>();
+        if (lvl2Sprite != null) card2Img.sprite = lvl2Sprite;
+        card2Img.color = Color.white;
+        card2Img.preserveAspect = false;
+
+        // 6. Wire up serialized properties in DailyGemMineModalController
+        SerializedObject modalSO = new SerializedObject(modalCtrl);
+        modalSO.FindProperty("modalRoot").objectReferenceValue = modalObj;
+        modalSO.FindProperty("mainPanel").objectReferenceValue = contentRect;
+        modalSO.FindProperty("canvasGroup").objectReferenceValue = cg;
+        modalSO.FindProperty("backdropButton").objectReferenceValue = backdropBtn;
+        modalSO.FindProperty("closeButton").objectReferenceValue = null;
+        modalSO.FindProperty("monthlyPremiumButton").objectReferenceValue = priceBtn;
+        modalSO.FindProperty("startLevel1Button").objectReferenceValue = startBtn;
+        modalSO.FindProperty("resetTimerText").objectReferenceValue = resetTxt;
+        modalSO.FindProperty("entranceCountText").objectReferenceValue = entranceTxt;
+        modalSO.ApplyModifiedProperties();
+
+        // Modal starts hidden
+        modalObj.SetActive(false);
+
+        return modalObj;
     }
 
     private static GameObject CreateGemMineButton(Transform parent)
