@@ -80,6 +80,16 @@ public class SpinningBladeSkill : MonoBehaviour
 
     private readonly List<SpinningBladeProjectile> activeBlades = new List<SpinningBladeProjectile>();
 
+    // Cache state to eliminate GC Alloc & PlayerPrefs string interpolation overhead in Update()
+    private int cachedMetaTier = 1;
+    private bool isMetaTierCached = false;
+    private float cachedCooldownReduction = 0f;
+    private float cachedSpeedMultiplier = 1.0f;
+    private float cachedGenerationSpeedReduction = 0f;
+    private SpikyDiscusSkill cachedDiscusSkill;
+    private bool discusSkillCached = false;
+    private System.Action<SpinningBladeProjectile> cachedOnBladeDestroyed;
+
     public bool IsUnlocked => isUnlocked;
     public int CurrentSkillLevel => currentSkillLevel;
     public int ActiveBladeCount => activeBlades.Count;
@@ -95,10 +105,15 @@ public class SpinningBladeSkill : MonoBehaviour
     public float GetEffectiveOrbitRadius()
     {
         float radius = orbitRadius;
-        var discusSkill = GetComponent<SpikyDiscusSkill>();
-        if (discusSkill != null && discusSkill.IsUnlocked)
+        if (!discusSkillCached)
         {
-            float discusRadius = discusSkill.RawOrbitRadius;
+            cachedDiscusSkill = GetComponent<SpikyDiscusSkill>();
+            discusSkillCached = true;
+        }
+
+        if (cachedDiscusSkill != null && cachedDiscusSkill.IsUnlocked)
+        {
+            float discusRadius = cachedDiscusSkill.RawOrbitRadius;
             if (radius <= discusRadius + 0.25f)
             {
                 radius = discusRadius + 0.325f;
@@ -109,6 +124,8 @@ public class SpinningBladeSkill : MonoBehaviour
 
     private void Awake()
     {
+        cachedOnBladeDestroyed = OnBladeDestroyed;
+        RefreshMetaTier();
 #if UNITY_EDITOR
         if (spinningBladePrefab == null)
         {
@@ -128,6 +145,7 @@ public class SpinningBladeSkill : MonoBehaviour
     {
         currentSkillLevel = Mathf.Clamp(level, 1, 5);
         isUnlocked = true;
+        RefreshMetaTier();
 
         if (activeBlades.Count == 0)
         {
@@ -252,7 +270,7 @@ public class SpinningBladeSkill : MonoBehaviour
             selfSpinSpeed * speedBonusMultiplier,
             bladeAngle,
             hitVfxPrefab,
-            OnBladeDestroyed
+            cachedOnBladeDestroyed ?? (cachedOnBladeDestroyed = OnBladeDestroyed)
         );
 
         int metaTier = GetMetaTier();
@@ -272,12 +290,52 @@ public class SpinningBladeSkill : MonoBehaviour
 
     public int GetMetaTier()
     {
+        if (!isMetaTierCached)
+        {
+            RefreshMetaTier();
+        }
+        return cachedMetaTier;
+    }
+
+    public void RefreshMetaTier()
+    {
         int metaTier = 1;
         if (PlayerDataService.LoadChipsetItemData(4, out _, out int savedTier, out _, out _, out _))
         {
             metaTier = Mathf.Clamp(savedTier, 1, 5);
         }
-        return metaTier;
+        cachedMetaTier = metaTier;
+        isMetaTierCached = true;
+
+        cachedCooldownReduction = 0f;
+        cachedSpeedMultiplier = 1.0f;
+        cachedGenerationSpeedReduction = 0f;
+
+        // Tier 2 (Rare): ATK Speed +9%
+        if (cachedMetaTier >= 2)
+        {
+            cachedCooldownReduction += 0.09f;
+        }
+
+        // Tier 3 (Unique): ATK Speed +18%, Generation speed -30%
+        if (cachedMetaTier >= 3)
+        {
+            cachedCooldownReduction += 0.18f;
+            cachedGenerationSpeedReduction += 0.30f;
+        }
+
+        // Tier 4 (Epic): Spin Speed +36%
+        if (cachedMetaTier >= 4)
+        {
+            cachedSpeedMultiplier += 0.36f;
+        }
+
+        // Tier 5 (Holo): ATK Speed +36%, Generation speed -36%, Guaranteed Pierce (5s, CD 15s)
+        if (cachedMetaTier >= 5)
+        {
+            cachedCooldownReduction += 0.36f;
+            cachedGenerationSpeedReduction += 0.36f;
+        }
     }
 
     public void CalculateMetaTierBonuses(out float cooldownReduction, out float speedMultiplier)
@@ -287,37 +345,14 @@ public class SpinningBladeSkill : MonoBehaviour
 
     public void CalculateMetaTierBonuses(out float cooldownReduction, out float speedMultiplier, out float generationSpeedReduction)
     {
-        cooldownReduction = 0f;
-        speedMultiplier = 1.0f;
-        generationSpeedReduction = 0f;
-
-        int metaTier = GetMetaTier();
-
-        // Tier 2 (Rare): ATK Speed +9%
-        if (metaTier >= 2)
+        if (!isMetaTierCached)
         {
-            cooldownReduction += 0.09f;
+            RefreshMetaTier();
         }
 
-        // Tier 3 (Unique): ATK Speed +18%, Generation speed -30%
-        if (metaTier >= 3)
-        {
-            cooldownReduction += 0.18f;
-            generationSpeedReduction += 0.30f;
-        }
-
-        // Tier 4 (Epic): Spin Speed +36%
-        if (metaTier >= 4)
-        {
-            speedMultiplier += 0.36f;
-        }
-
-        // Tier 5 (Holo): ATK Speed +36%, Generation speed -36%, Guaranteed Pierce (5s, CD 15s)
-        if (metaTier >= 5)
-        {
-            cooldownReduction += 0.36f;
-            generationSpeedReduction += 0.36f;
-        }
+        cooldownReduction = cachedCooldownReduction;
+        speedMultiplier = cachedSpeedMultiplier;
+        generationSpeedReduction = cachedGenerationSpeedReduction;
     }
 
     public SpinningBladeLevelConfig GetCurrentConfig()

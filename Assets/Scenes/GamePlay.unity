@@ -1668,7 +1668,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 5aca7d42f84b492a8fb90c5338ca12fe, type: 2}
   detectionShape: 0
   targetCamera: {fileID: 0}
-  viewportScale: 1.1
+  viewportScale: 1
   customBoxSize: {x: 10, y: 16}
   detectionRadius: 6
   enemyLayer:
@@ -1993,35 +1993,35 @@ MonoBehaviour:
   - directDamage: 70
     aoeDamage: 37
     cooldown: 2
-    aoeRadius: 2.5
+    aoeRadius: 1.25
     hasStun: 0
     stunDuration: 0
     hasLavaPool: 0
   - directDamage: 100
     aoeDamage: 55
     cooldown: 1.7
-    aoeRadius: 3
+    aoeRadius: 1.5
     hasStun: 0
     stunDuration: 0
     hasLavaPool: 0
   - directDamage: 140
     aoeDamage: 80
     cooldown: 1.4
-    aoeRadius: 4
+    aoeRadius: 2
     hasStun: 0
     stunDuration: 0
     hasLavaPool: 0
   - directDamage: 190
     aoeDamage: 115
     cooldown: 1.1
-    aoeRadius: 4
+    aoeRadius: 2
     hasStun: 1
     stunDuration: 1
     hasLavaPool: 0
   - directDamage: 260
     aoeDamage: 160
     cooldown: 0.8
-    aoeRadius: 5
+    aoeRadius: 2.5
     hasStun: 1
     stunDuration: 1
     hasLavaPool: 1

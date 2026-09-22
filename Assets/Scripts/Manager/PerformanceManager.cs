@@ -24,7 +24,7 @@ public class PerformanceManager : MonoBehaviour
     public const string AdaptiveThrottlingPrefKey = "PGE.Settings.AdaptiveThrottling";
 
     [Header("Frame Rate Settings")]
-    [SerializeField] private FrameRateMode currentMode = FrameRateMode.Standard60;
+    [SerializeField] private FrameRateMode currentMode = FrameRateMode.Ultra120;
     [SerializeField] private bool enableAdaptiveThrottling = true;
 
     [Header("Throttling Thresholds")]
@@ -49,6 +49,7 @@ public class PerformanceManager : MonoBehaviour
     private static void AutoInitialize()
     {
         Debug.unityLogger.filterLogType = LogType.Warning;
+        ConfigurePhysicsSettings();
         if (Instance == null)
         {
             GameObject go = new GameObject("[PerformanceManager]");
@@ -58,9 +59,23 @@ public class PerformanceManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Bước 1: Tối ưu Physics2D - Tắt va chạm/contact giữa Layer Enemy với chính nó.
+    /// Giảm thiểu triệt để O(N^2) SAT polygon checks và OnTriggerStay2D giữa các quái khi đứng đông.
+    /// </summary>
+    public static void ConfigurePhysicsSettings()
+    {
+        int enemyLayer = LayerMask.NameToLayer("Enemy");
+        if (enemyLayer >= 0)
+        {
+            Physics2D.IgnoreLayerCollision(enemyLayer, enemyLayer, true);
+        }
+    }
+
     private void Awake()
     {
         Debug.unityLogger.filterLogType = LogType.Warning;
+        ConfigurePhysicsSettings();
         if (Instance == null)
         {
             Instance = this;
@@ -79,12 +94,12 @@ public class PerformanceManager : MonoBehaviour
         DetectScreenRefreshRate();
 
         // 2. Đọc cấu hình đã lưu của người chơi
-        int savedModeInt = PlayerPrefs.GetInt(FrameRateModePrefKey, (int)FrameRateMode.Standard60);
+        int savedModeInt = PlayerPrefs.GetInt(FrameRateModePrefKey, (int)FrameRateMode.Ultra120);
         currentMode = Enum.IsDefined(typeof(FrameRateMode), savedModeInt) 
             ? (FrameRateMode)savedModeInt 
-            : FrameRateMode.Standard60;
+            : FrameRateMode.Ultra120;
 
-        enableAdaptiveThrottling = PlayerPrefs.GetInt(AdaptiveThrottlingPrefKey, 1) == 1;
+        enableAdaptiveThrottling = PlayerPrefs.GetInt(AdaptiveThrottlingPrefKey, 0) == 1;
 
         // 3. Áp dụng Target FPS
         ApplyTargetFrameRate();
@@ -109,7 +124,6 @@ public class PerformanceManager : MonoBehaviour
         {
             detectedRefreshRate = 60;
         }
-
     }
 
     public void SetFrameRateMode(FrameRateMode mode)
@@ -167,27 +181,41 @@ public class PerformanceManager : MonoBehaviour
 
     private void Update()
     {
-        if (!enableAdaptiveThrottling || currentMode == FrameRateMode.Standard60 || isThrottled)
+        if (!enableAdaptiveThrottling || currentMode == FrameRateMode.Standard60)
             return;
 
         float dt = Time.unscaledDeltaTime;
-        if (dt > 0.0001f)
-        {
-            fpsAccumulator += 1f / dt;
-            frameCounter++;
-        }
+        // Bỏ qua các frame giật cục do nạp scene, GC spike hoặc khi cửa sổ mất focus (dt > 150ms)
+        if (dt > 0.15f || dt < 0.0001f)
+            return;
+
+        fpsAccumulator += 1f / dt;
+        frameCounter++;
 
         evaluationTimer += dt;
         if (evaluationTimer >= dropEvaluationDuration)
         {
             float averageFps = frameCounter > 0 ? (fpsAccumulator / frameCounter) : activeTargetFps;
-            float threshold = activeTargetFps * lowFpsRatioThreshold;
 
-            if (averageFps < threshold && activeTargetFps > 60)
+            if (!isThrottled)
             {
-                isThrottled = true;
-                Debug.LogWarning($"[PerformanceManager] ⚠️ Phát hiện tụt FPS kéo dài ({averageFps:F1} < {threshold:F1} FPS). Tự động hạ xuống 60 FPS để duy trì độ mượt và tiết kiệm pin!");
-                ApplyTargetFrameRate();
+                float threshold = activeTargetFps * lowFpsRatioThreshold;
+                if (averageFps < threshold && activeTargetFps > 60)
+                {
+                    isThrottled = true;
+                    Debug.LogWarning($"[PerformanceManager] ⚠️ Phát hiện tụt FPS kéo dài ({averageFps:F1} < {threshold:F1} FPS). Tự động hạ xuống 60 FPS để duy trì độ mượt và tiết kiệm pin!");
+                    ApplyTargetFrameRate();
+                }
+            }
+            else
+            {
+                // Tự động khôi phục lên 90/120 FPS khi hiệu năng thiết bị đã ổn định trở lại
+                if (averageFps >= 58f)
+                {
+                    isThrottled = false;
+                    Debug.Log($"[PerformanceManager] ✅ Hiệu năng đã ổn định trở lại ({averageFps:F1} FPS). Khôi phục mục tiêu {currentMode}!");
+                    ApplyTargetFrameRate();
+                }
             }
 
             evaluationTimer = 0f;

@@ -112,6 +112,8 @@ public class BossMovement : MonoBehaviour, IPoolable
     private int activeIdleAnimationHash = IdleAnimationHash;
     private ContactFilter2D obstacleFilter;
     private static readonly RaycastHit2D[] obstacleHitBuffer = new RaycastHit2D[8];
+    [SerializeField] private float bodyCollisionRadius = 0.5f;
+    private float currentBodyRadius = 0.5f;
 
     public void SetScaleMultiplier(float multiplier)
     {
@@ -121,6 +123,7 @@ public class BossMovement : MonoBehaviour, IPoolable
             basePrefabScale = transform.localScale != Vector3.zero ? transform.localScale : Vector3.one;
         }
         initialScale = basePrefabScale * multiplier;
+        currentBodyRadius = bodyCollisionRadius * multiplier;
         float sign = (isFacingRight ^ initialFacingLeft) ? 1f : -1f;
         transform.localScale = new Vector3(Mathf.Abs(initialScale.x) * sign, initialScale.y, initialScale.z);
     }
@@ -198,6 +201,7 @@ public class BossMovement : MonoBehaviour, IPoolable
         }
 
         initialScale = basePrefabScale;
+        currentBodyRadius = bodyCollisionRadius;
         isFacingRight = !initialFacingLeft;
         dashTimer = Random.Range(dashCooldown * 0.5f, dashCooldown);
     }
@@ -362,7 +366,14 @@ public class BossMovement : MonoBehaviour, IPoolable
         if (distance > 0.0001f)
         {
             Vector2 dir = delta / distance;
-            int count = rb.Cast(dir, obstacleFilter, obstacleHitBuffer, distance + 0.05f);
+            int count = Physics2D.CircleCastNonAlloc(
+                currentPos,
+                currentBodyRadius,
+                dir,
+                obstacleHitBuffer,
+                distance + 0.05f,
+                obstacleFilter.layerMask
+            );
             for (int i = 0; i < count; i++)
             {
                 RaycastHit2D hit = obstacleHitBuffer[i];

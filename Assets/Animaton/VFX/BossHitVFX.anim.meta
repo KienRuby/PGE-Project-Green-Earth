@@ -1,0 +1,11 @@
+fileFormatVersion: 2
+guid: 931aa5b43c3648d0967d3b1dbe9bb4b2
+AnimationClip:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: BossHitVFX
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

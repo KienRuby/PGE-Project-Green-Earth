@@ -13,6 +13,16 @@ public class EnemyProjectile : MonoBehaviour, IPoolable
     [Tooltip("Thời gian tồn tại dự phòng nếu chưa được Setup.")]
     [SerializeField] private float lifeTime = 4f;
 
+    [Header("Hiệu ứng trúng đạn")]
+    [Tooltip("Prefab hiệu ứng trúng đạn nổ tại điểm va chạm (Hit VFX).")]
+    [SerializeField] private GameObject hitVfxPrefab;
+
+    public GameObject HitVfxPrefab
+    {
+        get => hitVfxPrefab;
+        set => hitVfxPrefab = value;
+    }
+
     private Rigidbody2D rb;
     private Vector2 direction;
     private float lifeTimer;
@@ -39,6 +49,17 @@ public class EnemyProjectile : MonoBehaviour, IPoolable
         rb.bodyType = RigidbodyType2D.Kinematic;
         rb.gravityScale = 0f;
         rb.useFullKinematicContacts = true;
+
+        if (hitVfxPrefab == null)
+        {
+            hitVfxPrefab = Resources.Load<GameObject>("Prefabs/BossHitVFX");
+#if UNITY_EDITOR
+            if (hitVfxPrefab == null)
+            {
+                hitVfxPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/BossHitVFX.prefab");
+            }
+#endif
+        }
     }
 
     private void Update()
@@ -62,6 +83,7 @@ public class EnemyProjectile : MonoBehaviour, IPoolable
             {
                 transform.position = hit.point;
                 if (rb != null) rb.position = hit.point;
+                SpawnHitVfx(hit.point);
                 Despawn();
                 return;
             }
@@ -100,6 +122,12 @@ public class EnemyProjectile : MonoBehaviour, IPoolable
             {
                 playerHealth.TakeRangedDamage(damage);
             }
+            Vector2 hitPoint = other.ClosestPoint(transform.position);
+            if (hitPoint == Vector2.zero && (Vector2)transform.position != Vector2.zero)
+            {
+                hitPoint = transform.position;
+            }
+            SpawnHitVfx(hitPoint);
             Despawn();
             return;
         }
@@ -111,7 +139,27 @@ public class EnemyProjectile : MonoBehaviour, IPoolable
 
         if (!other.isTrigger)
         {
+            Vector2 hitPoint = other.ClosestPoint(transform.position);
+            if (hitPoint == Vector2.zero && (Vector2)transform.position != Vector2.zero)
+            {
+                hitPoint = transform.position;
+            }
+            SpawnHitVfx(hitPoint);
             Despawn();
+        }
+    }
+
+    private void SpawnHitVfx(Vector2 position)
+    {
+        if (hitVfxPrefab == null) return;
+
+        if (PoolManager.Instance != null)
+        {
+            PoolManager.Instance.Spawn(hitVfxPrefab, position, Quaternion.identity);
+        }
+        else
+        {
+            Instantiate(hitVfxPrefab, position, Quaternion.identity);
         }
     }
 

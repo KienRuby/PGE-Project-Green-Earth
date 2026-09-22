@@ -2533,4 +2533,217 @@ public class PGEGameLogicTests
             BuildBodyController.EquippedSkinIndex = origSkin;
         }
     }
+
+    [Test]
+    public void PlayerAutoShooter_AttackRange_MatchesScreenViewport_OnlyTargetsEnemiesInsideFrame()
+    {
+        GameObject player = new GameObject("Player_ViewportTest");
+        GameObject camObj = new GameObject("MainCamera_ViewportTest");
+        GameObject insideEnemy = new GameObject("InsideEnemy", typeof(EnemyHealth), typeof(CircleCollider2D));
+        GameObject outsideEnemy = new GameObject("OutsideEnemy", typeof(EnemyHealth), typeof(CircleCollider2D));
+
+        int enemyLayer = LayerMask.NameToLayer("Enemy");
+        if (enemyLayer >= 0)
+        {
+            insideEnemy.layer = enemyLayer;
+            outsideEnemy.layer = enemyLayer;
+        }
+
+        try
+        {
+            Camera cam = camObj.AddComponent<Camera>();
+            cam.tag = "MainCamera";
+            cam.orthographic = true;
+            cam.orthographicSize = 5.0f;
+
+            PlayerAutoShooter shooter = player.AddComponent<PlayerAutoShooter>();
+
+            Vector2 boxSize = shooter.GetDetectionBoxSize();
+            float screenHeight = cam.orthographicSize * 2f;
+            float aspect = cam.aspect > 0.01f ? cam.aspect : (9f / 16f);
+            float screenWidth = screenHeight * aspect;
+
+            Assert.That(boxSize.x, Is.EqualTo(screenWidth).Within(0.01f), "Bề rộng quét của Player phải khớp chính xác với màn hình Camera.");
+            Assert.That(boxSize.y, Is.EqualTo(screenHeight).Within(0.01f), "Chiều cao quét của Player phải khớp chính xác với màn hình Camera.");
+
+            // Kiểm tra phán đoán trong/ngoài màn hình
+            float halfW = screenWidth * 0.5f;
+            float halfH = screenHeight * 0.5f;
+            Assert.IsTrue(shooter.IsInsideScreenTargetingBounds(new Vector2(0f, 0f)));
+            Assert.IsTrue(shooter.IsInsideScreenTargetingBounds(new Vector2(halfW - 0.2f, 0f)));
+            Assert.IsFalse(shooter.IsInsideScreenTargetingBounds(new Vector2(halfW + 0.5f, 0f)), "Quái ngoài mép ngang màn hình không được xem là bên trong khung.");
+            Assert.IsFalse(shooter.IsInsideScreenTargetingBounds(new Vector2(0f, halfH + 0.5f)), "Quái ngoài mép dọc màn hình không được xem là bên trong khung.");
+
+            // Đặt quái 1 trong màn hình (x = 2.0m) và quái 2 ngoài màn hình (x = 8.0m)
+            insideEnemy.transform.position = new Vector3(2.0f, 0f, 0f);
+            outsideEnemy.transform.position = new Vector3(8.0f, 0f, 0f);
+            Physics2D.SyncTransforms();
+
+            MethodInfo findMethod = typeof(PlayerAutoShooter).GetMethod("FindNearestEnemy", BindingFlags.NonPublic | BindingFlags.Instance);
+            if (findMethod != null && enemyLayer >= 0)
+            {
+                findMethod.Invoke(shooter, null);
+                FieldInfo targetField = typeof(PlayerAutoShooter).GetField("currentTarget", BindingFlags.NonPublic | BindingFlags.Instance);
+                Transform target = targetField?.GetValue(shooter) as Transform;
+                Assert.That(target, Is.EqualTo(insideEnemy.transform), "Chỉ được khóa mục tiêu quái vật đã lọt vào khung hình.");
+            }
+        }
+        finally
+        {
+            Object.DestroyImmediate(insideEnemy);
+            Object.DestroyImmediate(outsideEnemy);
+            Object.DestroyImmediate(camObj);
+            Object.DestroyImmediate(player);
+        }
+    }
+
+    [Test]
+    public void FPSDisplay_ToggleAndCyclePosition_FunctionsCorrectly()
+    {
+        GameObject go = new GameObject("Test_FPSDisplay");
+        try
+        {
+            FPSDisplay display = go.AddComponent<FPSDisplay>();
+            Assert.That(display, Is.Not.Null);
+
+            // Test toggling
+            int prevPref = PlayerPrefs.GetInt(FPSDisplay.ShowFpsPrefKey, 1);
+            display.ToggleShowFPS();
+            Assert.That(PlayerPrefs.GetInt(FPSDisplay.ShowFpsPrefKey), Is.EqualTo(prevPref == 1 ? 0 : 1));
+
+            // Restore toggle
+            display.ToggleShowFPS();
+            Assert.That(PlayerPrefs.GetInt(FPSDisplay.ShowFpsPrefKey), Is.EqualTo(prevPref));
+
+            // Test cycling position
+            display.SetPosition(FPSDisplay.ScreenAnchorPosition.TopRight);
+            Assert.That(PlayerPrefs.GetInt(FPSDisplay.FpsPositionPrefKey), Is.EqualTo((int)FPSDisplay.ScreenAnchorPosition.TopRight));
+
+            display.CyclePosition();
+            Assert.That(PlayerPrefs.GetInt(FPSDisplay.FpsPositionPrefKey), Is.EqualTo((int)FPSDisplay.ScreenAnchorPosition.TopCenter));
+        }
+        finally
+        {
+            Object.DestroyImmediate(go);
+        }
+    }
+
+    [Test]
+    public void PerformanceManager_Ultra120Mode_Targets120Fps()
+    {
+        GameObject go = new GameObject("Test_PerformanceManager");
+        try
+        {
+            PerformanceManager pm = go.AddComponent<PerformanceManager>();
+            pm.SetFrameRateMode(PerformanceManager.FrameRateMode.Ultra120);
+
+            Assert.That(pm.ActiveTargetFps, Is.EqualTo(120));
+            Assert.That(Application.targetFrameRate, Is.EqualTo(120));
+            Assert.That(pm.CurrentMode, Is.EqualTo(PerformanceManager.FrameRateMode.Ultra120));
+        }
+        finally
+        {
+            Object.DestroyImmediate(go);
+        }
+    }
+
+    [Test]
+    public void PerformanceManager_ConfigurePhysicsSettings_IgnoresEnemyToEnemyCollision()
+    {
+        int enemyLayer = LayerMask.NameToLayer("Enemy");
+        int playerLayer = LayerMask.NameToLayer("Player");
+        int obstacleLayer = LayerMask.NameToLayer("Obstacle");
+
+        Assert.That(enemyLayer, Is.GreaterThanOrEqualTo(0), "Enemy layer must exist in ProjectSettings.");
+        Assert.That(playerLayer, Is.GreaterThanOrEqualTo(0), "Player layer must exist in ProjectSettings.");
+        Assert.That(obstacleLayer, Is.GreaterThanOrEqualTo(0), "Obstacle layer must exist in ProjectSettings.");
+
+        PerformanceManager.ConfigurePhysicsSettings();
+
+        // Step 1 check: Enemy <-> Enemy collisions must be ignored
+        Assert.That(Physics2D.GetIgnoreLayerCollision(enemyLayer, enemyLayer), Is.True,
+            "Enemy layer must ignore collision with Enemy layer to prevent O(N^2) SAT checks and redundant triggers.");
+
+        // Critical gameplay check: Enemy must STILL collide with Player and Obstacle
+        Assert.That(Physics2D.GetIgnoreLayerCollision(enemyLayer, playerLayer), Is.False,
+            "Enemy layer must collide with Player layer so contact damage still works.");
+        Assert.That(Physics2D.GetIgnoreLayerCollision(enemyLayer, obstacleLayer), Is.False,
+            "Enemy layer must collide with Obstacle layer so obstacles block enemy movement.");
+    }
+
+    [Test]
+    public void EnemyMovement_CalculateSeparationForce_DeduplicatesCompoundColliders()
+    {
+        int enemyLayer = LayerMask.NameToLayer("Enemy");
+        if (enemyLayer < 0) enemyLayer = 0;
+
+        GameObject creep1 = new GameObject("TestCreep1", typeof(EnemyMovement), typeof(CircleCollider2D), typeof(Rigidbody2D));
+        creep1.layer = enemyLayer;
+        creep1.transform.position = Vector3.zero;
+
+        // Creep 2 has multiple child colliders (resembling the real Creep prefabs with 4-5 child PolygonColliders)
+        GameObject creep2 = new GameObject("TestCreep2", typeof(EnemyMovement), typeof(Rigidbody2D));
+        creep2.layer = enemyLayer;
+        creep2.transform.position = new Vector3(0.4f, 0f, 0f);
+
+        GameObject child1 = new GameObject("ChildCol1", typeof(CircleCollider2D));
+        child1.layer = enemyLayer;
+        child1.transform.SetParent(creep2.transform);
+        child1.transform.localPosition = Vector3.zero;
+
+        GameObject child2 = new GameObject("ChildCol2", typeof(CircleCollider2D));
+        child2.layer = enemyLayer;
+        child2.transform.SetParent(creep2.transform);
+        child2.transform.localPosition = new Vector3(0.05f, 0f, 0f);
+
+        try
+        {
+            EnemyMovement m1 = creep1.GetComponent<EnemyMovement>();
+            System.Reflection.MethodInfo sepMethod = typeof(EnemyMovement).GetMethod("CalculateSeparationForce", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            Assert.That(sepMethod, Is.Not.Null);
+
+            Vector2 force = (Vector2)sepMethod.Invoke(m1, null);
+            // Creep2 is to the right (+X), so repulsion force on Creep1 must push left (-X)
+            Assert.That(force.x, Is.LessThan(0f), "Separation force should push away from neighbor on the right.");
+        }
+        finally
+        {
+            Object.DestroyImmediate(creep1);
+            Object.DestroyImmediate(creep2);
+        }
+    }
+
+    [Test]
+    public void EnemyMovement_MoveWithObstacleSlide_OptimizedMovementAndSliding()
+    {
+        int enemyLayer = LayerMask.NameToLayer("Enemy");
+        if (enemyLayer < 0) enemyLayer = 0;
+        int obstacleLayer = LayerMask.NameToLayer("Obstacle");
+        if (obstacleLayer < 0) obstacleLayer = 0;
+
+        GameObject creep = new GameObject("TestCreep_Slide", typeof(EnemyMovement), typeof(Rigidbody2D));
+        creep.layer = enemyLayer;
+        creep.transform.position = Vector3.zero;
+
+        try
+        {
+            EnemyMovement movement = creep.GetComponent<EnemyMovement>();
+            System.Reflection.MethodInfo slideMethod = typeof(EnemyMovement).GetMethod("MoveWithObstacleSlide", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            Assert.That(slideMethod, Is.Not.Null);
+
+            // 1. Move in open ground without obstacles: moves forward smoothly
+            slideMethod.Invoke(movement, new object[] { new Vector2(0.04f, 0f) });
+            Rigidbody2D rb = creep.GetComponent<Rigidbody2D>();
+            Assert.That(rb.position.x, Is.GreaterThan(0.03f));
+
+            // 2. Proximity caching: second move in same direction should use safeClearDistance
+            slideMethod.Invoke(movement, new object[] { new Vector2(0.04f, 0f) });
+            Assert.That(rb.position.x, Is.GreaterThan(0.07f));
+        }
+        finally
+        {
+            Object.DestroyImmediate(creep);
+        }
+    }
 }
+

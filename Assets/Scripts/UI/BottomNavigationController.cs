@@ -658,6 +658,22 @@ public class BottomNavigationController : MonoBehaviour
                 }
             }
         }
+
+        NotifySelectedPanelRefresh(selectedIndex);
+    }
+
+    private void NotifySelectedPanelRefresh(int selectedIndex)
+    {
+        if (!IsValidCachedIndex(selectedIndex) || items[selectedIndex] == null || items[selectedIndex].panel == null)
+        {
+            return;
+        }
+
+        ChipsetController chipset = items[selectedIndex].panel.GetComponentInChildren<ChipsetController>(true);
+        if (chipset != null)
+        {
+            chipset.ForceSyncAndRefresh();
+        }
     }
 
     private void ApplyRestingVisualState(int selectedIndex)

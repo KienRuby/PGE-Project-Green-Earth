@@ -43,8 +43,8 @@ public class PetCompanionFollower : MonoBehaviour
     [SerializeField] private float bobbingFrequency = 3.0f;
 
     [Header("Visual & Scale")]
-    [Tooltip("Kích cỡ hiển thị trong trận đấu (khoảng 40% chiều cao nhân vật).")]
-    [SerializeField] private float petScale = 0.22f;
+    [Tooltip("Kích cỡ hiển thị trong trận đấu (giảm 1 nửa từ 0.22f xuống 0.11f theo yêu cầu).")]
+    [SerializeField] private float petScale = 0.11f;
 
     [Tooltip("Góc nghiêng tối đa khi di chuyển (độ).")]
     [SerializeField] private float tiltAmount = 8f;

@@ -23,7 +23,8 @@ public static class ChapterMenuSceneBuilder
     private const string StartButtonSpritePath = "Assets/Sprites/UI/nút start.png";
     private const string ChapterDatabasePath = "Assets/Data/Chapters/ChapterDatabase.asset";
     private const string QuestDataPath = "Assets/Data/Quests/Quest_01_LabUpgrade.asset";
-    private const string FontPath = "Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset";
+    private const string FontPath = "Assets/Fonts/Nunito/Nunito SDF.asset";
+    private const string FontMaterialPath = "Assets/Fonts/Nunito/Nunito SDF - Stroke.mat";
     private const string QuestBannerSpritePath = "Assets/Sprites/UI/Chapter/btn_quest_banner.png";
     private const string GrowthFundSpritePath = "Assets/Sprites/UI/Chapter/btn_growth_fund.png";
     private const string TowerDefSpritePath = "Assets/Sprites/UI/Chapter/btn_tower_def.png";
@@ -40,6 +41,7 @@ public static class ChapterMenuSceneBuilder
     private static readonly Color Green = new Color32(88, 174, 108, 255);
 
     private static TMP_FontAsset font;
+    private static Material fontMaterial;
 
     [MenuItem("PGE/UI/Build Chapter Screen")]
     public static void BuildFromMenu()
@@ -56,6 +58,7 @@ public static class ChapterMenuSceneBuilder
         }
 
         font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath);
+        fontMaterial = AssetDatabase.LoadAssetAtPath<Material>(FontMaterialPath);
         if (font == null)
         {
             Debug.LogError($"[ChapterMenuSceneBuilder] Không tìm thấy font tại {FontPath}");
@@ -185,22 +188,22 @@ public static class ChapterMenuSceneBuilder
         chapterHeaderObj.sizeDelta = new Vector2(960f, 150f);
 
         // Left Arrow Button
-        GameObject prevBtnObj = CreateButton("PrevChapterButton", chapterHeaderObj, new Vector2(-360f, -40f), new Vector2(80f, 80f), "<", 40f, MutedTeal, TealBorder);
+        GameObject prevBtnObj = CreateButton("PrevChapterButton", chapterHeaderObj, new Vector2(-420f, -25f), new Vector2(80f, 98f), "<", 40f, MutedTeal, TealBorder);
         Button prevBtn = prevBtnObj.GetComponent<Button>();
 
         // Right Arrow Button
-        GameObject nextBtnObj = CreateButton("NextChapterButton", chapterHeaderObj, new Vector2(360f, -40f), new Vector2(80f, 80f), ">", 40f, MutedTeal, TealBorder);
+        GameObject nextBtnObj = CreateButton("NextChapterButton", chapterHeaderObj, new Vector2(420f, -25f), new Vector2(80f, 98f), ">", 40f, MutedTeal, TealBorder);
         Button nextBtn = nextBtnObj.GetComponent<Button>();
 
-        // Subtitle Text (Chapter. 04)
-        TMP_Text subtitleText = CreateText("SubtitleText", chapterHeaderObj, "Chapter. 04", 36f, Cream, TextAlignmentOptions.Center);
-        subtitleText.rectTransform.anchoredPosition = new Vector2(0f, -10f);
-        subtitleText.rectTransform.sizeDelta = new Vector2(600f, 50f);
+        // Subtitle Text (Chapter. 01)
+        TMP_Text subtitleText = CreateText("SubtitleText", chapterHeaderObj, "Chapter. 01", 38f, Color.white, TextAlignmentOptions.Center);
+        subtitleText.rectTransform.anchoredPosition = new Vector2(0f, 30f);
+        subtitleText.rectTransform.sizeDelta = new Vector2(700f, 55f);
 
-        // Title Text (Dense Jungle 1)
-        TMP_Text titleText = CreateText("TitleText", chapterHeaderObj, "Dense Jungle 1", 62f, Yellow, TextAlignmentOptions.Center);
-        titleText.rectTransform.anchoredPosition = new Vector2(0f, -65f);
-        titleText.rectTransform.sizeDelta = new Vector2(800f, 80f);
+        // Title Text (Grassland Outskirts)
+        TMP_Text titleText = CreateText("TitleText", chapterHeaderObj, "Grassland Outskirts", 64f, Color.white, TextAlignmentOptions.Center);
+        titleText.rectTransform.anchoredPosition = new Vector2(0f, -25f);
+        titleText.rectTransform.sizeDelta = new Vector2(850f, 85f);
 
         // 3. Stage Preview Window
         GameObject previewWindowObj = CreateFrame("StagePreviewWindow", chapterPanelTr, Panel, TealBorder, out _);
@@ -628,13 +631,17 @@ public static class ChapterMenuSceneBuilder
         RectTransform rect = CreateRect(name, parent);
         TextMeshProUGUI text = rect.gameObject.AddComponent<TextMeshProUGUI>();
         text.font = font;
+        if (fontMaterial != null)
+        {
+            text.fontSharedMaterial = fontMaterial;
+        }
         text.text = value;
         text.fontSize = fontSize;
         text.fontStyle = FontStyles.Bold;
         text.color = color;
         text.alignment = alignment;
         text.enableWordWrapping = false;
-        text.overflowMode = TextOverflowModes.Ellipsis;
+        text.overflowMode = TextOverflowModes.Overflow;
         text.raycastTarget = false;
         text.outlineColor = Navy;
         text.outlineWidth = 0.16f;

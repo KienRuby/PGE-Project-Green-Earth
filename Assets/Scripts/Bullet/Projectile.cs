@@ -31,6 +31,16 @@ public class Projectile : MonoBehaviour, IPoolable
     [Tooltip("Prefab hiệu ứng nổ (VFX Boom).")]
     [SerializeField] private GameObject explosionVfxPrefab;
 
+    [Header("Hit VFX Settings")]
+    [Tooltip("Prefab hiệu ứng trúng đạn nổ tại điểm va chạm (Hit VFX).")]
+    [SerializeField] private GameObject hitVfxPrefab;
+
+    public GameObject HitVfxPrefab
+    {
+        get => hitVfxPrefab;
+        set => hitVfxPrefab = value;
+    }
+
     [Header("Perk Attributes")]
     [SerializeField] private float extraLifeStealPercent = 0f;
     [SerializeField] private bool canRicochet = false;
@@ -143,6 +153,17 @@ public class Projectile : MonoBehaviour, IPoolable
         {
             defaultColor = spriteRenderer.color;
             hasCachedColor = true;
+        }
+
+        if (hitVfxPrefab == null)
+        {
+            hitVfxPrefab = Resources.Load<GameObject>("Prefabs/PlayerHitVFX");
+#if UNITY_EDITOR
+            if (hitVfxPrefab == null)
+            {
+                hitVfxPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/PlayerHitVFX.prefab");
+            }
+#endif
         }
     }
 
@@ -309,6 +330,7 @@ public class Projectile : MonoBehaviour, IPoolable
                 transform.position = hitPoint;
                 if (rb != null) rb.position = hitPoint;
                 if (isExplosive) Explode();
+                else SpawnHitVfx(hitPoint);
                 isDespawning = true;
                 Despawn();
                 return true;
@@ -338,6 +360,7 @@ public class Projectile : MonoBehaviour, IPoolable
             }
             else
             {
+                SpawnHitVfx(hitPoint);
                 if (eh != null)
                 {
                     eh.TakeDamage(damage, IsCritical);
@@ -386,6 +409,7 @@ public class Projectile : MonoBehaviour, IPoolable
         if (!hitCollider.isTrigger)
         {
             if (isExplosive) Explode();
+            else SpawnHitVfx(hitPoint);
             isDespawning = true;
             Despawn();
             return true;
@@ -397,7 +421,27 @@ public class Projectile : MonoBehaviour, IPoolable
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (isDespawning || other == null) return;
-        ResolveHit(other, (Vector2)transform.position);
+        Vector2 hitPoint = other.ClosestPoint(transform.position);
+        if (hitPoint == Vector2.zero && ((Vector2)transform.position) != Vector2.zero)
+        {
+            hitPoint = (Vector2)transform.position;
+        }
+        ResolveHit(other, hitPoint);
+    }
+
+    private void SpawnHitVfx(Vector2 position)
+    {
+        GameObject vfxToSpawn = hitVfxPrefab != null ? hitVfxPrefab : explosionVfxPrefab;
+        if (vfxToSpawn == null) return;
+
+        if (PoolManager.Instance != null)
+        {
+            PoolManager.Instance.Spawn(vfxToSpawn, position, Quaternion.identity);
+        }
+        else
+        {
+            Instantiate(vfxToSpawn, position, Quaternion.identity);
+        }
     }
 
     private void Explode()

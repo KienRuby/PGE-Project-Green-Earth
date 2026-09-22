@@ -1,0 +1,11 @@
+fileFormatVersion: 2
+guid: ace76a322d8b45669a718744ae9a39ac
+AnimationClip:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: PlayerHitVFX
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

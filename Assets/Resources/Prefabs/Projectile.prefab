@@ -167,6 +167,10 @@ MonoBehaviour:
   lifeTime: 5
   isHoming: 0
   homingRotateSpeed: 360
+  isExplosive: 0
+  explosionRadius: 2
+  explosionVfxPrefab: {fileID: 0}
+  hitVfxPrefab: {fileID: 3290514725870574986, guid: be125f9ff949484f928251ce293d8017, type: 3}
 --- !u!95 &1351955403336106607
 Animator:
   serializedVersion: 5

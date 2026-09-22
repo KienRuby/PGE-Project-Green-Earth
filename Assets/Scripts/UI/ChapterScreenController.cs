@@ -143,6 +143,21 @@ public class ChapterScreenController : MonoBehaviour
             gemMineButton.onClick.RemoveListener(OnGemMineClicked);
             gemMineButton.onClick.AddListener(OnGemMineClicked);
         }
+
+        EnsureHeaderReferencesBound();
+    }
+
+    private void EnsureHeaderReferencesBound()
+    {
+        if (chapterSubtitleText == null)
+        {
+            chapterSubtitleText = transform.Find("ChapterSelectorHeader/SubtitleText")?.GetComponent<TMP_Text>();
+        }
+        if (chapterTitleText == null)
+        {
+            chapterTitleText = transform.Find("ChapterSelectorHeader/TitleText")?.GetComponent<TMP_Text>()
+                ?? transform.Find("ChapterSelectorHeader/ChapterTitleText")?.GetComponent<TMP_Text>();
+        }
     }
 
     private void Start()
@@ -158,11 +173,13 @@ public class ChapterScreenController : MonoBehaviour
             currentChapterIndex = defaultChapterIndex;
         }
 
+        EnsureHeaderReferencesBound();
         RefreshChapterView();
     }
 
     private void OnEnable()
     {
+        EnsureHeaderReferencesBound();
         ChipManager.OnEnergyChanged += HandleEnergyChanged;
         ChipManager.OnTestModeChanged += HandleTestModeChanged;
         RefreshChapterView();
@@ -240,6 +257,8 @@ public class ChapterScreenController : MonoBehaviour
 
     public void RefreshChapterView()
     {
+        EnsureHeaderReferencesBound();
+
         if (chapterDatabase != null && chapterDatabase.Count > 0)
         {
             currentChapter = chapterDatabase.GetChapter(currentChapterIndex);
@@ -252,12 +271,16 @@ public class ChapterScreenController : MonoBehaviour
         {
             if (chapterSubtitleText != null)
             {
+                chapterSubtitleText.gameObject.SetActive(true);
                 chapterSubtitleText.text = $"Chapter. {currentChapter.chapterNumber:00}";
+                chapterSubtitleText.ForceMeshUpdate(true, true);
             }
 
             if (chapterTitleText != null)
             {
+                chapterTitleText.gameObject.SetActive(true);
                 chapterTitleText.text = currentChapter.chapterTitle;
+                chapterTitleText.ForceMeshUpdate(true, true);
             }
 
             if (previewBackgroundImage != null)
@@ -312,8 +335,18 @@ public class ChapterScreenController : MonoBehaviour
         else
         {
             // Fallback hiển thị mẫu
-            if (chapterSubtitleText != null) chapterSubtitleText.text = "Chapter. 01";
-            if (chapterTitleText != null) chapterTitleText.text = "Grassland Outskirts";
+            if (chapterSubtitleText != null)
+            {
+                chapterSubtitleText.gameObject.SetActive(true);
+                chapterSubtitleText.text = "Chapter. 01";
+                chapterSubtitleText.ForceMeshUpdate(true, true);
+            }
+            if (chapterTitleText != null)
+            {
+                chapterTitleText.gameObject.SetActive(true);
+                chapterTitleText.text = "Grassland Outskirts";
+                chapterTitleText.ForceMeshUpdate(true, true);
+            }
             if (previewBackgroundImage != null) previewBackgroundImage.color = isLocked ? lockedBackgroundColor : unlockedBackgroundColor;
             if (bossSilhouetteImage != null)
             {

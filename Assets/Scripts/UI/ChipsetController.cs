@@ -487,7 +487,39 @@ public class ChipsetController : MonoBehaviour
         PlayerDataService.OnChipsetPiecesChanged += HandleChipsetPiecesChanged;
 
         // Rewards may arrive while this tab is disabled and unsubscribed.
-        SyncChipsetProgressFromSave();
+        ForceSyncAndRefresh();
+    }
+
+    private void OnDisable()
+    {
+        ChipManager.OnDataChipsChanged -= HandleCurrencyChanged;
+        ChipManager.OnRedGemsChanged -= HandleCurrencyChanged;
+        ChipManager.OnAdvanceStonesChanged -= HandleCurrencyChanged;
+        PlayerDataService.OnChipsetPiecesChanged -= HandleChipsetPiecesChanged;
+    }
+
+    private void OnDestroy()
+    {
+        ChipManager.OnDataChipsChanged -= HandleCurrencyChanged;
+        ChipManager.OnRedGemsChanged -= HandleCurrencyChanged;
+        ChipManager.OnAdvanceStonesChanged -= HandleCurrencyChanged;
+        PlayerDataService.OnChipsetPiecesChanged -= HandleChipsetPiecesChanged;
+    }
+
+    /// <summary>
+    /// Đồng bộ lại dữ liệu chipset từ PlayerPrefs và vẽ lại UI toàn diện (được gọi từ OnEnable hoặc BottomNavigation).
+    /// </summary>
+    public void ForceSyncAndRefresh()
+    {
+        if (allChips == null || allChips.Count == 0)
+        {
+            InitializeDatabase();
+        }
+        else
+        {
+            SyncChipsetProgressFromSave();
+        }
+
         if (isStarted)
         {
             RefreshTopBar();
@@ -498,14 +530,6 @@ public class ChipsetController : MonoBehaviour
                 RefreshDetailModal();
             }
         }
-    }
-
-    private void OnDisable()
-    {
-        ChipManager.OnDataChipsChanged -= HandleCurrencyChanged;
-        ChipManager.OnRedGemsChanged -= HandleCurrencyChanged;
-        ChipManager.OnAdvanceStonesChanged -= HandleCurrencyChanged;
-        PlayerDataService.OnChipsetPiecesChanged -= HandleChipsetPiecesChanged;
     }
 
     private void HandleCurrencyChanged(int _)
@@ -775,6 +799,7 @@ public class ChipsetController : MonoBehaviour
         {
             if (chip != null) LoadSavedChipProgress(chip);
         }
+        ApplyTierUnlockRulesToCatalog();
     }
 
     private static void LoadSavedChipProgress(ChipItemData chip)

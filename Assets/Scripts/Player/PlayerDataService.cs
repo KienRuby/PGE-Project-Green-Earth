@@ -40,7 +40,7 @@ public static class PlayerDataService
     public static void InitializeApplicationSettings()
     {
         EnsureSaveSchema();
-        Application.targetFrameRate = 60;
+        Application.targetFrameRate = 120;
         QualitySettings.vSyncCount = 0;
         Screen.orientation = ScreenOrientation.Portrait;
     }

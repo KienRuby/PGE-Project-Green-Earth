@@ -82,4 +82,21 @@ public sealed class ChipsetShopSyncTests
         Invoke("OnEnable");
         Assert.That(chip.count, Is.EqualTo(45), "Reopening must not grant rewards twice");
     }
+
+    [Test]
+    public void ForceSyncAndRefresh_DirectlyUpdatesChipCount()
+    {
+        PlayerDataService.SaveChipsetItemData(1, 8, (int)ChipTier.Rare, 35, 10, true);
+        controller.InitializeDatabase();
+
+        // Simulate external piece addition (e.g. Shop reward or data sync)
+        PlayerDataService.SaveChipsetItemData(1, 8, (int)ChipTier.Rare, 60, 10, true);
+
+        // Even without OnEnable, calling ForceSyncAndRefresh updates in-memory chip immediately
+        controller.ForceSyncAndRefresh();
+
+        Assert.That(chip.count, Is.EqualTo(60));
+        Assert.That(chip.level, Is.EqualTo(8));
+        Assert.That(chip.tier, Is.EqualTo(ChipTier.Rare));
+    }
 }

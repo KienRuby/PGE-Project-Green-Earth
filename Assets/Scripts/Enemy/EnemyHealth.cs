@@ -45,13 +45,13 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     [SerializeField] private string deathAnimationState = "Die";
 
     [Tooltip("Thời gian phát animation Die tối thiểu dự phòng nếu không tìm thấy clip (giây).")]
-    [SerializeField] private float fallbackDeathDuration = 0.5f;
+    [SerializeField] private float fallbackDeathDuration = 0.25f;
 
     [Tooltip("Thời gian trễ cộng thêm trước khi quái vật bị thu hồi về Pool sau khi animation kết thúc (giây).")]
     [SerializeField] private float destroyDelay = 0f;
 
     [Tooltip("Thời gian hiệu ứng mờ dần (Fade-out) trước khi biến mất và thu hồi về Pool (giây).")]
-    [SerializeField] private float fadeOutDuration = 0.5f;
+    [SerializeField] private float fadeOutDuration = 0.15f;
 
     [Header("Damage Flash Effect")]
     [Tooltip("Bật hiệu ứng nhấp nháy đỏ khi nhận sát thương.")]

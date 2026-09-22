@@ -542,15 +542,46 @@ public class PlayerAutoShooter : MonoBehaviour
     // TÍNH TOÁN KÍCH THƯỚC PHẠM VI THEO KHUNG HÌNH CAMERA
     // =====================================================
 
+    private Camera cachedCamera;
+
+    public Camera GetActiveCamera()
+    {
+        if (cachedCamera != null && cachedCamera.isActiveAndEnabled) return cachedCamera;
+        if (targetCamera != null && targetCamera.isActiveAndEnabled)
+        {
+            cachedCamera = targetCamera;
+            return cachedCamera;
+        }
+        cachedCamera = Camera.main;
+        if (cachedCamera != null) return cachedCamera;
+        return Camera.current;
+    }
+
+    /// <summary>
+    /// Bán kính nửa đường chéo của khung nhìn màn hình Camera (Viewport Diagonal Range).
+    /// Khớp chính xác 100% tỉ lệ khung hình màn hình để bao phủ toàn bộ vùng nhìn thấy được.
+    /// </summary>
+    public float ScreenDiagonalRange
+    {
+        get
+        {
+            Vector2 boxSize = GetDetectionBoxSize();
+            float halfW = boxSize.x * 0.5f;
+            float halfH = boxSize.y * 0.5f;
+            return Mathf.Sqrt(halfW * halfW + halfH * halfH);
+        }
+    }
+
     public Vector2 GetDetectionBoxSize()
     {
         if (detectionShape == DetectionShape.CameraViewport)
         {
-            Camera cam = targetCamera != null ? targetCamera : Camera.main;
+            Camera cam = GetActiveCamera();
             if (cam != null && cam.orthographic)
             {
                 float height = cam.orthographicSize * 2f;
-                float width = height * cam.aspect;
+                float aspect = cam.aspect > 0.01f ? cam.aspect : (9f / 16f);
+                float width = height * aspect;
                 return new Vector2(width, height) * viewportScale;
             }
             return customBoxSize;
@@ -568,7 +599,7 @@ public class PlayerAutoShooter : MonoBehaviour
     {
         if (detectionShape == DetectionShape.CameraViewport)
         {
-            Camera cam = targetCamera != null ? targetCamera : Camera.main;
+            Camera cam = GetActiveCamera();
             if (cam != null)
             {
                 return (Vector2)cam.transform.position;
@@ -576,6 +607,41 @@ public class PlayerAutoShooter : MonoBehaviour
         }
 
         return (Vector2)transform.position;
+    }
+
+    /// <summary>
+    /// Kiểm tra xem một vị trí trong thế giới (worldPos) có thực sự nằm bên trong khung màn hình hay không.
+    /// Đảm bảo người chơi chỉ khóa mục tiêu và khai hỏa khi quái vật đã lọt vào khung hình.
+    /// </summary>
+    public bool IsInsideScreenTargetingBounds(Vector2 worldPos, float padding = 0f)
+    {
+        if (detectionShape == DetectionShape.CameraViewport)
+        {
+            Camera cam = GetActiveCamera();
+            if (cam == null) return true; // Hỗ trợ Unit test không có camera
+
+            Vector2 center = GetDetectionCenter();
+            Vector2 size = GetDetectionBoxSize();
+            float halfW = (size.x * 0.5f) + padding;
+            float halfH = (size.y * 0.5f) + padding;
+
+            return Mathf.Abs(worldPos.x - center.x) <= halfW &&
+                   Mathf.Abs(worldPos.y - center.y) <= halfH;
+        }
+        else if (detectionShape == DetectionShape.CustomBox)
+        {
+            Vector2 center = (Vector2)transform.position;
+            float halfW = (customBoxSize.x * 0.5f) + padding;
+            float halfH = (customBoxSize.y * 0.5f) + padding;
+
+            return Mathf.Abs(worldPos.x - center.x) <= halfW &&
+                   Mathf.Abs(worldPos.y - center.y) <= halfH;
+        }
+        else
+        {
+            float maxR = (detectionRadius + bonusAttackRange) + padding;
+            return Vector2.Distance(transform.position, worldPos) <= maxR;
+        }
     }
 
     // =====================================================
@@ -586,7 +652,7 @@ public class PlayerAutoShooter : MonoBehaviour
     {
         targetSearchTimer -= Time.deltaTime;
 
-        // Target hiện tại chết / bị Destroy / bị Disable
+        // Target hiện tại chết / bị Destroy / bị Disable hoặc ra khỏi khung hình
         if (currentTarget == null || !currentTarget.gameObject.activeInHierarchy)
         {
             currentTarget = null;
@@ -595,7 +661,8 @@ public class PlayerAutoShooter : MonoBehaviour
         else
         {
             EnemyHealth curEh = currentTarget.GetComponentInParent<EnemyHealth>();
-            if (curEh == null || curEh.IsDead || !curEh.gameObject.activeInHierarchy)
+            if (curEh == null || curEh.IsDead || !curEh.gameObject.activeInHierarchy ||
+                (detectionShape == DetectionShape.CameraViewport && !IsInsideScreenTargetingBounds(curEh.AimPoint, 0.2f)))
             {
                 currentTarget = null;
                 targetSearchTimer = 0f;
@@ -693,7 +760,12 @@ public class PlayerAutoShooter : MonoBehaviour
             if (!evaluatedEnemyIds.Add(instanceId))
                 continue; // Tránh tính lặp lại quái vật có nhiều collider (nhất là Boss)
 
-            Vector2 diff = (Vector2)health.transform.position - playerPosition;
+            // 🎯 QUAN TRỌNG: Chỉ khóa mục tiêu khi quái vật ĐÃ LỌT VÀO KHUNG HÌNH (Screen Viewport)
+            if (detectionShape == DetectionShape.CameraViewport && !IsInsideScreenTargetingBounds(health.AimPoint))
+                continue;
+
+            Vector2 closestPoint = enemyCollider.ClosestPoint(playerPosition);
+            Vector2 diff = closestPoint - playerPosition;
             float distanceSqr = diff.sqrMagnitude;
 
             if (distanceSqr > attackRangeSqr)
@@ -777,7 +849,8 @@ public class PlayerAutoShooter : MonoBehaviour
         if (currentTarget != null && currentTarget.gameObject.activeInHierarchy)
         {
             EnemyHealth curHealth = currentTarget.GetComponentInParent<EnemyHealth>();
-            if (curHealth != null && !curHealth.IsDead && curHealth.gameObject.activeInHierarchy)
+            bool isCurTargetInsideView = detectionShape != DetectionShape.CameraViewport || IsInsideScreenTargetingBounds(curHealth != null ? curHealth.AimPoint : (Vector2)currentTarget.position, 0.2f);
+            if (curHealth != null && !curHealth.IsDead && curHealth.gameObject.activeInHierarchy && isCurTargetInsideView)
             {
                 float curDistSqr = ((Vector2)curHealth.transform.position - playerPosition).sqrMagnitude;
                 float maxAllowedRange = effectiveRange + 0.5f; // Ngưỡng đệm rời tầm đánh
@@ -963,6 +1036,16 @@ public class PlayerAutoShooter : MonoBehaviour
 
     private void AutoShoot()
     {
+        if (currentTarget != null)
+        {
+            EnemyHealth curEh = currentTarget.GetComponentInParent<EnemyHealth>();
+            if (curEh == null || curEh.IsDead || !curEh.gameObject.activeInHierarchy ||
+                (detectionShape == DetectionShape.CameraViewport && !IsInsideScreenTargetingBounds(curEh.AimPoint, 0.2f)))
+            {
+                currentTarget = null;
+            }
+        }
+
         // Giữ trạng thái Attack trong suốt thời gian súng tự động bắn mục tiêu.
         // Khoảng nghỉ giữa hai viên đạn vẫn thuộc cùng một chu kỳ Attack.
         IsAttacking = currentTarget != null && projectilePrefab != null;
@@ -982,6 +1065,13 @@ public class PlayerAutoShooter : MonoBehaviour
     private void AutoShootChipsetWeapons()
     {
         if (currentTarget == null || projectilePrefab == null) return;
+
+        EnemyHealth curEh = currentTarget.GetComponentInParent<EnemyHealth>();
+        if (curEh == null || curEh.IsDead || !curEh.gameObject.activeInHierarchy ||
+            (detectionShape == DetectionShape.CameraViewport && !IsInsideScreenTargetingBounds(curEh.AimPoint, 0.2f)))
+        {
+            return;
+        }
 
         // Chỉ khai hỏa vũ khí chipset khi mục tiêu nằm trong tầm bắn của chipset (nhỏ hơn Player 3m)
         Vector3 spawnPosition = attackPoint != null ? attackPoint.position : transform.position;

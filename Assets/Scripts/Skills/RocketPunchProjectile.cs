@@ -24,7 +24,7 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
     [SerializeField] private int aoeDamage = 37;
 
     [Tooltip("Bán kính vụ nổ (mét).")]
-    [SerializeField] private float aoeRadius = 2.5f;
+    [SerializeField] private float aoeRadius = 1.25f;
 
     [Tooltip("Vận tốc bay khi lao tới quái vật (mét/giây).")]
     [SerializeField] private float launchSpeed = 12.0f;
@@ -241,7 +241,7 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
         playerTransform = player;
         directDamage = damage;
         aoeDamage = aoeDmg > 0 ? aoeDmg : Mathf.RoundToInt(damage * 0.55f);
-        aoeRadius = Mathf.Max(1.0f, radius);
+        aoeRadius = Mathf.Max(0.5f, radius);
         launchSpeed = Mathf.Max(2.0f, speed);
         orbitRadius = Mathf.Max(0.2f, orbitDist);
         orbitSpeed = Mathf.Max(30f, orbitSpd);
