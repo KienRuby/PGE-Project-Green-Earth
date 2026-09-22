@@ -104,12 +104,12 @@ public static class UIDissolveAutoInstaller
 
         string cleanName = objName.Trim();
 
-        // PityGuaranteePanel owns its own unscaled pop/fade animation. Letting
-        // the global dissolve installer also wire its close button starts two
-        // competing transitions; the panel is then deactivated while dissolve
-        // materials are still applied and the next open renders the stuck
-        // noisy frame seen after the second click.
-        if (cleanName.Equals("PityGuaranteePanel", StringComparison.OrdinalIgnoreCase))
+        // PityGuaranteePanel and DailyGemMineModal own their own animations / standard shaders.
+        // Letting the global dissolve installer wire them causes stuck dissolve noise frames.
+        if (cleanName.Equals("PityGuaranteePanel", StringComparison.OrdinalIgnoreCase) ||
+            cleanName.IndexOf("DailyGemMine", StringComparison.OrdinalIgnoreCase) >= 0 ||
+            cleanName.IndexOf("GemMine", StringComparison.OrdinalIgnoreCase) >= 0 ||
+            cleanName.IndexOf("MonthlyPremium", StringComparison.OrdinalIgnoreCase) >= 0)
         {
             return false;
         }
