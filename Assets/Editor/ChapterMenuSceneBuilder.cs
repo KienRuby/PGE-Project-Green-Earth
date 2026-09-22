@@ -776,6 +776,8 @@ public static class ChapterMenuSceneBuilder
         modalSO.FindProperty("startLevel1Button").objectReferenceValue = startBtn;
         modalSO.FindProperty("resetTimerText").objectReferenceValue = resetTxt;
         modalSO.FindProperty("entranceCountText").objectReferenceValue = entranceTxt;
+        SerializedProperty sceneNameProp = modalSO.FindProperty("gemMineSceneName");
+        if (sceneNameProp != null) sceneNameProp.stringValue = "goalkeeper";
         modalSO.ApplyModifiedProperties();
 
         // 7. Attach DailyGemMineLayoutTuner for live position & size adjustments

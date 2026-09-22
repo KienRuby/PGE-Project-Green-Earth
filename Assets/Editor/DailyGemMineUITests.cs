@@ -110,6 +110,7 @@ public class DailyGemMineUITests
 
         Assert.AreEqual(1, levelStarted);
         Assert.AreEqual(4, ctrl.RemainingEntrances);
+        Assert.AreEqual("goalkeeper", ctrl.GemMineSceneName);
 
         Object.DestroyImmediate(startBtnObj);
         Object.DestroyImmediate(modalObj);

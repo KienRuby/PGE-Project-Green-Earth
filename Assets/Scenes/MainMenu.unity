@@ -120561,6 +120561,7 @@ MonoBehaviour:
   remainingEntrances: 5
   maxEntrances: 5
   useManualTime: 0
+  gemMineSceneName: goalkeeper
 --- !u!225 &1610546630
 CanvasGroup:
   m_ObjectHideFlags: 0

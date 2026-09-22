@@ -1,6 +1,7 @@
 using System;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
@@ -53,6 +54,10 @@ public class DailyGemMineModalController : MonoBehaviour
     [Tooltip("Text hiển thị số lượt vào Entrance: 5 Left.")]
     [SerializeField] private TMP_Text entranceCountText;
 
+    [Header("Scene Transition")]
+    [Tooltip("Tên Scene sẽ chuyển sang khi nhấn nút Start (mặc định: goalkeeper).")]
+    [SerializeField] private string gemMineSceneName = "goalkeeper";
+
     [Header("Runtime State")]
     [SerializeField] private int remainingHours = 9;
     [SerializeField] private int remainingMinutes = 26;
@@ -69,6 +74,11 @@ public class DailyGemMineModalController : MonoBehaviour
     public event Action OnModalClosed;
 
     public bool IsOpen => modalRoot != null ? modalRoot.activeSelf : gameObject.activeSelf;
+    public string GemMineSceneName
+    {
+        get => gemMineSceneName;
+        set => gemMineSceneName = value;
+    }
     public int RemainingHours => remainingHours;
     public int RemainingMinutes => remainingMinutes;
     public int RemainingSeconds => remainingSeconds;
@@ -406,8 +416,18 @@ public class DailyGemMineModalController : MonoBehaviour
 
         RefreshStatusTexts();
 
-        Debug.Log($"[DailyGemMineModalController] Bắt đầu màn Gem Mine Cấp {level}. Lượt còn lại: {remainingEntrances}.");
+        Debug.Log($"[DailyGemMineModalController] Bắt đầu màn Gem Mine Cấp {level}. Lượt còn lại: {remainingEntrances}. Chuyển sang Scene: {gemMineSceneName}.");
         OnLevelStarted?.Invoke(level);
+
+        if (Application.isPlaying && !string.IsNullOrEmpty(gemMineSceneName))
+        {
+            SceneManager.LoadScene(gemMineSceneName);
+        }
+    }
+
+    public void SetGemMineSceneNameForTesting(string sceneName)
+    {
+        gemMineSceneName = sceneName;
     }
 
     /// <summary>
