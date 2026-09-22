@@ -563,7 +563,7 @@ public static class ChapterMenuSceneBuilder
         RectTransform backdropRect = backdropObj.GetComponent<RectTransform>();
         Stretch(backdropRect, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
         Image backdropImg = backdropObj.AddComponent<Image>();
-        backdropImg.color = new Color32(0, 0, 0, 160);
+        backdropImg.color = new Color32(0, 0, 0, 220);
         backdropImg.raycastTarget = true;
         Button backdropBtn = backdropObj.AddComponent<Button>();
 
@@ -576,7 +576,7 @@ public static class ChapterMenuSceneBuilder
         contentRect.anchoredPosition = new Vector2(0f, 25f);
         contentRect.sizeDelta = new Vector2(980f, 1530f);
 
-        // 4. Monthly Premium Banner (with star badge built-in)
+        // 4. Monthly Premium Banner (with star badge & 90.000 đ button baked into sprite)
         GameObject bannerObj = CreateRect("MonthlyPremiumBanner", contentObj.transform).gameObject;
         RectTransform bannerRect = bannerObj.GetComponent<RectTransform>();
         bannerRect.anchorMin = new Vector2(0.5f, 1f);
@@ -594,35 +594,21 @@ public static class ChapterMenuSceneBuilder
         bannerShadow.effectColor = new Color32(0, 14, 24, 200);
         bannerShadow.effectDistance = new Vector2(4f, -5f);
 
-        // 4A. Yellow Price Button (90.000 đ) inside Monthly Premium Banner
+        // 4A. Hitbox Button (90.000 đ) over Monthly Premium Banner (transparent raycast target)
         GameObject priceBtnObj = CreateRect("PriceButton", bannerObj.transform).gameObject;
         RectTransform priceRect = priceBtnObj.GetComponent<RectTransform>();
         priceRect.anchorMin = new Vector2(0.5f, 0f);
         priceRect.anchorMax = new Vector2(0.5f, 0f);
         priceRect.pivot = new Vector2(0.5f, 0f);
-        priceRect.anchoredPosition = new Vector2(0f, 20f);
-        priceRect.sizeDelta = new Vector2(290f, 82f);
+        priceRect.anchoredPosition = new Vector2(0f, 15f);
+        priceRect.sizeDelta = new Vector2(300f, 90f);
 
         Image priceImg = priceBtnObj.AddComponent<Image>();
-        if (priceBtnSprite != null) priceImg.sprite = priceBtnSprite;
-        priceImg.color = Color.white;
-        priceImg.preserveAspect = false;
+        priceImg.color = Color.clear;
+        priceImg.raycastTarget = true;
 
         Button priceBtn = priceBtnObj.AddComponent<Button>();
         priceBtn.targetGraphic = priceImg;
-        if (priceBtnPressedSprite != null)
-        {
-            priceBtn.transition = Selectable.Transition.SpriteSwap;
-            SpriteState ss = priceBtn.spriteState;
-            ss.pressedSprite = priceBtnPressedSprite;
-            priceBtn.spriteState = ss;
-        }
-
-        TMP_Text priceTxt = CreateText("PriceLabel", priceBtnObj.transform, "90.000 đ", 38f, Color.white, TextAlignmentOptions.Center);
-        priceTxt.fontStyle = FontStyles.Bold;
-        priceTxt.outlineColor = Navy;
-        priceTxt.outlineWidth = 0.22f;
-        Stretch(priceTxt.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
         // 5. Daily Gem Mine Main Panel
         GameObject panelObj = CreateRect("DailyGemMinePanel", contentObj.transform).gameObject;

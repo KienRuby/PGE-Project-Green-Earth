@@ -67,17 +67,24 @@ public class DailyGemMineUITests
 
         ctrl.SetUIReferencesForTesting(modalObj, null, null, null, timerTxt, entranceTxt);
 
+        // 1. Khi còn đủ 5 lượt: Không hiển thị Reset in time
         ctrl.SetRemainingTime(9, 26);
         ctrl.SetEntrances(5, 5);
 
+        Assert.IsFalse(timerObj.activeSelf, "Timer must be hidden when entrances are full (5/5)");
+        StringAssert.Contains("Entrance:", entranceTxt.text);
+        StringAssert.Contains("5", entranceTxt.text);
+
+        // 2. Khi đã chơi (-1 lượt -> 4 lượt): Hiển thị Reset in time
+        ctrl.SetEntrances(4, 5);
+
+        Assert.IsTrue(timerObj.activeSelf, "Timer must be visible when entrances < maxEntrances");
         StringAssert.Contains("09", timerTxt.text);
         StringAssert.Contains("26", timerTxt.text);
         StringAssert.Contains("Hour", timerTxt.text);
         StringAssert.Contains("Min Left", timerTxt.text);
-
         StringAssert.Contains("Entrance:", entranceTxt.text);
-        StringAssert.Contains("5", entranceTxt.text);
-        StringAssert.Contains("Left", entranceTxt.text);
+        StringAssert.Contains("4", entranceTxt.text);
 
         Object.DestroyImmediate(timerObj);
         Object.DestroyImmediate(entranceObj);

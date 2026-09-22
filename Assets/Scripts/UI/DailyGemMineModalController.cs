@@ -271,6 +271,21 @@ public class DailyGemMineModalController : MonoBehaviour
                 }
             }
         }
+
+        // 4. Xóa sạch các GameObject thừa từ phiên bản cũ nếu còn sót lại trong Scene (nút X đỏ, v.v.)
+        Transform legacyClose = transform.Find("ContentRoot/CloseButton");
+        if (legacyClose != null)
+        {
+            if (Application.isPlaying) Destroy(legacyClose.gameObject);
+            else DestroyImmediate(legacyClose.gameObject);
+        }
+
+        Transform legacyPriceLabel = transform.Find("ContentRoot/MonthlyPremiumBanner/PriceButton/PriceLabel");
+        if (legacyPriceLabel != null)
+        {
+            if (Application.isPlaying) Destroy(legacyPriceLabel.gameObject);
+            else DestroyImmediate(legacyPriceLabel.gameObject);
+        }
     }
 
     /// <summary>
@@ -278,6 +293,7 @@ public class DailyGemMineModalController : MonoBehaviour
     /// </summary>
     public void OpenModal()
     {
+        transform.SetAsLastSibling();
         SanitizeMaterialsAndEffects();
         CheckDailyReset();
         UpdateCountdownTime();
@@ -413,16 +429,34 @@ public class DailyGemMineModalController : MonoBehaviour
 
     public void RefreshStatusTexts()
     {
+        bool isFull = remainingEntrances >= maxEntrances;
+
         if (resetTimerText != null)
         {
-            string hStr = remainingHours.ToString("D2");
-            string mStr = remainingMinutes.ToString("D2");
-            resetTimerText.text = $"Reset in: <color=#FFEE33>{hStr}</color> Hour <color=#FFEE33>{mStr}</color> Min Left";
+            if (isFull)
+            {
+                // Khi còn đủ 5 lượt tối đa: KHÔNG hiển thị Reset in time
+                resetTimerText.gameObject.SetActive(false);
+                resetTimerText.text = string.Empty;
+            }
+            else
+            {
+                // Khi đã chơi (-1 lượt trở đi): Hiển thị Reset in time
+                resetTimerText.gameObject.SetActive(true);
+                resetTimerText.rectTransform.anchoredPosition = new Vector2(0f, -225f);
+                string hStr = remainingHours.ToString("D2");
+                string mStr = remainingMinutes.ToString("D2");
+                resetTimerText.text = $"Reset in: <color=#FFEE33>{hStr}</color> Hour <color=#FFEE33>{mStr}</color> Min Left";
+            }
         }
 
         if (entranceCountText != null)
         {
             entranceCountText.text = $"Entrance: <color=#FFEE33>{remainingEntrances}</color> Left";
+            // Khi đủ 5 lượt (không có timer), căn giữa entrance text hài hòa
+            entranceCountText.rectTransform.anchoredPosition = isFull
+                ? new Vector2(0f, -250f)
+                : new Vector2(0f, -275f);
         }
 
         // Khóa / mở nút Start tùy theo số lượt còn lại
