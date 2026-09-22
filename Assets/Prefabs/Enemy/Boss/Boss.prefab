@@ -401,6 +401,7 @@ MonoBehaviour:
   enrageCooldownMultiplier: 0.6
   windupColor: {r: 1, g: 0.3, b: 0.3, a: 1}
   enrageColor: {r: 1, g: 0.6, b: 0.6, a: 1}
+  bodyCollisionRadius: 0.5
 --- !u!114 &6245901376944778841
 MonoBehaviour:
   m_ObjectHideFlags: 0
