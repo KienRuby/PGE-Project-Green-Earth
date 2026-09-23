@@ -300,6 +300,7 @@ public static class PlayerRunEndSceneBuilder
         go.transform.SetParent(parent, false);
         Image image = go.GetComponent<Image>();
         image.sprite = sprite;
+        image.color = Color.white;
         image.type = Image.Type.Simple;
         image.preserveAspect = true;
         return image;
@@ -410,15 +411,15 @@ public static class PlayerRunEndSceneBuilder
 
         // 4. Nút Details (biểu đồ + chữ Details) đặt lệch sang bên phải ngay cạnh dòng Red Gem
         detailsButton = CreateSpriteButton(
-            "DetailsButton", root.transform, detailsButtonSprite, new Vector2(275f, -65f), new Vector2(120f, 137f));
+            "DetailsButton", root.transform, detailsButtonSprite, new Vector2(275f, -65f), new Vector2(120f, 133f));
 
         // 5. Nút Get reward (xanh dương bo tròn)
         getRewardButton = CreateSpriteButton(
-            "GetRewardButton", root.transform, normalButtonSprite, new Vector2(0f, -240f), new Vector2(440f, 226f));
+            "GetRewardButton", root.transform, normalButtonSprite, new Vector2(0f, -240f), new Vector2(440f, 224f));
 
         // 6. Nút Get x3 reward (xanh lá bo tròn)
         tripleButton = CreateSpriteButton(
-            "VipTripleButton", root.transform, tripleButtonSprite, new Vector2(0f, -500f), new Vector2(440f, 226f));
+            "VipTripleButton", root.transform, tripleButtonSprite, new Vector2(0f, -500f), new Vector2(440f, 224f));
 
         // 7. Feedback text
         feedbackText = CreateText("FeedbackText", root.transform, string.Empty, 24f, new Color32(255, 240, 116, 255));

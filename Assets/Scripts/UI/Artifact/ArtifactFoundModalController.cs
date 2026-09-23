@@ -462,13 +462,13 @@ public class ArtifactFoundModalController : MonoBehaviour
         sunRt.anchorMin = new Vector2(0.5f, 0.5f);
         sunRt.anchorMax = new Vector2(0.5f, 0.5f);
         sunRt.pivot = new Vector2(0.5f, 0.5f);
-        sunRt.anchoredPosition = new Vector2(0f, 160f);
+        sunRt.anchoredPosition = new Vector2(0f, 295f);
         sunRt.sizeDelta = new Vector2(850f, 850f);
         SunburstRayEffect sunburst = sunObj.GetComponent<SunburstRayEffect>();
         Image sunImg = sunObj.GetComponent<Image>();
         if (sunImg != null) sunImg.raycastTarget = false;
 
-        // 3. Title Text: "Artifact found"
+        // 3. Optional title (hidden to match the artifact reveal artwork)
         GameObject titleObj = new GameObject("TitleText", typeof(RectTransform), typeof(TextMeshProUGUI));
         titleObj.transform.SetParent(root.transform, false);
         RectTransform titleRt = titleObj.GetComponent<RectTransform>();
@@ -481,6 +481,7 @@ public class ArtifactFoundModalController : MonoBehaviour
         if (defaultFont != null) titleTxt.font = defaultFont;
         if (bodyMaterial != null) titleTxt.fontSharedMaterial = bodyMaterial;
         titleTxt.text = "Artifact found";
+        titleObj.SetActive(false);
         titleTxt.fontSize = 64f;
         titleTxt.fontStyle = FontStyles.Bold;
         titleTxt.alignment = TextAlignmentOptions.Center;
@@ -494,8 +495,8 @@ public class ArtifactFoundModalController : MonoBehaviour
         frameRt.anchorMin = new Vector2(0.5f, 0.5f);
         frameRt.anchorMax = new Vector2(0.5f, 0.5f);
         frameRt.pivot = new Vector2(0.5f, 0.5f);
-        frameRt.anchoredPosition = new Vector2(0f, 180f);
-        frameRt.sizeDelta = new Vector2(250f, 300f);
+        frameRt.anchoredPosition = new Vector2(0f, 295f);
+        frameRt.sizeDelta = new Vector2(330f, 390f);
         Image frameImg = frameObj.GetComponent<Image>();
         frameImg.color = new Color32(46, 229, 240, 255);
         frameImg.raycastTarget = false;
@@ -575,7 +576,7 @@ public class ArtifactFoundModalController : MonoBehaviour
         nameTxt.fontSize = 58f;
         nameTxt.fontStyle = FontStyles.Bold;
         nameTxt.alignment = TextAlignmentOptions.Center;
-        nameTxt.color = new Color32(255, 184, 0, 255); // Màu vàng hoàng kim ấm nổi bật (#FFB800)
+        nameTxt.color = new Color32(255, 190, 0, 255); // Gold sampled from the reference artwork (#FFBE00)
         nameTxt.enableWordWrapping = true;
         nameTxt.raycastTarget = false;
 
@@ -613,7 +614,7 @@ public class ArtifactFoundModalController : MonoBehaviour
         statTxt.fontSize = 40f;
         statTxt.fontStyle = FontStyles.Bold;
         statTxt.alignment = TextAlignmentOptions.Center;
-        statTxt.color = new Color32(0, 255, 136, 255); // Xanh neon rực rỡ
+        statTxt.color = Color.white;
         statTxt.enableWordWrapping = true;
         statTxt.raycastTarget = false;
 
@@ -624,14 +625,14 @@ public class ArtifactFoundModalController : MonoBehaviour
         btnContainerRt.anchorMin = new Vector2(0.5f, 0.2f);
         btnContainerRt.anchorMax = new Vector2(0.5f, 0.2f);
         btnContainerRt.pivot = new Vector2(0.5f, 0.5f);
-        btnContainerRt.anchoredPosition = Vector2.zero;
+        btnContainerRt.anchoredPosition = new Vector2(0f, -80f);
         btnContainerRt.sizeDelta = new Vector2(650f, 130f);
 
         // 6a. Throw away Button (Slate Gray / Mint)
-        GameObject throwBtnObj = CreateButton("ThrowAwayButton", btnContainer.transform, new Vector2(-160f, 0f), new Vector2(250f, 114f), "Throw away", 34f, new Color32(46, 233, 128, 255), Color.white, defaultFont, bodyMaterial, out Button throwBtn, out TMP_Text throwBtnTxt);
+        GameObject throwBtnObj = CreateButton("ThrowAwayButton", btnContainer.transform, new Vector2(-190f, 0f), new Vector2(315f, 145f), "Throw away", 34f, new Color32(46, 233, 128, 255), Color.white, defaultFont, bodyMaterial, out Button throwBtn, out TMP_Text throwBtnTxt);
 
         // 6b. Get Button (Teal / Cyan)
-        GameObject getBtnObj = CreateButton("GetButton", btnContainer.transform, new Vector2(160f, 0f), new Vector2(250f, 114f), "Get", 38f, new Color32(43, 223, 205, 255), Color.white, defaultFont, bodyMaterial, out Button getBtn, out TMP_Text getBtnTxt);
+        GameObject getBtnObj = CreateButton("GetButton", btnContainer.transform, new Vector2(190f, 0f), new Vector2(315f, 145f), "Get", 38f, new Color32(43, 223, 205, 255), Color.white, defaultFont, bodyMaterial, out Button getBtn, out TMP_Text getBtnTxt);
 
         // 7. Attach & Configure Controller
         ArtifactFoundModalController ctrl = root.AddComponent<ArtifactFoundModalController>();

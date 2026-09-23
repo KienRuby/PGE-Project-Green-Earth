@@ -25,6 +25,7 @@ public static class ChapterMenuSceneBuilder
     private const string QuestDataPath = "Assets/Data/Quests/Quest_01_LabUpgrade.asset";
     private const string FontPath = "Assets/Fonts/Nunito/Nunito SDF.asset";
     private const string FontMaterialPath = "Assets/Fonts/Nunito/Nunito SDF - Stroke.mat";
+    private const string ChapterHeadingMaterialPath = "Assets/Fonts/Nunito/Nunito SDF - Chapter Heading.mat";
     private const string QuestBannerSpritePath = "Assets/Sprites/UI/Chapter/btn_quest_banner.png";
     private const string GrowthFundSpritePath = "Assets/Sprites/UI/Chapter/btn_growth_fund.png";
     private const string TowerDefSpritePath = "Assets/Sprites/UI/Chapter/btn_tower_def.png";
@@ -252,14 +253,16 @@ public static class ChapterMenuSceneBuilder
         Button nextBtn = nextBtnObj.GetComponent<Button>();
 
         // Subtitle Text (Chapter. 01)
-        TMP_Text subtitleText = CreateText("SubtitleText", chapterHeaderObj, "Chapter. 01", 38f, Color.white, TextAlignmentOptions.Center);
+        TMP_Text subtitleText = CreateText("SubtitleText", chapterHeaderObj, "Chapter. 01", 52f, Color.white, TextAlignmentOptions.Center);
+        ApplyChapterHeadingStyle(subtitleText, 52f);
         subtitleText.rectTransform.anchoredPosition = new Vector2(0f, 30f);
-        subtitleText.rectTransform.sizeDelta = new Vector2(700f, 55f);
+        subtitleText.rectTransform.sizeDelta = new Vector2(700f, 70f);
 
         // Title Text (Grassland Outskirts)
-        TMP_Text titleText = CreateText("TitleText", chapterHeaderObj, "Grassland Outskirts", 64f, Color.white, TextAlignmentOptions.Center);
+        TMP_Text titleText = CreateText("TitleText", chapterHeaderObj, "Grassland Outskirts", 80f, Color.white, TextAlignmentOptions.Center);
+        ApplyChapterHeadingStyle(titleText, 80f);
         titleText.rectTransform.anchoredPosition = new Vector2(0f, -25f);
-        titleText.rectTransform.sizeDelta = new Vector2(850f, 85f);
+        titleText.rectTransform.sizeDelta = new Vector2(900f, 105f);
 
         // 3. Stage Preview Window
         GameObject previewWindowObj = CreateFrame("StagePreviewWindow", chapterPanelTr, Panel, TealBorder, out _);
@@ -286,9 +289,10 @@ public static class ChapterMenuSceneBuilder
         waveBadgeRect.anchorMax = new Vector2(0.5f, 1f);
         waveBadgeRect.pivot = new Vector2(0.5f, 1f);
         waveBadgeRect.anchoredPosition = new Vector2(0f, -25f);
-        waveBadgeRect.sizeDelta = new Vector2(280f, 64f);
+        waveBadgeRect.sizeDelta = new Vector2(400f, 90f);
 
-        TMP_Text waveText = CreateText("WaveText", waveBadgeObj.transform, "WAVE: 01/10", 30f, Cream, TextAlignmentOptions.Center);
+        TMP_Text waveText = CreateText("WaveText", waveBadgeObj.transform, "WAVE: 01/10", 52f, Color.white, TextAlignmentOptions.Center);
+        ApplyChapterHeadingStyle(waveText, 52f);
         Stretch(waveText.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
 
         // Boss Silhouette (Center)
@@ -1048,6 +1052,20 @@ public static class ChapterMenuSceneBuilder
         text.outlineColor = Navy;
         text.outlineWidth = 0.16f;
         return text;
+    }
+
+    private static void ApplyChapterHeadingStyle(TMP_Text text, float fontSize)
+    {
+        Material chapterHeadingMaterial = AssetDatabase.LoadAssetAtPath<Material>(ChapterHeadingMaterialPath);
+        if (chapterHeadingMaterial != null)
+        {
+            text.fontSharedMaterial = chapterHeadingMaterial;
+        }
+
+        text.fontSize = fontSize;
+        text.fontStyle = FontStyles.Bold;
+        text.fontWeight = FontWeight.Black;
+        text.color = Color.white;
     }
 
     private static Sprite LoadIcon(string spriteName)
