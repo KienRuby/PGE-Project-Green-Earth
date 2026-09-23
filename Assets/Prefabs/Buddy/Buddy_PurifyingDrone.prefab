@@ -29,7 +29,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.12, y: 0.12, z: 1}
-  m_ConstrainProportionsScale: 1
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 340625045279436027}
   m_Father: {fileID: 0}
@@ -54,7 +54,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -80,7 +80,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1.92, y: 1.92}
+  m_Size: {x: 1.9200001, y: 1.9200001}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -102,7 +102,7 @@ MonoBehaviour:
   droneName: Purifying Drone
   followDistance: 0.52
   minPlayerDistance: 0.38
-  followSpeed: 12
+  followSpeed: 16
   bobbingAmplitude: 0.05
   bobbingFrequency: 2.5
   tiltAmount: 15
@@ -111,15 +111,18 @@ MonoBehaviour:
   targetRefreshInterval: 0.2
   enemyLayer:
     serializedVersion: 2
-    m_Bits: 128
+    m_Bits: 0
   baseDamage: 25
   attackCooldown: 1.2
   combatScale: 0.12
   spriteRenderer: {fileID: 575149069854738629}
   firePoint: {fileID: 340625045279436027}
+  pulseRadius: 3.8
+  pulseInterval: 3.5
+  knockbackForce: 4
   projectilePrefab: {fileID: 9176291970807468248, guid: 7a360c9f713fe5b4ebd236256f3bb53b, type: 3}
-  hitVfxPrefab: {fileID: 0}
   pulseVfxPrefab: {fileID: 0}
+  stealthWingColor: {r: 0.1, g: 0.7, b: 1, a: 1}
 --- !u!1 &884185856593895193
 GameObject:
   m_ObjectHideFlags: 0

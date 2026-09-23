@@ -45,15 +45,7 @@ public class PlayerLevelController : MonoBehaviour
         }
         Instance = this;
 
-        int equippedSkin = BuildBodyController.EquippedSkinIndex;
-        int bodyStartingLevel = equippedSkin switch
-        {
-            2 => 2,
-            3 => 3,
-            4 => 5,
-            _ => 1
-        };
-        currentLevel = Mathf.Max(startingLevel, bodyStartingLevel);
+        currentLevel = Mathf.Max(1, startingLevel);
         currentExp = 0;
         levelUpLocked = false;
     }

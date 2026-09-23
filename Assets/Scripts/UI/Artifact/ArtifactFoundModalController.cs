@@ -77,6 +77,12 @@ public class ArtifactFoundModalController : MonoBehaviour
     [Tooltip("Nút nhận cổ vật (Get).")]
     [SerializeField] private Button getButton;
 
+    [Tooltip("Text trên nút vứt bỏ (Throw away).")]
+    [SerializeField] private TMP_Text throwAwayButtonText;
+
+    [Tooltip("Text trên nút nhận (Get).")]
+    [SerializeField] private TMP_Text getButtonText;
+
     public void ConfigureReferences(
         GameObject root,
         Image dimBg,
@@ -89,7 +95,9 @@ public class ArtifactFoundModalController : MonoBehaviour
         TMP_Text lore,
         TMP_Text stat,
         Button throwBtn,
-        Button getBtn)
+        Button getBtn,
+        TMP_Text throwBtnTxt = null,
+        TMP_Text getBtnTxt = null)
     {
         modalRoot = root;
         dimBackground = dimBg;
@@ -103,6 +111,13 @@ public class ArtifactFoundModalController : MonoBehaviour
         statBuffText = stat;
         throwAwayButton = throwBtn;
         getButton = getBtn;
+
+        if (throwBtnTxt == null && throwBtn != null)
+            throwBtnTxt = throwBtn.GetComponentInChildren<TMP_Text>();
+        if (getBtnTxt == null && getBtn != null)
+            getBtnTxt = getBtn.GetComponentInChildren<TMP_Text>();
+        throwAwayButtonText = throwBtnTxt;
+        getButtonText = getBtnTxt;
     }
 
     private float previousTimeScale = 1f;
@@ -397,10 +412,12 @@ public class ArtifactFoundModalController : MonoBehaviour
         }
 
         TMP_FontAsset defaultFont = null;
-        Material strokeMaterial = null;
+        Material titleMaterial = null;
+        Material bodyMaterial = null;
 #if UNITY_EDITOR
         defaultFont = UnityEditor.AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Fonts/Nunito/Nunito SDF.asset");
-        strokeMaterial = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Assets/Fonts/Nunito/Nunito SDF - Stroke.mat");
+        titleMaterial = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Assets/Fonts/Nunito/Nunito SDF - ArtifactTitle.mat");
+        bodyMaterial = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>("Assets/Fonts/Nunito/Nunito SDF - ArtifactBody.mat");
 #endif
         if (defaultFont == null)
         {
@@ -415,6 +432,8 @@ public class ArtifactFoundModalController : MonoBehaviour
         {
             defaultFont = TMP_Settings.defaultFontAsset;
         }
+        if (titleMaterial == null && defaultFont != null) titleMaterial = defaultFont.material;
+        if (bodyMaterial == null && defaultFont != null) bodyMaterial = defaultFont.material;
 
         GameObject root = new GameObject("ArtifactFoundModal", typeof(RectTransform));
         root.transform.SetParent(canvasParent, false);
@@ -460,7 +479,7 @@ public class ArtifactFoundModalController : MonoBehaviour
         titleRt.sizeDelta = new Vector2(850f, 100f);
         TextMeshProUGUI titleTxt = titleObj.GetComponent<TextMeshProUGUI>();
         if (defaultFont != null) titleTxt.font = defaultFont;
-        if (strokeMaterial != null) titleTxt.fontSharedMaterial = strokeMaterial;
+        if (bodyMaterial != null) titleTxt.fontSharedMaterial = bodyMaterial;
         titleTxt.text = "Artifact found";
         titleTxt.fontSize = 64f;
         titleTxt.fontStyle = FontStyles.Bold;
@@ -514,7 +533,7 @@ public class ArtifactFoundModalController : MonoBehaviour
         labelRt.sizeDelta = new Vector2(0f, 40f);
         TextMeshProUGUI labelTxt = labelObj.GetComponent<TextMeshProUGUI>();
         if (defaultFont != null) labelTxt.font = defaultFont;
-        if (strokeMaterial != null) labelTxt.fontSharedMaterial = strokeMaterial;
+        if (bodyMaterial != null) labelTxt.fontSharedMaterial = bodyMaterial;
         labelTxt.text = "ARTIFACT";
         labelTxt.fontSize = 28f;
         labelTxt.fontStyle = FontStyles.Bold;
@@ -522,80 +541,99 @@ public class ArtifactFoundModalController : MonoBehaviour
         labelTxt.color = Color.white;
         labelTxt.raycastTarget = false;
 
-        // 5. Artifact Name Text (Golden Yellow)
+        // 5. Cụm hiển thị thông tin Text (Name, Lore, Stat) với VerticalLayoutGroup
+        GameObject infoObj = new GameObject("InfoContainer", typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
+        infoObj.transform.SetParent(root.transform, false);
+        RectTransform infoRt = infoObj.GetComponent<RectTransform>();
+        infoRt.anchorMin = new Vector2(0.5f, 0.5f);
+        infoRt.anchorMax = new Vector2(0.5f, 0.5f);
+        infoRt.pivot = new Vector2(0.5f, 1f);
+        infoRt.anchoredPosition = new Vector2(0f, -14f);
+        infoRt.sizeDelta = new Vector2(850f, 260f);
+
+        VerticalLayoutGroup layout = infoObj.GetComponent<VerticalLayoutGroup>();
+        layout.childAlignment = TextAnchor.UpperCenter;
+        layout.childControlWidth = false;
+        layout.childControlHeight = true;
+        layout.childForceExpandWidth = false;
+        layout.childForceExpandHeight = false;
+        layout.spacing = 16f;
+
+        ContentSizeFitter fitter = infoObj.GetComponent<ContentSizeFitter>();
+        fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+        fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+        // 5a. Artifact Name Text (Golden Yellow, Bold, Outline)
         GameObject nameObj = new GameObject("ArtifactName", typeof(RectTransform), typeof(TextMeshProUGUI));
-        nameObj.transform.SetParent(root.transform, false);
+        nameObj.transform.SetParent(infoObj.transform, false);
         RectTransform nameRt = nameObj.GetComponent<RectTransform>();
-        nameRt.anchorMin = new Vector2(0.5f, 0.5f);
-        nameRt.anchorMax = new Vector2(0.5f, 0.5f);
-        nameRt.pivot = new Vector2(0.5f, 0.5f);
-        nameRt.anchoredPosition = new Vector2(0f, -25f);
-        nameRt.sizeDelta = new Vector2(800f, 75f);
+        nameRt.sizeDelta = new Vector2(850f, 75f);
         TextMeshProUGUI nameTxt = nameObj.GetComponent<TextMeshProUGUI>();
         if (defaultFont != null) nameTxt.font = defaultFont;
-        if (strokeMaterial != null) nameTxt.fontSharedMaterial = strokeMaterial;
+        if (titleMaterial != null) nameTxt.fontSharedMaterial = titleMaterial;
         nameTxt.text = "Artifact Name";
-        nameTxt.fontSize = 54f;
+        nameTxt.fontSize = 58f;
         nameTxt.fontStyle = FontStyles.Bold;
         nameTxt.alignment = TextAlignmentOptions.Center;
-        nameTxt.color = new Color32(255, 215, 0, 255); // Màu vàng hoàng kim nổi bật
+        nameTxt.color = new Color32(255, 184, 0, 255); // Màu vàng hoàng kim ấm nổi bật (#FFB800)
+        nameTxt.enableWordWrapping = true;
         nameTxt.raycastTarget = false;
 
-        // 6. Lore / Flavor Text
+        // 5b. Lore / Flavor Text
         GameObject loreObj = new GameObject("LoreDescription", typeof(RectTransform), typeof(TextMeshProUGUI));
-        loreObj.transform.SetParent(root.transform, false);
+        loreObj.transform.SetParent(infoObj.transform, false);
         RectTransform loreRt = loreObj.GetComponent<RectTransform>();
-        loreRt.anchorMin = new Vector2(0.5f, 0.5f);
-        loreRt.anchorMax = new Vector2(0.5f, 0.5f);
-        loreRt.pivot = new Vector2(0.5f, 0.5f);
-        loreRt.anchoredPosition = new Vector2(0f, -100f);
-        loreRt.sizeDelta = new Vector2(800f, 80f);
+        loreRt.sizeDelta = new Vector2(750f, 80f);
         TextMeshProUGUI loreTxt = loreObj.GetComponent<TextMeshProUGUI>();
         if (defaultFont != null) loreTxt.font = defaultFont;
-        if (strokeMaterial != null) loreTxt.fontSharedMaterial = strokeMaterial;
+        if (bodyMaterial != null) loreTxt.fontSharedMaterial = bodyMaterial;
         loreTxt.text = "Flavor text description.";
-        loreTxt.fontSize = 34f;
+        loreTxt.fontSize = 32f;
         loreTxt.fontStyle = FontStyles.Bold;
         loreTxt.alignment = TextAlignmentOptions.Center;
-        loreTxt.color = Color.white; // Màu trắng sáng rõ chống chìm trên nền sunburst
+        loreTxt.color = Color.white;
+        loreTxt.enableWordWrapping = true;
+        loreTxt.lineSpacing = -5f;
         loreTxt.raycastTarget = false;
 
-        // 7. Stat Buff Text (HP +15%, etc.)
+        // Spacer giữa Lore và Stat
+        GameObject spacer = new GameObject("Spacer", typeof(RectTransform), typeof(LayoutElement));
+        spacer.transform.SetParent(infoObj.transform, false);
+        spacer.GetComponent<LayoutElement>().preferredHeight = 14f;
+
+        // 5c. Stat Buff Text (HP +15%, etc.)
         GameObject statObj = new GameObject("StatBuffText", typeof(RectTransform), typeof(TextMeshProUGUI));
-        statObj.transform.SetParent(root.transform, false);
+        statObj.transform.SetParent(infoObj.transform, false);
         RectTransform statRt = statObj.GetComponent<RectTransform>();
-        statRt.anchorMin = new Vector2(0.5f, 0.5f);
-        statRt.anchorMax = new Vector2(0.5f, 0.5f);
-        statRt.pivot = new Vector2(0.5f, 0.5f);
-        statRt.anchoredPosition = new Vector2(0f, -185f);
-        statRt.sizeDelta = new Vector2(800f, 70f);
+        statRt.sizeDelta = new Vector2(850f, 50f);
         TextMeshProUGUI statTxt = statObj.GetComponent<TextMeshProUGUI>();
         if (defaultFont != null) statTxt.font = defaultFont;
-        if (strokeMaterial != null) statTxt.fontSharedMaterial = strokeMaterial;
+        if (bodyMaterial != null) statTxt.fontSharedMaterial = bodyMaterial;
         statTxt.text = "HP +15%";
-        statTxt.fontSize = 48f;
+        statTxt.fontSize = 40f;
         statTxt.fontStyle = FontStyles.Bold;
         statTxt.alignment = TextAlignmentOptions.Center;
         statTxt.color = new Color32(0, 255, 136, 255); // Xanh neon rực rỡ
+        statTxt.enableWordWrapping = true;
         statTxt.raycastTarget = false;
 
-        // 8. Buttons Container
+        // 6. Buttons Container
         GameObject btnContainer = new GameObject("ButtonsContainer", typeof(RectTransform));
         btnContainer.transform.SetParent(root.transform, false);
         RectTransform btnContainerRt = btnContainer.GetComponent<RectTransform>();
-        btnContainerRt.anchorMin = new Vector2(0.5f, 0.5f);
-        btnContainerRt.anchorMax = new Vector2(0.5f, 0.5f);
+        btnContainerRt.anchorMin = new Vector2(0.5f, 0.2f);
+        btnContainerRt.anchorMax = new Vector2(0.5f, 0.2f);
         btnContainerRt.pivot = new Vector2(0.5f, 0.5f);
-        btnContainerRt.anchoredPosition = new Vector2(0f, -295f);
+        btnContainerRt.anchoredPosition = Vector2.zero;
         btnContainerRt.sizeDelta = new Vector2(650f, 130f);
 
-        // 8a. Throw away Button (Slate Gray)
-        GameObject throwBtnObj = CreateButton("ThrowAwayButton", btnContainer.transform, new Vector2(-180f, 0f), new Vector2(300f, 100f), "Throw\naway", 32f, new Color32(78, 105, 125, 255), Color.white, defaultFont, out Button throwBtn);
+        // 6a. Throw away Button (Slate Gray / Mint)
+        GameObject throwBtnObj = CreateButton("ThrowAwayButton", btnContainer.transform, new Vector2(-160f, 0f), new Vector2(250f, 114f), "Throw away", 34f, new Color32(46, 233, 128, 255), Color.white, defaultFont, bodyMaterial, out Button throwBtn, out TMP_Text throwBtnTxt);
 
-        // 8b. Get Button (Teal / Cyan)
-        GameObject getBtnObj = CreateButton("GetButton", btnContainer.transform, new Vector2(180f, 0f), new Vector2(300f, 100f), "Get", 36f, new Color32(46, 175, 185, 255), Color.white, defaultFont, out Button getBtn);
+        // 6b. Get Button (Teal / Cyan)
+        GameObject getBtnObj = CreateButton("GetButton", btnContainer.transform, new Vector2(160f, 0f), new Vector2(250f, 114f), "Get", 38f, new Color32(43, 223, 205, 255), Color.white, defaultFont, bodyMaterial, out Button getBtn, out TMP_Text getBtnTxt);
 
-        // 9. Attach & Configure Controller
+        // 7. Attach & Configure Controller
         ArtifactFoundModalController ctrl = root.AddComponent<ArtifactFoundModalController>();
         ctrl.modalRoot = root;
         ctrl.dimBackground = dimImg;
@@ -609,6 +647,8 @@ public class ArtifactFoundModalController : MonoBehaviour
         ctrl.statBuffText = statTxt;
         ctrl.throwAwayButton = throwBtn;
         ctrl.getButton = getBtn;
+        ctrl.throwAwayButtonText = throwBtnTxt;
+        ctrl.getButtonText = getBtnTxt;
 
         throwBtn.onClick.AddListener(ctrl.OnThrowAwayClicked);
         getBtn.onClick.AddListener(ctrl.OnGetClicked);
@@ -619,7 +659,7 @@ public class ArtifactFoundModalController : MonoBehaviour
         return ctrl;
     }
 
-    private static GameObject CreateButton(string name, Transform parent, Vector2 anchoredPos, Vector2 size, string label, float fontSize, Color bgColor, Color textColor, TMP_FontAsset font, out Button button)
+    private static GameObject CreateButton(string name, Transform parent, Vector2 anchoredPos, Vector2 size, string label, float fontSize, Color bgColor, Color textColor, TMP_FontAsset font, Material fontMat, out Button button, out TMP_Text buttonTxt)
     {
         GameObject go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button));
         go.transform.SetParent(parent, false);
@@ -638,15 +678,21 @@ public class ArtifactFoundModalController : MonoBehaviour
         GameObject txtObj = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI));
         txtObj.transform.SetParent(go.transform, false);
         RectTransform txtRt = txtObj.GetComponent<RectTransform>();
-        Stretch(txtRt, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        txtRt.anchorMin = Vector2.zero;
+        txtRt.anchorMax = Vector2.one;
+        txtRt.pivot = new Vector2(0.5f, 0.5f);
+        txtRt.offsetMin = new Vector2(10f, 14f); // Bù khối vát 3D ở đáy
+        txtRt.offsetMax = new Vector2(-10f, 0f);
         TextMeshProUGUI tmp = txtObj.GetComponent<TextMeshProUGUI>();
         if (font != null) tmp.font = font;
+        if (fontMat != null) tmp.fontSharedMaterial = fontMat;
         tmp.text = label;
         tmp.fontSize = fontSize;
         tmp.fontStyle = FontStyles.Bold;
         tmp.alignment = TextAlignmentOptions.Center;
         tmp.color = textColor;
         tmp.raycastTarget = false;
+        buttonTxt = tmp;
 
         return go;
     }

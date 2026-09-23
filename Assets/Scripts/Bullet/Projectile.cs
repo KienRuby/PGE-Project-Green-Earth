@@ -57,6 +57,12 @@ public class Projectile : MonoBehaviour, IPoolable
     private readonly HashSet<int> hitEnemyIds = new HashSet<int>();
     private bool isDespawning = false;
     private SpriteRenderer spriteRenderer;
+    private Animator bulletAnimator;
+    private Sprite[] skinBulletFrames;
+    private Sprite originalSprite;
+    private float skinBulletFrameTimer;
+    private int skinBulletFrameIndex;
+    private const float SkinBulletFrameDuration = 1f / 60f;
     private Color defaultColor = Color.white;
     private bool hasCachedColor = false;
     private static readonly Collider2D[] SharedOverlapBuffer = new Collider2D[64];
@@ -149,8 +155,10 @@ public class Projectile : MonoBehaviour, IPoolable
         }
 
         spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        bulletAnimator = GetComponent<Animator>();
         if (spriteRenderer != null)
         {
+            originalSprite = spriteRenderer.sprite;
             defaultColor = spriteRenderer.color;
             hasCachedColor = true;
         }
@@ -177,6 +185,17 @@ public class Projectile : MonoBehaviour, IPoolable
 
     private void Update()
     {
+        if (skinBulletFrames != null && skinBulletFrames.Length > 1 && spriteRenderer != null)
+        {
+            skinBulletFrameTimer += Time.deltaTime;
+            while (skinBulletFrameTimer >= SkinBulletFrameDuration)
+            {
+                skinBulletFrameTimer -= SkinBulletFrameDuration;
+                skinBulletFrameIndex = (skinBulletFrameIndex + 1) % skinBulletFrames.Length;
+            }
+            spriteRenderer.sprite = skinBulletFrames[skinBulletFrameIndex];
+        }
+
         lifeTimer -= Time.deltaTime;
         if (lifeTimer <= 0f)
         {
@@ -549,8 +568,24 @@ public class Projectile : MonoBehaviour, IPoolable
         }
     }
 
+    public void SetSkinBulletFrames(Sprite[] frames)
+    {
+        skinBulletFrames = frames != null && frames.Length > 0 && frames[0] != null ? frames : null;
+        skinBulletFrameTimer = 0f;
+        skinBulletFrameIndex = 0;
+        if (bulletAnimator != null)
+        {
+            bulletAnimator.enabled = skinBulletFrames == null;
+        }
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.sprite = skinBulletFrames != null ? skinBulletFrames[0] : originalSprite;
+        }
+    }
+
     public void ResetCustomModifiers()
     {
+        SetSkinBulletFrames(null);
         if (spriteRenderer == null)
         {
             spriteRenderer = GetComponentInChildren<SpriteRenderer>();

@@ -28,6 +28,9 @@ public class PlayerAutoShooter : MonoBehaviour
     [Tooltip("Tỷ lệ co giãn phạm vi quét so với khung hình Camera (1.0 = khớp chính xác 100% mép màn hình, 1.05 = quét chớm ra ngoài viền).")]
     [SerializeField, Range(0.5f, 2.0f)] private float viewportScale = 1.0f;
 
+    [Tooltip("Tự động đồng bộ tầm bắn tối đa của súng khớp chính xác với bán kính phạm vi quét mục tiêu (Screen Viewport / Detection Bounds).")]
+    [SerializeField] private bool matchAttackRangeToViewport = true;
+
     [Tooltip("Kích thước khung chữ nhật tùy chỉnh (Rộng X, Cao Y) khi chọn chế độ CustomBox.")]
     [SerializeField] private Vector2 customBoxSize = new Vector2(10f, 16f);
 
@@ -116,6 +119,7 @@ public class PlayerAutoShooter : MonoBehaviour
     private Transform currentTarget;
     private PlayerMovement playerMovement;
     private PlayerHealth playerHealth;
+    private PlayerSkinApplier playerSkinApplier;
     private float nextFireTime;
     private float targetSearchTimer;
     private WeaponData currentEquippedWeapon;
@@ -157,13 +161,53 @@ public class PlayerAutoShooter : MonoBehaviour
 
     public WeaponData CurrentEquippedWeapon => currentEquippedWeapon;
     public bool IsAttacking { get; private set; }
-    public int CurrentDamage => Mathf.RoundToInt((currentDamage + bonusDamage) * artifactDamageMultiplier);
-    public float CurrentFireRate => fireRate + bonusFireRate;
-    public int CurrentBulletsPerShot => currentBulletsPerShot;
+    public int CurrentDamage => Mathf.RoundToInt(((GetChipsetWeaponLevel(1) > 0 ? GetChipsetWeaponDamage(1) : currentDamage) + bonusDamage) * artifactDamageMultiplier);
+    public float CurrentFireRate => (GetChipsetWeaponLevel(1) > 0 ? 1f / GetChipsetWeaponFireInterval(1) : fireRate) + bonusFireRate;
+    public int CurrentBulletsPerShot => GetChipsetWeaponLevel(1) > 0 ? GetChipsetWeaponProjectileCount(1) : currentBulletsPerShot;
     public float CurrentSpreadAngle => currentSpreadAngle;
     public Transform CurrentTarget => currentTarget;
     public Transform FirePoint => attackPoint != null ? attackPoint : transform;
-    public float SharedAttackRange => Mathf.Max(0.1f, currentAttackRange + bonusAttackRange);
+    public bool MatchAttackRangeToViewport
+    {
+        get => matchAttackRangeToViewport;
+        set => matchAttackRangeToViewport = value;
+    }
+
+    /// <summary>
+    /// Tầm bắn hiệu dụng tối đa của súng:
+    /// Khi matchAttackRangeToViewport = true và chọn CameraViewport hoặc CustomBox,
+    /// tầm bắn tự động lấy theo bán kính đường chéo khung quét (ScreenDiagonalRange) để bao phủ trọn vẹn màn hình.
+    /// Khi chọn Circle, tự động đồng bộ theo bán kính detectionRadius.
+    /// Fallback về (currentAttackRange + bonusAttackRange) nếu không có Camera hợp lệ (như trong Unit Test) hoặc khi tắt tính năng.
+    /// </summary>
+    public float EffectiveAttackRange
+    {
+        get
+        {
+            if (matchAttackRangeToViewport)
+            {
+                if (detectionShape == DetectionShape.CameraViewport)
+                {
+                    Camera cam = GetActiveCamera();
+                    if (cam != null && cam.orthographic)
+                    {
+                        return Mathf.Max(0.1f, ScreenDiagonalRange + bonusAttackRange);
+                    }
+                }
+                else if (detectionShape == DetectionShape.CustomBox)
+                {
+                    return Mathf.Max(0.1f, ScreenDiagonalRange + bonusAttackRange);
+                }
+                else if (detectionShape == DetectionShape.Circle)
+                {
+                    return Mathf.Max(0.1f, detectionRadius + bonusAttackRange);
+                }
+            }
+            return Mathf.Max(0.1f, currentAttackRange + bonusAttackRange);
+        }
+    }
+
+    public float SharedAttackRange => EffectiveAttackRange;
     public float BonusAttackRange
     {
         get => bonusAttackRange;
@@ -178,6 +222,7 @@ public class PlayerAutoShooter : MonoBehaviour
     {
         playerMovement = GetComponent<PlayerMovement>();
         playerHealth = GetComponent<PlayerHealth>();
+        playerSkinApplier = GetComponent<PlayerSkinApplier>() ?? GetComponentInParent<PlayerSkinApplier>();
 
         if (targetCamera == null)
         {
@@ -385,6 +430,17 @@ public class PlayerAutoShooter : MonoBehaviour
         }
 
         return 1;
+    }
+
+    public float GetChipsetWeaponSpread(int chipsetId)
+    {
+        int level = GetChipsetWeaponLevel(chipsetId);
+        if (level <= 0) return 0f;
+        if (chipsetId == 1) return GetChipsetWeaponProjectileCount(1) > 1 ? 6f : 0f;
+        if (chipsetId == 2) return GetChipsetWeaponProjectileCount(2) > 1 ? 3f : 0f;
+        if (chipsetId == 5) return level >= 5 ? 360f : 50f;
+        if (chipsetId == 8) return level >= 3 ? 30f : 45f;
+        return 0f;
     }
 
     /// <summary>
@@ -743,7 +799,7 @@ public class PlayerAutoShooter : MonoBehaviour
         Transform bestEnemyNoLos = null;
         float minEnemyNoLosDistSqr = Mathf.Infinity;
 
-        float effectiveRange = currentAttackRange + bonusAttackRange;
+        float effectiveRange = EffectiveAttackRange;
         float attackRangeSqr = effectiveRange * effectiveRange;
         Vector2 playerPosition = transform.position;
         int obstacleMask = LayerMask.GetMask("Obstacle");
@@ -1059,7 +1115,7 @@ public class PlayerAutoShooter : MonoBehaviour
 
         Shoot();
 
-        float effectiveFireRate = Mathf.Max(0.1f, fireRate + bonusFireRate);
+        float effectiveFireRate = Mathf.Max(0.1f, CurrentFireRate);
         nextFireTime = Time.time + (1f / effectiveFireRate);
     }
 
@@ -1080,7 +1136,6 @@ public class PlayerAutoShooter : MonoBehaviour
         float distToTarget = Vector2.Distance(spawnPosition, targetAimPos);
         if (distToTarget > ChipsetAttackRange) return;
 
-        TryFireChipsetWeapon(1);
         TryFireChipsetWeapon(2);
         TryFireChipsetWeapon(5);
         TryFireChipsetWeapon(8);
@@ -1125,6 +1180,7 @@ public class PlayerAutoShooter : MonoBehaviour
         if (chipsetId == 5) spread = radial ? 360f : 50f;
         if (chipsetId == 8)
         {
+            spread = GetChipsetWeaponSpread(8);
             FireShotgunPelletBurst(spawnPosition, baseAngle, damage, speed, range, spread);
             if (level >= 5 || PlayerDataService.GetChipTier(8) == ChipTier.Holographic)
             {
@@ -1240,14 +1296,19 @@ public class PlayerAutoShooter : MonoBehaviour
         SpawnMuzzleFlash(spawnPosition, baseAngle);
         PlayGunAudio(false);
 
-        if (currentBulletsPerShot <= 1)
+        int standardGunLevel = GetChipsetWeaponLevel(1);
+        int bulletCount = CurrentBulletsPerShot;
+        float spreadAngle = standardGunLevel > 0 ? GetChipsetWeaponSpread(1) : currentSpreadAngle;
+        if (standardGunLevel > 0) ChipsetBattleStats.RecordAttack(1, bulletCount);
+
+        if (bulletCount <= 1)
         {
             SpawnSingleBullet(spawnPosition, baseDirection, baseAngle);
         }
-        else if (currentSpreadAngle >= 359f)
+        else if (spreadAngle >= 359f)
         {
-            float angleStep = 360f / currentBulletsPerShot;
-            for (int i = 0; i < currentBulletsPerShot; i++)
+            float angleStep = 360f / bulletCount;
+            for (int i = 0; i < bulletCount; i++)
             {
                 float angle = baseAngle + (i * angleStep);
                 float rad = angle * Mathf.Deg2Rad;
@@ -1258,10 +1319,10 @@ public class PlayerAutoShooter : MonoBehaviour
         else
         {
             // Bắn tỏa nhiều viên (Shotgun)
-            float startAngle = baseAngle - (currentSpreadAngle * 0.5f);
-            float angleStep = currentSpreadAngle / (currentBulletsPerShot - 1);
+            float startAngle = baseAngle - (spreadAngle * 0.5f);
+            float angleStep = spreadAngle / (bulletCount - 1);
 
-            for (int i = 0; i < currentBulletsPerShot; i++)
+            for (int i = 0; i < bulletCount; i++)
             {
                 float angle = startAngle + (i * angleStep);
                 float rad = angle * Mathf.Deg2Rad;
@@ -1321,12 +1382,12 @@ public class PlayerAutoShooter : MonoBehaviour
             position,
             direction,
             angle,
-            Mathf.RoundToInt((currentDamage + bonusDamage) * artifactDamageMultiplier),
+            CurrentDamage,
             currentBulletSpeed + bonusBulletSpeed,
-            currentAttackRange + bonusAttackRange,
-            critChance,
+            EffectiveAttackRange,
+            critChance + (GetChipsetWeaponLevel(1) >= 3 ? 0.10f : 0f),
             false,
-            0);
+            GetChipsetWeaponLevel(1) > 0 ? 1 : 0);
     }
 
     private void SpawnConfiguredBullet(
@@ -1366,6 +1427,7 @@ public class PlayerAutoShooter : MonoBehaviour
                 }
 
                 projectileScript.Setup(finalDamage, Mathf.Max(0.1f, speed), Mathf.Max(0.1f, range));
+                projectileScript.SetSkinBulletFrames(playerSkinApplier != null ? playerSkinApplier.CurrentSkinBulletFrames : null);
                 projectileScript.IsCritical = isCrit;
                 projectileScript.IsHoming = homing;
                 projectileScript.SetDamageSource(sourceChipsetId);
@@ -1405,7 +1467,7 @@ public class PlayerAutoShooter : MonoBehaviour
         }
 
         // 2. Vòng tròn tầm bắn tối đa của vũ khí (Màu cam)
-        float totalAttackRange = currentAttackRange + bonusAttackRange;
+        float totalAttackRange = EffectiveAttackRange;
         Gizmos.color = new Color(1f, 0.5f, 0f, 0.85f);
         Gizmos.DrawWireSphere(transform.position, totalAttackRange);
 

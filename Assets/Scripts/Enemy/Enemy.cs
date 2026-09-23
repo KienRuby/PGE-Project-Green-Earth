@@ -201,9 +201,10 @@ public class Enemy : MonoBehaviour, IDamageable, IPoolable
         }
         else
         {
-            if (PlayerLevelController.Instance != null && expReward > 0)
+            int awardedExp = Type == EnemyType.Boss ? 0 : expReward;
+            if (PlayerLevelController.Instance != null && awardedExp > 0)
             {
-                PlayerLevelController.Instance.AddEXP(expReward);
+                PlayerLevelController.Instance.AddEXP(awardedExp);
             }
 
             if (currencyDropChance >= 1f || UnityEngine.Random.value <= currencyDropChance)
@@ -220,7 +221,7 @@ public class Enemy : MonoBehaviour, IDamageable, IPoolable
 
             OnEnemyDeath?.Invoke();
             OnDeath?.Invoke(this);
-            GameEvents.RaiseEnemyKilled(expReward);
+            GameEvents.RaiseEnemyKilled(awardedExp);
         }
     }
 

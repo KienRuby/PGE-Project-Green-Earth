@@ -16,7 +16,7 @@ MonoBehaviour:
   chapterTitle: Grassland Outskirts
   totalWaves: 10
   energyCost: 10
-  previewBackground: {fileID: 896282970, guid: d9e98077defe2e542af60da1db6ba24d, type: 3}
+  previewBackground: {fileID: -30941602, guid: dbf600fd080753c4fba4c55aa28ddbc5, type: 3}
   bossSilhouette: {fileID: 6798517206012601216, guid: fe333c7c7740539458b615ad4a280fb4, type: 3}
   mapGroundSprite: {fileID: 21300000, guid: e92326fa91624344e844f543e748a31e, type: 3}
   mapSize: {x: 40, y: 40}

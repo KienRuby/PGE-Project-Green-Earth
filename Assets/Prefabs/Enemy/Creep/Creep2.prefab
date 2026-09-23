@@ -374,6 +374,7 @@ MonoBehaviour:
   fallbackDeathDuration: 0.5
   destroyDelay: 0
   fadeOutDuration: 0.5
+  bossDeathVfxPrefab: {fileID: 0}
   enableDamageFlash: 1
   damageFlashColor: {r: 1, g: 0, b: 0, a: 1}
   damageFlashDuration: 0.15

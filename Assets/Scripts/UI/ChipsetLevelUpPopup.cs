@@ -119,17 +119,19 @@ public class ChipsetLevelUpPopup : MonoBehaviour
 
     private void RegisterStartingChipset()
     {
+        runtimeChipLevels[1] = 1;
         if (!equippedRuntimeChips.ContainsKey(1))
         {
             Sprite gunIcon = GetIconSprite(1, "standard-gun");
-            Sprite leverFrame = GetGameplayLeverFrameSprite(ChipTier.Magic);
+            ChipTier tier = PlayerDataService.GetChipTier(1);
+            Sprite leverFrame = GetGameplayLeverFrameSprite(tier);
             equippedRuntimeChips[1] = new RuntimeEquippedChipEntry
             {
                 id = 1,
                 name = "Standard Gun",
                 iconKey = "standard-gun",
                 level = 1,
-                tier = ChipTier.Magic,
+                tier = tier,
                 iconSprite = gunIcon,
                 frameSprite = leverFrame
             };
@@ -657,7 +659,7 @@ public class ChipsetLevelUpPopup : MonoBehaviour
         {
             switch (Mathf.Clamp(data.level, 1, MaxRuntimeChipLevel))
             {
-                case 1: return vi ? "Luôn tự động bắn hỗ trợ." : "Always auto-fires support shots.";
+                case 1: return vi ? "Súng lục khởi đầu tự động bắn." : "Starting pistol fires automatically.";
                 case 2: return vi ? "Tăng sát thương và tốc độ." : "Increases damage and firing speed.";
                 case 3: return vi ? "Đạn có 10% cơ hội gây Chí mạng (x2 sát thương)." : "Bullets have a 10% chance to Crit (x2 damage).";
                 case 4: return vi ? "Súng tiêu chuẩn được hưởng 5% Hút máu." : "Standard Gun gains 5% Life Steal.";

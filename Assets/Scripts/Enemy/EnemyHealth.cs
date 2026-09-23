@@ -53,6 +53,9 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     [Tooltip("Thời gian hiệu ứng mờ dần (Fade-out) trước khi biến mất và thu hồi về Pool (giây).")]
     [SerializeField] private float fadeOutDuration = 0.15f;
 
+    [Tooltip("Hiệu ứng xuất hiện tại tâm Boss khi HP về 0.")]
+    [SerializeField] private GameObject bossDeathVfxPrefab;
+
     [Header("Damage Flash Effect")]
     [Tooltip("Bật hiệu ứng nhấp nháy đỏ khi nhận sát thương.")]
     [SerializeField] private bool enableDamageFlash = true;
@@ -112,6 +115,7 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     public float RandomRedGemDropChance => randomRedGemDropChance;
     public int RandomRedGemAmount => randomRedGemAmount;
     public bool IsDead { get; private set; }
+    public GameObject ActiveBossDeathVfx { get; private set; }
 
     public void SetDataChipReward(int amount) => dataChipReward = Mathf.Max(0, amount);
     public void SetRedGemReward(int amount) => redGemReward = Mathf.Max(0, amount);
@@ -493,6 +497,13 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
         Die(grantRewards);
     }
 
+    public void InstantKillWithoutExp()
+    {
+        if (IsDead) return;
+        TriggerDamageFlash();
+        Die(true, false);
+    }
+
     public void Die()
     {
         Die(true);
@@ -500,10 +511,47 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
 
     public void Die(bool grantRewards)
     {
+        Die(grantRewards, true);
+    }
+
+    private void Die(bool grantRewards, bool grantExp)
+    {
         if (IsDead)
             return;
 
         IsDead = true;
+
+        if (CurrentHealth <= 0 && IsBoss && bossDeathVfxPrefab != null)
+        {
+            GameObject vfx = Instantiate(bossDeathVfxPrefab, transform.position, Quaternion.identity);
+            ActiveBossDeathVfx = vfx;
+            SpriteRenderer vfxRenderer = vfx.GetComponent<SpriteRenderer>();
+            if (vfxRenderer != null && spriteRenderers != null)
+            {
+                foreach (SpriteRenderer bossRenderer in spriteRenderers)
+                {
+                    if (bossRenderer == null) continue;
+                    int bossLayer = SortingLayer.GetLayerValueFromID(bossRenderer.sortingLayerID);
+                    int vfxLayer = SortingLayer.GetLayerValueFromID(vfxRenderer.sortingLayerID);
+                    if (bossLayer > vfxLayer || (bossLayer == vfxLayer && bossRenderer.sortingOrder >= vfxRenderer.sortingOrder))
+                    {
+                        vfxRenderer.sortingLayerID = bossRenderer.sortingLayerID;
+                        vfxRenderer.sortingOrder = bossRenderer.sortingOrder + 1;
+                    }
+                }
+            }
+            float vfxDuration = 1f;
+            Animator vfxAnimator = vfx.GetComponent<Animator>();
+            if (vfxAnimator != null && vfxAnimator.runtimeAnimatorController != null)
+            {
+                AnimationClip[] clips = vfxAnimator.runtimeAnimatorController.animationClips;
+                if (clips.Length > 0)
+                {
+                    vfxDuration = clips[0].length / Mathf.Max(0.01f, vfxAnimator.speed);
+                }
+            }
+            Destroy(vfx, vfxDuration);
+        }
 
         // 1. Vô hiệu hóa toàn bộ collider để không nhận thêm sát thương hay va chạm người chơi
         if (colliders != null)
@@ -531,10 +579,11 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
 
         if (grantRewards)
         {
-            // 3. Cấp kinh nghiệm cho Player
-            if (PlayerLevelController.Instance != null && expReward > 0)
+            // Boss kết thúc trận nên không thưởng EXP; quái thường vẫn cộng bình thường.
+            int awardedExp = !IsBoss && grantExp ? expReward : 0;
+            if (PlayerLevelController.Instance != null && awardedExp > 0)
             {
-                PlayerLevelController.Instance.AddEXP(expReward);
+                PlayerLevelController.Instance.AddEXP(awardedExp);
             }
 
             // 4. Cấp tiền tệ (Data Chips / Red Gems) cho Player
@@ -562,7 +611,7 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
                 DropTable.TryDropHealthBox(transform.position, smallHealthBoxDropChance, largeHealthBoxDropChance);
             }
 
-            GameEvents.RaiseEnemyKilled(expReward);
+            GameEvents.RaiseEnemyKilled(awardedExp);
         }
 
         // 5. Phát sự kiện để Spawner và hệ thống Achievements ghi nhận tiêu diệt
@@ -736,6 +785,7 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     /// </summary>
     public void ResetForSpawn()
     {
+        ActiveBossDeathVfx = null;
         if (flashRoutine != null)
         {
             StopCoroutine(flashRoutine);

@@ -28,6 +28,10 @@ public static class ChapterMenuSceneBuilder
     private const string QuestBannerSpritePath = "Assets/Sprites/UI/Chapter/btn_quest_banner.png";
     private const string GrowthFundSpritePath = "Assets/Sprites/UI/Chapter/btn_growth_fund.png";
     private const string TowerDefSpritePath = "Assets/Sprites/UI/Chapter/btn_tower_def.png";
+    private const string TowerDefPanelPath = "Assets/Sprites/Mini game/Sliced/UI/Panel_TowerDef_Popup.png";
+    private const string TowerDefBoardPath = "Assets/Sprites/Mini game/Sliced/UI/Frame_Board_Preview.png";
+    private const string TowerDefBackPath = "Assets/Sprites/Mini game/Sliced/UI/Btn_Arrow_Back_Popup.png";
+    private const string TowerDefStartPath = "Assets/Sprites/Mini game/Sliced/UI/Btn_Start.png";
     private const string GemMineSpritePath = "Assets/Sprites/UI/Chapter/btn_gem_mine.png";
     private const string MonthlyPremiumSpritePath = "Assets/Sprites/UI/GemMine/bg_monthly_premium.png";
     private const string PriceButtonSpritePath = "Assets/Sprites/UI/GemMine/btn_yellow_price.png";
@@ -450,6 +454,10 @@ public static class ChapterMenuSceneBuilder
         ctrlSO.FindProperty("energyCostText").objectReferenceValue = costText;
         ctrlSO.FindProperty("energyCostIcon").objectReferenceValue = costIconImg;
         ctrlSO.FindProperty("towerDefButton").objectReferenceValue = towerBtn;
+        ctrlSO.FindProperty("towerDefPanelSprite").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Sprite>(TowerDefPanelPath);
+        ctrlSO.FindProperty("towerDefBoardSprite").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Sprite>(TowerDefBoardPath);
+        ctrlSO.FindProperty("towerDefBackSprite").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Sprite>(TowerDefBackPath);
+        ctrlSO.FindProperty("towerDefStartSprite").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Sprite>(TowerDefStartPath);
         ctrlSO.FindProperty("gemMineButton").objectReferenceValue = gemMineBtn;
         ctrlSO.FindProperty("gemMineModal").objectReferenceValue = gemMineModal;
         ctrlSO.ApplyModifiedProperties();

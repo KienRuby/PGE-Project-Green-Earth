@@ -11,7 +11,7 @@ using UnityEngine;
 /// </summary>
 public static class ArtifactSpriteSlicer
 {
-    private const string TexturePath = "Assets/Sprites/UI/nút artifact.png";
+    private const string TexturePath = "Assets/Sprites/UI/artifact 1/nút artifact.png";
 
     [MenuItem("PGE/UI/Slice & Rename Artifact Sprites", false, 10)]
     [MenuItem("Tools/PGE/Slice & Rename Artifact Sprites", false, 10)]

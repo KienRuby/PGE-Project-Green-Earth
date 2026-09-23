@@ -261,6 +261,7 @@ public class EnemySpawner : MonoBehaviour
 
     private readonly List<EnemyHealth> activeEnemies = new List<EnemyHealth>();
     private readonly List<EnemyHealth> activeBosses = new List<EnemyHealth>();
+    private readonly List<GameObject> pendingBossDeathVfx = new List<GameObject>();
     private readonly List<EnemySpawnEntry> reusableAvailableEntries = new List<EnemySpawnEntry>();
 
     // Events for UI & Audio
@@ -537,6 +538,7 @@ public class EnemySpawner : MonoBehaviour
         enemiesKilledInWave = 0;
         bossesSpawnedInWave = 0;
         bossesKilledInWave = 0;
+        pendingBossDeathVfx.Clear();
         waveElapsedTime = 0f;
         spawnTimer = initialWaveSpawnDelay; // Quái bắt đầu xuất hiện ngay sau 1 giây khi Wave bắt đầu
         bossSpawnTimer = config.bossSpawnDelay;
@@ -770,6 +772,18 @@ public class EnemySpawner : MonoBehaviour
             boss.OnDeath -= HandleBossDeath;
             activeBosses.Remove(boss);
             bossesKilledInWave++;
+            if (boss.ActiveBossDeathVfx != null)
+            {
+                pendingBossDeathVfx.Add(boss.ActiveBossDeathVfx);
+            }
+
+            WaveConfig config = GetCurrentWaveConfig();
+            if (config != null && config.isBossWave && currentWaveIndex == waves.Count - 1 &&
+                bossesSpawnedInWave >= config.bossCount && activeBosses.Count == 0)
+            {
+                // Trận đã kết thúc; khóa EXP ngay, trước khi chờ VFX và màn thắng.
+                PlayerLevelController.Instance?.LockLevelUpsForVictory();
+            }
 
             OnBossDefeated?.Invoke();
 
@@ -779,7 +793,7 @@ public class EnemySpawner : MonoBehaviour
             }
 
             // Đồng loạt tiêu diệt toàn bộ enemy trên sàn đấu khi Boss bị tiêu diệt
-            KillAllActiveEnemies();
+            KillAllActiveEnemies(false);
         }
     }
 
@@ -790,7 +804,8 @@ public class EnemySpawner : MonoBehaviour
         if (config.isBossWave)
         {
             // Với Wave Boss: Hoàn thành ải khi toàn bộ Boss bị tiêu diệt
-            bool allBossesDead = bossesSpawnedInWave >= config.bossCount && activeBosses.Count == 0;
+            pendingBossDeathVfx.RemoveAll(vfx => vfx == null);
+            bool allBossesDead = bossesSpawnedInWave >= config.bossCount && activeBosses.Count == 0 && pendingBossDeathVfx.Count == 0;
             if (allBossesDead)
             {
                 CompleteCurrentWave(config);
@@ -1185,7 +1200,7 @@ public class EnemySpawner : MonoBehaviour
 
 
         // Đồng loạt tiêu diệt toàn bộ quái vật còn lại trên bản đồ bằng animation Die & Fade out
-        KillAllActiveEnemies();
+        KillAllActiveEnemies(false);
 
         // Mở khóa Chapter kế tiếp nếu đang chơi màn cao nhất
         int currentSelected = PlayerDataService.SelectedChapterIndex;
@@ -1207,6 +1222,11 @@ public class EnemySpawner : MonoBehaviour
     /// </summary>
     public void KillAllActiveEnemies()
     {
+        KillAllActiveEnemies(true);
+    }
+
+    private void KillAllActiveEnemies(bool grantExp)
+    {
         // 1. Snapshot danh sách activeEnemies hiện tại để không bị lỗi collection modified
         List<EnemyHealth> enemiesToKill = new List<EnemyHealth>(activeEnemies);
         for (int i = 0; i < enemiesToKill.Count; i++)
@@ -1214,7 +1234,8 @@ public class EnemySpawner : MonoBehaviour
             EnemyHealth enemy = enemiesToKill[i];
             if (enemy != null && !enemy.IsDead && enemy.gameObject.activeInHierarchy)
             {
-                enemy.InstantKill(true);
+                if (grantExp) enemy.InstantKill(true);
+                else enemy.InstantKillWithoutExp();
             }
         }
 
@@ -1230,7 +1251,8 @@ public class EnemySpawner : MonoBehaviour
                 {
                     continue;
                 }
-                enemy.InstantKill(true);
+                if (grantExp) enemy.InstantKill(true);
+                else enemy.InstantKillWithoutExp();
             }
         }
 

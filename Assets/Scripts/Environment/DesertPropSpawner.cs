@@ -83,6 +83,7 @@ public class DesertPropSpawner : MonoBehaviour
     private ChapterMapManager chapterMapManager;
     private Transform generatedRoot;
     private System.Random random;
+    private float maxForestSwampPropDimension = 0.18f;
 
     public IReadOnlyList<PropEntry> Props => props;
     public IReadOnlyList<ChapterPropConfig> ChapterPropsList => chapterPropsList;
@@ -142,19 +143,19 @@ public class DesertPropSpawner : MonoBehaviour
         targetProps.Clear();
         if (chNum == 2)
         {
-            AddPropEntry(targetProps, "Assets/Prefabs/Map 2 - Mutant Forest/nam_tim.prefab", PropKind.Obstacle, true);
-            AddPropEntry(targetProps, "Assets/Prefabs/Map 2 - Mutant Forest/cay_hoa_xoan.prefab", PropKind.Obstacle, true);
-            AddPropEntry(targetProps, "Assets/Prefabs/Map 2 - Mutant Forest/bui_cay.prefab", PropKind.Obstacle, true);
+            AddPropEntry(targetProps, "Assets/Prefabs/Map 2 - Mutant Forest/nam_tim.prefab", PropKind.Obstacle, false);
+            AddPropEntry(targetProps, "Assets/Prefabs/Map 2 - Mutant Forest/cay_hoa_xoan.prefab", PropKind.Obstacle, false);
+            AddPropEntry(targetProps, "Assets/Prefabs/Map 2 - Mutant Forest/bui_cay.prefab", PropKind.Obstacle, false);
             AddPropEntry(targetProps, "Assets/Prefabs/Map 2 - Mutant Forest/bui_co_1.prefab", PropKind.Decoration, false);
             AddPropEntry(targetProps, "Assets/Prefabs/Map 2 - Mutant Forest/bui_co_2.prefab", PropKind.Decoration, false);
             AddPropEntry(targetProps, "Assets/Prefabs/Map 2 - Mutant Forest/bui_co_doi.prefab", PropKind.Decoration, false);
         }
         else if (chNum == 3)
         {
-            AddPropEntry(targetProps, "Assets/Prefabs/Map 3 - Toxic Swamp/tang_da.prefab", PropKind.Obstacle, true);
-            AddPropEntry(targetProps, "Assets/Prefabs/Map 3 - Toxic Swamp/cum_cay_cam.prefab", PropKind.Obstacle, true);
-            AddPropEntry(targetProps, "Assets/Prefabs/Map 3 - Toxic Swamp/cay_bup_cam.prefab", PropKind.Obstacle, true);
-            AddPropEntry(targetProps, "Assets/Prefabs/Map 3 - Toxic Swamp/nam_bach_tuoc.prefab", PropKind.Obstacle, true);
+            AddPropEntry(targetProps, "Assets/Prefabs/Map 3 - Toxic Swamp/tang_da.prefab", PropKind.Obstacle, false);
+            AddPropEntry(targetProps, "Assets/Prefabs/Map 3 - Toxic Swamp/cum_cay_cam.prefab", PropKind.Obstacle, false);
+            AddPropEntry(targetProps, "Assets/Prefabs/Map 3 - Toxic Swamp/cay_bup_cam.prefab", PropKind.Obstacle, false);
+            AddPropEntry(targetProps, "Assets/Prefabs/Map 3 - Toxic Swamp/nam_bach_tuoc.prefab", PropKind.Obstacle, false);
             AddPropEntry(targetProps, "Assets/Prefabs/Map 3 - Toxic Swamp/mam_vang.prefab", PropKind.Decoration, false);
             AddPropEntry(targetProps, "Assets/Prefabs/Map 3 - Toxic Swamp/mam_xanh.prefab", PropKind.Decoration, false);
             AddPropEntry(targetProps, "Assets/Prefabs/Map 3 - Toxic Swamp/bui_hoa_xanh.prefab", PropKind.Decoration, false);
@@ -214,6 +215,21 @@ public class DesertPropSpawner : MonoBehaviour
             : (chapterMapManager != null && chapterMapManager.ActiveChapterData != null
                 ? chapterMapManager.ActiveChapterData.chapterNumber
                 : desertChapterNumber);
+
+        maxForestSwampPropDimension = 0.18f;
+        if (activeChapterNum == 2 || activeChapterNum == 3)
+        {
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            PlayerSkinApplier skin = player != null ? player.GetComponent<PlayerSkinApplier>() : null;
+            if (skin != null && skin.bodyRenderer != null && skin.bodyRenderer.enabled && skin.bodyRenderer.sprite != null)
+            {
+                Vector2 bodySize = skin.bodyRenderer.bounds.size;
+                if (bodySize.x > 0f && bodySize.y > 0f)
+                {
+                    maxForestSwampPropDimension = Mathf.Min(maxForestSwampPropDimension, Mathf.Min(bodySize.x, bodySize.y) * 0.65f);
+                }
+            }
+        }
 
         if (isEditorPreview)
         {
@@ -358,7 +374,7 @@ public class DesertPropSpawner : MonoBehaviour
                 continue;
             }
 
-            if (CreateProp(entry, position, widthRatio, heightRatio)) positions.Add(position);
+            if (CreateProp(entry, position, widthRatio, heightRatio, chapterNum)) positions.Add(position);
         }
     }
 
@@ -418,7 +434,7 @@ public class DesertPropSpawner : MonoBehaviour
         return player != null ? (Vector2)player.transform.position : mapBoundary.MapCenter;
     }
 
-    private bool CreateProp(PropEntry entry, Vector2 position, float widthRatio, float heightRatio)
+    private bool CreateProp(PropEntry entry, Vector2 position, float widthRatio, float heightRatio, int chapterNum)
     {
         GameObject instance = Instantiate(entry.prefab, new Vector3(position.x, position.y, 0f), Quaternion.identity, generatedRoot);
         instance.name = entry.prefab.name;
@@ -428,7 +444,22 @@ public class DesertPropSpawner : MonoBehaviour
         float multiplier = Mathf.Lerp(minScale, maxScale, (float)random.NextDouble());
         instance.transform.localScale *= Mathf.Max(0.01f, multiplier);
 
-        bool blocksPlayer = ShouldBlockPlayer(entry.kind, entry.blockPlayer);
+        if (chapterNum == 2 || chapterNum == 3)
+        {
+            // Keep props smaller than the player's visible body, including smaller skins.
+            SpriteRenderer[] sprites = instance.GetComponentsInChildren<SpriteRenderer>();
+            float largestDimension = 0f;
+            for (int i = 0; i < sprites.Length; i++)
+            {
+                largestDimension = Mathf.Max(largestDimension, Mathf.Max(sprites[i].bounds.size.x, sprites[i].bounds.size.y));
+            }
+            if (largestDimension > maxForestSwampPropDimension)
+            {
+                instance.transform.localScale *= maxForestSwampPropDimension / largestDimension;
+            }
+        }
+
+        bool blocksPlayer = chapterNum != 2 && chapterNum != 3 && ShouldBlockPlayer(entry.kind, entry.blockPlayer);
         ConfigureCollision(instance, blocksPlayer, widthRatio, heightRatio);
         // Reserve the corridor for the whole prop, not only its pivot.
         Physics2D.SyncTransforms();

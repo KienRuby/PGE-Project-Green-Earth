@@ -507,6 +507,11 @@ public class PauseModalTests
         pauseCtrl.RegisterOrUpdateRuntimeChip(2, "Rifle", "rifle", 2, ChipTier.Rare, rifleIconSprite, rareFrameSprite);
         pauseCtrl.RegisterOrUpdateRuntimeChip(8, "Shotgun", "shotgun", 1, ChipTier.Unique, shotgunIconSprite, uniqueFrameSprite);
 
+        // Damage statistics contain levels but no tier. Refresh must keep the
+        // frame selected at Level Up when these entries are synced.
+        ChipsetBattleStats.RegisterChipset(2, 2, 20);
+        ChipsetBattleStats.RegisterChipset(8, 1, 20);
+
         pauseCtrl.SelectMainTab(1);
 
         // Slot 0 (Standard Gun)
@@ -524,6 +529,7 @@ public class PauseModalTests
         Assert.That(card1Icon, Is.Not.Null);
         Assert.That(card1Frame.sprite, Is.EqualTo(rareFrameSprite));
         Assert.That(card1Icon.sprite, Is.EqualTo(rifleIconSprite));
+        Assert.That(pauseCtrl.RuntimeEquippedChips[1].tier, Is.EqualTo(ChipTier.Rare));
 
         // Slot 2 (Shotgun)
         GameObject card2 = pauseCtrl.SpawnedChipCards[1];
@@ -533,6 +539,7 @@ public class PauseModalTests
         Assert.That(card2Icon, Is.Not.Null);
         Assert.That(card2Frame.sprite, Is.EqualTo(uniqueFrameSprite));
         Assert.That(card2Icon.sprite, Is.EqualTo(shotgunIconSprite));
+        Assert.That(pauseCtrl.RuntimeEquippedChips[2].tier, Is.EqualTo(ChipTier.Unique));
 
         Assert.That(card2Icon.rectTransform.rect.width, Is.LessThan(card2Frame.rectTransform.rect.width));
         Assert.That(card2Icon.rectTransform.rect.height, Is.LessThan(card2Frame.rectTransform.rect.height));

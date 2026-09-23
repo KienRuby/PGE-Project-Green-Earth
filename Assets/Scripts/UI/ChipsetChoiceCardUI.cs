@@ -81,11 +81,21 @@ public class ChipsetChoiceCardUI : MonoBehaviour
 
         if (titleText != null)
         {
+            titleText.enableWordWrapping = false;
+            titleText.enableAutoSizing = true;
+            titleText.fontSizeMin = 18f;
+            titleText.fontSizeMax = Mathf.Max(18f, titleText.fontSize);
+            titleText.overflowMode = TextOverflowModes.Ellipsis;
             titleText.text = data != null ? $"{data.chipName} LV.{data.level:00}" : "CHIPSET";
         }
 
         if (descriptionText != null)
         {
+            descriptionText.enableWordWrapping = true;
+            descriptionText.enableAutoSizing = true;
+            descriptionText.fontSizeMin = 16f;
+            descriptionText.fontSizeMax = Mathf.Max(16f, descriptionText.fontSize);
+            descriptionText.overflowMode = TextOverflowModes.Ellipsis;
             descriptionText.text = string.IsNullOrWhiteSpace(offerDescription)
                 ? data?.description ?? string.Empty
                 : offerDescription;

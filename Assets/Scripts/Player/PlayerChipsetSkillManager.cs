@@ -20,6 +20,7 @@ public class PlayerChipsetSkillManager : MonoBehaviour
     {
         ChipsetBattleStats.Reset();
         if (playerAutoShooter == null) playerAutoShooter = GetComponent<PlayerAutoShooter>();
+        if (playerAutoShooter != null) playerAutoShooter.ApplyChipsetWeaponUpgrade(1, 1);
 
         // Bốn chipset dạng súng dùng chung khẩu súng mặc định. Nếu scene cũ còn
         // component tự bắn riêng thì tắt chúng để không tạo đạn/VFX tại tâm Player.
@@ -113,7 +114,6 @@ public class PlayerChipsetSkillManager : MonoBehaviour
             {
                 playerAutoShooter.ApplyChipsetWeaponUpgrade(1, runtimeLevel);
             }
-            ChipsetBattleStats.RegisterChipset(1, runtimeLevel, 20);
             return;
         }
 

@@ -2598,6 +2598,54 @@ public class PGEGameLogicTests
     }
 
     [Test]
+    public void PlayerAutoShooter_EffectiveAttackRange_MatchesScreenDiagonal_WhenViewportEnabled()
+    {
+        GameObject player = new GameObject("Player_RangeMatchTest");
+        GameObject camObj = new GameObject("MainCamera_RangeMatchTest");
+        try
+        {
+            Camera cam = camObj.AddComponent<Camera>();
+            cam.tag = "MainCamera";
+            cam.orthographic = true;
+            cam.orthographicSize = 5.0f;
+
+            PlayerAutoShooter shooter = player.AddComponent<PlayerAutoShooter>();
+            // Mặc định matchAttackRangeToViewport = true
+            Assert.IsTrue(shooter.MatchAttackRangeToViewport);
+
+            // Bán kính nửa đường chéo khung hình Camera
+            float screenHeight = cam.orthographicSize * 2f;
+            float aspect = cam.aspect > 0.01f ? cam.aspect : (9f / 16f);
+            float screenWidth = screenHeight * aspect;
+            float halfW = screenWidth * 0.5f;
+            float halfH = screenHeight * 0.5f;
+            float expectedDiagonalRadius = Mathf.Sqrt(halfW * halfW + halfH * halfH);
+
+            Assert.That(shooter.EffectiveAttackRange, Is.EqualTo(expectedDiagonalRadius).Within(0.01f),
+                "Khi có Camera, EffectiveAttackRange phải tự động khớp bằng ScreenDiagonalRange.");
+            Assert.That(shooter.SharedAttackRange, Is.EqualTo(expectedDiagonalRadius).Within(0.01f));
+
+            // Khi tắt MatchAttackRangeToViewport, fallback về currentAttackRange mặc định (12m)
+            shooter.MatchAttackRangeToViewport = false;
+            Assert.That(shooter.EffectiveAttackRange, Is.EqualTo(12.0f).Within(0.01f));
+
+            // Bật lại và đổi sang hình tròn (Circle)
+            shooter.MatchAttackRangeToViewport = true;
+            typeof(PlayerAutoShooter).GetField("detectionShape", BindingFlags.Instance | BindingFlags.NonPublic)
+                ?.SetValue(shooter, PlayerAutoShooter.DetectionShape.Circle);
+            typeof(PlayerAutoShooter).GetField("detectionRadius", BindingFlags.Instance | BindingFlags.NonPublic)
+                ?.SetValue(shooter, 8.0f);
+            Assert.That(shooter.EffectiveAttackRange, Is.EqualTo(8.0f).Within(0.01f),
+                "Khi ở chế độ Circle, EffectiveAttackRange khớp với detectionRadius.");
+        }
+        finally
+        {
+            Object.DestroyImmediate(camObj);
+            Object.DestroyImmediate(player);
+        }
+    }
+
+    [Test]
     public void FPSDisplay_ToggleAndCyclePosition_FunctionsCorrectly()
     {
         GameObject go = new GameObject("Test_FPSDisplay");

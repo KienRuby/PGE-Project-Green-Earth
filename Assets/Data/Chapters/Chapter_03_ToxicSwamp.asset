@@ -16,7 +16,7 @@ MonoBehaviour:
   chapterTitle: Toxic Swamp
   totalWaves: 10
   energyCost: 10
-  previewBackground: {fileID: 21300000, guid: 8f142ca49d7fbd649a3c1ff032d9d2bd, type: 3}
+  previewBackground: {fileID: 1483773002, guid: 8052c45124c89c643822496d48ef76d5, type: 3}
   bossSilhouette: {fileID: 2594576651089119482, guid: fe333c7c7740539458b615ad4a280fb4, type: 3}
   mapGroundSprite: {fileID: 21300000, guid: 8f142ca49d7fbd649a3c1ff032d9d2bd, type: 3}
   mapSize: {x: 40, y: 40}
@@ -215,7 +215,7 @@ MonoBehaviour:
     speedMultiplier: 1.4
     expMultiplier: 1.75
     isBossWave: 1
-    customBossPrefab: {fileID: 0}
+    customBossPrefab: {fileID: 8391691189738749272, guid: 1fff8b24914067f488115810b8f2490a, type: 3}
     bossCount: 1
     bossSpawnDelay: 2
     breakDurationAfterWave: 2

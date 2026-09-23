@@ -84,6 +84,12 @@ public class ChapterScreenController : MonoBehaviour
     [Tooltip("Nút Tower Def ở bên trái nút Start.")]
     [SerializeField] private Button towerDefButton;
 
+    [Header("Tower Def Selection Modal")]
+    [SerializeField] private Sprite towerDefPanelSprite;
+    [SerializeField] private Sprite towerDefBoardSprite;
+    [SerializeField] private Sprite towerDefBackSprite;
+    [SerializeField] private Sprite towerDefStartSprite;
+
     [Tooltip("Nút Gem Mine ở bên phải nút Start.")]
     [SerializeField] private Button gemMineButton;
 
@@ -114,6 +120,12 @@ public class ChapterScreenController : MonoBehaviour
 
     private int currentChapterIndex;
     private ChapterData currentChapter;
+    private GameObject towerDefModalRoot;
+    private ScrollRect towerDefScrollRect;
+    private readonly Button[] towerDefLevelStartButtons = new Button[TowerDefProgress.LevelCount];
+    private readonly GameObject[] towerDefLevelLockedLabels = new GameObject[TowerDefProgress.LevelCount];
+
+    public event System.Action<int> OnTowerDefLevelSelected;
 
     private void Awake()
     {
@@ -193,6 +205,7 @@ public class ChapterScreenController : MonoBehaviour
     {
         ChipManager.OnEnergyChanged -= HandleEnergyChanged;
         ChipManager.OnTestModeChanged -= HandleTestModeChanged;
+        if (towerDefModalRoot != null) towerDefModalRoot.SetActive(false);
     }
 
     private void OnDestroy()
@@ -202,6 +215,11 @@ public class ChapterScreenController : MonoBehaviour
         if (startButton != null) startButton.onClick.RemoveListener(OnStartButtonClicked);
         if (towerDefButton != null) towerDefButton.onClick.RemoveListener(OnTowerDefClicked);
         if (gemMineButton != null) gemMineButton.onClick.RemoveListener(OnGemMineClicked);
+        if (towerDefModalRoot != null)
+        {
+            if (Application.isPlaying) Destroy(towerDefModalRoot);
+            else DestroyImmediate(towerDefModalRoot);
+        }
     }
 
     public void OnPrevChapterClicked()
@@ -530,7 +548,183 @@ public class ChapterScreenController : MonoBehaviour
 
     public void OnTowerDefClicked()
     {
-        Debug.Log("[ChapterScreenController] Nút Tower Def được nhấn.");
+        EnsureTowerDefModal();
+        if (towerDefModalRoot == null) return;
+        RefreshTowerDefLevels();
+        towerDefModalRoot.transform.SetAsLastSibling();
+        towerDefModalRoot.SetActive(true);
+        Canvas.ForceUpdateCanvases();
+        if (towerDefScrollRect != null) towerDefScrollRect.verticalNormalizedPosition = 1f;
+    }
+
+    public void CloseTowerDefModal()
+    {
+        if (towerDefModalRoot != null) towerDefModalRoot.SetActive(false);
+    }
+
+    private void EnsureTowerDefModal()
+    {
+        if (towerDefModalRoot != null) return;
+
+        Canvas canvas = GetComponentInParent<Canvas>();
+        if (canvas == null || towerDefPanelSprite == null || towerDefBoardSprite == null ||
+            towerDefBackSprite == null || towerDefStartSprite == null) return;
+
+        UnityEngine.UI.Image backdrop = CreateTowerDefImage("TowerDefModal", canvas.transform, null);
+        towerDefModalRoot = backdrop.gameObject;
+        RectTransform rootRect = backdrop.rectTransform;
+        StretchTowerDefRect(rootRect);
+        backdrop.color = new Color(0f, 0f, 0f, 0.85f);
+        backdrop.raycastTarget = true;
+
+        UnityEngine.UI.Image panel = CreateTowerDefImage("Panel", rootRect, towerDefPanelSprite);
+        StretchTowerDefRect(panel.rectTransform);
+        panel.rectTransform.offsetMin = new Vector2(10f, 10f);
+        panel.rectTransform.offsetMax = new Vector2(-10f, -10f);
+        panel.raycastTarget = true;
+
+        UnityEngine.UI.Image backImage = CreateTowerDefImage("BackButton", panel.transform, towerDefBackSprite);
+        RectTransform backRect = backImage.rectTransform;
+        backRect.anchorMin = backRect.anchorMax = new Vector2(0f, 1f);
+        backRect.pivot = new Vector2(0f, 1f);
+        backRect.anchoredPosition = new Vector2(42f, -40f);
+        backRect.sizeDelta = new Vector2(112f, 112f);
+        backImage.raycastTarget = true;
+        UnityEngine.UI.Button backButton = backImage.gameObject.AddComponent<UnityEngine.UI.Button>();
+        backButton.targetGraphic = backImage;
+        backButton.onClick.AddListener(CloseTowerDefModal);
+
+        GameObject scrollObject = new GameObject("LevelScrollView", typeof(RectTransform), typeof(ScrollRect));
+        scrollObject.transform.SetParent(panel.transform, false);
+        RectTransform scrollRect = (RectTransform)scrollObject.transform;
+        scrollRect.anchorMin = new Vector2(0.07f, 0.16f);
+        scrollRect.anchorMax = new Vector2(0.93f, 0.75f);
+        scrollRect.offsetMin = scrollRect.offsetMax = Vector2.zero;
+
+        UnityEngine.UI.Image viewportImage = CreateTowerDefImage("Viewport", scrollRect, null);
+        RectTransform viewport = viewportImage.rectTransform;
+        StretchTowerDefRect(viewport);
+        viewportImage.raycastTarget = true;
+        UnityEngine.UI.Mask mask = viewportImage.gameObject.AddComponent<UnityEngine.UI.Mask>();
+        mask.showMaskGraphic = false;
+
+        GameObject contentObject = new GameObject("Content", typeof(RectTransform), typeof(UnityEngine.UI.VerticalLayoutGroup), typeof(UnityEngine.UI.ContentSizeFitter));
+        contentObject.transform.SetParent(viewport, false);
+        RectTransform content = (RectTransform)contentObject.transform;
+        content.anchorMin = new Vector2(0f, 1f);
+        content.anchorMax = Vector2.one;
+        content.pivot = new Vector2(0.5f, 1f);
+        content.anchoredPosition = Vector2.zero;
+        content.sizeDelta = Vector2.zero;
+        UnityEngine.UI.VerticalLayoutGroup layout = contentObject.GetComponent<UnityEngine.UI.VerticalLayoutGroup>();
+        layout.spacing = 60f;
+        layout.childAlignment = TextAnchor.UpperCenter;
+        layout.childControlWidth = true;
+        layout.childControlHeight = true;
+        layout.childForceExpandWidth = true;
+        layout.childForceExpandHeight = false;
+        UnityEngine.UI.ContentSizeFitter fitter = contentObject.GetComponent<UnityEngine.UI.ContentSizeFitter>();
+        fitter.verticalFit = UnityEngine.UI.ContentSizeFitter.FitMode.PreferredSize;
+
+        towerDefScrollRect = scrollObject.GetComponent<ScrollRect>();
+        towerDefScrollRect.viewport = viewport;
+        towerDefScrollRect.content = content;
+        towerDefScrollRect.horizontal = false;
+        towerDefScrollRect.vertical = true;
+        towerDefScrollRect.movementType = ScrollRect.MovementType.Clamped;
+        towerDefScrollRect.scrollSensitivity = 40f;
+
+        for (int level = 1; level <= TowerDefProgress.LevelCount; level++)
+            CreateTowerDefBoard(content, level);
+        towerDefModalRoot.SetActive(false);
+    }
+
+    private void CreateTowerDefBoard(Transform parent, int level)
+    {
+        UnityEngine.UI.Image board = CreateTowerDefImage($"Level{level:00}", parent, towerDefBoardSprite);
+        RectTransform boardRect = board.rectTransform;
+        board.raycastTarget = false;
+        UnityEngine.UI.LayoutElement boardLayout = board.gameObject.AddComponent<UnityEngine.UI.LayoutElement>();
+        boardLayout.preferredHeight = 530f;
+
+        TextMeshProUGUI label = CreateTowerDefText("LevelLabel", boardRect, $"Tower def LV.{level:00}");
+        RectTransform labelRect = label.rectTransform;
+        labelRect.anchorMin = labelRect.anchorMax = new Vector2(0f, 1f);
+        labelRect.pivot = new Vector2(0f, 1f);
+        labelRect.anchoredPosition = new Vector2(36f, -18f);
+        labelRect.sizeDelta = new Vector2(600f, 62f);
+        label.fontSize = 43f;
+        label.alignment = TextAlignmentOptions.MidlineLeft;
+
+        UnityEngine.UI.Image startImage = CreateTowerDefImage("StartButton", boardRect, towerDefStartSprite);
+        RectTransform startRect = startImage.rectTransform;
+        startRect.anchorMin = new Vector2(0.73f, 0.09f);
+        startRect.anchorMax = new Vector2(0.97f, 0.28f);
+        startRect.offsetMin = startRect.offsetMax = Vector2.zero;
+        startImage.raycastTarget = true;
+        UnityEngine.UI.Button startButton = startImage.gameObject.AddComponent<UnityEngine.UI.Button>();
+        startButton.targetGraphic = startImage;
+        startButton.onClick.AddListener(() => SelectTowerDefLevel(level));
+        towerDefLevelStartButtons[level - 1] = startButton;
+
+        TextMeshProUGUI lockedLabel = CreateTowerDefText("LockedLabel", boardRect, "LOCKED");
+        RectTransform lockedRect = lockedLabel.rectTransform;
+        lockedRect.anchorMin = new Vector2(0.73f, 0.09f);
+        lockedRect.anchorMax = new Vector2(0.97f, 0.28f);
+        lockedRect.offsetMin = lockedRect.offsetMax = Vector2.zero;
+        lockedLabel.fontSize = 38f;
+        lockedLabel.alignment = TextAlignmentOptions.Center;
+        towerDefLevelLockedLabels[level - 1] = lockedLabel.gameObject;
+    }
+
+    private TextMeshProUGUI CreateTowerDefText(string name, Transform parent, string value)
+    {
+        GameObject labelObject = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
+        labelObject.transform.SetParent(parent, false);
+        TextMeshProUGUI label = labelObject.GetComponent<TextMeshProUGUI>();
+        label.text = value;
+        label.font = chapterTitleText != null ? chapterTitleText.font : TMP_Settings.defaultFontAsset;
+        label.fontStyle = FontStyles.Bold;
+        label.color = Color.white;
+        label.raycastTarget = false;
+        return label;
+    }
+
+    private void RefreshTowerDefLevels()
+    {
+        for (int level = 1; level <= TowerDefProgress.LevelCount; level++)
+        {
+            bool unlocked = TowerDefProgress.IsLevelUnlocked(level);
+            Button button = towerDefLevelStartButtons[level - 1];
+            GameObject lockedLabel = towerDefLevelLockedLabels[level - 1];
+            if (button != null) button.gameObject.SetActive(unlocked);
+            if (lockedLabel != null) lockedLabel.SetActive(!unlocked);
+        }
+    }
+
+    private void SelectTowerDefLevel(int level)
+    {
+        if (!TowerDefProgress.IsLevelUnlocked(level)) return;
+        TowerDefProgress.SelectedLevel = level;
+        OnTowerDefLevelSelected?.Invoke(level);
+    }
+
+    private static UnityEngine.UI.Image CreateTowerDefImage(string name, Transform parent, Sprite sprite)
+    {
+        GameObject gameObject = new GameObject(name, typeof(RectTransform), typeof(UnityEngine.UI.Image));
+        gameObject.transform.SetParent(parent, false);
+        UnityEngine.UI.Image image = gameObject.GetComponent<UnityEngine.UI.Image>();
+        image.sprite = sprite;
+        image.color = Color.white;
+        return image;
+    }
+
+    private static void StretchTowerDefRect(RectTransform rect)
+    {
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
     }
 
     public void OnGemMineClicked()

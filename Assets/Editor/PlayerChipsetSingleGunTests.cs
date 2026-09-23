@@ -5,6 +5,46 @@ using UnityEngine;
 public class PlayerChipsetSingleGunTests
 {
     [Test]
+    public void UpgradedStandardGun_FiresOneProjectileFromThePlayerGun()
+    {
+        GameObject player = new GameObject("Player");
+        GameObject enemy = new GameObject("Enemy", typeof(EnemyHealth));
+        GameObject bulletPrefab = new GameObject("StandardGunTestBullet", typeof(Rigidbody2D), typeof(Projectile));
+
+        try
+        {
+            enemy.transform.position = new Vector3(3f, 0f, 0f);
+            PlayerAutoShooter shooter = player.AddComponent<PlayerAutoShooter>();
+            SetPrivateField(shooter, "detectionShape", PlayerAutoShooter.DetectionShape.Circle);
+            SetPrivateField(shooter, "projectilePrefab", bulletPrefab);
+            SetPrivateField(shooter, "currentTarget", enemy.transform);
+            shooter.ApplyChipsetWeaponUpgrade(1, 2);
+
+            int before = Object.FindObjectsOfType<Projectile>().Length;
+            InvokePrivate(shooter, "AutoShoot");
+            InvokePrivate(shooter, "AutoShootChipsetWeapons");
+
+            Projectile[] allBullets = Object.FindObjectsOfType<Projectile>();
+            Assert.That(allBullets.Length - before, Is.EqualTo(1), "Standard Gun upgrade must not start a second shooting channel.");
+            foreach (Projectile bullet in allBullets)
+            {
+                if (bullet.gameObject == bulletPrefab) continue;
+                Assert.That(bullet.Damage, Is.EqualTo(shooter.CurrentDamage));
+            }
+        }
+        finally
+        {
+            foreach (Projectile bullet in Object.FindObjectsOfType<Projectile>())
+            {
+                if (bullet != null && bullet.gameObject.name.StartsWith("StandardGunTestBullet"))
+                    Object.DestroyImmediate(bullet.gameObject);
+            }
+            Object.DestroyImmediate(enemy);
+            Object.DestroyImmediate(player);
+        }
+    }
+
+    [Test]
     public void GunChipsets_UpgradeOneAutoShooter_WithoutAddingLegacyShooters()
     {
         GameObject player = new GameObject("Player");
@@ -26,8 +66,10 @@ public class PlayerChipsetSingleGunTests
             Assert.That(player.GetComponent<RifleSkill>(), Is.Null);
             Assert.That(player.GetComponent<ShotgunSkill>(), Is.Null);
             Assert.That(player.GetComponent<MultigunSkill>(), Is.Null);
+            Assert.That(shooter.GetChipsetWeaponLevel(1), Is.EqualTo(1));
             Assert.That(shooter.GetChipsetWeaponLevel(8), Is.EqualTo(1));
             Assert.That(shooter.GetChipsetWeaponProjectileCount(8), Is.EqualTo(5));
+            Assert.That(shooter.GetChipsetWeaponSpread(8), Is.EqualTo(45f));
             Assert.That(shooter.GetChipsetWeaponDamage(8), Is.GreaterThan(0));
             Assert.That(ChipsetBattleStats.GetEntry(8), Is.Not.Null);
         }
@@ -52,6 +94,7 @@ public class PlayerChipsetSingleGunTests
             Assert.That(shooter.GetChipsetWeaponDamage(8), Is.GreaterThanOrEqualTo(42));
             Assert.That(shooter.GetChipsetWeaponFireInterval(8), Is.EqualTo(0.7f).Within(0.01f));
             Assert.That(shooter.GetChipsetWeaponProjectileCount(8), Is.EqualTo(10));
+            Assert.That(shooter.GetChipsetWeaponSpread(8), Is.EqualTo(30f));
 
             ChipsetBattleStats.RecordAttack(8, 5);
             ChipsetBattleStats.RecordAttack(8, 5);

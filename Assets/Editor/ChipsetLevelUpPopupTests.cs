@@ -112,8 +112,8 @@ public class ChipsetLevelUpPopupTests
 
         try
         {
-            Assert.That(popup.GetRuntimeLevel(1), Is.EqualTo(0));
-            for (int expectedLevel = 1; expectedLevel <= ChipsetLevelUpPopup.MaxRuntimeChipLevel; expectedLevel++)
+            Assert.That(popup.GetRuntimeLevel(1), Is.EqualTo(1));
+            for (int expectedLevel = 2; expectedLevel <= ChipsetLevelUpPopup.MaxRuntimeChipLevel; expectedLevel++)
             {
                 Assert.That(popup.UpgradeRuntimeChipset(1), Is.EqualTo(expectedLevel));
                 Assert.That(popup.GetRuntimeLevel(1), Is.EqualTo(expectedLevel));

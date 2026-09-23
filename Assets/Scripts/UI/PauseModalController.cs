@@ -282,6 +282,18 @@ public class PauseModalController : MonoBehaviour
         RefreshEquippedChips();
     }
 
+    private void Update()
+    {
+        if (!IsPaused || CurrentMainTab != 1) return;
+
+        for (int i = 0; i < runtimeEquippedChips.Count; i++)
+        {
+            if (runtimeEquippedChips[i].tier != ChipTier.Holographic) continue;
+            ChipsetFrameShimmerMaterial.UpdateUnscaledAnimationClock();
+            break;
+        }
+    }
+
     private void BindButtons()
     {
         // 1. Tab buttons (Legacy / Main)
@@ -1430,11 +1442,14 @@ public class PauseModalController : MonoBehaviour
             for (int i = 0; i < battleEntries.Count; i++)
             {
                 var entry = battleEntries[i];
-                if (entry != null && entry.RuntimeLevel > 0 && runtimeEquippedChips.Any(c => c.id == entry.ChipsetId))
+                if (entry != null && entry.RuntimeLevel > 0)
                 {
-                    Sprite icon = GetChipsetIconSprite(entry.ChipsetId, entry.IconKey);
-                    Sprite frame = GetChipsetLeverFrame(ChipTier.Magic);
-                    RegisterOrUpdateRuntimeChip(entry.ChipsetId, entry.ChipsetName, entry.IconKey, entry.RuntimeLevel, ChipTier.Magic, icon, frame);
+                    RuntimeEquippedChipData equipped = runtimeEquippedChips.FirstOrDefault(c => c.id == entry.ChipsetId);
+                    if (equipped != null)
+                    {
+                        // BattleStats knows the runtime level, not the saved tier or its frame.
+                        equipped.level = Mathf.Max(equipped.level, entry.RuntimeLevel);
+                    }
                 }
             }
         }
@@ -1449,10 +1464,18 @@ public class PauseModalController : MonoBehaviour
                 int level = kvp.Value;
                 if (level > 0)
                 {
+                    RuntimeEquippedChipData equipped = runtimeEquippedChips.FirstOrDefault(c => c.id == chipId);
+                    if (equipped != null)
+                    {
+                        equipped.level = Mathf.Max(equipped.level, level);
+                        continue;
+                    }
+
                     string iconKey = ChipsetBattleStats.GetChipsetIconKey(chipId);
                     Sprite icon = GetChipsetIconSprite(chipId, iconKey);
-                    Sprite frame = GetChipsetLeverFrame(ChipTier.Magic);
-                    RegisterOrUpdateRuntimeChip(chipId, ChipsetBattleStats.GetChipsetName(chipId), iconKey, level, ChipTier.Magic, icon, frame);
+                    ChipTier tier = PlayerDataService.GetChipTier(chipId);
+                    Sprite frame = GetChipsetLeverFrame(tier);
+                    RegisterOrUpdateRuntimeChip(chipId, ChipsetBattleStats.GetChipsetName(chipId), iconKey, level, tier, icon, frame);
                 }
             }
         }
@@ -1592,6 +1615,9 @@ public class PauseModalController : MonoBehaviour
             iconFrameImg.sprite = leverFrameSprite;
             iconFrameImg.preserveAspect = true;
             iconFrameImg.color = Color.white;
+            iconFrameImg.material = chip.tier == ChipTier.Holographic && leverFrameSprite != null
+                ? ChipsetFrameShimmerMaterial.Get(leverFrameSprite)
+                : null;
             iconFrameImg.enabled = leverFrameSprite != null;
         }
 

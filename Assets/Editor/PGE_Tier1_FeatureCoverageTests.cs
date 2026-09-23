@@ -1757,9 +1757,9 @@ public class PGE_Tier1_FeatureCoverageTests
         try
         {
             ChipsetLevelUpPopup popup = go.GetComponent<ChipsetLevelUpPopup>();
-            Assert.That(popup.GetRuntimeLevel(1), Is.EqualTo(0));
-            Assert.That(popup.UpgradeRuntimeChipset(1), Is.EqualTo(1));
             Assert.That(popup.GetRuntimeLevel(1), Is.EqualTo(1));
+            Assert.That(popup.UpgradeRuntimeChipset(1), Is.EqualTo(2));
+            Assert.That(popup.GetRuntimeLevel(1), Is.EqualTo(2));
         }
         finally
         {

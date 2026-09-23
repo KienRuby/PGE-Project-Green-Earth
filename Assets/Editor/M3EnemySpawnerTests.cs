@@ -642,6 +642,61 @@ public class M3EnemySpawnerTests
     }
 
     [Test]
+    public void BossDeath_DoesNotAwardExpForBossOrAutomaticallyClearedEnemies()
+    {
+        GameObject playerObj = new GameObject("PlayerLevel", typeof(PlayerLevelController));
+        GameObject spawnerObj = new GameObject("Spawner", typeof(EnemySpawner));
+        GameObject bossObj = new GameObject("Boss", typeof(EnemyHealth));
+        GameObject creepObj = new GameObject("RemainingCreep", typeof(EnemyHealth));
+
+        try
+        {
+            PlayerLevelController playerLevel = playerObj.GetComponent<PlayerLevelController>();
+            playerLevel.SetLevelAndExpForTesting(1, 0);
+
+            EnemyHealth boss = bossObj.GetComponent<EnemyHealth>();
+            boss.SetIsBoss(true);
+            boss.SetMaxHealth(10);
+            boss.SetExpReward(10);
+            boss.SetDataChipReward(0);
+            boss.SetRedGemReward(0);
+
+            EnemyHealth creep = creepObj.GetComponent<EnemyHealth>();
+            creep.SetExpReward(10);
+
+            EnemySpawner spawner = spawnerObj.GetComponent<EnemySpawner>();
+            spawner.SetWavesForTesting(new List<EnemySpawner.WaveConfig>
+            {
+                new EnemySpawner.WaveConfig { isBossWave = true, bossCount = 1 }
+            });
+            typeof(EnemySpawner).GetField("bossesSpawnedInWave", BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(spawner, 1);
+            var activeBosses = (List<EnemyHealth>)typeof(EnemySpawner)
+                .GetField("activeBosses", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(spawner);
+            Assert.That(activeBosses, Is.Not.Null);
+            activeBosses.Add(boss);
+
+            MethodInfo handler = typeof(EnemySpawner).GetMethod("HandleBossDeath", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(handler, Is.Not.Null);
+            boss.OnDeath += (Action<EnemyHealth>)Delegate.CreateDelegate(typeof(Action<EnemyHealth>), spawner, handler);
+
+            boss.TakeDamage(10);
+
+            Assert.That(boss.IsDead, Is.True);
+            Assert.That(creep.IsDead, Is.True);
+            Assert.That(playerLevel.CurrentEXP, Is.Zero);
+            Assert.That(playerLevel.CurrentLevel, Is.EqualTo(1));
+            Assert.That(playerLevel.IsLevelUpLocked, Is.True);
+        }
+        finally
+        {
+            Object.DestroyImmediate(bossObj);
+            Object.DestroyImmediate(creepObj);
+            Object.DestroyImmediate(spawnerObj);
+            Object.DestroyImmediate(playerObj);
+        }
+    }
+
+    [Test]
     public void M3_27_PlayerHealth_IsInvulnerable_PreventsDamage()
     {
         GameObject playerObj = new GameObject("Player_Invuln", typeof(PlayerHealth));

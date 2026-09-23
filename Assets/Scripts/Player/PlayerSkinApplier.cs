@@ -47,6 +47,9 @@ public class PlayerSkinConfig
     [Tooltip("Sprite Khẩu súng.")]
     public Sprite gunSprite;
 
+    [Tooltip("Bảy khung hình đạn riêng của skin, theo thứ tự phát.")]
+    public Sprite[] bulletFrames;
+
     [Tooltip("Sprite Chân trái (Chan 1).")]
     public Sprite leg1Sprite;
 
@@ -168,6 +171,7 @@ public class PlayerSkinApplier : MonoBehaviour
 
     public bool HasCustomGunSprite => !isShowingDefault && CurrentSkin != null && CurrentSkin.gunSprite != null;
     public Sprite CurrentSkinGunSprite => isShowingDefault ? defaultGunSprite : CurrentSkin?.gunSprite;
+    public Sprite[] CurrentSkinBulletFrames => isShowingDefault ? null : CurrentSkin?.bulletFrames;
 
     private void Awake()
     {

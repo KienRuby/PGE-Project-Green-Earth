@@ -27,8 +27,8 @@ Transform:
   m_GameObject: {fileID: 1929114172077104680}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.51809, y: 0.01, z: 0}
-  m_LocalScale: {x: 0.04863281, y: 0.04863281, z: 1}
+  m_LocalPosition: {x: -0.3572, y: 0.01, z: 0}
+  m_LocalScale: {x: 0.08203125, y: 0.08203125, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2528196307466767188}
@@ -74,7 +74,7 @@ SpriteRenderer:
   m_SortingLayerID: -465862584
   m_SortingLayer: 7
   m_SortingOrder: 612
-  m_Sprite: {fileID: 21300000, guid: f792237f5ed243198696c9d4fe280805, type: 3}
+  m_Sprite: {fileID: 21300000, guid: c2da553c7fd54dcfaf50644d13fca205, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -97,8 +97,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d7c4a1e9b2f3e4a5b6c7d8e9f0a1b2c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  iconSize: 0.249
-  iconSpacing: 0.021
+  iconSize: 0.42
+  iconSpacing: 0.03
   iconOffset: {x: 0, y: 0.01}
 --- !u!1 &8429231736989137224
 GameObject:
@@ -137,7 +137,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 6, y: 2}
+  m_SizeDelta: {x: 20, y: 5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &3239628663921700916
 MeshRenderer:
@@ -159,7 +159,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 0}
+  - {fileID: 2100000, guid: 686cfa7cdb111f748aa18d4495b8bbea, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -201,10 +201,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: '10000 '
+  m_text: 99
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 88378fd6127ec3345802e6c374507f19, type: 2}
-  m_sharedMaterial: {fileID: 0}
+  m_sharedMaterial: {fileID: 2100000, guid: 686cfa7cdb111f748aa18d4495b8bbea, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -287,10 +287,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   textComponent: {fileID: 651211510194549621}
   critIconRenderer: {fileID: 3954662013157798479}
-  critIconSprite: {fileID: 21300000, guid: f792237f5ed243198696c9d4fe280805, type: 3}
-  critScaleMultiplier: 0.76
-  critIconSize: 0.249
-  critIconSpacing: 0.021
+  critIconSprite: {fileID: 21300000, guid: c2da553c7fd54dcfaf50644d13fca205, type: 3}
+  critScaleMultiplier: 1.25
+  critIconSize: 0.42
+  critIconSpacing: 0.03
   critIconOffset: {x: 0, y: 0.01}
   critSpawnOffset: {x: 0, y: 0.35, z: 0}
   sortingLayerName: UI
