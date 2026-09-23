@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Chapter_01_Grassland
   m_EditorClassIdentifier: 
   chapterNumber: 1
-  chapterTitle: Grassland Outskirts
+  chapterTitle: Yellow Desert 1
   totalWaves: 10
   energyCost: 10
   previewBackground: {fileID: -30941602, guid: dbf600fd080753c4fba4c55aa28ddbc5, type: 3}

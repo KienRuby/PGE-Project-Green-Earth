@@ -73,7 +73,7 @@ public class ChapterButtonLayoutTests
         Transform titleTr = headerTr.Find("TitleText") ?? headerTr.Find("ChapterTitleText");
         Assert.IsNotNull(titleTr, "TitleText must exist");
         RectTransform titleRect = titleTr.GetComponent<RectTransform>();
-        Assert.AreEqual(-25f, titleRect.anchoredPosition.y, 0.01f, "TitleText Y must be -25");
+        Assert.AreEqual(-25f, titleRect.anchoredPosition.y, 0.01f, "TitleText must sit below the Chapter subtitle");
 
         Transform prevBtnTr = headerTr.Find("PreviousChapterButton") ?? headerTr.Find("PrevChapterButton");
         Assert.IsNotNull(prevBtnTr, "PreviousChapterButton must exist");
@@ -130,10 +130,10 @@ public class ChapterButtonLayoutTests
         Assert.IsNotNull(subTmp, "SubtitleText TMP component must exist");
         Assert.IsNotNull(titleTmp, "TitleText TMP component must exist");
 
-        Assert.IsTrue(subTmp.gameObject.activeSelf, "SubtitleText must be active");
+        Assert.IsTrue(subTmp.gameObject.activeSelf, "SubtitleText must remain visible above the chapter name");
         Assert.IsTrue(titleTmp.gameObject.activeSelf, "TitleText must be active");
 
-        Assert.IsTrue(subTmp.text.StartsWith("Chapter."), $"SubtitleText must start with 'Chapter.', got '{subTmp.text}'");
+        Assert.That(subTmp.text, Does.StartWith("Chapter. "), "SubtitleText must display the selected Chapter number");
         Assert.IsNotEmpty(titleTmp.text, "TitleText text must not be empty");
 
         // Verify stroke material

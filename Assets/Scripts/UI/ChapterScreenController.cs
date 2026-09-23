@@ -30,7 +30,7 @@ public class ChapterScreenController : MonoBehaviour
     [Tooltip("Text hiển thị số thứ tự Chapter (ví dụ: 'Chapter. 01').")]
     [SerializeField] private TMP_Text chapterSubtitleText;
 
-    [Tooltip("Text hiển thị tên Chapter (ví dụ: 'Grassland Outskirts').")]
+    [Tooltip("Text hiển thị tên Chapter (ví dụ: 'Yellow Desert 1').")]
     [SerializeField] private TMP_Text chapterTitleText;
 
     [Header("Stage Preview Window")]
@@ -366,7 +366,7 @@ public class ChapterScreenController : MonoBehaviour
             if (chapterTitleText != null)
             {
                 chapterTitleText.gameObject.SetActive(true);
-                chapterTitleText.text = "Grassland Outskirts";
+                chapterTitleText.text = "Yellow Desert 1";
                 chapterTitleText.ForceMeshUpdate(true, true);
             }
             if (previewBackgroundImage != null) previewBackgroundImage.color = isLocked ? lockedBackgroundColor : unlockedBackgroundColor;
