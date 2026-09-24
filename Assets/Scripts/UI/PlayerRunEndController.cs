@@ -700,12 +700,16 @@ public sealed class PlayerRunEndController : MonoBehaviour
         if (textComponent == null) return;
         textComponent.enableWordWrapping = false;
         textComponent.overflowMode = TextOverflowModes.Overflow;
+        textComponent.alignment = TextAlignmentOptions.Left;
+        textComponent.enableAutoSizing = true;
+        textComponent.fontSizeMin = 36f;
+        textComponent.fontSizeMax = 68f;
 
         RectTransform textRect = textComponent.rectTransform;
         if (textRect != null)
         {
-            textRect.anchoredPosition = new Vector2(80f, 0f);
-            textRect.sizeDelta = new Vector2(420f, 100f);
+            textRect.anchoredPosition = new Vector2(110f, 0f);
+            textRect.sizeDelta = new Vector2(320f, 100f);
         }
 
         Transform row = textRect != null ? textRect.parent : null;

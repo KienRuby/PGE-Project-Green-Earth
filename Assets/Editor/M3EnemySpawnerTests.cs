@@ -388,6 +388,54 @@ public class M3EnemySpawnerTests
             Object.DestroyImmediate(spawnerObj);
         }
     }
+
+    [Test]
+    public void M3_16a_EnemySpawner_ClearedWaveAdvancesEarly_ButTimedOutWaveAdvancesWithSurvivors()
+    {
+        GameObject spawnerObj = new GameObject("Spawner_WaveCompletion", typeof(EnemySpawner));
+        GameObject enemyObj = new GameObject("Survivor", typeof(EnemyHealth));
+        try
+        {
+            EnemySpawner spawner = spawnerObj.GetComponent<EnemySpawner>();
+            spawner.GenerateDefaultWaves(3);
+            spawner.StartWave(0);
+            EnemySpawner.WaveConfig config = spawner.GetCurrentWaveConfig();
+            config.totalEnemiesToSpawn = 1;
+
+            BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance;
+            MethodInfo checkClear = typeof(EnemySpawner).GetMethod("CheckWaveClearCondition", flags);
+            FieldInfo spawned = typeof(EnemySpawner).GetField("enemiesSpawnedInWave", flags);
+            FieldInfo elapsed = typeof(EnemySpawner).GetField("waveElapsedTime", flags);
+            FieldInfo currentEnemies = typeof(EnemySpawner).GetField("currentWaveEnemies", flags);
+            Assert.That(checkClear, Is.Not.Null);
+            Assert.That(spawned, Is.Not.Null);
+            Assert.That(elapsed, Is.Not.Null);
+            Assert.That(currentEnemies, Is.Not.Null);
+
+            checkClear.Invoke(spawner, new object[] { config });
+            Assert.That(spawner.CurrentState, Is.EqualTo(EnemySpawner.WaveState.InWave), "Do not clear before all enemies spawn.");
+
+            spawned.SetValue(spawner, 1);
+            checkClear.Invoke(spawner, new object[] { config });
+            Assert.That(spawner.CurrentState, Is.EqualTo(EnemySpawner.WaveState.WaveBreak), "Clear immediately after the last enemy dies.");
+
+            spawner.StartWave(1);
+            config = spawner.GetCurrentWaveConfig();
+            HashSet<EnemyHealth> current = (HashSet<EnemyHealth>)currentEnemies.GetValue(spawner);
+            current.Add(enemyObj.GetComponent<EnemyHealth>());
+            elapsed.SetValue(spawner, config.waveDuration);
+            checkClear.Invoke(spawner, new object[] { config });
+            Assert.That(spawner.CurrentState, Is.EqualTo(EnemySpawner.WaveState.WaveBreak), "Time limit advances with a survivor.");
+
+            spawner.StartWave(2);
+            Assert.That(current.Count, Is.Zero, "Old enemies must not occupy the next wave's spawn limit.");
+        }
+        finally
+        {
+            Object.DestroyImmediate(enemyObj);
+            Object.DestroyImmediate(spawnerObj);
+        }
+    }
     #endregion
 
     #region 5. VFX & Hit Flash Tests
