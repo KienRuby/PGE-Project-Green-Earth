@@ -66,6 +66,44 @@ public class TowerDefGameManager : MonoBehaviour
     public event Action OnLevelVictory;
     public event Action OnLevelDefeat;
 
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void InitRuntimeHooks()
+    {
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoadedCallback;
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoadedCallback;
+    }
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void CheckActiveSceneOnStart()
+    {
+        var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+        if (scene.name == "TowerDef")
+        {
+            EnsureManagerInScene(scene);
+        }
+    }
+
+    private static void OnSceneLoadedCallback(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
+    {
+        if (scene.name == "TowerDef")
+        {
+            EnsureManagerInScene(scene);
+        }
+    }
+
+    private static void EnsureManagerInScene(UnityEngine.SceneManagement.Scene scene)
+    {
+        if (Instance == null && UnityEngine.Object.FindObjectOfType<TowerDefGameManager>() == null)
+        {
+            Debug.Log("[TowerDefGameManager] Auto-bootstrapping TowerDef scene dynamically at runtime...");
+            GameObject gmObj = new GameObject("TowerDefGameManager", typeof(TowerDefGameManager));
+            if (scene.IsValid() && scene.isLoaded)
+            {
+                UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(gmObj, scene);
+            }
+        }
+    }
+
     private void Awake()
     {
         Instance = this;
@@ -373,6 +411,13 @@ public class TowerDefGameManager : MonoBehaviour
     public void EnsureSceneMap()
     {
         LoadAssetReferences();
+
+        Camera cam = Camera.main ?? FindObjectOfType<Camera>();
+        if (cam != null)
+        {
+            cam.backgroundColor = new Color(0.08f, 0.08f, 0.1f, 1f);
+            cam.orthographic = true;
+        }
 
         if (UnityEngine.EventSystems.EventSystem.current == null)
         {
@@ -775,6 +820,25 @@ public class TowerDefGameManager : MonoBehaviour
 
     private void LoadAssetReferences()
     {
+        if (darkTileSprite == null) darkTileSprite = Resources.Load<Sprite>("TowerDef/Tile_Floor_Dark");
+        if (wallStripSprite == null) wallStripSprite = Resources.Load<Sprite>("TowerDef/Wall_Brick_Strip");
+        if (gateSprite == null) gateSprite = Resources.Load<Sprite>("TowerDef/Gate_Metal");
+        if (plusTileSprite == null) plusTileSprite = Resources.Load<Sprite>("TowerDef/Tile_Placement_Plus");
+
+        if (turretBaseSprite == null) turretBaseSprite = Resources.Load<Sprite>("TowerDef/Turret_Base_01_Cyan");
+        if (turretGunSprite == null) turretGunSprite = Resources.Load<Sprite>("TowerDef/Turret_Gun_01_Cyan");
+        if (pawnTowerSprite == null) pawnTowerSprite = Resources.Load<Sprite>("TowerDef/Pawn_Tower_03_Purple");
+        if (corePodSprite == null) corePodSprite = Resources.Load<Sprite>("TowerDef/Core_Pod_Green");
+
+        if (upgradeCircleSprite == null) upgradeCircleSprite = Resources.Load<Sprite>("TowerDef/Icon_Upgrade_Circle");
+        if (greenBarSprite == null) greenBarSprite = Resources.Load<Sprite>("TowerDef/Bar_Green");
+        if (backArrowSprite == null) backArrowSprite = Resources.Load<Sprite>("TowerDef/Btn_Arrow_Back");
+        if (coinIconSprite == null) coinIconSprite = Resources.Load<Sprite>("TowerDef/Icon_Coin");
+        if (energyIconSprite == null) energyIconSprite = Resources.Load<Sprite>("TowerDef/Icon_Energy");
+
+        if (creepSprite == null) creepSprite = Resources.Load<Sprite>("TowerDef/Creep_Mine");
+        if (bossSprite == null) bossSprite = Resources.Load<Sprite>("TowerDef/Boss_Mine");
+
 #if UNITY_EDITOR
         string tilesDir = "Assets/Sprites/Mini game/Sliced/Tiles/";
         string uiDir = "Assets/Sprites/Mini game/Sliced/UI/";
