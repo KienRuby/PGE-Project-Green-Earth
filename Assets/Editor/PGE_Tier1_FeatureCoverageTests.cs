@@ -1652,7 +1652,7 @@ public class PGE_Tier1_FeatureCoverageTests
 
         Assert.That(drone.CanAdvanceTier, Is.True);
         Assert.That(drone.AdvanceTier(), Is.True);
-        Assert.That(drone.tier, Is.EqualTo(BuddyTier.Magic));
+        Assert.That(drone.tier, Is.EqualTo(BuddyTier.Rare));
         Assert.That(drone.count, Is.EqualTo(10));
     }
 

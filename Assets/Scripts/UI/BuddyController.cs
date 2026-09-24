@@ -51,7 +51,11 @@ public class BuddyItemData
     {
         if (!CanAdvanceTier) return false;
         count -= requiredCount;
-        tier = (BuddyTier)Mathf.Min((int)tier + 1, (int)BuddyTier.Holographic);
+        // Common and Magic share the green frame. Skip Magic for new upgrades;
+        // existing saves at Magic still advance normally to Rare (blue).
+        tier = tier == BuddyTier.Common
+            ? BuddyTier.Rare
+            : (BuddyTier)Mathf.Min((int)tier + 1, (int)BuddyTier.Holographic);
         requiredCount = tier >= BuddyTier.Holographic
             ? 0
             : Mathf.RoundToInt(requiredCount * 1.6f) + 1;

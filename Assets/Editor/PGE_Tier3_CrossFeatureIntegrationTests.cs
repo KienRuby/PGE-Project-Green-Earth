@@ -202,12 +202,12 @@ public class PGE_Tier3_CrossFeatureIntegrationTests
         {
             Assert.That(drone.CanAdvanceTier, Is.True);
             Assert.That(drone.AdvanceTier(), Is.True);
-            Assert.That(drone.tier, Is.EqualTo(BuddyTier.Magic));
+            Assert.That(drone.tier, Is.EqualTo(BuddyTier.Rare));
             Assert.That(drone.count, Is.EqualTo(5));
 
-            GameEvents.RaiseDroneTierAdvanced("drone-snowflake", 1);
+            GameEvents.RaiseDroneTierAdvanced("drone-snowflake", (int)drone.tier);
             Assert.That(advancedDrone, Is.EqualTo("drone-snowflake"));
-            Assert.That(advancedTier, Is.EqualTo(1));
+            Assert.That(advancedTier, Is.EqualTo((int)BuddyTier.Rare));
         }
         finally
         {

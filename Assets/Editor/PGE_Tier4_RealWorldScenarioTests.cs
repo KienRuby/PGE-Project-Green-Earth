@@ -314,7 +314,7 @@ public class PGE_Tier4_RealWorldScenarioTests
                 requiredCount = 5
             };
             Assert.That(drone.AdvanceTier(), Is.True);
-            Assert.That(drone.tier, Is.EqualTo(BuddyTier.Magic));
+            Assert.That(drone.tier, Is.EqualTo(BuddyTier.Rare));
             Assert.That(drone.count, Is.EqualTo(5));
 
             // 7. Start Chapter 1 Run

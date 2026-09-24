@@ -1748,7 +1748,7 @@ public class PGEGameLogicTests
         Assert.That(drone.CanAdvanceTier, Is.True);
         bool adv = drone.AdvanceTier();
         Assert.That(adv, Is.True);
-        Assert.That(drone.tier, Is.EqualTo(BuddyTier.Magic));
+        Assert.That(drone.tier, Is.EqualTo(BuddyTier.Rare));
         Assert.That(drone.count, Is.EqualTo(7));
         Assert.That(drone.requiredCount, Is.GreaterThan(3));
 
