@@ -119,7 +119,7 @@ public class GunTurret : MonoBehaviour, IPoolable, IDamageable
     }
 
     /// <summary>
-    /// Phạm vi tấn công của Gun Turret (Chipset): luôn nhỏ hơn tầm bắn của Player 3m.
+    /// Phạm vi tấn công của Gun Turret khớp với tầm bắn của Player.
     /// </summary>
     public float EffectiveAttackRange
     {
@@ -127,9 +127,9 @@ public class GunTurret : MonoBehaviour, IPoolable, IDamageable
         {
             if (sharedTargetProvider != null)
             {
-                return Mathf.Max(1.0f, sharedTargetProvider.SharedAttackRange - 3.0f);
+                return sharedTargetProvider.SharedAttackRange;
             }
-            return 9.0f;
+            return 12.0f;
         }
     }
 

@@ -73,7 +73,7 @@ public class ShotgunSkill : MonoBehaviour
             {
                 return playerAutoShooter.ChipsetAttackRange;
             }
-            return Mathf.Max(1.0f, attackRange - 3.0f);
+            return Mathf.Max(1.0f, attackRange);
         }
     }
 

@@ -216,7 +216,7 @@ public class RocketPunchSkill : MonoBehaviour
     }
 
     /// <summary>
-    /// Phạm vi phóng của Rocket Punch (Chipset): luôn nhỏ hơn tầm bắn của Player 3m.
+    /// Phạm vi phóng của Rocket Punch khớp với tầm bắn của Player.
     /// </summary>
     public float EffectiveLaunchRange
     {
@@ -224,9 +224,9 @@ public class RocketPunchSkill : MonoBehaviour
         {
             if (playerAutoShooter != null)
             {
-                return Mathf.Max(1.0f, playerAutoShooter.SharedAttackRange - 3.0f);
+                return playerAutoShooter.SharedAttackRange;
             }
-            return 9.0f;
+            return 12.0f;
         }
     }
 

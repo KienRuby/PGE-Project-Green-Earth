@@ -214,9 +214,9 @@ public class PlayerAutoShooter : MonoBehaviour
         set => bonusAttackRange = value;
     }
     /// <summary>
-    /// Phạm vi tấn công / bắn của các vũ khí chipset: luôn nhỏ hơn tầm bắn của Player 3m.
+    /// Phạm vi tấn công / bắn của các vũ khí chipset khớp với tầm bắn của Player.
     /// </summary>
-    public float ChipsetAttackRange => Mathf.Max(1.0f, SharedAttackRange - 3.0f);
+    public float ChipsetAttackRange => SharedAttackRange;
 
     private void Awake()
     {
@@ -1130,7 +1130,7 @@ public class PlayerAutoShooter : MonoBehaviour
             return;
         }
 
-        // Chỉ khai hỏa vũ khí chipset khi mục tiêu nằm trong tầm bắn của chipset (nhỏ hơn Player 3m)
+        // Chỉ khai hỏa vũ khí chipset khi mục tiêu nằm trong tầm bắn chung với Player.
         Vector3 spawnPosition = attackPoint != null ? attackPoint.position : transform.position;
         Vector2 targetAimPos = GetTargetAimPoint(currentTarget);
         float distToTarget = Vector2.Distance(spawnPosition, targetAimPos);

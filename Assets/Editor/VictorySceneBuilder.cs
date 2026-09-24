@@ -15,6 +15,7 @@ public static class VictorySceneBuilder
     private const string RewardStrokeMaterialPath = "Assets/Fonts/Nunito/Nunito SDF - RewardStroke.mat";
     private const string CompleteSpritePath = "Assets/Sprites/UI/nút chapter complete.png";
     private const string CurrencyAtlasPath = "Assets/Sprites/UI/icon tài nguyên.png";
+    private const string ConfettiAtlasPath = "Assets/Sprites/Backround/pháo giấy.png";
 
     private static readonly Color Dim = new Color(0f, 0f, 0f, 0.45f);
     private static readonly Color Feedback = new Color32(255, 240, 116, 255);
@@ -98,11 +99,11 @@ public static class VictorySceneBuilder
 
         // 5. Nút Get reward (xanh dương bo tròn có chữ Get reward)
         Button normalButton = CreateSpriteButton(
-            "GetRewardButton", victoryPanel.transform, normalButtonSprite, new Vector2(0f, -240f), new Vector2(440f, 224f));
+            "GetRewardButton", victoryPanel.transform, normalButtonSprite, new Vector2(0f, -260f), new Vector2(440f, 224f));
 
         // 6. Nút Get x3 reward (xanh lá bo tròn có chữ Get x3 reward)
         Button tripleButton = CreateSpriteButton(
-            "VipTripleButton", victoryPanel.transform, tripleButtonSprite, new Vector2(0f, -500f), new Vector2(440f, 224f));
+            "VipTripleButton", victoryPanel.transform, tripleButtonSprite, new Vector2(0f, -520f), new Vector2(440f, 224f));
 
         // Text thông báo ẩn khi cần (feedback)
         TMP_Text feedbackText = CreateText("FeedbackText", victoryPanel.transform, string.Empty, 24f, Feedback);
@@ -122,6 +123,12 @@ public static class VictorySceneBuilder
         serialized.FindProperty("panelCanvasGroup").objectReferenceValue = canvasGroup;
         serialized.FindProperty("resultCard").objectReferenceValue = resultCard;
         serialized.FindProperty("confettiRoot").objectReferenceValue = confettiRoot;
+        SerializedProperty confettiSprites = serialized.FindProperty("confettiSprites");
+        confettiSprites.arraySize = 14;
+        for (int i = 0; i < confettiSprites.arraySize; i++)
+        {
+            confettiSprites.GetArrayElementAtIndex(i).objectReferenceValue = LoadSprite(ConfettiAtlasPath, $"pháo giấy_{i}");
+        }
         serialized.FindProperty("dataChipRewardText").objectReferenceValue = dataChipRewardText;
         serialized.FindProperty("redGemRewardText").objectReferenceValue = redGemRewardText;
         serialized.FindProperty("detailsButton").objectReferenceValue = detailsButton;

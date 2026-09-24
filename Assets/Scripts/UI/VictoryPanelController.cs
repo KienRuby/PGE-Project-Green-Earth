@@ -43,6 +43,9 @@ public sealed class VictoryPanelController : MonoBehaviour
     [Tooltip("Vùng chứa các mảnh confetti.")]
     [SerializeField] private RectTransform confettiRoot;
 
+    [Tooltip("Các sprite đã cắt từ sheet pháo giấy, dùng ngẫu nhiên cho từng mảnh.")]
+    [SerializeField] private Sprite[] confettiSprites;
+
     [Header("Nội dung kết quả")]
     [SerializeField] private TMP_Text chapterText;
     [SerializeField] private TMP_Text waveNumberText;
@@ -95,10 +98,18 @@ public sealed class VictoryPanelController : MonoBehaviour
     private sealed class ConfettiPiece
     {
         public RectTransform Rect;
+        public CanvasGroup Glint;
         public float FallSpeed;
         public float RotationSpeed;
         public float DriftSpeed;
         public float Phase;
+        public float FlipSpeed;
+        public float FlipPhase;
+        public float GlintSpeed;
+        public float GlintPhase;
+        public float BurstTime;
+        public float BurstDuration;
+        public Vector2 BurstVelocity;
     }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -579,19 +590,41 @@ public sealed class VictoryPanelController : MonoBehaviour
         while (victoryPanel != null && victoryPanel.activeSelf)
         {
             float delta = Time.unscaledDeltaTime;
+            float now = Time.unscaledTime;
+            float halfWidth = confettiRoot != null && confettiRoot.rect.width > 100f ? confettiRoot.rect.width * 0.5f : 540f;
+            float halfHeight = confettiRoot != null && confettiRoot.rect.height > 100f ? confettiRoot.rect.height * 0.5f : 960f;
             for (int i = 0; i < confettiPieces.Count; i++)
             {
                 ConfettiPiece piece = confettiPieces[i];
                 Vector2 position = piece.Rect.anchoredPosition;
-                position.y -= piece.FallSpeed * delta;
-                position.x += Mathf.Sin(Time.unscaledTime * piece.DriftSpeed + piece.Phase) * 45f * delta;
-                if (position.y < -1050f)
+                if (piece.BurstTime < piece.BurstDuration)
                 {
-                    position.y = Random.Range(980f, 1250f);
-                    position.x = Random.Range(-560f, 560f);
+                    piece.BurstTime += delta;
+                    position += piece.BurstVelocity * delta;
+                    piece.BurstVelocity.x = Mathf.MoveTowards(piece.BurstVelocity.x, 0f, 450f * delta);
+                    piece.BurstVelocity.y -= 500f * delta;
+                }
+                else
+                {
+                    position.y -= piece.FallSpeed * delta;
+                    position.x += Mathf.Sin(now * piece.DriftSpeed + piece.Phase) * 45f * delta;
+                    if (position.y < -halfHeight - 100f)
+                    {
+                        position.y = halfHeight + Random.Range(20f, 180f);
+                        position.x = Random.Range(-halfWidth, halfWidth);
+                    }
                 }
                 piece.Rect.anchoredPosition = position;
                 piece.Rect.Rotate(0f, 0f, piece.RotationSpeed * delta);
+
+                float flip = Mathf.Cos(now * piece.FlipSpeed + piece.FlipPhase);
+                float widthScale = Mathf.Sign(flip) * Mathf.Lerp(0.12f, 1f, Mathf.Abs(flip));
+                piece.Rect.localScale = new Vector3(widthScale, 1f, 1f);
+                if (piece.Glint != null)
+                {
+                    float glint = Mathf.Max(0f, Mathf.Sin(now * piece.GlintSpeed + piece.GlintPhase));
+                    piece.Glint.alpha = Mathf.Pow(glint, 12f) * 0.55f;
+                }
             }
             yield return null;
         }
@@ -600,42 +633,78 @@ public sealed class VictoryPanelController : MonoBehaviour
 
     private void CreateConfettiPieces()
     {
-        if (confettiRoot == null || confettiPieces.Count > 0)
+        if (confettiRoot == null || confettiSprites == null || confettiSprites.Length == 0 || confettiPieces.Count > 0)
         {
             return;
         }
 
-        Color[] colors =
-        {
-            new Color32(56, 221, 210, 255),
-            new Color32(77, 230, 91, 255),
-            new Color32(255, 193, 61, 255),
-            new Color32(126, 247, 222, 255)
-        };
-
+        float halfWidth = confettiRoot.rect.width > 100f ? confettiRoot.rect.width * 0.5f : 540f;
+        float halfHeight = confettiRoot.rect.height > 100f ? confettiRoot.rect.height * 0.5f : 960f;
         for (int i = 0; i < confettiCount; i++)
         {
+            Sprite sprite = confettiSprites[Random.Range(0, confettiSprites.Length)];
+            if (sprite == null) continue;
+
+            bool distant = i < confettiCount / 3;
+            float corner = i % 2 == 0 ? -1f : 1f;
             GameObject go = new GameObject($"Confetti_{i:00}", typeof(RectTransform), typeof(Image));
             go.transform.SetParent(confettiRoot, false);
             RectTransform rect = go.GetComponent<RectTransform>();
             rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
-            rect.sizeDelta = new Vector2(Random.Range(18f, 54f), Random.Range(10f, 30f));
-            rect.anchoredPosition = new Vector2(Random.Range(-560f, 560f), Random.Range(-900f, 1250f));
+            rect.sizeDelta = sprite.rect.size * (distant ? Random.Range(0.25f, 0.4f) : Random.Range(0.42f, 0.62f));
+            rect.anchoredPosition = new Vector2(corner * Random.Range(halfWidth - 45f, halfWidth + 55f),
+                Random.Range(halfHeight - 90f, halfHeight + 70f));
             rect.localRotation = Quaternion.Euler(0f, 0f, Random.Range(0f, 360f));
 
             Image image = go.GetComponent<Image>();
-            image.color = colors[i % colors.Length];
+            image.sprite = sprite;
+            image.color = new Color(1f, 1f, 1f, distant ? 0.55f : 0.92f);
             image.raycastTarget = false;
 
             confettiPieces.Add(new ConfettiPiece
             {
                 Rect = rect,
-                FallSpeed = Random.Range(170f, 430f),
-                RotationSpeed = Random.Range(-220f, 220f),
-                DriftSpeed = Random.Range(1.2f, 3.5f),
-                Phase = Random.Range(0f, 6.28f)
+                Glint = !distant && i % 7 == 0 ? CreateConfettiGlint(rect) : null,
+                FallSpeed = distant ? Random.Range(150f, 250f) : Random.Range(270f, 440f),
+                RotationSpeed = distant ? Random.Range(-110f, 110f) : Random.Range(-220f, 220f),
+                DriftSpeed = distant ? Random.Range(0.8f, 1.8f) : Random.Range(1.5f, 3.5f),
+                Phase = Random.Range(0f, 6.28f),
+                FlipSpeed = Random.Range(4f, 8f),
+                FlipPhase = Random.Range(0f, 6.28f),
+                GlintSpeed = Random.Range(2f, 3.5f),
+                GlintPhase = Random.Range(0f, 6.28f),
+                BurstDuration = Random.Range(0.65f, 0.95f),
+                BurstVelocity = new Vector2(-corner * (distant ? Random.Range(330f, 530f) : Random.Range(500f, 850f)),
+                    -Random.Range(180f, 520f))
             });
         }
+    }
+
+    private static CanvasGroup CreateConfettiGlint(RectTransform parent)
+    {
+        GameObject glintObject = new GameObject("Glint", typeof(RectTransform), typeof(CanvasGroup));
+        glintObject.transform.SetParent(parent, false);
+        RectTransform glintRect = glintObject.GetComponent<RectTransform>();
+        glintRect.anchorMin = glintRect.anchorMax = new Vector2(0.5f, 0.5f);
+        glintRect.sizeDelta = Vector2.zero;
+        CanvasGroup group = glintObject.GetComponent<CanvasGroup>();
+        group.alpha = 0f;
+        group.blocksRaycasts = false;
+        group.interactable = false;
+
+        for (int i = 0; i < 2; i++)
+        {
+            GameObject ray = new GameObject("Ray", typeof(RectTransform), typeof(Image));
+            ray.transform.SetParent(glintRect, false);
+            RectTransform rayRect = ray.GetComponent<RectTransform>();
+            rayRect.anchorMin = rayRect.anchorMax = new Vector2(0.5f, 0.5f);
+            rayRect.sizeDelta = i == 0 ? new Vector2(16f, 2f) : new Vector2(2f, 16f);
+            Image rayImage = ray.GetComponent<Image>();
+            rayImage.color = Color.white;
+            rayImage.raycastTarget = false;
+        }
+
+        return group;
     }
 
     private void StopVisualCoroutines()

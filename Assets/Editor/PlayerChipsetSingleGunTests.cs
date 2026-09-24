@@ -223,7 +223,7 @@ public class PlayerChipsetSingleGunTests
     }
 
     [Test]
-    public void AllChipsetWeapons_AttackRange_IsThreeMetersSmallerThanPlayerAttackRange()
+    public void AllChipsetWeapons_AttackRange_MatchesPlayerAttackRange()
     {
         GameObject player = new GameObject("Player_RangeTest");
         GameObject gunPivot = new GameObject("GunPivot");
@@ -239,7 +239,7 @@ public class PlayerChipsetSingleGunTests
             PlayerAutoShooter shooter = player.AddComponent<PlayerAutoShooter>();
             // Mặc định SharedAttackRange = 12.0f
             Assert.That(shooter.SharedAttackRange, Is.EqualTo(12.0f).Within(0.001f));
-            Assert.That(shooter.ChipsetAttackRange, Is.EqualTo(9.0f).Within(0.001f));
+            Assert.That(shooter.ChipsetAttackRange, Is.EqualTo(12.0f).Within(0.001f));
 
             // Test GunTurret (Chipset ID 6)
             GameObject turretObj = new GameObject("Turret");
@@ -247,10 +247,10 @@ public class PlayerChipsetSingleGunTests
             {
                 GunTurret turret = turretObj.AddComponent<GunTurret>();
                 turret.Initialize(10, 1f, 10f, 10f, 0f, false, 100, null, null, null, targetProvider: shooter);
-                Assert.That(turret.EffectiveAttackRange, Is.EqualTo(9.0f).Within(0.001f));
+                Assert.That(turret.EffectiveAttackRange, Is.EqualTo(12.0f).Within(0.001f));
 
                 shooter.BonusAttackRange = 3.0f;
-                Assert.That(turret.EffectiveAttackRange, Is.EqualTo(12.0f).Within(0.001f));
+                Assert.That(turret.EffectiveAttackRange, Is.EqualTo(15.0f).Within(0.001f));
                 shooter.BonusAttackRange = 0f;
             }
             finally
@@ -260,7 +260,7 @@ public class PlayerChipsetSingleGunTests
 
             // Test RocketPunchSkill (Chipset ID 3)
             RocketPunchSkill rocketPunch = player.AddComponent<RocketPunchSkill>();
-            Assert.That(rocketPunch.EffectiveLaunchRange, Is.EqualTo(9.0f).Within(0.001f));
+            Assert.That(rocketPunch.EffectiveLaunchRange, Is.EqualTo(12.0f).Within(0.001f));
 
             // Test Legacy Skills (IDs 1, 2, 8, 5)
             StandardGunSkill stdGun = player.AddComponent<StandardGunSkill>();
@@ -268,20 +268,20 @@ public class PlayerChipsetSingleGunTests
             ShotgunSkill shotgun = player.AddComponent<ShotgunSkill>();
             MultigunSkill multigun = player.AddComponent<MultigunSkill>();
 
-            Assert.That(stdGun.EffectiveAttackRange, Is.EqualTo(9.0f).Within(0.001f));
-            Assert.That(rifle.EffectiveAttackRange, Is.EqualTo(9.0f).Within(0.001f));
-            Assert.That(shotgun.EffectiveAttackRange, Is.EqualTo(9.0f).Within(0.001f));
-            Assert.That(multigun.EffectiveAttackRange, Is.EqualTo(9.0f).Within(0.001f));
-
-            // Dynamic scaling test: Tăng tầm bắn Player lên 15m (+3m bonus)
-            shooter.BonusAttackRange = 3.0f;
-            Assert.That(shooter.SharedAttackRange, Is.EqualTo(15.0f).Within(0.001f));
-            Assert.That(shooter.ChipsetAttackRange, Is.EqualTo(12.0f).Within(0.001f));
-            Assert.That(rocketPunch.EffectiveLaunchRange, Is.EqualTo(12.0f).Within(0.001f));
             Assert.That(stdGun.EffectiveAttackRange, Is.EqualTo(12.0f).Within(0.001f));
             Assert.That(rifle.EffectiveAttackRange, Is.EqualTo(12.0f).Within(0.001f));
             Assert.That(shotgun.EffectiveAttackRange, Is.EqualTo(12.0f).Within(0.001f));
             Assert.That(multigun.EffectiveAttackRange, Is.EqualTo(12.0f).Within(0.001f));
+
+            // Dynamic scaling test: Tăng tầm bắn Player lên 15m (+3m bonus)
+            shooter.BonusAttackRange = 3.0f;
+            Assert.That(shooter.SharedAttackRange, Is.EqualTo(15.0f).Within(0.001f));
+            Assert.That(shooter.ChipsetAttackRange, Is.EqualTo(15.0f).Within(0.001f));
+            Assert.That(rocketPunch.EffectiveLaunchRange, Is.EqualTo(15.0f).Within(0.001f));
+            Assert.That(stdGun.EffectiveAttackRange, Is.EqualTo(15.0f).Within(0.001f));
+            Assert.That(rifle.EffectiveAttackRange, Is.EqualTo(15.0f).Within(0.001f));
+            Assert.That(shotgun.EffectiveAttackRange, Is.EqualTo(15.0f).Within(0.001f));
+            Assert.That(multigun.EffectiveAttackRange, Is.EqualTo(15.0f).Within(0.001f));
         }
         finally
         {

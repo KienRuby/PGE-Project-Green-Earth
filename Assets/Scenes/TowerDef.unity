@@ -3160,6 +3160,7 @@ MonoBehaviour:
   gunImage: {fileID: 0}
   upgradeIcon: {fileID: 1789490931}
   gunVisualAngleOffset: 0
+  projectilePrefab: {fileID: 0}
 --- !u!114 &431224742
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11308,7 +11309,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -4, y: -4}
+  m_AnchoredPosition: {x: -47, y: -45}
   m_SizeDelta: {x: 58, y: 58}
   m_Pivot: {x: 1, y: 1}
 --- !u!114 &1789490933
@@ -13366,6 +13367,14 @@ PrefabInstance:
     - target: {fileID: 8172635419283746501, guid: 469f9f6cfb1e0de4cbedd3683150b414, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8172635419283746501, guid: 469f9f6cfb1e0de4cbedd3683150b414, type: 3}
+      propertyPath: detectionWidth
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 8172635419283746501, guid: 469f9f6cfb1e0de4cbedd3683150b414, type: 3}
+      propertyPath: detectionHeight
+      value: 15
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
