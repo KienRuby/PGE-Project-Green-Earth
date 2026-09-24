@@ -158,7 +158,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_BackGroundColor: {r: 0.08, g: 0.08, b: 0.1, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -214,8 +214,78 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &900000001
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 900000002}
+  - component: {fileID: 900000003}
+  m_Layer: 0
+  m_Name: TowerDefGameManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &900000002
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 900000001}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &900000003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 900000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4955283e8450407ea7e491ee6d7f307b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gold: 50
+  energy: 0
+  currentLevel: 1
+  totalWaves: 3
+  currentWave: 0
+  waveInProgress: 0
+  gate: {fileID: 0}
+  uiController: {fileID: 0}
+  enemySpawnParent: {fileID: 0}
+  projectileParent: {fileID: 0}
+  darkTileSprite: {fileID: 0}
+  wallStripSprite: {fileID: 0}
+  gateSprite: {fileID: 0}
+  plusTileSprite: {fileID: 0}
+  turretBaseSprite: {fileID: 0}
+  turretGunSprite: {fileID: 0}
+  pawnTowerSprite: {fileID: 0}
+  corePodSprite: {fileID: 0}
+  upgradeCircleSprite: {fileID: 0}
+  greenBarSprite: {fileID: 0}
+  backArrowSprite: {fileID: 0}
+  coinIconSprite: {fileID: 0}
+  energyIconSprite: {fileID: 0}
+  creepSprite: {fileID: 0}
+  bossSprite: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 461261143}
+  - {fileID: 900000002}
