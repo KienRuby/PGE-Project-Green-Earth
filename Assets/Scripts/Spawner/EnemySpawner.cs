@@ -70,11 +70,11 @@ public class EnemySpawner : MonoBehaviour
         public float bossSpawnDelay = 1.0f;
 
         [Header("Break Time")]
-        [Tooltip("Thời gian nghỉ/chờ (giây) sau khi dọn sạch Wave này trước khi bắt đầu Wave kế tiếp.")]
+        [Tooltip("Thời gian nghỉ/chờ (giây) sau khi Wave kết thúc trước khi bắt đầu Wave kế tiếp.")]
         public float breakDurationAfterWave = 3.0f;
 
         [Header("Wave Duration & Timer")]
-        [Tooltip("Thời gian diễn ra của Wave này (giây). Vòng tròn hiển thị sẽ quay 360 độ theo thời gian này, hết giờ sẽ tự động bước vào Wave tiếp theo bất kể còn quái hay không.")]
+        [Tooltip("Thời gian tối đa của Wave này (giây). Wave thường kết thúc sớm nếu đã sinh đủ và tiêu diệt hết quái; hết giờ vẫn chuyển Wave dù còn quái.")]
         public float waveDuration = 30f;
     }
 
@@ -260,6 +260,7 @@ public class EnemySpawner : MonoBehaviour
     private WaveState currentState = WaveState.NotStarted;
 
     private readonly List<EnemyHealth> activeEnemies = new List<EnemyHealth>();
+    private readonly HashSet<EnemyHealth> currentWaveEnemies = new HashSet<EnemyHealth>();
     private readonly List<EnemyHealth> activeBosses = new List<EnemyHealth>();
     private readonly List<GameObject> pendingBossDeathVfx = new List<GameObject>();
     private readonly List<EnemySpawnEntry> reusableAvailableEntries = new List<EnemySpawnEntry>();
@@ -536,6 +537,7 @@ public class EnemySpawner : MonoBehaviour
 
         enemiesSpawnedInWave = 0;
         enemiesKilledInWave = 0;
+        currentWaveEnemies.Clear();
         bossesSpawnedInWave = 0;
         bossesKilledInWave = 0;
         pendingBossDeathVfx.Clear();
@@ -578,7 +580,7 @@ public class EnemySpawner : MonoBehaviour
             if (enemiesSpawnedInWave >= config.totalEnemiesToSpawn)
                 break;
 
-            if (activeEnemies.Count >= config.maxConcurrentEnemies)
+            if (currentWaveEnemies.Count >= config.maxConcurrentEnemies)
                 break;
 
             SpawnSingleWaveEnemy(config);
@@ -614,6 +616,7 @@ public class EnemySpawner : MonoBehaviour
             {
                 activeEnemies.Add(health);
             }
+            currentWaveEnemies.Add(health);
         }
 
         NotifyWaveProgress();
@@ -744,8 +747,11 @@ public class EnemySpawner : MonoBehaviour
         {
             enemy.OnDeath -= HandleEnemyDeath;
             activeEnemies.Remove(enemy);
-            enemiesKilledInWave++;
-            NotifyWaveProgress();
+            if (currentWaveEnemies.Remove(enemy))
+            {
+                enemiesKilledInWave++;
+                NotifyWaveProgress();
+            }
 
             TryDropArtifactFromEnemy(enemy);
         }
@@ -813,9 +819,11 @@ public class EnemySpawner : MonoBehaviour
         }
         else
         {
-            // Với Wave thường: Khi hết thời gian vòng quay (waveDuration), tự động hoàn thành và chuyển sang wave tiếp theo
-            // không cần biết là đã tiêu diệt hết enemy chưa!
-            if (waveElapsedTime >= config.waveDuration)
+            // Chuyển sớm khi đã sinh đủ và toàn bộ quái của wave này bị tiêu diệt.
+            // Hết giờ vẫn chuyển wave dù quái cũ còn sống.
+            bool allSpawnedEnemiesDefeated = enemiesSpawnedInWave >= config.totalEnemiesToSpawn &&
+                                             currentWaveEnemies.Count == 0;
+            if (allSpawnedEnemiesDefeated || waveElapsedTime >= config.waveDuration)
             {
                 CompleteCurrentWave(config);
             }
@@ -1271,7 +1279,7 @@ public class EnemySpawner : MonoBehaviour
     {
         WaveConfig config = GetCurrentWaveConfig();
         int total = config != null ? config.totalEnemiesToSpawn : enemiesSpawnedInWave;
-        OnWaveProgressChanged?.Invoke(enemiesKilledInWave, total, activeEnemies.Count);
+        OnWaveProgressChanged?.Invoke(enemiesKilledInWave, total, currentWaveEnemies.Count);
     }
 
     private GameObject SpawnGameObject(GameObject prefab, Vector2 position)
@@ -1473,6 +1481,7 @@ public class EnemySpawner : MonoBehaviour
             EnemyHealth enemy = activeEnemies[i];
             if (enemy == null || !enemy.gameObject.activeInHierarchy)
             {
+                currentWaveEnemies.Remove(enemy);
                 activeEnemies.RemoveAt(i);
                 continue;
             }
@@ -1482,9 +1491,10 @@ public class EnemySpawner : MonoBehaviour
             {
                 enemy.OnDeath -= HandleEnemyDeath;
                 activeEnemies.RemoveAt(i);
+                bool wasCurrentWaveEnemy = currentWaveEnemies.Remove(enemy);
                 enemy.Despawn();
                 // Giảm biến đếm để bù lượt spawn lại gần Player
-                if (enemiesSpawnedInWave > enemiesKilledInWave)
+                if (wasCurrentWaveEnemy && enemiesSpawnedInWave > enemiesKilledInWave)
                 {
                     enemiesSpawnedInWave--;
                 }
