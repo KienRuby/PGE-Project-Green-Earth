@@ -283,51 +283,284 @@ public class DailyGemMineUITests
     [Test]
     public void DailyGemMineModalController_FiveLevelCards_AllWorkAndLockWhenZeroEntrances()
     {
+        string compKey = "PGE.DailyGemMine.HighestCompletedLevel";
+        int savedComp = PlayerPrefs.GetInt(compKey, 0);
+        PlayerPrefs.DeleteKey(compKey);
+
+        try
+        {
+            GameObject modalObj = new GameObject("TestModalRoot", typeof(RectTransform));
+            DailyGemMineModalController ctrl = modalObj.AddComponent<DailyGemMineModalController>();
+
+            DailyGemMineLevelCard[] cards = new DailyGemMineLevelCard[5];
+            Button[] buttons = new Button[5];
+
+            for (int i = 0; i < 5; i++)
+            {
+                GameObject cardObj = new GameObject($"Card_{i + 1}", typeof(RectTransform));
+                cardObj.transform.SetParent(modalObj.transform);
+                DailyGemMineLevelCard card = cardObj.AddComponent<DailyGemMineLevelCard>();
+
+                GameObject btnObj = new GameObject("StartButton", typeof(RectTransform), typeof(Button));
+                btnObj.transform.SetParent(cardObj.transform);
+                Button btn = btnObj.GetComponent<Button>();
+
+                card.SetReferencesForTesting(i + 1, btn, null, null);
+                cards[i] = card;
+                buttons[i] = btn;
+            }
+
+            ctrl.SetUIReferencesForTesting(modalObj, null, null, null, null, null, cards);
+            ctrl.SetEntrances(5, 5);
+
+            // 1. Mặc định chỉ mở màn 1 có nút Start; các màn 2, 3, 4, 5 bị ẩn nút Start (Locked)
+            Assert.IsTrue(buttons[0].gameObject.activeSelf, "Level 1 Start button must be active initially");
+            Assert.IsFalse(buttons[1].gameObject.activeSelf, "Level 2 Start button must be inactive (locked) initially");
+            Assert.IsFalse(buttons[2].gameObject.activeSelf, "Level 3 Start button must be inactive (locked) initially");
+
+            // 2. Vượt qua màn 1 -> Mở khóa màn 2
+            ctrl.CompleteLevel(1);
+            Assert.IsTrue(buttons[1].gameObject.activeSelf, "Level 2 Start button must become active after clearing Level 1");
+            Assert.IsFalse(buttons[2].gameObject.activeSelf, "Level 3 Start button must remain inactive");
+
+            // 3. Mở khóa toàn bộ và test bấm nút + trừ lượt
+            DailyGemMineProgress.HighestCompletedLevel = 4;
+            ctrl.RefreshLevelCardsState();
+
+            for (int i = 0; i < 5; i++)
+            {
+                Assert.IsTrue(buttons[i].gameObject.activeSelf, $"Level {i + 1} button must be active when all unlocked");
+                Assert.IsTrue(buttons[i].interactable, $"Level {i + 1} button must be interactable when entrances = 5");
+            }
+
+            int startedLevel = -1;
+            ctrl.OnLevelStarted += lvl => startedLevel = lvl;
+
+            buttons[2].onClick.Invoke();
+
+            Assert.AreEqual(3, startedLevel, "Clicking card 3 must trigger Level 3 start");
+            Assert.AreEqual(4, ctrl.RemainingEntrances, "Remaining entrances must decrement to 4");
+
+            // 4. Khi số lượt về 0 -> Toàn bộ các nút đều bị vô hiệu hóa
+            ctrl.SetEntrances(0, 5);
+            for (int i = 0; i < 5; i++)
+            {
+                Assert.IsFalse(buttons[i].interactable, $"Level {i + 1} button must be disabled when entrances = 0");
+            }
+
+            Object.DestroyImmediate(modalObj);
+        }
+        finally
+        {
+            PlayerPrefs.SetInt(compKey, savedComp);
+            PlayerPrefs.Save();
+        }
+    }
+
+    [Test]
+    public void DailyGemMineLevelCard_RemoveRedundantStartLabel_DestroysChildStartLabel()
+    {
+        GameObject cardObj = new GameObject("TestCard", typeof(RectTransform));
+        DailyGemMineLevelCard card = cardObj.AddComponent<DailyGemMineLevelCard>();
+
+        GameObject btnObj = new GameObject("StartButton", typeof(RectTransform), typeof(Button));
+        btnObj.transform.SetParent(cardObj.transform);
+        Button btn = btnObj.GetComponent<Button>();
+
+        // Giả lập text Start thừa gắn trên StartButton
+        GameObject startLabelObj = new GameObject("StartLabel", typeof(RectTransform), typeof(TextMeshProUGUI));
+        startLabelObj.transform.SetParent(btnObj.transform);
+
+        card.SetReferencesForTesting(1, btn, null, null);
+        card.RemoveRedundantStartLabel();
+
+        Assert.IsNull(btnObj.transform.Find("StartLabel"), "Child StartLabel must be destroyed");
+
+        Object.DestroyImmediate(cardObj);
+    }
+
+    [Test]
+    public void DailyGemMineModalController_EnsureLevelsScrollView_CreatesScrollViewWhenMissing()
+    {
         GameObject modalObj = new GameObject("TestModalRoot", typeof(RectTransform));
         DailyGemMineModalController ctrl = modalObj.AddComponent<DailyGemMineModalController>();
 
-        DailyGemMineLevelCard[] cards = new DailyGemMineLevelCard[5];
-        Button[] buttons = new Button[5];
+        GameObject panelObj = new GameObject("DailyGemMinePanel", typeof(RectTransform));
+        panelObj.transform.SetParent(modalObj.transform);
 
-        for (int i = 0; i < 5; i++)
+        ctrl.EnsureLevelsScrollView();
+
+        Assert.IsNotNull(ctrl.LevelsScrollRect, "EnsureLevelsScrollView must create LevelsScrollRect when missing");
+        Assert.IsNotNull(ctrl.LevelsScrollRect.viewport, "LevelsScrollRect must have a Viewport");
+        Assert.IsNotNull(ctrl.LevelsScrollRect.content, "LevelsScrollRect must have Content");
+        Assert.IsNotNull(ctrl.LevelCards, "levelCards array must be populated");
+        Assert.AreEqual(5, ctrl.LevelCards.Length, "Must generate exactly 5 Level cards");
+
+        Object.DestroyImmediate(modalObj);
+    }
+
+    [Test]
+    public void DailyGemMineModalController_ScrollViewSwipeConfiguration_MatchesTowerDef()
+    {
+        GameObject modalObj = new GameObject("TestModalRoot", typeof(RectTransform));
+        DailyGemMineModalController ctrl = modalObj.AddComponent<DailyGemMineModalController>();
+
+        GameObject panelObj = new GameObject("DailyGemMinePanel", typeof(RectTransform));
+        panelObj.transform.SetParent(modalObj.transform);
+
+        ctrl.EnsureLevelsScrollView();
+        ScrollRect sr = ctrl.LevelsScrollRect;
+
+        Assert.IsNotNull(sr);
+        Assert.IsTrue(sr.vertical, "ScrollView must allow vertical swiping/scrolling");
+        Assert.IsFalse(sr.horizontal, "ScrollView must disable horizontal scrolling");
+        Assert.AreEqual(ScrollRect.MovementType.Clamped, sr.movementType, "MovementType must be Clamped matching Tower Def");
+        Assert.IsTrue(sr.inertia, "Inertia must be enabled for smooth glide");
+        Assert.AreEqual(0.135f, sr.decelerationRate, 0.001f, "Deceleration rate must be 0.135 for smooth swipe feel");
+        Assert.AreEqual(40f, sr.scrollSensitivity, 0.001f, "Scroll sensitivity must be 40f");
+
+        Object.DestroyImmediate(modalObj);
+    }
+
+    [Test]
+    public void DailyGemMineModalController_SwipeRaycastOptimization_ViewportCatchesAndCardsPassThrough()
+    {
+        GameObject modalObj = new GameObject("TestModalRoot", typeof(RectTransform));
+        DailyGemMineModalController ctrl = modalObj.AddComponent<DailyGemMineModalController>();
+
+        GameObject panelObj = new GameObject("DailyGemMinePanel", typeof(RectTransform));
+        panelObj.transform.SetParent(modalObj.transform);
+
+        ctrl.EnsureLevelsScrollView();
+
+        // 1. Viewport phải có Image raycastTarget = true để bắt trọn mọi cử chỉ vuốt
+        Image vpImg = ctrl.LevelsScrollRect.viewport.GetComponent<Image>();
+        Assert.IsNotNull(vpImg, "Viewport must have an Image component");
+        Assert.IsTrue(vpImg.raycastTarget, "Viewport Image raycastTarget must be true to receive swipe gestures");
+
+        // 2. Thẻ previewImage phải có raycastTarget = false để truyền vuốt thẳng cho Viewport
+        for (int i = 0; i < ctrl.LevelCards.Length; i++)
         {
-            GameObject cardObj = new GameObject($"Card_{i + 1}", typeof(RectTransform));
-            cardObj.transform.SetParent(modalObj.transform);
-            DailyGemMineLevelCard card = cardObj.AddComponent<DailyGemMineLevelCard>();
+            var card = ctrl.LevelCards[i];
+            Assert.IsNotNull(card);
+            if (card.PreviewImage != null)
+            {
+                Assert.IsFalse(card.PreviewImage.raycastTarget, $"Card {i + 1} PreviewImage raycastTarget must be false");
+            }
 
-            GameObject btnObj = new GameObject("StartBtn", typeof(RectTransform), typeof(Button));
-            btnObj.transform.SetParent(cardObj.transform);
-            Button btn = btnObj.GetComponent<Button>();
-
-            card.SetReferencesForTesting(i + 1, btn, null, null);
-            cards[i] = card;
-            buttons[i] = btn;
+            // Nút Start phải có raycastTarget = true để nhận click
+            Assert.IsNotNull(card.StartButton, $"Card {i + 1} must have a StartButton");
+            Assert.IsTrue(card.StartButton.targetGraphic.raycastTarget, $"Card {i + 1} StartButton graphic raycastTarget must be true");
         }
 
-        ctrl.SetUIReferencesForTesting(modalObj, null, null, null, null, null, cards);
-        ctrl.SetEntrances(5, 5);
+        Object.DestroyImmediate(modalObj);
+    }
 
-        // 1. Kiểm tra tất cả các nút đều mở khi còn lượt
-        for (int i = 0; i < 5; i++)
+    [Test]
+    public void DailyGemMineModalController_SelectLevelAndSelectedLevelProperty_SavesAndDecrementsEntrance()
+    {
+        string compKey = "PGE.DailyGemMine.HighestCompletedLevel";
+        int savedComp = PlayerPrefs.GetInt(compKey, 0);
+        DailyGemMineProgress.HighestCompletedLevel = 4;
+
+        try
         {
-            Assert.IsTrue(buttons[i].interactable, $"Level {i + 1} button must be interactable when entrances = 5");
+            GameObject modalObj = new GameObject("TestModalRoot", typeof(RectTransform));
+            DailyGemMineModalController ctrl = modalObj.AddComponent<DailyGemMineModalController>();
+
+            GameObject panelObj = new GameObject("DailyGemMinePanel", typeof(RectTransform));
+            panelObj.transform.SetParent(modalObj.transform);
+
+            ctrl.EnsureLevelsScrollView();
+            ctrl.SetEntrances(5, 5);
+
+            // 1. Test SelectedLevel property
+            ctrl.SelectedLevel = 4;
+            Assert.AreEqual(4, ctrl.SelectedLevel);
+
+            // 2. Bấm nút Level 4 -> Trừ lượt, cập nhật SelectedLevel và kích hoạt OnLevelStarted
+            int startedLvl = -1;
+            ctrl.OnLevelStarted += lvl => startedLvl = lvl;
+
+            ctrl.LevelCards[3].StartButton.onClick.Invoke();
+
+            Assert.AreEqual(4, startedLvl, "Starting Level 4 must fire OnLevelStarted(4)");
+            Assert.AreEqual(4, ctrl.SelectedLevel, "SelectedLevel must equal 4");
+            Assert.AreEqual(4, ctrl.RemainingEntrances, "Remaining entrances must decrement to 4");
+
+            // 3. ScrollToLevel
+            ctrl.ScrollToLevel(5);
+            Assert.AreEqual(0f, ctrl.LevelsScrollRect.verticalNormalizedPosition, 0.05f, "ScrollToLevel(5) must scroll to bottom (near 0)");
+
+            ctrl.ScrollToLevel(1);
+            Assert.AreEqual(1f, ctrl.LevelsScrollRect.verticalNormalizedPosition, 0.05f, "ScrollToLevel(1) must scroll to top (near 1)");
+
+            Object.DestroyImmediate(modalObj);
+        }
+        finally
+        {
+            PlayerPrefs.SetInt(compKey, savedComp);
+            PlayerPrefs.Save();
+        }
+    }
+
+    [Test]
+    public void DailyGemMineModalController_Viewport_UsesRectMask2DAndUIHierarchyLayer()
+    {
+        GameObject modalObj = new GameObject("TestModalRoot", typeof(RectTransform));
+        DailyGemMineModalController ctrl = modalObj.AddComponent<DailyGemMineModalController>();
+
+        GameObject panelObj = new GameObject("DailyGemMinePanel", typeof(RectTransform));
+        panelObj.transform.SetParent(modalObj.transform);
+
+        ctrl.EnsureLevelsScrollView();
+
+        // 1. Viewport phải dùng RectMask2D, không dùng Mask (tránh lỗi stencil alpha 0 làm tàng hình toàn bộ thẻ màn)
+        Assert.IsNotNull(ctrl.LevelsScrollRect.viewport.GetComponent<RectMask2D>(), "Viewport must have RectMask2D");
+        Assert.IsNull(ctrl.LevelsScrollRect.viewport.GetComponent<Mask>(), "Viewport must NOT have legacy Mask");
+
+        // 2. Toàn bộ hệ thống ScrollView và Cards phải nằm ở layer UI
+        int uiLayer = LayerMask.NameToLayer("UI");
+        if (uiLayer == -1) uiLayer = 5;
+        Assert.AreEqual(uiLayer, ctrl.LevelsScrollRect.gameObject.layer, "ScrollView must be on UI layer");
+        Assert.AreEqual(uiLayer, ctrl.LevelsScrollRect.viewport.gameObject.layer, "Viewport must be on UI layer");
+        Assert.AreEqual(uiLayer, ctrl.LevelsScrollRect.content.gameObject.layer, "Content must be on UI layer");
+
+        for (int i = 0; i < ctrl.LevelCards.Length; i++)
+        {
+            Assert.AreEqual(uiLayer, ctrl.LevelCards[i].gameObject.layer, $"Card {i + 1} must be on UI layer");
         }
 
-        // 2. Bấm nút Level 3 -> Kích hoạt đúng level 3 và trừ 1 lượt (còn 4)
-        int startedLevel = -1;
-        ctrl.OnLevelStarted += lvl => startedLevel = lvl;
+        Object.DestroyImmediate(modalObj);
+    }
 
-        buttons[2].onClick.Invoke();
+    [Test]
+    public void DailyGemMineLayoutTuner_ApplyLayout_UpdatesCardHeaderAndReward()
+    {
+        GameObject modalObj = new GameObject("TestModalRoot", typeof(RectTransform));
+        DailyGemMineModalController ctrl = modalObj.AddComponent<DailyGemMineModalController>();
+        DailyGemMineLayoutTuner tuner = modalObj.AddComponent<DailyGemMineLayoutTuner>();
 
-        Assert.AreEqual(3, startedLevel, "Clicking card 3 must trigger Level 3 start");
-        Assert.AreEqual(4, ctrl.RemainingEntrances, "Remaining entrances must decrement to 4");
+        GameObject panelObj = new GameObject("DailyGemMinePanel", typeof(RectTransform));
+        panelObj.transform.SetParent(modalObj.transform);
 
-        // 3. Khi số lượt về 0 -> Toàn bộ 5 nút đều bị khóa
-        ctrl.SetEntrances(0, 5);
-        for (int i = 0; i < 5; i++)
-        {
-            Assert.IsFalse(buttons[i].interactable, $"Level {i + 1} button must be disabled when entrances = 0");
-        }
+        ctrl.EnsureLevelsScrollView();
+
+        tuner.titleFontSize = 38f;
+        tuner.rewardFontSize = 34f;
+        tuner.headerHeight = 75f;
+        tuner.ApplyLayout();
+
+        Transform card1 = ctrl.LevelsScrollRect.content.GetChild(0);
+        Transform hb = card1.Find("HeaderBanner");
+        Assert.IsNotNull(hb);
+        Assert.AreEqual(75f, ((RectTransform)hb).sizeDelta.y);
+
+        TMP_Text title = hb.Find("TitleText").GetComponent<TMP_Text>();
+        Assert.AreEqual(38f, title.fontSize);
+
+        TMP_Text reward = hb.Find("RewardText").GetComponent<TMP_Text>();
+        Assert.AreEqual(34f, reward.fontSize);
 
         Object.DestroyImmediate(modalObj);
     }

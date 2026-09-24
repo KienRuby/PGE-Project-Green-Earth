@@ -206,6 +206,69 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: cay_bup_cam
+      rect:
+        serializedVersion: 2
+        x: 1098
+        y: 1930
+        width: 274
+        height: 513
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: adee76c5bd9558b4b9b633c84691a9d4
+      internalID: 959304838
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mam_vang
+      rect:
+        serializedVersion: 2
+        x: 1012
+        y: 1935
+        width: 140
+        height: 217
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7e1dd67827905b2459d29767b23d13e0
+      internalID: 725909255
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mam_xanh
+      rect:
+        serializedVersion: 2
+        x: 1308
+        y: 1929
+        width: 185
+        height: 223
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 90c4bf89e1332d7449d1dd5c5c06c764
+      internalID: 774000581
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []

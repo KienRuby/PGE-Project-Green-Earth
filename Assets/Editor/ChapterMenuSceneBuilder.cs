@@ -14,10 +14,51 @@ using UnityEngine.UI;
 /// Xây dựng UI bên trong Canvas/Content/ChapterPanel dùng chung shell và visual assets với Lab/Shop.
 /// Menu: PGE > UI > Build Chapter Screen
 /// </summary>
+[InitializeOnLoad]
 public static class ChapterMenuSceneBuilder
 {
     private const string ScenePath = "Assets/Scenes/MainMenu.unity";
     private const string BuildRequestPath = "Assets/Editor/PGE_ChapterUI_BuildRequest.txt";
+    private const string GemMineBuildRequestPath = "Assets/Editor/PGE_DailyGemMine_BuildRequest.txt";
+
+    static ChapterMenuSceneBuilder()
+    {
+        EditorApplication.delayCall += TryBuildRequestedUI;
+    }
+
+    private static void TryBuildRequestedUI()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling || EditorApplication.isUpdating)
+        {
+            return;
+        }
+
+        if (File.Exists(GemMineBuildRequestPath))
+        {
+            try
+            {
+                File.Delete(GemMineBuildRequestPath);
+                if (File.Exists(GemMineBuildRequestPath + ".meta"))
+                    File.Delete(GemMineBuildRequestPath + ".meta");
+            }
+            catch { }
+
+            AddDailyGemMineModalToScene();
+        }
+
+        if (File.Exists(BuildRequestPath))
+        {
+            try
+            {
+                File.Delete(BuildRequestPath);
+                if (File.Exists(BuildRequestPath + ".meta"))
+                    File.Delete(BuildRequestPath + ".meta");
+            }
+            catch { }
+
+            BuildChapterScreenScene();
+        }
+    }
     private const string IconAtlasPath = "Assets/UI/Lab/Generated/lab-icon-atlas.png";
     private const string BackgroundPath = "Assets/UI/Lab/Generated/lab-background.png";
     private const string StartButtonSpritePath = "Assets/Sprites/UI/nút start.png";
@@ -83,15 +124,12 @@ public static class ChapterMenuSceneBuilder
         ChapterScreenController chapterCtrl = chapterPanelTr.GetComponent<ChapterScreenController>();
 
         Transform existingModal = chapterPanelTr.Find("DailyGemMineModal");
-        GameObject modalObj;
         if (existingModal != null)
         {
-            modalObj = existingModal.gameObject;
+            Undo.DestroyObjectImmediate(existingModal.gameObject);
         }
-        else
-        {
-            modalObj = BuildDailyGemMineModal(chapterPanelTr, font);
-        }
+
+        GameObject modalObj = BuildDailyGemMineModal(chapterPanelTr, font);
 
         if (chapterCtrl != null)
         {
@@ -102,7 +140,7 @@ public static class ChapterMenuSceneBuilder
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
-        Debug.Log("[ChapterMenuSceneBuilder] DailyGemMineModal đã được thêm vào scene mà không thay đổi bất kỳ nút nào!");
+        Debug.Log("[ChapterMenuSceneBuilder] DailyGemMineModal đã được cập nhật vào scene với 5 Level Cards và ScrollView mượt mà!");
     }
 
     public static void BuildChapterScreenScene()
@@ -683,7 +721,7 @@ public static class ChapterMenuSceneBuilder
         panelRect.anchorMax = new Vector2(0.5f, 1f);
         panelRect.pivot = new Vector2(0.5f, 1f);
         panelRect.anchoredPosition = new Vector2(0f, -305f);
-        panelRect.sizeDelta = new Vector2(980f, 1200f);
+        panelRect.sizeDelta = new Vector2(766f, 1200f);
 
         Image panelImg = panelObj.AddComponent<Image>();
         if (panelSprite != null) panelImg.sprite = panelSprite;
@@ -695,24 +733,24 @@ public static class ChapterMenuSceneBuilder
         panelShadow.effectDistance = new Vector2(5f, -6f);
 
         // 5A. Reset Timer Text (Reset in: 09 Hour 26 Min Left)
-        TMP_Text resetTxt = CreateText("ResetTimerText", panelObj.transform, "Reset in: <color=#FFEE33>09</color> Hour <color=#FFEE33>26</color> Min Left", 34f, Cream, TextAlignmentOptions.Center);
+        TMP_Text resetTxt = CreateText("ResetTimerText", panelObj.transform, "Reset in: <color=#FFEE33>09</color> Hour <color=#FFEE33>26</color> Min Left", 30f, Cream, TextAlignmentOptions.Center);
         resetTxt.fontStyle = FontStyles.Bold;
         resetTxt.rectTransform.anchorMin = new Vector2(0.5f, 1f);
         resetTxt.rectTransform.anchorMax = new Vector2(0.5f, 1f);
         resetTxt.rectTransform.pivot = new Vector2(0.5f, 1f);
         resetTxt.rectTransform.anchoredPosition = new Vector2(0f, -225f);
-        resetTxt.rectTransform.sizeDelta = new Vector2(880f, 44f);
+        resetTxt.rectTransform.sizeDelta = new Vector2(700f, 40f);
         resetTxt.outlineColor = Navy;
         resetTxt.outlineWidth = 0.2f;
 
         // 5B. Entrance Count Text (Entrance: 5 Left)
-        TMP_Text entranceTxt = CreateText("EntranceCountText", panelObj.transform, "Entrance: <color=#FFEE33>5</color> Left", 34f, Cream, TextAlignmentOptions.Center);
+        TMP_Text entranceTxt = CreateText("EntranceCountText", panelObj.transform, "Entrance: <color=#FFEE33>5</color> Left", 32f, Cream, TextAlignmentOptions.Center);
         entranceTxt.fontStyle = FontStyles.Bold;
         entranceTxt.rectTransform.anchorMin = new Vector2(0.5f, 1f);
         entranceTxt.rectTransform.anchorMax = new Vector2(0.5f, 1f);
         entranceTxt.rectTransform.pivot = new Vector2(0.5f, 1f);
-        entranceTxt.rectTransform.anchoredPosition = new Vector2(0f, -275f);
-        entranceTxt.rectTransform.sizeDelta = new Vector2(880f, 44f);
+        entranceTxt.rectTransform.anchoredPosition = new Vector2(0f, -270f);
+        entranceTxt.rectTransform.sizeDelta = new Vector2(700f, 40f);
         entranceTxt.outlineColor = Navy;
         entranceTxt.outlineWidth = 0.2f;
 
@@ -723,21 +761,23 @@ public static class ChapterMenuSceneBuilder
         scrollRectTransform.anchorMax = new Vector2(0.5f, 1f);
         scrollRectTransform.pivot = new Vector2(0.5f, 1f);
         scrollRectTransform.anchoredPosition = new Vector2(0f, -325f);
-        scrollRectTransform.sizeDelta = new Vector2(920f, 845f);
+        scrollRectTransform.sizeDelta = new Vector2(720f, 850f);
 
         ScrollRect scrollRect = scrollViewObj.AddComponent<ScrollRect>();
         scrollRect.horizontal = false;
         scrollRect.vertical = true;
-        scrollRect.movementType = ScrollRect.MovementType.Elastic;
-        scrollRect.elasticity = 0.1f;
+        scrollRect.movementType = ScrollRect.MovementType.Clamped;
         scrollRect.inertia = true;
         scrollRect.decelerationRate = 0.135f;
-        scrollRect.scrollSensitivity = 28f;
+        scrollRect.scrollSensitivity = 40f;
 
-        // Viewport with RectMask2D
+        // Viewport with Image (raycastTarget = true) and RectMask2D (geometric 2D clipping, no alpha stencil bug)
         GameObject viewportObj = CreateRect("Viewport", scrollViewObj.transform).gameObject;
         RectTransform viewportRect = viewportObj.GetComponent<RectTransform>();
         Stretch(viewportRect, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        Image vpImg = viewportObj.AddComponent<Image>();
+        vpImg.color = Color.clear;
+        vpImg.raycastTarget = true;
         viewportObj.AddComponent<RectMask2D>();
         scrollRect.viewport = viewportRect;
 
@@ -802,7 +842,7 @@ public static class ChapterMenuSceneBuilder
         }
 
         SerializedProperty sceneNameProp = modalSO.FindProperty("gemMineSceneName");
-        if (sceneNameProp != null) sceneNameProp.stringValue = "goalkeeper";
+        if (sceneNameProp != null) sceneNameProp.stringValue = "GenMine";
         modalSO.ApplyModifiedProperties();
 
         // 7. Attach DailyGemMineLayoutTuner for live position & size adjustments
@@ -829,18 +869,19 @@ public static class ChapterMenuSceneBuilder
     {
         GameObject cardObj = CreateRect($"Card_Level_{level:D2}", parent).gameObject;
         RectTransform cardRect = cardObj.GetComponent<RectTransform>();
-        cardRect.sizeDelta = new Vector2(890f, 420f);
+        cardRect.sizeDelta = new Vector2(700f, 350f);
 
         LayoutElement le = cardObj.AddComponent<LayoutElement>();
-        le.preferredWidth = 890f;
-        le.preferredHeight = 420f;
-        le.minHeight = 420f;
+        le.preferredWidth = 700f;
+        le.preferredHeight = 350f;
+        le.minHeight = 350f;
 
-        // Background Preview Image
+        // Background Preview Image (raycastTarget = false để cử chỉ lướt truyền thẳng về ScrollRect)
         Image bgImg = cardObj.AddComponent<Image>();
         if (previewSprite != null) bgImg.sprite = previewSprite;
         bgImg.color = previewColor;
         bgImg.preserveAspect = false;
+        bgImg.raycastTarget = false;
 
         Shadow cardShadow = cardObj.AddComponent<Shadow>();
         cardShadow.effectColor = new Color32(0, 14, 24, 200);
@@ -853,21 +894,23 @@ public static class ChapterMenuSceneBuilder
         headerRect.anchorMax = new Vector2(1f, 1f);
         headerRect.pivot = new Vector2(0.5f, 1f);
         headerRect.anchoredPosition = new Vector2(0f, 0f);
-        headerRect.sizeDelta = new Vector2(0f, 90f);
+        headerRect.sizeDelta = new Vector2(0f, 70f);
 
         Image headerImg = headerObj.AddComponent<Image>();
         headerImg.color = new Color32(0, 0, 0, 180);
+        headerImg.raycastTarget = false;
 
         // Title Text (Gem Mine LV.0X)
-        TMP_Text titleTxt = CreateText("TitleText", headerObj.transform, title, 42f, Color.white, TextAlignmentOptions.Left);
+        TMP_Text titleTxt = CreateText("TitleText", headerObj.transform, title, 36f, Color.white, TextAlignmentOptions.Left);
         titleTxt.fontStyle = FontStyles.Bold;
         titleTxt.outlineColor = Navy;
         titleTxt.outlineWidth = 0.25f;
+        titleTxt.enableWordWrapping = false;
         titleTxt.rectTransform.anchorMin = new Vector2(0f, 0.5f);
         titleTxt.rectTransform.anchorMax = new Vector2(0f, 0.5f);
         titleTxt.rectTransform.pivot = new Vector2(0f, 0.5f);
-        titleTxt.rectTransform.anchoredPosition = new Vector2(30f, 0f);
-        titleTxt.rectTransform.sizeDelta = new Vector2(380f, 60f);
+        titleTxt.rectTransform.anchoredPosition = new Vector2(25f, 0f);
+        titleTxt.rectTransform.sizeDelta = new Vector2(320f, 50f);
 
         // Reward Gem Icon
         GameObject gemIconObj = CreateRect("GemIcon", headerObj.transform).gameObject;
@@ -875,23 +918,26 @@ public static class ChapterMenuSceneBuilder
         gemRect.anchorMin = new Vector2(1f, 0.5f);
         gemRect.anchorMax = new Vector2(1f, 0.5f);
         gemRect.pivot = new Vector2(1f, 0.5f);
-        gemRect.anchoredPosition = new Vector2(-225f, 0f);
-        gemRect.sizeDelta = new Vector2(46f, 46f);
+        gemRect.anchoredPosition = new Vector2(-175f, 0f);
+        gemRect.sizeDelta = new Vector2(34f, 44f);
 
         Image gemImg = gemIconObj.AddComponent<Image>();
         if (gemIconSprite != null) gemImg.sprite = gemIconSprite;
         gemImg.preserveAspect = true;
+        gemImg.raycastTarget = false;
 
         // Reward Text (x120-220)
-        TMP_Text rwdTxt = CreateText("RewardText", headerObj.transform, reward, 38f, Color.white, TextAlignmentOptions.Left);
+        TMP_Text rwdTxt = CreateText("RewardText", headerObj.transform, reward, 32f, Color.white, TextAlignmentOptions.Left);
         rwdTxt.fontStyle = FontStyles.Bold;
         rwdTxt.outlineColor = Navy;
         rwdTxt.outlineWidth = 0.25f;
+        rwdTxt.enableWordWrapping = false;
+        rwdTxt.overflowMode = TextOverflowModes.Overflow;
         rwdTxt.rectTransform.anchorMin = new Vector2(1f, 0.5f);
         rwdTxt.rectTransform.anchorMax = new Vector2(1f, 0.5f);
         rwdTxt.rectTransform.pivot = new Vector2(0f, 0.5f);
-        rwdTxt.rectTransform.anchoredPosition = new Vector2(-170f, 0f);
-        rwdTxt.rectTransform.sizeDelta = new Vector2(165f, 50f);
+        rwdTxt.rectTransform.anchoredPosition = new Vector2(-165f, 0f);
+        rwdTxt.rectTransform.sizeDelta = new Vector2(150f, 50f);
 
         // Pink Start Button (Bottom-Right)
         GameObject startBtnObj = CreateRect("StartButton", cardObj.transform).gameObject;
@@ -899,8 +945,8 @@ public static class ChapterMenuSceneBuilder
         startBtnRect.anchorMin = new Vector2(1f, 0f);
         startBtnRect.anchorMax = new Vector2(1f, 0f);
         startBtnRect.pivot = new Vector2(1f, 0f);
-        startBtnRect.anchoredPosition = new Vector2(-25f, 22f);
-        startBtnRect.sizeDelta = new Vector2(220f, 85f);
+        startBtnRect.anchoredPosition = new Vector2(-20f, 18f);
+        startBtnRect.sizeDelta = new Vector2(190f, 72f);
 
         Image startImg = startBtnObj.AddComponent<Image>();
         if (pinkBtnSprite != null) startImg.sprite = pinkBtnSprite;
@@ -917,11 +963,24 @@ public static class ChapterMenuSceneBuilder
             startBtn.spriteState = ss;
         }
 
-        TMP_Text startTxt = CreateText("StartLabel", startBtnObj.transform, "Start", 40f, Color.white, TextAlignmentOptions.Center);
-        startTxt.fontStyle = FontStyles.Bold;
-        startTxt.outlineColor = Navy;
-        startTxt.outlineWidth = 0.25f;
-        Stretch(startTxt.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        // Locked Badge
+        GameObject lockBadgeObj = CreateRect("LockedBadge", cardObj.transform).gameObject;
+        RectTransform lockRect = lockBadgeObj.GetComponent<RectTransform>();
+        lockRect.anchorMin = new Vector2(1f, 0f);
+        lockRect.anchorMax = new Vector2(1f, 0f);
+        lockRect.pivot = new Vector2(1f, 0f);
+        lockRect.anchoredPosition = new Vector2(-20f, 18f);
+        lockRect.sizeDelta = new Vector2(190f, 72f);
+
+        Image lockImg = lockBadgeObj.AddComponent<Image>();
+        lockImg.color = new Color(0.12f, 0.12f, 0.16f, 0.88f);
+        lockImg.raycastTarget = false;
+
+        TMP_Text lockTxt = CreateText("LockedLabel", lockBadgeObj.transform, "LOCKED", 30f, new Color32(200, 200, 200, 255), TextAlignmentOptions.Center);
+        lockTxt.fontStyle = FontStyles.Bold;
+        Stretch(lockTxt.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+
+        lockBadgeObj.SetActive(false);
 
         // Attach DailyGemMineLevelCard
         DailyGemMineLevelCard cardCtrl = cardObj.AddComponent<DailyGemMineLevelCard>();
@@ -932,7 +991,8 @@ public static class ChapterMenuSceneBuilder
         cardSO.FindProperty("rewardGemIcon").objectReferenceValue = gemImg;
         cardSO.FindProperty("previewImage").objectReferenceValue = bgImg;
         cardSO.FindProperty("startButton").objectReferenceValue = startBtn;
-        cardSO.FindProperty("startButtonLabel").objectReferenceValue = startTxt;
+        cardSO.FindProperty("lockOverlay").objectReferenceValue = lockBadgeObj;
+        cardSO.FindProperty("lockLabel").objectReferenceValue = lockTxt;
         cardSO.ApplyModifiedProperties();
 
         return cardCtrl;

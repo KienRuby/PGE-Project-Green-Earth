@@ -122,6 +122,9 @@ public static class PlayerDataService
         {
             PlayerPrefs.DeleteKey($"{ItemLevelKeyPrefix}{item}");
         }
+
+        DailyGemMineProgress.ResetProgress();
+        TowerDefProgress.ResetProgress();
     }
 
     // =========================================================================

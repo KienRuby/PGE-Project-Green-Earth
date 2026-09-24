@@ -17,6 +17,7 @@ public class DailyGemMineModalController : MonoBehaviour
     private const string PrefsEntrancesKey = "PGE_DailyGemMine_Entrances";
     private const string PrefsLastResetDateKey = "PGE_DailyGemMine_LastResetDate";
     private const string PrefsMonthlyPremiumKey = "PGE_MonthlyPremium_Active";
+    private const string PrefsSelectedLevelKey = "PGE_DailyGemMine_SelectedLevel";
 
     public const int DefaultMaxEntrances = 5;
     public const int PremiumBonusEntrances = 3;
@@ -53,6 +54,13 @@ public class DailyGemMineModalController : MonoBehaviour
 
     [Tooltip("Danh sách 5 Level Card trong ScrollView.")]
     [SerializeField] private DailyGemMineLevelCard[] levelCards;
+
+    [Header("Visual Asset Templates (Tự động tải nếu thiếu)")]
+    [SerializeField] private Sprite level1PreviewSprite;
+    [SerializeField] private Sprite level2PreviewSprite;
+    [SerializeField] private Sprite pinkStartSprite;
+    [SerializeField] private Sprite pinkStartPressedSprite;
+    [SerializeField] private Sprite redGemIconSprite;
 
     [Header("Status Texts")]
     [Tooltip("Text hiển thị đồng hồ Reset in: 09 Hour 26 Min Left.")]
@@ -96,6 +104,15 @@ public class DailyGemMineModalController : MonoBehaviour
     public Button CloseButton => closeButton;
     public ScrollRect LevelsScrollRect => levelsScrollRect;
     public DailyGemMineLevelCard[] LevelCards => levelCards;
+    public int SelectedLevel
+    {
+        get => Mathf.Clamp(PlayerPrefs.GetInt(PrefsSelectedLevelKey, 1), 1, 5);
+        set
+        {
+            PlayerPrefs.SetInt(PrefsSelectedLevelKey, Mathf.Clamp(value, 1, 5));
+            PlayerPrefs.Save();
+        }
+    }
 
     private void Awake()
     {
@@ -131,8 +148,516 @@ public class DailyGemMineModalController : MonoBehaviour
             startLevel2Button.onClick.AddListener(OnStartLevel2Clicked);
         }
 
+        EnsureLevelsScrollView();
         RegisterLevelCardsEvents();
         LoadSavedData();
+    }
+
+    /// <summary>
+    /// Đảm bảo hệ thống ScrollView và 5 Level Cards luôn được khởi tạo và kết nối chuẩn xác.
+    /// Tự động tái tạo ScrollView nếu chưa có trong scene (tương tự EnsureTowerDefModal).
+    /// </summary>
+    public void EnsureLevelsScrollView()
+    {
+        int uiLayer = LayerMask.NameToLayer("UI");
+        if (uiLayer == -1) uiLayer = 5;
+
+        if (levelsScrollRect == null)
+        {
+            levelsScrollRect = GetComponentInChildren<ScrollRect>(true);
+        }
+
+        // Tìm panel chứa ScrollView
+        RectTransform panelTr = null;
+        DailyGemMineLayoutTuner tuner = GetComponent<DailyGemMineLayoutTuner>();
+        if (tuner != null && tuner.DailyGemMinePanel != null)
+        {
+            panelTr = tuner.DailyGemMinePanel;
+        }
+        else
+        {
+            panelTr = transform.Find("ContentRoot/DailyGemMinePanel") as RectTransform
+                ?? transform.Find("DailyGemMinePanel") as RectTransform;
+        }
+
+        if (panelTr == null && mainPanel != null)
+        {
+            Transform found = mainPanel.Find("DailyGemMinePanel");
+            if (found != null) panelTr = found as RectTransform;
+            else if (mainPanel.name == "DailyGemMinePanel") panelTr = mainPanel;
+        }
+
+        // Tự động khởi tạo nếu chưa có ScrollRect trong Panel
+        if (levelsScrollRect == null && panelTr != null)
+        {
+            Transform legacyCard1 = panelTr.Find("Card_Level_01");
+            Transform legacyCard2 = panelTr.Find("Card_Level_02");
+
+            EnsureVisualTemplates(legacyCard1, legacyCard2);
+
+            // Xóa các thẻ tĩnh cũ nếu còn sót lại ở ngoài Panel
+            if (legacyCard1 != null && legacyCard1.parent == panelTr)
+            {
+                if (Application.isPlaying) Destroy(legacyCard1.gameObject);
+                else DestroyImmediate(legacyCard1.gameObject);
+            }
+            if (legacyCard2 != null && legacyCard2.parent == panelTr)
+            {
+                if (Application.isPlaying) Destroy(legacyCard2.gameObject);
+                else DestroyImmediate(legacyCard2.gameObject);
+            }
+
+            // 1. LevelsScrollView
+            GameObject scrollObj = new GameObject("LevelsScrollView", typeof(RectTransform), typeof(ScrollRect));
+            scrollObj.layer = uiLayer;
+            scrollObj.transform.SetParent(panelTr, false);
+            RectTransform scrollRt = scrollObj.GetComponent<RectTransform>();
+            scrollRt.anchorMin = new Vector2(0.5f, 1f);
+            scrollRt.anchorMax = new Vector2(0.5f, 1f);
+            scrollRt.pivot = new Vector2(0.5f, 1f);
+            scrollRt.anchoredPosition = tuner != null ? tuner.scrollViewAnchoredPosition : new Vector2(0f, -325f);
+            scrollRt.sizeDelta = tuner != null ? tuner.scrollViewSizeDelta : new Vector2(720f, 850f);
+
+            levelsScrollRect = scrollObj.GetComponent<ScrollRect>();
+
+            // 2. Viewport có Image bắt trọn raycast để vuốt lướt và RectMask2D ẩn phần tràn (không phụ thuộc alpha stencil)
+            GameObject viewportObj = new GameObject("Viewport", typeof(RectTransform), typeof(Image), typeof(RectMask2D));
+            viewportObj.layer = uiLayer;
+            viewportObj.transform.SetParent(scrollRt, false);
+            RectTransform vpRt = viewportObj.GetComponent<RectTransform>();
+            StretchRect(vpRt);
+
+            Image vpImg = viewportObj.GetComponent<Image>();
+            vpImg.color = Color.clear;
+            vpImg.raycastTarget = true;
+
+            // 3. Content với VerticalLayoutGroup và ContentSizeFitter
+            GameObject contentObj = new GameObject("Content", typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
+            contentObj.layer = uiLayer;
+            contentObj.transform.SetParent(vpRt, false);
+            RectTransform contentRt = contentObj.GetComponent<RectTransform>();
+            contentRt.anchorMin = new Vector2(0f, 1f);
+            contentRt.anchorMax = new Vector2(1f, 1f);
+            contentRt.pivot = new Vector2(0.5f, 1f);
+            contentRt.anchoredPosition = Vector2.zero;
+            contentRt.sizeDelta = Vector2.zero;
+
+            VerticalLayoutGroup vlg = contentObj.GetComponent<VerticalLayoutGroup>();
+            vlg.padding = new RectOffset(10, 10, 10, 30);
+            vlg.spacing = tuner != null ? tuner.cardSpacing : 20f;
+            vlg.childAlignment = TextAnchor.UpperCenter;
+            vlg.childControlWidth = false;
+            vlg.childControlHeight = false;
+            vlg.childForceExpandWidth = false;
+            vlg.childForceExpandHeight = false;
+
+            ContentSizeFitter csf = contentObj.GetComponent<ContentSizeFitter>();
+            csf.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+            csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            levelsScrollRect.viewport = vpRt;
+            levelsScrollRect.content = contentRt;
+
+            // 4. Tạo 5 thẻ cấp độ
+            CreateDynamicLevelCards(contentRt);
+
+            SetLayerRecursively(scrollObj, uiLayer);
+        }
+
+        if (levelsScrollRect != null)
+        {
+            RectTransform scrollRt = levelsScrollRect.GetComponent<RectTransform>();
+            if (scrollRt != null)
+            {
+                scrollRt.anchorMin = new Vector2(0.5f, 1f);
+                scrollRt.anchorMax = new Vector2(0.5f, 1f);
+                scrollRt.pivot = new Vector2(0.5f, 1f);
+                scrollRt.anchoredPosition = tuner != null ? tuner.scrollViewAnchoredPosition : new Vector2(0f, -325f);
+                scrollRt.sizeDelta = tuner != null ? tuner.scrollViewSizeDelta : new Vector2(720f, 850f);
+            }
+
+            levelsScrollRect.horizontal = false;
+            levelsScrollRect.vertical = true;
+            levelsScrollRect.movementType = ScrollRect.MovementType.Clamped;
+            levelsScrollRect.inertia = true;
+            levelsScrollRect.decelerationRate = 0.135f;
+            levelsScrollRect.scrollSensitivity = 40f;
+
+            // Đảm bảo Viewport luôn có RectMask2D (gỡ bỏ Mask lỗi stencil alpha) và Image raycastTarget = true
+            if (levelsScrollRect.viewport != null)
+            {
+                Mask legacyMask = levelsScrollRect.viewport.GetComponent<Mask>();
+                if (legacyMask != null)
+                {
+                    if (Application.isPlaying) Destroy(legacyMask);
+                    else DestroyImmediate(legacyMask);
+                }
+
+                RectMask2D rectMask = levelsScrollRect.viewport.GetComponent<RectMask2D>();
+                if (rectMask == null)
+                {
+                    rectMask = levelsScrollRect.viewport.gameObject.AddComponent<RectMask2D>();
+                }
+
+                Image vpImage = levelsScrollRect.viewport.GetComponent<Image>();
+                if (vpImage == null)
+                {
+                    vpImage = levelsScrollRect.viewport.gameObject.AddComponent<Image>();
+                }
+                vpImage.color = Color.clear;
+                vpImage.raycastTarget = true;
+            }
+
+            EnsureVisualTemplates();
+
+            // Đảm bảo Content có đủ thẻ màn và cập nhật sprite mới nhất
+            if (levelsScrollRect.content != null)
+            {
+                if (levelsScrollRect.content.childCount == 0 || levelCards == null || levelCards.Length == 0)
+                {
+                    CreateDynamicLevelCards(levelsScrollRect.content);
+                }
+                else
+                {
+                    // Cập nhật lại sprite sạch, icon chuẩn, loại bỏ chữ Start thừa và đảm bảo huy hiệu Locked cho các thẻ đã sinh
+                    for (int i = 0; i < levelsScrollRect.content.childCount; i++)
+                    {
+                        Transform child = levelsScrollRect.content.GetChild(i);
+                        int level = i + 1;
+                        Sprite preview = (level % 2 == 1) ? level1PreviewSprite : level2PreviewSprite;
+
+                        Image bg = child.GetComponent<Image>();
+                        if (bg != null && preview != null) bg.sprite = preview;
+
+                        DailyGemMineLevelCard cardCtrl = child.GetComponent<DailyGemMineLevelCard>();
+                        if (cardCtrl != null)
+                        {
+                            cardCtrl.RemoveRedundantStartLabel();
+                            cardCtrl.EnsureLockBadge();
+                        }
+
+                        Transform hb = child.Find("HeaderBanner");
+                        if (hb != null)
+                        {
+                            Transform gem = hb.Find("GemIcon");
+                            if (gem != null)
+                            {
+                                Image gemImg = gem.GetComponent<Image>();
+                                if (gemImg != null && redGemIconSprite != null) gemImg.sprite = redGemIconSprite;
+                            }
+                        }
+                    }
+                }
+            }
+
+            SetLayerRecursively(levelsScrollRect.gameObject, uiLayer);
+        }
+
+        var foundCards = GetComponentsInChildren<DailyGemMineLevelCard>(true);
+        if (foundCards != null && foundCards.Length > 0)
+        {
+            levelCards = foundCards;
+            foreach (var card in levelCards)
+            {
+                if (card != null)
+                {
+                    card.RemoveRedundantStartLabel();
+                    card.EnsureLockBadge();
+                    card.OptimizeRaycastTargetsForSwiping();
+                }
+            }
+        }
+
+        RegisterLevelCardsEvents();
+        RefreshLevelCardsState();
+    }
+
+    private void EnsureVisualTemplates(Transform c1 = null, Transform c2 = null)
+    {
+#if UNITY_EDITOR
+        level1PreviewSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/GemMine/preview_level_01.png");
+        level2PreviewSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/GemMine/preview_level_02.png");
+        pinkStartSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/GemMine/btn_pink_start.png");
+        pinkStartPressedSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/GemMine/btn_pink_start_pressed.png");
+        redGemIconSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/GemMine/icon_red_gem.png");
+#endif
+        if (level1PreviewSprite == null && c1 != null)
+        {
+            Image img = c1.GetComponent<Image>();
+            if (img != null && img.sprite != null) level1PreviewSprite = img.sprite;
+        }
+        if (level2PreviewSprite == null && c2 != null)
+        {
+            Image img = c2.GetComponent<Image>();
+            if (img != null && img.sprite != null) level2PreviewSprite = img.sprite;
+        }
+        if (pinkStartSprite == null && c1 != null)
+        {
+            Transform sb = c1.Find("StartButton");
+            if (sb != null)
+            {
+                Image img = sb.GetComponent<Image>();
+                if (img != null && img.sprite != null) pinkStartSprite = img.sprite;
+            }
+        }
+        if (redGemIconSprite == null && c1 != null)
+        {
+            Transform gi = c1.Find("HeaderBanner/GemIcon");
+            if (gi != null)
+            {
+                Image img = gi.GetComponent<Image>();
+                if (img != null && img.sprite != null) redGemIconSprite = img.sprite;
+            }
+        }
+        if (pinkStartSprite == null && startLevel1Button != null && startLevel1Button.targetGraphic is Image startImg)
+        {
+            pinkStartSprite = startImg.sprite;
+        }
+    }
+
+    private static void StretchRect(RectTransform rt)
+    {
+        rt.anchorMin = Vector2.zero;
+        rt.anchorMax = Vector2.one;
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.offsetMin = Vector2.zero;
+        rt.offsetMax = Vector2.zero;
+        rt.localScale = Vector3.one;
+    }
+
+    private static void SetLayerRecursively(GameObject go, int layer)
+    {
+        if (go == null) return;
+        go.layer = layer;
+        for (int i = 0; i < go.transform.childCount; i++)
+        {
+            SetLayerRecursively(go.transform.GetChild(i).gameObject, layer);
+        }
+    }
+
+    private void CreateDynamicLevelCards(RectTransform content)
+    {
+        DailyGemMineLevelCard[] cards = new DailyGemMineLevelCard[5];
+
+        string[] rewards = { "x60-120", "x120-220", "x200-350", "x300-500", "x450-700" };
+        Color[] tints = {
+            Color.white,
+            Color.white,
+            new Color32(215, 235, 255, 255),
+            new Color32(255, 235, 205, 255),
+            new Color32(235, 215, 255, 255)
+        };
+
+        for (int i = 0; i < 5; i++)
+        {
+            int level = i + 1;
+            Sprite preview = (level % 2 == 1) ? level1PreviewSprite : level2PreviewSprite;
+            cards[i] = CreateDynamicCard(content, level, $"Gem Mine LV.{level:D2}", rewards[i], preview, tints[i]);
+        }
+
+        levelCards = cards;
+        if (cards[0] != null && cards[0].StartButton != null)
+        {
+            startLevel1Button = cards[0].StartButton;
+        }
+    }
+
+    private DailyGemMineLevelCard CreateDynamicCard(
+        Transform parent,
+        int level,
+        string title,
+        string reward,
+        Sprite previewSprite,
+        Color tintColor)
+    {
+        int uiLayer = LayerMask.NameToLayer("UI");
+        if (uiLayer == -1) uiLayer = 5;
+
+        GameObject cardObj = new GameObject($"Card_Level_{level:D2}", typeof(RectTransform));
+        cardObj.layer = uiLayer;
+        cardObj.transform.SetParent(parent, false);
+        RectTransform cardRect = cardObj.GetComponent<RectTransform>();
+        cardRect.sizeDelta = new Vector2(700f, 350f);
+        cardRect.localScale = Vector3.one;
+        cardRect.localPosition = Vector3.zero;
+        cardRect.localRotation = Quaternion.identity;
+
+        LayoutElement le = cardObj.AddComponent<LayoutElement>();
+        le.preferredWidth = 700f;
+        le.preferredHeight = 350f;
+        le.minHeight = 350f;
+
+        // Ảnh nền xem trước: raycastTarget = false để cử chỉ lướt truyền thẳng cho ScrollRect
+        Image bgImg = cardObj.AddComponent<Image>();
+        if (previewSprite != null) bgImg.sprite = previewSprite;
+        bgImg.color = tintColor != default ? tintColor : Color.white;
+        bgImg.raycastTarget = false;
+
+        Shadow cardShadow = cardObj.AddComponent<Shadow>();
+        cardShadow.effectColor = new Color32(0, 14, 24, 200);
+        cardShadow.effectDistance = new Vector2(4f, -5f);
+
+        // Header Banner
+        GameObject headerObj = new GameObject("HeaderBanner", typeof(RectTransform), typeof(Image));
+        headerObj.layer = uiLayer;
+        headerObj.transform.SetParent(cardObj.transform, false);
+        RectTransform headerRect = headerObj.GetComponent<RectTransform>();
+        headerRect.anchorMin = new Vector2(0f, 1f);
+        headerRect.anchorMax = new Vector2(1f, 1f);
+        headerRect.pivot = new Vector2(0.5f, 1f);
+        headerRect.anchoredPosition = Vector2.zero;
+        headerRect.sizeDelta = new Vector2(0f, 70f);
+        headerRect.localScale = Vector3.one;
+
+        Image headerImg = headerObj.GetComponent<Image>();
+        headerImg.color = new Color32(0, 0, 0, 180);
+        headerImg.raycastTarget = false;
+
+        TMP_FontAsset font = (resetTimerText != null && resetTimerText.font != null)
+            ? resetTimerText.font
+            : (entranceCountText != null && entranceCountText.font != null)
+                ? entranceCountText.font
+                : TMP_Settings.defaultFontAsset;
+
+        // Title Text
+        GameObject titleObj = new GameObject("TitleText", typeof(RectTransform), typeof(TextMeshProUGUI));
+        titleObj.layer = uiLayer;
+        titleObj.transform.SetParent(headerObj.transform, false);
+        RectTransform titleRect = titleObj.GetComponent<RectTransform>();
+        titleRect.anchorMin = new Vector2(0f, 0.5f);
+        titleRect.anchorMax = new Vector2(0f, 0.5f);
+        titleRect.pivot = new Vector2(0f, 0.5f);
+        titleRect.anchoredPosition = new Vector2(25f, 0f);
+        titleRect.sizeDelta = new Vector2(320f, 50f);
+        titleRect.localScale = Vector3.one;
+
+        TextMeshProUGUI titleTxt = titleObj.GetComponent<TextMeshProUGUI>();
+        titleTxt.text = title;
+        titleTxt.fontSize = 36f;
+        titleTxt.fontStyle = FontStyles.Bold;
+        titleTxt.color = Color.white;
+        titleTxt.alignment = TextAlignmentOptions.Left;
+        titleTxt.enableWordWrapping = false;
+        titleTxt.raycastTarget = false;
+        if (font != null) titleTxt.font = font;
+
+        // Gem Icon
+        GameObject gemIconObj = new GameObject("GemIcon", typeof(RectTransform), typeof(Image));
+        gemIconObj.layer = uiLayer;
+        gemIconObj.transform.SetParent(headerObj.transform, false);
+        RectTransform gemRect = gemIconObj.GetComponent<RectTransform>();
+        gemRect.anchorMin = new Vector2(1f, 0.5f);
+        gemRect.anchorMax = new Vector2(1f, 0.5f);
+        gemRect.pivot = new Vector2(1f, 0.5f);
+        gemRect.anchoredPosition = new Vector2(-175f, 0f);
+        gemRect.sizeDelta = new Vector2(34f, 44f);
+        gemRect.localScale = Vector3.one;
+
+        Image gemImg = gemIconObj.GetComponent<Image>();
+        if (redGemIconSprite != null) gemImg.sprite = redGemIconSprite;
+        gemImg.preserveAspect = true;
+        gemImg.raycastTarget = false;
+
+        // Reward Text
+        GameObject rwdObj = new GameObject("RewardText", typeof(RectTransform), typeof(TextMeshProUGUI));
+        rwdObj.layer = uiLayer;
+        rwdObj.transform.SetParent(headerObj.transform, false);
+        RectTransform rwdRect = rwdObj.GetComponent<RectTransform>();
+        rwdRect.anchorMin = new Vector2(1f, 0.5f);
+        rwdRect.anchorMax = new Vector2(1f, 0.5f);
+        rwdRect.pivot = new Vector2(0f, 0.5f);
+        rwdRect.anchoredPosition = new Vector2(-165f, 0f);
+        rwdRect.sizeDelta = new Vector2(150f, 50f);
+        rwdRect.localScale = Vector3.one;
+
+        TextMeshProUGUI rwdTxt = rwdObj.GetComponent<TextMeshProUGUI>();
+        rwdTxt.text = reward;
+        rwdTxt.fontSize = 32f;
+        rwdTxt.fontStyle = FontStyles.Bold;
+        rwdTxt.color = Color.white;
+        rwdTxt.alignment = TextAlignmentOptions.MidlineLeft;
+        rwdTxt.enableWordWrapping = false;
+        rwdTxt.overflowMode = TextOverflowModes.Overflow;
+        rwdTxt.raycastTarget = false;
+        if (font != null) rwdTxt.font = font;
+
+        // Pink Start Button
+        GameObject startBtnObj = new GameObject("StartButton", typeof(RectTransform), typeof(Image), typeof(Button));
+        startBtnObj.layer = uiLayer;
+        startBtnObj.transform.SetParent(cardObj.transform, false);
+        RectTransform startRect = startBtnObj.GetComponent<RectTransform>();
+        startRect.anchorMin = new Vector2(1f, 0f);
+        startRect.anchorMax = new Vector2(1f, 0f);
+        startRect.pivot = new Vector2(1f, 0f);
+        startRect.anchoredPosition = new Vector2(-20f, 18f);
+        startRect.sizeDelta = new Vector2(190f, 72f);
+        startRect.localScale = Vector3.one;
+
+        Image startImg = startBtnObj.GetComponent<Image>();
+        if (pinkStartSprite != null) startImg.sprite = pinkStartSprite;
+        startImg.color = Color.white;
+        startImg.raycastTarget = true;
+
+        Button startBtn = startBtnObj.GetComponent<Button>();
+        startBtn.targetGraphic = startImg;
+        if (pinkStartPressedSprite != null)
+        {
+            startBtn.transition = Selectable.Transition.SpriteSwap;
+            SpriteState ss = startBtn.spriteState;
+            ss.pressedSprite = pinkStartPressedSprite;
+            startBtn.spriteState = ss;
+        }
+        startBtn.onClick.AddListener(() => StartGemMineLevel(level));
+
+        // Huy hiệu LOCKED hiển thị khi màn chơi bị khóa (không đè text Start)
+        GameObject lockBadgeObj = new GameObject("LockedBadge", typeof(RectTransform), typeof(Image));
+        lockBadgeObj.layer = uiLayer;
+        lockBadgeObj.transform.SetParent(cardObj.transform, false);
+        RectTransform lockRect = lockBadgeObj.GetComponent<RectTransform>();
+        lockRect.anchorMin = new Vector2(1f, 0f);
+        lockRect.anchorMax = new Vector2(1f, 0f);
+        lockRect.pivot = new Vector2(1f, 0f);
+        lockRect.anchoredPosition = new Vector2(-20f, 18f);
+        lockRect.sizeDelta = new Vector2(190f, 72f);
+        lockRect.localScale = Vector3.one;
+
+        Image lockImg = lockBadgeObj.GetComponent<Image>();
+        lockImg.color = new Color(0.12f, 0.12f, 0.16f, 0.88f);
+        lockImg.raycastTarget = false;
+
+        GameObject lockTextObj = new GameObject("LockedText", typeof(RectTransform), typeof(TextMeshProUGUI));
+        lockTextObj.layer = uiLayer;
+        lockTextObj.transform.SetParent(lockBadgeObj.transform, false);
+        RectTransform lockTextRect = lockTextObj.GetComponent<RectTransform>();
+        StretchRect(lockTextRect);
+
+        TextMeshProUGUI lockTxt = lockTextObj.GetComponent<TextMeshProUGUI>();
+        lockTxt.text = "LOCKED";
+        lockTxt.fontSize = 30f;
+        lockTxt.fontStyle = FontStyles.Bold;
+        lockTxt.color = new Color32(200, 200, 200, 255);
+        lockTxt.alignment = TextAlignmentOptions.Center;
+        lockTxt.raycastTarget = false;
+        if (font != null) lockTxt.font = font;
+
+        lockBadgeObj.SetActive(false);
+
+        DailyGemMineLevelCard cardCtrl = cardObj.AddComponent<DailyGemMineLevelCard>();
+        cardCtrl.SetLockOverlay(lockBadgeObj, lockTxt);
+        bool isUnlocked = DailyGemMineProgress.IsLevelUnlocked(level);
+        cardCtrl.Setup(level, title, reward, previewSprite, !isUnlocked, isUnlocked ? "" : $"Clear LV.{level - 1:D2} to Unlock");
+        cardCtrl.OptimizeRaycastTargetsForSwiping();
+
+        return cardCtrl;
+    }
+
+    public void ScrollToLevel(int level)
+    {
+        if (levelsScrollRect == null) return;
+        int total = levelCards != null && levelCards.Length > 0 ? levelCards.Length : 5;
+        float targetNorm = total > 1 ? 1f - (float)Mathf.Clamp(level - 1, 0, total - 1) / (total - 1) : 1f;
+        levelsScrollRect.verticalNormalizedPosition = targetNorm;
+        levelsScrollRect.velocity = Vector2.zero;
     }
 
     private void RegisterLevelCardsEvents()
@@ -156,6 +681,7 @@ public class DailyGemMineModalController : MonoBehaviour
     private void OnEnable()
     {
         SanitizeMaterialsAndEffects();
+        EnsureLevelsScrollView();
         RegisterLevelCardsEvents();
         CheckDailyReset();
         UpdateCountdownTime();
@@ -335,6 +861,8 @@ public class DailyGemMineModalController : MonoBehaviour
         transform.SetAsLastSibling();
         SanitizeMaterialsAndEffects();
 
+        EnsureLevelsScrollView();
+
         DailyGemMineLayoutTuner tuner = GetComponent<DailyGemMineLayoutTuner>();
         if (tuner != null)
         {
@@ -362,6 +890,7 @@ public class DailyGemMineModalController : MonoBehaviour
 
         RefreshStatusTexts();
 
+        Canvas.ForceUpdateCanvases();
         if (levelsScrollRect != null)
         {
             levelsScrollRect.verticalNormalizedPosition = 1f;
@@ -437,12 +966,20 @@ public class DailyGemMineModalController : MonoBehaviour
 
     private void StartGemMineLevel(int level)
     {
+        if (!DailyGemMineProgress.IsLevelUnlocked(level))
+        {
+            Debug.LogWarning($"[DailyGemMineModalController] Màn {level} đang bị khóa. Hãy hoàn thành màn {level - 1} trước!");
+            return;
+        }
+
         if (remainingEntrances <= 0)
         {
             Debug.LogWarning("[DailyGemMineModalController] Không thể bắt đầu: Đã hết lượt tham gia Daily Gem Mine hôm nay (Entrance: 0).");
             RefreshStatusTexts();
             return;
         }
+
+        SelectedLevel = level;
 
         // Giảm 1 lượt vào trận và lưu vào PlayerPrefs
         remainingEntrances = Mathf.Max(0, remainingEntrances - 1);
@@ -456,7 +993,22 @@ public class DailyGemMineModalController : MonoBehaviour
 
         if (Application.isPlaying && !string.IsNullOrEmpty(gemMineSceneName))
         {
-            SceneManager.LoadScene(gemMineSceneName);
+            if (Application.CanStreamedLevelBeLoaded(gemMineSceneName))
+            {
+                SceneManager.LoadScene(gemMineSceneName);
+            }
+            else if (Application.CanStreamedLevelBeLoaded("GenMine"))
+            {
+                SceneManager.LoadScene("GenMine");
+            }
+            else if (Application.CanStreamedLevelBeLoaded("goalkeeper"))
+            {
+                SceneManager.LoadScene("goalkeeper");
+            }
+            else
+            {
+                SceneManager.LoadScene(gemMineSceneName);
+            }
         }
     }
 
@@ -554,7 +1106,7 @@ public class DailyGemMineModalController : MonoBehaviour
     }
 
     /// <summary>
-    /// Đồng bộ trạng thái khả dụng của toàn bộ 5 thẻ màn chơi theo số lượt vào còn lại.
+    /// Đồng bộ trạng thái mở khóa tuần tự (màn trước xong mới mở màn sau) và khả dụng theo số lượt.
     /// </summary>
     public void RefreshLevelCardsState()
     {
@@ -566,9 +1118,36 @@ public class DailyGemMineModalController : MonoBehaviour
             {
                 var card = levelCards[i];
                 if (card == null) continue;
-                card.SetInteractable(true, hasEntrances);
+                int levelNum = card.LevelNumber > 0 ? card.LevelNumber : (i + 1);
+                bool isUnlocked = DailyGemMineProgress.IsLevelUnlocked(levelNum);
+
+                card.RemoveRedundantStartLabel();
+                card.EnsureLockBadge();
+
+                if (!isUnlocked)
+                {
+                    card.SetLocked(true, $"Clear LV.{levelNum - 1:D2} to Unlock");
+                }
+                else
+                {
+                    card.SetLocked(false);
+                    card.SetInteractable(true, hasEntrances);
+                }
             }
         }
+    }
+
+    /// <summary>
+    /// Đánh dấu đã chiến thắng màn chơi hiện tại và mở khóa màn kế tiếp.
+    /// </summary>
+    public bool CompleteLevel(int level)
+    {
+        bool completed = DailyGemMineProgress.CompleteLevel(level);
+        if (completed)
+        {
+            RefreshLevelCardsState();
+        }
+        return completed;
     }
 
     public void SetUIReferencesForTesting(

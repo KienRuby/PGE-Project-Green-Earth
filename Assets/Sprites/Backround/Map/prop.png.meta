@@ -210,9 +210,9 @@ TextureImporter:
       name: bui_co_2
       rect:
         serializedVersion: 2
-        x: 2530
-        y: 1956
-        width: 151
+        x: 2478
+        y: 1957
+        width: 203
         height: 119
       alignment: 0
       pivot: {x: 0.5, y: 0.5}

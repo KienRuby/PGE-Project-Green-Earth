@@ -1,17 +1,28 @@
 using UnityEngine;
 
 /// <summary>
-/// Persistent, sequential unlock state for the ten Tower Def levels.
-/// Tower Def gameplay calls CompleteLevel after a real victory.
+/// Quản lý tiến trình mở khóa tuần tự các màn Daily Gem Mine (Cấp 01 đến Cấp 05):
+/// - Mặc định ban đầu chỉ mở duy nhất Màn 1 với nút Start.
+/// - Chỉ khi vượt qua màn trước thì mới mở khóa màn tiếp theo (màn 2 mở sau khi thắng màn 1, v.v.).
+/// - Lưu trữ persistent thông qua PlayerPrefs tương tự TowerDefProgress.
 /// </summary>
-public static class TowerDefProgress
+public static class DailyGemMineProgress
 {
-    public const int LevelCount = 10;
+    public const int LevelCount = 5;
 
-    private const string CompletedLevelKey = "PGE.TowerDef.HighestCompletedLevel";
-    private const string SelectedLevelKey = "PGE.TowerDef.SelectedLevel";
+    private const string CompletedLevelKey = "PGE.DailyGemMine.HighestCompletedLevel";
+    private const string SelectedLevelKey = "PGE.DailyGemMine.SelectedLevel";
 
-    public static int HighestCompletedLevel => Mathf.Clamp(PlayerPrefs.GetInt(CompletedLevelKey, 0), 0, LevelCount);
+    public static int HighestCompletedLevel
+    {
+        get => Mathf.Clamp(PlayerPrefs.GetInt(CompletedLevelKey, 0), 0, LevelCount);
+        set
+        {
+            PlayerPrefs.SetInt(CompletedLevelKey, Mathf.Clamp(value, 0, LevelCount));
+            PlayerPrefs.Save();
+        }
+    }
+
     public static int HighestUnlockedLevel => Mathf.Min(LevelCount, HighestCompletedLevel + 1);
 
     public static int SelectedLevel
@@ -35,8 +46,7 @@ public static class TowerDefProgress
         if (level < 1 || level > LevelCount || !IsLevelUnlocked(level) || level <= HighestCompletedLevel)
             return false;
 
-        PlayerPrefs.SetInt(CompletedLevelKey, level);
-        PlayerPrefs.Save();
+        HighestCompletedLevel = level;
         return true;
     }
 

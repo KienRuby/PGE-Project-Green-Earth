@@ -179,6 +179,22 @@ public class DailyGemMineTunerWindow : EditorWindow
         tuner.startButtonAnchoredPosition = EditorGUILayout.Vector2Field("Vị trí Nút Start", tuner.startButtonAnchoredPosition);
         tuner.startButtonSizeDelta = EditorGUILayout.Vector2Field("Kích thước Nút Start", tuner.startButtonSizeDelta);
         tuner.startButtonFontSize = EditorGUILayout.Slider("Cỡ chữ Start", tuner.startButtonFontSize, 18f, 60f);
+
+        EditorGUILayout.Space(4);
+        EditorGUILayout.LabelField("Header & Phần Thưởng trên Card", headerStyle);
+        tuner.headerHeight = EditorGUILayout.Slider("Chiều cao Header", tuner.headerHeight, 40f, 100f);
+        tuner.titleFontSize = EditorGUILayout.Slider("Cỡ chữ Tiêu đề", tuner.titleFontSize, 18f, 60f);
+        tuner.titleAnchoredPosition = EditorGUILayout.Vector2Field("Vị trí Tiêu đề (X, Y)", tuner.titleAnchoredPosition);
+        tuner.titleSizeDelta = EditorGUILayout.Vector2Field("Kích thước Tiêu đề", tuner.titleSizeDelta);
+
+        EditorGUILayout.Space(2);
+        tuner.gemIconAnchoredPosition = EditorGUILayout.Vector2Field("Vị trí Icon Gem", tuner.gemIconAnchoredPosition);
+        tuner.gemIconSizeDelta = EditorGUILayout.Vector2Field("Kích thước Icon Gem", tuner.gemIconSizeDelta);
+
+        EditorGUILayout.Space(2);
+        tuner.rewardFontSize = EditorGUILayout.Slider("Cỡ chữ Thưởng", tuner.rewardFontSize, 18f, 60f);
+        tuner.rewardAnchoredPosition = EditorGUILayout.Vector2Field("Vị trí Text Thưởng", tuner.rewardAnchoredPosition);
+        tuner.rewardSizeDelta = EditorGUILayout.Vector2Field("Kích thước Text Thưởng", tuner.rewardSizeDelta);
         EditorGUILayout.EndVertical();
 
         EditorGUILayout.Space(6);

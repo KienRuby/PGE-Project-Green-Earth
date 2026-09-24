@@ -56,10 +56,117 @@ public class DailyGemMineLevelCard : MonoBehaviour
             canvasGroup = GetComponent<CanvasGroup>();
         }
 
+        RemoveRedundantStartLabel();
+        EnsureLockBadge();
+        OptimizeRaycastTargetsForSwiping();
+
         if (startButton != null)
         {
             startButton.onClick.RemoveListener(HandleStartClicked);
             startButton.onClick.AddListener(HandleStartClicked);
+        }
+    }
+
+    /// <summary>
+    /// Xóa bỏ text "Start" bị thừa trên StartButton vì ảnh nút btn_pink_start.png đã chứa sẵn chữ Start.
+    /// </summary>
+    public void RemoveRedundantStartLabel()
+    {
+        if (startButton != null)
+        {
+            Transform startLbl = startButton.transform.Find("StartLabel");
+            if (startLbl != null)
+            {
+                if (Application.isPlaying) Destroy(startLbl.gameObject);
+                else DestroyImmediate(startLbl.gameObject);
+            }
+
+            TMP_Text[] tmps = startButton.GetComponentsInChildren<TMP_Text>(true);
+            foreach (var t in tmps)
+            {
+                if (t == null) continue;
+                if (Application.isPlaying) Destroy(t.gameObject);
+                else DestroyImmediate(t.gameObject);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Đảm bảo thẻ luôn có huy hiệu LockedBadge khi màn chơi bị khóa.
+    /// </summary>
+    public void EnsureLockBadge()
+    {
+        if (lockOverlay != null) return;
+        Transform existing = transform.Find("LockedBadge") ?? transform.Find("LockOverlay");
+        if (existing != null)
+        {
+            lockOverlay = existing.gameObject;
+            lockLabel = existing.GetComponentInChildren<TMP_Text>(true);
+            return;
+        }
+
+        GameObject badgeObj = new GameObject("LockedBadge", typeof(RectTransform), typeof(Image));
+        badgeObj.layer = gameObject.layer;
+        badgeObj.transform.SetParent(transform, false);
+        RectTransform rt = badgeObj.GetComponent<RectTransform>();
+        rt.anchorMin = new Vector2(1f, 0f);
+        rt.anchorMax = new Vector2(1f, 0f);
+        rt.pivot = new Vector2(1f, 0f);
+        rt.anchoredPosition = new Vector2(-20f, 18f);
+        rt.sizeDelta = new Vector2(190f, 72f);
+        rt.localScale = Vector3.one;
+
+        Image img = badgeObj.GetComponent<Image>();
+        img.color = new Color(0.12f, 0.12f, 0.16f, 0.88f);
+        img.raycastTarget = false;
+
+        GameObject txtObj = new GameObject("LockedText", typeof(RectTransform), typeof(TextMeshProUGUI));
+        txtObj.layer = gameObject.layer;
+        txtObj.transform.SetParent(badgeObj.transform, false);
+        RectTransform txtRt = txtObj.GetComponent<RectTransform>();
+        txtRt.anchorMin = Vector2.zero;
+        txtRt.anchorMax = Vector2.one;
+        txtRt.pivot = new Vector2(0.5f, 0.5f);
+        txtRt.offsetMin = txtRt.offsetMax = Vector2.zero;
+
+        TextMeshProUGUI txt = txtObj.GetComponent<TextMeshProUGUI>();
+        txt.text = "LOCKED";
+        txt.fontSize = 30f;
+        txt.fontStyle = FontStyles.Bold;
+        txt.color = new Color32(200, 200, 200, 255);
+        txt.alignment = TextAlignmentOptions.Center;
+        txt.raycastTarget = false;
+        if (levelTitleText != null && levelTitleText.font != null)
+        {
+            txt.font = levelTitleText.font;
+        }
+
+        lockOverlay = badgeObj;
+        lockLabel = txt;
+        badgeObj.SetActive(false);
+    }
+
+    /// <summary>
+    /// Tối ưu hóa raycast target cho các thành phần trên thẻ:
+    /// - Ảnh nền, tiêu đề, icon kim cương đặt raycastTarget = false để cử chỉ lướt (Swipe)
+    ///   truyền thẳng về ScrollView tương tự Tower Def.
+    /// - Nút Start giữ nguyên raycastTarget = true để nhận click bắt đầu trận.
+    /// </summary>
+    public void OptimizeRaycastTargetsForSwiping()
+    {
+        if (previewImage != null) previewImage.raycastTarget = false;
+        if (rewardGemIcon != null) rewardGemIcon.raycastTarget = false;
+        if (levelTitleText != null) levelTitleText.raycastTarget = false;
+        if (rewardText != null) rewardText.raycastTarget = false;
+        if (lockLabel != null) lockLabel.raycastTarget = false;
+
+        if (startButton != null)
+        {
+            var targetGraphic = startButton.targetGraphic as Image ?? startButton.GetComponent<Image>();
+            if (targetGraphic != null)
+            {
+                targetGraphic.raycastTarget = true;
+            }
         }
     }
 
@@ -96,11 +203,22 @@ public class DailyGemMineLevelCard : MonoBehaviour
             previewImage.sprite = previewSprite;
         }
 
+        RemoveRedundantStartLabel();
+        EnsureLockBadge();
         SetLocked(isLocked, lockReason);
     }
 
     public void SetInteractable(bool interactable, bool hasEntrances)
     {
+        bool isUnlocked = DailyGemMineProgress.IsLevelUnlocked(levelNumber);
+        if (!isUnlocked)
+        {
+            SetLocked(true, $"Clear LV.{levelNumber - 1:D2} to Unlock");
+            return;
+        }
+
+        SetLocked(false);
+
         if (startButton != null)
         {
             startButton.interactable = interactable && hasEntrances;
@@ -114,6 +232,13 @@ public class DailyGemMineLevelCard : MonoBehaviour
 
     public void SetLocked(bool isLocked, string reason = "")
     {
+        EnsureLockBadge();
+
+        if (startButton != null)
+        {
+            startButton.gameObject.SetActive(!isLocked);
+        }
+
         if (lockOverlay != null)
         {
             lockOverlay.SetActive(isLocked);
@@ -124,10 +249,21 @@ public class DailyGemMineLevelCard : MonoBehaviour
             lockLabel.text = reason;
         }
 
-        if (startButton != null)
+        if (canvasGroup != null)
         {
-            startButton.gameObject.SetActive(!isLocked);
+            canvasGroup.alpha = isLocked ? 0.6f : 1f;
         }
+
+        if (previewImage != null)
+        {
+            previewImage.color = isLocked ? new Color(0.65f, 0.65f, 0.65f, 1f) : Color.white;
+        }
+    }
+
+    public void SetLockOverlay(GameObject overlay, TMP_Text label = null)
+    {
+        lockOverlay = overlay;
+        lockLabel = label;
     }
 
     private void HandleStartClicked()

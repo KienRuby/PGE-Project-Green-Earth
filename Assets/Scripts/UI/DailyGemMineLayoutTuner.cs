@@ -42,31 +42,42 @@ public class DailyGemMineLayoutTuner : MonoBehaviour
 
     [Header("=== 4. Daily Gem Mine Main Panel ===")]
     public Vector2 panelAnchoredPosition = new Vector2(0f, -305f);
-    public Vector2 panelSizeDelta = new Vector2(980f, 1200f);
+    public Vector2 panelSizeDelta = new Vector2(766f, 1200f);
 
     [Header("=== 5. Text Reset Timer ===")]
     public Vector2 resetTimerPosition = new Vector2(0f, -225f);
-    public Vector2 resetTimerSize = new Vector2(880f, 44f);
-    [Range(18f, 60f)] public float resetTimerFontSize = 34f;
+    public Vector2 resetTimerSize = new Vector2(700f, 40f);
+    [Range(18f, 60f)] public float resetTimerFontSize = 30f;
 
     [Header("=== 6. Text Entrance Count ===")]
     public Vector2 entrancePositionFull = new Vector2(0f, -250f);
-    public Vector2 entrancePositionActive = new Vector2(0f, -275f);
-    public Vector2 entranceSize = new Vector2(880f, 44f);
-    [Range(18f, 60f)] public float entranceFontSize = 34f;
+    public Vector2 entrancePositionActive = new Vector2(0f, -270f);
+    public Vector2 entranceSize = new Vector2(700f, 40f);
+    [Range(18f, 60f)] public float entranceFontSize = 32f;
 
     [Header("=== 7. Khung cuộn Levels ScrollView (5 Levels) ===")]
     public Vector2 scrollViewAnchoredPosition = new Vector2(0f, -325f);
-    public Vector2 scrollViewSizeDelta = new Vector2(920f, 845f);
-    [Range(0f, 60f)] public float cardSpacing = 25f;
-    public Vector2 cardSizeDelta = new Vector2(890f, 420f);
+    public Vector2 scrollViewSizeDelta = new Vector2(720f, 850f);
+    [Range(0f, 60f)] public float cardSpacing = 20f;
+    public Vector2 cardSizeDelta = new Vector2(700f, 350f);
 
     [Header("=== 8. Nút Pink Start trên các Card ===")]
-    public Vector2 startButtonAnchoredPosition = new Vector2(-25f, 22f);
-    public Vector2 startButtonSizeDelta = new Vector2(220f, 85f);
-    [Range(18f, 60f)] public float startButtonFontSize = 40f;
+    public Vector2 startButtonAnchoredPosition = new Vector2(-20f, 18f);
+    public Vector2 startButtonSizeDelta = new Vector2(190f, 72f);
+    [Range(18f, 60f)] public float startButtonFontSize = 34f;
 
-    [Header("=== 9. Nền tối Backdrop ===")]
+    [Header("=== 9. Header & Thưởng trên các Card ===")]
+    public float headerHeight = 70f;
+    [Range(18f, 60f)] public float titleFontSize = 36f;
+    public Vector2 titleAnchoredPosition = new Vector2(25f, 0f);
+    public Vector2 titleSizeDelta = new Vector2(320f, 50f);
+    public Vector2 gemIconAnchoredPosition = new Vector2(-175f, 0f);
+    public Vector2 gemIconSizeDelta = new Vector2(34f, 44f);
+    public Vector2 rewardAnchoredPosition = new Vector2(-165f, 0f);
+    public Vector2 rewardSizeDelta = new Vector2(150f, 50f);
+    [Range(18f, 60f)] public float rewardFontSize = 32f;
+
+    [Header("=== 10. Nền tối Backdrop ===")]
     public Color backdropColor = new Color(0f, 0f, 0f, 0.86f);
 
     public RectTransform ContentRoot => contentRoot;
@@ -294,8 +305,61 @@ public class DailyGemMineLayoutTuner : MonoBehaviour
                     {
                         sbRect.anchoredPosition = startButtonAnchoredPosition;
                         sbRect.sizeDelta = startButtonSizeDelta;
-                        TMP_Text t = sb.GetComponentInChildren<TMP_Text>(true);
-                        if (t != null) t.fontSize = startButtonFontSize;
+
+                        Transform startLbl = sb.Find("StartLabel");
+                        if (startLbl != null)
+                        {
+                            if (Application.isPlaying) Destroy(startLbl.gameObject);
+                            else DestroyImmediate(startLbl.gameObject);
+                        }
+                    }
+
+                    // Locked Badge trên card
+                    Transform lb = child.Find("LockedBadge");
+                    if (lb is RectTransform lbRect)
+                    {
+                        lbRect.anchoredPosition = startButtonAnchoredPosition;
+                        lbRect.sizeDelta = startButtonSizeDelta;
+                    }
+
+                    // HeaderBanner trên card
+                    Transform hb = child.Find("HeaderBanner");
+                    if (hb is RectTransform hbRect)
+                    {
+                        hbRect.sizeDelta = new Vector2(0f, headerHeight);
+
+                        Transform title = hb.Find("TitleText");
+                        if (title is RectTransform titleRect)
+                        {
+                            titleRect.anchoredPosition = titleAnchoredPosition;
+                            titleRect.sizeDelta = titleSizeDelta;
+                            TMP_Text t = title.GetComponent<TMP_Text>();
+                            if (t != null)
+                            {
+                                t.fontSize = titleFontSize;
+                                t.enableWordWrapping = false;
+                            }
+                        }
+
+                        Transform gem = hb.Find("GemIcon");
+                        if (gem is RectTransform gemRect)
+                        {
+                            gemRect.anchoredPosition = gemIconAnchoredPosition;
+                            gemRect.sizeDelta = gemIconSizeDelta;
+                        }
+
+                        Transform rwd = hb.Find("RewardText");
+                        if (rwd is RectTransform rwdRect)
+                        {
+                            rwdRect.anchoredPosition = rewardAnchoredPosition;
+                            rwdRect.sizeDelta = rewardSizeDelta;
+                            TMP_Text t = rwd.GetComponent<TMP_Text>();
+                            if (t != null)
+                            {
+                                t.fontSize = rewardFontSize;
+                                t.enableWordWrapping = false;
+                            }
+                        }
                     }
                 }
             }
@@ -414,25 +478,35 @@ public class DailyGemMineLayoutTuner : MonoBehaviour
         priceButtonSizeDelta = new Vector2(300f, 90f);
 
         panelAnchoredPosition = new Vector2(0f, -305f);
-        panelSizeDelta = new Vector2(980f, 1200f);
+        panelSizeDelta = new Vector2(766f, 1200f);
 
         resetTimerPosition = new Vector2(0f, -225f);
-        resetTimerSize = new Vector2(880f, 44f);
-        resetTimerFontSize = 34f;
+        resetTimerSize = new Vector2(700f, 40f);
+        resetTimerFontSize = 30f;
 
         entrancePositionFull = new Vector2(0f, -250f);
-        entrancePositionActive = new Vector2(0f, -275f);
-        entranceSize = new Vector2(880f, 44f);
-        entranceFontSize = 34f;
+        entrancePositionActive = new Vector2(0f, -270f);
+        entranceSize = new Vector2(700f, 40f);
+        entranceFontSize = 32f;
 
         scrollViewAnchoredPosition = new Vector2(0f, -325f);
-        scrollViewSizeDelta = new Vector2(920f, 845f);
-        cardSpacing = 25f;
-        cardSizeDelta = new Vector2(890f, 420f);
+        scrollViewSizeDelta = new Vector2(720f, 850f);
+        cardSpacing = 20f;
+        cardSizeDelta = new Vector2(700f, 350f);
 
-        startButtonAnchoredPosition = new Vector2(-25f, 22f);
-        startButtonSizeDelta = new Vector2(220f, 85f);
-        startButtonFontSize = 40f;
+        startButtonAnchoredPosition = new Vector2(-20f, 18f);
+        startButtonSizeDelta = new Vector2(190f, 72f);
+        startButtonFontSize = 34f;
+
+        headerHeight = 70f;
+        titleFontSize = 36f;
+        titleAnchoredPosition = new Vector2(25f, 0f);
+        titleSizeDelta = new Vector2(320f, 50f);
+        gemIconAnchoredPosition = new Vector2(-175f, 0f);
+        gemIconSizeDelta = new Vector2(34f, 44f);
+        rewardAnchoredPosition = new Vector2(-165f, 0f);
+        rewardSizeDelta = new Vector2(150f, 50f);
+        rewardFontSize = 32f;
 
         backdropColor = new Color(0f, 0f, 0f, 0.86f);
 
