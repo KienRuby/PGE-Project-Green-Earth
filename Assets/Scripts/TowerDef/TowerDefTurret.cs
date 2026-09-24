@@ -76,6 +76,11 @@ public class TowerDefTurret : MonoBehaviour
 
     private void Update()
     {
+        if (TowerDefGameManager.Instance != null && TowerDefGameManager.Instance.IsGameOver)
+        {
+            return;
+        }
+
         FindAndTrackTarget();
         TryFire();
     }
@@ -89,7 +94,7 @@ public class TowerDefTurret : MonoBehaviour
             return;
         }
 
-        // Chọn kẻ thù gần cổng nhất (hoặc gần tháp nhất trong tầm)
+        // Chỉ chọn kẻ thù đã chạm vào tường thành theo yêu cầu thiết kế
         float closestDist = float.MaxValue;
         if (owningCanvas == null) owningCanvas = GetComponentInParent<Canvas>();
         if (viewCamera == null) viewCamera = owningCanvas != null ? owningCanvas.worldCamera : Camera.main;
@@ -100,7 +105,7 @@ public class TowerDefTurret : MonoBehaviour
         for (int i = 0; i < enemies.Count; i++)
         {
             var e = enemies[i];
-            if (e == null || e.IsDead) continue;
+            if (e == null || e.IsDead || !e.IsTouchingWall) continue;
             if (viewCamera != null)
             {
                 Vector3 viewport = viewCamera.WorldToViewportPoint(e.transform.position);
@@ -129,7 +134,7 @@ public class TowerDefTurret : MonoBehaviour
 
     private void TryFire()
     {
-        if (currentTarget == null || Time.time < nextFireTime) return;
+        if (currentTarget == null || !currentTarget.IsTouchingWall || currentTarget.IsDead || Time.time < nextFireTime) return;
 
         nextFireTime = Time.time + (1f / Mathf.Max(0.1f, fireRate));
         FireAtTarget(currentTarget);
@@ -137,7 +142,7 @@ public class TowerDefTurret : MonoBehaviour
 
     private void FireAtTarget(TowerDefEnemy target)
     {
-        if (target == null || target.IsDead) return;
+        if (target == null || target.IsDead || !target.IsTouchingWall) return;
 
         Transform muzzle = gunTransform != null ? gunTransform.Find("FirePoint") : null;
         Vector3 spawnPos = muzzle != null ? muzzle.position :

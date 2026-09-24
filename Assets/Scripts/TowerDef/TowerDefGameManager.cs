@@ -56,6 +56,7 @@ public class TowerDefGameManager : MonoBehaviour
     private readonly TowerDefGridCell[,] gridCells = new TowerDefGridCell[4, 7]; // 4 hàng x 7 cột
     private bool isGameOver = false;
 
+    public bool IsGameOver => isGameOver;
     public int Gold => gold;
     public int Energy => energy;
     public int CurrentLevel => currentLevel;
@@ -351,8 +352,9 @@ public class TowerDefGameManager : MonoBehaviour
     private IEnumerator SpawnWaveRoutine(int wave)
     {
         int enemyCount = 3 + wave * 2;
-        float spawnY = 850f; // Vị trí xuất hiện ở phần trên cùng của khu vực tối
-        float gateStopY = gate != null ? gate.transform.localPosition.y + 40f : 100f;
+        float wallTopY = 617.14f + 154.2857f; // 771.43f
+        float spawnY = 1750f; // Vị trí xuất hiện ở đỉnh khu vực tối (dưới Top Bar)
+        float gateStopY = wallTopY + 50f; // Vị trí chạm vào mép trên tường thành
 
         for (int i = 0; i < enemyCount; i++)
         {
@@ -411,7 +413,11 @@ public class TowerDefGameManager : MonoBehaviour
         float dmg = isBoss ? 25f : 10f;
         int rwd = isBoss ? 50 : 15;
 
-        enemy.Setup(hp, spd, dmg, rwd, gate, gateStopY, img.sprite);
+        float enemyHeight = isBoss ? 160f : 110f;
+        float wallTopY = 617.14f + 154.2857f;
+        float stopY = wallTopY + (enemyHeight * 0.45f);
+
+        enemy.Setup(hp, spd, dmg, rwd, gate, stopY, img.sprite);
         enemy.OnEnemyDied += HandleEnemyDied;
         activeEnemies.Add(enemy);
     }
@@ -425,6 +431,18 @@ public class TowerDefGameManager : MonoBehaviour
     {
         if (isGameOver) return;
         isGameOver = true;
+        waveInProgress = false;
+        StopAllCoroutines();
+
+        // Dừng mọi hành động của quái khi Game Over
+        for (int i = 0; i < activeEnemies.Count; i++)
+        {
+            if (activeEnemies[i] != null)
+            {
+                activeEnemies[i].StopAttacking();
+            }
+        }
+
         OnLevelDefeat?.Invoke();
         if (uiController != null) uiController.ShowDefeat();
     }
@@ -477,23 +495,78 @@ public class TowerDefGameManager : MonoBehaviour
             canvas.planeDistance = 8f;
         }
 
-        // 1. Background Grid (Nền tối 7 cột)
+        float cellWidth = 1080f / 7f; // ~154.2857f
+        float cellHeight = 154.2857f;
+        float wallY = 617.14f; // 4 hàng phòng thủ phía dưới (4 * 154.2857f)
+        float wallTopY = wallY + cellHeight; // 771.43f
+
+        // 1. Background Grid (Nền tối 7 cột gạch nhỏ khớp chuẩn 100% Ảnh mẫu 2)
         Transform bgTr = canvas.transform.Find("BackgroundGrid");
         if (bgTr == null)
         {
             GameObject bgObj = new GameObject("BackgroundGrid", typeof(RectTransform), typeof(Image));
             bgObj.transform.SetParent(canvas.transform, false);
             bgObj.transform.SetAsFirstSibling();
+            bgTr = bgObj.transform;
+
             RectTransform bgRt = bgObj.GetComponent<RectTransform>();
             bgRt.anchorMin = Vector2.zero;
             bgRt.anchorMax = Vector2.one;
             bgRt.offsetMin = bgRt.offsetMax = Vector2.zero;
+        }
 
-            Image bgImg = bgObj.GetComponent<Image>();
-            Sprite nenSprite = darkTileSprite ?? Resources.Load<Sprite>("UI/MiniGame/nen_map_thu_thanh");
-            if (nenSprite != null) bgImg.sprite = nenSprite;
-            bgImg.color = Color.white;
+        Image bgImg = bgTr.GetComponent<Image>();
+        if (bgImg != null)
+        {
+            bgImg.sprite = null;
+            bgImg.color = new Color(0.12f, 0.11f, 0.12f, 1f);
             bgImg.raycastTarget = false;
+        }
+
+        // Tạo lưới gạch tối 7 cột cho khu vực trên tường (Upper Arena) khớp 100% kích thước 7 cột bên dưới
+        Transform upperGridTr = bgTr.Find("UpperGrid");
+        if (upperGridTr != null && upperGridTr.childCount < 14)
+        {
+            Destroy(upperGridTr.gameObject);
+            upperGridTr = null;
+        }
+
+        if (upperGridTr == null)
+        {
+            GameObject upperGridObj = new GameObject("UpperGrid", typeof(RectTransform));
+            upperGridObj.transform.SetParent(bgTr, false);
+            upperGridTr = upperGridObj.transform;
+
+            RectTransform upperRt = upperGridObj.GetComponent<RectTransform>();
+            upperRt.anchorMin = Vector2.zero;
+            upperRt.anchorMax = Vector2.one;
+            upperRt.offsetMin = upperRt.offsetMax = Vector2.zero;
+
+            int rowsAboveWall = Mathf.CeilToInt((1920f - wallTopY) / cellHeight) + 2;
+            Sprite darkTile = darkTileSprite ?? Resources.Load<Sprite>("TowerDef/Tile_Floor_Dark");
+
+            for (int r = 0; r < rowsAboveWall; r++)
+            {
+                float posY = wallTopY + (r + 0.5f) * cellHeight;
+                for (int c = 0; c < 7; c++)
+                {
+                    float posX = GetColumnWorldX(c);
+                    GameObject tileObj = new GameObject($"DarkTile_R{r}_C{c}", typeof(RectTransform), typeof(Image));
+                    tileObj.transform.SetParent(upperGridTr, false);
+
+                    RectTransform tileRt = tileObj.GetComponent<RectTransform>();
+                    tileRt.anchorMin = new Vector2(0.5f, 0f);
+                    tileRt.anchorMax = new Vector2(0.5f, 0f);
+                    tileRt.pivot = new Vector2(0.5f, 0.5f);
+                    tileRt.anchoredPosition = new Vector2(posX, posY);
+                    tileRt.sizeDelta = new Vector2(cellWidth, cellHeight);
+
+                    Image img = tileObj.GetComponent<Image>();
+                    if (darkTile != null) img.sprite = darkTile;
+                    img.color = Color.white;
+                    img.raycastTarget = false;
+                }
+            }
         }
 
         // 2. PlayArea Root
@@ -507,18 +580,29 @@ public class TowerDefGameManager : MonoBehaviour
         // Container cho Quái và Đạn
         if (enemySpawnParent == null)
         {
-            enemySpawnParent = playArea.Find("EnemiesRoot") ?? new GameObject("EnemiesRoot", typeof(RectTransform)).transform;
-            enemySpawnParent.SetParent(playArea, false);
+            GameObject eRoot = playArea.Find("EnemiesRoot")?.gameObject ?? new GameObject("EnemiesRoot", typeof(RectTransform));
+            eRoot.transform.SetParent(playArea, false);
+            enemySpawnParent = eRoot.transform;
         }
+        RectTransform eRt = enemySpawnParent.GetComponent<RectTransform>();
+        eRt.anchorMin = new Vector2(0.5f, 0f);
+        eRt.anchorMax = new Vector2(0.5f, 0f);
+        eRt.pivot = new Vector2(0.5f, 0f);
+        eRt.anchoredPosition = Vector2.zero;
+        eRt.sizeDelta = new Vector2(1080f, 1920f);
+
         if (projectileParent == null)
         {
-            projectileParent = playArea.Find("ProjectilesRoot") ?? new GameObject("ProjectilesRoot", typeof(RectTransform)).transform;
-            projectileParent.SetParent(playArea, false);
+            GameObject pRoot = playArea.Find("ProjectilesRoot")?.gameObject ?? new GameObject("ProjectilesRoot", typeof(RectTransform));
+            pRoot.transform.SetParent(playArea, false);
+            projectileParent = pRoot.transform;
         }
-
-        float cellWidth = 1080f / 7f; // ~154.2857f
-        float cellHeight = 154.2857f;
-        float wallY = 617.14f; // 4 hàng phòng thủ phía dưới (4 * 154.2857f)
+        RectTransform pRt = projectileParent.GetComponent<RectTransform>();
+        pRt.anchorMin = new Vector2(0.5f, 0f);
+        pRt.anchorMax = new Vector2(0.5f, 0f);
+        pRt.pivot = new Vector2(0.5f, 0f);
+        pRt.anchoredPosition = Vector2.zero;
+        pRt.sizeDelta = new Vector2(1080f, 1920f);
 
         // 3. Tường gạch ngăn cách (Wall_Brick_Strip) & Cổng sắt (Gate_Metal)
         Transform wallTr = playArea.Find("WallAndGate");

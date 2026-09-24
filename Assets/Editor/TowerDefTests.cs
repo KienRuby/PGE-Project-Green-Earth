@@ -233,5 +233,54 @@ public class TowerDefTests
         Assert.IsTrue(enemy.IsDead);
         Assert.IsTrue(died);
     }
+
+    [Test]
+    public void Enemy_DoesNotTakeDamageBeforeTouchingWall()
+    {
+        GameObject enemyObj = new GameObject("EnemyAboveWall", typeof(RectTransform), typeof(Image), typeof(TowerDefEnemy));
+        enemyObj.transform.SetParent(rootObj.transform);
+        enemyObj.transform.localPosition = new Vector3(0f, 500f, 0f);
+
+        TowerDefEnemy enemy = enemyObj.GetComponent<TowerDefEnemy>();
+        enemy.Setup(100f, 50f, 10f, 20, null, 100f, null);
+
+        Assert.IsFalse(enemy.IsTouchingWall);
+
+        // Chưa chạm tường -> không bị trừ máu theo yêu cầu
+        enemy.TakeDamage(50f);
+        Assert.AreEqual(100f, enemy.CurrentHp);
+
+        // Khi quái đã chạm vào tường thành -> nhận sát thương bình thường
+        enemy.SetTouchingWall(true);
+        Assert.IsTrue(enemy.IsTouchingWall);
+
+        enemy.TakeDamage(50f);
+        Assert.AreEqual(50f, enemy.CurrentHp);
+    }
+
+    [Test]
+    public void Gate_DestructionTriggersGameOver()
+    {
+        GameObject gateObj = new GameObject("Gate", typeof(RectTransform), typeof(Image), typeof(Button), typeof(TowerDefGate));
+        gateObj.transform.SetParent(rootObj.transform);
+
+        TowerDefGate gate = gateObj.GetComponent<TowerDefGate>();
+        gate.Setup(300f, null, null, null);
+
+        // Gán gate cho gameManager bằng reflection hoặc trigger Destroy
+        bool gameOverFired = false;
+        gameManager.OnLevelDefeat += () => gameOverFired = true;
+
+        gate.OnGateDestroyed += () =>
+        {
+            var method = typeof(TowerDefGameManager).GetMethod("HandleGateBreached", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            method?.Invoke(gameManager, null);
+        };
+
+        gate.TakeDamage(300f);
+        Assert.IsTrue(gate.IsDestroyed);
+        Assert.IsTrue(gameManager.IsGameOver);
+        Assert.IsTrue(gameOverFired);
+    }
 }
 #endif

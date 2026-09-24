@@ -71,6 +71,11 @@ public class TowerDefGate : MonoBehaviour
 
         if (currentHp <= 0f)
         {
+            Image gateImg = GetComponent<Image>();
+            if (gateImg != null)
+            {
+                gateImg.color = new Color(0.6f, 0.2f, 0.2f, 1f);
+            }
             OnGateDestroyed?.Invoke();
         }
     }
@@ -79,6 +84,8 @@ public class TowerDefGate : MonoBehaviour
     {
         if (IsDestroyed) return;
         currentHp = Mathf.Min(maxHp, currentHp + amount);
+        Image gateImg = GetComponent<Image>();
+        if (gateImg != null) gateImg.color = Color.white;
         UpdateHealthBarVisual();
         OnHpChanged?.Invoke(currentHp, maxHp);
     }
@@ -92,6 +99,8 @@ public class TowerDefGate : MonoBehaviour
         gateLevel++;
         maxHp += 150f;
         currentHp = maxHp; // Full heal upon upgrade
+        Image gateImg = GetComponent<Image>();
+        if (gateImg != null) gateImg.color = Color.white;
         UpdateHealthBarVisual();
         OnHpChanged?.Invoke(currentHp, maxHp);
         OnGateUpgraded?.Invoke(gateLevel);

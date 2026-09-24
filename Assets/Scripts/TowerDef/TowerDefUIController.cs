@@ -147,13 +147,182 @@ public class TowerDefUIController : MonoBehaviour
     public void ShowVictory()
     {
         CloseAllModals();
-        if (victoryPanel != null) victoryPanel.SetActive(true);
+        if (victoryPanel == null)
+        {
+            BuildVictoryPanel();
+        }
+
+        if (victoryPanel != null)
+        {
+            victoryPanel.SetActive(true);
+            victoryPanel.transform.SetAsLastSibling();
+        }
     }
 
     public void ShowDefeat()
     {
         CloseAllModals();
-        if (defeatPanel != null) defeatPanel.SetActive(true);
+        if (defeatPanel == null)
+        {
+            BuildDefeatPanel();
+        }
+
+        if (defeatPanel != null)
+        {
+            defeatPanel.SetActive(true);
+            defeatPanel.transform.SetAsLastSibling();
+        }
+    }
+
+    private void BuildDefeatPanel()
+    {
+        defeatPanel = new GameObject("DefeatPanel", typeof(RectTransform), typeof(Image));
+        defeatPanel.transform.SetParent(transform, false);
+        RectTransform panelRt = defeatPanel.GetComponent<RectTransform>();
+        panelRt.anchorMin = Vector2.zero;
+        panelRt.anchorMax = Vector2.one;
+        panelRt.offsetMin = panelRt.offsetMax = Vector2.zero;
+
+        Image panelImg = defeatPanel.GetComponent<Image>();
+        panelImg.color = new Color(0.04f, 0.04f, 0.06f, 0.88f);
+        panelImg.raycastTarget = true;
+
+        // Modal Box
+        GameObject box = new GameObject("DefeatBox", typeof(RectTransform), typeof(Image));
+        box.transform.SetParent(defeatPanel.transform, false);
+        RectTransform boxRt = box.GetComponent<RectTransform>();
+        boxRt.anchorMin = boxRt.anchorMax = boxRt.pivot = new Vector2(0.5f, 0.5f);
+        boxRt.anchoredPosition = Vector2.zero;
+        boxRt.sizeDelta = new Vector2(760f, 580f);
+
+        Image boxImg = box.GetComponent<Image>();
+        boxImg.color = new Color(0.12f, 0.12f, 0.16f, 0.98f);
+        boxImg.raycastTarget = true;
+
+        // Title: GAME OVER
+        GameObject titleObj = new GameObject("TitleText", typeof(RectTransform), typeof(TextMeshProUGUI));
+        titleObj.transform.SetParent(box.transform, false);
+        RectTransform titleRt = titleObj.GetComponent<RectTransform>();
+        titleRt.anchorMin = titleRt.anchorMax = titleRt.pivot = new Vector2(0.5f, 1f);
+        titleRt.anchoredPosition = new Vector2(0f, -40f);
+        titleRt.sizeDelta = new Vector2(700f, 90f);
+        TextMeshProUGUI titleTmp = titleObj.GetComponent<TextMeshProUGUI>();
+        titleTmp.text = "GAME OVER";
+        titleTmp.fontSize = 72f;
+        titleTmp.fontStyle = FontStyles.Bold;
+        titleTmp.color = new Color(1f, 0.28f, 0.28f);
+        titleTmp.alignment = TextAlignmentOptions.Center;
+
+        // Subtitle: Thành trì đã bị quái vật phá hủy!
+        GameObject descObj = new GameObject("DescText", typeof(RectTransform), typeof(TextMeshProUGUI));
+        descObj.transform.SetParent(box.transform, false);
+        RectTransform descRt = descObj.GetComponent<RectTransform>();
+        descRt.anchorMin = descRt.anchorMax = descRt.pivot = new Vector2(0.5f, 1f);
+        descRt.anchoredPosition = new Vector2(0f, -145f);
+        descRt.sizeDelta = new Vector2(680f, 90f);
+        TextMeshProUGUI descTmp = descObj.GetComponent<TextMeshProUGUI>();
+        descTmp.text = "Thành trì đã bị quái vật phá hủy!\nHãy nâng cấp phòng thủ và thử lại.";
+        descTmp.fontSize = 32f;
+        descTmp.color = new Color(0.85f, 0.85f, 0.9f);
+        descTmp.alignment = TextAlignmentOptions.Center;
+
+        // Retry Button ("CHƠI LẠI")
+        GameObject retryObj = CreateModalButton(box.transform, "RetryButton", new Vector2(0f, -40f), new Vector2(380f, 85f), new Color(0.15f, 0.65f, 0.35f, 1f), "CHƠI LẠI");
+        defeatRetryButton = retryObj.GetComponent<Button>();
+        defeatRetryButton.onClick.AddListener(() => SceneManager.LoadScene(SceneManager.GetActiveScene().name));
+
+        // Home Button ("VỀ TRANG CHỦ")
+        GameObject homeObj = CreateModalButton(box.transform, "HomeButton", new Vector2(0f, -150f), new Vector2(380f, 85f), new Color(0.35f, 0.38f, 0.45f, 1f), "VỀ TRANG CHỦ");
+        defeatHomeButton = homeObj.GetComponent<Button>();
+        defeatHomeButton.onClick.AddListener(OnBackClicked);
+    }
+
+    private void BuildVictoryPanel()
+    {
+        victoryPanel = new GameObject("VictoryPanel", typeof(RectTransform), typeof(Image));
+        victoryPanel.transform.SetParent(transform, false);
+        RectTransform panelRt = victoryPanel.GetComponent<RectTransform>();
+        panelRt.anchorMin = Vector2.zero;
+        panelRt.anchorMax = Vector2.one;
+        panelRt.offsetMin = panelRt.offsetMax = Vector2.zero;
+
+        Image panelImg = victoryPanel.GetComponent<Image>();
+        panelImg.color = new Color(0.04f, 0.04f, 0.06f, 0.88f);
+        panelImg.raycastTarget = true;
+
+        // Modal Box
+        GameObject box = new GameObject("VictoryBox", typeof(RectTransform), typeof(Image));
+        box.transform.SetParent(victoryPanel.transform, false);
+        RectTransform boxRt = box.GetComponent<RectTransform>();
+        boxRt.anchorMin = boxRt.anchorMax = boxRt.pivot = new Vector2(0.5f, 0.5f);
+        boxRt.anchoredPosition = Vector2.zero;
+        boxRt.sizeDelta = new Vector2(760f, 560f);
+
+        Image boxImg = box.GetComponent<Image>();
+        boxImg.color = new Color(0.12f, 0.14f, 0.18f, 0.98f);
+        boxImg.raycastTarget = true;
+
+        // Title: CHIẾN THẮNG!
+        GameObject titleObj = new GameObject("TitleText", typeof(RectTransform), typeof(TextMeshProUGUI));
+        titleObj.transform.SetParent(box.transform, false);
+        RectTransform titleRt = titleObj.GetComponent<RectTransform>();
+        titleRt.anchorMin = titleRt.anchorMax = titleRt.pivot = new Vector2(0.5f, 1f);
+        titleRt.anchoredPosition = new Vector2(0f, -40f);
+        titleRt.sizeDelta = new Vector2(700f, 90f);
+        TextMeshProUGUI titleTmp = titleObj.GetComponent<TextMeshProUGUI>();
+        titleTmp.text = "CHIẾN THẮNG!";
+        titleTmp.fontSize = 72f;
+        titleTmp.fontStyle = FontStyles.Bold;
+        titleTmp.color = new Color(0.25f, 0.92f, 0.45f);
+        titleTmp.alignment = TextAlignmentOptions.Center;
+
+        // Subtitle: Bảo vệ thành công căn cứ!
+        GameObject descObj = new GameObject("DescText", typeof(RectTransform), typeof(TextMeshProUGUI));
+        descObj.transform.SetParent(box.transform, false);
+        RectTransform descRt = descObj.GetComponent<RectTransform>();
+        descRt.anchorMin = descRt.anchorMax = descRt.pivot = new Vector2(0.5f, 1f);
+        descRt.anchoredPosition = new Vector2(0f, -145f);
+        descRt.sizeDelta = new Vector2(680f, 80f);
+        TextMeshProUGUI descTmp = descObj.GetComponent<TextMeshProUGUI>();
+        descTmp.text = "Căn cứ phòng thủ đã được bảo vệ thành công!";
+        descTmp.fontSize = 32f;
+        descTmp.color = new Color(0.85f, 0.85f, 0.9f);
+        descTmp.alignment = TextAlignmentOptions.Center;
+
+        // Next / Home Button
+        GameObject homeObj = CreateModalButton(box.transform, "HomeButton", new Vector2(0f, -60f), new Vector2(380f, 85f), new Color(0.15f, 0.65f, 0.35f, 1f), "VỀ TRANG CHỦ");
+        victoryHomeButton = homeObj.GetComponent<Button>();
+        victoryHomeButton.onClick.AddListener(OnBackClicked);
+    }
+
+    private GameObject CreateModalButton(Transform parent, string name, Vector2 anchoredPos, Vector2 size, Color bgColor, string label)
+    {
+        GameObject btnObj = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button));
+        btnObj.transform.SetParent(parent, false);
+        RectTransform rt = btnObj.GetComponent<RectTransform>();
+        rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.anchoredPosition = anchoredPos;
+        rt.sizeDelta = size;
+
+        Image img = btnObj.GetComponent<Image>();
+        img.color = bgColor;
+        img.raycastTarget = true;
+
+        GameObject textObj = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+        textObj.transform.SetParent(btnObj.transform, false);
+        RectTransform tRt = textObj.GetComponent<RectTransform>();
+        tRt.anchorMin = Vector2.zero;
+        tRt.anchorMax = Vector2.one;
+        tRt.offsetMin = tRt.offsetMax = Vector2.zero;
+
+        TextMeshProUGUI tmp = textObj.GetComponent<TextMeshProUGUI>();
+        tmp.text = label;
+        tmp.fontSize = 34f;
+        tmp.fontStyle = FontStyles.Bold;
+        tmp.color = Color.white;
+        tmp.alignment = TextAlignmentOptions.Center;
+
+        return btnObj;
     }
 
     public void SpawnFloatingText(Vector3 worldPos, string content, Color color)
