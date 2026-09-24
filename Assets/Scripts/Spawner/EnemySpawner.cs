@@ -100,6 +100,9 @@ public class EnemySpawner : MonoBehaviour
     [Tooltip("Cơ sở dữ liệu Chapter để tự động nạp cấu hình Wave của Chapter đang chọn (tự tìm nếu để trống).")]
     [SerializeField] private ChapterDatabase chapterDatabase;
 
+    [Tooltip("Giữ nguyên cấu hình wave và prefab đã gán trong scene, không nạp ChapterDatabase.")]
+    [SerializeField] private bool useSceneWaveConfiguration;
+
     [Header("Wave System Configuration")]
     [Tooltip("Bật chế độ phân chia theo từng Wave.")]
     [SerializeField] private bool useWaveSystem = true;
@@ -325,6 +328,9 @@ public class EnemySpawner : MonoBehaviour
 
     public void LoadSelectedChapterWaves()
     {
+        if (useSceneWaveConfiguration)
+            return;
+
         if (chapterDatabase == null)
         {
 #if UNITY_EDITOR
