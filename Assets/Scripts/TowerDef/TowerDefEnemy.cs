@@ -29,8 +29,10 @@ public class TowerDefEnemy : MonoBehaviour
     private TowerDefGate targetGate;
     private float nextAttackTime;
     private float gateYThreshold;
+    private bool isTouchingWall = false;
 
     public bool IsDead => state == TowerDefEnemyState.Dead || currentHp <= 0f;
+    public bool IsTouchingWall => isTouchingWall;
     public float CurrentHp => currentHp;
     public float MaxHp => maxHp;
 
@@ -46,6 +48,8 @@ public class TowerDefEnemy : MonoBehaviour
         targetGate = gate;
         gateYThreshold = gateStopY;
         state = TowerDefEnemyState.MovingDown;
+        isTouchingWall = transform.localPosition.y <= gateYThreshold;
+        if (isTouchingWall) state = TowerDefEnemyState.AttackingGate;
 
         if (enemyImage != null && sprite != null)
         {
@@ -55,9 +59,28 @@ public class TowerDefEnemy : MonoBehaviour
         UpdateHpBar();
     }
 
+    public void SetTouchingWall(bool touching)
+    {
+        isTouchingWall = touching;
+        if (touching && state == TowerDefEnemyState.MovingDown)
+        {
+            state = TowerDefEnemyState.AttackingGate;
+        }
+    }
+
+    public void StopAttacking()
+    {
+        StopAllCoroutines();
+        if (enemyImage != null)
+        {
+            enemyImage.color = Color.white;
+        }
+    }
+
     private void Update()
     {
         if (IsDead) return;
+        if (TowerDefGameManager.Instance != null && TowerDefGameManager.Instance.IsGameOver) return;
 
         switch (state)
         {
@@ -73,11 +96,15 @@ public class TowerDefEnemy : MonoBehaviour
 
     private void MoveTowardsGate()
     {
-        transform.position += Vector3.down * (moveSpeed * Time.deltaTime);
+        if (TowerDefGameManager.Instance != null && TowerDefGameManager.Instance.IsGameOver) return;
 
-        // Kiểm tra xem đã tiếp cận ngưỡng cổng chưa
+        transform.localPosition += Vector3.down * (moveSpeed * Time.deltaTime);
+
+        // Kiểm tra xem đã tiếp cận ngưỡng tường thành chưa
         if (transform.localPosition.y <= gateYThreshold)
         {
+            transform.localPosition = new Vector3(transform.localPosition.x, gateYThreshold, transform.localPosition.z);
+            isTouchingWall = true;
             state = TowerDefEnemyState.AttackingGate;
             nextAttackTime = Time.time + 0.3f;
         }
@@ -86,6 +113,8 @@ public class TowerDefEnemy : MonoBehaviour
     private void AttackGate()
     {
         if (targetGate == null || targetGate.IsDestroyed) return;
+        if (!isTouchingWall) return;
+        if (TowerDefGameManager.Instance != null && TowerDefGameManager.Instance.IsGameOver) return;
 
         if (Time.time >= nextAttackTime)
         {
@@ -122,6 +151,8 @@ public class TowerDefEnemy : MonoBehaviour
     public void TakeDamage(float dmg)
     {
         if (IsDead) return;
+        // Yêu cầu: Quái phải chạm vào tường thành mới mất máu
+        if (!isTouchingWall) return;
 
         currentHp = Mathf.Max(0f, currentHp - dmg);
         UpdateHpBar();
@@ -156,6 +187,7 @@ public class TowerDefEnemy : MonoBehaviour
     private void Die()
     {
         state = TowerDefEnemyState.Dead;
+        isTouchingWall = false;
         if (TowerDefGameManager.Instance != null)
         {
             TowerDefGameManager.Instance.AddGold(goldReward);

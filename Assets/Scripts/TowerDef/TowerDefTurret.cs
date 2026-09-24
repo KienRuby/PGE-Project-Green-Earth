@@ -45,6 +45,11 @@ public class TowerDefTurret : MonoBehaviour
 
     private void Update()
     {
+        if (TowerDefGameManager.Instance != null && TowerDefGameManager.Instance.IsGameOver)
+        {
+            return;
+        }
+
         FindAndTrackTarget();
         TryFire();
     }
@@ -58,7 +63,7 @@ public class TowerDefTurret : MonoBehaviour
             return;
         }
 
-        // Chọn kẻ thù gần cổng nhất (hoặc gần tháp nhất trong tầm)
+        // Chỉ chọn kẻ thù đã chạm vào tường thành theo yêu cầu thiết kế
         float closestDist = float.MaxValue;
         TowerDefEnemy bestTarget = null;
         Vector3 myPos = transform.position;
@@ -66,7 +71,7 @@ public class TowerDefTurret : MonoBehaviour
         for (int i = 0; i < enemies.Count; i++)
         {
             var e = enemies[i];
-            if (e == null || e.IsDead) continue;
+            if (e == null || e.IsDead || !e.IsTouchingWall) continue;
 
             float dist = Vector3.Distance(myPos, e.transform.position);
             if (dist <= attackRange && dist < closestDist)
@@ -88,7 +93,7 @@ public class TowerDefTurret : MonoBehaviour
 
     private void TryFire()
     {
-        if (currentTarget == null || Time.time < nextFireTime) return;
+        if (currentTarget == null || !currentTarget.IsTouchingWall || currentTarget.IsDead || Time.time < nextFireTime) return;
 
         nextFireTime = Time.time + (1f / Mathf.Max(0.1f, fireRate));
         FireAtTarget(currentTarget);
@@ -96,7 +101,7 @@ public class TowerDefTurret : MonoBehaviour
 
     private void FireAtTarget(TowerDefEnemy target)
     {
-        if (target == null || target.IsDead) return;
+        if (target == null || target.IsDead || !target.IsTouchingWall) return;
 
         Vector3 spawnPos = gunTransform != null ? gunTransform.position : transform.position;
         TowerDefGameManager.Instance?.SpawnBullet(spawnPos, target, damage);
