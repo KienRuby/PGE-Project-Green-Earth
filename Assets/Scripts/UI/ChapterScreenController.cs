@@ -710,6 +710,18 @@ public class ChapterScreenController : MonoBehaviour
         if (!TowerDefProgress.IsLevelUnlocked(level)) return;
         TowerDefProgress.SelectedLevel = level;
         OnTowerDefLevelSelected?.Invoke(level);
+
+        if (Application.isPlaying)
+        {
+            if (Application.CanStreamedLevelBeLoaded("TowerDef"))
+            {
+                SceneManager.LoadScene("TowerDef");
+            }
+            else
+            {
+                Debug.LogWarning("[ChapterScreenController] Scene 'TowerDef' is not in Build Settings.");
+            }
+        }
     }
 
     private static UnityEngine.UI.Image CreateTowerDefImage(string name, Transform parent, Sprite sprite)
