@@ -296,8 +296,47 @@ public class M4MetaSystemsTests
         bool advanced = drone.AdvanceTier();
 
         Assert.That(advanced, Is.True);
-        Assert.That(drone.tier, Is.EqualTo(BuddyTier.Magic));
+        Assert.That(drone.tier, Is.EqualTo(BuddyTier.Rare));
         Assert.That(drone.count, Is.EqualTo(7));
+    }
+
+    [Test]
+    public void BuddyTierAdvancement_FollowsVisibleFrameColors_AndPreservesLegacyMagic()
+    {
+        BuddyItemData drone = new BuddyItemData
+        {
+            tier = BuddyTier.Common,
+            count = 100,
+            requiredCount = 3
+        };
+
+        BuddyTier[] expectedTiers =
+        {
+            BuddyTier.Rare,
+            BuddyTier.Unique,
+            BuddyTier.Epic,
+            BuddyTier.Holographic
+        };
+
+        foreach (BuddyTier expectedTier in expectedTiers)
+        {
+            int previousCount = drone.count;
+            int advanceCost = drone.requiredCount;
+            Assert.That(drone.AdvanceTier(), Is.True);
+            Assert.That(drone.tier, Is.EqualTo(expectedTier));
+            Assert.That(drone.count, Is.EqualTo(previousCount - advanceCost));
+        }
+
+        Assert.That(drone.CanAdvanceTier, Is.False);
+
+        BuddyItemData legacyMagic = new BuddyItemData
+        {
+            tier = BuddyTier.Magic,
+            count = 3,
+            requiredCount = 3
+        };
+        Assert.That(legacyMagic.AdvanceTier(), Is.True);
+        Assert.That(legacyMagic.tier, Is.EqualTo(BuddyTier.Rare));
     }
     #endregion
 

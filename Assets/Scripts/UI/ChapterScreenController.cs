@@ -672,7 +672,10 @@ public class ChapterScreenController : MonoBehaviour
         lockedRect.anchorMin = new Vector2(0.73f, 0.09f);
         lockedRect.anchorMax = new Vector2(0.97f, 0.28f);
         lockedRect.offsetMin = lockedRect.offsetMax = Vector2.zero;
-        lockedLabel.fontSize = 38f;
+        lockedLabel.fontSize = 46f;
+        lockedLabel.fontWeight = FontWeight.Black;
+        lockedLabel.outlineColor = Color.black;
+        lockedLabel.outlineWidth = 0.25f;
         lockedLabel.alignment = TextAlignmentOptions.Center;
         towerDefLevelLockedLabels[level - 1] = lockedLabel.gameObject;
     }
