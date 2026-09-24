@@ -63,6 +63,9 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     [Tooltip("Màu chuyển đổi khi nhận sát thương (Mặc định: Đỏ).")]
     [SerializeField] private Color damageFlashColor = Color.red;
 
+    [Tooltip("Độ phủ màu đỏ khi nhận sát thương. 0.5 giữ lại chi tiết của enemy bên dưới.")]
+    [SerializeField, Range(0f, 1f)] private float damageFlashIntensity = 0.5f;
+
     [Tooltip("Thời gian nhấp nháy màu đỏ khi nhận sát thương (giây). 0.15s cho mỗi lần nhận dame.")]
     [SerializeField] private float damageFlashDuration = 0.15f;
 
@@ -85,6 +88,12 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     {
         get => damageFlashColor;
         set => damageFlashColor = value;
+    }
+
+    public float DamageFlashIntensity
+    {
+        get => damageFlashIntensity;
+        set => damageFlashIntensity = Mathf.Clamp01(value);
     }
 
     public float DamageFlashDuration
@@ -950,15 +959,29 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
                         spriteRenderers[i].sharedMaterial = sharedHitFlashMaterial;
                     }
 
-                    spriteRenderers[i].GetPropertyBlock(flashPropBlock);
-                    flashPropBlock.SetFloat(FlashAmountPropId, 1f);
-                    flashPropBlock.SetColor(FlashColorPropId, damageFlashColor);
-                    spriteRenderers[i].SetPropertyBlock(flashPropBlock);
-
                     Color orig = (initialSpriteColors != null && i < initialSpriteColors.Length)
                         ? initialSpriteColors[i]
                         : Color.white;
-                    spriteRenderers[i].color = new Color(damageFlashColor.r, damageFlashColor.g, damageFlashColor.b, orig.a);
+
+                    bool usesHitFlashShader = spriteRenderers[i].sharedMaterial != null &&
+                        spriteRenderers[i].sharedMaterial.HasProperty(FlashAmountPropId);
+
+                    spriteRenderers[i].GetPropertyBlock(flashPropBlock);
+                    flashPropBlock.SetFloat(FlashAmountPropId, usesHitFlashShader ? damageFlashIntensity : 0f);
+                    flashPropBlock.SetColor(FlashColorPropId, damageFlashColor);
+                    spriteRenderers[i].SetPropertyBlock(flashPropBlock);
+
+                    if (usesHitFlashShader)
+                    {
+                        // Shader tự pha màu đỏ với texture gốc, nên giữ nguyên màu renderer.
+                        spriteRenderers[i].color = orig;
+                    }
+                    else
+                    {
+                        // Fallback vẫn giữ chi tiết sprite bằng cách chỉ pha màu 50%.
+                        Color flashTint = new Color(damageFlashColor.r, damageFlashColor.g, damageFlashColor.b, orig.a);
+                        spriteRenderers[i].color = Color.Lerp(orig, flashTint, damageFlashIntensity);
+                    }
                 }
             }
         }

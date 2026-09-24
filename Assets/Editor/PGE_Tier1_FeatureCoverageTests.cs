@@ -994,7 +994,7 @@ public class PGE_Tier1_FeatureCoverageTests
 
     #region Feature 11: Enemy Creep AI & Wave Spawner
     [Test]
-    public void F11_01_EnemyHealth_TakeDamage_FlashesRed()
+    public void F11_01_EnemyHealth_TakeDamage_BlendsRedAtHalfIntensity()
     {
         GameObject go = new GameObject("Enemy", typeof(EnemyHealth));
         GameObject spriteChild = new GameObject("Sprite", typeof(SpriteRenderer));
@@ -1008,7 +1008,11 @@ public class PGE_Tier1_FeatureCoverageTests
             health.CacheSpriteRenderers();
 
             health.TakeDamage(10);
-            Assert.That(sr.color, Is.EqualTo(Color.red));
+            Assert.That(sr.color, Is.EqualTo(Color.white), "Shader flash phải giữ màu renderer gốc để texture enemy vẫn nhìn rõ.");
+
+            MaterialPropertyBlock flashProperties = new MaterialPropertyBlock();
+            sr.GetPropertyBlock(flashProperties);
+            Assert.That(flashProperties.GetFloat("_FlashAmount"), Is.EqualTo(0.5f));
 
             health.RestoreSpriteColors();
             Assert.That(sr.color, Is.EqualTo(Color.white));

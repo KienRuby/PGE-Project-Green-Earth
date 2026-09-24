@@ -352,6 +352,7 @@ MonoBehaviour:
   bossDeathVfxPrefab: {fileID: 4574341457857538179, guid: 36f2236b5ed2ce641a7769a9014957ee, type: 3}
   enableDamageFlash: 1
   damageFlashColor: {r: 0.7294118, g: 0, b: 0.023529412, a: 1}
+  damageFlashIntensity: 0.5
   damageFlashDuration: 0.12
   hitFlashMaterial: {fileID: 2100000, guid: 2822f1187a894884da86fd7a411b301f, type: 2}
   isBoss: 0

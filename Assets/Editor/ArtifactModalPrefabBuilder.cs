@@ -116,19 +116,19 @@ public static class ArtifactModalPrefabBuilder
         dimImg.color = new Color32(0, 0, 0, 190); // Mờ tối 75%
         dimImg.raycastTarget = true;
 
-        // 4. Sunburst Rays Effect (Center behind the card at y = 180)
+        // 4. Sunburst Rays Effect (centered behind the card)
         GameObject sunburstObj = new GameObject("SunburstEffect", typeof(RectTransform), typeof(SunburstRayEffect));
         sunburstObj.transform.SetParent(root.transform, false);
         RectTransform sunburstRt = sunburstObj.GetComponent<RectTransform>();
         sunburstRt.anchorMin = new Vector2(0.5f, 0.5f);
         sunburstRt.anchorMax = new Vector2(0.5f, 0.5f);
         sunburstRt.pivot = new Vector2(0.5f, 0.5f);
-        sunburstRt.anchoredPosition = new Vector2(0f, 180f);
+        sunburstRt.anchoredPosition = new Vector2(0f, 295f);
         sunburstRt.sizeDelta = new Vector2(900f, 900f);
         SunburstRayEffect sunburst = sunburstObj.GetComponent<SunburstRayEffect>();
         sunburst.EnsureRayGraphic();
 
-        // 5. Title Text: "Artifact found"
+        // 5. Optional title (hidden to match the artifact reveal artwork)
         GameObject titleObj = new GameObject("TitleText", typeof(RectTransform), typeof(TextMeshProUGUI));
         titleObj.transform.SetParent(root.transform, false);
         RectTransform titleRt = titleObj.GetComponent<RectTransform>();
@@ -141,6 +141,7 @@ public static class ArtifactModalPrefabBuilder
         if (defaultFont != null) titleTxt.font = defaultFont;
         if (titleMaterial != null) titleTxt.fontSharedMaterial = titleMaterial;
         titleTxt.text = "Artifact found";
+        titleObj.SetActive(false);
         titleTxt.fontSize = 64f;
         titleTxt.fontStyle = FontStyles.Bold;
         titleTxt.alignment = TextAlignmentOptions.Center;
@@ -154,8 +155,8 @@ public static class ArtifactModalPrefabBuilder
         cardRt.anchorMin = new Vector2(0.5f, 0.5f);
         cardRt.anchorMax = new Vector2(0.5f, 0.5f);
         cardRt.pivot = new Vector2(0.5f, 0.5f);
-        cardRt.anchoredPosition = new Vector2(0f, 180f);
-        cardRt.sizeDelta = new Vector2(260f, 312f); // Tỷ lệ chuẩn của sprite sheet 700x842
+        cardRt.anchoredPosition = new Vector2(0f, 295f);
+        cardRt.sizeDelta = new Vector2(330f, 390f); // Tỷ lệ của sprite sheet 700x842
         Image cardImg = cardObj.GetComponent<Image>();
         cardImg.sprite = defaultCardSpr;
         cardImg.preserveAspect = true;
@@ -196,7 +197,7 @@ public static class ArtifactModalPrefabBuilder
         nameTxt.fontSize = 58f;
         nameTxt.fontStyle = FontStyles.Bold;
         nameTxt.alignment = TextAlignmentOptions.Center;
-        nameTxt.color = new Color32(255, 184, 0, 255); // Warm golden yellow #FFB800
+        nameTxt.color = new Color32(255, 190, 0, 255); // Gold sampled from the reference artwork (#FFBE00)
         nameTxt.enableWordWrapping = true;
         nameTxt.raycastTarget = false;
 
@@ -222,7 +223,7 @@ public static class ArtifactModalPrefabBuilder
         spacer.transform.SetParent(infoObj.transform, false);
         spacer.GetComponent<LayoutElement>().preferredHeight = 14f;
 
-        // 7c. Stat Buff Text (Xanh neon / mint đặc trưng của hệ thống)
+        // 7c. Stat Buff Text
         GameObject statObj = new GameObject("StatBuffText", typeof(RectTransform), typeof(TextMeshProUGUI));
         statObj.transform.SetParent(infoObj.transform, false);
         RectTransform statRt = statObj.GetComponent<RectTransform>();
@@ -234,7 +235,7 @@ public static class ArtifactModalPrefabBuilder
         statTxt.fontSize = 40f;
         statTxt.fontStyle = FontStyles.Bold;
         statTxt.alignment = TextAlignmentOptions.Center;
-        statTxt.color = new Color32(0, 255, 136, 255); // Xanh neon mint
+        statTxt.color = Color.white;
         statTxt.enableWordWrapping = true;
         statTxt.raycastTarget = false;
 
@@ -245,7 +246,7 @@ public static class ArtifactModalPrefabBuilder
         btnContainerRt.anchorMin = new Vector2(0.5f, 0.2f);
         btnContainerRt.anchorMax = new Vector2(0.5f, 0.2f);
         btnContainerRt.pivot = new Vector2(0.5f, 0.5f);
-        btnContainerRt.anchoredPosition = Vector2.zero;
+        btnContainerRt.anchoredPosition = new Vector2(0f, -80f);
         btnContainerRt.sizeDelta = new Vector2(650f, 130f);
 
         // Nút Throw Away (dùng sprite Btn_ThrowAway + Text Vector)
@@ -255,8 +256,8 @@ public static class ArtifactModalPrefabBuilder
         throwRt.anchorMin = new Vector2(0.5f, 0.5f);
         throwRt.anchorMax = new Vector2(0.5f, 0.5f);
         throwRt.pivot = new Vector2(0.5f, 0.5f);
-        throwRt.anchoredPosition = new Vector2(-160f, 0f);
-        throwRt.sizeDelta = new Vector2(250f, 114f); // Tỷ lệ chuẩn nút ~654x298
+        throwRt.anchoredPosition = new Vector2(-190f, 0f);
+        throwRt.sizeDelta = new Vector2(315f, 145f); // Tỷ lệ của sprite ~654x298
         Image throwImg = throwBtnObj.GetComponent<Image>();
         throwImg.sprite = sprThrow;
         throwImg.preserveAspect = true;
@@ -289,8 +290,8 @@ public static class ArtifactModalPrefabBuilder
         getRt.anchorMin = new Vector2(0.5f, 0.5f);
         getRt.anchorMax = new Vector2(0.5f, 0.5f);
         getRt.pivot = new Vector2(0.5f, 0.5f);
-        getRt.anchoredPosition = new Vector2(160f, 0f);
-        getRt.sizeDelta = new Vector2(250f, 114f);
+        getRt.anchoredPosition = new Vector2(190f, 0f);
+        getRt.sizeDelta = new Vector2(315f, 145f);
         Image getImg = getBtnObj.GetComponent<Image>();
         getImg.sprite = sprGet;
         getImg.preserveAspect = true;

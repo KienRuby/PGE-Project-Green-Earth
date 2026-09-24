@@ -396,7 +396,7 @@ public class BuddyEquipSystemTests
             Assert.IsTrue(equippedRow.transform.childCount >= 1);
             Transform slot0 = equippedRow.transform.GetChild(0);
             Assert.AreEqual("EquippedSlot_0_drone-spider", slot0.name, "Slot 0 should be cloned from drone-spider template");
-            Assert.AreEqual(new Vector2(250f, 320f), slot0.GetComponent<RectTransform>().sizeDelta, "Slot 0 should have 250x320 dimensions");
+            Assert.AreEqual(new Vector2(150f, 200f), slot0.GetComponent<RectTransform>().sizeDelta, "Slot 0 should match the compact Buddy card dimensions");
 
             // Verify child DroneIcon position was preserved from template
             Transform childIcon = slot0.Find("DroneIcon");

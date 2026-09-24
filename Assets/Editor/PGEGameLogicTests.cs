@@ -226,11 +226,11 @@ public class PGEGameLogicTests
 
         // Nhận damage -> Phải nháy đỏ ngay lập tức
         health.TakeDamage(10);
-        Assert.That(sr.color, Is.EqualTo(Color.red), "Sprite quái vật phải chuyển sang màu đỏ ngay khi nhận sát thương.");
+        Assert.That(sr.color, Is.EqualTo(Color.white), "Renderer giữ màu gốc để enemy vẫn nhìn rõ dưới lớp flash đỏ.");
 
         MaterialPropertyBlock mpb = new MaterialPropertyBlock();
         sr.GetPropertyBlock(mpb);
-        Assert.That(mpb.GetFloat("_FlashAmount"), Is.EqualTo(1f), "Shader FlashAmount phải bằng 1 khi nhận damage.");
+        Assert.That(mpb.GetFloat("_FlashAmount"), Is.EqualTo(0.5f), "Shader FlashAmount phải phủ đỏ 50% khi nhận damage.");
 
         // Phục hồi lại màu ban đầu
         health.RestoreSpriteColors();
@@ -243,9 +243,9 @@ public class PGEGameLogicTests
         health.TakeDamage(health.MaxHealth);
         Assert.That(health.CurrentHealth, Is.EqualTo(0));
         Assert.That(health.IsDead, Is.True);
-        Assert.That(sr.color, Is.EqualTo(Color.red), "Phát bắn kết liễu (máu về 0) VẪN PHẢI nháy đỏ.");
+        Assert.That(sr.color, Is.EqualTo(Color.white), "Phát bắn kết liễu vẫn giữ texture enemy dưới lớp flash đỏ.");
         sr.GetPropertyBlock(mpb);
-        Assert.That(mpb.GetFloat("_FlashAmount"), Is.EqualTo(1f), "Shader FlashAmount vẫn phải bằng 1 khi nhận đòn kết liễu.");
+        Assert.That(mpb.GetFloat("_FlashAmount"), Is.EqualTo(0.5f), "Shader FlashAmount vẫn phải phủ đỏ 50% khi nhận đòn kết liễu.");
 
         Object.DestroyImmediate(go);
     }

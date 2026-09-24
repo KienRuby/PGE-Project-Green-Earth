@@ -22,8 +22,8 @@ public class ChapterSystemTests
         ChapterData c1 = db.GetChapter(0);
         Assert.That(c1, Is.Not.Null);
         Assert.That(c1.chapterNumber, Is.EqualTo(1));
-        Assert.That(c1.chapterTitle, Is.EqualTo("Grassland Outskirts"));
-        Assert.That(c1.isLocked, Is.False, "Chapter 1 (Grassland Outskirts) phải luôn luôn mở khóa mặc định.");
+        Assert.That(c1.chapterTitle, Is.EqualTo("Yellow Desert 1"));
+        Assert.That(c1.isLocked, Is.False, "Chapter 1 (Yellow Desert 1) phải luôn luôn mở khóa mặc định.");
 
         ChapterData c4 = db.GetChapter(3);
         Assert.That(c4, Is.Not.Null);
@@ -238,7 +238,7 @@ public class ChapterSystemTests
 
             ChapterData lockedChapter = ScriptableObject.CreateInstance<ChapterData>();
             lockedChapter.chapterNumber = 1;
-            lockedChapter.chapterTitle = "Grassland Outskirts";
+            lockedChapter.chapterTitle = "Yellow Desert 1";
             lockedChapter.energyCost = 5;
             lockedChapter.isLocked = true;
 
