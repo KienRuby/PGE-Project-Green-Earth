@@ -178,7 +178,9 @@ public class TowerDefUIController : MonoBehaviour
         float duration = 0.8f;
         float elapsed = 0f;
         Vector3 startPos = obj.transform.position;
-        Vector3 targetPos = startPos + new Vector3(0f, 60f, 0f);
+        Canvas canvas = GetComponentInParent<Canvas>();
+        float unitsPerUiPixel = canvas != null ? canvas.transform.lossyScale.y : 1f;
+        Vector3 targetPos = startPos + new Vector3(0f, 60f * unitsPerUiPixel, 0f);
         Color startColor = tmp.color;
 
         while (elapsed < duration)

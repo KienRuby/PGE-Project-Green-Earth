@@ -112,6 +112,91 @@ public class TowerDefTests
     }
 
     [Test]
+    public void Turret_CanMoveToEmptyCellWithoutLosingUpgradeOrGold()
+    {
+        TowerDefGridCell CreateCell(string name)
+        {
+            GameObject cellObject = new GameObject(name, typeof(RectTransform), typeof(Image),
+                typeof(Button), typeof(TowerDefGridCell));
+            cellObject.transform.SetParent(rootObj.transform);
+            GameObject structure = new GameObject("StructureRoot", typeof(RectTransform));
+            structure.transform.SetParent(cellObject.transform);
+            GameObject image = new GameObject("StructureImage", typeof(RectTransform), typeof(Image));
+            image.transform.SetParent(structure.transform);
+            GameObject gun = new GameObject("Gun", typeof(RectTransform), typeof(Image));
+            gun.transform.SetParent(structure.transform);
+            TowerDefGridCell cell = cellObject.GetComponent<TowerDefGridCell>();
+            cell.SetupCell(0, 0, cellObject.GetComponent<Image>(), cellObject.GetComponent<Button>(),
+                structure, image.GetComponent<Image>(), gun.transform, null);
+            return cell;
+        }
+
+        TowerDefGridCell source = CreateCell("Source");
+        TowerDefGridCell destination = CreateCell("Destination");
+        GameObject gunTurretPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(
+            "Assets/Prefabs/Chipset/GunTurret.prefab");
+        Assert.IsNotNull(gunTurretPrefab);
+        source.ConfigureTurretPrefab(gunTurretPrefab);
+        source.PlaceStructure(TowerDefStructureType.Turret, null);
+        GameObject prefabInstance = source.TurretPrefabInstance;
+        Assert.IsNotNull(prefabInstance);
+        Assert.IsTrue(UnityEditor.PrefabUtility.IsPartOfPrefabInstance(prefabInstance));
+        Assert.IsTrue(prefabInstance.transform.Find("BaseSprite").GetComponent<SpriteRenderer>().enabled);
+        Assert.IsTrue(prefabInstance.transform.Find("AimPivot/GunSprite").GetComponent<SpriteRenderer>().enabled);
+        Assert.IsFalse(source.transform.Find("StructureRoot/StructureImage").gameObject.activeSelf);
+        Assert.IsFalse(source.transform.Find("StructureRoot/Gun").gameObject.activeSelf);
+        int upgradeGold = 100;
+        Assert.IsTrue(source.Turret.TryUpgrade(ref upgradeGold));
+        source.UpgradeCurrentStructure();
+        int goldBeforeMove = gameManager.Gold;
+
+        Assert.IsTrue(gameManager.TryMoveTurret(source, destination));
+        Assert.IsFalse(source.IsOccupied);
+        Assert.IsTrue(destination.IsOccupied);
+        Assert.AreSame(prefabInstance, destination.TurretPrefabInstance);
+        Assert.IsNull(source.TurretPrefabInstance);
+        Assert.AreEqual(2, destination.StructureLevel);
+        Assert.AreEqual(2, destination.Turret.TurretLevel);
+        Assert.AreEqual(40f, destination.Turret.Damage);
+        Assert.AreEqual(1.45f, destination.Turret.FireRate, 0.001f);
+        Assert.AreEqual(goldBeforeMove, gameManager.Gold);
+
+        source.PlaceStructure(TowerDefStructureType.CoreBed, null);
+        Assert.IsFalse(gameManager.TryMoveTurret(destination, source));
+        Assert.IsTrue(destination.IsOccupied);
+    }
+
+    [Test]
+    public void TurretShot_UsesTheProjectileAssignedOnGunTurretPrefab()
+    {
+        GameObject gunPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(
+            "Assets/Prefabs/Chipset/GunTurret.prefab");
+        Assert.IsNotNull(gunPrefab);
+        GameObject projectilePrefab = gunPrefab.GetComponent<GunTurret>().ProjectilePrefab;
+        Assert.IsNotNull(projectilePrefab);
+
+        GameObject enemyObject = new GameObject("Target", typeof(RectTransform), typeof(TowerDefEnemy));
+        enemyObject.transform.SetParent(rootObj.transform);
+        GameObject shot = null;
+        try
+        {
+            shot = gameManager.SpawnBullet(Vector3.zero, enemyObject.GetComponent<TowerDefEnemy>(),
+                25f, projectilePrefab);
+            Assert.IsNotNull(shot);
+            Assert.AreEqual(projectilePrefab.GetComponent<SpriteRenderer>().sprite,
+                shot.GetComponent<SpriteRenderer>().sprite);
+            Assert.IsFalse(shot.GetComponent<Projectile>().enabled);
+            Assert.IsFalse(shot.GetComponent<Rigidbody2D>().simulated);
+            Assert.IsNotNull(shot.GetComponent<TowerDefProjectile>());
+            Assert.IsNull(shot.GetComponent<Image>());
+        }
+        finally
+        {
+            if (shot != null) Object.DestroyImmediate(shot);
+        }
+    }
+
+    [Test]
     public void Economy_StartsAtStandardDesignValues()
     {
         // Khởi đầu theo thiết kế: 50 Gold, 0 Energy

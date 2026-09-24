@@ -27,6 +27,8 @@ public class GunTurret : MonoBehaviour, IPoolable, IDamageable
     [Tooltip("Prefab viên đạn bắn ra từ nòng súng.")]
     [SerializeField] private GameObject projectilePrefab;
 
+    public GameObject ProjectilePrefab => projectilePrefab;
+
     [Tooltip("Prefab hiệu ứng tóe lửa nòng súng (Muzzle Flash).")]
     [SerializeField] private GameObject muzzleFlashPrefab;
 

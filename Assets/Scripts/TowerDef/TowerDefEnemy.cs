@@ -73,7 +73,7 @@ public class TowerDefEnemy : MonoBehaviour
 
     private void MoveTowardsGate()
     {
-        transform.position += Vector3.down * (moveSpeed * Time.deltaTime);
+        transform.localPosition += Vector3.down * (moveSpeed * Time.deltaTime);
 
         // Kiểm tra xem đã tiếp cận ngưỡng cổng chưa
         if (transform.localPosition.y <= gateYThreshold)

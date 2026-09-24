@@ -23,15 +23,20 @@ public class TowerDefTurret : MonoBehaviour
     [SerializeField] private Image baseImage;
     [SerializeField] private Image gunImage;
     [SerializeField] private GameObject upgradeIcon;
+    [SerializeField] private float gunVisualAngleOffset = -90f;
+    [SerializeField] private GameObject projectilePrefab;
 
     private float nextFireTime;
     private TowerDefEnemy currentTarget;
+    private Canvas owningCanvas;
+    private Camera viewCamera;
 
     public int TurretLevel => turretLevel;
     public float Damage => damage;
     public float FireRate => fireRate;
     public float AttackRange => attackRange;
     public int UpgradeCost => baseUpgradeCost * turretLevel;
+    public GameObject ProjectilePrefab => projectilePrefab;
 
     public event Action<int> OnTurretUpgraded;
 
@@ -41,6 +46,32 @@ public class TowerDefTurret : MonoBehaviour
         baseImage = baseImg;
         gunImage = gunImg;
         upgradeIcon = upIcon;
+        owningCanvas = GetComponentInParent<Canvas>();
+        viewCamera = owningCanvas != null ? owningCanvas.worldCamera : Camera.main;
+    }
+
+    public void SetProjectilePrefab(GameObject prefab)
+    {
+        projectilePrefab = prefab;
+    }
+
+    public void SetGunVisualAngleOffset(float angle)
+    {
+        gunVisualAngleOffset = angle;
+    }
+
+    public void CopyProgressFrom(TowerDefTurret source)
+    {
+        if (source == null) return;
+        turretLevel = source.turretLevel;
+        damage = source.damage;
+        fireRate = source.fireRate;
+        attackRange = source.attackRange;
+        baseUpgradeCost = source.baseUpgradeCost;
+        projectilePrefab = source.projectilePrefab;
+        gunVisualAngleOffset = source.gunVisualAngleOffset;
+        nextFireTime = source.nextFireTime;
+        currentTarget = null;
     }
 
     private void Update()
@@ -60,6 +91,9 @@ public class TowerDefTurret : MonoBehaviour
 
         // Chọn kẻ thù gần cổng nhất (hoặc gần tháp nhất trong tầm)
         float closestDist = float.MaxValue;
+        if (owningCanvas == null) owningCanvas = GetComponentInParent<Canvas>();
+        if (viewCamera == null) viewCamera = owningCanvas != null ? owningCanvas.worldCamera : Camera.main;
+        float worldRange = attackRange * (owningCanvas != null ? owningCanvas.transform.lossyScale.x : 1f);
         TowerDefEnemy bestTarget = null;
         Vector3 myPos = transform.position;
 
@@ -67,9 +101,16 @@ public class TowerDefTurret : MonoBehaviour
         {
             var e = enemies[i];
             if (e == null || e.IsDead) continue;
+            if (viewCamera != null)
+            {
+                Vector3 viewport = viewCamera.WorldToViewportPoint(e.transform.position);
+                if (viewport.z <= 0f || viewport.x < 0f || viewport.x > 1f ||
+                    viewport.y < 0f || viewport.y > 1f)
+                    continue;
+            }
 
             float dist = Vector3.Distance(myPos, e.transform.position);
-            if (dist <= attackRange && dist < closestDist)
+            if (dist <= worldRange && dist < closestDist)
             {
                 closestDist = dist;
                 bestTarget = e;
@@ -81,7 +122,7 @@ public class TowerDefTurret : MonoBehaviour
         if (currentTarget != null && gunTransform != null)
         {
             Vector3 dir = currentTarget.transform.position - gunTransform.position;
-            float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - 90f;
+            float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg + gunVisualAngleOffset;
             gunTransform.rotation = Quaternion.Euler(0f, 0f, angle);
         }
     }
@@ -98,8 +139,10 @@ public class TowerDefTurret : MonoBehaviour
     {
         if (target == null || target.IsDead) return;
 
-        Vector3 spawnPos = gunTransform != null ? gunTransform.position : transform.position;
-        TowerDefGameManager.Instance?.SpawnBullet(spawnPos, target, damage);
+        Transform muzzle = gunTransform != null ? gunTransform.Find("FirePoint") : null;
+        Vector3 spawnPos = muzzle != null ? muzzle.position :
+            gunTransform != null ? gunTransform.position : transform.position;
+        TowerDefGameManager.Instance?.SpawnBullet(spawnPos, target, damage, projectilePrefab);
     }
 
     public bool TryUpgrade(ref int gold)

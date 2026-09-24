@@ -40,6 +40,7 @@ public class TowerDefGameManager : MonoBehaviour
     [SerializeField] private Sprite plusTileSprite;
     [SerializeField] private Sprite turretBaseSprite;
     [SerializeField] private Sprite turretGunSprite;
+    [SerializeField] private GameObject gunTurretPrefab;
     [SerializeField] private Sprite pawnTowerSprite;
     [SerializeField] private Sprite corePodSprite;
     [SerializeField] private Sprite upgradeCircleSprite;
@@ -49,6 +50,7 @@ public class TowerDefGameManager : MonoBehaviour
     [SerializeField] private Sprite energyIconSprite;
     [SerializeField] private Sprite creepSprite;
     [SerializeField] private Sprite bossSprite;
+    private bool useGunTurretPrefabVisuals;
 
     private readonly List<TowerDefEnemy> activeEnemies = new List<TowerDefEnemy>();
     private readonly TowerDefGridCell[,] gridCells = new TowerDefGridCell[4, 7]; // 4 hàng x 7 cột
@@ -157,10 +159,23 @@ public class TowerDefGameManager : MonoBehaviour
                          type == TowerDefStructureType.CoreBed ? corePodSprite : pawnTowerSprite;
         Sprite gunSpr = type == TowerDefStructureType.Turret ? turretGunSprite : null;
 
+        if (type == TowerDefStructureType.Turret)
+            cell.ConfigureTurretPrefab(gunTurretPrefab);
         cell.PlaceStructure(type, baseSpr, gunSpr, 1);
+        if (type == TowerDefStructureType.Turret && useGunTurretPrefabVisuals)
+            cell.ApplyTurretVisual(turretBaseSprite, turretGunSprite, 0f);
         ShowFloatingText(cell.transform.position, "BUILT!", Color.green);
         UpdateUI();
         return true;
+    }
+
+    public bool TryMoveTurret(TowerDefGridCell source, TowerDefGridCell destination)
+    {
+        if (source == null || destination == null || source == destination ||
+            source.CurrentType != TowerDefStructureType.Turret || destination.IsOccupied)
+            return false;
+
+        return source.TryMoveTurretTo(destination);
     }
 
     public bool TryUpgradeStructure(TowerDefGridCell cell)
@@ -257,21 +272,39 @@ public class TowerDefGameManager : MonoBehaviour
     #endregion
 
     #region Combat & Spawning
-    public void SpawnBullet(Vector3 startPos, TowerDefEnemy target, float dmg)
+    public GameObject SpawnBullet(Vector3 startPos, TowerDefEnemy target, float dmg, GameObject selectedProjectilePrefab)
     {
-        GameObject bulletObj = new GameObject("Bullet", typeof(RectTransform), typeof(Image), typeof(TowerDefProjectile));
-        bulletObj.transform.SetParent(projectileParent != null ? projectileParent : transform, false);
-        bulletObj.transform.position = startPos;
+        if (target == null) return null;
+        if (selectedProjectilePrefab == null && gunTurretPrefab != null)
+            selectedProjectilePrefab = gunTurretPrefab.GetComponent<GunTurret>()?.ProjectilePrefab;
+        if (selectedProjectilePrefab == null)
+        {
+            Debug.LogError("[TowerDef] GunTurret has no Projectile prefab assigned.");
+            return null;
+        }
 
-        RectTransform rt = bulletObj.GetComponent<RectTransform>();
-        rt.sizeDelta = new Vector2(16f, 32f);
+        GameObject bulletObj = Instantiate(selectedProjectilePrefab,
+            startPos + Vector3.back * 0.01f, Quaternion.identity);
+        bulletObj.transform.SetParent(projectileParent != null ? projectileParent : transform, true);
 
-        Image img = bulletObj.GetComponent<Image>();
-        img.color = new Color(0.2f, 0.9f, 1f, 1f);
-        img.raycastTarget = false;
+        // The prefab's Projectile targets EnemyHealth; TowerDef uses TowerDefEnemy.
+        // Keep its SpriteRenderer and Animator, and let one TowerDefProjectile deal the hit.
+        Projectile originalBehaviour = bulletObj.GetComponent<Projectile>();
+        if (originalBehaviour != null) originalBehaviour.enabled = false;
+        Rigidbody2D body = bulletObj.GetComponent<Rigidbody2D>();
+        if (body != null) body.simulated = false;
+        foreach (Collider2D collider in bulletObj.GetComponents<Collider2D>())
+            collider.enabled = false;
+        foreach (SpriteRenderer renderer in bulletObj.GetComponentsInChildren<SpriteRenderer>(true))
+        {
+            renderer.sortingLayerID = 0;
+            renderer.sortingOrder = 20;
+        }
 
-        TowerDefProjectile proj = bulletObj.GetComponent<TowerDefProjectile>();
-        proj.Setup(target, dmg, 1400f);
+        TowerDefProjectile projectile = bulletObj.GetComponent<TowerDefProjectile>();
+        if (projectile == null) projectile = bulletObj.AddComponent<TowerDefProjectile>();
+        projectile.Setup(target, dmg, 1400f);
+        return bulletObj;
     }
 
     private IEnumerator StartGameLoopRoutine()
@@ -285,7 +318,8 @@ public class TowerDefGameManager : MonoBehaviour
 
             currentWave = w;
             waveInProgress = true;
-            ShowFloatingText(new Vector3(0f, 400f, 0f), $"WAVE {w} INCOMING!", Color.red);
+            ShowFloatingText(uiController != null ? uiController.transform.TransformPoint(new Vector3(0f, 400f, 0f)) : Vector3.zero,
+                $"WAVE {w} INCOMING!", Color.red);
 
             yield return StartCoroutine(SpawnWaveRoutine(w));
 
@@ -301,7 +335,8 @@ public class TowerDefGameManager : MonoBehaviour
 
             if (w < totalWaves)
             {
-                ShowFloatingText(new Vector3(0f, 400f, 0f), "WAVE CLEARED!", Color.green);
+                ShowFloatingText(uiController != null ? uiController.transform.TransformPoint(new Vector3(0f, 400f, 0f)) : Vector3.zero,
+                    "WAVE CLEARED!", Color.green);
                 yield return new WaitForSeconds(4.0f);
             }
         }
@@ -429,11 +464,17 @@ public class TowerDefGameManager : MonoBehaviour
         {
             GameObject canvasObj = new GameObject("TowerDefCanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
             canvas = canvasObj.GetComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             CanvasScaler cs = canvasObj.GetComponent<CanvasScaler>();
             cs.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             cs.referenceResolution = new Vector2(1080f, 1920f);
             cs.matchWidthOrHeight = 0f; // Khớp chuẩn bề ngang màn hình
+        }
+        if (cam != null)
+        {
+            // Screen Space Camera lets the prefab SpriteRenderers share the board's view.
+            canvas.renderMode = RenderMode.ScreenSpaceCamera;
+            canvas.worldCamera = cam;
+            canvas.planeDistance = 8f;
         }
 
         // 1. Background Grid (Nền tối 7 cột)
@@ -614,6 +655,17 @@ public class TowerDefGameManager : MonoBehaviour
             if (gridCells[1, 3] != null)
             {
                 gridCells[1, 3].PlaceStructure(TowerDefStructureType.CoreBed, corePodSprite, null, 1);
+            }
+        }
+
+        // Apply the prefab appearance to already-authored cells as well as generated cells.
+        if (gunTurretPrefab != null)
+        {
+            TowerDefGridCell[] existingCells = gridTr.GetComponentsInChildren<TowerDefGridCell>(true);
+            for (int i = 0; i < existingCells.Length; i++)
+            {
+                existingCells[i].ConfigureTurretPrefab(gunTurretPrefab);
+                existingCells[i].ApplyTurretVisual(turretBaseSprite, turretGunSprite, 0f);
             }
         }
 
@@ -820,6 +872,24 @@ public class TowerDefGameManager : MonoBehaviour
 
     private void LoadAssetReferences()
     {
+        useGunTurretPrefabVisuals = false;
+#if UNITY_EDITOR
+        if (gunTurretPrefab == null)
+            gunTurretPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Chipset/GunTurret.prefab");
+#endif
+        if (gunTurretPrefab != null)
+        {
+            Transform basePart = gunTurretPrefab.transform.Find("BaseSprite");
+            Transform gunPart = gunTurretPrefab.transform.Find("AimPivot/GunSprite");
+            SpriteRenderer baseRenderer = basePart != null ? basePart.GetComponent<SpriteRenderer>() : null;
+            SpriteRenderer gunRenderer = gunPart != null ? gunPart.GetComponent<SpriteRenderer>() : null;
+            if (baseRenderer != null && baseRenderer.sprite != null && gunRenderer != null && gunRenderer.sprite != null)
+            {
+                turretBaseSprite = baseRenderer.sprite;
+                turretGunSprite = gunRenderer.sprite;
+                useGunTurretPrefabVisuals = true;
+            }
+        }
         if (darkTileSprite == null) darkTileSprite = Resources.Load<Sprite>("TowerDef/Tile_Floor_Dark");
         if (wallStripSprite == null) wallStripSprite = Resources.Load<Sprite>("TowerDef/Wall_Brick_Strip");
         if (gateSprite == null) gateSprite = Resources.Load<Sprite>("TowerDef/Gate_Metal");
