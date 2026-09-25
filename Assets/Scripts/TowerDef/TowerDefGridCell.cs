@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -10,7 +11,7 @@ using UnityEngine.UI;
 /// - Có huy hiệu nâng cấp Icon_Upgrade_Circle khi công trình đủ điều kiện hoặc sẵn sàng.
 /// - Nhận sự kiện chạm (Click/Tap) để mở popup xây mới hoặc nâng cấp.
 /// </summary>
-public class TowerDefGridCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class TowerDefGridCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler
 {
     [Header("Grid Position")]
     [SerializeField] private int row;
@@ -97,6 +98,13 @@ public class TowerDefGridCell : MonoBehaviour, IBeginDragHandler, IDragHandler, 
 
         if (type == TowerDefStructureType.Turret)
         {
+            if (generatorComp != null)
+            {
+                if (Application.isPlaying) Destroy(generatorComp);
+                else DestroyImmediate(generatorComp);
+                generatorComp = null;
+            }
+
             if (turretPrefab != null)
             {
                 EnsureTurretPrefabInstance();
@@ -119,6 +127,19 @@ public class TowerDefGridCell : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         }
         else if (type == TowerDefStructureType.CoreBed || type == TowerDefStructureType.EnergyGenerator)
         {
+            if (turretComp != null)
+            {
+                if (Application.isPlaying) Destroy(turretComp);
+                else DestroyImmediate(turretComp);
+                turretComp = null;
+            }
+            if (turretInstance != null)
+            {
+                if (Application.isPlaying) Destroy(turretInstance);
+                else DestroyImmediate(turretInstance);
+                turretInstance = null;
+            }
+
             if (gunTransform != null) gunTransform.gameObject.SetActive(false);
             if (generatorComp == null) generatorComp = gameObject.AddComponent<TowerDefGenerator>();
             generatorComp.Setup(type, initialLevel, structureImage, upgradeIcon, type == TowerDefStructureType.CoreBed ? 1.0f : 2.0f);
@@ -171,6 +192,21 @@ public class TowerDefGridCell : MonoBehaviour, IBeginDragHandler, IDragHandler, 
             if (existing != null) turretInstance = existing.gameObject;
         }
 
+        // Đảm bảo trong structureRoot chỉ có duy nhất tối đa 1 instance GunTurret
+        GunTurret[] allExisting = structureRoot.GetComponentsInChildren<GunTurret>(true);
+        if (allExisting != null && allExisting.Length > 0)
+        {
+            if (turretInstance == null) turretInstance = allExisting[0].gameObject;
+            for (int i = 0; i < allExisting.Length; i++)
+            {
+                if (allExisting[i] != null && allExisting[i].gameObject != turretInstance)
+                {
+                    if (Application.isPlaying) Destroy(allExisting[i].gameObject);
+                    else DestroyImmediate(allExisting[i].gameObject);
+                }
+            }
+        }
+
         if (turretInstance == null)
         {
             bool wasActive = structureRoot.activeSelf;
@@ -185,7 +221,7 @@ public class TowerDefGridCell : MonoBehaviour, IBeginDragHandler, IDragHandler, 
             structureRoot.SetActive(wasActive);
         }
 
-        // Place the SpriteRenderers just in front of the camera-space UI plane.
+        // Căn chuẩn tâm ô phòng thủ (0, 0)
         turretInstance.transform.localPosition = new Vector3(0f, 0f, -0.1f);
         turretInstance.transform.localRotation = Quaternion.identity;
         RectTransform rootRect = structureRoot.transform as RectTransform;
@@ -235,6 +271,7 @@ public class TowerDefGridCell : MonoBehaviour, IBeginDragHandler, IDragHandler, 
 
     public bool TryMoveTurretTo(TowerDefGridCell destination)
     {
+        // 1 ô tối đa chỉ có 1 công trình; không được di chuyển đè lên ô đã có
         if (destination == null || destination == this || destination.IsOccupied ||
             currentType != TowerDefStructureType.Turret || structureRoot == null ||
             destination.structureRoot == null)
@@ -243,16 +280,39 @@ public class TowerDefGridCell : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         if (turretComp == null) turretComp = GetComponent<TowerDefTurret>();
         if (turretComp == null) return false;
 
+        // Đảm bảo tìm thấy turretInstance ở ô nguồn nếu có
+        if (turretInstance == null)
+        {
+            GunTurret existing = structureRoot.GetComponentInChildren<GunTurret>(true);
+            if (existing != null) turretInstance = existing.gameObject;
+        }
+
         bool badgeActive = dragPreview != null ? dragBadgeWasActive :
             upgradeIcon != null && upgradeIcon.activeSelf;
         Image sourceGunImage = gunTransform != null ? gunTransform.GetComponent<Image>() : null;
         Sprite gunSprite = sourceGunImage != null ? sourceGunImage.sprite : null;
-        if (turretInstance != null && destination.structureRoot != null)
+
+        // Dọn sạch destination.structureRoot trước khi nhận tháp mới để đảm bảo ô đích chỉ có 1 tháp
+        for (int i = destination.structureRoot.transform.childCount - 1; i >= 0; i--)
+        {
+            Transform child = destination.structureRoot.transform.GetChild(i);
+            if (child.gameObject != destination.structureImage?.gameObject &&
+                child.gameObject != destination.gunTransform?.gameObject)
+            {
+                if (Application.isPlaying) Destroy(child.gameObject);
+                else DestroyImmediate(child.gameObject);
+            }
+        }
+
+        if (turretInstance != null)
         {
             destination.turretInstance = turretInstance;
             turretInstance.transform.SetParent(destination.structureRoot.transform, false);
+            turretInstance.transform.localPosition = new Vector3(0f, 0f, -0.1f);
+            turretInstance.transform.localRotation = Quaternion.identity;
             turretInstance = null;
         }
+
         destination.ConfigureTurretPrefab(turretPrefab);
         destination.PlaceStructure(TowerDefStructureType.Turret,
             structureImage != null ? structureImage.sprite : null, gunSprite, structureLevel);
@@ -267,14 +327,31 @@ public class TowerDefGridCell : MonoBehaviour, IBeginDragHandler, IDragHandler, 
             destGunRect.localRotation = sourceGunRect.localRotation;
         }
 
-        turretComp.enabled = false;
-        if (Application.isPlaying) Destroy(turretComp);
-        else DestroyImmediate(turretComp);
-        turretComp = null;
+        // Dọn sạch hoàn toàn ô nguồn (source) để vị trí cũ không còn tháp, không còn rác visual
+        for (int i = structureRoot.transform.childCount - 1; i >= 0; i--)
+        {
+            Transform child = structureRoot.transform.GetChild(i);
+            if (child.gameObject != structureImage?.gameObject &&
+                child.gameObject != gunTransform?.gameObject)
+            {
+                if (Application.isPlaying) Destroy(child.gameObject);
+                else DestroyImmediate(child.gameObject);
+            }
+        }
+
+        turretInstance = null;
+        if (turretComp != null)
+        {
+            turretComp.enabled = false;
+            if (Application.isPlaying) Destroy(turretComp);
+            else DestroyImmediate(turretComp);
+            turretComp = null;
+        }
         currentType = TowerDefStructureType.None;
         structureLevel = 1;
         structureRoot.SetActive(false);
         SetUpgradeBadge(false);
+        HideLegacyTurretImages();
         return true;
     }
 
@@ -289,13 +366,30 @@ public class TowerDefGridCell : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         if (turretComp == null) turretComp = GetComponent<TowerDefTurret>();
         if (turretComp == null) return;
 
+        // Dọn preview cũ nếu có
+        if (dragPreview != null)
+        {
+            if (Application.isPlaying) Destroy(dragPreview);
+            else DestroyImmediate(dragPreview);
+            dragPreview = null;
+        }
+
         dragPreview = Instantiate(structureRoot, canvas.transform, false);
         dragPreview.name = "Turret Drag Preview";
         dragPreview.SetActive(true);
         dragPreview.transform.SetAsLastSibling();
+
         CanvasGroup group = dragPreview.AddComponent<CanvasGroup>();
         group.blocksRaycasts = false;
         group.interactable = false;
+
+        foreach (Collider2D col in dragPreview.GetComponentsInChildren<Collider2D>(true))
+            col.enabled = false;
+        foreach (Graphic g in dragPreview.GetComponentsInChildren<Graphic>(true))
+            g.raycastTarget = false;
+        foreach (GunTurret gt in dragPreview.GetComponentsInChildren<GunTurret>(true))
+            gt.enabled = false;
+
         dragBadgeWasActive = upgradeIcon != null && upgradeIcon.activeSelf;
         if (upgradeIcon != null) upgradeIcon.SetActive(false);
         structureRoot.SetActive(false);
@@ -325,27 +419,94 @@ public class TowerDefGridCell : MonoBehaviour, IBeginDragHandler, IDragHandler, 
     {
         if (dragPreview == null) return;
 
-        GameObject hovered = eventData.pointerCurrentRaycast.gameObject;
-        TowerDefGridCell destination = hovered != null ? hovered.GetComponentInParent<TowerDefGridCell>() : null;
-        bool moved = TowerDefGameManager.Instance != null &&
-                     TowerDefGameManager.Instance.TryMoveTurret(this, destination);
-        if (!moved)
+        try
         {
-            if (structureRoot != null) structureRoot.SetActive(true);
-            if (upgradeIcon != null) upgradeIcon.SetActive(dragBadgeWasActive);
-            if (turretComp != null) turretComp.enabled = true;
-        }
+            // Chỉ xử lý nếu ô này vẫn đang chứa tháp (chưa bị OnDrop của ô đích di chuyển trước)
+            if (currentType == TowerDefStructureType.Turret)
+            {
+                TowerDefGridCell destination = null;
 
-        Destroy(dragPreview);
-        dragPreview = null;
+                // 1. RaycastAll tìm ô GridCell
+                if (EventSystem.current != null)
+                {
+                    List<RaycastResult> results = new List<RaycastResult>();
+                    EventSystem.current.RaycastAll(eventData, results);
+                    for (int i = 0; i < results.Count; i++)
+                    {
+                        TowerDefGridCell cell = results[i].gameObject.GetComponentInParent<TowerDefGridCell>();
+                        if (cell != null && cell != this)
+                        {
+                            destination = cell;
+                            break;
+                        }
+                    }
+                }
+
+                // 2. Fallback pointerCurrentRaycast
+                if (destination == null && eventData.pointerCurrentRaycast.gameObject != null)
+                {
+                    TowerDefGridCell cell = eventData.pointerCurrentRaycast.gameObject.GetComponentInParent<TowerDefGridCell>();
+                    if (cell != null && cell != this)
+                    {
+                        destination = cell;
+                    }
+                }
+
+                // 3. Fallback tìm theo tọa độ màn hình gần nhất (hỗ trợ thả lệch mép ô)
+                if (destination == null && TowerDefGameManager.Instance != null)
+                {
+                    TowerDefGridCell cell = TowerDefGameManager.Instance.FindClosestGridCell(eventData.position);
+                    if (cell != null && cell != this)
+                    {
+                        destination = cell;
+                    }
+                }
+
+                bool moved = false;
+                if (destination != null && !destination.IsOccupied)
+                {
+                    moved = TowerDefGameManager.Instance != null &&
+                            TowerDefGameManager.Instance.TryMoveTurret(this, destination);
+                }
+
+                if (!moved)
+                {
+                    if (structureRoot != null) structureRoot.SetActive(true);
+                    if (upgradeIcon != null) upgradeIcon.SetActive(dragBadgeWasActive);
+                    if (turretComp != null) turretComp.enabled = true;
+                }
+            }
+        }
+        finally
+        {
+            // Luôn luôn hủy dragPreview trong finally để không bao giờ bị kẹt lại trên màn hình
+            if (dragPreview != null)
+            {
+                if (Application.isPlaying) Destroy(dragPreview);
+                else DestroyImmediate(dragPreview);
+                dragPreview = null;
+            }
+        }
+    }
+
+    public void OnDrop(PointerEventData eventData)
+    {
+        if (eventData == null || eventData.pointerDrag == null) return;
+        TowerDefGridCell source = eventData.pointerDrag.GetComponent<TowerDefGridCell>();
+        if (source != null && source != this && !IsOccupied && source.CurrentType == TowerDefStructureType.Turret)
+        {
+            TowerDefGameManager.Instance?.TryMoveTurret(source, this);
+        }
     }
 
     private void OnDisable()
     {
-        if (dragPreview == null) return;
-        if (Application.isPlaying) Destroy(dragPreview);
-        else DestroyImmediate(dragPreview);
-        dragPreview = null;
+        if (dragPreview != null)
+        {
+            if (Application.isPlaying) Destroy(dragPreview);
+            else DestroyImmediate(dragPreview);
+            dragPreview = null;
+        }
         if (structureRoot != null && currentType == TowerDefStructureType.Turret)
             structureRoot.SetActive(true);
         if (upgradeIcon != null && currentType == TowerDefStructureType.Turret)

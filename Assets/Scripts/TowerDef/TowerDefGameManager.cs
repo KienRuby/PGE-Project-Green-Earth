@@ -182,6 +182,74 @@ public class TowerDefGameManager : MonoBehaviour
         return source.TryMoveTurretTo(destination);
     }
 
+    public TowerDefGridCell FindClosestGridCell(Vector2 screenPos, float maxDistance = 250f)
+    {
+        Canvas canvas = GetComponentInChildren<Canvas>(true);
+        if (canvas == null) canvas = FindObjectOfType<Canvas>();
+        Camera cam = (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay) ? canvas.worldCamera : null;
+
+        TowerDefGridCell bestCell = null;
+        float bestDistSq = maxDistance * maxDistance;
+
+        Transform playArea = canvas != null ? canvas.transform.Find("PlayArea") : null;
+        Transform gridTr = playArea != null ? playArea.Find("DefenseGrid") : null;
+        TowerDefGridCell[] allCells = gridTr != null ? gridTr.GetComponentsInChildren<TowerDefGridCell>(true) : null;
+
+        if (allCells != null && allCells.Length > 0)
+        {
+            for (int i = 0; i < allCells.Length; i++)
+            {
+                TowerDefGridCell cell = allCells[i];
+                if (cell == null) continue;
+
+                RectTransform rt = cell.transform as RectTransform;
+                if (rt == null) continue;
+
+                if (RectTransformUtility.RectangleContainsScreenPoint(rt, screenPos, cam))
+                {
+                    return cell;
+                }
+
+                Vector2 cellCenterScreen = RectTransformUtility.WorldToScreenPoint(cam, rt.position);
+                float distSq = (cellCenterScreen - screenPos).sqrMagnitude;
+                if (distSq < bestDistSq)
+                {
+                    bestDistSq = distSq;
+                    bestCell = cell;
+                }
+            }
+        }
+        else
+        {
+            for (int r = 0; r < 4; r++)
+            {
+                for (int c = 0; c < 7; c++)
+                {
+                    TowerDefGridCell cell = gridCells[r, c];
+                    if (cell == null) continue;
+
+                    RectTransform rt = cell.transform as RectTransform;
+                    if (rt == null) continue;
+
+                    if (RectTransformUtility.RectangleContainsScreenPoint(rt, screenPos, cam))
+                    {
+                        return cell;
+                    }
+
+                    Vector2 cellCenterScreen = RectTransformUtility.WorldToScreenPoint(cam, rt.position);
+                    float distSq = (cellCenterScreen - screenPos).sqrMagnitude;
+                    if (distSq < bestDistSq)
+                    {
+                        bestDistSq = distSq;
+                        bestCell = cell;
+                    }
+                }
+            }
+        }
+
+        return bestCell;
+    }
+
     public bool TryUpgradeStructure(TowerDefGridCell cell)
     {
         if (cell == null || !cell.IsOccupied) return false;
@@ -773,6 +841,16 @@ public class TowerDefGameManager : MonoBehaviour
             if (gridCells[1, 3] != null)
             {
                 gridCells[1, 3].PlaceStructure(TowerDefStructureType.CoreBed, corePodSprite, null, 1);
+            }
+        }
+        else
+        {
+            foreach (TowerDefGridCell cell in gridTr.GetComponentsInChildren<TowerDefGridCell>(true))
+            {
+                if (cell.Row >= 0 && cell.Row < 4 && cell.Col >= 0 && cell.Col < 7)
+                {
+                    gridCells[cell.Row, cell.Col] = cell;
+                }
             }
         }
 

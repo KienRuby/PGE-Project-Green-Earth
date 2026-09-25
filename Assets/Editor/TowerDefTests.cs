@@ -167,6 +167,77 @@ public class TowerDefTests
     }
 
     [Test]
+    public void Turret_MoveClearsSourceCellCompletelyAndPreservesExactOneTurretPerCell()
+    {
+        TowerDefGridCell CreateCell(string name, int r, int c)
+        {
+            GameObject cellObject = new GameObject(name, typeof(RectTransform), typeof(Image),
+                typeof(Button), typeof(TowerDefGridCell));
+            cellObject.transform.SetParent(rootObj.transform);
+            GameObject structure = new GameObject("StructureRoot", typeof(RectTransform));
+            structure.transform.SetParent(cellObject.transform);
+            GameObject image = new GameObject("StructureImage", typeof(RectTransform), typeof(Image));
+            image.transform.SetParent(structure.transform);
+            GameObject gun = new GameObject("Gun", typeof(RectTransform), typeof(Image));
+            gun.transform.SetParent(structure.transform);
+            TowerDefGridCell cell = cellObject.GetComponent<TowerDefGridCell>();
+            cell.SetupCell(r, c, cellObject.GetComponent<Image>(), cellObject.GetComponent<Button>(),
+                structure, image.GetComponent<Image>(), gun.transform, null);
+            return cell;
+        }
+
+        TowerDefGridCell source = CreateCell("SourceCell", 2, 1);
+        TowerDefGridCell destination = CreateCell("DestCell", 2, 2);
+        GameObject gunTurretPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(
+            "Assets/Prefabs/Chipset/GunTurret.prefab");
+        Assert.IsNotNull(gunTurretPrefab);
+
+        source.ConfigureTurretPrefab(gunTurretPrefab);
+        source.PlaceStructure(TowerDefStructureType.Turret, null);
+
+        // Verify initial state: exactly 1 turret on source
+        Assert.IsTrue(source.IsOccupied);
+        Assert.AreEqual(TowerDefStructureType.Turret, source.CurrentType);
+        Assert.IsNotNull(source.TurretPrefabInstance);
+        Assert.AreEqual(new Vector3(0f, 0f, -0.1f), source.TurretPrefabInstance.transform.localPosition);
+        Assert.AreEqual(1, source.transform.Find("StructureRoot").GetComponentsInChildren<GunTurret>(true).Length);
+
+        // Destination is empty
+        Assert.IsFalse(destination.IsOccupied);
+        Assert.AreEqual(TowerDefStructureType.None, destination.CurrentType);
+
+        // Move to destination
+        bool moveResult = gameManager.TryMoveTurret(source, destination);
+        Assert.IsTrue(moveResult);
+
+        // Verify destination has exactly 1 turret, centered properly
+        Assert.IsTrue(destination.IsOccupied);
+        Assert.AreEqual(TowerDefStructureType.Turret, destination.CurrentType);
+        Assert.IsNotNull(destination.TurretPrefabInstance);
+        Assert.AreEqual(new Vector3(0f, 0f, -0.1f), destination.TurretPrefabInstance.transform.localPosition);
+        Assert.AreEqual(Quaternion.identity, destination.TurretPrefabInstance.transform.localRotation);
+        Assert.AreEqual(1, destination.transform.Find("StructureRoot").GetComponentsInChildren<GunTurret>(true).Length);
+
+        // Verify source is completely empty: NO turret instance, NO TowerDefTurret component, IsOccupied = false
+        Assert.IsFalse(source.IsOccupied);
+        Assert.AreEqual(TowerDefStructureType.None, source.CurrentType);
+        Assert.IsNull(source.TurretPrefabInstance);
+        Assert.IsNull(source.Turret);
+        Assert.AreEqual(0, source.transform.Find("StructureRoot").GetComponentsInChildren<GunTurret>(true).Length);
+
+        // Verify that moving again to an already occupied destination fails (1 ô tối đa 1 turret)
+        TowerDefGridCell thirdCell = CreateCell("ThirdCell", 1, 1);
+        thirdCell.ConfigureTurretPrefab(gunTurretPrefab);
+        thirdCell.PlaceStructure(TowerDefStructureType.Turret, null);
+        Assert.IsTrue(thirdCell.IsOccupied);
+
+        bool moveBlocked = gameManager.TryMoveTurret(thirdCell, destination);
+        Assert.IsFalse(moveBlocked, "Cannot move into an already occupied cell");
+        Assert.IsTrue(thirdCell.IsOccupied);
+        Assert.AreEqual(1, destination.transform.Find("StructureRoot").GetComponentsInChildren<GunTurret>(true).Length);
+    }
+
+    [Test]
     public void TurretShot_UsesTheProjectileAssignedOnGunTurretPrefab()
     {
         GameObject gunPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(
