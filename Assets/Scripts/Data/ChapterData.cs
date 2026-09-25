@@ -126,7 +126,7 @@ public class ChapterData : ScriptableObject
     public float defaultWaveDuration = 30f;
 
     [Tooltip("Thời gian Wave Boss cuối cùng (giây).")]
-    public float finalBossWaveDuration = 60f;
+    public float finalBossWaveDuration = 30f;
 
     [Header("Chapter Specific Enemy Pool & Boss")]
     [Tooltip("Danh sách quái vật đặc trưng cho Chapter này (nếu để trống sẽ dùng quái mặc định).")]
@@ -168,7 +168,7 @@ public class ChapterData : ScriptableObject
                 customBossPrefab = isLast ? chapterBossPrefab : null,
                 bossCount = 1,
                 bossSpawnDelay = isLast ? 2.0f : 0f,
-                breakDurationAfterWave = 2.0f,
+                breakDurationAfterWave = 0f,
                 waveDuration = isLast ? finalBossWaveDuration : defaultWaveDuration
             };
 

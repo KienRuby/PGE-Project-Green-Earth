@@ -71,7 +71,7 @@ public class EnemySpawner : MonoBehaviour
 
         [Header("Break Time")]
         [Tooltip("Thời gian nghỉ/chờ (giây) sau khi Wave kết thúc trước khi bắt đầu Wave kế tiếp.")]
-        public float breakDurationAfterWave = 3.0f;
+        public float breakDurationAfterWave = 0f;
 
         [Header("Wave Duration & Timer")]
         [Tooltip("Thời gian tối đa của Wave này (giây). Wave thường kết thúc sớm nếu đã sinh đủ và tiêu diệt hết quái; hết giờ vẫn chuyển Wave dù còn quái.")]
@@ -850,6 +850,10 @@ public class EnemySpawner : MonoBehaviour
         {
             TriggerStageVictory();
         }
+        else if (config.breakDurationAfterWave <= 0f)
+        {
+            StartNextWave();
+        }
         else
         {
             currentState = WaveState.WaveBreak;
@@ -1574,8 +1578,8 @@ public class EnemySpawner : MonoBehaviour
                 isBossWave = isLast,
                 bossCount = 1,
                 bossSpawnDelay = isLast ? 2.0f : 0f,
-                breakDurationAfterWave = 2.0f,
-                waveDuration = isLast ? 60f : 30f
+                breakDurationAfterWave = 0f,
+                waveDuration = 30f
             };
 
             waves.Add(wave);

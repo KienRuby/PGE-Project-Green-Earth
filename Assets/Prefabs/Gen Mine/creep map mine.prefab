@@ -12,11 +12,11 @@ GameObject:
   - component: {fileID: 1859330886549835059}
   - component: {fileID: 7444848184184296112}
   - component: {fileID: 2179698687308059425}
-  - component: {fileID: 8939385649368622034}
   - component: {fileID: 8956275067229776075}
   - component: {fileID: 2377812328907379081}
   - component: {fileID: 2547818062339072727}
   - component: {fileID: 240094538910312588}
+  - component: {fileID: 4343769769756426745}
   m_Layer: 0
   m_Name: creep map mine
   m_TagString: Enemy
@@ -34,7 +34,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.7101212, y: 0.7101212, z: 0.7101212}
+  m_LocalScale: {x: 0.1775303, y: 0.1775303, z: 0.1775303}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -139,41 +139,6 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 4
---- !u!58 &8939385649368622034
-CircleCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6149341949395839567}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ForceSendLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ForceReceiveLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ContactCaptureLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_CallbackLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_IsTrigger: 0
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
-  serializedVersion: 2
-  m_Radius: 0.55
 --- !u!114 &8956275067229776075
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -186,8 +151,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 42e9e99105793d54ebd275fc12d628e4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 65
-  expReward: 12
+  maxHealth: 500
+  expReward: 20
   dataChipReward: 1
   redGemReward: 0
   randomRedGemDropChance: 0.05
@@ -220,7 +185,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f59f6c4da518468489a9e2968abae2f7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 8
+  damage: 20
   damageInterval: 1
 --- !u!114 &2547818062339072727
 MonoBehaviour:
@@ -235,8 +200,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 2.15
-  stoppingDistance: 0.7
-  separationRadius: 0.9
+  stoppingDistance: 0.42
+  separationRadius: 0.8
   separationWeight: 1
   enemyLayer:
     serializedVersion: 2
@@ -247,7 +212,7 @@ MonoBehaviour:
   feelerDistance: 0.75
   obstaclePadding: 0.45
   autoFlipFacing: 1
-  initialFacingLeft: 0
+  initialFacingLeft: 1
   flipDeadzone: 0.05
 --- !u!114 &240094538910312588
 MonoBehaviour:
@@ -263,10 +228,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enemyType: 0
   enemyName: Creep
-  maxHealth: 65
+  maxHealth: 500
   moveSpeed: 2
-  contactDamage: 8
-  expReward: 10
+  contactDamage: 20
+  expReward: 20
   dataChipReward: 5
   redGemReward: 0
   randomRedGemDropChance: 0.05
@@ -279,3 +244,38 @@ MonoBehaviour:
   variant: 0
   variantSpeedMultiplier: 1
   variantHealthMultiplier: 1
+--- !u!70 &4343769769756426745
+CapsuleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6149341949395839567}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: -0.019994868, y: -0.8397922}
+  m_Size: {x: 2.150337, y: 2.530416}
+  m_Direction: 0

@@ -11,11 +11,11 @@ GameObject:
   - component: {fileID: 5614241678601165913}
   - component: {fileID: 3756502254161146548}
   - component: {fileID: 400424291345928155}
-  - component: {fileID: 1396057048071315163}
   - component: {fileID: 7329910958896331285}
   - component: {fileID: 1234861246113501563}
   - component: {fileID: 7813897195640297232}
   - component: {fileID: 611207418497638293}
+  - component: {fileID: 4632335867065856441}
   m_Layer: 0
   m_Name: BigCreep
   m_TagString: Enemy
@@ -33,7 +33,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.25, y: 0.25, z: 0.25}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1216355291728372491}
@@ -89,41 +89,6 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 4
---- !u!58 &1396057048071315163
-CircleCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1576608962759064737}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ForceSendLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ForceReceiveLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ContactCaptureLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_CallbackLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_IsTrigger: 0
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
-  serializedVersion: 2
-  m_Radius: 0.85
 --- !u!114 &7329910958896331285
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -136,7 +101,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 42e9e99105793d54ebd275fc12d628e4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 180
+  maxHealth: 1000
   expReward: 30
   dataChipReward: 4
   redGemReward: 0
@@ -170,7 +135,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f59f6c4da518468489a9e2968abae2f7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 14
+  damage: 30
   damageInterval: 1
 --- !u!114 &7813897195640297232
 MonoBehaviour:
@@ -184,9 +149,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93ae56b847cdb024090f1c1bb1fbef61, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 1.45
-  stoppingDistance: 0.7
-  separationRadius: 0.9
+  moveSpeed: 2
+  stoppingDistance: 0.68
+  separationRadius: 0.4
   separationWeight: 1
   enemyLayer:
     serializedVersion: 2
@@ -194,7 +159,7 @@ MonoBehaviour:
   obstacleLayer:
     serializedVersion: 2
     m_Bits: 0
-  feelerDistance: 0.75
+  feelerDistance: 0.69
   obstaclePadding: 0.45
   autoFlipFacing: 1
   initialFacingLeft: 0
@@ -213,9 +178,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enemyType: 0
   enemyName: Creep
-  maxHealth: 180
+  maxHealth: 1000
   moveSpeed: 2
-  contactDamage: 14
+  contactDamage: 30
   expReward: 10
   dataChipReward: 5
   redGemReward: 0
@@ -229,6 +194,41 @@ MonoBehaviour:
   variant: 2
   variantSpeedMultiplier: 1
   variantHealthMultiplier: 1
+--- !u!70 &4632335867065856441
+CapsuleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1576608962759064737}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0.0035498142, y: 0.5061257}
+  m_Size: {x: 1.1300397, y: 2.149724}
+  m_Direction: 0
 --- !u!1 &1813233622588978503
 GameObject:
   m_ObjectHideFlags: 0
@@ -255,7 +255,7 @@ Transform:
   m_GameObject: {fileID: 1813233622588978503}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.6505727, y: 0.3218838, z: -0.008576178}
+  m_LocalPosition: {x: -0.42, y: -0.51, z: -0.008576178}
   m_LocalScale: {x: 0.7, y: 0.7, z: 0.73484}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -339,7 +339,7 @@ Transform:
   m_GameObject: {fileID: 4217804874194989555}
   serializedVersion: 2
   m_LocalRotation: {x: -0.01005422, y: -0, z: -0, w: 0.99994946}
-  m_LocalPosition: {x: -0.2634727, y: 1.337584, z: -0.008576178}
+  m_LocalPosition: {x: 0, y: 0.5, z: 0}
   m_LocalScale: {x: 0.7, y: 0.7, z: 0.73484}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -423,7 +423,7 @@ Transform:
   m_GameObject: {fileID: 6807086521496513374}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.07952732, y: 0.3225838, z: -0.008576178}
+  m_LocalPosition: {x: 0.32, y: -0.5, z: -0.008576178}
   m_LocalScale: {x: 0.7, y: 0.7, z: 0.73484}
   m_ConstrainProportionsScale: 0
   m_Children: []

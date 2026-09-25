@@ -284,6 +284,7 @@ public class BossMovement : MonoBehaviour, IPoolable
                     dashDirection = ((Vector2)player.position - rb.position).normalized;
                 }
                 UpdateFacingDirection();
+                UpdateWindupFlashing();
                 if (stateTimer <= 0f)
                 {
                     StartDash();
@@ -459,6 +460,27 @@ public class BossMovement : MonoBehaviour, IPoolable
         }
     }
 
+    private void UpdateWindupFlashing()
+    {
+        if (spriteRenderers == null || spriteRenderers.Length == 0) return;
+
+        // Tần số nhấp nháy báo hiệu chuẩn bị lao tới (khoảng 12Hz để người chơi thấy rõ nhấp nháy liên tục)
+        const float flashHz = 12f;
+        bool isFlashOn = Mathf.Repeat(stateTimer * flashHz, 1f) < 0.5f;
+
+        for (int i = 0; i < spriteRenderers.Length; i++)
+        {
+            if (spriteRenderers[i] != null)
+            {
+                Color baseCol = (originalColors != null && i < originalColors.Length)
+                    ? (isEnraged ? enrageColor : originalColors[i])
+                    : Color.white;
+
+                spriteRenderers[i].color = isFlashOn ? windupColor : baseCol;
+            }
+        }
+    }
+
     private void StartWindup(bool isComboFollowup = false)
     {
         currentState = BossState.Windup;
@@ -473,7 +495,7 @@ public class BossMovement : MonoBehaviour, IPoolable
         {
             dashDirection = ((Vector2)player.position - rb.position).normalized;
         }
-        SetSpritesColor(windupColor);
+        UpdateWindupFlashing();
     }
 
     private void StartDash()

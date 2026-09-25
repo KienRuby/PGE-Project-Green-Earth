@@ -38,7 +38,7 @@ MonoBehaviour:
   chapterDifficultyMultiplier: 3.25
   wavePowerGrowthRate: 0.08
   defaultWaveDuration: 30
-  finalBossWaveDuration: 60
+  finalBossWaveDuration: 30
   chapterEnemyPool:
   - enemyPrefab: {fileID: 6558628254369202594, guid: cae7dc80e82b3b14bade28b18c3b19ff, type: 3}
     spawnWeight: 10
@@ -62,8 +62,8 @@ MonoBehaviour:
     customBossPrefab: {fileID: 0}
     bossCount: 1
     bossSpawnDelay: 0
-    breakDurationAfterWave: 1
-    waveDuration: 25
+    breakDurationAfterWave: 0
+    waveDuration: 30
   - waveName: Wave 2
     totalEnemiesToSpawn: 284
     maxConcurrentEnemies: 52
@@ -78,8 +78,8 @@ MonoBehaviour:
     customBossPrefab: {fileID: 0}
     bossCount: 1
     bossSpawnDelay: 0
-    breakDurationAfterWave: 1
-    waveDuration: 26
+    breakDurationAfterWave: 0
+    waveDuration: 30
   - waveName: Wave 3
     totalEnemiesToSpawn: 294
     maxConcurrentEnemies: 54
@@ -94,8 +94,8 @@ MonoBehaviour:
     customBossPrefab: {fileID: 0}
     bossCount: 1
     bossSpawnDelay: 0
-    breakDurationAfterWave: 1
-    waveDuration: 27
+    breakDurationAfterWave: 0
+    waveDuration: 30
   - waveName: Wave 4
     totalEnemiesToSpawn: 304
     maxConcurrentEnemies: 57
@@ -110,8 +110,8 @@ MonoBehaviour:
     customBossPrefab: {fileID: 0}
     bossCount: 1
     bossSpawnDelay: 0
-    breakDurationAfterWave: 1
-    waveDuration: 28
+    breakDurationAfterWave: 0
+    waveDuration: 30
   - waveName: Wave 5
     totalEnemiesToSpawn: 315
     maxConcurrentEnemies: 59
@@ -126,8 +126,8 @@ MonoBehaviour:
     customBossPrefab: {fileID: 0}
     bossCount: 1
     bossSpawnDelay: 0
-    breakDurationAfterWave: 1
-    waveDuration: 29
+    breakDurationAfterWave: 0
+    waveDuration: 30
   - waveName: Wave 6
     totalEnemiesToSpawn: 325
     maxConcurrentEnemies: 62
@@ -142,8 +142,8 @@ MonoBehaviour:
     customBossPrefab: {fileID: 0}
     bossCount: 1
     bossSpawnDelay: 0
-    breakDurationAfterWave: 1
-    waveDuration: 31
+    breakDurationAfterWave: 0
+    waveDuration: 30
   - waveName: Wave 7
     totalEnemiesToSpawn: 335
     maxConcurrentEnemies: 64
@@ -158,8 +158,8 @@ MonoBehaviour:
     customBossPrefab: {fileID: 0}
     bossCount: 1
     bossSpawnDelay: 0
-    breakDurationAfterWave: 1
-    waveDuration: 32
+    breakDurationAfterWave: 0
+    waveDuration: 30
   - waveName: Wave 8
     totalEnemiesToSpawn: 346
     maxConcurrentEnemies: 67
@@ -174,8 +174,8 @@ MonoBehaviour:
     customBossPrefab: {fileID: 0}
     bossCount: 1
     bossSpawnDelay: 0
-    breakDurationAfterWave: 1
-    waveDuration: 33
+    breakDurationAfterWave: 0
+    waveDuration: 30
   - waveName: Wave 9
     totalEnemiesToSpawn: 361
     maxConcurrentEnemies: 69
@@ -190,8 +190,8 @@ MonoBehaviour:
     customBossPrefab: {fileID: 0}
     bossCount: 1
     bossSpawnDelay: 0
-    breakDurationAfterWave: 1
-    waveDuration: 34
+    breakDurationAfterWave: 0
+    waveDuration: 30
   - waveName: BOSS
     totalEnemiesToSpawn: 387
     maxConcurrentEnemies: 72
@@ -206,5 +206,5 @@ MonoBehaviour:
     customBossPrefab: {fileID: 0}
     bossCount: 1
     bossSpawnDelay: 2
-    breakDurationAfterWave: 2
-    waveDuration: 60
+    breakDurationAfterWave: 0
+    waveDuration: 30

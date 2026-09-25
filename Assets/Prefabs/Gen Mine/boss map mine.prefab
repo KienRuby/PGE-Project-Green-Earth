@@ -12,11 +12,11 @@ GameObject:
   - component: {fileID: 2676751194021563003}
   - component: {fileID: 859596367937674367}
   - component: {fileID: 5559211095261740209}
-  - component: {fileID: 2884011601512437317}
   - component: {fileID: 274850169578458106}
   - component: {fileID: 8987674142425575663}
   - component: {fileID: 602173326122476121}
   - component: {fileID: 3836487952450733367}
+  - component: {fileID: 2884617547110263346}
   m_Layer: 0
   m_Name: boss map mine
   m_TagString: Enemy
@@ -34,7 +34,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.5286, y: 0.5286, z: 0.5286}
+  m_LocalScale: {x: 0.13215, y: 0.13215, z: 0.13215}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -139,41 +139,6 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 4
---- !u!58 &2884011601512437317
-CircleCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6232651815912423512}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ForceSendLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ForceReceiveLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ContactCaptureLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_CallbackLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_IsTrigger: 0
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
-  serializedVersion: 2
-  m_Radius: 1.2
 --- !u!114 &274850169578458106
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -186,7 +151,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 42e9e99105793d54ebd275fc12d628e4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 2500
+  maxHealth: 1000000
   expReward: 500
   dataChipReward: 100
   redGemReward: 0
@@ -220,7 +185,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f59f6c4da518468489a9e2968abae2f7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 25
+  damage: 50
   damageInterval: 1
 --- !u!114 &602173326122476121
 MonoBehaviour:
@@ -234,7 +199,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7b841a0d8e234c9fa19028e08d6fa831, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 1.8
+  moveSpeed: 2.5
   stoppingDistance: 1
   mapBoundaryPadding: 1
   autoFlipFacing: 1
@@ -270,9 +235,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enemyType: 0
   enemyName: Creep
-  maxHealth: 2500
-  moveSpeed: 2
-  contactDamage: 25
+  maxHealth: 1000000
+  moveSpeed: 2.5
+  contactDamage: 50
   expReward: 10
   dataChipReward: 5
   redGemReward: 0
@@ -287,3 +252,38 @@ MonoBehaviour:
   bossRangedAttackComponent: {fileID: 0}
   bossTitle: TERRA CONQUEROR
   enrageThreshold: 0.4
+--- !u!70 &2884617547110263346
+CapsuleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6232651815912423512}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: -0.00000010240101, y: -0.85900205}
+  m_Size: {x: 12.430005, y: 4.1468396}
+  m_Direction: 1
