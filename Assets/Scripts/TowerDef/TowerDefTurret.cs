@@ -15,7 +15,7 @@ public class TowerDefTurret : MonoBehaviour
     [SerializeField] private int turretLevel = 1;
     [SerializeField] private float damage = 25f;
     [SerializeField] private float fireRate = 1.2f; // Phát bắn mỗi giây
-    [SerializeField] private float attackRange = 850f; // Khoảng cách pixel trong Canvas
+    [SerializeField] private float attackRange = 1600f; // Khoảng cách pixel trong Canvas bao phủ toàn bộ map quái đi
     [SerializeField] private int baseUpgradeCost = 50;
 
     [Header("Visual References")]
@@ -94,19 +94,20 @@ public class TowerDefTurret : MonoBehaviour
             return;
         }
 
-        // Chỉ chọn kẻ thù đã chạm vào tường thành theo yêu cầu thiết kế
+        // Chọn kẻ thù trong tầm bắn (quái ở xa cũng bắn được)
         float closestDist = float.MaxValue;
         if (owningCanvas == null) owningCanvas = GetComponentInParent<Canvas>();
         if (viewCamera == null) viewCamera = owningCanvas != null ? owningCanvas.worldCamera : Camera.main;
-        float worldRange = attackRange * (owningCanvas != null ? owningCanvas.transform.lossyScale.x : 1f);
+        float canvasScale = owningCanvas != null ? owningCanvas.transform.lossyScale.x : 1f;
+        float worldRange = attackRange * (canvasScale > 0.001f ? canvasScale : 1f);
         TowerDefEnemy bestTarget = null;
         Vector3 myPos = transform.position;
 
         for (int i = 0; i < enemies.Count; i++)
         {
             var e = enemies[i];
-            if (e == null || e.IsDead || !e.IsTouchingWall) continue;
-            if (viewCamera != null)
+            if (e == null || e.IsDead) continue;
+            if (viewCamera != null && owningCanvas != null && owningCanvas.renderMode != RenderMode.ScreenSpaceOverlay)
             {
                 Vector3 viewport = viewCamera.WorldToViewportPoint(e.transform.position);
                 if (viewport.z <= 0f || viewport.x < 0f || viewport.x > 1f ||
@@ -134,7 +135,7 @@ public class TowerDefTurret : MonoBehaviour
 
     private void TryFire()
     {
-        if (currentTarget == null || !currentTarget.IsTouchingWall || currentTarget.IsDead || Time.time < nextFireTime) return;
+        if (currentTarget == null || currentTarget.IsDead || Time.time < nextFireTime) return;
 
         nextFireTime = Time.time + (1f / Mathf.Max(0.1f, fireRate));
         FireAtTarget(currentTarget);
@@ -142,7 +143,7 @@ public class TowerDefTurret : MonoBehaviour
 
     private void FireAtTarget(TowerDefEnemy target)
     {
-        if (target == null || target.IsDead || !target.IsTouchingWall) return;
+        if (target == null || target.IsDead) return;
 
         Transform muzzle = gunTransform != null ? gunTransform.Find("FirePoint") : null;
         Vector3 spawnPos = muzzle != null ? muzzle.position :

@@ -111,7 +111,10 @@ public class TowerDefGameManager : MonoBehaviour
     {
         Instance = this;
         currentLevel = TowerDefProgress.SelectedLevel;
-        EnsureSceneMap();
+        if (gameObject.scene.name == "TowerDef")
+        {
+            EnsureSceneMap();
+        }
     }
 
     private void Start()
@@ -463,9 +466,23 @@ public class TowerDefGameManager : MonoBehaviour
     /// </summary>
     public void EnsureSceneMap()
     {
+        if (gameObject.scene.name != "TowerDef")
+        {
+            Debug.LogWarning($"[TowerDefGameManager] Bỏ qua EnsureSceneMap vì scene hiện tại ({gameObject.scene.name}) không phải là 'TowerDef'.");
+            return;
+        }
+
         LoadAssetReferences();
 
-        Camera cam = Camera.main ?? FindObjectOfType<Camera>();
+        Camera cam = Camera.main;
+        if (cam == null && gameObject.scene.IsValid() && gameObject.scene.isLoaded)
+        {
+            foreach (var root in gameObject.scene.GetRootGameObjects())
+            {
+                cam = root.GetComponentInChildren<Camera>(true);
+                if (cam != null) break;
+            }
+        }
         if (cam != null)
         {
             cam.backgroundColor = new Color(0.08f, 0.08f, 0.1f, 1f);
@@ -474,10 +491,23 @@ public class TowerDefGameManager : MonoBehaviour
 
         if (UnityEngine.EventSystems.EventSystem.current == null)
         {
-            new GameObject("EventSystem", typeof(UnityEngine.EventSystems.EventSystem), typeof(UnityEngine.EventSystems.StandaloneInputModule));
+            GameObject esObj = new GameObject("EventSystem", typeof(UnityEngine.EventSystems.EventSystem), typeof(UnityEngine.EventSystems.StandaloneInputModule));
+            if (gameObject.scene.IsValid() && gameObject.scene.isLoaded)
+            {
+                UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(esObj, gameObject.scene);
+            }
         }
 
-        Canvas canvas = FindObjectOfType<Canvas>();
+        Canvas canvas = null;
+        if (gameObject.scene.IsValid() && gameObject.scene.isLoaded)
+        {
+            foreach (var root in gameObject.scene.GetRootGameObjects())
+            {
+                canvas = root.GetComponentInChildren<Canvas>(true);
+                if (canvas != null) break;
+            }
+        }
+
         if (canvas == null)
         {
             GameObject canvasObj = new GameObject("TowerDefCanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
@@ -486,6 +516,10 @@ public class TowerDefGameManager : MonoBehaviour
             cs.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             cs.referenceResolution = new Vector2(1080f, 1920f);
             cs.matchWidthOrHeight = 0f; // Khớp chuẩn bề ngang màn hình
+            if (gameObject.scene.IsValid() && gameObject.scene.isLoaded)
+            {
+                UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(canvasObj, gameObject.scene);
+            }
         }
         if (cam != null)
         {

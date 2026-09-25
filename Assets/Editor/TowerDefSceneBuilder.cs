@@ -31,16 +31,8 @@ public static class TowerDefSceneBuilder
             return;
         }
 
-        Scene activeScene = SceneManager.GetActiveScene();
-        bool isCurrentActive = activeScene.IsValid() && activeScene.path == ScenePath;
-        bool needClose = false;
-
-        Scene scene = SceneManager.GetSceneByPath(ScenePath);
-        if (!scene.IsValid() || !scene.isLoaded)
-        {
-            scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Additive);
-            needClose = true;
-        }
+        Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+        if (!scene.IsValid()) return;
 
         EditorSceneManager.SetActiveScene(scene);
 
@@ -101,13 +93,6 @@ public static class TowerDefSceneBuilder
         EditorUtility.SetDirty(gm);
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
-
-        if (needClose && activeScene.IsValid())
-        {
-            EditorSceneManager.SetActiveScene(activeScene);
-            EditorSceneManager.CloseScene(scene, true);
-        }
-
         Debug.Log("[TowerDefSceneBuilder] Đã dựng thành công Scene TowerDef hoàn chỉnh khớp 100% Thiết Kế (Ảnh 2)!");
     }
 
@@ -205,28 +190,6 @@ public static class TowerDefSceneBuilder
         if (prop != null)
         {
             prop.objectReferenceValue = targetObj;
-        }
-    }
-}
-
-[InitializeOnLoad]
-public static class TowerDefSceneAutoBaker
-{
-    private const string AutoBakeKey = "PGE_TowerDef_AutoBaked_v3";
-
-    static TowerDefSceneAutoBaker()
-    {
-        EditorApplication.delayCall += OnEditorLoaded;
-    }
-
-    private static void OnEditorLoaded()
-    {
-        if (SessionState.GetBool(AutoBakeKey, false)) return;
-        SessionState.SetBool(AutoBakeKey, true);
-
-        if (System.IO.File.Exists(TowerDefSceneBuilder.ScenePath))
-        {
-            TowerDefSceneBuilder.BuildTowerDefScene();
         }
     }
 }
