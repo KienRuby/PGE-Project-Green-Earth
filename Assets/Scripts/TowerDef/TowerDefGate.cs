@@ -12,20 +12,27 @@ using UnityEngine.UI;
 public class TowerDefGate : MonoBehaviour
 {
     [Header("Gate Stats")]
-    [SerializeField] private float maxHp = 300f;
-    [SerializeField] private float currentHp = 300f;
+    [SerializeField] private float maxHp = 50f;
+    [SerializeField] private float currentHp = 50f;
     [SerializeField] private int gateLevel = 1;
-    [SerializeField] private int baseUpgradeCost = 50;
+    [SerializeField] private int baseUpgradeCost = 12;
+    [SerializeField] private float hpIncrement = 20f;
+    [SerializeField] private Sprite[] levelSprites;
 
     [Header("Visual References")]
     [SerializeField] private Image healthBarFill;
     [SerializeField] private GameObject upgradeIcon;
     [SerializeField] private Button gateButton;
 
+    public const int MAX_GATE_LEVEL = 4;
     public float MaxHp => maxHp;
     public float CurrentHp => currentHp;
     public int GateLevel => gateLevel;
-    public int UpgradeCost => baseUpgradeCost * gateLevel;
+    public int MaxLevel => MAX_GATE_LEVEL;
+    public bool IsMaxLevel => gateLevel >= MAX_GATE_LEVEL;
+    public int NextLevel => Mathf.Min(MAX_GATE_LEVEL, gateLevel + 1);
+    public float NextMaxHp => maxHp + hpIncrement;
+    public int UpgradeCost => IsMaxLevel ? 0 : baseUpgradeCost * gateLevel;
     public bool IsDestroyed => currentHp <= 0f;
 
     public event Action<float, float> OnHpChanged;
@@ -36,6 +43,7 @@ public class TowerDefGate : MonoBehaviour
     {
         currentHp = maxHp;
         UpdateHealthBarVisual();
+        SetUpgradeBadgeActive(false);
 
         if (gateButton != null)
         {
@@ -44,13 +52,15 @@ public class TowerDefGate : MonoBehaviour
         }
     }
 
-    public void Setup(float initialMaxHp, Image hpFill, GameObject upIcon, Button btn)
+    public void Setup(float initialMaxHp, Image hpFill, GameObject upIcon, Button btn, int upgradeCost = 50, float hpGainOnUpgrade = 150f)
     {
         maxHp = initialMaxHp;
         currentHp = maxHp;
         healthBarFill = hpFill;
         upgradeIcon = upIcon;
         gateButton = btn;
+        baseUpgradeCost = upgradeCost;
+        hpIncrement = hpGainOnUpgrade;
 
         if (gateButton != null)
         {
@@ -58,7 +68,36 @@ public class TowerDefGate : MonoBehaviour
             gateButton.onClick.AddListener(HandleGateClicked);
         }
 
+        SetUpgradeBadgeActive(false);
         UpdateHealthBarVisual();
+    }
+
+    public void SetLevelSprites(Sprite[] sprites)
+    {
+        levelSprites = sprites;
+        UpdateGateVisual();
+    }
+
+    public Sprite GetLevelSprite(int level)
+    {
+        if (levelSprites != null && levelSprites.Length > 0)
+        {
+            int idx = Mathf.Clamp(level - 1, 0, levelSprites.Length - 1);
+            if (idx < levelSprites.Length && levelSprites[idx] != null)
+                return levelSprites[idx];
+        }
+        Image gateImg = GetComponent<Image>();
+        return gateImg != null ? gateImg.sprite : null;
+    }
+
+    private void UpdateGateVisual()
+    {
+        Image gateImg = GetComponent<Image>();
+        if (gateImg != null)
+        {
+            Sprite spr = GetLevelSprite(gateLevel);
+            if (spr != null) gateImg.sprite = spr;
+        }
     }
 
     public void TakeDamage(float damage)
@@ -92,15 +131,33 @@ public class TowerDefGate : MonoBehaviour
 
     public bool TryUpgrade(ref int gold)
     {
+        if (IsMaxLevel) return false;
         int cost = UpgradeCost;
         if (gold < cost) return false;
 
         gold -= cost;
         gateLevel++;
-        maxHp += 150f;
-        currentHp = maxHp; // Full heal upon upgrade
+        maxHp += hpIncrement;
+        currentHp = maxHp; // Hồi đầy máu khi nâng cấp
         Image gateImg = GetComponent<Image>();
         if (gateImg != null) gateImg.color = Color.white;
+        UpdateGateVisual();
+        UpdateHealthBarVisual();
+        OnHpChanged?.Invoke(currentHp, maxHp);
+        OnGateUpgraded?.Invoke(gateLevel);
+        return true;
+    }
+
+    public bool TryUpgradeFree()
+    {
+        if (IsMaxLevel) return false;
+
+        gateLevel++;
+        maxHp += hpIncrement;
+        currentHp = maxHp; // Hồi đầy máu khi nâng cấp miễn phí
+        Image gateImg = GetComponent<Image>();
+        if (gateImg != null) gateImg.color = Color.white;
+        UpdateGateVisual();
         UpdateHealthBarVisual();
         OnHpChanged?.Invoke(currentHp, maxHp);
         OnGateUpgraded?.Invoke(gateLevel);
@@ -115,6 +172,12 @@ public class TowerDefGate : MonoBehaviour
         }
     }
 
+    public void RefreshUpgradeBadge(int currentGold)
+    {
+        bool canUpgrade = (currentGold >= UpgradeCost) && !IsMaxLevel;
+        SetUpgradeBadgeActive(canUpgrade);
+    }
+
     private void UpdateHealthBarVisual()
     {
         if (healthBarFill != null)
@@ -126,7 +189,6 @@ public class TowerDefGate : MonoBehaviour
             }
             else
             {
-                // Fallback using rectTransform scale
                 RectTransform rt = healthBarFill.rectTransform;
                 if (rt != null)
                 {

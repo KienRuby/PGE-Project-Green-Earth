@@ -48,6 +48,12 @@ public class TowerDefGameManager : MonoBehaviour
     [SerializeField] private Sprite backArrowSprite;
     [SerializeField] private Sprite coinIconSprite;
     [SerializeField] private Sprite energyIconSprite;
+    [SerializeField] private Sprite[] gateLevelSprites;
+    [SerializeField] private Sprite frameUpgradePopupSprite;
+    [SerializeField] private Sprite panelUpgradeRowBarSprite;
+    [SerializeField] private Sprite btnUpgradeGreySprite;
+    [SerializeField] private Sprite btnUpgradeCyanSprite;
+    [SerializeField] private Sprite btnUpgradeAdsSprite;
     [SerializeField] private Sprite creepSprite;
     [SerializeField] private Sprite bossSprite;
     private bool useGunTurretPrefabVisuals;
@@ -310,9 +316,26 @@ public class TowerDefGameManager : MonoBehaviour
         return ok;
     }
 
+    public bool TryUpgradeGateFree(TowerDefGate targetGate)
+    {
+        if (targetGate == null) return false;
+
+        bool ok = targetGate.TryUpgradeFree();
+        if (ok)
+        {
+            ShowFloatingText(targetGate.transform.position, $"FREE GATE LV.{targetGate.GateLevel}!", Color.cyan);
+            UpdateUI();
+        }
+        return ok;
+    }
+
     public void UpdateUI()
     {
         OnCurrencyChanged?.Invoke(gold, energy);
+        if (gate != null)
+        {
+            gate.RefreshUpgradeBadge(gold);
+        }
         if (uiController != null)
         {
             uiController.UpdateCurrencyDisplay(gold, energy);
@@ -789,11 +812,24 @@ public class TowerDefGameManager : MonoBehaviour
             upImg.raycastTarget = false;
 
             gate = gateObj.GetComponent<TowerDefGate>();
-            gate.Setup(300f, hpFill, upObj, gateBtn);
+            gate.Setup(50f, hpFill, upObj, gateBtn, 12, 20f);
+            if (gateLevelSprites != null && gateLevelSprites.Length > 0)
+            {
+                gate.SetLevelSprites(gateLevelSprites);
+            }
+            gate.RefreshUpgradeBadge(gold);
         }
         else
         {
             gate = wallTr.GetComponentInChildren<TowerDefGate>(true);
+            if (gate != null)
+            {
+                if (gateLevelSprites != null && gateLevelSprites.Length > 0)
+                {
+                    gate.SetLevelSprites(gateLevelSprites);
+                }
+                gate.RefreshUpgradeBadge(gold);
+            }
         }
 
         // 4. Lưới phòng thủ 7x4 bên dưới tường (Defense Grid)
@@ -1056,6 +1092,14 @@ public class TowerDefGameManager : MonoBehaviour
 
         TowerDefUIController ctrl = uiObj.GetComponent<TowerDefUIController>();
         ctrl.SetupTopBar(backBtn, cTxt, eTxt);
+        ctrl.SetupCustomSprites(
+            frameUpgradePopupSprite,
+            panelUpgradeRowBarSprite,
+            btnUpgradeGreySprite,
+            btnUpgradeCyanSprite,
+            btnUpgradeAdsSprite,
+            coinIconSprite,
+            gateLevelSprites);
         return ctrl;
     }
 
@@ -1105,6 +1149,20 @@ public class TowerDefGameManager : MonoBehaviour
         if (creepSprite == null) creepSprite = Resources.Load<Sprite>("TowerDef/Creep_Mine");
         if (bossSprite == null) bossSprite = Resources.Load<Sprite>("TowerDef/Boss_Mine");
 
+        if (gateLevelSprites == null || gateLevelSprites.Length == 0)
+        {
+            gateLevelSprites = new Sprite[4];
+            gateLevelSprites[0] = Resources.Load<Sprite>("TowerDef/Gate_Metal");
+            gateLevelSprites[1] = Resources.Load<Sprite>("TowerDef/Gate_Cyan_Grid");
+            gateLevelSprites[2] = Resources.Load<Sprite>("TowerDef/Gate_Green_Wood");
+            gateLevelSprites[3] = Resources.Load<Sprite>("TowerDef/Gate_Blue_Wood");
+        }
+        if (frameUpgradePopupSprite == null) frameUpgradePopupSprite = Resources.Load<Sprite>("TowerDef/Frame_Upgrade_Popup");
+        if (panelUpgradeRowBarSprite == null) panelUpgradeRowBarSprite = Resources.Load<Sprite>("TowerDef/Panel_Upgrade_Row_Bar");
+        if (btnUpgradeGreySprite == null) btnUpgradeGreySprite = Resources.Load<Sprite>("TowerDef/Btn_Upgrade_Grey");
+        if (btnUpgradeCyanSprite == null) btnUpgradeCyanSprite = Resources.Load<Sprite>("TowerDef/Btn_Upgrade_Cyan");
+        if (btnUpgradeAdsSprite == null) btnUpgradeAdsSprite = Resources.Load<Sprite>("TowerDef/Btn_Upgrade_Ads");
+
 #if UNITY_EDITOR
         string tilesDir = "Assets/Sprites/Mini game/Sliced/Tiles/";
         string uiDir = "Assets/Sprites/Mini game/Sliced/UI/";
@@ -1133,6 +1191,25 @@ public class TowerDefGameManager : MonoBehaviour
 
         if (creepSprite == null) creepSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(monstersDir + "Creep_Mine.png");
         if (bossSprite == null) bossSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(monstersDir + "Boss_Mine.png");
+
+        if (gateLevelSprites == null || gateLevelSprites.Length < 4 || gateLevelSprites[0] == null)
+        {
+            gateLevelSprites = new Sprite[4];
+            gateLevelSprites[0] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + "Gate_Metal.png");
+            gateLevelSprites[1] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + "Gate_Cyan_Grid.png");
+            gateLevelSprites[2] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + "Gate_Green_Wood.png");
+            gateLevelSprites[3] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + "Gate_Blue_Wood.png");
+        }
+        if (gateSprite == null && gateLevelSprites != null && gateLevelSprites.Length > 0)
+        {
+            gateSprite = gateLevelSprites[0];
+        }
+
+        if (frameUpgradePopupSprite == null) frameUpgradePopupSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(uiDir + "Frame_Upgrade_Popup.png");
+        if (panelUpgradeRowBarSprite == null) panelUpgradeRowBarSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(uiDir + "Panel_Upgrade_Row_Bar.png");
+        if (btnUpgradeGreySprite == null) btnUpgradeGreySprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(uiDir + "Btn_Upgrade_Grey.png");
+        if (btnUpgradeCyanSprite == null) btnUpgradeCyanSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(uiDir + "Btn_Upgrade_Cyan.png");
+        if (btnUpgradeAdsSprite == null) btnUpgradeAdsSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(uiDir + "Btn_Upgrade_Ads.png");
 #endif
     }
     #endregion

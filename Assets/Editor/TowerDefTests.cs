@@ -82,6 +82,98 @@ public class TowerDefTests
     }
 
     [Test]
+    public void Gate_UpgradeBadgeVisibilityDependsOnGoldAndLevel()
+    {
+        GameObject gateObj = new GameObject("TestGateBadge", typeof(RectTransform), typeof(Image), typeof(Button), typeof(TowerDefGate));
+        gateObj.transform.SetParent(rootObj.transform);
+
+        GameObject badgeObj = new GameObject("UpgradeBadge", typeof(Image));
+        badgeObj.transform.SetParent(gateObj.transform);
+
+        TowerDefGate gate = gateObj.GetComponent<TowerDefGate>();
+        gate.Setup(50f, null, badgeObj, null, 12, 20f);
+
+        // Ban đầu chưa đủ vàng (10 < 12) -> Không hiện mũi tên vàng
+        gate.RefreshUpgradeBadge(10);
+        Assert.IsFalse(badgeObj.activeSelf);
+
+        // Đủ vàng (12 >= 12) -> Hiện mũi tên vàng
+        gate.RefreshUpgradeBadge(12);
+        Assert.IsTrue(badgeObj.activeSelf);
+
+        // Nâng cấp lên level 2
+        int gold = 12;
+        gate.TryUpgrade(ref gold);
+        Assert.AreEqual(2, gate.GateLevel);
+        Assert.AreEqual(70f, gate.MaxHp);
+        Assert.AreEqual(24, gate.UpgradeCost); // Cost tăng lên 24
+
+        // Vàng hiện tại = 0 < 24 -> Mũi tên tự ẩn
+        gate.RefreshUpgradeBadge(gold);
+        Assert.IsFalse(badgeObj.activeSelf);
+
+        // Cung cấp 24 vàng -> Mũi tên lại hiện
+        gate.RefreshUpgradeBadge(24);
+        Assert.IsTrue(badgeObj.activeSelf);
+
+        // Nâng lên max level (4)
+        gate.TryUpgradeFree(); // Lv.3
+        gate.TryUpgradeFree(); // Lv.4 (Max)
+        Assert.IsTrue(gate.IsMaxLevel);
+
+        // Khi đã max level, dù có 999 vàng cũng không hiện mũi tên nâng cấp
+        gate.RefreshUpgradeBadge(999);
+        Assert.IsFalse(badgeObj.activeSelf);
+    }
+
+    [Test]
+    public void Gate_FreeAdUpgradeWorksAndIncreasesLevel()
+    {
+        GameObject gateObj = new GameObject("TestGateFree", typeof(RectTransform), typeof(Image), typeof(Button), typeof(TowerDefGate));
+        gateObj.transform.SetParent(rootObj.transform);
+
+        TowerDefGate gate = gateObj.GetComponent<TowerDefGate>();
+        gate.Setup(50f, null, null, null, 12, 20f);
+
+        gate.TakeDamage(30f);
+        Assert.AreEqual(20f, gate.CurrentHp);
+
+        bool upgraded = gate.TryUpgradeFree();
+        Assert.IsTrue(upgraded);
+        Assert.AreEqual(2, gate.GateLevel);
+        Assert.AreEqual(70f, gate.MaxHp);
+        Assert.AreEqual(70f, gate.CurrentHp); // Hồi máu đầy khi nâng cấp miễn phí
+    }
+
+    [Test]
+    public void UIController_OpensGateUpgradeModalSuccessfully()
+    {
+        GameObject canvasObj = new GameObject("Canvas", typeof(RectTransform), typeof(Canvas), typeof(TowerDefUIController));
+        canvasObj.transform.SetParent(rootObj.transform);
+        TowerDefUIController ui = canvasObj.GetComponent<TowerDefUIController>();
+
+        GameObject gateObj = new GameObject("Gate", typeof(RectTransform), typeof(Image), typeof(Button), typeof(TowerDefGate));
+        gateObj.transform.SetParent(rootObj.transform);
+        TowerDefGate gate = gateObj.GetComponent<TowerDefGate>();
+        gate.Setup(50f, null, null, null, 12, 20f);
+
+        ui.OpenGateModal(gate);
+
+        Transform modal = canvasObj.transform.Find("GateUpgradeModal");
+        Assert.IsNotNull(modal);
+        Assert.IsTrue(modal.gameObject.activeSelf);
+
+        Transform frame = modal.Find("ModalFrame");
+        Assert.IsNotNull(frame);
+        Assert.IsNotNull(frame.Find("TitleText"));
+        Assert.IsNotNull(frame.Find("Row1_GoldUpgrade"));
+        Assert.IsNotNull(frame.Find("Row2_AdsUpgrade"));
+
+        ui.CloseAllModals();
+        Assert.IsFalse(modal.gameObject.activeSelf);
+    }
+
+    [Test]
     public void GridCell_CanPlaceStructureAndDetectOccupancy()
     {
         GameObject cellObj = new GameObject("Cell", typeof(RectTransform), typeof(Image), typeof(Button), typeof(TowerDefGridCell));
