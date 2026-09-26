@@ -126,14 +126,14 @@ public static class BakeChipsetIconsInScene
             if (byTile != null && byTileYellow != null)
             {
                 var img = byTile.GetComponent<Image>();
-                if (img != null) { img.sprite = byTileYellow; img.color = Color.white; EditorUtility.SetDirty(img); }
+                if (img != null) { img.sprite = byTileYellow; img.color = Color.white; img.raycastTarget = true; EditorUtility.SetDirty(img); }
             }
 
             Transform byQty = chipsetPanelObj.transform.Find("SortBar/ByQtyBtn") ?? chipsetPanelObj.transform.Find("ByQuantityBtn") ?? chipsetPanelObj.transform.Find("ByQty");
             if (byQty != null && byQtyGreen != null)
             {
                 var img = byQty.GetComponent<Image>();
-                if (img != null) { img.sprite = byQtyGreen; img.color = Color.white; EditorUtility.SetDirty(img); }
+                if (img != null) { img.sprite = byQtyGreen; img.color = Color.white; img.raycastTarget = true; EditorUtility.SetDirty(img); }
             }
         }
 
@@ -282,14 +282,14 @@ public static class BakeChipsetIconsInScene
             if (byTile != null && byTileYellow != null)
             {
                 var img = byTile.GetComponent<Image>();
-                if (img != null) { img.sprite = byTileYellow; img.color = Color.white; EditorUtility.SetDirty(img); }
+                if (img != null) { img.sprite = byTileYellow; img.color = Color.white; img.raycastTarget = true; EditorUtility.SetDirty(img); }
             }
 
             Transform byQty = buddyPanelObj.transform.Find("SortBar/ByQtyBtn") ?? buddyPanelObj.transform.Find("ByQuantityBtn") ?? buddyPanelObj.transform.Find("ByQty");
             if (byQty != null && byQtyGreen != null)
             {
                 var img = byQty.GetComponent<Image>();
-                if (img != null) { img.sprite = byQtyGreen; img.color = Color.white; EditorUtility.SetDirty(img); }
+                if (img != null) { img.sprite = byQtyGreen; img.color = Color.white; img.raycastTarget = true; EditorUtility.SetDirty(img); }
             }
         }
 

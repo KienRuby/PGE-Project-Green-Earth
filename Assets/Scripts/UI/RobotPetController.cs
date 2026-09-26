@@ -24,6 +24,14 @@ public class RobotPetController : MonoBehaviour
     [SerializeField] public Color slotActiveColor = new Color(1f, 0.8f, 0.2f, 1f); // Vàng cam sáng
     [SerializeField] public Color slotNormalColor = new Color(0.9f, 0.45f, 0.35f, 1f); // Cam đỏ
 
+    [Header("Sprite số 1, 2, 3 chuẩn Preset")]
+    [SerializeField] public Sprite preset1YellowSprite;
+    [SerializeField] public Sprite preset1RedSprite;
+    [SerializeField] public Sprite preset2YellowSprite;
+    [SerializeField] public Sprite preset2RedSprite;
+    [SerializeField] public Sprite preset3YellowSprite;
+    [SerializeField] public Sprite preset3RedSprite;
+
     [Header("Bảng thông tin chi tiết (PetDetailPanel)")]
     [SerializeField] public GameObject detailPanel;
     [SerializeField] public Image selectedPetCardImage;
@@ -31,6 +39,7 @@ public class RobotPetController : MonoBehaviour
     [SerializeField] public TMP_Text petNameText;
     [SerializeField] public TMP_Text petDescText;
     [SerializeField] public Button craftButton;
+    [SerializeField] public Button infoButton;
 
     [Header("Nút sắp xếp")]
     [SerializeField] public Button byTierButton;
@@ -129,6 +138,8 @@ public class RobotPetController : MonoBehaviour
             int index = i;
             if (slotButtons[i] != null)
             {
+                if (slotImages != null && i < slotImages.Length && slotImages[i] != null) slotImages[i].raycastTarget = true;
+                if (slotButtons[i].targetGraphic != null) slotButtons[i].targetGraphic.raycastTarget = true;
                 slotButtons[i].onClick.RemoveAllListeners();
                 slotButtons[i].onClick.AddListener(() => OnSlotButtonClicked(index));
             }
@@ -141,15 +152,31 @@ public class RobotPetController : MonoBehaviour
             craftButton.onClick.AddListener(OpenCraftScreen);
         }
 
+        // Nút Info trong PetDetailPanel
+        if (infoButton != null)
+        {
+            Image infoImg = infoButton.GetComponent<Image>() ?? infoButton.targetGraphic as Image;
+            if (infoImg != null) infoImg.raycastTarget = true;
+            if (infoButton.targetGraphic != null) infoButton.targetGraphic.raycastTarget = true;
+            infoButton.onClick.RemoveListener(OpenInfoModal);
+            infoButton.onClick.AddListener(OpenInfoModal);
+        }
+
         // Nút sắp xếp
         if (byTierButton != null)
         {
+            Image img = byTierButton.GetComponent<Image>() ?? byTierButton.targetGraphic as Image;
+            if (img != null) img.raycastTarget = true;
+            if (byTierButton.targetGraphic != null) byTierButton.targetGraphic.raycastTarget = true;
             byTierButton.onClick.RemoveListener(OnByTierClicked);
             byTierButton.onClick.AddListener(OnByTierClicked);
         }
 
         if (byQuantityButton != null)
         {
+            Image img = byQuantityButton.GetComponent<Image>() ?? byQuantityButton.targetGraphic as Image;
+            if (img != null) img.raycastTarget = true;
+            if (byQuantityButton.targetGraphic != null) byQuantityButton.targetGraphic.raycastTarget = true;
             byQuantityButton.onClick.RemoveListener(OnByQuantityClicked);
             byQuantityButton.onClick.AddListener(OnByQuantityClicked);
         }
@@ -183,6 +210,20 @@ public class RobotPetController : MonoBehaviour
         }
     }
 
+    public void OpenInfoModal()
+    {
+        if (RobotPetInfoModalController.Instance != null)
+        {
+            RobotPetInfoModalController.Instance.Show();
+        }
+        else
+        {
+            Canvas canvas = GetComponentInParent<Canvas>();
+            var modal = RobotPetInfoModalController.EnsureModalInCanvas(canvas);
+            if (modal != null) modal.Show();
+        }
+    }
+
     private void OnByTierClicked()
     {
         isSortedByQuantity = false;
@@ -202,35 +243,84 @@ public class RobotPetController : MonoBehaviour
         RefreshInventory();
     }
 
+    public void LoadPresetSpritesIfMissing()
+    {
+        if (preset1YellowSprite != null && preset1RedSprite != null &&
+            preset2YellowSprite != null && preset2RedSprite != null &&
+            preset3YellowSprite != null && preset3RedSprite != null)
+            return;
+
+        Sprite[] allLoadedSprites = Resources.FindObjectsOfTypeAll<Sprite>();
+        foreach (var s in allLoadedSprites)
+        {
+            if (s == null) continue;
+            if (preset1YellowSprite == null && s.name.Equals("1 Yellow", StringComparison.OrdinalIgnoreCase)) preset1YellowSprite = s;
+            else if (preset1RedSprite == null && s.name.Equals("1 Red", StringComparison.OrdinalIgnoreCase)) preset1RedSprite = s;
+            else if (preset2YellowSprite == null && s.name.Equals("2 Yellow", StringComparison.OrdinalIgnoreCase)) preset2YellowSprite = s;
+            else if (preset2RedSprite == null && s.name.Equals("2 Red", StringComparison.OrdinalIgnoreCase)) preset2RedSprite = s;
+            else if (preset3YellowSprite == null && s.name.Equals("3 Yellow", StringComparison.OrdinalIgnoreCase)) preset3YellowSprite = s;
+            else if (preset3RedSprite == null && s.name.Equals("3 Red", StringComparison.OrdinalIgnoreCase)) preset3RedSprite = s;
+        }
+
+#if UNITY_EDITOR
+        if (preset1YellowSprite == null || preset1RedSprite == null ||
+            preset2YellowSprite == null || preset2RedSprite == null ||
+            preset3YellowSprite == null || preset3RedSprite == null)
+        {
+            string path = "Assets/Sprites/UI/Chipset/nút màn chipset.png";
+            Sprite[] sprites = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(path).OfType<Sprite>().ToArray();
+            foreach (var s in sprites)
+            {
+                if (s.name.Equals("1 Yellow", StringComparison.OrdinalIgnoreCase)) preset1YellowSprite = s;
+                else if (s.name.Equals("1 Red", StringComparison.OrdinalIgnoreCase)) preset1RedSprite = s;
+                else if (s.name.Equals("2 Yellow", StringComparison.OrdinalIgnoreCase)) preset2YellowSprite = s;
+                else if (s.name.Equals("2 Red", StringComparison.OrdinalIgnoreCase)) preset2RedSprite = s;
+                else if (s.name.Equals("3 Yellow", StringComparison.OrdinalIgnoreCase)) preset3YellowSprite = s;
+                else if (s.name.Equals("3 Red", StringComparison.OrdinalIgnoreCase)) preset3RedSprite = s;
+            }
+        }
+#endif
+    }
+
     /// <summary>
     /// Cập nhật hiển thị 3 Slot [ 1 ] [ 2 ] [ 3 ]
     /// </summary>
     public void RefreshSlots()
     {
+        LoadPresetSpritesIfMissing();
+
         for (int i = 0; i < slotButtons.Length; i++)
         {
             bool isActive = (i == activeSlotIndex);
-            int equippedId = PetService.GetEquippedPetId(i);
-            bool hasEquipped = (equippedId >= 0 && PetService.IsPetOwned(equippedId));
 
-            if (slotImages[i] != null)
+            if (slotImages != null && i < slotImages.Length && slotImages[i] != null)
             {
-                if (isActive)
+                slotImages[i].raycastTarget = true;
+                slotImages[i].color = Color.white; // Luôn giữ màu gốc sắc nét của Sprite chuẩn
+
+                Sprite targetSprite = null;
+                if (i == 0) targetSprite = isActive ? preset1YellowSprite : preset1RedSprite;
+                else if (i == 1) targetSprite = isActive ? preset2YellowSprite : preset2RedSprite;
+                else if (i == 2) targetSprite = isActive ? preset3YellowSprite : preset3RedSprite;
+
+                if (targetSprite != null)
                 {
-                    slotImages[i].color = slotActiveColor;
-                    if (slotActiveSprite != null) slotImages[i].sprite = slotActiveSprite;
-                }
-                else
-                {
-                    slotImages[i].color = hasEquipped ? new Color(0.95f, 0.6f, 0.4f, 1f) : slotNormalColor;
-                    if (slotNormalSprite != null) slotImages[i].sprite = slotNormalSprite;
+                    slotImages[i].sprite = targetSprite;
                 }
             }
 
-            if (slotTexts[i] != null)
+            if (slotTexts != null && i < slotTexts.Length && slotTexts[i] != null)
             {
-                slotTexts[i].text = (i + 1).ToString();
-                slotTexts[i].color = isActive ? new Color(0.1f, 0.1f, 0.1f, 1f) : Color.white;
+                // Nếu sprite đã có sẵn số pixel art (1, 2, 3), xóa text đè lên để tránh bị nhân đôi / lệch font
+                if (preset1YellowSprite != null)
+                {
+                    slotTexts[i].text = string.Empty;
+                }
+                else
+                {
+                    slotTexts[i].text = (i + 1).ToString();
+                    slotTexts[i].color = isActive ? new Color(0.1f, 0.1f, 0.1f, 1f) : Color.white;
+                }
             }
         }
     }
@@ -700,6 +790,8 @@ public class RobotPetController : MonoBehaviour
                     Button btn = t.GetComponent<Button>() ?? t.gameObject.AddComponent<Button>();
                     slotButtons[i] = btn;
                     slotImages[i] = t.GetComponent<Image>();
+                    if (slotImages[i] != null) slotImages[i].raycastTarget = true;
+                    if (btn.targetGraphic != null) btn.targetGraphic.raycastTarget = true;
                     slotTexts[i] = t.GetComponentInChildren<TMP_Text>(true);
                 }
             }
@@ -761,6 +853,19 @@ public class RobotPetController : MonoBehaviour
                 Transform cb = detailPanel.transform.Find("CraftButton");
                 if (cb != null) craftButton = cb.GetComponent<Button>();
             }
+
+            if (infoButton == null)
+            {
+                Transform ib = detailPanel.transform.Find("Button_Info");
+                if (ib != null)
+                {
+                    infoButton = ib.GetComponent<Button>();
+                }
+                else
+                {
+                    infoButton = CreateInfoButtonInDetailPanel(detailPanel.transform);
+                }
+            }
         }
 
         // Auto wire sort buttons
@@ -769,11 +874,23 @@ public class RobotPetController : MonoBehaviour
             Transform bt = transform.Find("RobotByTier");
             if (bt != null) byTierButton = bt.GetComponent<Button>() ?? bt.gameObject.AddComponent<Button>();
         }
+        if (byTierButton != null)
+        {
+            Image img = byTierButton.GetComponent<Image>() ?? byTierButton.targetGraphic as Image;
+            if (img != null) img.raycastTarget = true;
+            if (byTierButton.targetGraphic != null) byTierButton.targetGraphic.raycastTarget = true;
+        }
 
         if (byQuantityButton == null)
         {
             Transform bq = transform.Find("RobotByQuantity");
             if (bq != null) byQuantityButton = bq.GetComponent<Button>() ?? bq.gameObject.AddComponent<Button>();
+        }
+        if (byQuantityButton != null)
+        {
+            Image img = byQuantityButton.GetComponent<Image>() ?? byQuantityButton.targetGraphic as Image;
+            if (img != null) img.raycastTarget = true;
+            if (byQuantityButton.targetGraphic != null) byQuantityButton.targetGraphic.raycastTarget = true;
         }
 
         // Sprites
@@ -783,5 +900,50 @@ public class RobotPetController : MonoBehaviour
             emptyCardFrameSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Buddy/RobotPet_Sliced/Card_Slot_Empty.png");
         }
 #endif
+
+        Canvas canvas = GetComponentInParent<Canvas>();
+        if (canvas != null)
+        {
+            RobotPetInfoModalController.EnsureModalInCanvas(canvas);
+        }
+    }
+
+    private Button CreateInfoButtonInDetailPanel(Transform detailPanelTransform)
+    {
+        if (detailPanelTransform == null) return null;
+
+        GameObject infoBtnObj = new GameObject("Button_Info", typeof(RectTransform), typeof(Image), typeof(Button));
+        infoBtnObj.transform.SetParent(detailPanelTransform, false);
+
+        RectTransform rt = infoBtnObj.GetComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0f, 1f);
+        rt.anchorMax = new Vector2(0f, 1f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.anchoredPosition = new Vector2(43.25f, -40f);
+        rt.sizeDelta = new Vector2(52f, 52f);
+
+        Image img = infoBtnObj.GetComponent<Image>();
+        Sprite s = null;
+#if UNITY_EDITOR
+        s = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Shop/icon_info_cyan.png")
+            ?? UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Buddy/RobotPet_Sliced/Icon_Info.png");
+#endif
+        if (s == null)
+        {
+            s = Resources.Load<Sprite>("UI/Shop/icon_info_cyan");
+        }
+        img.sprite = s;
+        img.preserveAspect = true;
+        img.raycastTarget = true;
+
+        Button btn = infoBtnObj.GetComponent<Button>();
+        btn.targetGraphic = img;
+        btn.transition = Selectable.Transition.ColorTint;
+        var cb = btn.colors;
+        cb.highlightedColor = new Color(1.15f, 1.15f, 1.15f, 1f);
+        cb.pressedColor = new Color(0.85f, 0.85f, 0.85f, 1f);
+        btn.colors = cb;
+
+        return btn;
     }
 }

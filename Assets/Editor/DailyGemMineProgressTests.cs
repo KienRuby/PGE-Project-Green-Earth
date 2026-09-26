@@ -67,5 +67,30 @@ public class DailyGemMineProgressTests
         DailyGemMineProgress.SelectedLevel = 2;
         Assert.AreEqual(2, DailyGemMineProgress.SelectedLevel, "Level 2 can be selected once unlocked");
     }
+
+    [Test]
+    public void RewardRanges_MatchesDisplaySpecification()
+    {
+        Assert.AreEqual("x60-120", DailyGemMineProgress.GetRewardRangeString(1));
+        Assert.AreEqual("x120-220", DailyGemMineProgress.GetRewardRangeString(2));
+        Assert.AreEqual("x200-350", DailyGemMineProgress.GetRewardRangeString(3));
+        Assert.AreEqual("x300-500", DailyGemMineProgress.GetRewardRangeString(4));
+        Assert.AreEqual("x450-700", DailyGemMineProgress.GetRewardRangeString(5));
+    }
+
+    [Test]
+    public void RewardGeneration_ReturnsValueWithinRange()
+    {
+        for (int level = 1; level <= DailyGemMineProgress.LevelCount; level++)
+        {
+            DailyGemMineProgress.GetRewardRange(level, out int min, out int max);
+            for (int i = 0; i < 50; i++)
+            {
+                int reward = DailyGemMineProgress.GenerateRewardAmount(level);
+                Assert.GreaterOrEqual(reward, min, $"Reward for level {level} must be >= {min}");
+                Assert.LessOrEqual(reward, max, $"Reward for level {level} must be <= {max}");
+            }
+        }
+    }
 }
 #endif

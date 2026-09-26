@@ -3474,6 +3474,9 @@ public static class LabMenuSceneBuilder
         Stretch(text.rectTransform, Vector2.zero, Vector2.one, new Vector2(10f, 5f), new Vector2(-10f, -5f));
 
         background.raycastTarget = !locked;
+        Image rootImage = root.GetComponent<Image>();
+        if (rootImage != null) rootImage.raycastTarget = !locked;
+
         Button button = root.AddComponent<Button>();
         button.targetGraphic = background;
         button.interactable = !locked;

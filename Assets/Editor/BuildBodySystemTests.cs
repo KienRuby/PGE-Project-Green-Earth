@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class BuildBodySystemTests
 {
@@ -117,6 +118,50 @@ public class BuildBodySystemTests
             catch (Exception ex)
             {
                 Assert("Test08_BuildBodyUIBuilder_Execution", false, ex.Message);
+            }
+
+            // Test 5: Verify StatsButton and BuildBodyButton can be clicked and switched back and forth
+            try
+            {
+                GameObject topTabsGo = GameObject.Find("TopTabs");
+                BuildBodyController controller = topTabsGo != null ? topTabsGo.GetComponent<BuildBodyController>() : null;
+                Assert("Test09a_Controller_Found", controller != null, "BuildBodyController must exist on TopTabs");
+
+                if (controller != null)
+                {
+                    SerializedObject so = new SerializedObject(controller);
+                    Button statsBtn = so.FindProperty("statsTabButton").objectReferenceValue as Button;
+                    Button buildBtn = so.FindProperty("buildBodyTabButton").objectReferenceValue as Button;
+                    GameObject statsPnl = so.FindProperty("statsPanel").objectReferenceValue as GameObject;
+                    GameObject buildPnl = so.FindProperty("buildBodyPanel").objectReferenceValue as GameObject;
+
+                    Assert("Test09b_StatsButton_Raycastable",
+                        statsBtn != null && statsBtn.interactable && statsBtn.targetGraphic != null && statsBtn.targetGraphic.raycastTarget,
+                        "StatsButton must be interactable with raycastTarget=true");
+
+                    Assert("Test09c_BuildBodyButton_Raycastable",
+                        buildBtn != null && buildBtn.interactable && buildBtn.targetGraphic != null && buildBtn.targetGraphic.raycastTarget,
+                        "BuildBodyButton must be interactable with raycastTarget=true");
+
+                    // Set unlocked chapter to 3 to allow switching
+                    PlayerDataService.UnlockedChapterIndex = 3;
+
+                    // Switch to Build Body
+                    controller.OnBuildBodyTabClicked();
+                    Assert("Test09d_SwitchToBuildBody_Success",
+                        (statsPnl == null || !statsPnl.activeSelf) && (buildPnl != null && buildPnl.activeSelf),
+                        "BuildBodyPanel must be active and StatsPanel inactive");
+
+                    // Switch back to Stats
+                    controller.OnStatsTabClicked();
+                    Assert("Test09e_SwitchBackToStats_Success",
+                        (statsPnl != null && statsPnl.activeSelf) && (buildPnl == null || !buildPnl.activeSelf),
+                        "StatsPanel must be active and BuildBodyPanel inactive when switching back");
+                }
+            }
+            catch (Exception ex)
+            {
+                Assert("Test09_TabSwitching_Exception", false, ex.Message);
             }
         }
         catch (Exception ex)

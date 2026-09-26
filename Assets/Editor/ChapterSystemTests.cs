@@ -620,6 +620,7 @@ public class ChapterSystemTests
         {
             // 1. Mới tải game: UnlockedChapterIndex = 0 (Chưa vượt chapter nào)
             PlayerDataService.UnlockedChapterIndex = 0;
+            PlayerPrefs.DeleteKey(AchievementManager.ClearedChaptersMaskKey);
 
             // Chapter 1: Chơi được, nhưng boss TỐI ĐEN vì chưa thắng
             ctrl.SetDatabaseForTesting(db, 0);
@@ -635,6 +636,7 @@ public class ChapterSystemTests
 
             // 2. Thắng Chapter 1 -> Mở khóa Chapter 2 (UnlockedChapterIndex = 1)
             PlayerDataService.UnlockedChapterIndex = 1;
+            AchievementManager.RecordChapterCleared(1);
 
             // Chapter 1: Đã thắng -> Boss SÁNG RÕ
             ctrl.SetDatabaseForTesting(db, 0);
@@ -654,6 +656,7 @@ public class ChapterSystemTests
 
             // 3. Thắng Chapter 2 -> Mở khóa Chapter 3 (UnlockedChapterIndex = 2)
             PlayerDataService.UnlockedChapterIndex = 2;
+            AchievementManager.RecordChapterCleared(2);
 
             // Chapter 1: Vẫn sáng
             ctrl.SetDatabaseForTesting(db, 0);
@@ -672,6 +675,7 @@ public class ChapterSystemTests
         }
         finally
         {
+            PlayerPrefs.DeleteKey(AchievementManager.ClearedChaptersMaskKey);
             PlayerDataService.UnlockedChapterIndex = originalUnlocked;
             PlayerDataService.SelectedChapterIndex = originalSelected;
             GameObject.DestroyImmediate(bgGo);
@@ -1581,7 +1585,8 @@ public class ChapterSystemTests
             Assert.That(ch.groundDrawMode, Is.EqualTo(c1.groundDrawMode), $"Chapter {ch.chapterNumber} phải dùng groundDrawMode của Chapter 1.");
             Assert.That(ch.playerBoundaryPadding, Is.EqualTo(c1.playerBoundaryPadding), $"Chapter {ch.chapterNumber} phải dùng padding của Chapter 1.");
             Assert.That(ch.enableObstacles, Is.True, $"Chapter {ch.chapterNumber} phải bật enableObstacles.");
-            Assert.That(ch.obstacleDensity, Is.EqualTo(4f), $"Chapter {ch.chapterNumber} phải dùng obstacleDensity = 4.");
+            float expectedObstacleDensity = (ch.chapterNumber == 2 || ch.chapterNumber == 3) ? 0f : 4f;
+            Assert.That(ch.obstacleDensity, Is.EqualTo(expectedObstacleDensity), $"Chapter {ch.chapterNumber} phải dùng obstacleDensity = {expectedObstacleDensity}.");
             Assert.That(ch.decorationDensity, Is.EqualTo(5f), $"Chapter {ch.chapterNumber} phải dùng decorationDensity = 5.");
             Assert.That(ch.obstacleColliderWidthRatio, Is.EqualTo(0.55f), $"Chapter {ch.chapterNumber} phải có obstacleColliderWidthRatio = 0.55.");
             Assert.That(ch.obstacleColliderHeightRatio, Is.EqualTo(0.2f), $"Chapter {ch.chapterNumber} phải có obstacleColliderHeightRatio = 0.2.");

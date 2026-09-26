@@ -186,11 +186,18 @@ public class BuddyController : MonoBehaviour
     [SerializeField] private Sprite lockSlotSprite;
     [SerializeField] private Sprite[] lockTierSprites = new Sprite[4]; // 0: Magic, 1: Rare, 2: Unique, 3: Epic
     [SerializeField] private Sprite unlockedCheckSprite;
+    [SerializeField] private Sprite equipBadgeSprite;
+    [SerializeField] private AudioClip equipSFX;
+    [SerializeField] private AudioClip presetSwitchSFX;
 
     private int activeDeckIndex = 0;
     private bool sortByQuantity = false;
     private BuddyItemData selectedDetailBuddy;
     private int openedFromEquippedSlotIndex = -1;
+    private bool isEquipSelectMode = false;
+    private BuddyItemData pendingEquipBuddy = null;
+    private int lastEquipFrame = -1;
+    private float lastEquipTime = -1f;
 
     [SerializeField] private List<BuddyItemData> allBuddies = new List<BuddyItemData>();
     private int[][] deckEquippedIds = new int[3][];
@@ -212,6 +219,8 @@ public class BuddyController : MonoBehaviour
     private void Awake()
     {
         InitializeDatabase();
+        LoadEquipSpritesIfMissing();
+        LoadAudioClipsIfMissing();
         AutoWireSlotIconBuddyIfMissing();
         AutoWireDetailModalReferencesIfMissing();
     }
@@ -402,19 +411,41 @@ public class BuddyController : MonoBehaviour
     {
         AutoWireSortButtonsIfMissing();
 
-        if (preset1Btn != null) preset1Btn.onClick.AddListener(() => SwitchDeck(0));
-        if (preset2Btn != null) preset2Btn.onClick.AddListener(() => SwitchDeck(1));
-        if (preset3Btn != null) preset3Btn.onClick.AddListener(() => SwitchDeck(2));
+        if (preset1Btn != null)
+        {
+            preset1Btn.onClick.RemoveAllListeners();
+            preset1Btn.onClick.AddListener(() => SwitchDeck(0));
+            if (preset1Bg != null) preset1Bg.raycastTarget = true;
+            if (preset1Btn.targetGraphic != null) preset1Btn.targetGraphic.raycastTarget = true;
+        }
+        if (preset2Btn != null)
+        {
+            preset2Btn.onClick.RemoveAllListeners();
+            preset2Btn.onClick.AddListener(() => SwitchDeck(1));
+            if (preset2Bg != null) preset2Bg.raycastTarget = true;
+            if (preset2Btn.targetGraphic != null) preset2Btn.targetGraphic.raycastTarget = true;
+        }
+        if (preset3Btn != null)
+        {
+            preset3Btn.onClick.RemoveAllListeners();
+            preset3Btn.onClick.AddListener(() => SwitchDeck(2));
+            if (preset3Bg != null) preset3Bg.raycastTarget = true;
+            if (preset3Btn.targetGraphic != null) preset3Btn.targetGraphic.raycastTarget = true;
+        }
 
         if (byTierBtn != null)
         {
             byTierBtn.onClick.RemoveAllListeners();
             byTierBtn.onClick.AddListener(() => SetSortMode(false));
+            if (byTierBg != null) byTierBg.raycastTarget = true;
+            if (byTierBtn.targetGraphic != null) byTierBtn.targetGraphic.raycastTarget = true;
         }
         if (byQuantityBtn != null)
         {
             byQuantityBtn.onClick.RemoveAllListeners();
             byQuantityBtn.onClick.AddListener(() => SetSortMode(true));
+            if (byQuantityBg != null) byQuantityBg.raycastTarget = true;
+            if (byQuantityBtn.targetGraphic != null) byQuantityBtn.targetGraphic.raycastTarget = true;
         }
 
         if (droneModeBg != null) droneModeBg.raycastTarget = true;
@@ -431,7 +462,10 @@ public class BuddyController : MonoBehaviour
             robotPetModeBtn.onClick.AddListener(TryShowRobotPetMode);
         }
 
-        if (detailCloseBtn != null) detailCloseBtn.onClick.AddListener(() => UIDissolveController.HideWithEffect(detailModal));
+        if (detailCloseBtn != null) detailCloseBtn.onClick.AddListener(() => {
+            openedFromEquippedSlotIndex = -1;
+            UIDissolveController.HideWithEffect(detailModal);
+        });
         if (detailEnhanceBtn != null) detailEnhanceBtn.onClick.AddListener(EnhanceSelectedBuddy);
         if (detailAdvanceTierBtn != null) detailAdvanceTierBtn.onClick.AddListener(AdvanceTierSelectedBuddy);
         if (detailEquipBtn != null) detailEquipBtn.onClick.AddListener(ToggleEquipSelectedBuddy);
@@ -460,6 +494,7 @@ public class BuddyController : MonoBehaviour
 
     private void SetBuddyMode(bool showRobotPet)
     {
+        CancelEquipSelection();
         isRobotPetMode = showRobotPet && IsRobotPetUnlocked;
 
         if (droneModeContentRoots != null)
@@ -573,12 +608,16 @@ public class BuddyController : MonoBehaviour
         {
             if (byTierBg == null) byTierBg = byTierBtn.GetComponent<Image>() ?? byTierBtn.targetGraphic as Image;
             if (byTierText == null) byTierText = byTierBtn.GetComponentInChildren<TMP_Text>(true);
+            if (byTierBg != null) byTierBg.raycastTarget = true;
+            if (byTierBtn.targetGraphic != null) byTierBtn.targetGraphic.raycastTarget = true;
         }
 
         if (byQuantityBtn != null)
         {
             if (byQuantityBg == null) byQuantityBg = byQuantityBtn.GetComponent<Image>() ?? byQuantityBtn.targetGraphic as Image;
             if (byQuantityText == null) byQuantityText = byQuantityBtn.GetComponentInChildren<TMP_Text>(true);
+            if (byQuantityBg != null) byQuantityBg.raycastTarget = true;
+            if (byQuantityBtn.targetGraphic != null) byQuantityBtn.targetGraphic.raycastTarget = true;
         }
 
         LoadSortSpritesIfMissing();
@@ -735,7 +774,10 @@ public class BuddyController : MonoBehaviour
     {
         if (slotT == null) return;
         slotT.SetSiblingIndex(siblingIndex);
-        slotT.localScale = Vector3.one;
+        if (slotT.localScale == Vector3.zero)
+        {
+            slotT.localScale = Vector3.one;
+        }
         slotT.localRotation = Quaternion.identity;
 
         RectTransform rt = slotT.GetComponent<RectTransform>();
@@ -1002,18 +1044,76 @@ public class BuddyController : MonoBehaviour
 #endif
     }
 
+    public void LoadEquipSpritesIfMissing()
+    {
+        if (equipBadgeSprite != null) return;
+        equipBadgeSprite = Resources.Load<Sprite>("UI/Chipset/badge-equip-arrow");
+#if UNITY_EDITOR
+        if (equipBadgeSprite == null)
+        {
+            equipBadgeSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Chipset/badge-equip-arrow.png");
+        }
+#endif
+    }
+
+    public void LoadAudioClipsIfMissing()
+    {
+        if (equipSFX == null)
+        {
+            equipSFX = Resources.Load<AudioClip>("Audio/SFX_Equip_Chipset");
+#if UNITY_EDITOR
+            if (equipSFX == null)
+            {
+                equipSFX = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/SFX_Equip_Chipset.wav");
+            }
+#endif
+        }
+
+        if (presetSwitchSFX == null)
+        {
+            presetSwitchSFX = Resources.Load<AudioClip>("Audio/SFX_Preset_Switch");
+#if UNITY_EDITOR
+            if (presetSwitchSFX == null)
+            {
+                presetSwitchSFX = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/SFX_Preset_Switch.wav");
+            }
+#endif
+        }
+    }
+
+    public void PlayEquipSFX()
+    {
+        LoadAudioClipsIfMissing();
+        if (equipSFX != null && AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayUI(equipSFX, 1f);
+        }
+    }
+
+    public void PlayPresetSwitchSFX()
+    {
+        LoadAudioClipsIfMissing();
+        if (presetSwitchSFX != null && AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayUI(presetSwitchSFX, 0.9f);
+        }
+    }
+
     public void SwitchDeck(int deckIndex)
     {
+        CancelEquipSelection();
         activeDeckIndex = deckIndex;
         PlayerDataService.ActiveBuddyDeckIndex = activeDeckIndex;
         RefreshPresetButtons();
         RefreshEquippedGrid();
         RefreshInventory();
         ShowToast($"Switched to Buddy Preset {deckIndex + 1}");
+        PlayPresetSwitchSFX();
     }
 
     public void SetSortMode(bool quantitySort)
     {
+        CancelEquipSelection();
         sortByQuantity = quantitySort;
         RefreshSortButtons();
         RefreshInventory();
@@ -1115,6 +1215,7 @@ public class BuddyController : MonoBehaviour
             {
                 preset1Bg.color = activeDeckIndex == 0 ? SelectedPresetColor : NormalPresetColor;
             }
+            preset1Bg.raycastTarget = true;
         }
 
         if (preset2Bg != null)
@@ -1129,6 +1230,7 @@ public class BuddyController : MonoBehaviour
             {
                 preset2Bg.color = activeDeckIndex == 1 ? SelectedPresetColor : NormalPresetColor;
             }
+            preset2Bg.raycastTarget = true;
         }
 
         if (preset3Bg != null)
@@ -1143,6 +1245,7 @@ public class BuddyController : MonoBehaviour
             {
                 preset3Bg.color = activeDeckIndex == 2 ? SelectedPresetColor : NormalPresetColor;
             }
+            preset3Bg.raycastTarget = true;
         }
 
         if (preset1Text != null)
@@ -1183,6 +1286,7 @@ public class BuddyController : MonoBehaviour
             {
                 byTierBg.color = !isByQuantity ? SelectedPresetColor : NormalPresetColor;
             }
+            byTierBg.raycastTarget = true;
         }
 
         if (byQuantityBg != null)
@@ -1197,6 +1301,7 @@ public class BuddyController : MonoBehaviour
             {
                 byQuantityBg.color = isByQuantity ? SelectedPresetColor : NormalPresetColor;
             }
+            byQuantityBg.raycastTarget = true;
         }
 
         if (byTierText != null)
@@ -1277,6 +1382,23 @@ public class BuddyController : MonoBehaviour
                     card.Setup(buddy, icon, buddyFrame, (b) => OpenDetailModalFromEquippedSlot(b, slotIndex), QuickUpgradeBuddy);
                     card.SetEquippedBadge(false);
                 }
+            }
+
+            if (isEquipSelectMode && pendingEquipBuddy != null)
+            {
+                if (!isLocked)
+                {
+                    int targetSlot = i;
+                    card.SetEquipTargetMode(true, equipBadgeSprite, () => OnEquipSlotSelected(targetSlot));
+                }
+                else
+                {
+                    card.SetEquipTargetMode(false);
+                }
+            }
+            else
+            {
+                card.SetEquipTargetMode(false);
             }
         }
     }
@@ -1404,6 +1526,8 @@ public class BuddyController : MonoBehaviour
                 spawnedInventoryCards[i].gameObject.SetActive(false);
             }
         }
+
+        UpdateInventoryEquipVisuals();
     }
 
     public void QuickUpgradeBuddy(BuddyItemData buddy)
@@ -1426,6 +1550,13 @@ public class BuddyController : MonoBehaviour
     public void OpenDetailModal(BuddyItemData buddy)
     {
         if (buddy == null) return;
+        // Do not reopen detail modal right after equipping into a slot
+        if (Time.frameCount == lastEquipFrame || (lastEquipTime > 0f && Time.unscaledTime - lastEquipTime < 0.35f))
+        {
+            return;
+        }
+
+        CancelEquipSelection();
         selectedDetailBuddy = buddy;
         if (detailModal != null)
         {
@@ -1611,20 +1742,17 @@ public class BuddyController : MonoBehaviour
             detailAdvanceTierBtn.interactable = selectedDetailBuddy.CanAdvanceTier;
         }
 
-        // 7. Equip / Unequip Button
-        int[] currentDeck = (deckEquippedIds != null && activeDeckIndex < deckEquippedIds.Length)
-            ? deckEquippedIds[activeDeckIndex]
-            : null;
-        bool isEquipped = currentDeck != null && currentDeck.Contains(selectedDetailBuddy.id);
+        // 7. Equip Button (Only shown when opened from inventory below, hidden when viewing from equipped slot)
+        bool showEquipBtn = (openedFromEquippedSlotIndex < 0);
+        if (detailEquipBtn != null)
+        {
+            detailEquipBtn.gameObject.SetActive(showEquipBtn);
+            detailEquipBtn.interactable = true;
+        }
 
         if (detailEquipBtnText != null)
         {
-            detailEquipBtnText.text = (openedFromEquippedSlotIndex >= 0 || isEquipped) ? "UNEQUIP" : "EQUIP";
-        }
-
-        if (detailEquipBtn != null)
-        {
-            detailEquipBtn.interactable = true;
+            detailEquipBtnText.text = "EQUIP";
         }
     }
 
@@ -1693,81 +1821,116 @@ public class BuddyController : MonoBehaviour
     {
         if (selectedDetailBuddy == null) return;
 
+        pendingEquipBuddy = selectedDetailBuddy;
+        isEquipSelectMode = true;
+
+        if (detailModal != null)
+        {
+            detailModal.SetActive(false);
+        }
+
+        RefreshEquippedGrid();
+        UpdateInventoryEquipVisuals();
+        ShowToast($"Tap a slot above to equip {pendingEquipBuddy.buddyName}");
+    }
+
+    public void OnEquipSlotSelected(int slotIndex)
+    {
+        if (!isEquipSelectMode || pendingEquipBuddy == null) return;
+
         int[] currentDeck = (deckEquippedIds != null && activeDeckIndex < deckEquippedIds.Length)
             ? deckEquippedIds[activeDeckIndex]
             : null;
-        if (currentDeck == null) return;
+        if (currentDeck == null || slotIndex < 0 || slotIndex >= currentDeck.Length) return;
 
-        Debug.Log($"[Buddy] ToggleEquip for {selectedDetailBuddy.buddyName} (ID={selectedDetailBuddy.id}). OpenedFromSlot={openedFromEquippedSlotIndex}");
-
-        if (openedFromEquippedSlotIndex >= 0)
+        bool isLocked = (slotUnlocked != null && slotIndex < slotUnlocked.Length && !slotUnlocked[slotIndex]) || currentDeck[slotIndex] == -2;
+        if (isLocked)
         {
-            int slot = openedFromEquippedSlotIndex;
-            if (slot < currentDeck.Length)
-            {
-                currentDeck[slot] = -1;
-            }
-            PlayerDataService.SaveBuddyDeck(activeDeckIndex, currentDeck);
-            Debug.Log($"[Buddy] Unequipped {selectedDetailBuddy.buddyName} from Slot {slot + 1}");
-            ShowToast($"Unequipped {selectedDetailBuddy.buddyName} from Slot {slot + 1}");
-            openedFromEquippedSlotIndex = -1;
-
-            if (detailModal != null)
-            {
-                UIDissolveController.HideWithEffect(detailModal);
-            }
-            RefreshEquippedGrid();
-            RefreshInventory();
+            ShowToast($"Slot {slotIndex + 1} is locked!");
             return;
         }
 
-        int indexInDeck = Array.IndexOf(currentDeck, selectedDetailBuddy.id);
-        if (indexInDeck >= 0)
+        // If this exact slot already has this buddy equipped, do not unequip (cannot unequip from slot)
+        if (currentDeck[slotIndex] == pendingEquipBuddy.id)
         {
-            currentDeck[indexInDeck] = -1;
-            PlayerDataService.SaveBuddyDeck(activeDeckIndex, currentDeck);
-            Debug.Log($"[Buddy] Unequipped {selectedDetailBuddy.buddyName} from Slot {indexInDeck + 1}");
-            ShowToast($"Unequipped {selectedDetailBuddy.buddyName} from Slot {indexInDeck + 1}");
-            if (detailModal != null)
-            {
-                UIDissolveController.HideWithEffect(detailModal);
-            }
-            RefreshEquippedGrid();
-            RefreshInventory();
+            string buddyName = pendingEquipBuddy.buddyName;
+            CancelEquipSelection();
+            ShowToast($"{buddyName} is already equipped in Slot {slotIndex + 1}!");
             return;
         }
 
-        // Equip to first empty slot (index 0, 1, 2)
-        int emptyIndex = -1;
-        for (int i = 0; i < currentDeck.Length; i++)
+        int existingIndex = Array.IndexOf(currentDeck, pendingEquipBuddy.id);
+        int replacedBuddyId = currentDeck[slotIndex];
+        bool isSwap = false;
+
+        // Two-way swap:
+        if (existingIndex >= 0)
         {
-            if (currentDeck[i] <= 0 && (slotUnlocked == null || i >= slotUnlocked.Length || slotUnlocked[i]))
+            currentDeck[existingIndex] = replacedBuddyId;
+            if (replacedBuddyId > 0)
             {
-                emptyIndex = i;
-                break;
+                isSwap = true;
             }
         }
 
-        if (emptyIndex >= 0)
+        // Equip into targeted slot
+        currentDeck[slotIndex] = pendingEquipBuddy.id;
+
+        string equipName = pendingEquipBuddy.buddyName;
+        isEquipSelectMode = false;
+        pendingEquipBuddy = null;
+        lastEquipFrame = Time.frameCount;
+        lastEquipTime = Time.unscaledTime;
+        if (detailModal != null) detailModal.SetActive(false);
+
+        PlayerDataService.SaveBuddyDeck(activeDeckIndex, currentDeck);
+        RefreshEquippedGrid();
+        RefreshInventory();
+        UpdateInventoryEquipVisuals();
+
+        if (isSwap)
         {
-            currentDeck[emptyIndex] = selectedDetailBuddy.id;
-            Debug.Log($"[Buddy] Equipped {selectedDetailBuddy.buddyName} to Slot {emptyIndex + 1}");
-            ShowToast($"Equipped {selectedDetailBuddy.buddyName} to Slot {emptyIndex + 1}");
+            BuddyItemData swappedBuddy = allBuddies.FirstOrDefault(b => b.id == replacedBuddyId);
+            string swappedName = swappedBuddy != null ? swappedBuddy.buddyName : $"Slot {existingIndex + 1}";
+            ShowToast($"Swapped {equipName} with {swappedName}!");
         }
         else
         {
-            Debug.LogWarning("[Buddy] All slots full! Unequip a drone first.");
-            ShowToast("All slots full! Unequip a drone first.");
-            return;
+            ShowToast($"Equipped {equipName} to Slot {slotIndex + 1}!");
+        }
+        PlayEquipSFX();
+    }
+
+    public void CancelEquipSelection()
+    {
+        if (!isEquipSelectMode) return;
+        isEquipSelectMode = false;
+        pendingEquipBuddy = null;
+        RefreshEquippedGrid();
+        UpdateInventoryEquipVisuals();
+    }
+
+    public void UpdateInventoryEquipVisuals()
+    {
+        if (inventoryCards != null)
+        {
+            foreach (var card in inventoryCards)
+            {
+                if (card == null || !card.gameObject.activeSelf) continue;
+                bool isSelected = (isEquipSelectMode && pendingEquipBuddy != null && card.BoundData != null && card.BoundData.id == pendingEquipBuddy.id);
+                card.SetInventoryEquipState(isEquipSelectMode, isSelected);
+            }
         }
 
-        PlayerDataService.SaveBuddyDeck(activeDeckIndex, currentDeck);
-        if (detailModal != null)
+        if (spawnedInventoryCards != null)
         {
-            UIDissolveController.HideWithEffect(detailModal);
+            foreach (var card in spawnedInventoryCards)
+            {
+                if (card == null || !card.gameObject.activeSelf) continue;
+                bool isSelected = (isEquipSelectMode && pendingEquipBuddy != null && card.BoundData != null && card.BoundData.id == pendingEquipBuddy.id);
+                card.SetInventoryEquipState(isEquipSelectMode, isSelected);
+            }
         }
-        RefreshEquippedGrid();
-        RefreshInventory();
     }
 
     public static bool IsPrimaryPlayableDrone(int id)

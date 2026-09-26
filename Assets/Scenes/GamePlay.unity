@@ -1989,7 +1989,7 @@ MonoBehaviour:
   lavaHazardPrefab: {fileID: 0}
   orbitRadius: 0.4
   orbitSpeed: 192
-  launchSpeed: 4
+  launchSpeed: 12
   attackSpeedMultiplier: 0.65
   levelConfigs:
   - directDamage: 70
@@ -2286,6 +2286,7 @@ MonoBehaviour:
   defaultLeg1Sprite: {fileID: 770955769, guid: 65fc5831f8144fc49bddde98555ed20d, type: 3}
   defaultLeg2Sprite: {fileID: 1856406010, guid: 65fc5831f8144fc49bddde98555ed20d, type: 3}
   defaultFirePointOffset: {x: 3.04, y: -1.54}
+  defaultHitVfxPrefab: {fileID: 3290514725870574986, guid: e1a1f001000000000000000000000001, type: 3}
   defaultBody:
     positionOffset: {x: 0, y: 0}
     scaleMultiplier: {x: 1, y: 1}
@@ -2313,6 +2314,7 @@ MonoBehaviour:
     bodySprite: {fileID: -5182206973502839065, guid: b11d782772fef994681d861860fa33eb, type: 3}
     armSprite: {fileID: 7950957983998334306, guid: fa67feb686c38264e8ab722fd57364ea, type: 3}
     gunSprite: {fileID: -9212286445950041963, guid: a14684e0c410c224d922ec86c4f49844, type: 3}
+    hitVfxPrefab: {fileID: 3290514725870574986, guid: e1a1f001000000000000000000000001, type: 3}
     bulletFrames:
     - {fileID: 21300000, guid: aa688e34ed6ab3e47b91f25828ae0978, type: 3}
     - {fileID: 21300000, guid: f3adbea308b14374a89abad08c54c192, type: 3}
@@ -2349,6 +2351,7 @@ MonoBehaviour:
     bodySprite: {fileID: -5182206973502839065, guid: b48489951e9c39e40b043dacb6bd63af, type: 3}
     armSprite: {fileID: 7950957983998334306, guid: 3f0a5377d27c63e47bddaa6fff51a1f7, type: 3}
     gunSprite: {fileID: -9212286445950041963, guid: 314f3198166d07c4c8a5b61bd92a7979, type: 3}
+    hitVfxPrefab: {fileID: 3290514725870574986, guid: e1a1f002000000000000000000000002, type: 3}
     bulletFrames:
     - {fileID: 21300000, guid: 1511b495001d331459102aaf23d49a6e, type: 3}
     - {fileID: 21300000, guid: f7e64eb6dc4d3874da835076eb7e4ed5, type: 3}
@@ -2385,6 +2388,7 @@ MonoBehaviour:
     bodySprite: {fileID: 21300000, guid: 4da2c1164166fb344963fd6c07c2f6e3, type: 3}
     armSprite: {fileID: 7950957983998334306, guid: e4177e280f33c244c83bcc6aab8b54cd, type: 3}
     gunSprite: {fileID: -9212286445950041963, guid: 673301c1065bc49469b13de76a575db8, type: 3}
+    hitVfxPrefab: {fileID: 3290514725870574986, guid: e1a1f003000000000000000000000003, type: 3}
     bulletFrames:
     - {fileID: 21300000, guid: bb3544a453163994ba7d4cbccb047605, type: 3}
     - {fileID: 21300000, guid: 9d2fc891c5e83aa47a7e28973ba0b2db, type: 3}
@@ -2421,6 +2425,7 @@ MonoBehaviour:
     bodySprite: {fileID: -5182206973502839065, guid: 65d0f84371244c549be34da2de3e090b, type: 3}
     armSprite: {fileID: 7950957983998334306, guid: e330f572764c47d4d96d4be202e4d3e3, type: 3}
     gunSprite: {fileID: -9212286445950041963, guid: 38ff57d9d59e7f642a3071d113dcbe9d, type: 3}
+    hitVfxPrefab: {fileID: 3290514725870574986, guid: e1a1f004000000000000000000000004, type: 3}
     bulletFrames:
     - {fileID: 21300000, guid: 10c6c16af5675394a96a466436ba2ad2, type: 3}
     - {fileID: 21300000, guid: 7ff22c11bce181f468d4bb89502200fa, type: 3}
@@ -35588,7 +35593,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 2
-  m_Size: {x: 40, y: 40}
+  m_Size: {x: 200, y: 200}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -35612,6 +35617,7 @@ MonoBehaviour:
   defaultMapSize: {x: 40, y: 40}
   defaultMapColor: {r: 1, g: 1, b: 1, a: 1}
   defaultPlayerPadding: 0.6
+  defaultGroundScale: 0.2
   groundZPosition: 10
   sortingOrder: -100
 --- !u!4 &2000000003
@@ -35624,7 +35630,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 10}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.2, y: 0.2, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -35728,21 +35734,6 @@ MonoBehaviour:
   - chapterNumber: 2
     chapterName: "R\u1EEBng \u0111\u1ED9t bi\u1EBFn (Mutant Forest)"
     props:
-    - prefab: {fileID: 259280955211783626, guid: d109a6020f3f46d000f652ba5fd2cca8, type: 3}
-      kind: 0
-      blockPlayer: 0
-      weight: 1
-      scaleMultiplierRange: {x: 0.9, y: 1.1}
-    - prefab: {fileID: 522005410497823480, guid: e418006795aeb85bc889be245fd5e257, type: 3}
-      kind: 0
-      blockPlayer: 0
-      weight: 1
-      scaleMultiplierRange: {x: 0.9, y: 1.1}
-    - prefab: {fileID: 825247620367802683, guid: cab00014181b0060f2f9f79f5b7bf16d, type: 3}
-      kind: 0
-      blockPlayer: 0
-      weight: 1
-      scaleMultiplierRange: {x: 0.9, y: 1.1}
     - prefab: {fileID: 719528239849399818, guid: 4a593e69637081fd45e450f2db97a22a, type: 3}
       kind: 1
       blockPlayer: 0
@@ -35761,26 +35752,6 @@ MonoBehaviour:
   - chapterNumber: 3
     chapterName: "\u0110\u1EA7m l\u1EA7y \u0111\u1ED9c (Toxic Swamp)"
     props:
-    - prefab: {fileID: 456744272655696737, guid: ca46b35d292cbbdcdd5c5cd64837066f, type: 3}
-      kind: 0
-      blockPlayer: 0
-      weight: 1
-      scaleMultiplierRange: {x: 0.9, y: 1.1}
-    - prefab: {fileID: 124931473711279971, guid: a927362379e6b3def9a5d6a01a323772, type: 3}
-      kind: 0
-      blockPlayer: 0
-      weight: 1
-      scaleMultiplierRange: {x: 0.9, y: 1.1}
-    - prefab: {fileID: 82090046394675687, guid: bdd6875cfe02f99107b89a5af34ae79b, type: 3}
-      kind: 0
-      blockPlayer: 0
-      weight: 1
-      scaleMultiplierRange: {x: 0.9, y: 1.1}
-    - prefab: {fileID: 1067278408026780677, guid: 3e278ef3237f4ef11fd4ec01c76bf4ca, type: 3}
-      kind: 0
-      blockPlayer: 0
-      weight: 1
-      scaleMultiplierRange: {x: 0.9, y: 1.1}
     - prefab: {fileID: 612574376583017494, guid: 671b23c15a995075a73d59ee6e52a4b7, type: 3}
       kind: 1
       blockPlayer: 0

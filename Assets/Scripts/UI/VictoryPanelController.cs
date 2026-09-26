@@ -272,9 +272,16 @@ public sealed class VictoryPanelController : MonoBehaviour
         if (victoryPanel != null) victoryPanel.transform.SetAsLastSibling();
         ChipsetBattleStats.FinalizeBattle();
 
-        int chapterNumber = PlayerDataService.SelectedChapterIndex + 1;
-        GameEvents.RaiseChapterCleared(chapterNumber, 3);
-        GameEvents.RaiseChapterPlayed(PlayerDataService.SelectedChapterIndex);
+        if (IsGemMineScene())
+        {
+            DailyGemMineProgress.CompleteLevel(DailyGemMineProgress.SelectedLevel);
+        }
+        else
+        {
+            int chapterNumber = PlayerDataService.SelectedChapterIndex + 1;
+            GameEvents.RaiseChapterCleared(chapterNumber, 3);
+            GameEvents.RaiseChapterPlayed(PlayerDataService.SelectedChapterIndex);
+        }
 
         if (detailsButton != null) detailsButton.interactable = true;
         if (vipTripleButton != null) vipTripleButton.interactable = true;
@@ -285,27 +292,51 @@ public sealed class VictoryPanelController : MonoBehaviour
         confettiRoutine = StartCoroutine(PlayConfetti());
     }
 
+    private bool IsGemMineScene()
+    {
+        string sceneName = SceneManager.GetActiveScene().name;
+        return string.Equals(sceneName, "GenMine", System.StringComparison.OrdinalIgnoreCase) ||
+               (enemySpawner != null && enemySpawner.UseSceneWaveConfiguration);
+    }
+
     private void PopulateResult()
     {
         EnsureRewardRowLayout();
 
+        bool isGemMine = IsGemMineScene();
+        int gemMineLevel = DailyGemMineProgress.SelectedLevel;
         int chapterNumber = PlayerDataService.SelectedChapterIndex + 1;
         int waves = enemySpawner != null ? enemySpawner.TotalWavesCount : 1;
         int dataReward = GetBaseDataChipReward();
         int gemReward = GetBaseRedGemReward();
 
-        if (chapterText != null) chapterText.text = $"CHAPTER. {chapterNumber:00}";
+        if (chapterText != null)
+        {
+            chapterText.text = isGemMine ? $"GEM MINE LV.{gemMineLevel:00}" : $"CHAPTER. {chapterNumber:00}";
+        }
         if (waveNumberText != null) waveNumberText.text = waves.ToString("00");
         UpdateRewardTexts(dataReward, gemReward);
 
         if (detailsText != null)
         {
-            detailsText.text =
-                $"CHAPTER {chapterNumber:00} COMPLETE\n" +
-                $"WAVES CLEARED   {waves:00}/{waves:00}\n" +
-                $"DATA CHIPS      +{dataReward:N0}\n" +
-                $"RED GEMS        +{gemReward:N0}\n\n" +
-                "NEXT CHAPTER UNLOCKED";
+            if (isGemMine)
+            {
+                detailsText.text =
+                    $"GEM MINE LV.{gemMineLevel:00} COMPLETE\n" +
+                    $"WAVES CLEARED   {waves:00}/{waves:00}\n" +
+                    $"DATA CHIPS      +{dataReward:N0}\n" +
+                    $"RED GEMS        +{gemReward:N0}\n\n" +
+                    (gemMineLevel < DailyGemMineProgress.LevelCount ? "NEXT LEVEL UNLOCKED" : "ALL LEVELS COMPLETE");
+            }
+            else
+            {
+                detailsText.text =
+                    $"CHAPTER {chapterNumber:00} COMPLETE\n" +
+                    $"WAVES CLEARED   {waves:00}/{waves:00}\n" +
+                    $"DATA CHIPS      +{dataReward:N0}\n" +
+                    $"RED GEMS        +{gemReward:N0}\n\n" +
+                    "NEXT CHAPTER UNLOCKED";
+            }
         }
     }
 
@@ -722,7 +753,9 @@ public sealed class VictoryPanelController : MonoBehaviour
 
     private int GetBaseRedGemReward()
     {
-        return enemySpawner != null ? enemySpawner.StageVictoryRedGemReward : 20;
+        if (enemySpawner != null) return enemySpawner.StageVictoryRedGemReward;
+        if (IsGemMineScene()) return DailyGemMineProgress.GenerateRewardAmount(DailyGemMineProgress.SelectedLevel);
+        return 20;
     }
 
     private void UpdateRewardTexts(int dataReward, int gemReward)

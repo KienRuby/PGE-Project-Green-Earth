@@ -205,6 +205,15 @@ public class RewardPopupController : MonoBehaviour
 
     public void EnsureTabSpritesLoaded()
     {
+        if (dailyTabActiveSprite == null)
+            dailyTabActiveSprite = Resources.Load<Sprite>("UI/Reward/Extracted/Tab_Daily_Login_Active");
+        if (dailyTabInactiveSprite == null)
+            dailyTabInactiveSprite = Resources.Load<Sprite>("UI/Reward/Extracted/Tab_Daily_Login_Inactive");
+        if (achievementTabActiveSprite == null)
+            achievementTabActiveSprite = Resources.Load<Sprite>("UI/Reward/Extracted/Tab_Achievements_Active");
+        if (achievementTabInactiveSprite == null)
+            achievementTabInactiveSprite = Resources.Load<Sprite>("UI/Reward/Extracted/Tab_Achievements_Inactive");
+
         if (dailyTabActiveSprite != null && dailyTabInactiveSprite != null &&
             achievementTabActiveSprite != null && achievementTabInactiveSprite != null)
             return;

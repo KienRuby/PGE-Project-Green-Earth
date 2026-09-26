@@ -70,8 +70,8 @@ public class DailyGemMineModalController : MonoBehaviour
     [SerializeField] private TMP_Text entranceCountText;
 
     [Header("Scene Transition")]
-    [Tooltip("Tên Scene sẽ chuyển sang khi nhấn nút Start (mặc định: goalkeeper).")]
-    [SerializeField] private string gemMineSceneName = "goalkeeper";
+    [Tooltip("Tên Scene sẽ chuyển sang khi nhấn nút Start (mặc định: GenMine).")]
+    [SerializeField] private string gemMineSceneName = "GenMine";
 
     [Header("Runtime State")]
     [SerializeField] private int remainingHours = 9;
@@ -104,18 +104,27 @@ public class DailyGemMineModalController : MonoBehaviour
     public Button CloseButton => closeButton;
     public ScrollRect LevelsScrollRect => levelsScrollRect;
     public DailyGemMineLevelCard[] LevelCards => levelCards;
+    public CanvasGroup CanvasGroup => canvasGroup;
     public int SelectedLevel
     {
-        get => Mathf.Clamp(PlayerPrefs.GetInt(PrefsSelectedLevelKey, 1), 1, 5);
-        set
-        {
-            PlayerPrefs.SetInt(PrefsSelectedLevelKey, Mathf.Clamp(value, 1, 5));
-            PlayerPrefs.Save();
-        }
+        get => DailyGemMineProgress.SelectedLevel;
+        set => DailyGemMineProgress.SelectedLevel = value;
     }
 
     private void Awake()
     {
+        if (canvasGroup == null)
+        {
+            canvasGroup = GetComponent<CanvasGroup>();
+        }
+
+        if (canvasGroup != null)
+        {
+            canvasGroup.alpha = 1f;
+            canvasGroup.interactable = true;
+            canvasGroup.blocksRaycasts = true;
+        }
+
         SanitizeMaterialsAndEffects();
 
         if (backdropButton != null)
@@ -439,7 +448,11 @@ public class DailyGemMineModalController : MonoBehaviour
     {
         DailyGemMineLevelCard[] cards = new DailyGemMineLevelCard[5];
 
-        string[] rewards = { "x60-120", "x120-220", "x200-350", "x300-500", "x450-700" };
+        string[] rewards = new string[5];
+        for (int r = 0; r < 5; r++)
+        {
+            rewards[r] = DailyGemMineProgress.GetRewardRangeString(r + 1);
+        }
         Color[] tints = {
             Color.white,
             Color.white,
@@ -609,8 +622,8 @@ public class DailyGemMineModalController : MonoBehaviour
         }
         startBtn.onClick.AddListener(() => StartGemMineLevel(level));
 
-        // Huy hiệu LOCKED hiển thị khi màn chơi bị khóa (không đè text Start)
-        GameObject lockBadgeObj = new GameObject("LockedBadge", typeof(RectTransform), typeof(Image));
+        // Huy hiệu LOCKED hiển thị khi màn chơi bị khóa (chặn tia raycast, không đè text Start)
+        GameObject lockBadgeObj = new GameObject("LockedBadge", typeof(RectTransform), typeof(Image), typeof(Button));
         lockBadgeObj.layer = uiLayer;
         lockBadgeObj.transform.SetParent(cardObj.transform, false);
         RectTransform lockRect = lockBadgeObj.GetComponent<RectTransform>();
@@ -622,8 +635,20 @@ public class DailyGemMineModalController : MonoBehaviour
         lockRect.localScale = Vector3.one;
 
         Image lockImg = lockBadgeObj.GetComponent<Image>();
-        lockImg.color = new Color(0.12f, 0.12f, 0.16f, 0.88f);
-        lockImg.raycastTarget = false;
+        lockImg.color = new Color(0.12f, 0.12f, 0.16f, 0.92f);
+        lockImg.raycastTarget = true;
+
+        Button lockBtn = lockBadgeObj.GetComponent<Button>();
+        if (lockBtn != null)
+        {
+            lockBtn.targetGraphic = lockImg;
+            lockBtn.transition = Selectable.Transition.None;
+            int lockedLvl = level;
+            lockBtn.onClick.AddListener(() =>
+            {
+                Debug.Log($"[DailyGemMine] Màn chơi LV.{lockedLvl:D2} đang bị khóa. Hãy hoàn thành màn trước đó.");
+            });
+        }
 
         GameObject lockTextObj = new GameObject("LockedText", typeof(RectTransform), typeof(TextMeshProUGUI));
         lockTextObj.layer = uiLayer;
@@ -680,6 +705,18 @@ public class DailyGemMineModalController : MonoBehaviour
 
     private void OnEnable()
     {
+        if (canvasGroup == null)
+        {
+            canvasGroup = GetComponent<CanvasGroup>();
+        }
+
+        if (canvasGroup != null)
+        {
+            canvasGroup.alpha = 1f;
+            canvasGroup.interactable = true;
+            canvasGroup.blocksRaycasts = true;
+        }
+
         SanitizeMaterialsAndEffects();
         EnsureLevelsScrollView();
         RegisterLevelCardsEvents();
@@ -1171,5 +1208,10 @@ public class DailyGemMineModalController : MonoBehaviour
         useManualTime = true;
         RegisterLevelCardsEvents();
         RefreshStatusTexts();
+    }
+
+    public void SetCanvasGroupForTesting(CanvasGroup cg)
+    {
+        canvasGroup = cg;
     }
 }

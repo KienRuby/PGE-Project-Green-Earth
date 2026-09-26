@@ -33,7 +33,7 @@ public class FPSDisplay : MonoBehaviour
     private int frames = 0;
     private float timeLeft = 0f;
     private int currentFpsInt = 60;
-    private string currentFpsText = "60 FPS (16.7ms)";
+    private string currentFpsText = "60 FPS";
 
     // Zero-allocation precomputed string cache for 0..300 FPS
     private static readonly string[] FpsStringCache = new string[301];
@@ -46,7 +46,7 @@ public class FPSDisplay : MonoBehaviour
     private int lastScreenWidth = 0;
     private int lastScreenHeight = 0;
     private int cachedFontSize = 20;
-    private float cachedBadgeWidth = 175f;
+    private float cachedBadgeWidth = 100f;
     private float cachedBadgeHeight = 36f;
 
     static FPSDisplay()
@@ -54,8 +54,7 @@ public class FPSDisplay : MonoBehaviour
         // Khởi tạo bảng chuỗi đệm 0 GC cho toàn bộ dải FPS từ 0 đến 300
         for (int i = 0; i <= 300; i++)
         {
-            float ms = i > 0 ? (1000f / i) : 99.9f;
-            FpsStringCache[i] = $"{i} FPS ({ms:F1}ms)";
+            FpsStringCache[i] = $"{i} FPS";
         }
     }
 
@@ -174,7 +173,7 @@ public class FPSDisplay : MonoBehaviour
 
         // Tự động scale cỡ chữ theo độ phân giải màn hình
         cachedFontSize = Mathf.Clamp(Mathf.RoundToInt(Screen.height * 0.0165f), 17, 34);
-        cachedBadgeWidth = cachedFontSize * 8.6f;
+        cachedBadgeWidth = cachedFontSize * 5.0f;
         cachedBadgeHeight = cachedFontSize * 1.75f;
 
         Rect safe = Screen.safeArea;

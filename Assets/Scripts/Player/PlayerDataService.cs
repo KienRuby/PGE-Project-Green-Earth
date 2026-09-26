@@ -33,8 +33,8 @@ public static class PlayerDataService
     public const string BuddyUnlockedKeyPrefix = "PGE.Buddy.Unlocked.";
     // Increment this when a new build must start with a clean local save.
     // PlayerPrefs survives reinstall/build output replacement on many platforms.
-    // Bumped to 4 for authoritative Buddy system overhaul: clean baseline defaults (quantity 0, tier common, level 1, no equipped).
-    private const int SaveSchemaVersion = 4;
+    // Bumped to 5 for Chapter cleared mask 1-based alignment fix: ensures fresh install has pristine chapter state.
+    private const int SaveSchemaVersion = 5;
     private const string SaveSchemaVersionKey = "PGE.Save.SchemaVersion";
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     public static void InitializeApplicationSettings()
@@ -78,6 +78,7 @@ public static class PlayerDataService
         PlayerPrefs.DeleteKey(DroneBoxesKey);
         PlayerPrefs.DeleteKey(SelectedChapterIndexKey);
         PlayerPrefs.DeleteKey(UnlockedChapterIndexKey);
+        PlayerPrefs.DeleteKey(AchievementManager.ClearedChaptersMaskKey);
         PlayerPrefs.DeleteKey(ChipsetActiveDeckKey);
         PlayerPrefs.DeleteKey(BuddyActiveDeckKey);
 
@@ -382,13 +383,15 @@ public static class PlayerDataService
     /// Kiểm tra xem một Chapter (0-based index: 0 = Chapter 1, 1 = Chapter 2,...) đã được vượt qua (chiến thắng) hay chưa.
     /// - Khi mới tải game: UnlockedChapterIndex = 0 (chưa vượt qua Chapter nào).
     /// - Khi thắng Chapter 1 (index 0): UnlockedChapterIndex tăng lên >= 1.
+    /// - Lưu ý: AchievementManager.ClearedChaptersMaskKey lưu bitmask 1-based (bit 1 = Chapter 1, bit 2 = Chapter 2,...).
     /// </summary>
     public static bool IsChapterCleared(int chapterIndex)
     {
         if (chapterIndex < 0) return false;
         if (UnlockedChapterIndex > chapterIndex) return true;
+        int chapterNumber = chapterIndex + 1;
         int mask = PlayerPrefs.GetInt(AchievementManager.ClearedChaptersMaskKey, 0);
-        if ((mask & (1 << chapterIndex)) != 0) return true;
+        if ((mask & (1 << chapterNumber)) != 0) return true;
         return false;
     }
 
@@ -402,8 +405,9 @@ public static class PlayerDataService
         {
             UnlockedChapterIndex = chapterIndex + 1;
         }
+        int chapterNumber = chapterIndex + 1;
         int mask = PlayerPrefs.GetInt(AchievementManager.ClearedChaptersMaskKey, 0);
-        mask |= (1 << chapterIndex);
+        mask |= (1 << chapterNumber);
         PlayerPrefs.SetInt(AchievementManager.ClearedChaptersMaskKey, mask);
         PlayerPrefs.Save();
     }

@@ -60,6 +60,7 @@ public class Projectile : MonoBehaviour, IPoolable
     private Animator bulletAnimator;
     private Sprite[] skinBulletFrames;
     private Sprite originalSprite;
+    private GameObject defaultHitVfxPrefab;
     private float skinBulletFrameTimer;
     private int skinBulletFrameIndex;
     private const float SkinBulletFrameDuration = 1f / 60f;
@@ -173,6 +174,7 @@ public class Projectile : MonoBehaviour, IPoolable
             }
 #endif
         }
+        defaultHitVfxPrefab = hitVfxPrefab;
     }
 
     private void OnEnable()
@@ -586,6 +588,7 @@ public class Projectile : MonoBehaviour, IPoolable
     public void ResetCustomModifiers()
     {
         SetSkinBulletFrames(null);
+        hitVfxPrefab = defaultHitVfxPrefab;
         if (spriteRenderer == null)
         {
             spriteRenderer = GetComponentInChildren<SpriteRenderer>();

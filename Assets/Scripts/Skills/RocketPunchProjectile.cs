@@ -128,7 +128,8 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
     public RocketPunchState State => state;
 
     private CircleCollider2D circleCol;
-    private float cachedCastRadius = 0.15f;
+    private float cachedCastRadius = 0.28f;
+    public float CachedCastRadius => cachedCastRadius;
 
     private void Awake()
     {
@@ -139,7 +140,11 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
         circleCol = GetComponent<CircleCollider2D>();
         if (circleCol != null)
         {
-            cachedCastRadius = Mathf.Max(0.05f, circleCol.radius * Mathf.Abs(transform.lossyScale.x));
+            cachedCastRadius = Mathf.Max(0.28f, circleCol.radius * Mathf.Abs(transform.lossyScale.x));
+        }
+        else
+        {
+            cachedCastRadius = 0.28f;
         }
 
         if (spriteRenderer == null)
@@ -364,16 +369,35 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
         }
 
         // 2. CƠ CHẾ BẺ LÁI ÔM CUA NHƯ XE ĐUA (Car-like steering turn)
+        // Khi ở xa (> 2.0m), giữ góc lượn vòng cung xe đua 420°/s đẹp mắt
+        // Khi áp sát (< 2.0m), tốc độ bẻ lái tự động tăng vọt lên tới 1440°/s để khóa chặt mục tiêu khi quái chạy
         if (currentTargetEnemy != null && currentTargetEnemy.gameObject.activeInHierarchy)
         {
             EnemyHealth targetEh = currentTargetEnemy.GetComponentInParent<EnemyHealth>();
             Vector2 targetPos = targetEh != null ? targetEh.AimPoint : (Vector2)currentTargetEnemy.position;
-            Vector2 toTarget = (targetPos - (Vector2)rb.position).normalized;
-            if (toTarget.sqrMagnitude > 0.0001f)
+            Vector2 toTarget = targetPos - (Vector2)rb.position;
+            float distToTarget = toTarget.magnitude;
+
+            if (distToTarget > 0.0001f)
             {
-                float targetAngle = Mathf.Atan2(toTarget.y, toTarget.x) * Mathf.Rad2Deg;
-                // Bẻ lái từ từ ôm cua vòng cung mượt mà theo tốc độ góc steeringTurnRate
-                currentFlightAngle = Mathf.MoveTowardsAngle(currentFlightAngle, targetAngle, steeringTurnRate * Time.fixedDeltaTime);
+                Vector2 toTargetNorm = toTarget / distToTarget;
+                float targetAngle = Mathf.Atan2(toTargetNorm.y, toTargetNorm.x) * Mathf.Rad2Deg;
+
+                float effectiveTurnRate = steeringTurnRate;
+                if (distToTarget < 2.0f)
+                {
+                    float t = 1f - (distToTarget / 2.0f);
+                    effectiveTurnRate = Mathf.Lerp(steeringTurnRate, 1440f, t);
+                }
+
+                if (distToTarget < 0.35f)
+                {
+                    currentFlightAngle = targetAngle;
+                }
+                else
+                {
+                    currentFlightAngle = Mathf.MoveTowardsAngle(currentFlightAngle, targetAngle, effectiveTurnRate * Time.fixedDeltaTime);
+                }
             }
         }
 
@@ -384,10 +408,38 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
         float moveRad = currentFlightAngle * Mathf.Deg2Rad;
         Vector2 moveDirection = new Vector2(Mathf.Cos(moveRad), Mathf.Sin(moveRad));
         float stepDist = launchSpeed * Time.fixedDeltaTime;
+        Vector2 startPos = rb.position;
+        Vector2 nextPos = startPos + moveDirection * stepDist;
 
+        // 4. KIỂM TRA ÁP SÁT TRỰC TIẾP MỤC TIÊU HIỆN TẠI (Swept-Segment Proximity Check)
+        // Đảm bảo không bao giờ trượt khi quái chạy ngang qua hoặc nắm đấm vừa lướt qua quái
+        if (currentTargetEnemy != null && currentTargetEnemy.gameObject.activeInHierarchy)
+        {
+            EnemyHealth targetEh = currentTargetEnemy.GetComponentInParent<EnemyHealth>();
+            if (targetEh != null && !targetEh.IsDead && targetEh.gameObject.activeInHierarchy)
+            {
+                Vector2 targetPos = targetEh.AimPoint;
+                float closestDistToSegment = DistancePointToSegment(targetPos, startPos, nextPos);
+                float hitThreshold = Mathf.Max(0.5f, cachedCastRadius + 0.25f);
+
+                if (closestDistToSegment <= hitThreshold)
+                {
+                    if (!Physics2D.Linecast(startPos, targetPos, ObstacleLayerMask))
+                    {
+                        Collider2D targetCol = targetEh.GetComponentInChildren<Collider2D>() ?? targetEh.GetComponent<Collider2D>();
+                        if (ResolveHit(targetCol, targetPos))
+                        {
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+        // 5. QUÉT TIA CONTINUOUS COLLISION DETECTION (Enemy + Obstacle)
         if (stepDist > 0f)
         {
-            int hitCount = Physics2D.CircleCastNonAlloc(rb.position, cachedCastRadius, moveDirection, SharedCastBuffer, stepDist, HitLayerMask);
+            int hitCount = Physics2D.CircleCastNonAlloc(startPos, cachedCastRadius, moveDirection, SharedCastBuffer, stepDist, HitLayerMask);
             if (hitCount > 0)
             {
                 // Sắp xếp tăng dần theo khoảng cách (First Contact First Hit)
@@ -414,7 +466,7 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
                     RaycastHit2D hit = SharedCastBuffer[i];
                     if (hit.collider == null) continue;
 
-                    Vector2 hitPoint = hit.point != Vector2.zero ? hit.point : ((Vector2)rb.position + moveDirection * hit.distance);
+                    Vector2 hitPoint = hit.point != Vector2.zero ? hit.point : (startPos + moveDirection * hit.distance);
                     if (ResolveHit(hit.collider, hitPoint))
                     {
                         return;
@@ -423,8 +475,21 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
             }
         }
 
-        Vector2 nextPos = rb.position + moveDirection * stepDist;
         rb.MovePosition(nextPos);
+    }
+
+    public static float DistancePointToSegment(Vector2 point, Vector2 segA, Vector2 segB)
+    {
+        Vector2 ab = segB - segA;
+        float abSqr = ab.sqrMagnitude;
+        if (abSqr < 0.000001f)
+        {
+            return Vector2.Distance(point, segA);
+        }
+
+        float t = Mathf.Clamp01(Vector2.Dot(point - segA, ab) / abSqr);
+        Vector2 proj = segA + t * ab;
+        return Vector2.Distance(point, proj);
     }
 
     private bool IsEnemyDead(Transform enemy)
@@ -446,16 +511,16 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
 
     private bool ResolveHit(Collider2D hitCollider, Vector2 hitPoint)
     {
-        if (hasExploded || hitCollider == null) return false;
-        if (hitCollider.CompareTag("Player") || hitCollider.CompareTag("BulletPlayer")) return false;
+        if (hasExploded) return false;
+        if (hitCollider != null && (hitCollider.CompareTag("Player") || hitCollider.CompareTag("BulletPlayer"))) return false;
 
         // 1. Chướng ngại vật (Obstacle)
-        if ((ObstacleLayerIndex != -1 && hitCollider.gameObject.layer == ObstacleLayerIndex) || hitCollider.CompareTag("Obstacle"))
+        if (hitCollider != null && ((ObstacleLayerIndex != -1 && hitCollider.gameObject.layer == ObstacleLayerIndex) || hitCollider.CompareTag("Obstacle")))
         {
             if (!hitCollider.isTrigger)
             {
                 transform.position = hitPoint;
-                rb.position = hitPoint;
+                if (rb != null) rb.position = hitPoint;
                 Explode();
                 return true;
             }
@@ -463,13 +528,13 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
         }
 
         // 2. Kẻ địch (Enemy)
-        IDamageable damageable = hitCollider.GetComponentInParent<IDamageable>();
+        IDamageable damageable = hitCollider != null ? hitCollider.GetComponentInParent<IDamageable>() : null;
         if (damageable != null)
         {
             if (damageable is EnemyHealth enemyHealth && (enemyHealth.IsDead || !enemyHealth.gameObject.activeInHierarchy)) return false;
 
             transform.position = hitPoint;
-            rb.position = hitPoint;
+            if (rb != null) rb.position = hitPoint;
 
             if (damageable is EnemyHealth)
                 AudioManager.Instance?.PlaySFX(SoundIdConst.SFX_PUNCH_HIT);
@@ -479,10 +544,26 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
             return true;
         }
 
-        if (state == RocketPunchState.Launched && !hitCollider.isTrigger)
+        // 3. Trúng mục tiêu đang bám đuổi (khi hitCollider là null từ kiểm tra áp sát Proximity)
+        if (currentTargetEnemy != null && currentTargetEnemy.gameObject.activeInHierarchy)
+        {
+            EnemyHealth targetEh = currentTargetEnemy.GetComponentInParent<EnemyHealth>();
+            if (targetEh != null && !targetEh.IsDead && targetEh.gameObject.activeInHierarchy)
+            {
+                transform.position = hitPoint;
+                if (rb != null) rb.position = hitPoint;
+                AudioManager.Instance?.PlaySFX(SoundIdConst.SFX_PUNCH_HIT);
+                targetEh.TakeDamage(directDamage);
+                ChipsetBattleStats.RecordDamage(3, directDamage);
+                Explode();
+                return true;
+            }
+        }
+
+        if (state == RocketPunchState.Launched && hitCollider != null && !hitCollider.isTrigger)
         {
             transform.position = hitPoint;
-            rb.position = hitPoint;
+            if (rb != null) rb.position = hitPoint;
             Explode();
             return true;
         }

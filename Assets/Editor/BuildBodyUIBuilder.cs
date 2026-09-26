@@ -156,16 +156,24 @@ public static class BuildBodyUIBuilder
 
         if (topTabs != null)
         {
+            topTabs.SetAsLastSibling();
+
             Transform statsBtnTrans = topTabs.Find("StatsButton");
             if (statsBtnTrans != null)
             {
                 statsButton = statsBtnTrans.GetComponent<Button>() ?? statsBtnTrans.gameObject.AddComponent<Button>();
-                Image img = statsBtnTrans.GetComponent<Image>();
-                if (img != null && statsSprite != null)
+                Image img = statsBtnTrans.GetComponent<Image>() ?? statsBtnTrans.gameObject.AddComponent<Image>();
+                if (img != null)
                 {
-                    img.sprite = statsSprite;
-                    img.color = Color.white;
+                    if (statsSprite != null)
+                    {
+                        img.sprite = statsSprite;
+                        img.color = Color.white;
+                    }
+                    img.raycastTarget = true;
                 }
+                statsButton.targetGraphic = img;
+                statsButton.interactable = true;
                 // Ẩn text cũ nếu có
                 Transform oldLabel = statsBtnTrans.Find("Label");
                 if (oldLabel != null) oldLabel.gameObject.SetActive(false);

@@ -17,7 +17,7 @@ GameObject:
   - component: {fileID: 602173326122476121}
   - component: {fileID: 3836487952450733367}
   - component: {fileID: 2884617547110263346}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: boss map mine
   m_TagString: Enemy
   m_Icon: {fileID: 0}
@@ -151,7 +151,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 42e9e99105793d54ebd275fc12d628e4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 1000000
+  maxHealth: 100000
   expReward: 500
   dataChipReward: 100
   redGemReward: 0
@@ -214,6 +214,9 @@ MonoBehaviour:
   baseDashComboCount: 1
   enrageDashComboCount: 1
   enrageDashCooldown: 0
+  dashPassThroughPlayer: 1
+  dashDamage: 100
+  dashDamageRadius: 1.2
   enableEnrage: 1
   enrageHealthPercent: 0.4
   enrageSpeedMultiplier: 1.35
@@ -235,7 +238,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enemyType: 0
   enemyName: Creep
-  maxHealth: 1000000
+  maxHealth: 100000
   moveSpeed: 2.5
   contactDamage: 50
   expReward: 10

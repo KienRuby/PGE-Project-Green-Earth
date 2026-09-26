@@ -107,9 +107,9 @@ public class PlayerStatsManager : MonoBehaviour
             _ => 0f
         };
 
-        BonusMagnetRadius = (equippedSkin == 3) ? 1.5f : 0f;
+        BonusMagnetRadius = 0f;
         MagnetPickup magnet = GetComponent<MagnetPickup>();
-        if (magnet == null && BonusMagnetRadius > 0f)
+        if (magnet == null)
         {
             magnet = gameObject.AddComponent<MagnetPickup>();
         }

@@ -365,6 +365,7 @@ MonoBehaviour:
   defaultLeg1Sprite: {fileID: 770955769, guid: 65fc5831f8144fc49bddde98555ed20d, type: 3}
   defaultLeg2Sprite: {fileID: 1856406010, guid: 65fc5831f8144fc49bddde98555ed20d, type: 3}
   defaultFirePointOffset: {x: 3.04, y: -1.54}
+  defaultHitVfxPrefab: {fileID: 3290514725870574986, guid: e1a1f001000000000000000000000001, type: 3}
   defaultBody:
     positionOffset: {x: 0, y: 0}
     scaleMultiplier: {x: 1, y: 1}
@@ -392,6 +393,7 @@ MonoBehaviour:
     bodySprite: {fileID: -5182206973502839065, guid: b11d782772fef994681d861860fa33eb, type: 3}
     armSprite: {fileID: 7950957983998334306, guid: fa67feb686c38264e8ab722fd57364ea, type: 3}
     gunSprite: {fileID: -9212286445950041963, guid: a14684e0c410c224d922ec86c4f49844, type: 3}
+    hitVfxPrefab: {fileID: 3290514725870574986, guid: e1a1f001000000000000000000000001, type: 3}
     bulletFrames:
     - {fileID: 21300000, guid: aa688e34ed6ab3e47b91f25828ae0978, type: 3}
     - {fileID: 21300000, guid: f3adbea308b14374a89abad08c54c192, type: 3}
@@ -428,6 +430,7 @@ MonoBehaviour:
     bodySprite: {fileID: -5182206973502839065, guid: b48489951e9c39e40b043dacb6bd63af, type: 3}
     armSprite: {fileID: 7950957983998334306, guid: 3f0a5377d27c63e47bddaa6fff51a1f7, type: 3}
     gunSprite: {fileID: -9212286445950041963, guid: 314f3198166d07c4c8a5b61bd92a7979, type: 3}
+    hitVfxPrefab: {fileID: 3290514725870574986, guid: e1a1f002000000000000000000000002, type: 3}
     bulletFrames:
     - {fileID: 21300000, guid: 1511b495001d331459102aaf23d49a6e, type: 3}
     - {fileID: 21300000, guid: f7e64eb6dc4d3874da835076eb7e4ed5, type: 3}
@@ -464,6 +467,7 @@ MonoBehaviour:
     bodySprite: {fileID: 21300000, guid: 4da2c1164166fb344963fd6c07c2f6e3, type: 3}
     armSprite: {fileID: 7950957983998334306, guid: e4177e280f33c244c83bcc6aab8b54cd, type: 3}
     gunSprite: {fileID: -9212286445950041963, guid: 673301c1065bc49469b13de76a575db8, type: 3}
+    hitVfxPrefab: {fileID: 3290514725870574986, guid: e1a1f003000000000000000000000003, type: 3}
     bulletFrames:
     - {fileID: 21300000, guid: bb3544a453163994ba7d4cbccb047605, type: 3}
     - {fileID: 21300000, guid: 9d2fc891c5e83aa47a7e28973ba0b2db, type: 3}
@@ -500,6 +504,7 @@ MonoBehaviour:
     bodySprite: {fileID: -5182206973502839065, guid: 65d0f84371244c549be34da2de3e090b, type: 3}
     armSprite: {fileID: 7950957983998334306, guid: e330f572764c47d4d96d4be202e4d3e3, type: 3}
     gunSprite: {fileID: -9212286445950041963, guid: 38ff57d9d59e7f642a3071d113dcbe9d, type: 3}
+    hitVfxPrefab: {fileID: 3290514725870574986, guid: e1a1f004000000000000000000000004, type: 3}
     bulletFrames:
     - {fileID: 21300000, guid: 10c6c16af5675394a96a466436ba2ad2, type: 3}
     - {fileID: 21300000, guid: 7ff22c11bce181f468d4bb89502200fa, type: 3}
@@ -946,7 +951,7 @@ MonoBehaviour:
   lavaHazardPrefab: {fileID: 0}
   orbitRadius: 0.4
   orbitSpeed: 192
-  launchSpeed: 4
+  launchSpeed: 12
   attackSpeedMultiplier: 0.65
   levelConfigs:
   - directDamage: 70

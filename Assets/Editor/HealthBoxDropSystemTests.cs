@@ -174,20 +174,24 @@ public class HealthBoxDropSystemTests
     {
         GameObject playerObj = new GameObject("Player_Magnet");
         MagnetPickup magnet = playerObj.AddComponent<MagnetPickup>();
-        magnet.SetBonusMagnetRadius(2f); // Tổng bán kính 3.5 + 2 = 5.5f
+        magnet.SetBonusMagnetRadius(2f); // Bán kính nam châm
         cleanupObjects.Add(playerObj);
 
-        // Sinh hộp máu trong phạm vi bán kính nam châm (khoảng cách 3.0f)
-        Vector3 boxPos = playerObj.transform.position + new Vector3(3f, 0f, 0f);
+        // Sinh hộp máu trong phạm vi bán kính nam châm (khoảng cách 1.5f)
+        Vector3 boxPos = playerObj.transform.position + new Vector3(1.5f, 0f, 0f);
         HealthBoxPickup box = DropTable.SpawnHealthBox(boxPos, HealthBoxType.Small);
         cleanupObjects.Add(box.gameObject);
 
         Assert.IsFalse(box.IsBeingAttracted);
 
-        // Kích hoạt quét hút ngọc và hộp máu
+        // 1. Mặc định: Nam châm KHÔNG tự động hút hộp máu (để người chơi tự bước qua nhặt)
         magnet.AttractNearbyGems();
+        Assert.IsFalse(box.IsBeingAttracted, "Mặc định hộp máu KHÔNG được tự động hút về phía Player.");
 
-        Assert.IsTrue(box.IsBeingAttracted, "Hộp máu trong tầm nam châm phải được kích hoạt lực hút về phía Player.");
+        // 2. Khi bật cờ AttractHealthBoxes = true: Nam châm mới kích hoạt hút hộp máu
+        magnet.AttractHealthBoxes = true;
+        magnet.AttractNearbyGems();
+        Assert.IsTrue(box.IsBeingAttracted, "Khi bật AttractHealthBoxes, hộp máu trong tầm nam châm mới được kích hoạt lực hút về phía Player.");
     }
 
 #if UNITY_EDITOR

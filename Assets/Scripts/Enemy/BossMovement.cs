@@ -64,6 +64,15 @@ public class BossMovement : MonoBehaviour, IPoolable
     [Min(0f)]
     [SerializeField] private float enrageDashCooldown = 0f;
 
+    [Tooltip("Bật chế độ lướt xuyên qua Player (không bị chặn vật lý bởi collider của Player).")]
+    [SerializeField] private bool dashPassThroughPlayer = true;
+
+    [Tooltip("Sát thương gây ra khi lướt trúng Player (Lượng lớn sát thương). Mặc định 100.")]
+    [SerializeField] private int dashDamage = 100;
+
+    [Tooltip("Bán kính vùng quét trúng Player trong lúc lướt (nếu = 0 sẽ lấy theo collider của Boss).")]
+    [SerializeField] private float dashDamageRadius = 1.2f;
+
     [Header("Enrage Phase (Cuồng nộ khi thấp máu)")]
     [Tooltip("Bật trạng thái cuồng nộ khi máu Boss xuống thấp.")]
     [SerializeField] private bool enableEnrage = true;
@@ -114,6 +123,8 @@ public class BossMovement : MonoBehaviour, IPoolable
     private static readonly RaycastHit2D[] obstacleHitBuffer = new RaycastHit2D[8];
     [SerializeField] private float bodyCollisionRadius = 0.5f;
     private float currentBodyRadius = 0.5f;
+    private bool hasDealtDashDamage = false;
+    private float currentDashDamageMultiplier = 1.0f;
 
     public void SetScaleMultiplier(float multiplier)
     {
@@ -144,6 +155,23 @@ public class BossMovement : MonoBehaviour, IPoolable
     public int EnrageDashComboCount => enrageDashComboCount;
     public float EnrageDashCooldown => enrageDashCooldown;
     public float EnrageHealthPercent => enrageHealthPercent;
+
+    public int DashDamage
+    {
+        get => dashDamage;
+        set => dashDamage = value;
+    }
+
+    public bool DashPassThroughPlayer
+    {
+        get => dashPassThroughPlayer;
+        set => dashPassThroughPlayer = value;
+    }
+
+    public void SetDashDamageMultiplier(float multiplier)
+    {
+        currentDashDamageMultiplier = Mathf.Max(0.1f, multiplier);
+    }
 
     private void Awake()
     {
@@ -295,6 +323,7 @@ public class BossMovement : MonoBehaviour, IPoolable
                 PlayAnimation(activeRunAnimationHash);
                 float currentDashSpeed = (moveSpeed * (isEnraged ? enrageSpeedMultiplier : 1f)) * dashSpeedMultiplier;
                 MoveInsideMap(rb.position + dashDirection * currentDashSpeed * Time.fixedDeltaTime);
+                CheckDashHitPlayer();
                 stateTimer -= Time.fixedDeltaTime;
                 if (stateTimer <= 0f)
                 {
@@ -333,18 +362,17 @@ public class BossMovement : MonoBehaviour, IPoolable
         Vector2 toPlayer = (Vector2)player.position - rb.position;
         float distance = toPlayer.magnitude;
 
-        BossRangedAttack.TargetRangeState rangeState = rangedAttack != null
-            ? rangedAttack.GetTargetRangeState()
-            : BossRangedAttack.TargetRangeState.NoTarget;
-
-        if (rangeState == BossRangedAttack.TargetRangeState.InRange)
+        // Chỉ dừng lại khi Boss đang thực sự thi triển loạt đạn bắn (IsAttacking),
+        // tránh việc Boss đứng trơ như tượng trong suốt thời gian hồi chiêu 2.5 - 4.5s
+        if (rangedAttack != null && rangedAttack.IsAttacking)
         {
             rb.velocity = Vector2.zero;
             PlayAnimation(activeIdleAnimationHash);
             return;
         }
 
-        if (rangedAttack == null && distance <= stoppingDistance)
+        // Dừng khi đã áp sát đến cự ly cận chiến
+        if (distance <= stoppingDistance)
         {
             rb.velocity = Vector2.zero;
             PlayAnimation(activeIdleAnimationHash);
@@ -384,6 +412,15 @@ public class BossMovement : MonoBehaviour, IPoolable
                     Vector2 normal = hit.normal;
                     Vector2 leftover = delta * (1f - Mathf.Clamp01(allowed / (distance + 0.05f)));
                     Vector2 slide = leftover - Vector2.Dot(leftover, normal) * normal;
+                    if (slide.sqrMagnitude < 0.0001f && normal.sqrMagnitude > 0.001f)
+                    {
+                        Vector2 tangent = Vector2.Perpendicular(normal);
+                        if (player != null && Vector2.Dot(tangent, (Vector2)player.position - currentPos) < 0f)
+                        {
+                            tangent = -tangent;
+                        }
+                        slide = tangent * leftover.magnitude;
+                    }
                     targetPosition = currentPos + dir * allowed + slide;
                     break;
                 }
@@ -502,17 +539,21 @@ public class BossMovement : MonoBehaviour, IPoolable
     {
         currentState = BossState.Dash;
         stateTimer = dashDuration;
+        hasDealtDashDamage = false;
         RestoreSpritesColor();
+        SetPassThroughPlayer(true);
     }
 
     private void StartRecover()
     {
+        SetPassThroughPlayer(false);
         currentState = BossState.Recover;
         stateTimer = dashRecoverDuration;
     }
 
     private void EndDash()
     {
+        SetPassThroughPlayer(false);
         currentState = BossState.Chase;
         float currentCooldown = isEnraged
             ? (enrageDashCooldown > 0f ? enrageDashCooldown : dashCooldown * enrageCooldownMultiplier)
@@ -583,8 +624,76 @@ public class BossMovement : MonoBehaviour, IPoolable
         PlayAnimation(activeRunAnimationHash);
     }
 
+    private void OnDisable()
+    {
+        SetPassThroughPlayer(false);
+    }
+
+    private void SetPassThroughPlayer(bool passThrough)
+    {
+        if (!dashPassThroughPlayer) return;
+        if (player == null)
+        {
+            FindPlayer();
+        }
+        if (player == null) return;
+
+        Collider2D[] bossCols = GetComponentsInChildren<Collider2D>();
+        Collider2D[] playerCols = player.GetComponentsInChildren<Collider2D>();
+
+        for (int i = 0; i < bossCols.Length; i++)
+        {
+            if (bossCols[i] == null) continue;
+            for (int j = 0; j < playerCols.Length; j++)
+            {
+                if (playerCols[j] == null) continue;
+                Physics2D.IgnoreCollision(bossCols[i], playerCols[j], passThrough);
+            }
+        }
+    }
+
+    private void CheckDashHitPlayer()
+    {
+        if (hasDealtDashDamage || player == null || !player.gameObject.activeInHierarchy) return;
+
+        bool isHit = false;
+        float hitRadius = dashDamageRadius > 0f ? dashDamageRadius : (currentBodyRadius * 1.5f);
+
+        // 1. Kiểm tra cự ly tâm trực tiếp giữa Boss và Player
+        if (((Vector2)player.position - rb.position).sqrMagnitude <= (hitRadius + 0.5f) * (hitRadius + 0.5f))
+        {
+            isHit = true;
+        }
+        else
+        {
+            // 2. Quét vùng overlap với hitbox của Player
+            int playerMask = LayerMask.GetMask("Player");
+            if (playerMask == 0) playerMask = ~0;
+
+            Collider2D hit = Physics2D.OverlapCircle(rb.position, hitRadius, playerMask);
+            if (hit != null && (hit.CompareTag("Player") || hit.transform.IsChildOf(player)))
+            {
+                isHit = true;
+            }
+        }
+
+        if (isHit)
+        {
+            PlayerHealth playerHealth = player.GetComponentInParent<PlayerHealth>();
+            if (playerHealth != null && !playerHealth.IsDead)
+            {
+                int effectiveDamage = Mathf.RoundToInt(dashDamage * (isEnraged ? 1.25f : 1.0f) * currentDashDamageMultiplier);
+                playerHealth.TakeDamage(effectiveDamage);
+                hasDealtDashDamage = true;
+                Debug.Log($"[BossMovement] Boss lướt xuyên trúng Player gây {effectiveDamage} sát thương lớn!");
+            }
+        }
+    }
+
     public void OnReturnToPool()
     {
+        SetPassThroughPlayer(false);
+        hasDealtDashDamage = false;
         moveSpeed = BaseMoveSpeed;
         currentState = BossState.Chase;
         isEnraged = false;

@@ -106,19 +106,12 @@ public class DesertPropSpawnerEditor : Editor
 
         if (chapterNumber == 2)
         {
-            AddProp(propsListProp, "Assets/Prefabs/Map 2 - Mutant Forest/nam_tim.prefab", DesertPropSpawner.PropKind.Obstacle, true);
-            AddProp(propsListProp, "Assets/Prefabs/Map 2 - Mutant Forest/cay_hoa_xoan.prefab", DesertPropSpawner.PropKind.Obstacle, true);
-            AddProp(propsListProp, "Assets/Prefabs/Map 2 - Mutant Forest/bui_cay.prefab", DesertPropSpawner.PropKind.Obstacle, true);
             AddProp(propsListProp, "Assets/Prefabs/Map 2 - Mutant Forest/bui_co_1.prefab", DesertPropSpawner.PropKind.Decoration, false);
             AddProp(propsListProp, "Assets/Prefabs/Map 2 - Mutant Forest/bui_co_2.prefab", DesertPropSpawner.PropKind.Decoration, false);
             AddProp(propsListProp, "Assets/Prefabs/Map 2 - Mutant Forest/bui_co_doi.prefab", DesertPropSpawner.PropKind.Decoration, false);
         }
         else if (chapterNumber == 3)
         {
-            AddProp(propsListProp, "Assets/Prefabs/Map 3 - Toxic Swamp/tang_da.prefab", DesertPropSpawner.PropKind.Obstacle, true);
-            AddProp(propsListProp, "Assets/Prefabs/Map 3 - Toxic Swamp/cum_cay_cam.prefab", DesertPropSpawner.PropKind.Obstacle, true);
-            AddProp(propsListProp, "Assets/Prefabs/Map 3 - Toxic Swamp/cay_bup_cam.prefab", DesertPropSpawner.PropKind.Obstacle, true);
-            AddProp(propsListProp, "Assets/Prefabs/Map 3 - Toxic Swamp/nam_bach_tuoc.prefab", DesertPropSpawner.PropKind.Obstacle, true);
             AddProp(propsListProp, "Assets/Prefabs/Map 3 - Toxic Swamp/mam_vang.prefab", DesertPropSpawner.PropKind.Decoration, false);
             AddProp(propsListProp, "Assets/Prefabs/Map 3 - Toxic Swamp/mam_xanh.prefab", DesertPropSpawner.PropKind.Decoration, false);
             AddProp(propsListProp, "Assets/Prefabs/Map 3 - Toxic Swamp/bui_hoa_xanh.prefab", DesertPropSpawner.PropKind.Decoration, false);

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -27,6 +28,15 @@ public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
     [SerializeField] private Image progressFillImage;
     [SerializeField] private RectTransform progressFillRect;
 
+    [Header("Equip Overlay")]
+    [SerializeField] private GameObject equipOverlayGroup;
+    [SerializeField] private Image equipDimOverlayImage;
+    [SerializeField] private Image equipArrowImage;
+    [SerializeField] private TMP_Text equipTextLabel;
+
+    [Header("Inventory Selection")]
+    [SerializeField] private CanvasGroup cardCanvasGroup;
+
     [Header("UI Groups")]
     [SerializeField] private GameObject normalContentGroup;
     [SerializeField] private GameObject emptySlotGroup;
@@ -36,6 +46,8 @@ public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
     private Action<ChipItemData> onCardClicked;
     private Action<ChipItemData> onUpgradeClicked;
     private Action onEmptySlotClicked;
+    private bool isEquipTargetMode;
+    private Action onTargetSlotClickedAction;
     private Material defaultFrameMaterial;
     private bool hasCapturedDefaultFrameMaterial;
     private Material defaultBackgroundMaterial;
@@ -96,6 +108,7 @@ public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
     public Image ProgressFillImage => progressFillImage;
     public RectTransform ProgressFillRect => progressFillRect;
     public GameObject UpgradeArrowGroup => upgradeArrowGroup;
+    public bool IsEquipTargetMode => isEquipTargetMode;
 
     private void Awake()
     {
@@ -104,6 +117,15 @@ public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
+        // If a Button component is present, it handles click events via onClick to prevent duplicate triggers
+        if (cardButton != null) return;
+
+        if (isEquipTargetMode)
+        {
+            onTargetSlotClickedAction?.Invoke();
+            return;
+        }
+
         if (slotState == ChipSlotState.Normal && boundData != null)
         {
             onCardClicked?.Invoke(boundData);
@@ -119,6 +141,12 @@ public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
         if (redShimmerEnabled)
         {
             ChipsetFrameShimmerMaterial.UpdateUnscaledAnimationClock();
+        }
+
+        if (isEquipTargetMode && equipArrowImage != null)
+        {
+            float offsetY = Mathf.Sin(Time.unscaledTime * 7.5f) * 6f;
+            equipArrowImage.rectTransform.anchoredPosition = new Vector2(0f, 6f + offsetY);
         }
     }
 
@@ -189,6 +217,372 @@ public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
         EnsureProgressBar();
         EnsureUpgradeArrow();
         EnsureStar();
+        EnsureEquipOverlay();
+    }
+
+    private static Sprite cachedEquipBadgeSprite;
+
+    public static Sprite GetEquipBadgeSprite()
+    {
+        if (cachedEquipBadgeSprite != null && !cachedEquipBadgeSprite.name.Equals("Equip", StringComparison.OrdinalIgnoreCase))
+            return cachedEquipBadgeSprite;
+
+        cachedEquipBadgeSprite = Resources.Load<Sprite>("UI/Chipset/badge-equip-arrow");
+#if UNITY_EDITOR
+        if (cachedEquipBadgeSprite == null)
+        {
+            cachedEquipBadgeSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Chipset/badge-equip-arrow.png");
+        }
+#endif
+        return cachedEquipBadgeSprite;
+    }
+
+    public void EnsureEquipOverlay()
+    {
+        if (equipOverlayGroup == null)
+        {
+            Transform t = transform.Find("EquipOverlay") 
+                       ?? transform.Find("NormalContentGroup/EquipOverlay");
+            if (t != null)
+            {
+                equipOverlayGroup = t.gameObject;
+            }
+            else
+            {
+                GameObject overlayObj = new GameObject("EquipOverlay", typeof(RectTransform));
+                RectTransform rt = overlayObj.GetComponent<RectTransform>();
+                rt.SetParent(transform, false);
+                rt.anchorMin = Vector2.zero;
+                rt.anchorMax = Vector2.one;
+                rt.pivot = new Vector2(0.5f, 0.5f);
+                rt.offsetMin = Vector2.zero;
+                rt.offsetMax = Vector2.zero;
+
+                equipOverlayGroup = overlayObj;
+            }
+        }
+
+        if (equipOverlayGroup != null)
+        {
+            RectTransform rootRt = equipOverlayGroup.GetComponent<RectTransform>();
+            if (rootRt != null)
+            {
+                rootRt.anchorMin = Vector2.zero;
+                rootRt.anchorMax = Vector2.one;
+                rootRt.pivot = new Vector2(0.5f, 0.5f);
+                rootRt.offsetMin = Vector2.zero;
+                rootRt.offsetMax = Vector2.zero;
+            }
+
+            // Disable any legacy Image directly on root container to prevent occluding children
+            Image rootImg = equipOverlayGroup.GetComponent<Image>();
+            if (rootImg != null)
+            {
+                rootImg.enabled = false;
+            }
+
+            // 1. Layer 1: Semi-transparent Dim Overlay over the card
+            if (equipDimOverlayImage == null)
+            {
+                Transform dimT = equipOverlayGroup.transform.Find("DimOverlay");
+                if (dimT != null)
+                {
+                    equipDimOverlayImage = dimT.GetComponent<Image>();
+                }
+                else
+                {
+                    GameObject dimObj = new GameObject("DimOverlay", typeof(RectTransform));
+                    RectTransform dimRt = dimObj.GetComponent<RectTransform>();
+                    dimRt.SetParent(equipOverlayGroup.transform, false);
+                    dimRt.anchorMin = Vector2.zero;
+                    dimRt.anchorMax = Vector2.one;
+                    dimRt.pivot = new Vector2(0.5f, 0.5f);
+                    dimRt.offsetMin = Vector2.zero;
+                    dimRt.offsetMax = Vector2.zero;
+
+                    Image dimImg = dimObj.AddComponent<Image>();
+                    dimImg.raycastTarget = false;
+                    equipDimOverlayImage = dimImg;
+                }
+            }
+
+            if (equipDimOverlayImage != null)
+            {
+                equipDimOverlayImage.raycastTarget = false;
+                if (cardFrameImage != null && cardFrameImage.sprite != null)
+                {
+                    equipDimOverlayImage.sprite = cardFrameImage.sprite;
+                    equipDimOverlayImage.type = cardFrameImage.type;
+                }
+                equipDimOverlayImage.color = new Color(0f, 0f, 0f, 0.5f);
+            }
+
+            // 2. Layer 2: Yellow Arrow Badge with Crisp White Rounded Stroke
+            if (equipArrowImage == null)
+            {
+                Transform arrowT = equipOverlayGroup.transform.Find("EquipArrow");
+                if (arrowT != null)
+                {
+                    equipArrowImage = arrowT.GetComponent<Image>();
+                }
+                else
+                {
+                    GameObject arrowObj = new GameObject("EquipArrow", typeof(RectTransform));
+                    RectTransform arrowRt = arrowObj.GetComponent<RectTransform>();
+                    arrowRt.SetParent(equipOverlayGroup.transform, false);
+                    arrowRt.anchorMin = new Vector2(0.5f, 1f);
+                    arrowRt.anchorMax = new Vector2(0.5f, 1f);
+                    arrowRt.pivot = new Vector2(0.5f, 1f);
+                    arrowRt.anchoredPosition = new Vector2(0f, 6f);
+                    arrowRt.sizeDelta = new Vector2(50f, 54f);
+
+                    Image arrowImg = arrowObj.AddComponent<Image>();
+                    arrowImg.raycastTarget = false;
+                    arrowImg.preserveAspect = true;
+                    equipArrowImage = arrowImg;
+                }
+            }
+
+            if (equipArrowImage != null)
+            {
+                equipArrowImage.raycastTarget = false;
+                equipArrowImage.preserveAspect = true;
+                if (equipArrowImage.sprite == null || equipArrowImage.sprite.name.Equals("Equip", StringComparison.OrdinalIgnoreCase))
+                {
+                    equipArrowImage.sprite = GetEquipBadgeSprite();
+                }
+                equipArrowImage.color = Color.white;
+            }
+
+            // 3. Layer 3: Bold White "Equip" Text with Thick Outline
+            if (equipTextLabel == null)
+            {
+                Transform txtT = equipOverlayGroup.transform.Find("EquipText");
+                if (txtT != null)
+                {
+                    equipTextLabel = txtT.GetComponent<TMP_Text>();
+                }
+                else
+                {
+                    GameObject txtObj = new GameObject("EquipText", typeof(RectTransform));
+                    RectTransform txtRt = txtObj.GetComponent<RectTransform>();
+                    txtRt.SetParent(equipOverlayGroup.transform, false);
+                    txtRt.anchorMin = new Vector2(0.5f, 0.5f);
+                    txtRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    txtRt.pivot = new Vector2(0.5f, 0.5f);
+                    txtRt.anchoredPosition = new Vector2(0f, -12f);
+                    txtRt.sizeDelta = new Vector2(140f, 44f);
+
+                    TextMeshProUGUI tmp = txtObj.AddComponent<TextMeshProUGUI>();
+                    tmp.raycastTarget = false;
+                    tmp.text = "Equip";
+                    tmp.fontSize = 30f;
+                    tmp.fontStyle = FontStyles.Bold;
+                    tmp.alignment = TextAlignmentOptions.Center;
+                    tmp.color = Color.white;
+                    EnsureFontAndMaterial(tmp);
+                    equipTextLabel = tmp;
+                }
+            }
+
+            if (equipTextLabel != null)
+            {
+                equipTextLabel.raycastTarget = false;
+                equipTextLabel.text = "Equip";
+                equipTextLabel.fontSize = 30f;
+                equipTextLabel.fontStyle = FontStyles.Bold;
+                equipTextLabel.alignment = TextAlignmentOptions.Center;
+                equipTextLabel.color = Color.white;
+                EnsureFontAndMaterial(equipTextLabel);
+            }
+        }
+    }
+
+    public void SetEquipTargetMode(bool isTargetMode, Sprite equipSprite = null, Action onTargetSlotClicked = null)
+    {
+        EnsureEquipOverlay();
+        isEquipTargetMode = isTargetMode;
+        onTargetSlotClickedAction = onTargetSlotClicked;
+
+        if (isTargetMode)
+        {
+            if (equipOverlayGroup != null)
+            {
+                equipOverlayGroup.SetActive(true);
+                equipOverlayGroup.transform.SetAsLastSibling();
+            }
+
+            if (equipArrowImage != null)
+            {
+                if (equipSprite != null && !equipSprite.name.Equals("Equip", StringComparison.OrdinalIgnoreCase))
+                    equipArrowImage.sprite = equipSprite;
+                else
+                    equipArrowImage.sprite = GetEquipBadgeSprite();
+
+                equipArrowImage.color = Color.white;
+                equipArrowImage.enabled = true;
+            }
+
+            if (equipDimOverlayImage != null)
+            {
+                if (cardFrameImage != null && cardFrameImage.sprite != null)
+                {
+                    equipDimOverlayImage.sprite = cardFrameImage.sprite;
+                    equipDimOverlayImage.type = cardFrameImage.type;
+                }
+                equipDimOverlayImage.color = new Color(0f, 0f, 0f, 0.5f);
+                equipDimOverlayImage.enabled = true;
+            }
+
+            if (equipTextLabel != null)
+            {
+                equipTextLabel.text = "Equip";
+                equipTextLabel.enabled = true;
+                EnsureFontAndMaterial(equipTextLabel);
+            }
+
+            // CRITICAL 1:1 MATCH: DO NOT HIDE card content!
+            // In the reference video (and slot1_crop.png), icon, level, progress bar remain active and visible under the dim overlay!
+            if (slotState == ChipSlotState.Empty)
+            {
+                if (normalContentGroup != null) normalContentGroup.SetActive(false);
+                if (emptySlotGroup != null) emptySlotGroup.SetActive(true);
+            }
+            else
+            {
+                if (normalContentGroup != null) normalContentGroup.SetActive(true);
+                if (emptySlotGroup != null) emptySlotGroup.SetActive(false);
+
+                if (iconImage != null && boundData != null) iconImage.gameObject.SetActive(true);
+                if (levelText != null && boundData != null) levelText.gameObject.SetActive(true);
+                if (upgradeArrowGroup != null && boundData != null)
+                {
+                    bool hasAction = !boundData.IsMaxOverall && (boundData.CanUpgrade || boundData.CanAdvanceTier);
+                    upgradeArrowGroup.SetActive(hasAction);
+                }
+                if (starObject != null && boundData != null) starObject.SetActive(boundData.hasStar);
+                if (bottomProgressBar != null && boundData != null) bottomProgressBar.gameObject.SetActive(true);
+            }
+
+            if (cardButton != null)
+            {
+                cardButton.interactable = true;
+                cardButton.onClick.RemoveAllListeners();
+                cardButton.onClick.AddListener(() => onTargetSlotClickedAction?.Invoke());
+            }
+        }
+        else
+        {
+            if (equipOverlayGroup != null) equipOverlayGroup.SetActive(false);
+            if (equipArrowImage != null) equipArrowImage.rectTransform.anchoredPosition = new Vector2(0f, 6f);
+
+            if (slotState == ChipSlotState.Empty)
+            {
+                if (normalContentGroup != null) normalContentGroup.SetActive(false);
+                if (emptySlotGroup != null) emptySlotGroup.SetActive(true);
+
+                if (cardButton != null)
+                {
+                    cardButton.interactable = true;
+                    cardButton.onClick.RemoveAllListeners();
+                    cardButton.onClick.AddListener(() => onEmptySlotClicked?.Invoke());
+                }
+            }
+            else
+            {
+                if (normalContentGroup != null) normalContentGroup.SetActive(true);
+                if (emptySlotGroup != null) emptySlotGroup.SetActive(false);
+
+                if (iconImage != null && boundData != null) iconImage.gameObject.SetActive(true);
+                if (levelText != null && boundData != null) levelText.gameObject.SetActive(true);
+                if (upgradeArrowGroup != null && boundData != null)
+                {
+                    bool hasAction = !boundData.IsMaxOverall && (boundData.CanUpgrade || boundData.CanAdvanceTier);
+                    upgradeArrowGroup.SetActive(hasAction);
+                }
+                if (starObject != null && boundData != null) starObject.SetActive(boundData.hasStar);
+
+                if (cardButton != null)
+                {
+                    cardButton.interactable = true;
+                    cardButton.onClick.RemoveAllListeners();
+                    cardButton.onClick.AddListener(() => onCardClicked?.Invoke(boundData));
+                }
+            }
+        }
+    }
+
+    public void EnsureCanvasGroup()
+    {
+        if (cardCanvasGroup == null)
+        {
+            cardCanvasGroup = GetComponent<CanvasGroup>();
+            if (cardCanvasGroup == null)
+            {
+                cardCanvasGroup = gameObject.AddComponent<CanvasGroup>();
+            }
+        }
+    }
+
+    public void EnsureSelectionBorder()
+    {
+        // No black overlay needed. Contrast is cleanly achieved via CanvasGroup alpha (1.0 vs 0.42) as in reference video.
+        Transform legacyBorder = transform.Find("SelectionBorder");
+        if (legacyBorder != null)
+        {
+            if (Application.isPlaying)
+                Destroy(legacyBorder.gameObject);
+            else
+                DestroyImmediate(legacyBorder.gameObject);
+        }
+    }
+
+    public void SetInventoryEquipState(bool isEquipModeActive, bool isThisCardSelected)
+    {
+        EnsureCanvasGroup();
+        EnsureSelectionBorder();
+
+        if (!isEquipModeActive)
+        {
+            if (cardCanvasGroup != null)
+            {
+                cardCanvasGroup.alpha = 1.0f;
+                cardCanvasGroup.interactable = true;
+                cardCanvasGroup.blocksRaycasts = true;
+            }
+            if (cardButton != null)
+            {
+                cardButton.interactable = true;
+            }
+            return;
+        }
+
+        if (isThisCardSelected)
+        {
+            if (cardCanvasGroup != null)
+            {
+                cardCanvasGroup.alpha = 1.0f;
+                cardCanvasGroup.interactable = true;
+                cardCanvasGroup.blocksRaycasts = true;
+            }
+            if (cardButton != null)
+            {
+                cardButton.interactable = true;
+            }
+        }
+        else
+        {
+            if (cardCanvasGroup != null)
+            {
+                cardCanvasGroup.alpha = 0.42f;
+                cardCanvasGroup.interactable = false;
+                cardCanvasGroup.blocksRaycasts = false;
+            }
+            if (cardButton != null)
+            {
+                cardButton.interactable = false;
+            }
+        }
     }
 
     private static Sprite cachedUpgradeArrowSprite;
@@ -320,6 +714,9 @@ public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
         slotState = ChipSlotState.Normal;
         onCardClicked = onCardClick;
         onUpgradeClicked = onUpgradeClick;
+        isEquipTargetMode = false;
+        if (equipOverlayGroup != null) equipOverlayGroup.SetActive(false);
+        SetInventoryEquipState(false, false);
 
         if (normalContentGroup != null) normalContentGroup.SetActive(true);
         if (emptySlotGroup != null) emptySlotGroup.SetActive(false);
@@ -621,6 +1018,8 @@ public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
         boundData = null;
         slotState = ChipSlotState.Empty;
         onEmptySlotClicked = onEmptyClick;
+        isEquipTargetMode = false;
+        if (equipOverlayGroup != null) equipOverlayGroup.SetActive(false);
 
         if (normalContentGroup != null) normalContentGroup.SetActive(false);
         if (emptySlotGroup != null) emptySlotGroup.SetActive(true);

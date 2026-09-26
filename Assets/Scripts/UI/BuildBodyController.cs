@@ -170,14 +170,39 @@ public class BuildBodyController : MonoBehaviour
 
     private void SetupTabListeners()
     {
+        // Đảm bảo TopTabs luôn nổi lên trên cùng để không bị Panel nào che khuất raycast
+        transform.SetAsLastSibling();
+
         if (statsTabButton != null)
         {
+            statsTabButton.interactable = true;
+            if (statsTabButton.targetGraphic != null)
+            {
+                statsTabButton.targetGraphic.raycastTarget = true;
+            }
+            Image img = statsTabButton.GetComponent<Image>();
+            if (img != null)
+            {
+                img.raycastTarget = true;
+            }
+
             statsTabButton.onClick.RemoveAllListeners();
             statsTabButton.onClick.AddListener(OnStatsTabClicked);
         }
 
         if (buildBodyTabButton != null)
         {
+            buildBodyTabButton.interactable = true;
+            if (buildBodyTabButton.targetGraphic != null)
+            {
+                buildBodyTabButton.targetGraphic.raycastTarget = true;
+            }
+            Image img = buildBodyTabButton.GetComponent<Image>();
+            if (img != null)
+            {
+                img.raycastTarget = true;
+            }
+
             buildBodyTabButton.onClick.RemoveAllListeners();
             buildBodyTabButton.onClick.AddListener(OnBuildBodyTabClicked);
         }

@@ -44,6 +44,7 @@ public class Enemy : MonoBehaviour, IDamageable, IPoolable
 
     public EnemyType Type => enemyType;
     public string EnemyName => enemyName;
+    public bool IsElite => enemyType == EnemyType.EliteCreep || enemyType == EnemyType.TankCreep || (enemyName != null && enemyName.IndexOf("Big", StringComparison.OrdinalIgnoreCase) >= 0) || name.IndexOf("Big", StringComparison.OrdinalIgnoreCase) >= 0 || (enemyName != null && enemyName.IndexOf("Elite", StringComparison.OrdinalIgnoreCase) >= 0) || name.IndexOf("Elite", StringComparison.OrdinalIgnoreCase) >= 0;
 
     public EnemyHealth Health => healthComponent != null ? healthComponent : (healthComponent = GetComponent<EnemyHealth>());
     public EnemyMovement Movement => movementComponent != null ? movementComponent : (movementComponent = GetComponent<EnemyMovement>());
@@ -202,22 +203,41 @@ public class Enemy : MonoBehaviour, IDamageable, IPoolable
         else
         {
             int awardedExp = Type == EnemyType.Boss ? 0 : expReward;
-            if (PlayerLevelController.Instance != null && awardedExp > 0)
+            try
             {
-                PlayerLevelController.Instance.AddEXP(awardedExp);
-            }
-
-            if (currencyDropChance >= 1f || UnityEngine.Random.value <= currencyDropChance)
-            {
-                if (dataChipReward > 0) ChipManager.AddDataChips(dataChipReward);
-                if (redGemReward > 0) ChipManager.AddRedGems(redGemReward);
-                if (randomRedGemDropChance > 0f && UnityEngine.Random.value <= randomRedGemDropChance)
+                if (awardedExp > 0)
                 {
-                    ChipManager.AddRedGems(randomRedGemAmount);
+                    if (!Application.isPlaying)
+                    {
+                        if (PlayerLevelController.Instance != null)
+                        {
+                            PlayerLevelController.Instance.AddEXP(awardedExp);
+                        }
+                    }
+                    else
+                    {
+                        int currentWave = EnemySpawner.Instance != null ? EnemySpawner.Instance.CurrentWaveNumber : 1;
+                        bool isElite = IsElite;
+                        DropTable.SpawnExpGemForEnemy(transform.position, awardedExp, currentWave, isElite, Type == EnemyType.Boss, true);
+                    }
                 }
-            }
 
-            DropTable.TryDropHealthBox(transform.position);
+                if (currencyDropChance >= 1f || UnityEngine.Random.value <= currencyDropChance)
+                {
+                    if (dataChipReward > 0) ChipManager.AddDataChips(dataChipReward);
+                    if (redGemReward > 0) ChipManager.AddRedGems(redGemReward);
+                    if (randomRedGemDropChance > 0f && UnityEngine.Random.value <= randomRedGemDropChance)
+                    {
+                        ChipManager.AddRedGems(randomRedGemAmount);
+                    }
+                }
+
+                DropTable.TryDropHealthBox(transform.position);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError("[Enemy] Error dropping loot on death: " + ex);
+            }
 
             OnEnemyDeath?.Invoke();
             OnDeath?.Invoke(this);

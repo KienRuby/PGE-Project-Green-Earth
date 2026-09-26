@@ -1,0 +1,349 @@
+{
+  "formula": "MaxEXP(Level) = 50 + (Level - 1) * 30",
+  "base_exp": 50,
+  "growth_per_level": 30,
+  "crystals": [
+    {
+      "tier": 1,
+      "name": "Pha Lê Xanh Lam (Blue Sapphire Crystal)",
+      "color": "Blue",
+      "sprite_path": "Assets/Sprites/Pickups/EXP/exp_gem_blue.png",
+      "resource_path": "EXP/exp_gem_blue",
+      "standard_value": 10,
+      "source": "Quái thường, Wave 1 - 5",
+      "drop_condition": "100% khi diệt quái thường ở wave 1 - 5"
+    },
+    {
+      "tier": 2,
+      "name": "Pha Lê Tím (Purple Amethyst Crystal)",
+      "color": "Purple",
+      "sprite_path": "Assets/Sprites/Pickups/EXP/exp_gem_purple.png",
+      "resource_path": "EXP/exp_gem_purple",
+      "standard_value": 20,
+      "source": "Quái tinh anh (Elite), Wave 6 - 10",
+      "drop_condition": "100% khi diệt quái tinh anh hoặc quái ở wave 6 - 10"
+    },
+    {
+      "tier": 3,
+      "name": "Pha Lê Vàng (Golden Topaz Crystal)",
+      "color": "Yellow",
+      "sprite_path": "Assets/Sprites/Pickups/EXP/exp_gem_yellow.png",
+      "resource_path": "EXP/exp_gem_yellow",
+      "standard_value": 50,
+      "source": "Wave 10; Tỷ lệ 1%",
+      "drop_condition": "1% xác suất rơi từ quái thường và quái tinh anh ở Wave 10"
+    },
+    {
+      "tier": 4,
+      "name": "Pha Lê Đỏ (Ruby Crimson Crystal)",
+      "color": "Red",
+      "sprite_path": "Assets/Sprites/Pickups/EXP/exp_gem_red.png",
+      "resource_path": "EXP/exp_gem_red",
+      "standard_value": 100,
+      "source": "Wave 10: Tỷ lệ 0.1% (hoặc Boss)",
+      "drop_condition": "0.1% xác suất rơi từ quái thường và quái tinh anh ở Wave 10, hoặc 100% rơi từ Boss"
+    }
+  ],
+  "level_progression": [
+    {
+      "level": 1,
+      "exp_to_next_level": 50,
+      "cumulative_exp_start": 0,
+      "cumulative_exp_end": 50,
+      "blue_gems_10exp": 5.0,
+      "purple_gems_20exp": 2.5,
+      "yellow_gems_50exp": 1.0,
+      "red_gems_100exp": 0.5
+    },
+    {
+      "level": 2,
+      "exp_to_next_level": 80,
+      "cumulative_exp_start": 50,
+      "cumulative_exp_end": 130,
+      "blue_gems_10exp": 8.0,
+      "purple_gems_20exp": 4.0,
+      "yellow_gems_50exp": 1.6,
+      "red_gems_100exp": 0.8
+    },
+    {
+      "level": 3,
+      "exp_to_next_level": 110,
+      "cumulative_exp_start": 130,
+      "cumulative_exp_end": 240,
+      "blue_gems_10exp": 11.0,
+      "purple_gems_20exp": 5.5,
+      "yellow_gems_50exp": 2.2,
+      "red_gems_100exp": 1.1
+    },
+    {
+      "level": 4,
+      "exp_to_next_level": 140,
+      "cumulative_exp_start": 240,
+      "cumulative_exp_end": 380,
+      "blue_gems_10exp": 14.0,
+      "purple_gems_20exp": 7.0,
+      "yellow_gems_50exp": 2.8,
+      "red_gems_100exp": 1.4
+    },
+    {
+      "level": 5,
+      "exp_to_next_level": 170,
+      "cumulative_exp_start": 380,
+      "cumulative_exp_end": 550,
+      "blue_gems_10exp": 17.0,
+      "purple_gems_20exp": 8.5,
+      "yellow_gems_50exp": 3.4,
+      "red_gems_100exp": 1.7
+    },
+    {
+      "level": 6,
+      "exp_to_next_level": 200,
+      "cumulative_exp_start": 550,
+      "cumulative_exp_end": 750,
+      "blue_gems_10exp": 20.0,
+      "purple_gems_20exp": 10.0,
+      "yellow_gems_50exp": 4.0,
+      "red_gems_100exp": 2.0
+    },
+    {
+      "level": 7,
+      "exp_to_next_level": 230,
+      "cumulative_exp_start": 750,
+      "cumulative_exp_end": 980,
+      "blue_gems_10exp": 23.0,
+      "purple_gems_20exp": 11.5,
+      "yellow_gems_50exp": 4.6,
+      "red_gems_100exp": 2.3
+    },
+    {
+      "level": 8,
+      "exp_to_next_level": 260,
+      "cumulative_exp_start": 980,
+      "cumulative_exp_end": 1240,
+      "blue_gems_10exp": 26.0,
+      "purple_gems_20exp": 13.0,
+      "yellow_gems_50exp": 5.2,
+      "red_gems_100exp": 2.6
+    },
+    {
+      "level": 9,
+      "exp_to_next_level": 290,
+      "cumulative_exp_start": 1240,
+      "cumulative_exp_end": 1530,
+      "blue_gems_10exp": 29.0,
+      "purple_gems_20exp": 14.5,
+      "yellow_gems_50exp": 5.8,
+      "red_gems_100exp": 2.9
+    },
+    {
+      "level": 10,
+      "exp_to_next_level": 320,
+      "cumulative_exp_start": 1530,
+      "cumulative_exp_end": 1850,
+      "blue_gems_10exp": 32.0,
+      "purple_gems_20exp": 16.0,
+      "yellow_gems_50exp": 6.4,
+      "red_gems_100exp": 3.2
+    },
+    {
+      "level": 11,
+      "exp_to_next_level": 350,
+      "cumulative_exp_start": 1850,
+      "cumulative_exp_end": 2200,
+      "blue_gems_10exp": 35.0,
+      "purple_gems_20exp": 17.5,
+      "yellow_gems_50exp": 7.0,
+      "red_gems_100exp": 3.5
+    },
+    {
+      "level": 12,
+      "exp_to_next_level": 380,
+      "cumulative_exp_start": 2200,
+      "cumulative_exp_end": 2580,
+      "blue_gems_10exp": 38.0,
+      "purple_gems_20exp": 19.0,
+      "yellow_gems_50exp": 7.6,
+      "red_gems_100exp": 3.8
+    },
+    {
+      "level": 13,
+      "exp_to_next_level": 410,
+      "cumulative_exp_start": 2580,
+      "cumulative_exp_end": 2990,
+      "blue_gems_10exp": 41.0,
+      "purple_gems_20exp": 20.5,
+      "yellow_gems_50exp": 8.2,
+      "red_gems_100exp": 4.1
+    },
+    {
+      "level": 14,
+      "exp_to_next_level": 440,
+      "cumulative_exp_start": 2990,
+      "cumulative_exp_end": 3430,
+      "blue_gems_10exp": 44.0,
+      "purple_gems_20exp": 22.0,
+      "yellow_gems_50exp": 8.8,
+      "red_gems_100exp": 4.4
+    },
+    {
+      "level": 15,
+      "exp_to_next_level": 470,
+      "cumulative_exp_start": 3430,
+      "cumulative_exp_end": 3900,
+      "blue_gems_10exp": 47.0,
+      "purple_gems_20exp": 23.5,
+      "yellow_gems_50exp": 9.4,
+      "red_gems_100exp": 4.7
+    },
+    {
+      "level": 16,
+      "exp_to_next_level": 500,
+      "cumulative_exp_start": 3900,
+      "cumulative_exp_end": 4400,
+      "blue_gems_10exp": 50.0,
+      "purple_gems_20exp": 25.0,
+      "yellow_gems_50exp": 10.0,
+      "red_gems_100exp": 5.0
+    },
+    {
+      "level": 17,
+      "exp_to_next_level": 530,
+      "cumulative_exp_start": 4400,
+      "cumulative_exp_end": 4930,
+      "blue_gems_10exp": 53.0,
+      "purple_gems_20exp": 26.5,
+      "yellow_gems_50exp": 10.6,
+      "red_gems_100exp": 5.3
+    },
+    {
+      "level": 18,
+      "exp_to_next_level": 560,
+      "cumulative_exp_start": 4930,
+      "cumulative_exp_end": 5490,
+      "blue_gems_10exp": 56.0,
+      "purple_gems_20exp": 28.0,
+      "yellow_gems_50exp": 11.2,
+      "red_gems_100exp": 5.6
+    },
+    {
+      "level": 19,
+      "exp_to_next_level": 590,
+      "cumulative_exp_start": 5490,
+      "cumulative_exp_end": 6080,
+      "blue_gems_10exp": 59.0,
+      "purple_gems_20exp": 29.5,
+      "yellow_gems_50exp": 11.8,
+      "red_gems_100exp": 5.9
+    },
+    {
+      "level": 20,
+      "exp_to_next_level": 620,
+      "cumulative_exp_start": 6080,
+      "cumulative_exp_end": 6700,
+      "blue_gems_10exp": 62.0,
+      "purple_gems_20exp": 31.0,
+      "yellow_gems_50exp": 12.4,
+      "red_gems_100exp": 6.2
+    },
+    {
+      "level": 21,
+      "exp_to_next_level": 650,
+      "cumulative_exp_start": 6700,
+      "cumulative_exp_end": 7350,
+      "blue_gems_10exp": 65.0,
+      "purple_gems_20exp": 32.5,
+      "yellow_gems_50exp": 13.0,
+      "red_gems_100exp": 6.5
+    },
+    {
+      "level": 22,
+      "exp_to_next_level": 680,
+      "cumulative_exp_start": 7350,
+      "cumulative_exp_end": 8030,
+      "blue_gems_10exp": 68.0,
+      "purple_gems_20exp": 34.0,
+      "yellow_gems_50exp": 13.6,
+      "red_gems_100exp": 6.8
+    },
+    {
+      "level": 23,
+      "exp_to_next_level": 710,
+      "cumulative_exp_start": 8030,
+      "cumulative_exp_end": 8740,
+      "blue_gems_10exp": 71.0,
+      "purple_gems_20exp": 35.5,
+      "yellow_gems_50exp": 14.2,
+      "red_gems_100exp": 7.1
+    },
+    {
+      "level": 24,
+      "exp_to_next_level": 740,
+      "cumulative_exp_start": 8740,
+      "cumulative_exp_end": 9480,
+      "blue_gems_10exp": 74.0,
+      "purple_gems_20exp": 37.0,
+      "yellow_gems_50exp": 14.8,
+      "red_gems_100exp": 7.4
+    },
+    {
+      "level": 25,
+      "exp_to_next_level": 770,
+      "cumulative_exp_start": 9480,
+      "cumulative_exp_end": 10250,
+      "blue_gems_10exp": 77.0,
+      "purple_gems_20exp": 38.5,
+      "yellow_gems_50exp": 15.4,
+      "red_gems_100exp": 7.7
+    },
+    {
+      "level": 26,
+      "exp_to_next_level": 800,
+      "cumulative_exp_start": 10250,
+      "cumulative_exp_end": 11050,
+      "blue_gems_10exp": 80.0,
+      "purple_gems_20exp": 40.0,
+      "yellow_gems_50exp": 16.0,
+      "red_gems_100exp": 8.0
+    },
+    {
+      "level": 27,
+      "exp_to_next_level": 830,
+      "cumulative_exp_start": 11050,
+      "cumulative_exp_end": 11880,
+      "blue_gems_10exp": 83.0,
+      "purple_gems_20exp": 41.5,
+      "yellow_gems_50exp": 16.6,
+      "red_gems_100exp": 8.3
+    },
+    {
+      "level": 28,
+      "exp_to_next_level": 860,
+      "cumulative_exp_start": 11880,
+      "cumulative_exp_end": 12740,
+      "blue_gems_10exp": 86.0,
+      "purple_gems_20exp": 43.0,
+      "yellow_gems_50exp": 17.2,
+      "red_gems_100exp": 8.6
+    },
+    {
+      "level": 29,
+      "exp_to_next_level": 890,
+      "cumulative_exp_start": 12740,
+      "cumulative_exp_end": 13630,
+      "blue_gems_10exp": 89.0,
+      "purple_gems_20exp": 44.5,
+      "yellow_gems_50exp": 17.8,
+      "red_gems_100exp": 8.9
+    },
+    {
+      "level": 30,
+      "exp_to_next_level": 920,
+      "cumulative_exp_start": 13630,
+      "cumulative_exp_end": 14550,
+      "blue_gems_10exp": 92.0,
+      "purple_gems_20exp": 46.0,
+      "yellow_gems_50exp": 18.4,
+      "red_gems_100exp": 9.2
+    }
+  ]
+}

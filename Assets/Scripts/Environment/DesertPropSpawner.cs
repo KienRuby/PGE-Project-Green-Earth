@@ -143,19 +143,12 @@ public class DesertPropSpawner : MonoBehaviour
         targetProps.Clear();
         if (chNum == 2)
         {
-            AddPropEntry(targetProps, "Assets/Prefabs/Map 2 - Mutant Forest/nam_tim.prefab", PropKind.Obstacle, false);
-            AddPropEntry(targetProps, "Assets/Prefabs/Map 2 - Mutant Forest/cay_hoa_xoan.prefab", PropKind.Obstacle, false);
-            AddPropEntry(targetProps, "Assets/Prefabs/Map 2 - Mutant Forest/bui_cay.prefab", PropKind.Obstacle, false);
             AddPropEntry(targetProps, "Assets/Prefabs/Map 2 - Mutant Forest/bui_co_1.prefab", PropKind.Decoration, false);
             AddPropEntry(targetProps, "Assets/Prefabs/Map 2 - Mutant Forest/bui_co_2.prefab", PropKind.Decoration, false);
             AddPropEntry(targetProps, "Assets/Prefabs/Map 2 - Mutant Forest/bui_co_doi.prefab", PropKind.Decoration, false);
         }
         else if (chNum == 3)
         {
-            AddPropEntry(targetProps, "Assets/Prefabs/Map 3 - Toxic Swamp/tang_da.prefab", PropKind.Obstacle, false);
-            AddPropEntry(targetProps, "Assets/Prefabs/Map 3 - Toxic Swamp/cum_cay_cam.prefab", PropKind.Obstacle, false);
-            AddPropEntry(targetProps, "Assets/Prefabs/Map 3 - Toxic Swamp/cay_bup_cam.prefab", PropKind.Obstacle, false);
-            AddPropEntry(targetProps, "Assets/Prefabs/Map 3 - Toxic Swamp/nam_bach_tuoc.prefab", PropKind.Obstacle, false);
             AddPropEntry(targetProps, "Assets/Prefabs/Map 3 - Toxic Swamp/mam_vang.prefab", PropKind.Decoration, false);
             AddPropEntry(targetProps, "Assets/Prefabs/Map 3 - Toxic Swamp/mam_xanh.prefab", PropKind.Decoration, false);
             AddPropEntry(targetProps, "Assets/Prefabs/Map 3 - Toxic Swamp/bui_hoa_xanh.prefab", PropKind.Decoration, false);
@@ -258,9 +251,15 @@ public class DesertPropSpawner : MonoBehaviour
             ? new System.Random(randomSeed)
             : new System.Random(unchecked(Environment.TickCount * 397 ^ GetInstanceID()));
 
-        generatedRoot = new GameObject($"Generated Props (Chapter {activeChapterNum})").transform;
+        generatedRoot = new GameObject("Generated Desert Props").transform;
         generatedRoot.SetParent(transform, false);
         generatedRoot.localPosition = new Vector3(0f, 0f, -10f);
+        float parentScaleX = Mathf.Abs(transform.localScale.x);
+        float parentScaleY = Mathf.Abs(transform.localScale.y);
+        generatedRoot.localScale = new Vector3(
+            parentScaleX > 0.0001f ? 1f / parentScaleX : 1f,
+            parentScaleY > 0.0001f ? 1f / parentScaleY : 1f,
+            1f);
         if (isEditorPreview)
         {
             generatedRoot.gameObject.hideFlags = HideFlags.DontSaveInEditor;
@@ -269,11 +268,16 @@ public class DesertPropSpawner : MonoBehaviour
         float area = mapBoundary.MapSize.x * mapBoundary.MapSize.y;
 
         ChapterData currentChapter = chapterMapManager != null ? chapterMapManager.ActiveChapterData : null;
-        float currentObstacleDensity = (currentChapter != null && currentChapter.obstacleDensity > 0f)
-            ? currentChapter.obstacleDensity
+        float currentObstacleDensity = (currentChapter != null)
+            ? (currentChapter.enableObstacles ? currentChapter.obstacleDensity : 0f)
             : obstacleDensity;
-        float currentDecorationDensity = (currentChapter != null && currentChapter.decorationDensity > 0f)
-            ? currentChapter.decorationDensity
+        if (activeChapterNum == 2 || activeChapterNum == 3)
+        {
+            currentObstacleDensity = 0f;
+        }
+
+        float currentDecorationDensity = (currentChapter != null)
+            ? (currentChapter.enableObstacles ? currentChapter.decorationDensity : 0f)
             : decorationDensity;
         float currentWidthRatio = (currentChapter != null && currentChapter.obstacleColliderWidthRatio > 0f)
             ? currentChapter.obstacleColliderWidthRatio
@@ -283,7 +287,10 @@ public class DesertPropSpawner : MonoBehaviour
             : colliderHeightRatio;
 
         SpawnKind(PropKind.Decoration, CalculateSpawnCount(area, currentDecorationDensity), decorationMinSpacing, currentWidthRatio, currentHeightRatio, activeChapterNum);
-        SpawnKind(PropKind.Obstacle, CalculateSpawnCount(area, currentObstacleDensity), obstacleMinSpacing, currentWidthRatio, currentHeightRatio, activeChapterNum);
+        if (activeChapterNum != 2 && activeChapterNum != 3)
+        {
+            SpawnKind(PropKind.Obstacle, CalculateSpawnCount(area, currentObstacleDensity), obstacleMinSpacing, currentWidthRatio, currentHeightRatio, activeChapterNum);
+        }
     }
 
     [ContextMenu("Clear Generated Desert Props")]
@@ -350,6 +357,11 @@ public class DesertPropSpawner : MonoBehaviour
 
     private void SpawnKind(PropKind kind, int targetCount, float minSpacing, float widthRatio, float heightRatio, int chapterNum = -1)
     {
+        if (kind == PropKind.Obstacle && (chapterNum == 2 || chapterNum == 3))
+        {
+            return;
+        }
+
         List<PropEntry> candidates = GetCandidates(kind, chapterNum);
         if (candidates.Count == 0 || targetCount <= 0)
         {

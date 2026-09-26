@@ -243,9 +243,6 @@ public class LabUpgradeController : MonoBehaviour
     [Tooltip("Màu của hiệu ứng đèn rọi sáng bừng nhấp nháy khi trúng thưởng.")]
     [SerializeField] private Color highlightFlashColor = new Color32(255, 255, 180, 255);
 
-    [Header("Lab Grid Layout")]
-    [Tooltip("Dịch toàn bộ lưới 16 ô xuống để căn giữa màn hình dọc.")]
-    [SerializeField] private float itemGridVerticalOffset = -42f;
 
     private RectTransform highlightFrameRoot;
     private Image highlightBorderImage;
@@ -262,7 +259,6 @@ public class LabUpgradeController : MonoBehaviour
     private ItemRarity? activeGuaranteedRarity;
     private int pendingItemIndex = -1;
     private bool isRolling;
-    private bool gridOffsetApplied;
     private bool hasInitialized;
     private DateTime nextEnergyRecoveryUtc;
     private Coroutine energyRecoveryCoroutine;
@@ -296,28 +292,6 @@ public class LabUpgradeController : MonoBehaviour
             }
         }
 
-        ApplyItemGridVerticalOffset();
-    }
-
-    private void ApplyItemGridVerticalOffset()
-    {
-        if (gridOffsetApplied || Mathf.Abs(itemGridVerticalOffset) < 0.01f || items == null) return;
-
-        Transform firstSlot = null;
-        for (int i = 0; i < items.Length && firstSlot == null; i++)
-        {
-            ItemEntry item = items[i];
-            if (item == null) continue;
-            if (item.lockedGroup != null) firstSlot = item.lockedGroup.transform.parent;
-            if (firstSlot == null && item.unlockedGroup != null) firstSlot = item.unlockedGroup.transform.parent;
-            if (firstSlot == null && item.slotButton != null) firstSlot = item.slotButton.transform;
-        }
-
-        RectTransform gridRect = firstSlot != null ? firstSlot.parent as RectTransform : null;
-        if (gridRect == null) return;
-
-        gridRect.anchoredPosition += new Vector2(0f, itemGridVerticalOffset);
-        gridOffsetApplied = true;
     }
 
     private void AssignRaritiesByRow()

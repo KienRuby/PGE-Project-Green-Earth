@@ -122,6 +122,19 @@ public class AchievementItemUI : MonoBehaviour
 
     public void EnsureSpritesLoaded()
     {
+        if (btnGetSprite == null)
+            btnGetSprite = Resources.Load<Sprite>("UI/Reward/Extracted/Btn_Get");
+        if (btnNotAchievedSprite == null)
+            btnNotAchievedSprite = Resources.Load<Sprite>("UI/Reward/Extracted/Btn_Not_Achieved");
+        if (btnObtainedSprite == null)
+            btnObtainedSprite = Resources.Load<Sprite>("UI/Reward/Extracted/Btn_Obtained");
+        if (cardBannerSprite == null)
+            cardBannerSprite = Resources.Load<Sprite>("UI/Reward/Extracted/Row_Banner_Achievement");
+        if (progressBarBgSprite == null)
+            progressBarBgSprite = Resources.Load<Sprite>("UI/Reward/Extracted/Progress_Bar_Bg");
+        if (progressBarFillSprite == null)
+            progressBarFillSprite = Resources.Load<Sprite>("UI/Reward/Extracted/Progress_Bar_Fill");
+
 #if UNITY_EDITOR
         if (btnGetSprite == null)
             btnGetSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Reward/Extracted/Btn_Get.png");

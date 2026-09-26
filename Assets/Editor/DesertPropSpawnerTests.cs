@@ -233,5 +233,84 @@ public class DesertPropSpawnerTests
             Object.DestroyImmediate(spawnerGo);
         }
     }
+
+    [Test]
+    public void Map2And3_DefaultProps_ContainZeroObstacles()
+    {
+        GameObject spawnerGo = new GameObject("TestSpawner", typeof(MapBoundary), typeof(DesertPropSpawner));
+        try
+        {
+            DesertPropSpawner spawner = spawnerGo.GetComponent<DesertPropSpawner>();
+            spawner.EnsureDefaultChapterConfigs();
+
+            List<DesertPropSpawner.PropEntry> ch2Props = spawner.GetCurrentPropsList(2);
+            Assert.That(ch2Props, Is.Not.Null);
+            Assert.That(ch2Props.Count, Is.GreaterThan(0));
+            Assert.That(ch2Props.Exists(p => p.kind == DesertPropSpawner.PropKind.Obstacle), Is.False, "Chapter 2 không được chứa bất kỳ chướng ngại vật nào.");
+
+            List<DesertPropSpawner.PropEntry> ch3Props = spawner.GetCurrentPropsList(3);
+            Assert.That(ch3Props, Is.Not.Null);
+            Assert.That(ch3Props.Count, Is.GreaterThan(0));
+            Assert.That(ch3Props.Exists(p => p.kind == DesertPropSpawner.PropKind.Obstacle), Is.False, "Chapter 3 không được chứa bất kỳ chướng ngại vật nào.");
+        }
+        finally
+        {
+            Object.DestroyImmediate(spawnerGo);
+        }
+    }
+
+    [Test]
+    public void Map2And3_ChapterData_ObstacleDensityIsZero()
+    {
+        ChapterData c2 = AssetDatabase.LoadAssetAtPath<ChapterData>("Assets/Data/Chapters/Chapter_02_MutantForest.asset");
+        Assert.That(c2, Is.Not.Null);
+        Assert.That(c2.obstacleDensity, Is.EqualTo(0f), "Chapter 2 obstacleDensity phải bằng 0.");
+
+        ChapterData c3 = AssetDatabase.LoadAssetAtPath<ChapterData>("Assets/Data/Chapters/Chapter_03_ToxicSwamp.asset");
+        Assert.That(c3, Is.Not.Null);
+        Assert.That(c3.obstacleDensity, Is.EqualTo(0f), "Chapter 3 obstacleDensity phải bằng 0.");
+    }
+
+    [Test]
+    public void Chapter2And3_GroundScale_IsZeroPointTwo_AndCoversFullMap()
+    {
+        ChapterData c2 = AssetDatabase.LoadAssetAtPath<ChapterData>("Assets/Data/Chapters/Chapter_02_MutantForest.asset");
+        Assert.That(c2, Is.Not.Null);
+        Assert.That(c2.GetEffectiveGroundScale(), Is.EqualTo(0.2f).Within(0.001f));
+
+        ChapterData c3 = AssetDatabase.LoadAssetAtPath<ChapterData>("Assets/Data/Chapters/Chapter_03_ToxicSwamp.asset");
+        Assert.That(c3, Is.Not.Null);
+        Assert.That(c3.GetEffectiveGroundScale(), Is.EqualTo(0.2f).Within(0.001f));
+
+        GameObject floorGo = new GameObject("FloorTest", typeof(SpriteRenderer), typeof(MapBoundary), typeof(ChapterMapManager));
+        try
+        {
+            ChapterMapManager manager = floorGo.GetComponent<ChapterMapManager>();
+            SpriteRenderer sr = floorGo.GetComponent<SpriteRenderer>();
+            manager.InitializeMap();
+
+            System.Reflection.MethodInfo applyMethod = typeof(ChapterMapManager).GetMethod("ApplyChapterConfig", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+
+            applyMethod.Invoke(manager, new object[] { c2 });
+            Assert.That(floorGo.transform.localScale.x, Is.EqualTo(0.2f).Within(0.001f));
+            Assert.That(floorGo.transform.localScale.y, Is.EqualTo(0.2f).Within(0.001f));
+            Assert.That(sr.size.x, Is.EqualTo(200f).Within(0.001f));
+            Assert.That(sr.size.y, Is.EqualTo(200f).Within(0.001f));
+            Assert.That(sr.bounds.size.x, Is.EqualTo(40f).Within(0.001f));
+            Assert.That(sr.bounds.size.y, Is.EqualTo(40f).Within(0.001f));
+
+            applyMethod.Invoke(manager, new object[] { c3 });
+            Assert.That(floorGo.transform.localScale.x, Is.EqualTo(0.2f).Within(0.001f));
+            Assert.That(floorGo.transform.localScale.y, Is.EqualTo(0.2f).Within(0.001f));
+            Assert.That(sr.size.x, Is.EqualTo(200f).Within(0.001f));
+            Assert.That(sr.size.y, Is.EqualTo(200f).Within(0.001f));
+            Assert.That(sr.bounds.size.x, Is.EqualTo(40f).Within(0.001f));
+            Assert.That(sr.bounds.size.y, Is.EqualTo(40f).Within(0.001f));
+        }
+        finally
+        {
+            Object.DestroyImmediate(floorGo);
+        }
+    }
 }
 

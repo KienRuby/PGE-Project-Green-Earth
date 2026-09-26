@@ -48,6 +48,8 @@ public class DailyGemMineLevelCard : MonoBehaviour
     public TMP_Text LevelTitleText => levelTitleText;
     public TMP_Text RewardText => rewardText;
     public Image PreviewImage => previewImage;
+    public GameObject LockOverlay => lockOverlay;
+    public bool IsLocked => lockOverlay != null && lockOverlay.activeSelf;
 
     private void Awake()
     {
@@ -93,19 +95,37 @@ public class DailyGemMineLevelCard : MonoBehaviour
 
     /// <summary>
     /// Đảm bảo thẻ luôn có huy hiệu LockedBadge khi màn chơi bị khóa.
+    /// Huy hiệu này bắt buộc phải có raycastTarget = true và Button để chặn đứng các thao tác click,
+    /// tuyệt đối không cho tia raycast xuyên thủng xuống giao diện Chapter phía dưới.
     /// </summary>
     public void EnsureLockBadge()
     {
-        if (lockOverlay != null) return;
+        if (lockOverlay != null)
+        {
+            Image existingImg = lockOverlay.GetComponent<Image>();
+            if (existingImg != null) existingImg.raycastTarget = true;
+            Button existingBtn = lockOverlay.GetComponent<Button>() ?? lockOverlay.AddComponent<Button>();
+            existingBtn.targetGraphic = existingImg;
+            existingBtn.onClick.RemoveListener(HandleLockedBadgeClicked);
+            existingBtn.onClick.AddListener(HandleLockedBadgeClicked);
+            return;
+        }
+
         Transform existing = transform.Find("LockedBadge") ?? transform.Find("LockOverlay");
         if (existing != null)
         {
             lockOverlay = existing.gameObject;
             lockLabel = existing.GetComponentInChildren<TMP_Text>(true);
+            Image existingImg = existing.GetComponent<Image>();
+            if (existingImg != null) existingImg.raycastTarget = true;
+            Button existingBtn = existing.GetComponent<Button>() ?? existing.gameObject.AddComponent<Button>();
+            existingBtn.targetGraphic = existingImg;
+            existingBtn.onClick.RemoveListener(HandleLockedBadgeClicked);
+            existingBtn.onClick.AddListener(HandleLockedBadgeClicked);
             return;
         }
 
-        GameObject badgeObj = new GameObject("LockedBadge", typeof(RectTransform), typeof(Image));
+        GameObject badgeObj = new GameObject("LockedBadge", typeof(RectTransform), typeof(Image), typeof(Button));
         badgeObj.layer = gameObject.layer;
         badgeObj.transform.SetParent(transform, false);
         RectTransform rt = badgeObj.GetComponent<RectTransform>();
@@ -117,8 +137,13 @@ public class DailyGemMineLevelCard : MonoBehaviour
         rt.localScale = Vector3.one;
 
         Image img = badgeObj.GetComponent<Image>();
-        img.color = new Color(0.12f, 0.12f, 0.16f, 0.88f);
-        img.raycastTarget = false;
+        img.color = new Color(0.12f, 0.12f, 0.16f, 0.92f);
+        img.raycastTarget = true; // Bắt buộc nhận raycast để hấp thụ click
+
+        Button btn = badgeObj.GetComponent<Button>();
+        btn.targetGraphic = img;
+        btn.onClick.RemoveListener(HandleLockedBadgeClicked);
+        btn.onClick.AddListener(HandleLockedBadgeClicked);
 
         GameObject txtObj = new GameObject("LockedText", typeof(RectTransform), typeof(TextMeshProUGUI));
         txtObj.layer = gameObject.layer;
@@ -133,7 +158,7 @@ public class DailyGemMineLevelCard : MonoBehaviour
         txt.text = "LOCKED";
         txt.fontSize = 30f;
         txt.fontStyle = FontStyles.Bold;
-        txt.color = new Color32(200, 200, 200, 255);
+        txt.color = new Color32(220, 220, 220, 255);
         txt.alignment = TextAlignmentOptions.Center;
         txt.raycastTarget = false;
         if (levelTitleText != null && levelTitleText.font != null)
@@ -146,11 +171,17 @@ public class DailyGemMineLevelCard : MonoBehaviour
         badgeObj.SetActive(false);
     }
 
+    private void HandleLockedBadgeClicked()
+    {
+        Debug.Log($"[DailyGemMineLevelCard] Màn {levelNumber} đang bị khóa: {lockLabel?.text}");
+    }
+
     /// <summary>
     /// Tối ưu hóa raycast target cho các thành phần trên thẻ:
     /// - Ảnh nền, tiêu đề, icon kim cương đặt raycastTarget = false để cử chỉ lướt (Swipe)
     ///   truyền thẳng về ScrollView tương tự Tower Def.
     /// - Nút Start giữ nguyên raycastTarget = true để nhận click bắt đầu trận.
+    /// - Huy hiệu LockedBadge giữ raycastTarget = true để chặn click xuyên thấu khi màn bị khóa.
     /// </summary>
     public void OptimizeRaycastTargetsForSwiping()
     {
@@ -166,6 +197,15 @@ public class DailyGemMineLevelCard : MonoBehaviour
             if (targetGraphic != null)
             {
                 targetGraphic.raycastTarget = true;
+            }
+        }
+
+        if (lockOverlay != null)
+        {
+            Image lockImg = lockOverlay.GetComponent<Image>();
+            if (lockImg != null)
+            {
+                lockImg.raycastTarget = true;
             }
         }
     }
@@ -222,6 +262,12 @@ public class DailyGemMineLevelCard : MonoBehaviour
         if (startButton != null)
         {
             startButton.interactable = interactable && hasEntrances;
+            var targetGraphic = startButton.targetGraphic as Image ?? startButton.GetComponent<Image>();
+            if (targetGraphic != null)
+            {
+                targetGraphic.color = Color.white;
+                targetGraphic.raycastTarget = true;
+            }
         }
 
         if (canvasGroup != null)
@@ -242,6 +288,14 @@ public class DailyGemMineLevelCard : MonoBehaviour
         if (lockOverlay != null)
         {
             lockOverlay.SetActive(isLocked);
+            if (isLocked)
+            {
+                Image lockImg = lockOverlay.GetComponent<Image>();
+                if (lockImg != null) lockImg.raycastTarget = true;
+                Button lockBtn = lockOverlay.GetComponent<Button>() ?? lockOverlay.AddComponent<Button>();
+                lockBtn.interactable = true;
+                lockBtn.targetGraphic = lockImg;
+            }
         }
 
         if (lockLabel != null && !string.IsNullOrEmpty(reason))
@@ -251,7 +305,7 @@ public class DailyGemMineLevelCard : MonoBehaviour
 
         if (canvasGroup != null)
         {
-            canvasGroup.alpha = isLocked ? 0.6f : 1f;
+            canvasGroup.alpha = isLocked ? 0.7f : 1f;
         }
 
         if (previewImage != null)

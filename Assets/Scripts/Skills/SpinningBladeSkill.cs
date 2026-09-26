@@ -137,6 +137,14 @@ public class SpinningBladeSkill : MonoBehaviour
             if (levelConfigs.Length >= 5) levelConfigs[4].cooldown = 1.0f;
         }
 
+        if (spinningBladePrefab == null)
+        {
+            spinningBladePrefab = Resources.Load<GameObject>("Prefabs/Chipset/SpinningBlade");
+        }
+        if (hitVfxPrefab == null)
+        {
+            hitVfxPrefab = Resources.Load<GameObject>("Prefabs/VFX Boom");
+        }
 #if UNITY_EDITOR
         if (spinningBladePrefab == null)
         {
