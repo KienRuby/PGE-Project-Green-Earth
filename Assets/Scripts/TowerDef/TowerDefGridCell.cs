@@ -517,15 +517,20 @@ public class TowerDefGridCell : MonoBehaviour, IBeginDragHandler, IDragHandler, 
 
     public void UpgradeCurrentStructure()
     {
-        structureLevel++;
         if (turretComp != null)
         {
-            // Upgraded via turretComp
+            structureLevel = turretComp.TurretLevel;
+            turretComp.UpdateTurretVisual();
         }
         else if (generatorComp != null)
         {
-            // Upgraded via generatorComp
+            structureLevel = generatorComp.StructureLevel;
         }
+        else
+        {
+            structureLevel++;
+        }
+        RefreshUpgradeBadge(TowerDefGameManager.Instance != null ? TowerDefGameManager.Instance.Gold : 0);
     }
 
     public void SetUpgradeBadge(bool active)
@@ -550,7 +555,7 @@ public class TowerDefGridCell : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         }
         else if (turretComp != null)
         {
-            bool can = (currentGold >= turretComp.UpgradeCost);
+            bool can = (currentGold >= turretComp.UpgradeCost) && !turretComp.IsMaxLevel;
             SetUpgradeBadge(can);
         }
     }

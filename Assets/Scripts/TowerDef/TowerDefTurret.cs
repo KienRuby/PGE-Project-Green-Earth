@@ -25,7 +25,11 @@ public class TowerDefTurret : MonoBehaviour
     [SerializeField] private GameObject upgradeIcon;
     [SerializeField] private float gunVisualAngleOffset = -90f;
     [SerializeField] private GameObject projectilePrefab;
+    [SerializeField] private Sprite[] baseLevelSprites;
+    [SerializeField] private Sprite[] gunLevelSprites;
 
+    private SpriteRenderer baseSpriteRenderer;
+    private SpriteRenderer gunSpriteRenderer;
     private float nextFireTime;
     private TowerDefEnemy currentTarget;
     private Canvas owningCanvas;
@@ -34,13 +38,109 @@ public class TowerDefTurret : MonoBehaviour
     public const int MAX_TURRET_LEVEL = 5;
     public int TurretLevel => turretLevel;
     public bool IsMaxLevel => turretLevel >= MAX_TURRET_LEVEL;
+    public int NextLevel => Mathf.Min(MAX_TURRET_LEVEL, turretLevel + 1);
     public float Damage => damage;
+    public float NextDamage => damage + 20f;
     public float FireRate => fireRate;
+    public float NextFireRate => fireRate + 0.3f;
     public float AttackRange => attackRange;
     public int UpgradeCost => IsMaxLevel ? 0 : baseUpgradeCost * turretLevel;
     public GameObject ProjectilePrefab => projectilePrefab;
 
     public event Action<int> OnTurretUpgraded;
+
+    private void Awake()
+    {
+        EnsureSpritesLoaded();
+    }
+
+    public static string GetTurretName(int level)
+    {
+        switch (level)
+        {
+            case 1: return "Pháo Năng Lượng";
+            case 2: return "Pháo Thép Lam";
+            case 3: return "Pháo Hoàng Kim";
+            case 4: return "Pháo Tử Quang";
+            case 5: return "Pháo Hỏa Long";
+            default: return $"Pháo cấp {level:D2}";
+        }
+    }
+
+    public void EnsureSpritesLoaded()
+    {
+        if (baseLevelSprites == null || baseLevelSprites.Length < 5 || baseLevelSprites[0] == null)
+        {
+            baseLevelSprites = new Sprite[5];
+            baseLevelSprites[0] = Resources.Load<Sprite>("TowerDef/Turret_Base_01_Cyan");
+            baseLevelSprites[1] = Resources.Load<Sprite>("TowerDef/Turret_Base_02_Blue");
+            baseLevelSprites[2] = Resources.Load<Sprite>("TowerDef/Turret_Base_03_Gold");
+            baseLevelSprites[3] = Resources.Load<Sprite>("TowerDef/Turret_Base_04_Pink");
+            baseLevelSprites[4] = Resources.Load<Sprite>("TowerDef/Turret_Base_05_Red");
+
+#if UNITY_EDITOR
+            string towersDir = "Assets/Sprites/Mini game/Sliced/Towers/";
+            if (baseLevelSprites[0] == null) baseLevelSprites[0] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Base_01_Cyan.png");
+            if (baseLevelSprites[1] == null) baseLevelSprites[1] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Base_02_Blue.png");
+            if (baseLevelSprites[2] == null) baseLevelSprites[2] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Base_03_Gold.png");
+            if (baseLevelSprites[3] == null) baseLevelSprites[3] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Base_04_Pink.png");
+            if (baseLevelSprites[4] == null) baseLevelSprites[4] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Base_05_Red.png");
+#endif
+        }
+
+        if (gunLevelSprites == null || gunLevelSprites.Length < 5 || gunLevelSprites[0] == null)
+        {
+            gunLevelSprites = new Sprite[5];
+            gunLevelSprites[0] = Resources.Load<Sprite>("TowerDef/Turret_Gun_01_Cyan");
+            gunLevelSprites[1] = Resources.Load<Sprite>("TowerDef/Turret_Gun_02_Blue");
+            gunLevelSprites[2] = Resources.Load<Sprite>("TowerDef/Turret_Gun_03_Gold");
+            gunLevelSprites[3] = Resources.Load<Sprite>("TowerDef/Turret_Gun_04_Purple");
+            gunLevelSprites[4] = Resources.Load<Sprite>("TowerDef/Turret_Gun_05_Red");
+
+#if UNITY_EDITOR
+            string towersDir = "Assets/Sprites/Mini game/Sliced/Towers/";
+            if (gunLevelSprites[0] == null) gunLevelSprites[0] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Gun_01_Cyan.png");
+            if (gunLevelSprites[1] == null) gunLevelSprites[1] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Gun_02_Blue.png");
+            if (gunLevelSprites[2] == null) gunLevelSprites[2] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Gun_03_Gold.png");
+            if (gunLevelSprites[3] == null) gunLevelSprites[3] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Gun_04_Purple.png");
+            if (gunLevelSprites[4] == null) gunLevelSprites[4] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Gun_05_Red.png");
+#endif
+        }
+    }
+
+    public void SetLevelSprites(Sprite[] bases, Sprite[] guns)
+    {
+        if (bases != null && bases.Length > 0) baseLevelSprites = bases;
+        if (guns != null && guns.Length > 0) gunLevelSprites = guns;
+        EnsureSpritesLoaded();
+        UpdateTurretVisual();
+    }
+
+    public Sprite GetBaseSprite(int level)
+    {
+        EnsureSpritesLoaded();
+        if (baseLevelSprites != null && baseLevelSprites.Length > 0)
+        {
+            int idx = Mathf.Clamp(level - 1, 0, baseLevelSprites.Length - 1);
+            if (idx < baseLevelSprites.Length && baseLevelSprites[idx] != null)
+                return baseLevelSprites[idx];
+        }
+        if (baseSpriteRenderer != null) return baseSpriteRenderer.sprite;
+        return baseImage != null ? baseImage.sprite : null;
+    }
+
+    public Sprite GetGunSprite(int level)
+    {
+        EnsureSpritesLoaded();
+        if (gunLevelSprites != null && gunLevelSprites.Length > 0)
+        {
+            int idx = Mathf.Clamp(level - 1, 0, gunLevelSprites.Length - 1);
+            if (idx < gunLevelSprites.Length && gunLevelSprites[idx] != null)
+                return gunLevelSprites[idx];
+        }
+        if (gunSpriteRenderer != null) return gunSpriteRenderer.sprite;
+        return gunImage != null ? gunImage.sprite : null;
+    }
 
     public void Setup(Transform gunTr, Image baseImg, Image gunImg, GameObject upIcon)
     {
@@ -50,6 +150,51 @@ public class TowerDefTurret : MonoBehaviour
         upgradeIcon = upIcon;
         owningCanvas = GetComponentInParent<Canvas>();
         viewCamera = owningCanvas != null ? owningCanvas.worldCamera : Camera.main;
+
+        // Auto-detect SpriteRenderers if present (prefab instance mode)
+        if (gunTransform != null)
+        {
+            gunSpriteRenderer = gunTransform.GetComponentInChildren<SpriteRenderer>(true);
+            Transform parent = gunTransform.parent;
+            if (parent != null)
+            {
+                Transform baseTr = parent.Find("BaseSprite");
+                if (baseTr != null) baseSpriteRenderer = baseTr.GetComponent<SpriteRenderer>();
+                if (baseSpriteRenderer == null) baseSpriteRenderer = parent.GetComponentInChildren<SpriteRenderer>(true);
+            }
+        }
+        if (baseSpriteRenderer == null)
+        {
+            baseSpriteRenderer = GetComponentInChildren<SpriteRenderer>(true);
+        }
+
+        EnsureSpritesLoaded();
+        UpdateTurretVisual();
+    }
+
+    public void UpdateTurretVisual()
+    {
+        EnsureSpritesLoaded();
+        Sprite baseSpr = GetBaseSprite(turretLevel);
+        Sprite gunSpr = GetGunSprite(turretLevel);
+
+        if (baseSpriteRenderer != null && baseSpr != null)
+        {
+            baseSpriteRenderer.sprite = baseSpr;
+        }
+        if (gunSpriteRenderer != null && gunSpr != null)
+        {
+            gunSpriteRenderer.sprite = gunSpr;
+        }
+
+        if (baseImage != null && baseSpr != null)
+        {
+            baseImage.sprite = baseSpr;
+        }
+        if (gunImage != null && gunSpr != null)
+        {
+            gunImage.sprite = gunSpr;
+        }
     }
 
     public void SetProjectilePrefab(GameObject prefab)
@@ -74,6 +219,9 @@ public class TowerDefTurret : MonoBehaviour
         gunVisualAngleOffset = source.gunVisualAngleOffset;
         nextFireTime = source.nextFireTime;
         currentTarget = null;
+        if (source.baseLevelSprites != null) baseLevelSprites = source.baseLevelSprites;
+        if (source.gunLevelSprites != null) gunLevelSprites = source.gunLevelSprites;
+        UpdateTurretVisual();
     }
 
     private void Update()
@@ -161,10 +309,25 @@ public class TowerDefTurret : MonoBehaviour
 
         gold -= cost;
         turretLevel++;
-        damage += 15f;
-        fireRate += 0.25f;
+        damage += 20f;
+        fireRate += 0.3f;
         attackRange += 50f;
 
+        UpdateTurretVisual();
+        OnTurretUpgraded?.Invoke(turretLevel);
+        return true;
+    }
+
+    public bool TryUpgradeFree()
+    {
+        if (IsMaxLevel) return false;
+
+        turretLevel++;
+        damage += 20f;
+        fireRate += 0.3f;
+        attackRange += 50f;
+
+        UpdateTurretVisual();
         OnTurretUpgraded?.Invoke(turretLevel);
         return true;
     }
@@ -173,7 +336,7 @@ public class TowerDefTurret : MonoBehaviour
     {
         if (upgradeIcon != null)
         {
-            upgradeIcon.SetActive(active);
+            upgradeIcon.SetActive(active && !IsMaxLevel);
         }
     }
 }

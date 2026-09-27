@@ -51,6 +51,8 @@ public class TowerDefGameManager : MonoBehaviour
     [SerializeField] private Sprite coinIconSprite;
     [SerializeField] private Sprite energyIconSprite;
     [SerializeField] private Sprite[] gateLevelSprites;
+    [SerializeField] private Sprite[] turretBaseLevelSprites;
+    [SerializeField] private Sprite[] turretGunLevelSprites;
     [SerializeField] private Sprite frameUpgradePopupSprite;
     [SerializeField] private Sprite panelUpgradeRowBarSprite;
     [SerializeField] private Sprite btnUpgradeGreySprite;
@@ -71,6 +73,9 @@ public class TowerDefGameManager : MonoBehaviour
     public bool WaveInProgress => waveInProgress;
     public IReadOnlyList<TowerDefEnemy> ActiveEnemies => activeEnemies;
     public TowerDefGate Gate => gate;
+    public Sprite[] GateLevelSprites => gateLevelSprites;
+    public Sprite[] TurretBaseLevelSprites => turretBaseLevelSprites;
+    public Sprite[] TurretGunLevelSprites => turretGunLevelSprites;
 
     public event Action<int, int> OnCurrencyChanged;
     public event Action<int> OnWaveCompleted;
@@ -176,6 +181,8 @@ public class TowerDefGameManager : MonoBehaviour
         cell.PlaceStructure(type, baseSpr, gunSpr, 1);
         if (type == TowerDefStructureType.Turret && useGunTurretPrefabVisuals)
             cell.ApplyTurretVisual(turretBaseSprite, turretGunSprite, 0f);
+        if (type == TowerDefStructureType.Turret && cell.Turret != null)
+            cell.Turret.SetLevelSprites(turretBaseLevelSprites, turretGunLevelSprites);
         ShowFloatingText(cell.transform.position, "BUILT!", Color.green);
         UpdateUI();
         return true;
@@ -275,7 +282,9 @@ public class TowerDefGameManager : MonoBehaviour
         if (upgraded)
         {
             cell.UpgradeCurrentStructure();
-            ShowFloatingText(cell.transform.position, "UPGRADED!", Color.cyan);
+            string name = cell.CurrentType == TowerDefStructureType.Turret ? $"PHÁO LV.{cell.StructureLevel}!" :
+                          (cell.CurrentType == TowerDefStructureType.CoreBed ? $"GIƯỜNG LV.{cell.StructureLevel}!" : "UPGRADED!");
+            ShowFloatingText(cell.transform.position, name, Color.cyan);
             UpdateUI();
         }
         else
@@ -293,8 +302,7 @@ public class TowerDefGameManager : MonoBehaviour
         bool upgraded = false;
         if (cell.Turret != null)
         {
-            int dummy = cell.Turret.UpgradeCost;
-            upgraded = cell.Turret.TryUpgrade(ref dummy);
+            upgraded = cell.Turret.TryUpgradeFree();
         }
         else if (cell.Generator != null)
         {
@@ -304,8 +312,9 @@ public class TowerDefGameManager : MonoBehaviour
         if (upgraded)
         {
             cell.UpgradeCurrentStructure();
-            string name = cell.CurrentType == TowerDefStructureType.CoreBed ? "BED" : "STRUCTURE";
-            ShowFloatingText(cell.transform.position, $"FREE {name} UPGRADED!", Color.cyan);
+            string name = cell.CurrentType == TowerDefStructureType.Turret ? $"FREE PHÁO LV.{cell.StructureLevel}!" :
+                          (cell.CurrentType == TowerDefStructureType.CoreBed ? "FREE BED UPGRADED!" : "FREE UPGRADED!");
+            ShowFloatingText(cell.transform.position, name, Color.cyan);
             UpdateUI();
         }
 
@@ -903,6 +912,10 @@ public class TowerDefGameManager : MonoBehaviour
             if (gridCells[2, 1] != null)
             {
                 gridCells[2, 1].PlaceStructure(TowerDefStructureType.Turret, turretBaseSprite, turretGunSprite, 1);
+                if (gridCells[2, 1].Turret != null)
+                {
+                    gridCells[2, 1].Turret.SetLevelSprites(turretBaseLevelSprites, turretGunLevelSprites);
+                }
             }
 
             // - Hàng 3 từ trên xuống (r = 1), Cột 3 (c = 2): Trụ Năng Lượng (Pawn Tower)
@@ -944,6 +957,10 @@ public class TowerDefGameManager : MonoBehaviour
             {
                 existingCells[i].ConfigureTurretPrefab(gunTurretPrefab);
                 existingCells[i].ApplyTurretVisual(turretBaseSprite, turretGunSprite, 0f);
+                if (existingCells[i].Turret != null)
+                {
+                    existingCells[i].Turret.SetLevelSprites(turretBaseLevelSprites, turretGunLevelSprites);
+                }
             }
         }
 
@@ -1146,7 +1163,9 @@ public class TowerDefGameManager : MonoBehaviour
             btnUpgradeAdsSprite,
             coinIconSprite,
             gateLevelSprites,
-            bedLevelSprites);
+            bedLevelSprites,
+            turretBaseLevelSprites,
+            turretGunLevelSprites);
         return ctrl;
     }
 
@@ -1204,6 +1223,24 @@ public class TowerDefGameManager : MonoBehaviour
             gateLevelSprites[2] = Resources.Load<Sprite>("TowerDef/Gate_Green_Wood");
             gateLevelSprites[3] = Resources.Load<Sprite>("TowerDef/Gate_Blue_Wood");
         }
+        if (turretBaseLevelSprites == null || turretBaseLevelSprites.Length == 0)
+        {
+            turretBaseLevelSprites = new Sprite[5];
+            turretBaseLevelSprites[0] = Resources.Load<Sprite>("TowerDef/Turret_Base_01_Cyan");
+            turretBaseLevelSprites[1] = Resources.Load<Sprite>("TowerDef/Turret_Base_02_Blue");
+            turretBaseLevelSprites[2] = Resources.Load<Sprite>("TowerDef/Turret_Base_03_Gold");
+            turretBaseLevelSprites[3] = Resources.Load<Sprite>("TowerDef/Turret_Base_04_Pink");
+            turretBaseLevelSprites[4] = Resources.Load<Sprite>("TowerDef/Turret_Base_05_Red");
+        }
+        if (turretGunLevelSprites == null || turretGunLevelSprites.Length == 0)
+        {
+            turretGunLevelSprites = new Sprite[5];
+            turretGunLevelSprites[0] = Resources.Load<Sprite>("TowerDef/Turret_Gun_01_Cyan");
+            turretGunLevelSprites[1] = Resources.Load<Sprite>("TowerDef/Turret_Gun_02_Blue");
+            turretGunLevelSprites[2] = Resources.Load<Sprite>("TowerDef/Turret_Gun_03_Gold");
+            turretGunLevelSprites[3] = Resources.Load<Sprite>("TowerDef/Turret_Gun_04_Purple");
+            turretGunLevelSprites[4] = Resources.Load<Sprite>("TowerDef/Turret_Gun_05_Red");
+        }
         if (frameUpgradePopupSprite == null) frameUpgradePopupSprite = Resources.Load<Sprite>("TowerDef/Frame_Upgrade_Popup");
         if (panelUpgradeRowBarSprite == null) panelUpgradeRowBarSprite = Resources.Load<Sprite>("TowerDef/Panel_Upgrade_Row_Bar");
         if (btnUpgradeGreySprite == null) btnUpgradeGreySprite = Resources.Load<Sprite>("TowerDef/Btn_Upgrade_Grey");
@@ -1256,6 +1293,24 @@ public class TowerDefGameManager : MonoBehaviour
             gateLevelSprites[1] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + "Gate_Cyan_Grid.png");
             gateLevelSprites[2] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + "Gate_Green_Wood.png");
             gateLevelSprites[3] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + "Gate_Blue_Wood.png");
+        }
+        if (turretBaseLevelSprites == null || turretBaseLevelSprites.Length < 5 || turretBaseLevelSprites[0] == null)
+        {
+            turretBaseLevelSprites = new Sprite[5];
+            turretBaseLevelSprites[0] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Base_01_Cyan.png");
+            turretBaseLevelSprites[1] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Base_02_Blue.png");
+            turretBaseLevelSprites[2] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Base_03_Gold.png");
+            turretBaseLevelSprites[3] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Base_04_Pink.png");
+            turretBaseLevelSprites[4] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Base_05_Red.png");
+        }
+        if (turretGunLevelSprites == null || turretGunLevelSprites.Length < 5 || turretGunLevelSprites[0] == null)
+        {
+            turretGunLevelSprites = new Sprite[5];
+            turretGunLevelSprites[0] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Gun_01_Cyan.png");
+            turretGunLevelSprites[1] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Gun_02_Blue.png");
+            turretGunLevelSprites[2] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Gun_03_Gold.png");
+            turretGunLevelSprites[3] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Gun_04_Purple.png");
+            turretGunLevelSprites[4] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Gun_05_Red.png");
         }
         if (gateSprite == null && gateLevelSprites != null && gateLevelSprites.Length > 0)
         {

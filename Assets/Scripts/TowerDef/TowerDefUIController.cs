@@ -50,6 +50,8 @@ public class TowerDefUIController : MonoBehaviour
     [SerializeField] private Sprite btnUpgradeAdsSprite;
     [SerializeField] private Sprite coinIconSprite;
     [SerializeField] private Sprite[] gateLevelSprites;
+    [SerializeField] private Sprite[] turretBaseLevelSprites;
+    [SerializeField] private Sprite[] turretGunLevelSprites;
     [SerializeField] private TMP_FontAsset uiFont;
 
     [SerializeField] private Sprite[] bedLevelSprites;
@@ -172,7 +174,9 @@ public class TowerDefUIController : MonoBehaviour
         Sprite btnAds,
         Sprite coinIcon,
         Sprite[] gateSprites,
-        Sprite[] bedSprites = null)
+        Sprite[] bedSprites = null,
+        Sprite[] turretBases = null,
+        Sprite[] turretGuns = null)
     {
         if (framePopup != null) frameUpgradePopupSprite = framePopup;
         if (panelRowBar != null) panelUpgradeRowBarSprite = panelRowBar;
@@ -182,6 +186,8 @@ public class TowerDefUIController : MonoBehaviour
         if (coinIcon != null) coinIconSprite = coinIcon;
         if (gateSprites != null) gateLevelSprites = gateSprites;
         if (bedSprites != null) bedLevelSprites = bedSprites;
+        if (turretBases != null) turretBaseLevelSprites = turretBases;
+        if (turretGuns != null) turretGunLevelSprites = turretGuns;
     }
 
     private void EnsureSpritesAndFont()
@@ -197,6 +203,42 @@ public class TowerDefUIController : MonoBehaviour
                 uiFont = Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
         }
 
+        if (frameUpgradePopupSprite == null) frameUpgradePopupSprite = Resources.Load<Sprite>("TowerDef/Frame_Upgrade_Popup");
+        if (panelUpgradeRowBarSprite == null) panelUpgradeRowBarSprite = Resources.Load<Sprite>("TowerDef/Panel_Upgrade_Row_Bar");
+        if (btnUpgradeGreySprite == null) btnUpgradeGreySprite = Resources.Load<Sprite>("TowerDef/Btn_Upgrade_Grey");
+        if (btnUpgradeCyanSprite == null) btnUpgradeCyanSprite = Resources.Load<Sprite>("TowerDef/Btn_Upgrade_Cyan");
+        if (btnUpgradeAdsSprite == null) btnUpgradeAdsSprite = Resources.Load<Sprite>("TowerDef/Btn_Upgrade_Ads");
+        if (coinIconSprite == null) coinIconSprite = Resources.Load<Sprite>("TowerDef/Icon_Coin");
+
+        if (gateLevelSprites == null || gateLevelSprites.Length < 4 || gateLevelSprites[0] == null)
+        {
+            gateLevelSprites = new Sprite[4];
+            gateLevelSprites[0] = Resources.Load<Sprite>("TowerDef/Gate_Metal");
+            gateLevelSprites[1] = Resources.Load<Sprite>("TowerDef/Gate_Cyan_Grid");
+            gateLevelSprites[2] = Resources.Load<Sprite>("TowerDef/Gate_Green_Wood");
+            gateLevelSprites[3] = Resources.Load<Sprite>("TowerDef/Gate_Blue_Wood");
+        }
+
+        if (turretBaseLevelSprites == null || turretBaseLevelSprites.Length < 5 || turretBaseLevelSprites[0] == null)
+        {
+            turretBaseLevelSprites = new Sprite[5];
+            turretBaseLevelSprites[0] = Resources.Load<Sprite>("TowerDef/Turret_Base_01_Cyan");
+            turretBaseLevelSprites[1] = Resources.Load<Sprite>("TowerDef/Turret_Base_02_Blue");
+            turretBaseLevelSprites[2] = Resources.Load<Sprite>("TowerDef/Turret_Base_03_Gold");
+            turretBaseLevelSprites[3] = Resources.Load<Sprite>("TowerDef/Turret_Base_04_Pink");
+            turretBaseLevelSprites[4] = Resources.Load<Sprite>("TowerDef/Turret_Base_05_Red");
+        }
+
+        if (turretGunLevelSprites == null || turretGunLevelSprites.Length < 5 || turretGunLevelSprites[0] == null)
+        {
+            turretGunLevelSprites = new Sprite[5];
+            turretGunLevelSprites[0] = Resources.Load<Sprite>("TowerDef/Turret_Gun_01_Cyan");
+            turretGunLevelSprites[1] = Resources.Load<Sprite>("TowerDef/Turret_Gun_02_Blue");
+            turretGunLevelSprites[2] = Resources.Load<Sprite>("TowerDef/Turret_Gun_03_Gold");
+            turretGunLevelSprites[3] = Resources.Load<Sprite>("TowerDef/Turret_Gun_04_Purple");
+            turretGunLevelSprites[4] = Resources.Load<Sprite>("TowerDef/Turret_Gun_05_Red");
+        }
+
 #if UNITY_EDITOR
         string uiDir = "Assets/Sprites/Mini game/Sliced/UI/";
         string tilesDir = "Assets/Sprites/Mini game/Sliced/Tiles/";
@@ -209,14 +251,22 @@ public class TowerDefUIController : MonoBehaviour
         if (btnUpgradeAdsSprite == null) btnUpgradeAdsSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(uiDir + "Btn_Upgrade_Ads.png");
         if (coinIconSprite == null) coinIconSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(uiDir + "Icon_Coin.png");
 
-        if (gateLevelSprites == null || gateLevelSprites.Length < 4 || gateLevelSprites[0] == null)
-        {
-            gateLevelSprites = new Sprite[4];
-            gateLevelSprites[0] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + "Gate_Metal.png");
-            gateLevelSprites[1] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + "Gate_Cyan_Grid.png");
-            gateLevelSprites[2] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + "Gate_Green_Wood.png");
-            gateLevelSprites[3] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + "Gate_Blue_Wood.png");
-        }
+        if (gateLevelSprites[0] == null) gateLevelSprites[0] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + "Gate_Metal.png");
+        if (gateLevelSprites[1] == null) gateLevelSprites[1] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + "Gate_Cyan_Grid.png");
+        if (gateLevelSprites[2] == null) gateLevelSprites[2] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + "Gate_Green_Wood.png");
+        if (gateLevelSprites[3] == null) gateLevelSprites[3] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + "Gate_Blue_Wood.png");
+
+        if (turretBaseLevelSprites[0] == null) turretBaseLevelSprites[0] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Base_01_Cyan.png");
+        if (turretBaseLevelSprites[1] == null) turretBaseLevelSprites[1] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Base_02_Blue.png");
+        if (turretBaseLevelSprites[2] == null) turretBaseLevelSprites[2] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Base_03_Gold.png");
+        if (turretBaseLevelSprites[3] == null) turretBaseLevelSprites[3] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Base_04_Pink.png");
+        if (turretBaseLevelSprites[4] == null) turretBaseLevelSprites[4] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Base_05_Red.png");
+
+        if (turretGunLevelSprites[0] == null) turretGunLevelSprites[0] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Gun_01_Cyan.png");
+        if (turretGunLevelSprites[1] == null) turretGunLevelSprites[1] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Gun_02_Blue.png");
+        if (turretGunLevelSprites[2] == null) turretGunLevelSprites[2] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Gun_03_Gold.png");
+        if (turretGunLevelSprites[3] == null) turretGunLevelSprites[3] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Gun_04_Purple.png");
+        if (turretGunLevelSprites[4] == null) turretGunLevelSprites[4] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Gun_05_Red.png");
 
         if (bedLevelSprites == null || bedLevelSprites.Length < 4 || bedLevelSprites[0] == null)
         {
@@ -254,6 +304,7 @@ public class TowerDefUIController : MonoBehaviour
         if (currentGate == null) return;
 
         bool isMax = currentGate.IsMaxLevel;
+        int currentLvl = currentGate.GateLevel;
         int nextLvl = currentGate.NextLevel;
         float nextHp = currentGate.NextMaxHp;
         Sprite nextGateSpr = currentGate.GetLevelSprite(nextLvl);
@@ -263,13 +314,22 @@ public class TowerDefUIController : MonoBehaviour
             nextGateSpr = gateLevelSprites[idx];
         }
 
-        if (gatePreviewImage1 != null && nextGateSpr != null) gatePreviewImage1.sprite = nextGateSpr;
-        if (gatePreviewImage2 != null && nextGateSpr != null) gatePreviewImage2.sprite = nextGateSpr;
+        if (gatePreviewImage1 != null && nextGateSpr != null)
+        {
+            gatePreviewImage1.sprite = nextGateSpr;
+            gatePreviewImage1.color = Color.white;
+        }
+        if (gatePreviewImage2 != null && nextGateSpr != null)
+        {
+            gatePreviewImage2.sprite = nextGateSpr;
+            gatePreviewImage2.color = Color.white;
+        }
 
         if (isMax)
         {
-            if (gateLevelText1 != null) gateLevelText1.text = "Cổng sắt\n<color=#FFD700>MAX</color>";
-            if (gateLevelText2 != null) gateLevelText2.text = "Cổng sắt\n<color=#FFD700>MAX</color>";
+            string currentName = TowerDefGate.GetGateName(currentLvl);
+            if (gateLevelText1 != null) gateLevelText1.text = $"{currentName}\n<color=#FFD700>MAX</color>";
+            if (gateLevelText2 != null) gateLevelText2.text = $"{currentName}\n<color=#FFD700>MAX</color>";
             if (row1HpText != null) row1HpText.text = $"Cổng đã đạt cấp tối đa!\n<size=22>Máu tối đa: {Mathf.RoundToInt(currentGate.MaxHp)}HP</size>";
             if (row2DescText != null) row2DescText.text = "Cổng đã đạt cấp tối đa!";
             if (goldUpgradeButton != null) goldUpgradeButton.interactable = false;
@@ -278,7 +338,8 @@ public class TowerDefUIController : MonoBehaviour
             return;
         }
 
-        string lvlStr = $"Cổng sắt\n<color=#FFD700>LV.{nextLvl:D2}</color>";
+        string nextName = TowerDefGate.GetGateName(nextLvl);
+        string lvlStr = $"{nextName}\n<color=#FFD700>LV.{nextLvl:D2}</color>";
         if (gateLevelText1 != null) gateLevelText1.text = lvlStr;
         if (gateLevelText2 != null) gateLevelText2.text = lvlStr;
 
@@ -669,11 +730,20 @@ public class TowerDefUIController : MonoBehaviour
         }
         else if (currentSelectedCell.Turret != null)
         {
-            currentLvl = currentSelectedCell.StructureLevel;
-            isMax = currentLvl >= 5;
-            nextLvl = currentLvl + 1;
-            cost = currentSelectedCell.Turret.UpgradeCost;
-            statStr = $"Sát thương: +{10 * nextLvl} | Tốc bắn tăng";
+            TowerDefTurret turret = currentSelectedCell.Turret;
+            currentLvl = turret.TurretLevel;
+            isMax = turret.IsMaxLevel;
+            nextLvl = turret.NextLevel;
+            cost = turret.UpgradeCost;
+            structName = TowerDefTurret.GetTurretName(isMax ? currentLvl : nextLvl);
+            statStr = $"Sát thương: {Mathf.RoundToInt(turret.NextDamage)} DMG | Tốc bắn: {turret.NextFireRate:F1}/s";
+
+            nextSprite = turret.GetGunSprite(isMax ? currentLvl : nextLvl);
+            if (nextSprite == null && turretGunLevelSprites != null && turretGunLevelSprites.Length > 0)
+            {
+                int idx = Mathf.Clamp((isMax ? currentLvl : nextLvl) - 1, 0, turretGunLevelSprites.Length - 1);
+                nextSprite = turretGunLevelSprites[idx];
+            }
         }
         else
         {
@@ -684,8 +754,16 @@ public class TowerDefUIController : MonoBehaviour
             statStr = $"Cấp độ: {nextLvl}";
         }
 
-        if (structPreviewImage1 != null && nextSprite != null) structPreviewImage1.sprite = nextSprite;
-        if (structPreviewImage2 != null && nextSprite != null) structPreviewImage2.sprite = nextSprite;
+        if (structPreviewImage1 != null && nextSprite != null)
+        {
+            structPreviewImage1.sprite = nextSprite;
+            structPreviewImage1.color = Color.white;
+        }
+        if (structPreviewImage2 != null && nextSprite != null)
+        {
+            structPreviewImage2.sprite = nextSprite;
+            structPreviewImage2.color = Color.white;
+        }
 
         if (isMax)
         {
@@ -719,10 +797,11 @@ public class TowerDefUIController : MonoBehaviour
 
         if (adsStructUpgradeButton != null)
         {
-            adsStructUpgradeButton.interactable = !hasUsedFreeBedAdUpgrade;
+            bool canUseAd = isBed ? !hasUsedFreeBedAdUpgrade : !hasUsedFreeAdUpgrade;
+            adsStructUpgradeButton.interactable = canUseAd;
             if (adsStructUpgradeBtnImg != null)
             {
-                adsStructUpgradeBtnImg.color = hasUsedFreeBedAdUpgrade ? new Color(0.5f, 0.5f, 0.5f, 0.5f) : Color.white;
+                adsStructUpgradeBtnImg.color = canUseAd ? Color.white : new Color(0.5f, 0.5f, 0.5f, 0.5f);
             }
         }
     }

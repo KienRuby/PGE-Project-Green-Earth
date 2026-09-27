@@ -558,5 +558,145 @@ public class TowerDefTests
         Assert.IsTrue(gameManager.IsGameOver);
         Assert.IsTrue(gameOverFired);
     }
+
+    [Test]
+    public void Gate_UpgradesTransitionGateVisualAndNameAcrossAllLevels()
+    {
+        GameObject gateObj = new GameObject("Gate", typeof(RectTransform), typeof(Image), typeof(Button), typeof(TowerDefGate));
+        gateObj.transform.SetParent(rootObj.transform);
+        Image gateImg = gateObj.GetComponent<Image>();
+
+        TowerDefGate gate = gateObj.GetComponent<TowerDefGate>();
+        gate.Setup(50f, null, null, null, 12, 20f);
+
+        Assert.AreEqual(1, gate.GateLevel);
+        Assert.AreEqual("Cổng sắt", TowerDefGate.GetGateName(1));
+        Assert.IsNotNull(gateImg.sprite);
+        Assert.AreEqual("Gate_Metal", gateImg.sprite.name);
+
+        // Level 1 -> 2
+        bool up2 = gate.TryUpgradeFree();
+        Assert.IsTrue(up2);
+        Assert.AreEqual(2, gate.GateLevel);
+        Assert.AreEqual("Cổng lưới lam", TowerDefGate.GetGateName(2));
+        Assert.AreEqual("Gate_Cyan_Grid", gateImg.sprite.name);
+
+        // Level 2 -> 3
+        bool up3 = gate.TryUpgradeFree();
+        Assert.IsTrue(up3);
+        Assert.AreEqual(3, gate.GateLevel);
+        Assert.AreEqual("Cổng mạ lục", TowerDefGate.GetGateName(3));
+        Assert.AreEqual("Gate_Green_Wood", gateImg.sprite.name);
+
+        // Level 3 -> 4
+        bool up4 = gate.TryUpgradeFree();
+        Assert.IsTrue(up4);
+        Assert.AreEqual(4, gate.GateLevel);
+        Assert.AreEqual("Cổng hợp kim", TowerDefGate.GetGateName(4));
+        Assert.AreEqual("Gate_Blue_Wood", gateImg.sprite.name);
+        Assert.IsTrue(gate.IsMaxLevel);
+
+        // Cannot upgrade beyond max level
+        Assert.IsFalse(gate.TryUpgradeFree());
+    }
+
+    [Test]
+    public void Turret_UpgradesTransitionSpritesAndStatsAcrossAllLevels()
+    {
+        GameObject cellObj = new GameObject("TurretCell", typeof(RectTransform), typeof(Image), typeof(Button), typeof(TowerDefGridCell));
+        cellObj.transform.SetParent(rootObj.transform);
+        GameObject sRoot = new GameObject("StructureRoot", typeof(RectTransform));
+        sRoot.transform.SetParent(cellObj.transform);
+        GameObject sImgObj = new GameObject("StructureImg", typeof(Image));
+        sImgObj.transform.SetParent(sRoot.transform);
+        GameObject gunObj = new GameObject("Gun", typeof(RectTransform), typeof(Image));
+        gunObj.transform.SetParent(sRoot.transform);
+
+        TowerDefGridCell cell = cellObj.GetComponent<TowerDefGridCell>();
+        cell.SetupCell(1, 1, cellObj.GetComponent<Image>(), cellObj.GetComponent<Button>(), sRoot, sImgObj.GetComponent<Image>(), gunObj.transform, null);
+
+        cell.PlaceStructure(TowerDefStructureType.Turret, null, null, 1);
+        TowerDefTurret turret = cell.Turret;
+        Assert.IsNotNull(turret);
+
+        Assert.AreEqual(1, turret.TurretLevel);
+        Assert.AreEqual(20f, turret.Damage);
+        Assert.AreEqual(1.15f, turret.FireRate, 0.001f);
+        Assert.AreEqual("Pháo cấp 1", TowerDefTurret.GetTurretName(1));
+        Assert.AreEqual(40f, turret.NextDamage);
+        Assert.AreEqual(1.45f, turret.NextFireRate, 0.001f);
+
+        // Level 1 -> 2
+        bool up2 = turret.TryUpgradeFree();
+        Assert.IsTrue(up2);
+        Assert.AreEqual(2, turret.TurretLevel);
+        Assert.AreEqual(40f, turret.Damage);
+        Assert.AreEqual(1.45f, turret.FireRate, 0.001f);
+        Assert.AreEqual("Pháo cấp 2", TowerDefTurret.GetTurretName(2));
+
+        // Level 2 -> 3
+        bool up3 = turret.TryUpgradeFree();
+        Assert.IsTrue(up3);
+        Assert.AreEqual(3, turret.TurretLevel);
+        Assert.AreEqual(60f, turret.Damage);
+        Assert.AreEqual(1.75f, turret.FireRate, 0.001f);
+        Assert.AreEqual("Pháo cấp 3", TowerDefTurret.GetTurretName(3));
+
+        // Level 3 -> 4
+        bool up4 = turret.TryUpgradeFree();
+        Assert.IsTrue(up4);
+        Assert.AreEqual(4, turret.TurretLevel);
+        Assert.AreEqual(80f, turret.Damage);
+        Assert.AreEqual(2.05f, turret.FireRate, 0.001f);
+        Assert.AreEqual("Pháo cấp 4", TowerDefTurret.GetTurretName(4));
+
+        // Level 4 -> 5 (Max)
+        bool up5 = turret.TryUpgradeFree();
+        Assert.IsTrue(up5);
+        Assert.AreEqual(5, turret.TurretLevel);
+        Assert.AreEqual(100f, turret.Damage);
+        Assert.AreEqual(2.35f, turret.FireRate, 0.001f);
+        Assert.AreEqual("Pháo tối thượng (Lv.5)", TowerDefTurret.GetTurretName(5));
+        Assert.IsTrue(turret.IsMaxLevel);
+
+        // Cannot upgrade past max level
+        Assert.IsFalse(turret.TryUpgradeFree());
+    }
+
+    [Test]
+    public void UIController_OpensTurretUpgradeModalSuccessfully()
+    {
+        GameObject canvasObj = new GameObject("Canvas", typeof(RectTransform), typeof(Canvas), typeof(TowerDefUIController));
+        canvasObj.transform.SetParent(rootObj.transform);
+        TowerDefUIController ui = canvasObj.GetComponent<TowerDefUIController>();
+
+        GameObject cellObj = new GameObject("Cell", typeof(RectTransform), typeof(Image), typeof(Button), typeof(TowerDefGridCell));
+        cellObj.transform.SetParent(rootObj.transform);
+        GameObject sRoot = new GameObject("StructureRoot", typeof(RectTransform));
+        sRoot.transform.SetParent(cellObj.transform);
+        GameObject sImgObj = new GameObject("StructureImg", typeof(Image));
+        sImgObj.transform.SetParent(sRoot.transform);
+        GameObject gunObj = new GameObject("Gun", typeof(RectTransform), typeof(Image));
+        gunObj.transform.SetParent(sRoot.transform);
+
+        TowerDefGridCell cell = cellObj.GetComponent<TowerDefGridCell>();
+        cell.SetupCell(2, 2, cellObj.GetComponent<Image>(), cellObj.GetComponent<Button>(), sRoot, sImgObj.GetComponent<Image>(), gunObj.transform, null);
+        cell.PlaceStructure(TowerDefStructureType.Turret, null, null, 1);
+
+        ui.OpenUpgradeModal(cell);
+
+        Transform modal = canvasObj.transform.Find("StructureUpgradeModal");
+        Assert.IsNotNull(modal);
+        Assert.IsTrue(modal.gameObject.activeSelf);
+
+        Transform frame = modal.Find("ModalFrame");
+        Assert.IsNotNull(frame);
+        Assert.IsNotNull(frame.Find("TitleText"));
+        Assert.IsNotNull(frame.Find("Row1_GoldUpgrade"));
+        Assert.IsNotNull(frame.Find("Row2_AdsUpgrade"));
+
+        ui.CloseAllModals();
+        Assert.IsFalse(modal.gameObject.activeSelf);
+    }
 }
 #endif
