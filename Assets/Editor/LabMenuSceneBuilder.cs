@@ -1717,6 +1717,7 @@ public static class LabMenuSceneBuilder
         tabHighTechBg.raycastTarget = true;
         Button tabHighTechBtn = tabHighTechObj.AddComponent<Button>();
         tabHighTechBtn.targetGraphic = tabHighTechBg;
+        topTabs.gameObject.SetActive(false);
 
         // 2. Preset selector overlapping the equipped board, matching the portrait reference layout.
         RectTransform presetBar = CreateRect("PresetBar", panel);
@@ -1841,7 +1842,7 @@ public static class LabMenuSceneBuilder
         GridLayoutGroup invLayout = invContent.gameObject.AddComponent<GridLayoutGroup>();
         invLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
         invLayout.constraintCount = 4;
-        invLayout.cellSize = new Vector2(190f, 240f);
+        invLayout.cellSize = new Vector2(165f, 225f);
         invLayout.spacing = new Vector2(35f, 35f);
         invLayout.padding = new RectOffset(70, 70, 20, 30);
         invLayout.childAlignment = TextAnchor.UpperCenter;
@@ -1907,12 +1908,12 @@ public static class LabMenuSceneBuilder
 
         for (int i = 0; i < invIcons.Length; i++)
         {
-            ChipsetCardUI invCard = CreateChipCardUI(invContent, $"StaticInvCard_{i:00}", new Vector2(190f, 240f));
+            ChipsetCardUI invCard = CreateChipCardUI(invContent, $"StaticInvCard_{i:00}", new Vector2(165f, 225f));
             ConfigureCardStaticView(invCard, invIcons[i], invFrames[i], invLevels[i], invProgress[i], invStars[i], invArrows[i]);
         }
 
         // Card Prefab template for dynamic instantiation at runtime
-        GameObject cardPrefab = CreateChipCardUI(invContent, "CardTemplate", new Vector2(190f, 240f)).gameObject;
+        GameObject cardPrefab = CreateChipCardUI(invContent, "CardTemplate", new Vector2(165f, 225f)).gameObject;
         cardPrefab.SetActive(false);
 
         // 5. Detail Modal
