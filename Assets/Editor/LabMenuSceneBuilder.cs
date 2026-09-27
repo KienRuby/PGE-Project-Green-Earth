@@ -1874,11 +1874,10 @@ public static class LabMenuSceneBuilder
             ConfigureCardStaticView(equippedCardSlots[i], eqIcons[i], eqFrames[i], eqLevels[i], eqProgress[i], eqStars[i], eqArrows[i]);
         }
 
-        // Pre-populate Inventory cards matching Image 1:
         string[] invIcons = {
-            "Rocket Punch", "sonic-boom", "healing-turret", "aiming-lens",
-            "Gun Turret", "ice-turret", "Multigun", "flamethrower",
-            "atk-module", "laser-eye", "black-hole-mine", "invincible-shield"
+            "Rocket Punch", "Rifle", "Spiky Discus", "Energy Jumper Cable",
+            "Gun Turret", "Shotgun", "Multigun", "Spinning Blade",
+            "High Explosive Mine", "Standard gun", "Energy Jumper Cable", "Rocket Punch"
         };
         string[] invFrames = {
             "Green", "Green", "Green", "Green",

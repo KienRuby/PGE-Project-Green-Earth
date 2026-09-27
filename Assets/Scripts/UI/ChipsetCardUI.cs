@@ -1210,10 +1210,17 @@ public class ChipsetCardUI : MonoBehaviour, IPointerClickHandler
         if (emptySlotGroup != null) emptySlotGroup.SetActive(false);
 
         if (cardFrameImage != null && frame != null) cardFrameImage.sprite = frame;
-        if (iconImage != null && icon != null)
+        if (iconImage != null)
         {
-            iconImage.sprite = icon;
-            iconImage.gameObject.SetActive(true);
+            if (icon != null)
+            {
+                iconImage.sprite = icon;
+                iconImage.gameObject.SetActive(true);
+            }
+            else
+            {
+                iconImage.gameObject.SetActive(false);
+            }
         }
         if (levelText != null) levelText.text = level;
         if (progressText != null) progressText.text = progress;

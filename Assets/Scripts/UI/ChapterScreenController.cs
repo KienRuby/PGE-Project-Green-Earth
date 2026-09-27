@@ -506,7 +506,7 @@ public class ChapterScreenController : MonoBehaviour
 
         if (loadScene)
         {
-            SceneManager.LoadScene(loadedSceneName);
+            LoadingScreenUI.Load(loadedSceneName);
         }
         return true;
     }

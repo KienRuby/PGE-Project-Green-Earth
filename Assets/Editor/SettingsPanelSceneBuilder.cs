@@ -88,6 +88,7 @@ public static class SettingsPanelSceneBuilder
             existing.BindButtonListeners();
             existing.RefreshLabels();
             existing.gameObject.SetActive(false);
+            PlaceBehindTopBar(existing.transform, canvas.transform);
 
             EditorUtility.SetDirty(existing.gameObject);
             EditorSceneManager.MarkSceneDirty(activeScene);
@@ -106,7 +107,7 @@ public static class SettingsPanelSceneBuilder
 
         panel.gameObject.name = "SettingsPanel";
         panel.gameObject.SetActive(false); // Ẩn mặc định khi bắt đầu game
-        panel.transform.SetAsLastSibling();
+        PlaceBehindTopBar(panel.transform, canvas.transform);
 
         Undo.RegisterCreatedObjectUndo(panel.gameObject, "Create Static SettingsPanel in Hierarchy");
 
@@ -191,7 +192,7 @@ public static class SettingsPanelSceneBuilder
         panel.ApplyLayoutForCurrentScene();
         panel.RefreshLabels();
         panel.gameObject.SetActive(false); // Ẩn mặc định khi bắt đầu game
-        panel.transform.SetAsLastSibling();
+        PlaceBehindTopBar(panel.transform, canvas.transform);
 
         Undo.RegisterCreatedObjectUndo(panel.gameObject, "Create Static SettingsPanel in GamePlay");
 
@@ -202,5 +203,31 @@ public static class SettingsPanelSceneBuilder
 
         Selection.activeGameObject = panel.gameObject;
     }
+    private static void PlaceBehindTopBar(Transform panel, Transform canvas)
+    {
+        Transform topBarTransform = null;
+        TopBarCurrencyController topBarCtrl = canvas.GetComponentInChildren<TopBarCurrencyController>(true);
+        if (topBarCtrl != null && topBarCtrl.transform.parent == canvas)
+        {
+            topBarTransform = topBarCtrl.transform;
+        }
+        else
+        {
+            Transform found = canvas.Find("TopBar");
+            if (found != null && found.parent == canvas) topBarTransform = found;
+        }
+
+        if (topBarTransform != null)
+        {
+            int topBarIndex = topBarTransform.GetSiblingIndex();
+            int myIndex = panel.GetSiblingIndex();
+            int targetIndex = myIndex < topBarIndex ? topBarIndex - 1 : topBarIndex;
+            if (myIndex != targetIndex) panel.SetSiblingIndex(targetIndex);
+        }
+        else
+        {
+            panel.SetAsLastSibling();
+        }
+    }
 }
-#endif
+#endif

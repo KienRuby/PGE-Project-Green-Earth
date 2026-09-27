@@ -512,7 +512,7 @@ public class PauseModalController : MonoBehaviour
     {
         IsPaused = false;
         Time.timeScale = 1f;
-        SceneManager.LoadScene("MainMenu");
+        LoadingScreenUI.Load("MainMenu");
     }
 
     public void OnStatsMainTabClicked() => SelectMainTab(0);

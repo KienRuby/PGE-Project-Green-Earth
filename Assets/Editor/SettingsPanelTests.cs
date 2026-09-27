@@ -624,4 +624,29 @@ public class SettingsPanelTests
         else PlayerPrefs.DeleteKey(key);
         PlayerPrefs.Save();
     }
+    [Test]
+    public void Settings_Open_PlacesPanelBehindTopBar_WhenTopBarExists()
+    {
+        GameObject canvasObject = new GameObject("Canvas", typeof(RectTransform), typeof(Canvas));
+        try
+        {
+            GameObject bottomNav = new GameObject("BottomNavigation", typeof(RectTransform));
+            bottomNav.transform.SetParent(canvasObject.transform, false);
+
+            SettingsPanelController panel = SettingsPanelController.CreateRuntimePanel(
+                canvasObject.GetComponent<RectTransform>());
+
+            GameObject topBar = new GameObject("TopBar", typeof(RectTransform), typeof(TopBarCurrencyController));
+            topBar.transform.SetParent(canvasObject.transform, false);
+
+            panel.Open();
+
+            Assert.That(panel.transform.GetSiblingIndex(), Is.LessThan(topBar.transform.GetSiblingIndex()),
+                "SettingsPanel must be placed before TopBar so TopBar renders on top!");
+        }
+        finally
+        {
+            Object.DestroyImmediate(canvasObject);
+        }
+    }
 }

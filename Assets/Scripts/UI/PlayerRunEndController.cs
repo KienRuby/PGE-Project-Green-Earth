@@ -671,7 +671,7 @@ public sealed class PlayerRunEndController : MonoBehaviour
         {
             if (!string.IsNullOrWhiteSpace(homeSceneName))
             {
-                SceneManager.LoadScene(homeSceneName);
+                LoadingScreenUI.Load(homeSceneName);
             }
         });
     }

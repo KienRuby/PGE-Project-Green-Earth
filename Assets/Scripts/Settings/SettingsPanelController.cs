@@ -139,7 +139,7 @@ public class SettingsPanelController : MonoBehaviour, IPointerClickHandler
     public void Open()
     {
         UIDissolveController.ShowInstant(gameObject);
-        transform.SetAsLastSibling();
+        EnsureHierarchyOrderBehindTopBar();
         AutoWireReferencesIfMissing();
         ApplyLayoutForCurrentScene();
         BindButtonListeners();
@@ -147,6 +147,44 @@ public class SettingsPanelController : MonoBehaviour, IPointerClickHandler
         if (EventSystem.current != null && firstSelectedButton != null)
         {
             EventSystem.current.SetSelectedGameObject(firstSelectedButton.gameObject);
+        }
+    }
+
+    public void EnsureHierarchyOrderBehindTopBar()
+    {
+        Transform parent = transform.parent;
+        if (parent == null) return;
+
+        Transform topBarTransform = null;
+        TopBarCurrencyController topBarCtrl = parent.GetComponentInChildren<TopBarCurrencyController>(true);
+        if (topBarCtrl != null && topBarCtrl.transform.parent == parent)
+        {
+            topBarTransform = topBarCtrl.transform;
+        }
+        else
+        {
+            Transform found = parent.Find("TopBar");
+            if (found != null && found.parent == parent)
+            {
+                topBarTransform = found;
+            }
+        }
+
+        if (topBarTransform != null)
+        {
+            int topBarIndex = topBarTransform.GetSiblingIndex();
+            int myIndex = transform.GetSiblingIndex();
+
+            // Đặt SettingsPanel ngay phía trước TopBar để TopBar được vẽ sau (hiển thị đè lên trên SettingsPanel)
+            int targetIndex = myIndex < topBarIndex ? topBarIndex - 1 : topBarIndex;
+            if (myIndex != targetIndex)
+            {
+                transform.SetSiblingIndex(targetIndex);
+            }
+        }
+        else
+        {
+            transform.SetAsLastSibling();
         }
     }
 
