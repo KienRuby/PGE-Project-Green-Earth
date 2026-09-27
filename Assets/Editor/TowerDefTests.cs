@@ -694,9 +694,72 @@ public class TowerDefTests
         Assert.IsNotNull(frame.Find("TitleText"));
         Assert.IsNotNull(frame.Find("Row1_GoldUpgrade"));
         Assert.IsNotNull(frame.Find("Row2_AdsUpgrade"));
-
         ui.CloseAllModals();
         Assert.IsFalse(modal.gameObject.activeSelf);
     }
+
+    [Test]
+    public void Gate_VisualUpdatesOnUpgrade()
+    {
+        GameObject gateObj = new GameObject("TestGate", typeof(RectTransform), typeof(Image), typeof(Button), typeof(TowerDefGate));
+        gateObj.transform.SetParent(rootObj.transform);
+        TowerDefGate gate = gateObj.GetComponent<TowerDefGate>();
+        Image gateImg = gateObj.GetComponent<Image>();
+
+        Sprite s1 = Sprite.Create(new Texture2D(2, 2), new Rect(0, 0, 2, 2), Vector2.zero);
+        Sprite s2 = Sprite.Create(new Texture2D(2, 2), new Rect(0, 0, 2, 2), Vector2.zero);
+        Sprite s3 = Sprite.Create(new Texture2D(2, 2), new Rect(0, 0, 2, 2), Vector2.zero);
+        Sprite s4 = Sprite.Create(new Texture2D(2, 2), new Rect(0, 0, 2, 2), Vector2.zero);
+
+        gate.SetLevelSprites(new Sprite[] { s1, s2, s3, s4 });
+        Assert.AreEqual(s1, gateImg.sprite);
+
+        gate.TryUpgradeFree();
+        Assert.AreEqual(2, gate.GateLevel);
+        Assert.AreEqual(s2, gateImg.sprite);
+
+        gate.TryUpgradeFree();
+        Assert.AreEqual(3, gate.GateLevel);
+        Assert.AreEqual(s3, gateImg.sprite);
+
+        gate.TryUpgradeFree();
+        Assert.AreEqual(4, gate.GateLevel);
+        Assert.AreEqual(s4, gateImg.sprite);
+    }
+
+    [Test]
+    public void GridCell_ClearStructure_RemovesAllVisualsAndComponents()
+    {
+        GameObject cellObj = new GameObject("Cell", typeof(RectTransform), typeof(Image), typeof(Button), typeof(TowerDefGridCell));
+        cellObj.transform.SetParent(rootObj.transform);
+        GameObject sRoot = new GameObject("StructureRoot", typeof(RectTransform));
+        sRoot.transform.SetParent(cellObj.transform);
+        GameObject sImgObj = new GameObject("StructureImg", typeof(Image));
+        sImgObj.transform.SetParent(sRoot.transform);
+        GameObject gunObj = new GameObject("Gun", typeof(RectTransform), typeof(Image));
+        gunObj.transform.SetParent(sRoot.transform);
+        GameObject dummyChild = new GameObject("DummyChild");
+        dummyChild.transform.SetParent(sRoot.transform);
+
+        TowerDefGridCell cell = cellObj.GetComponent<TowerDefGridCell>();
+        cell.SetupCell(2, 1, cellObj.GetComponent<Image>(), cellObj.GetComponent<Button>(), sRoot, sImgObj.GetComponent<Image>(), gunObj.transform, null);
+
+        Sprite baseSpr = Sprite.Create(new Texture2D(2, 2), new Rect(0, 0, 2, 2), Vector2.zero);
+        Sprite gunSpr = Sprite.Create(new Texture2D(2, 2), new Rect(0, 0, 2, 2), Vector2.zero);
+        cell.PlaceStructure(TowerDefStructureType.Turret, baseSpr, gunSpr, 1);
+
+        Assert.AreEqual(TowerDefStructureType.Turret, cell.CurrentType);
+        Assert.IsTrue(sRoot.activeSelf);
+        Assert.IsNotNull(cell.Turret);
+
+        cell.ClearStructure();
+
+        Assert.AreEqual(TowerDefStructureType.None, cell.CurrentType);
+        Assert.IsFalse(sRoot.activeSelf);
+        Assert.IsNull(cell.Turret);
+        Assert.IsNull(sImgObj.GetComponent<Image>().sprite);
+        Assert.IsNull(gunObj.GetComponent<Image>().sprite);
+    }
 }
 #endif
+

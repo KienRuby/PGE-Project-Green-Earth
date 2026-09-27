@@ -69,43 +69,56 @@ public class TowerDefTurret : MonoBehaviour
 
     public void EnsureSpritesLoaded()
     {
-        if (baseLevelSprites == null || baseLevelSprites.Length < 5 || baseLevelSprites[0] == null)
+        if (baseLevelSprites == null || baseLevelSprites.Length < 5)
         {
-            baseLevelSprites = new Sprite[5];
-            baseLevelSprites[0] = Resources.Load<Sprite>("TowerDef/Turret_Base_01_Cyan");
-            baseLevelSprites[1] = Resources.Load<Sprite>("TowerDef/Turret_Base_02_Blue");
-            baseLevelSprites[2] = Resources.Load<Sprite>("TowerDef/Turret_Base_03_Gold");
-            baseLevelSprites[3] = Resources.Load<Sprite>("TowerDef/Turret_Base_04_Pink");
-            baseLevelSprites[4] = Resources.Load<Sprite>("TowerDef/Turret_Base_05_Red");
-
-#if UNITY_EDITOR
-            string towersDir = "Assets/Sprites/Mini game/Sliced/Towers/";
-            if (baseLevelSprites[0] == null) baseLevelSprites[0] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Base_01_Cyan.png");
-            if (baseLevelSprites[1] == null) baseLevelSprites[1] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Base_02_Blue.png");
-            if (baseLevelSprites[2] == null) baseLevelSprites[2] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Base_03_Gold.png");
-            if (baseLevelSprites[3] == null) baseLevelSprites[3] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Base_04_Pink.png");
-            if (baseLevelSprites[4] == null) baseLevelSprites[4] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Base_05_Red.png");
-#endif
+            Sprite[] newBases = new Sprite[5];
+            if (baseLevelSprites != null)
+            {
+                for (int i = 0; i < Mathf.Min(baseLevelSprites.Length, 5); i++)
+                    newBases[i] = baseLevelSprites[i];
+            }
+            baseLevelSprites = newBases;
         }
 
-        if (gunLevelSprites == null || gunLevelSprites.Length < 5 || gunLevelSprites[0] == null)
-        {
-            gunLevelSprites = new Sprite[5];
-            gunLevelSprites[0] = Resources.Load<Sprite>("TowerDef/Turret_Gun_01_Cyan");
-            gunLevelSprites[1] = Resources.Load<Sprite>("TowerDef/Turret_Gun_02_Blue");
-            gunLevelSprites[2] = Resources.Load<Sprite>("TowerDef/Turret_Gun_03_Gold");
-            gunLevelSprites[3] = Resources.Load<Sprite>("TowerDef/Turret_Gun_04_Purple");
-            gunLevelSprites[4] = Resources.Load<Sprite>("TowerDef/Turret_Gun_05_Red");
+        if (baseLevelSprites[0] == null) baseLevelSprites[0] = Resources.Load<Sprite>("TowerDef/Turret_Base_01_Cyan");
+        if (baseLevelSprites[1] == null) baseLevelSprites[1] = Resources.Load<Sprite>("TowerDef/Turret_Base_02_Blue");
+        if (baseLevelSprites[2] == null) baseLevelSprites[2] = Resources.Load<Sprite>("TowerDef/Turret_Base_03_Gold");
+        if (baseLevelSprites[3] == null) baseLevelSprites[3] = Resources.Load<Sprite>("TowerDef/Turret_Base_04_Pink");
+        if (baseLevelSprites[4] == null) baseLevelSprites[4] = Resources.Load<Sprite>("TowerDef/Turret_Base_05_Red");
 
 #if UNITY_EDITOR
-            string towersDir = "Assets/Sprites/Mini game/Sliced/Towers/";
-            if (gunLevelSprites[0] == null) gunLevelSprites[0] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Gun_01_Cyan.png");
-            if (gunLevelSprites[1] == null) gunLevelSprites[1] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Gun_02_Blue.png");
-            if (gunLevelSprites[2] == null) gunLevelSprites[2] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Gun_03_Gold.png");
-            if (gunLevelSprites[3] == null) gunLevelSprites[3] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Gun_04_Purple.png");
-            if (gunLevelSprites[4] == null) gunLevelSprites[4] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Gun_05_Red.png");
+        string towersDir = "Assets/Sprites/Mini game/Sliced/Towers/";
+        if (baseLevelSprites[0] == null) baseLevelSprites[0] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Base_01_Cyan.png");
+        if (baseLevelSprites[1] == null) baseLevelSprites[1] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Base_02_Blue.png");
+        if (baseLevelSprites[2] == null) baseLevelSprites[2] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Base_03_Gold.png");
+        if (baseLevelSprites[3] == null) baseLevelSprites[3] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Base_04_Pink.png");
+        if (baseLevelSprites[4] == null) baseLevelSprites[4] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Base_05_Red.png");
 #endif
+
+        if (gunLevelSprites == null || gunLevelSprites.Length < 5)
+        {
+            Sprite[] newGuns = new Sprite[5];
+            if (gunLevelSprites != null)
+            {
+                for (int i = 0; i < Mathf.Min(gunLevelSprites.Length, 5); i++)
+                    newGuns[i] = gunLevelSprites[i];
+            }
+            gunLevelSprites = newGuns;
         }
+
+        if (gunLevelSprites[0] == null) gunLevelSprites[0] = Resources.Load<Sprite>("TowerDef/Turret_Gun_01_Cyan");
+        if (gunLevelSprites[1] == null) gunLevelSprites[1] = Resources.Load<Sprite>("TowerDef/Turret_Gun_02_Blue");
+        if (gunLevelSprites[2] == null) gunLevelSprites[2] = Resources.Load<Sprite>("TowerDef/Turret_Gun_03_Gold");
+        if (gunLevelSprites[3] == null) gunLevelSprites[3] = Resources.Load<Sprite>("TowerDef/Turret_Gun_04_Purple");
+        if (gunLevelSprites[4] == null) gunLevelSprites[4] = Resources.Load<Sprite>("TowerDef/Turret_Gun_05_Red");
+
+#if UNITY_EDITOR
+        if (gunLevelSprites[0] == null) gunLevelSprites[0] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Gun_01_Cyan.png");
+        if (gunLevelSprites[1] == null) gunLevelSprites[1] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Gun_02_Blue.png");
+        if (gunLevelSprites[2] == null) gunLevelSprites[2] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Gun_03_Gold.png");
+        if (gunLevelSprites[3] == null) gunLevelSprites[3] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Gun_04_Purple.png");
+        if (gunLevelSprites[4] == null) gunLevelSprites[4] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Gun_05_Red.png");
+#endif
     }
 
     public void SetLevelSprites(Sprite[] bases, Sprite[] guns)

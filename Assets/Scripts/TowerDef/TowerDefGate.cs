@@ -78,22 +78,29 @@ public class TowerDefGate : MonoBehaviour
 
     public void EnsureSpritesLoaded()
     {
-        if (levelSprites == null || levelSprites.Length < 4 || levelSprites[0] == null)
+        if (levelSprites == null || levelSprites.Length < 4)
         {
-            levelSprites = new Sprite[4];
-            levelSprites[0] = Resources.Load<Sprite>("TowerDef/Gate_Metal");
-            levelSprites[1] = Resources.Load<Sprite>("TowerDef/Gate_Cyan_Grid");
-            levelSprites[2] = Resources.Load<Sprite>("TowerDef/Gate_Green_Wood");
-            levelSprites[3] = Resources.Load<Sprite>("TowerDef/Gate_Blue_Wood");
+            Sprite[] newSprites = new Sprite[4];
+            if (levelSprites != null)
+            {
+                for (int i = 0; i < Mathf.Min(levelSprites.Length, 4); i++)
+                    newSprites[i] = levelSprites[i];
+            }
+            levelSprites = newSprites;
+        }
+
+        if (levelSprites[0] == null) levelSprites[0] = Resources.Load<Sprite>("TowerDef/Gate_Metal");
+        if (levelSprites[1] == null) levelSprites[1] = Resources.Load<Sprite>("TowerDef/Gate_Cyan_Grid");
+        if (levelSprites[2] == null) levelSprites[2] = Resources.Load<Sprite>("TowerDef/Gate_Green_Wood");
+        if (levelSprites[3] == null) levelSprites[3] = Resources.Load<Sprite>("TowerDef/Gate_Blue_Wood");
 
 #if UNITY_EDITOR
-            string tilesDir = "Assets/Sprites/Mini game/Sliced/Tiles/";
-            if (levelSprites[0] == null) levelSprites[0] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + "Gate_Metal.png");
-            if (levelSprites[1] == null) levelSprites[1] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + "Gate_Cyan_Grid.png");
-            if (levelSprites[2] == null) levelSprites[2] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + "Gate_Green_Wood.png");
-            if (levelSprites[3] == null) levelSprites[3] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + "Gate_Blue_Wood.png");
+        string tilesDir = "Assets/Sprites/Mini game/Sliced/Tiles/";
+        if (levelSprites[0] == null) levelSprites[0] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + "Gate_Metal.png");
+        if (levelSprites[1] == null) levelSprites[1] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + "Gate_Cyan_Grid.png");
+        if (levelSprites[2] == null) levelSprites[2] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + "Gate_Green_Wood.png");
+        if (levelSprites[3] == null) levelSprites[3] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + "Gate_Blue_Wood.png");
 #endif
-        }
     }
 
     public static string GetGateName(int level)
@@ -134,14 +141,20 @@ public class TowerDefGate : MonoBehaviour
     public void UpdateGateVisual()
     {
         EnsureSpritesLoaded();
-        Image gateImg = GetComponent<Image>();
-        if (gateImg != null)
+        Sprite spr = GetLevelSprite(gateLevel);
+        if (spr != null)
         {
-            Sprite spr = GetLevelSprite(gateLevel);
-            if (spr != null)
+            Image gateImg = GetComponent<Image>();
+            if (gateImg != null)
             {
                 gateImg.sprite = spr;
                 gateImg.color = Color.white;
+            }
+            SpriteRenderer sr = GetComponent<SpriteRenderer>();
+            if (sr != null)
+            {
+                sr.sprite = spr;
+                sr.color = Color.white;
             }
         }
     }

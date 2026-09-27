@@ -265,8 +265,58 @@ public class TowerDefGridCell : MonoBehaviour, IBeginDragHandler, IDragHandler, 
 
     private void HideLegacyTurretImages()
     {
-        if (structureImage != null) structureImage.gameObject.SetActive(false);
-        if (gunTransform != null) gunTransform.gameObject.SetActive(false);
+        if (structureImage != null)
+        {
+            structureImage.sprite = null;
+            structureImage.gameObject.SetActive(false);
+        }
+        if (gunTransform != null)
+        {
+            Image gunImg = gunTransform.GetComponent<Image>();
+            if (gunImg != null) gunImg.sprite = null;
+            gunTransform.gameObject.SetActive(false);
+        }
+    }
+
+    public void ClearStructure()
+    {
+        currentType = TowerDefStructureType.None;
+        structureLevel = 1;
+
+        if (turretComp != null)
+        {
+            turretComp.enabled = false;
+            if (Application.isPlaying) Destroy(turretComp);
+            else DestroyImmediate(turretComp);
+            turretComp = null;
+        }
+
+        if (generatorComp != null)
+        {
+            if (Application.isPlaying) Destroy(generatorComp);
+            else DestroyImmediate(generatorComp);
+            generatorComp = null;
+        }
+
+        if (structureRoot != null)
+        {
+            for (int i = structureRoot.transform.childCount - 1; i >= 0; i--)
+            {
+                Transform child = structureRoot.transform.GetChild(i);
+                if (child.gameObject != structureImage?.gameObject &&
+                    child.gameObject != gunTransform?.gameObject)
+                {
+                    if (Application.isPlaying) Destroy(child.gameObject);
+                    else DestroyImmediate(child.gameObject);
+                }
+            }
+            structureRoot.SetActive(false);
+        }
+
+        turretInstance = null;
+        HideLegacyTurretImages();
+        SetUpgradeBadge(false);
+        UpdateVisuals();
     }
 
     public bool TryMoveTurretTo(TowerDefGridCell destination)
@@ -327,31 +377,7 @@ public class TowerDefGridCell : MonoBehaviour, IBeginDragHandler, IDragHandler, 
             destGunRect.localRotation = sourceGunRect.localRotation;
         }
 
-        // Dọn sạch hoàn toàn ô nguồn (source) để vị trí cũ không còn tháp, không còn rác visual
-        for (int i = structureRoot.transform.childCount - 1; i >= 0; i--)
-        {
-            Transform child = structureRoot.transform.GetChild(i);
-            if (child.gameObject != structureImage?.gameObject &&
-                child.gameObject != gunTransform?.gameObject)
-            {
-                if (Application.isPlaying) Destroy(child.gameObject);
-                else DestroyImmediate(child.gameObject);
-            }
-        }
-
-        turretInstance = null;
-        if (turretComp != null)
-        {
-            turretComp.enabled = false;
-            if (Application.isPlaying) Destroy(turretComp);
-            else DestroyImmediate(turretComp);
-            turretComp = null;
-        }
-        currentType = TowerDefStructureType.None;
-        structureLevel = 1;
-        structureRoot.SetActive(false);
-        SetUpgradeBadge(false);
-        HideLegacyTurretImages();
+        ClearStructure();
         return true;
     }
 
@@ -469,7 +495,7 @@ public class TowerDefGridCell : MonoBehaviour, IBeginDragHandler, IDragHandler, 
                             TowerDefGameManager.Instance.TryMoveTurret(this, destination);
                 }
 
-                if (!moved)
+                if (!moved && currentType == TowerDefStructureType.Turret)
                 {
                     if (structureRoot != null) structureRoot.SetActive(true);
                     if (upgradeIcon != null) upgradeIcon.SetActive(dragBadgeWasActive);
