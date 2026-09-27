@@ -425,5 +425,44 @@ public class LabStatDetailTests
             Object.DestroyImmediate(labObj);
         }
     }
+
+    [Test]
+    public void LabUpgradeController_PriceFormatting_UsesDotSeparatorMatchingMockup()
+    {
+        GameObject labObj = new GameObject("LabUpgradePriceTest", typeof(RectTransform));
+        GameObject priceObj = new GameObject("PriceText", typeof(RectTransform));
+        priceObj.transform.SetParent(labObj.transform, false);
+        TextMeshProUGUI priceTmp = priceObj.AddComponent<TextMeshProUGUI>();
+
+        LabUpgradeController controller = labObj.AddComponent<LabUpgradeController>();
+        var serializedController = new UnityEditor.SerializedObject(controller);
+        serializedController.FindProperty("priceText").objectReferenceValue = priceTmp;
+        serializedController.ApplyModifiedPropertiesWithoutUndo();
+
+        var refreshMethod = typeof(LabUpgradeController).GetMethod(
+            "RefreshMainView",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var priceField = typeof(LabUpgradeController).GetField(
+            "currentPrice",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+        Assert.That(refreshMethod, Is.Not.Null);
+        Assert.That(priceField, Is.Not.Null);
+
+        try
+        {
+            priceField.SetValue(controller, 17700);
+            refreshMethod.Invoke(controller, null);
+            Assert.AreEqual("17.700", priceTmp.text, "Price 17700 should be formatted as 17.700 matching mockup.");
+
+            priceField.SetValue(controller, 300);
+            refreshMethod.Invoke(controller, null);
+            Assert.AreEqual("300", priceTmp.text, "Price 300 should be formatted as 300.");
+        }
+        finally
+        {
+            Object.DestroyImmediate(labObj);
+        }
+    }
 }
 #endif

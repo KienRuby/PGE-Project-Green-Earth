@@ -57,7 +57,9 @@ public class DailyGemMineModalController : MonoBehaviour
 
     [Header("Visual Asset Templates (Tự động tải nếu thiếu)")]
     [SerializeField] private Sprite level1PreviewSprite;
+    [SerializeField] private Sprite lockedLevelPreviewSprite;
     [SerializeField] private Sprite level2PreviewSprite;
+    [SerializeField] private Sprite level2HeaderSprite;
     [SerializeField] private Sprite pinkStartSprite;
     [SerializeField] private Sprite pinkStartPressedSprite;
     [SerializeField] private Sprite redGemIconSprite;
@@ -65,6 +67,8 @@ public class DailyGemMineModalController : MonoBehaviour
     [Header("Status Texts")]
     [Tooltip("Text hiển thị đồng hồ Reset in: 09 Hour 26 Min Left.")]
     [SerializeField] private TMP_Text resetTimerText;
+
+    [SerializeField] private bool useMockupArtwork;
 
     [Tooltip("Text hiển thị số lượt vào Entrance: 5 Left.")]
     [SerializeField] private TMP_Text entranceCountText;
@@ -224,8 +228,8 @@ public class DailyGemMineModalController : MonoBehaviour
             scrollRt.anchorMin = new Vector2(0.5f, 1f);
             scrollRt.anchorMax = new Vector2(0.5f, 1f);
             scrollRt.pivot = new Vector2(0.5f, 1f);
-            scrollRt.anchoredPosition = tuner != null ? tuner.scrollViewAnchoredPosition : new Vector2(0f, -325f);
-            scrollRt.sizeDelta = tuner != null ? tuner.scrollViewSizeDelta : new Vector2(720f, 850f);
+            scrollRt.anchoredPosition = tuner != null ? tuner.scrollViewAnchoredPosition : useMockupArtwork ? new Vector2(0f, -430f) : new Vector2(0f, -325f);
+            scrollRt.sizeDelta = tuner != null ? tuner.scrollViewSizeDelta : useMockupArtwork ? new Vector2(760f, 640f) : new Vector2(720f, 850f);
 
             levelsScrollRect = scrollObj.GetComponent<ScrollRect>();
 
@@ -253,7 +257,7 @@ public class DailyGemMineModalController : MonoBehaviour
 
             VerticalLayoutGroup vlg = contentObj.GetComponent<VerticalLayoutGroup>();
             vlg.padding = new RectOffset(10, 10, 10, 30);
-            vlg.spacing = tuner != null ? tuner.cardSpacing : 20f;
+            vlg.spacing = tuner != null ? tuner.cardSpacing : useMockupArtwork ? 80f : 20f;
             vlg.childAlignment = TextAnchor.UpperCenter;
             vlg.childControlWidth = false;
             vlg.childControlHeight = false;
@@ -281,8 +285,8 @@ public class DailyGemMineModalController : MonoBehaviour
                 scrollRt.anchorMin = new Vector2(0.5f, 1f);
                 scrollRt.anchorMax = new Vector2(0.5f, 1f);
                 scrollRt.pivot = new Vector2(0.5f, 1f);
-                scrollRt.anchoredPosition = tuner != null ? tuner.scrollViewAnchoredPosition : new Vector2(0f, -325f);
-                scrollRt.sizeDelta = tuner != null ? tuner.scrollViewSizeDelta : new Vector2(720f, 850f);
+                scrollRt.anchoredPosition = tuner != null ? tuner.scrollViewAnchoredPosition : useMockupArtwork ? new Vector2(0f, -430f) : new Vector2(0f, -325f);
+                scrollRt.sizeDelta = tuner != null ? tuner.scrollViewSizeDelta : useMockupArtwork ? new Vector2(760f, 640f) : new Vector2(720f, 850f);
             }
 
             levelsScrollRect.horizontal = false;
@@ -384,9 +388,17 @@ public class DailyGemMineModalController : MonoBehaviour
     private void EnsureVisualTemplates(Transform c1 = null, Transform c2 = null)
     {
 #if UNITY_EDITOR
-        level1PreviewSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/GemMine/preview_level_01.png");
+        level1PreviewSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(useMockupArtwork
+            ? "Assets/Sprites/UI/GemMine/mockup_level_01_hd.png"
+            : "Assets/Sprites/UI/GemMine/preview_level_01.png");
+        if (useMockupArtwork)
+            lockedLevelPreviewSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/GemMine/preview_level_01.png");
         level2PreviewSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/GemMine/preview_level_02.png");
-        pinkStartSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/GemMine/btn_pink_start.png");
+        if (useMockupArtwork)
+            level2HeaderSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/GemMine/mockup_level_02_header_hd.png");
+        pinkStartSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(useMockupArtwork
+            ? "Assets/Sprites/Mini game/Sliced/UI/Btn_Start.png"
+            : "Assets/Sprites/UI/GemMine/btn_pink_start.png");
         pinkStartPressedSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/GemMine/btn_pink_start_pressed.png");
         redGemIconSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/GemMine/icon_red_gem.png");
 #endif
@@ -464,7 +476,9 @@ public class DailyGemMineModalController : MonoBehaviour
         for (int i = 0; i < 5; i++)
         {
             int level = i + 1;
-            Sprite preview = (level % 2 == 1) ? level1PreviewSprite : level2PreviewSprite;
+            bool locked = !DailyGemMineProgress.IsLevelUnlocked(level);
+            Sprite preview = level % 2 == 0 ? level2PreviewSprite
+                : useMockupArtwork && locked && lockedLevelPreviewSprite != null ? lockedLevelPreviewSprite : level1PreviewSprite;
             cards[i] = CreateDynamicCard(content, level, $"Gem Mine LV.{level:D2}", rewards[i], preview, tints[i]);
         }
 
@@ -490,15 +504,15 @@ public class DailyGemMineModalController : MonoBehaviour
         cardObj.layer = uiLayer;
         cardObj.transform.SetParent(parent, false);
         RectTransform cardRect = cardObj.GetComponent<RectTransform>();
-        cardRect.sizeDelta = new Vector2(700f, 350f);
+        cardRect.sizeDelta = useMockupArtwork ? new Vector2(714f, 415f) : new Vector2(700f, 350f);
         cardRect.localScale = Vector3.one;
         cardRect.localPosition = Vector3.zero;
         cardRect.localRotation = Quaternion.identity;
 
         LayoutElement le = cardObj.AddComponent<LayoutElement>();
-        le.preferredWidth = 700f;
-        le.preferredHeight = 350f;
-        le.minHeight = 350f;
+        le.preferredWidth = cardRect.sizeDelta.x;
+        le.preferredHeight = cardRect.sizeDelta.y;
+        le.minHeight = cardRect.sizeDelta.y;
 
         // Ảnh nền xem trước: raycastTarget = false để cử chỉ lướt truyền thẳng cho ScrollRect
         Image bgImg = cardObj.AddComponent<Image>();
@@ -525,6 +539,12 @@ public class DailyGemMineModalController : MonoBehaviour
         Image headerImg = headerObj.GetComponent<Image>();
         headerImg.color = new Color32(0, 0, 0, 180);
         headerImg.raycastTarget = false;
+        if (useMockupArtwork && level == 2 && level2HeaderSprite != null)
+        {
+            headerImg.sprite = level2HeaderSprite;
+            headerImg.color = Color.white;
+            headerRect.sizeDelta = new Vector2(0f, 75f);
+        }
 
         TMP_FontAsset font = (resetTimerText != null && resetTimerText.font != null)
             ? resetTimerText.font
@@ -594,6 +614,13 @@ public class DailyGemMineModalController : MonoBehaviour
         rwdTxt.raycastTarget = false;
         if (font != null) rwdTxt.font = font;
 
+        if (useMockupArtwork && level == 2 && level2HeaderSprite != null)
+        {
+            titleObj.SetActive(false);
+            gemIconObj.SetActive(false);
+            rwdObj.SetActive(false);
+        }
+
         // Pink Start Button
         GameObject startBtnObj = new GameObject("StartButton", typeof(RectTransform), typeof(Image), typeof(Button));
         startBtnObj.layer = uiLayer;
@@ -602,25 +629,28 @@ public class DailyGemMineModalController : MonoBehaviour
         startRect.anchorMin = new Vector2(1f, 0f);
         startRect.anchorMax = new Vector2(1f, 0f);
         startRect.pivot = new Vector2(1f, 0f);
-        startRect.anchoredPosition = new Vector2(-20f, 18f);
-        startRect.sizeDelta = new Vector2(190f, 72f);
+        startRect.anchoredPosition = useMockupArtwork ? new Vector2(-27f, 50f) : new Vector2(-20f, 18f);
+        startRect.sizeDelta = useMockupArtwork ? new Vector2(165f, 76f) : new Vector2(190f, 72f);
         startRect.localScale = Vector3.one;
 
         Image startImg = startBtnObj.GetComponent<Image>();
         if (pinkStartSprite != null) startImg.sprite = pinkStartSprite;
-        startImg.color = Color.white;
+        startImg.color = useMockupArtwork && level % 2 == 1 ? Color.clear : Color.white;
         startImg.raycastTarget = true;
 
         Button startBtn = startBtnObj.GetComponent<Button>();
         startBtn.targetGraphic = startImg;
-        if (pinkStartPressedSprite != null)
+        if (useMockupArtwork)
+        {
+            startBtn.transition = Selectable.Transition.ColorTint;
+        }
+        else if (pinkStartPressedSprite != null)
         {
             startBtn.transition = Selectable.Transition.SpriteSwap;
             SpriteState ss = startBtn.spriteState;
             ss.pressedSprite = pinkStartPressedSprite;
             startBtn.spriteState = ss;
         }
-        startBtn.onClick.AddListener(() => StartGemMineLevel(level));
 
         // Huy hiệu LOCKED hiển thị khi màn chơi bị khóa (chặn tia raycast, không đè text Start)
         GameObject lockBadgeObj = new GameObject("LockedBadge", typeof(RectTransform), typeof(Image), typeof(Button));
@@ -630,8 +660,8 @@ public class DailyGemMineModalController : MonoBehaviour
         lockRect.anchorMin = new Vector2(1f, 0f);
         lockRect.anchorMax = new Vector2(1f, 0f);
         lockRect.pivot = new Vector2(1f, 0f);
-        lockRect.anchoredPosition = new Vector2(-20f, 18f);
-        lockRect.sizeDelta = new Vector2(190f, 72f);
+        lockRect.anchoredPosition = startRect.anchoredPosition;
+        lockRect.sizeDelta = startRect.sizeDelta;
         lockRect.localScale = Vector3.one;
 
         Image lockImg = lockBadgeObj.GetComponent<Image>();
@@ -668,6 +698,7 @@ public class DailyGemMineModalController : MonoBehaviour
         lockBadgeObj.SetActive(false);
 
         DailyGemMineLevelCard cardCtrl = cardObj.AddComponent<DailyGemMineLevelCard>();
+        cardCtrl.BindReferences(startBtn, titleTxt, rwdTxt, bgImg);
         cardCtrl.SetLockOverlay(lockBadgeObj, lockTxt);
         bool isUnlocked = DailyGemMineProgress.IsLevelUnlocked(level);
         cardCtrl.Setup(level, title, reward, previewSprite, !isUnlocked, isUnlocked ? "" : $"Clear LV.{level - 1:D2} to Unlock");
@@ -1083,6 +1114,21 @@ public class DailyGemMineModalController : MonoBehaviour
         bool isFull = remainingEntrances >= maxEntrances;
         DailyGemMineLayoutTuner tuner = GetComponent<DailyGemMineLayoutTuner>();
 
+        if (useMockupArtwork)
+        {
+            if (resetTimerText != null)
+            {
+                resetTimerText.gameObject.SetActive(true);
+                resetTimerText.text = $"{remainingHours:D2}<space=100>{remainingMinutes:D2}";
+            }
+            if (entranceCountText != null)
+            {
+                entranceCountText.text = remainingEntrances.ToString();
+            }
+        }
+        else
+        {
+
         if (resetTimerText != null)
         {
             if (isFull)
@@ -1125,6 +1171,7 @@ public class DailyGemMineModalController : MonoBehaviour
                     : new Vector2(0f, -275f);
             }
         }
+        }
 
         // Khóa / mở nút Start tùy theo số lượt còn lại
         if (startLevel1Button != null)
@@ -1163,12 +1210,33 @@ public class DailyGemMineModalController : MonoBehaviour
 
                 if (!isUnlocked)
                 {
-                    card.SetLocked(true, $"Clear LV.{levelNum - 1:D2} to Unlock");
+                    card.SetLocked(true, useMockupArtwork ? "LOCK" : $"Clear LV.{levelNum - 1:D2} to Unlock");
                 }
                 else
                 {
                     card.SetLocked(false);
                     card.SetInteractable(true, hasEntrances);
+                }
+
+                if (useMockupArtwork)
+                {
+                    if (levelNum % 2 == 1 && card.PreviewImage != null)
+                        card.PreviewImage.sprite = !isUnlocked && lockedLevelPreviewSprite != null ? lockedLevelPreviewSprite : level1PreviewSprite;
+                    if (!isUnlocked && card.PreviewImage != null)
+                        card.PreviewImage.color = Color.white;
+                    if (!isUnlocked && card.TryGetComponent(out CanvasGroup cardGroup))
+                        cardGroup.alpha = 1f;
+                    if (!isUnlocked && card.LockOverlay != null)
+                    {
+                        Image lockImage = card.LockOverlay.GetComponent<Image>();
+                        if (lockImage != null) lockImage.color = Color.clear;
+                    }
+                }
+
+                if (useMockupArtwork && levelNum % 2 == 1 && card.StartButton != null)
+                {
+                    Image startImage = card.StartButton.GetComponent<Image>();
+                    if (startImage != null) startImage.color = Color.clear;
                 }
             }
         }

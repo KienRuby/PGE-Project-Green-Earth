@@ -48,7 +48,8 @@ public static class RewardPopupSceneBuilder
     private const string AchievementDbPath = "Assets/Data/Achievements/AchievementDatabase.asset";
     private const string ResourceIconPath = "Assets/Sprites/UI/icon tài nguyên.png";
     private const string BookSettingIconPath = "Assets/Sprites/UI/icon book, setting, dấu thông báo.png";
-    private const string FontPath = "Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset";
+    private const string FontPath = "Assets/Fonts/Nunito/Nunito SDF.asset";
+    private const string FontMaterialPath = "Assets/Fonts/Nunito/Nunito SDF - Reward Crisp.mat";
 
     // Visual Palette matching Reference Images
     private static readonly Color DimColor = new Color32(4, 10, 16, 215);
@@ -60,7 +61,7 @@ public static class RewardPopupSceneBuilder
     private static readonly Color ActiveTabBg = new Color32(64, 218, 210, 255);
     private static readonly Color InactiveTabBg = new Color32(20, 70, 85, 255);
     private static readonly Color ActiveTabText = new Color32(255, 255, 255, 255);
-    private static readonly Color InactiveTabText = new Color32(140, 200, 205, 255);
+    private static readonly Color InactiveTabText = Color.white;
 
     private static readonly Color GetBtnColor = new Color32(56, 189, 248, 255);
     private static readonly Color NotAchievedBtnColor = new Color32(65, 80, 95, 255);
@@ -68,12 +69,13 @@ public static class RewardPopupSceneBuilder
     private static readonly Color ProgressFillColor = new Color32(40, 180, 245, 255);
     private static readonly Color ProgressBgColor = new Color32(12, 32, 45, 255);
 
-    private static readonly Color TextWhite = new Color32(245, 255, 255, 255);
-    private static readonly Color TextYellow = new Color32(255, 190, 72, 255);
-    private static readonly Color TextGray = new Color32(160, 180, 195, 255);
-    private static readonly Color NavyOutline = new Color32(8, 30, 42, 255);
+    private static readonly Color TextWhite = Color.white;
+    private static readonly Color TextYellow = Color.white;
+    private static readonly Color TextGray = Color.white;
+    private static readonly Color NavyOutline = Color.black;
 
     private static TMP_FontAsset font;
+    private static Material fontMaterial;
     private static Sprite energySprite;
     private static Sprite redGemSprite;
     private static Sprite dataChipSprite;
@@ -106,6 +108,7 @@ public static class RewardPopupSceneBuilder
 
         // 2. Nạp Assets
         font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath);
+        fontMaterial = AssetDatabase.LoadAssetAtPath<Material>(FontMaterialPath);
         LoadResourceSprites();
 
         // 3. Mở MainMenu scene
@@ -850,7 +853,7 @@ public static class RewardPopupSceneBuilder
         Color btnFill = preview.isClaimed ? new Color32(78, 140, 147, 255) : new Color32(23, 68, 88, 255);
         Color btnBorderColor = preview.isClaimed ? new Color32(38, 77, 85, 255) : new Color32(11, 35, 48, 255);
         string btnLabel = preview.isClaimed ? "Obtained" : "Get";
-        Color btnTextColor = preview.isClaimed ? new Color32(35, 80, 95, 255) : new Color32(35, 95, 120, 255);
+        Color btnTextColor = Color.white;
 
         GameObject btnObj = CreateButton("ActionButton", itemObj.transform,
             new Vector2(1f, 0.5f), new Vector2(1f, 0.5f),
@@ -1059,6 +1062,7 @@ public static class RewardPopupSceneBuilder
         RectTransform rect = CreateRect(name, parent);
         TextMeshProUGUI text = rect.gameObject.AddComponent<TextMeshProUGUI>();
         if (font != null) text.font = font;
+        if (fontMaterial != null) text.fontSharedMaterial = fontMaterial;
         text.text = value;
         text.fontSize = fontSize;
         text.fontStyle = FontStyles.Bold;

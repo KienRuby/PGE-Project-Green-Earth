@@ -320,6 +320,20 @@ public class DailyGemMineLevelCard : MonoBehaviour
         lockLabel = label;
     }
 
+    public void BindReferences(Button btn, TMP_Text titleTxt, TMP_Text rwdTxt, Image preview)
+    {
+        startButton = btn;
+        levelTitleText = titleTxt;
+        rewardText = rwdTxt;
+        if (preview != null) previewImage = preview;
+
+        if (startButton != null)
+        {
+            startButton.onClick.RemoveListener(HandleStartClicked);
+            startButton.onClick.AddListener(HandleStartClicked);
+        }
+    }
+
     private void HandleStartClicked()
     {
         OnStartClicked?.Invoke(levelNumber);
@@ -332,14 +346,6 @@ public class DailyGemMineLevelCard : MonoBehaviour
         TMP_Text rwdTxt)
     {
         levelNumber = level;
-        startButton = btn;
-        levelTitleText = titleTxt;
-        rewardText = rwdTxt;
-
-        if (startButton != null)
-        {
-            startButton.onClick.RemoveListener(HandleStartClicked);
-            startButton.onClick.AddListener(HandleStartClicked);
-        }
+        BindReferences(btn, titleTxt, rwdTxt, null);
     }
 }
