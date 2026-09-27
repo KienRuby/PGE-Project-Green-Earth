@@ -66,13 +66,13 @@ public class RocketPunchHomingTests
     }
 
     [Test]
-    public void RocketPunchSkill_LaunchSpeed_GuaranteesMinimumSpeed()
+    public void RocketPunchSkill_LaunchSpeed_DefaultsToFive()
     {
         GameObject playerObj = new GameObject("Test_Player");
         try
         {
             RocketPunchSkill skill = playerObj.AddComponent<RocketPunchSkill>();
-            Assert.That(skill.LaunchSpeed, Is.GreaterThanOrEqualTo(12.0f), "RocketPunchSkill.LaunchSpeed must enforce minimum 12 m/s.");
+            Assert.That(skill.LaunchSpeed, Is.EqualTo(5.0f), "RocketPunchSkill.LaunchSpeed must default to 5 m/s.");
         }
         finally
         {
@@ -95,13 +95,13 @@ public class RocketPunchHomingTests
             tests.GenMineEnemyPrefabs_MustBeAssignedToEnemyLayer();
             tests.RocketPunchPrefab_ColliderRadius_IsSufficientlyLarge();
             tests.RocketPunchProjectile_DistancePointToSegment_CalculatesCorrectly();
-            tests.RocketPunchSkill_LaunchSpeed_GuaranteesMinimumSpeed();
+            tests.RocketPunchSkill_LaunchSpeed_DefaultsToFive();
             
             string report = "[RocketPunchHomingTests] ALL 4 TESTS PASSED SUCCESSFULLY!\n" +
                             "1. GenMineEnemyPrefabs_MustBeAssignedToEnemyLayer: PASSED (Layer 7)\n" +
                             "2. RocketPunchPrefab_ColliderRadius_IsSufficientlyLarge: PASSED (Radius >= 0.25m)\n" +
                             "3. RocketPunchProjectile_DistancePointToSegment_CalculatesCorrectly: PASSED\n" +
-                            "4. RocketPunchSkill_LaunchSpeed_GuaranteesMinimumSpeed: PASSED (LaunchSpeed >= 12.0m/s)\n" +
+                            "4. RocketPunchSkill_LaunchSpeed_DefaultsToFive: PASSED (LaunchSpeed = 5.0m/s)\n" +
                             $"Timestamp: {System.DateTime.Now:yyyy-MM-dd HH:mm:ss}";
             System.IO.File.WriteAllText("Reports/rocket_punch_test_result.txt", report);
             Debug.Log("<color=green>[RocketPunchHomingTests] ALL 4 TESTS PASSED SUCCESSFULLY!</color>");

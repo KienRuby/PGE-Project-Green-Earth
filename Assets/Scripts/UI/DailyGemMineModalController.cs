@@ -1,7 +1,6 @@
 using System;
 using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
@@ -63,6 +62,7 @@ public class DailyGemMineModalController : MonoBehaviour
     [SerializeField] private Sprite pinkStartSprite;
     [SerializeField] private Sprite pinkStartPressedSprite;
     [SerializeField] private Sprite redGemIconSprite;
+    [SerializeField] private Sprite lockedBadgeSprite;
 
     [Header("Status Texts")]
     [Tooltip("Text hiển thị đồng hồ Reset in: 09 Hour 26 Min Left.")]
@@ -665,7 +665,9 @@ public class DailyGemMineModalController : MonoBehaviour
         lockRect.localScale = Vector3.one;
 
         Image lockImg = lockBadgeObj.GetComponent<Image>();
-        lockImg.color = new Color(0.12f, 0.12f, 0.16f, 0.92f);
+        lockImg.sprite = lockedBadgeSprite;
+        lockImg.color = lockedBadgeSprite != null ? Color.white : new Color(0.12f, 0.12f, 0.16f, 0.92f);
+        lockImg.preserveAspect = lockedBadgeSprite != null;
         lockImg.raycastTarget = true;
 
         Button lockBtn = lockBadgeObj.GetComponent<Button>();
@@ -680,26 +682,31 @@ public class DailyGemMineModalController : MonoBehaviour
             });
         }
 
-        GameObject lockTextObj = new GameObject("LockedText", typeof(RectTransform), typeof(TextMeshProUGUI));
-        lockTextObj.layer = uiLayer;
-        lockTextObj.transform.SetParent(lockBadgeObj.transform, false);
-        RectTransform lockTextRect = lockTextObj.GetComponent<RectTransform>();
-        StretchRect(lockTextRect);
+        TextMeshProUGUI lockTxt = null;
+        if (lockedBadgeSprite == null)
+        {
+            GameObject lockTextObj = new GameObject("LockedText", typeof(RectTransform), typeof(TextMeshProUGUI));
+            lockTextObj.layer = uiLayer;
+            lockTextObj.transform.SetParent(lockBadgeObj.transform, false);
+            RectTransform lockTextRect = lockTextObj.GetComponent<RectTransform>();
+            StretchRect(lockTextRect);
 
-        TextMeshProUGUI lockTxt = lockTextObj.GetComponent<TextMeshProUGUI>();
-        lockTxt.text = "LOCKED";
-        lockTxt.fontSize = 30f;
-        lockTxt.fontStyle = FontStyles.Bold;
-        lockTxt.color = new Color32(200, 200, 200, 255);
-        lockTxt.alignment = TextAlignmentOptions.Center;
-        lockTxt.raycastTarget = false;
-        if (font != null) lockTxt.font = font;
+            lockTxt = lockTextObj.GetComponent<TextMeshProUGUI>();
+            lockTxt.text = "LOCKED";
+            lockTxt.fontSize = 30f;
+            lockTxt.fontStyle = FontStyles.Bold;
+            lockTxt.color = new Color32(200, 200, 200, 255);
+            lockTxt.alignment = TextAlignmentOptions.Center;
+            lockTxt.raycastTarget = false;
+            if (font != null) lockTxt.font = font;
+        }
 
         lockBadgeObj.SetActive(false);
 
         DailyGemMineLevelCard cardCtrl = cardObj.AddComponent<DailyGemMineLevelCard>();
         cardCtrl.BindReferences(startBtn, titleTxt, rwdTxt, bgImg);
         cardCtrl.SetLockOverlay(lockBadgeObj, lockTxt);
+        cardCtrl.SetLockedBadgeSprite(lockedBadgeSprite);
         bool isUnlocked = DailyGemMineProgress.IsLevelUnlocked(level);
         cardCtrl.Setup(level, title, reward, previewSprite, !isUnlocked, isUnlocked ? "" : $"Clear LV.{level - 1:D2} to Unlock");
         cardCtrl.OptimizeRaycastTargetsForSwiping();
@@ -1063,19 +1070,19 @@ public class DailyGemMineModalController : MonoBehaviour
         {
             if (Application.CanStreamedLevelBeLoaded(gemMineSceneName))
             {
-                SceneManager.LoadScene(gemMineSceneName);
+                LoadingScreenUI.Load(gemMineSceneName);
             }
             else if (Application.CanStreamedLevelBeLoaded("GenMine"))
             {
-                SceneManager.LoadScene("GenMine");
+                LoadingScreenUI.Load("GenMine");
             }
             else if (Application.CanStreamedLevelBeLoaded("goalkeeper"))
             {
-                SceneManager.LoadScene("goalkeeper");
+                LoadingScreenUI.Load("goalkeeper");
             }
             else
             {
-                SceneManager.LoadScene(gemMineSceneName);
+                LoadingScreenUI.Load(gemMineSceneName);
             }
         }
     }
@@ -1206,6 +1213,7 @@ public class DailyGemMineModalController : MonoBehaviour
                 bool isUnlocked = DailyGemMineProgress.IsLevelUnlocked(levelNum);
 
                 card.RemoveRedundantStartLabel();
+                card.SetLockedBadgeSprite(lockedBadgeSprite);
                 card.EnsureLockBadge();
 
                 if (!isUnlocked)
@@ -1229,7 +1237,7 @@ public class DailyGemMineModalController : MonoBehaviour
                     if (!isUnlocked && card.LockOverlay != null)
                     {
                         Image lockImage = card.LockOverlay.GetComponent<Image>();
-                        if (lockImage != null) lockImage.color = Color.clear;
+                        if (lockImage != null) lockImage.color = lockedBadgeSprite != null ? Color.white : Color.clear;
                     }
                 }
 

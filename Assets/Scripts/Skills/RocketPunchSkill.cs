@@ -43,7 +43,7 @@ public class RocketPunchSkill : MonoBehaviour
     [Header("Launch Tuning (Tùy chỉnh khi phóng tới quái)")]
     [Tooltip("Vận tốc bay thẳng khi lao tới quái vật (mét/giây).")]
     [Range(4f, 40f)]
-    [SerializeField] private float launchSpeed = 12.0f;
+    [SerializeField] private float launchSpeed = 5.0f;
 
     [Tooltip("Hệ số nhân tốc độ đấm (Attack Speed Multiplier).")]
     [Range(0.2f, 5.0f)]
@@ -77,7 +77,7 @@ public class RocketPunchSkill : MonoBehaviour
     public int CurrentSkillLevel => currentSkillLevel;
     public float OrbitRadius => orbitRadius;
     public float OrbitSpeed => orbitSpeed;
-    public float LaunchSpeed => Mathf.Max(12.0f, launchSpeed);
+    public float LaunchSpeed => Mathf.Max(4.0f, launchSpeed);
 
     private void Awake()
     {

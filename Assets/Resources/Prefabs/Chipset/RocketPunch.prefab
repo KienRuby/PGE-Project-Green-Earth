@@ -310,7 +310,7 @@ MonoBehaviour:
   directDamage: 70
   aoeDamage: 37
   aoeRadius: 1.25
-  launchSpeed: 12
+  launchSpeed: 5
   maxFlightTime: 4
   orbitRadius: 0.8
   orbitSpeed: 220

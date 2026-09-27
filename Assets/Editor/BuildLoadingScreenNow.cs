@@ -1,10 +1,7 @@
 #if UNITY_EDITOR
-using UnityEditor;
-
 public static class BuildLoadingScreenNow
 {
-    [InitializeOnLoadMethod]
-    private static void Run()
+    public static void Run()
     {
         LoadingScreenBuilder.BuildLoadingScreen();
     }

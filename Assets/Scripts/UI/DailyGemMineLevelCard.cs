@@ -41,6 +41,8 @@ public class DailyGemMineLevelCard : MonoBehaviour
     [Tooltip("Text lý do khóa (ví dụ: 'Requires Chapter 3').")]
     [SerializeField] private TMP_Text lockLabel;
 
+    private Sprite lockedBadgeSprite;
+
     public event Action<int> OnStartClicked;
 
     public int LevelNumber => levelNumber;
@@ -108,6 +110,7 @@ public class DailyGemMineLevelCard : MonoBehaviour
             existingBtn.targetGraphic = existingImg;
             existingBtn.onClick.RemoveListener(HandleLockedBadgeClicked);
             existingBtn.onClick.AddListener(HandleLockedBadgeClicked);
+            ApplyLockedBadgeSprite();
             return;
         }
 
@@ -122,6 +125,7 @@ public class DailyGemMineLevelCard : MonoBehaviour
             existingBtn.targetGraphic = existingImg;
             existingBtn.onClick.RemoveListener(HandleLockedBadgeClicked);
             existingBtn.onClick.AddListener(HandleLockedBadgeClicked);
+            ApplyLockedBadgeSprite();
             return;
         }
 
@@ -137,7 +141,9 @@ public class DailyGemMineLevelCard : MonoBehaviour
         rt.localScale = Vector3.one;
 
         Image img = badgeObj.GetComponent<Image>();
-        img.color = new Color(0.12f, 0.12f, 0.16f, 0.92f);
+        img.color = lockedBadgeSprite != null ? Color.white : new Color(0.12f, 0.12f, 0.16f, 0.92f);
+        img.sprite = lockedBadgeSprite;
+        img.preserveAspect = lockedBadgeSprite != null;
         img.raycastTarget = true; // Bắt buộc nhận raycast để hấp thụ click
 
         Button btn = badgeObj.GetComponent<Button>();
@@ -145,35 +151,58 @@ public class DailyGemMineLevelCard : MonoBehaviour
         btn.onClick.RemoveListener(HandleLockedBadgeClicked);
         btn.onClick.AddListener(HandleLockedBadgeClicked);
 
-        GameObject txtObj = new GameObject("LockedText", typeof(RectTransform), typeof(TextMeshProUGUI));
-        txtObj.layer = gameObject.layer;
-        txtObj.transform.SetParent(badgeObj.transform, false);
-        RectTransform txtRt = txtObj.GetComponent<RectTransform>();
-        txtRt.anchorMin = Vector2.zero;
-        txtRt.anchorMax = Vector2.one;
-        txtRt.pivot = new Vector2(0.5f, 0.5f);
-        txtRt.offsetMin = txtRt.offsetMax = Vector2.zero;
-
-        TextMeshProUGUI txt = txtObj.GetComponent<TextMeshProUGUI>();
-        txt.text = "LOCKED";
-        txt.fontSize = 30f;
-        txt.fontStyle = FontStyles.Bold;
-        txt.color = new Color32(220, 220, 220, 255);
-        txt.alignment = TextAlignmentOptions.Center;
-        txt.raycastTarget = false;
-        if (levelTitleText != null && levelTitleText.font != null)
+        if (lockedBadgeSprite == null)
         {
-            txt.font = levelTitleText.font;
+            GameObject txtObj = new GameObject("LockedText", typeof(RectTransform), typeof(TextMeshProUGUI));
+            txtObj.layer = gameObject.layer;
+            txtObj.transform.SetParent(badgeObj.transform, false);
+            RectTransform txtRt = txtObj.GetComponent<RectTransform>();
+            txtRt.anchorMin = Vector2.zero;
+            txtRt.anchorMax = Vector2.one;
+            txtRt.pivot = new Vector2(0.5f, 0.5f);
+            txtRt.offsetMin = txtRt.offsetMax = Vector2.zero;
+
+            TextMeshProUGUI txt = txtObj.GetComponent<TextMeshProUGUI>();
+            txt.text = "LOCKED";
+            txt.fontSize = 30f;
+            txt.fontStyle = FontStyles.Bold;
+            txt.color = new Color32(220, 220, 220, 255);
+            txt.alignment = TextAlignmentOptions.Center;
+            txt.raycastTarget = false;
+            if (levelTitleText != null && levelTitleText.font != null)
+            {
+                txt.font = levelTitleText.font;
+            }
+            lockLabel = txt;
         }
 
         lockOverlay = badgeObj;
-        lockLabel = txt;
         badgeObj.SetActive(false);
+    }
+
+    public void SetLockedBadgeSprite(Sprite sprite)
+    {
+        lockedBadgeSprite = sprite;
+        EnsureLockBadge();
+    }
+
+    private void ApplyLockedBadgeSprite()
+    {
+        if (lockedBadgeSprite == null || lockOverlay == null) return;
+        Image image = lockOverlay.GetComponent<Image>();
+        if (image != null)
+        {
+            image.sprite = lockedBadgeSprite;
+            image.color = Color.white;
+            image.preserveAspect = true;
+        }
+        if (lockLabel == null) lockLabel = lockOverlay.GetComponentInChildren<TMP_Text>(true);
+        if (lockLabel != null) lockLabel.gameObject.SetActive(false);
     }
 
     private void HandleLockedBadgeClicked()
     {
-        Debug.Log($"[DailyGemMineLevelCard] Màn {levelNumber} đang bị khóa: {lockLabel?.text}");
+        Debug.Log($"[DailyGemMineLevelCard] Màn {levelNumber} đang bị khóa: {(lockLabel != null ? lockLabel.text : "LOCKED")}");
     }
 
     /// <summary>

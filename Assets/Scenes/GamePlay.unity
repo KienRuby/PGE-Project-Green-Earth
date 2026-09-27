@@ -1990,7 +1990,7 @@ MonoBehaviour:
   lavaHazardPrefab: {fileID: 0}
   orbitRadius: 0.4
   orbitSpeed: 192
-  launchSpeed: 12
+  launchSpeed: 5
   attackSpeedMultiplier: 0.65
   levelConfigs:
   - directDamage: 70

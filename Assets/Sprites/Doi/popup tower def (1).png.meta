@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: cb7c5d206ef23ea4a86fc7a675293e12
+guid: 972cfcfb8da89674c96520a397507b5f
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -108,7 +108,28 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
-    sprites: []
+    sprites:
+    - serializedVersion: 2
+      name: LOCKED
+      rect:
+        serializedVersion: 2
+        x: 1030
+        y: 61
+        width: 393
+        height: 172
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fb1aa7b6558859f4fa940e2857a78e0f
+      internalID: 938390648
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -119,7 +140,8 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      LOCKED: 938390648
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -14,6 +14,7 @@ using TMPro;
 public class LoadingScreenUI : MonoBehaviour
 {
     private static LoadingScreenUI _instance;
+    private static Sprite _whiteFillSprite;
     public static LoadingScreenUI Instance => _instance;
 
     [Header("UI References")]
@@ -90,6 +91,7 @@ public class LoadingScreenUI : MonoBehaviour
             mascotAnimator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
         }
 
+        Canvas.ForceUpdateCanvases();
         CalculateMascotBounds();
         SetProgress(0f);
     }
@@ -148,15 +150,18 @@ public class LoadingScreenUI : MonoBehaviour
     {
         if (progressBarRect == null) return;
 
-        float fillWidth = (fillImage != null && fillImage.rectTransform != null) 
-            ? fillImage.rectTransform.rect.width 
-            : progressBarRect.rect.width;
+        if (fillImage != null && fillImage.rectTransform.rect.width > 0f)
+        {
+            Vector3[] corners = new Vector3[4];
+            fillImage.rectTransform.GetWorldCorners(corners);
+            _mascotStartX = progressBarRect.InverseTransformPoint(corners[0]).x + mascotOffset;
+            _mascotEndX = progressBarRect.InverseTransformPoint(corners[3]).x + mascotOffset;
+            return;
+        }
 
-        if (fillWidth <= 0f)
-            fillWidth = 744f;
-
-        _mascotStartX = -fillWidth * 0.5f + mascotOffset;
-        _mascotEndX = fillWidth * 0.5f + mascotOffset;
+        float barWidth = progressBarRect.rect.width > 0f ? progressBarRect.rect.width : 744f;
+        _mascotStartX = -barWidth * 0.5f + mascotOffset;
+        _mascotEndX = barWidth * 0.5f + mascotOffset;
     }
 
     private void Update()
@@ -198,7 +203,15 @@ public class LoadingScreenUI : MonoBehaviour
         _currentProgress = Mathf.Clamp01(progress);
 
         if (fillImage != null)
+        {
+            if (fillImage.sprite == null)
+            {
+                if (_whiteFillSprite == null)
+                    _whiteFillSprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0f, 0f, Texture2D.whiteTexture.width, Texture2D.whiteTexture.height), new Vector2(0.5f, 0.5f));
+                fillImage.sprite = _whiteFillSprite;
+            }
             fillImage.fillAmount = _currentProgress;
+        }
 
         if (progressText != null)
             progressText.text = $"{Mathf.RoundToInt(_currentProgress * 100f)}%";
@@ -259,6 +272,7 @@ public class LoadingScreenUI : MonoBehaviour
     {
         _isLoading = true;
         SelectRandomCreep();
+        Canvas.ForceUpdateCanvases();
         CalculateMascotBounds();
         SetProgress(0f);
 
