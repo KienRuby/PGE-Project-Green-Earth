@@ -83,6 +83,13 @@ public class TowerDefUIController : MonoBehaviour
     private Button adsStructUpgradeButton;
     private Image adsStructUpgradeBtnImg;
 
+    [Header("Build Modal Runtime Visuals")]
+    [SerializeField] private Sprite pawnTowerSprite;
+    private TextMeshProUGUI buildTurretCostText;
+    private TextMeshProUGUI buildGeneratorCostText;
+    private Image buildTurretBtnImg;
+    private Image buildGeneratorBtnImg;
+
     [Header("Floating Text & Overlays")]
     [SerializeField] private Transform floatingTextParent;
     [SerializeField] private GameObject victoryPanel;
@@ -143,7 +150,20 @@ public class TowerDefUIController : MonoBehaviour
     {
         CloseAllModals();
         currentSelectedCell = cell;
-        if (buildModalRoot != null) buildModalRoot.SetActive(true);
+        if (cell == null) return;
+
+        EnsureSpritesAndFont();
+        if (buildModalRoot == null)
+        {
+            BuildBuildModal();
+        }
+
+        RefreshBuildModalContent();
+        if (buildModalRoot != null)
+        {
+            buildModalRoot.SetActive(true);
+            buildModalRoot.transform.SetAsLastSibling();
+        }
     }
 
     public void OpenUpgradeModal(TowerDefGridCell cell)
@@ -276,7 +296,20 @@ public class TowerDefUIController : MonoBehaviour
             bedLevelSprites[2] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Core_Pod_Cyan.png");
             bedLevelSprites[3] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Core_Pod_Cyan.png");
         }
+
+        if (pawnTowerSprite == null)
+        {
+            pawnTowerSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Pawn_Tower_03_Purple.png");
+        }
 #endif
+        if (pawnTowerSprite == null)
+        {
+            pawnTowerSprite = Resources.Load<Sprite>("TowerDef/Pawn_Tower_03_Purple");
+        }
+        if (pawnTowerSprite == null && TowerDefGameManager.Instance != null)
+        {
+            pawnTowerSprite = TowerDefGameManager.Instance.PawnTowerSprite;
+        }
     }
 
     public void OpenGateModal(TowerDefGate gate)
@@ -1046,6 +1079,255 @@ public class TowerDefUIController : MonoBehaviour
 
             adsBtn = adsBtnObj.GetComponent<Button>();
             adsBtn.onClick.AddListener(OnAdStructureUpgradeClicked);
+        }
+    }
+
+    private void BuildBuildModal()
+    {
+        EnsureSpritesAndFont();
+
+        // 1. Nền mờ toàn màn hình (Dim overlay)
+        buildModalRoot = new GameObject("BuildModal", typeof(RectTransform), typeof(Image));
+        buildModalRoot.transform.SetParent(transform, false);
+        RectTransform rootRt = buildModalRoot.GetComponent<RectTransform>();
+        rootRt.anchorMin = Vector2.zero;
+        rootRt.anchorMax = Vector2.one;
+        rootRt.offsetMin = rootRt.offsetMax = Vector2.zero;
+
+        Image dimImg = buildModalRoot.GetComponent<Image>();
+        dimImg.color = new Color(0f, 0f, 0f, 0.65f);
+        dimImg.raycastTarget = true;
+
+        Button dimBtn = buildModalRoot.AddComponent<Button>();
+        dimBtn.transition = Selectable.Transition.None;
+        dimBtn.onClick.AddListener(CloseAllModals);
+
+        // 2. Khung viền Popup (Frame_Upgrade_Popup.png)
+        GameObject frameObj = new GameObject("ModalFrame", typeof(RectTransform), typeof(Image));
+        frameObj.transform.SetParent(buildModalRoot.transform, false);
+        RectTransform frameRt = frameObj.GetComponent<RectTransform>();
+        frameRt.anchorMin = frameRt.anchorMax = frameRt.pivot = new Vector2(0.5f, 0.5f);
+        frameRt.anchoredPosition = Vector2.zero;
+        frameRt.sizeDelta = new Vector2(920f, 660f);
+
+        Image frameImg = frameObj.GetComponent<Image>();
+        if (frameUpgradePopupSprite != null) frameImg.sprite = frameUpgradePopupSprite;
+        frameImg.color = Color.white;
+        frameImg.raycastTarget = true;
+
+        // 3. Nút Đóng "✕"
+        GameObject closeObj = new GameObject("CloseButton", typeof(RectTransform), typeof(Image), typeof(Button));
+        closeObj.transform.SetParent(frameObj.transform, false);
+        RectTransform closeRt = closeObj.GetComponent<RectTransform>();
+        closeRt.anchorMin = closeRt.anchorMax = closeRt.pivot = new Vector2(1f, 1f);
+        closeRt.anchoredPosition = new Vector2(-40f, -40f);
+        closeRt.sizeDelta = new Vector2(60f, 60f);
+        Image closeImg = closeObj.GetComponent<Image>();
+        closeImg.color = new Color(0f, 0f, 0f, 0.01f);
+        closeImg.raycastTarget = true;
+
+        closeBuildModalButton = closeObj.GetComponent<Button>();
+        closeBuildModalButton.onClick.AddListener(CloseAllModals);
+
+        GameObject closeTxtObj = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI));
+        closeTxtObj.transform.SetParent(closeObj.transform, false);
+        RectTransform closeTxtRt = closeTxtObj.GetComponent<RectTransform>();
+        closeTxtRt.anchorMin = Vector2.zero;
+        closeTxtRt.anchorMax = Vector2.one;
+        closeTxtRt.offsetMin = closeTxtRt.offsetMax = Vector2.zero;
+        TextMeshProUGUI closeTmp = closeTxtObj.GetComponent<TextMeshProUGUI>();
+        if (uiFont != null) closeTmp.font = uiFont;
+        closeTmp.text = "✕";
+        closeTmp.fontSize = 40f;
+        closeTmp.fontStyle = FontStyles.Bold;
+        closeTmp.color = new Color(0.7f, 0.85f, 1f, 0.9f);
+        closeTmp.alignment = TextAlignmentOptions.Center;
+
+        // 4. Tiêu đề "Build"
+        GameObject titleObj = new GameObject("TitleText", typeof(RectTransform), typeof(TextMeshProUGUI));
+        titleObj.transform.SetParent(frameObj.transform, false);
+        RectTransform titleRt = titleObj.GetComponent<RectTransform>();
+        titleRt.anchorMin = titleRt.anchorMax = titleRt.pivot = new Vector2(0.5f, 1f);
+        titleRt.anchoredPosition = new Vector2(0f, -70f);
+        titleRt.sizeDelta = new Vector2(600f, 85f);
+        TextMeshProUGUI titleTmp = titleObj.GetComponent<TextMeshProUGUI>();
+        if (uiFont != null) titleTmp.font = uiFont;
+        titleTmp.text = "Build";
+        titleTmp.fontSize = 68f;
+        titleTmp.fontStyle = FontStyles.Bold;
+        titleTmp.color = Color.white;
+        titleTmp.alignment = TextAlignmentOptions.Center;
+
+        Outline titleOutline = titleObj.AddComponent<Outline>();
+        titleOutline.effectColor = new Color(0.05f, 0.1f, 0.2f, 0.95f);
+        titleOutline.effectDistance = new Vector2(3f, -3f);
+
+        // 5. Hàng 1 (Mua Pháo / Súng - Gun Turret)
+        GameObject row1Obj = new GameObject("Row1_BuildTurret", typeof(RectTransform), typeof(Image));
+        row1Obj.transform.SetParent(frameObj.transform, false);
+        RectTransform row1Rt = row1Obj.GetComponent<RectTransform>();
+        row1Rt.anchorMin = row1Rt.anchorMax = row1Rt.pivot = new Vector2(0.5f, 0.5f);
+        row1Rt.anchoredPosition = new Vector2(0f, 45f);
+        row1Rt.sizeDelta = new Vector2(760f, 180f);
+        Image row1Img = row1Obj.GetComponent<Image>();
+        if (panelUpgradeRowBarSprite != null) row1Img.sprite = panelUpgradeRowBarSprite;
+        row1Img.color = Color.white;
+
+        Sprite turretIcon = (turretGunLevelSprites != null && turretGunLevelSprites.Length > 0 && turretGunLevelSprites[0] != null)
+            ? turretGunLevelSprites[0]
+            : (TowerDefGameManager.Instance != null ? TowerDefGameManager.Instance.TurretGunSprite : null);
+        if (turretIcon == null) turretIcon = Resources.Load<Sprite>("TowerDef/Turret_Gun_01_Cyan");
+
+        BuildBuyRow(row1Obj.transform, turretIcon, "Pháo thủ\n<color=#FFD700>LV.01</color>",
+            "Pháo phòng thủ", "Sát thương: 20 DMG | Tốc bắn: 1.1/s\nTự động bắn hạ quái vật tiếp cận",
+            50, out buildTurretCostText, out buildTurretButton, out buildTurretBtnImg, OnBuildTurretClicked);
+
+        // 6. Hàng 2 (Mua Trụ năng lượng - Energy Generator)
+        GameObject row2Obj = new GameObject("Row2_BuildGenerator", typeof(RectTransform), typeof(Image));
+        row2Obj.transform.SetParent(frameObj.transform, false);
+        RectTransform row2Rt = row2Obj.GetComponent<RectTransform>();
+        row2Rt.anchorMin = row2Rt.anchorMax = row2Rt.pivot = new Vector2(0.5f, 0.5f);
+        row2Rt.anchoredPosition = new Vector2(0f, -160f);
+        row2Rt.sizeDelta = new Vector2(760f, 180f);
+        Image row2Img = row2Obj.GetComponent<Image>();
+        if (panelUpgradeRowBarSprite != null) row2Img.sprite = panelUpgradeRowBarSprite;
+        row2Img.color = Color.white;
+
+        Sprite generatorIcon = (TowerDefGameManager.Instance != null && TowerDefGameManager.Instance.PawnTowerSprite != null)
+            ? TowerDefGameManager.Instance.PawnTowerSprite
+            : pawnTowerSprite;
+        if (generatorIcon == null) generatorIcon = Resources.Load<Sprite>("TowerDef/Pawn_Tower_03_Purple");
+
+        BuildBuyRow(row2Obj.transform, generatorIcon, "Trụ điện\n<color=#FFD700>LV.01</color>",
+            "Trụ năng lượng", "Sản xuất: +2 Năng lượng/giây\nCung cấp tài nguyên nâng cấp căn cứ",
+            60, out buildGeneratorCostText, out buildGeneratorButton, out buildGeneratorBtnImg, OnBuildGeneratorClicked);
+    }
+
+    private void BuildBuyRow(
+        Transform parent,
+        Sprite iconSpr,
+        string levelStr,
+        string titleStr,
+        string descStr,
+        int cost,
+        out TextMeshProUGUI costTxt,
+        out Button buyBtn,
+        out Image btnImg,
+        UnityEngine.Events.UnityAction onBuyClicked)
+    {
+        // Cột trái: Khung icon + Tên & Cấp độ
+        GameObject iconRoot = new GameObject("IconBox", typeof(RectTransform));
+        iconRoot.transform.SetParent(parent, false);
+        RectTransform iconRootRt = iconRoot.GetComponent<RectTransform>();
+        iconRootRt.anchorMin = iconRootRt.anchorMax = iconRootRt.pivot = new Vector2(0f, 0.5f);
+        iconRootRt.anchoredPosition = new Vector2(95f, 0f);
+        iconRootRt.sizeDelta = new Vector2(130f, 150f);
+
+        GameObject sprObj = new GameObject("PreviewImage", typeof(RectTransform), typeof(Image));
+        sprObj.transform.SetParent(iconRoot.transform, false);
+        RectTransform sprRt = sprObj.GetComponent<RectTransform>();
+        sprRt.anchorMin = sprRt.anchorMax = sprRt.pivot = new Vector2(0.5f, 0.5f);
+        sprRt.anchoredPosition = new Vector2(0f, 15f);
+        sprRt.sizeDelta = new Vector2(100f, 100f);
+        Image previewImg = sprObj.GetComponent<Image>();
+        previewImg.preserveAspect = true;
+        previewImg.raycastTarget = false;
+        if (iconSpr != null) previewImg.sprite = iconSpr;
+        previewImg.color = Color.white;
+
+        GameObject lvlTextObj = new GameObject("LevelText", typeof(RectTransform), typeof(TextMeshProUGUI));
+        lvlTextObj.transform.SetParent(iconRoot.transform, false);
+        RectTransform lvlTextRt = lvlTextObj.GetComponent<RectTransform>();
+        lvlTextRt.anchorMin = lvlTextRt.anchorMax = lvlTextRt.pivot = new Vector2(0.5f, 0f);
+        lvlTextRt.anchoredPosition = new Vector2(0f, -5f);
+        lvlTextRt.sizeDelta = new Vector2(125f, 50f);
+        TextMeshProUGUI lvlTmp = lvlTextObj.GetComponent<TextMeshProUGUI>();
+        if (uiFont != null) lvlTmp.font = uiFont;
+        lvlTmp.fontSize = 20f;
+        lvlTmp.fontStyle = FontStyles.Bold;
+        lvlTmp.alignment = TextAlignmentOptions.Center;
+        lvlTmp.color = Color.white;
+        lvlTmp.text = levelStr;
+
+        // Cột giữa: Tiêu đề + Mô tả
+        GameObject descObj = new GameObject("DescText", typeof(RectTransform), typeof(TextMeshProUGUI));
+        descObj.transform.SetParent(parent, false);
+        RectTransform descRt = descObj.GetComponent<RectTransform>();
+        descRt.anchorMin = descRt.anchorMax = descRt.pivot = new Vector2(0.5f, 0.5f);
+        descRt.anchoredPosition = new Vector2(-15f, 0f);
+        descRt.sizeDelta = new Vector2(360f, 100f);
+        TextMeshProUGUI descTmp = descObj.GetComponent<TextMeshProUGUI>();
+        if (uiFont != null) descTmp.font = uiFont;
+        descTmp.fontSize = 26f;
+        descTmp.fontStyle = FontStyles.Bold;
+        descTmp.alignment = TextAlignmentOptions.MidlineLeft;
+        descTmp.color = Color.white;
+        descTmp.text = $"{titleStr}\n<size=20><color=#D4D4D4>{descStr}</color></size>";
+
+        // Cột phải: Nút Mua (Coin + Giá tiền)
+        GameObject btnObj = new GameObject("BuyButton", typeof(RectTransform), typeof(Image), typeof(Button));
+        btnObj.transform.SetParent(parent, false);
+        RectTransform btnRt = btnObj.GetComponent<RectTransform>();
+        btnRt.anchorMin = btnRt.anchorMax = btnRt.pivot = new Vector2(1f, 0.5f);
+        btnRt.anchoredPosition = new Vector2(-105f, 0f);
+        btnRt.sizeDelta = new Vector2(165f, 75f);
+
+        btnImg = btnObj.GetComponent<Image>();
+        if (btnUpgradeCyanSprite != null) btnImg.sprite = btnUpgradeCyanSprite;
+        btnImg.color = Color.white;
+        btnImg.raycastTarget = true;
+
+        buyBtn = btnObj.GetComponent<Button>();
+        if (onBuyClicked != null) buyBtn.onClick.AddListener(onBuyClicked);
+
+        GameObject coinObj = new GameObject("CoinIcon", typeof(RectTransform), typeof(Image));
+        coinObj.transform.SetParent(btnObj.transform, false);
+        RectTransform coinRt = coinObj.GetComponent<RectTransform>();
+        coinRt.anchorMin = coinRt.anchorMax = coinRt.pivot = new Vector2(0f, 0.5f);
+        coinRt.anchoredPosition = new Vector2(32f, 0f);
+        coinRt.sizeDelta = new Vector2(40f, 40f);
+        Image coinImg = coinObj.GetComponent<Image>();
+        if (coinIconSprite != null) coinImg.sprite = coinIconSprite;
+        coinImg.preserveAspect = true;
+        coinImg.raycastTarget = false;
+
+        GameObject priceObj = new GameObject("PriceText", typeof(RectTransform), typeof(TextMeshProUGUI));
+        priceObj.transform.SetParent(btnObj.transform, false);
+        RectTransform priceRt = priceObj.GetComponent<RectTransform>();
+        priceRt.anchorMin = priceRt.anchorMax = priceRt.pivot = new Vector2(0.5f, 0.5f);
+        priceRt.anchoredPosition = new Vector2(25f, 0f);
+        priceRt.sizeDelta = new Vector2(85f, 50f);
+        costTxt = priceObj.GetComponent<TextMeshProUGUI>();
+        if (uiFont != null) costTxt.font = uiFont;
+        costTxt.text = cost.ToString();
+        costTxt.fontSize = 32f;
+        costTxt.fontStyle = FontStyles.Bold;
+        costTxt.color = new Color(0.12f, 0.12f, 0.12f);
+        costTxt.alignment = TextAlignmentOptions.Center;
+    }
+
+    private void RefreshBuildModalContent()
+    {
+        int currentGold = TowerDefGameManager.Instance != null ? TowerDefGameManager.Instance.Gold : 0;
+
+        if (buildTurretButton != null)
+        {
+            bool canAffordTurret = currentGold >= 50;
+            if (buildTurretBtnImg != null)
+            {
+                buildTurretBtnImg.sprite = canAffordTurret ? btnUpgradeCyanSprite : (btnUpgradeGreySprite != null ? btnUpgradeGreySprite : btnUpgradeCyanSprite);
+                buildTurretBtnImg.color = canAffordTurret ? Color.white : new Color(0.85f, 0.85f, 0.85f, 0.85f);
+            }
+        }
+
+        if (buildGeneratorButton != null)
+        {
+            bool canAffordGenerator = currentGold >= 60;
+            if (buildGeneratorBtnImg != null)
+            {
+                buildGeneratorBtnImg.sprite = canAffordGenerator ? btnUpgradeCyanSprite : (btnUpgradeGreySprite != null ? btnUpgradeGreySprite : btnUpgradeCyanSprite);
+                buildGeneratorBtnImg.color = canAffordGenerator ? Color.white : new Color(0.85f, 0.85f, 0.85f, 0.85f);
+            }
         }
     }
 

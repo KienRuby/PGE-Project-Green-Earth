@@ -11,7 +11,7 @@ using UnityEngine.UI;
 /// - Có huy hiệu nâng cấp Icon_Upgrade_Circle khi công trình đủ điều kiện hoặc sẵn sàng.
 /// - Nhận sự kiện chạm (Click/Tap) để mở popup xây mới hoặc nâng cấp.
 /// </summary>
-public class TowerDefGridCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler
+public class TowerDefGridCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler, IPointerClickHandler
 {
     [Header("Grid Position")]
     [SerializeField] private int row;
@@ -47,9 +47,12 @@ public class TowerDefGridCell : MonoBehaviour, IBeginDragHandler, IDragHandler, 
 
     public event Action<TowerDefGridCell> OnCellClicked;
 
+    private float lastClickTime = -1f;
+
     private void Awake()
     {
         SetUpgradeBadge(false);
+        if (cellButton == null) cellButton = GetComponent<Button>();
         if (cellButton != null)
         {
             cellButton.onClick.RemoveListener(HandleClick);
@@ -608,8 +611,17 @@ public class TowerDefGridCell : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         }
     }
 
-    private void HandleClick()
+    public void OnPointerClick(PointerEventData eventData)
     {
+        if (eventData != null && eventData.dragging) return;
+        HandleClick();
+    }
+
+    public void HandleClick()
+    {
+        if (Time.unscaledTime - lastClickTime < 0.15f) return;
+        lastClickTime = Time.unscaledTime;
+
         OnCellClicked?.Invoke(this);
         if (!IsOccupied)
         {

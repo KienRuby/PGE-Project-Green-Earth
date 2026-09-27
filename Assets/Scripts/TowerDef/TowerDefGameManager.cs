@@ -76,6 +76,10 @@ public class TowerDefGameManager : MonoBehaviour
     public Sprite[] GateLevelSprites => gateLevelSprites;
     public Sprite[] TurretBaseLevelSprites => turretBaseLevelSprites;
     public Sprite[] TurretGunLevelSprites => turretGunLevelSprites;
+    public Sprite PawnTowerSprite => pawnTowerSprite;
+    public Sprite TurretBaseSprite => turretBaseSprite;
+    public Sprite TurretGunSprite => turretGunSprite;
+    public Sprite CorePodSprite => corePodSprite;
 
     public event Action<int, int> OnCurrencyChanged;
     public event Action<int> OnWaveCompleted;

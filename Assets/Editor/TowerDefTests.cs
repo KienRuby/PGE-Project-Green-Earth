@@ -812,6 +812,41 @@ public class TowerDefTests
         gate.RefreshUpgradeBadge(12);
         Assert.IsTrue(gateBadge.activeSelf, "Gate badge should be active when player has sufficient gold");
     }
+
+    [Test]
+    public void UIController_OpensBuildModalOnEmptyCellClick()
+    {
+        GameObject canvasObj = new GameObject("Canvas", typeof(RectTransform), typeof(Canvas), typeof(TowerDefUIController));
+        canvasObj.transform.SetParent(rootObj.transform);
+        TowerDefUIController ui = canvasObj.GetComponent<TowerDefUIController>();
+
+        GameObject cellObj = new GameObject("Cell", typeof(RectTransform), typeof(Image), typeof(Button), typeof(TowerDefGridCell));
+        cellObj.transform.SetParent(rootObj.transform);
+        GameObject sRoot = new GameObject("StructureRoot", typeof(RectTransform));
+        sRoot.transform.SetParent(cellObj.transform);
+        GameObject sImgObj = new GameObject("StructureImg", typeof(Image));
+        sImgObj.transform.SetParent(sRoot.transform);
+
+        TowerDefGridCell cell = cellObj.GetComponent<TowerDefGridCell>();
+        cell.SetupCell(2, 3, cellObj.GetComponent<Image>(), cellObj.GetComponent<Button>(), sRoot, sImgObj.GetComponent<Image>(), null, null);
+
+        Assert.IsFalse(cell.IsOccupied);
+
+        ui.OpenBuildModal(cell);
+
+        Transform buildModal = canvasObj.transform.Find("BuildModal");
+        Assert.IsNotNull(buildModal);
+        Assert.IsTrue(buildModal.gameObject.activeSelf);
+
+        Transform frame = buildModal.Find("ModalFrame");
+        Assert.IsNotNull(frame);
+        Assert.IsNotNull(frame.Find("TitleText"));
+        Assert.IsNotNull(frame.Find("Row1_BuildTurret"));
+        Assert.IsNotNull(frame.Find("Row2_BuildGenerator"));
+
+        ui.CloseAllModals();
+        Assert.IsFalse(buildModal.gameObject.activeSelf);
+    }
 }
 #endif
 
