@@ -760,6 +760,58 @@ public class TowerDefTests
         Assert.IsNull(sImgObj.GetComponent<Image>().sprite);
         Assert.IsNull(gunObj.GetComponent<Image>().sprite);
     }
+
+    [Test]
+    public void UpgradeBadge_ShowsOnlyWhenGoldIsSufficientAndNotAtStart()
+    {
+        // 1. Test GridCell (Empty cell must not show badge, occupied cell shows only if gold >= UpgradeCost)
+        GameObject cellObj = new GameObject("Cell", typeof(RectTransform), typeof(Image), typeof(Button), typeof(TowerDefGridCell));
+        cellObj.transform.SetParent(rootObj.transform);
+        GameObject sRoot = new GameObject("StructureRoot", typeof(RectTransform));
+        sRoot.transform.SetParent(cellObj.transform);
+        GameObject sImgObj = new GameObject("StructureImg", typeof(Image));
+        sImgObj.transform.SetParent(sRoot.transform);
+        GameObject gunObj = new GameObject("Gun", typeof(RectTransform), typeof(Image));
+        gunObj.transform.SetParent(sRoot.transform);
+        GameObject badgeObj = new GameObject("Badge");
+        badgeObj.transform.SetParent(cellObj.transform);
+
+        TowerDefGridCell cell = cellObj.GetComponent<TowerDefGridCell>();
+        cell.SetupCell(2, 1, cellObj.GetComponent<Image>(), cellObj.GetComponent<Button>(), sRoot, sImgObj.GetComponent<Image>(), gunObj.transform, badgeObj);
+
+        // Empty cell: badge must be inactive even with plenty of gold
+        cell.RefreshUpgradeBadge(9999);
+        Assert.IsFalse(badgeObj.activeSelf, "Badge should never be active on an empty cell");
+
+        // Place turret
+        cell.PlaceStructure(TowerDefStructureType.Turret, null, null, 1);
+        int turretCost = cell.Turret.UpgradeCost;
+
+        // With 0 gold or insufficient gold: badge must be inactive
+        cell.RefreshUpgradeBadge(turretCost - 1);
+        Assert.IsFalse(badgeObj.activeSelf, "Badge should not be active when player lacks gold");
+
+        // With sufficient gold: badge becomes active
+        cell.RefreshUpgradeBadge(turretCost);
+        Assert.IsTrue(badgeObj.activeSelf, "Badge should be active when player has sufficient gold");
+
+        // 2. Test Gate (Badge shows only if gold >= UpgradeCost)
+        GameObject gateObj = new GameObject("Gate", typeof(RectTransform), typeof(Image), typeof(Button), typeof(TowerDefGate));
+        gateObj.transform.SetParent(rootObj.transform);
+        GameObject gateBadge = new GameObject("GateBadge");
+        gateBadge.transform.SetParent(gateObj.transform);
+
+        TowerDefGate gate = gateObj.GetComponent<TowerDefGate>();
+        gate.Setup(50f, null, gateBadge, gateObj.GetComponent<Button>(), 12, 20f);
+
+        // At start or with insufficient gold: badge inactive
+        gate.RefreshUpgradeBadge(11);
+        Assert.IsFalse(gateBadge.activeSelf, "Gate badge should not be active when player lacks gold");
+
+        // With sufficient gold: badge active
+        gate.RefreshUpgradeBadge(12);
+        Assert.IsTrue(gateBadge.activeSelf, "Gate badge should be active when player has sufficient gold");
+    }
 }
 #endif
 

@@ -183,6 +183,7 @@ public class TowerDefTurret : MonoBehaviour
 
         EnsureSpritesLoaded();
         UpdateTurretVisual();
+        SetUpgradeBadgeActive(false);
     }
 
     public void UpdateTurretVisual()

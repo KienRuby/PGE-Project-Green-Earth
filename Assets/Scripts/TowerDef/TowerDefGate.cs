@@ -20,6 +20,7 @@ public class TowerDefGate : MonoBehaviour
     [SerializeField] private Sprite[] levelSprites;
 
     [Header("Visual References")]
+    [SerializeField] private Image gateImage;
     [SerializeField] private Image healthBarFill;
     [SerializeField] private GameObject upgradeIcon;
     [SerializeField] private Button gateButton;
@@ -41,6 +42,8 @@ public class TowerDefGate : MonoBehaviour
 
     private void Awake()
     {
+        if (gateImage == null) gateImage = GetComponent<Image>();
+        if (gateImage == null) gateImage = GetComponentInChildren<Image>(true);
         EnsureSpritesLoaded();
         currentHp = maxHp;
         UpdateGateVisual();
@@ -63,6 +66,8 @@ public class TowerDefGate : MonoBehaviour
         gateButton = btn;
         baseUpgradeCost = upgradeCost;
         hpIncrement = hpGainOnUpgrade;
+        if (gateImage == null) gateImage = GetComponent<Image>();
+        if (gateImage == null) gateImage = GetComponentInChildren<Image>(true);
 
         if (gateButton != null)
         {
@@ -101,6 +106,16 @@ public class TowerDefGate : MonoBehaviour
         if (levelSprites[2] == null) levelSprites[2] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + "Gate_Green_Wood.png");
         if (levelSprites[3] == null) levelSprites[3] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + "Gate_Blue_Wood.png");
 #endif
+
+        if (TowerDefGameManager.Instance != null && TowerDefGameManager.Instance.GateLevelSprites != null)
+        {
+            Sprite[] gmSprites = TowerDefGameManager.Instance.GateLevelSprites;
+            for (int i = 0; i < Mathf.Min(4, gmSprites.Length); i++)
+            {
+                if (levelSprites[i] == null && gmSprites[i] != null)
+                    levelSprites[i] = gmSprites[i];
+            }
+        }
     }
 
     public static string GetGateName(int level)
@@ -134,21 +149,24 @@ public class TowerDefGate : MonoBehaviour
             if (idx < levelSprites.Length && levelSprites[idx] != null)
                 return levelSprites[idx];
         }
-        Image gateImg = GetComponent<Image>();
-        return gateImg != null ? gateImg.sprite : null;
+        if (gateImage == null) gateImage = GetComponent<Image>();
+        if (gateImage == null) gateImage = GetComponentInChildren<Image>(true);
+        return gateImage != null ? gateImage.sprite : null;
     }
 
     public void UpdateGateVisual()
     {
         EnsureSpritesLoaded();
         Sprite spr = GetLevelSprite(gateLevel);
+        if (gateImage == null) gateImage = GetComponent<Image>();
+        if (gateImage == null) gateImage = GetComponentInChildren<Image>(true);
+
         if (spr != null)
         {
-            Image gateImg = GetComponent<Image>();
-            if (gateImg != null)
+            if (gateImage != null)
             {
-                gateImg.sprite = spr;
-                gateImg.color = Color.white;
+                gateImage.sprite = spr;
+                gateImage.color = Color.white;
             }
             SpriteRenderer sr = GetComponent<SpriteRenderer>();
             if (sr != null)

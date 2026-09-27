@@ -49,11 +49,13 @@ public class TowerDefGridCell : MonoBehaviour, IBeginDragHandler, IDragHandler, 
 
     private void Awake()
     {
+        SetUpgradeBadge(false);
         if (cellButton != null)
         {
             cellButton.onClick.RemoveListener(HandleClick);
             cellButton.onClick.AddListener(HandleClick);
         }
+        UpdateVisuals();
     }
 
     public void SetupCell(
@@ -584,6 +586,10 @@ public class TowerDefGridCell : MonoBehaviour, IBeginDragHandler, IDragHandler, 
             bool can = (currentGold >= turretComp.UpgradeCost) && !turretComp.IsMaxLevel;
             SetUpgradeBadge(can);
         }
+        else
+        {
+            SetUpgradeBadge(false);
+        }
     }
 
     private void UpdateVisuals()
@@ -592,9 +598,13 @@ public class TowerDefGridCell : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         {
             structureRoot.SetActive(IsOccupied);
         }
-        if (upgradeIcon != null)
+        if (!IsOccupied)
         {
-            upgradeIcon.SetActive(IsOccupied);
+            SetUpgradeBadge(false);
+        }
+        else
+        {
+            RefreshUpgradeBadge(TowerDefGameManager.Instance != null ? TowerDefGameManager.Instance.Gold : 0);
         }
     }
 

@@ -343,6 +343,7 @@ public class TowerDefGameManager : MonoBehaviour
         bool ok = targetGate.TryUpgrade(ref gold);
         if (ok)
         {
+            targetGate.UpdateGateVisual();
             ShowFloatingText(targetGate.transform.position, $"GATE LV.{targetGate.GateLevel}!", Color.cyan);
             UpdateUI();
         }
@@ -360,6 +361,7 @@ public class TowerDefGameManager : MonoBehaviour
         bool ok = targetGate.TryUpgradeFree();
         if (ok)
         {
+            targetGate.UpdateGateVisual();
             ShowFloatingText(targetGate.transform.position, $"FREE GATE LV.{targetGate.GateLevel}!", Color.cyan);
             UpdateUI();
         }
@@ -864,6 +866,7 @@ public class TowerDefGameManager : MonoBehaviour
             {
                 gate.SetLevelSprites(gateLevelSprites);
             }
+            gate.UpdateGateVisual();
             gate.RefreshUpgradeBadge(gold);
         }
         else
@@ -875,6 +878,7 @@ public class TowerDefGameManager : MonoBehaviour
                 {
                     gate.SetLevelSprites(gateLevelSprites);
                 }
+                gate.UpdateGateVisual();
                 gate.RefreshUpgradeBadge(gold);
             }
         }
