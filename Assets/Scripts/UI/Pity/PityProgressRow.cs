@@ -33,6 +33,9 @@ public class PityProgressRow : MonoBehaviour
     [Tooltip("Icon biểu tượng của bậc (tùy chọn).")]
     [SerializeField] private Image tierIconImage;
 
+    [Tooltip("Giữ màu đã chỉnh trong Inspector thay vì tô lại theo màu bậc mỗi lần cập nhật.")]
+    [SerializeField] private bool preserveInspectorColors;
+
     /// <summary>
     /// Cập nhật hiển thị dòng tiến độ bảo hiểm dựa trên dữ liệu thật từ LabUpgradeController.
     /// </summary>
@@ -49,13 +52,13 @@ public class PityProgressRow : MonoBehaviour
         if (tierNameText != null)
         {
             tierNameText.text = tierName;
-            tierNameText.color = tierColor;
+            if (!preserveInspectorColors) tierNameText.color = tierColor;
         }
 
         // 2. Icon hoặc Huy hiệu màu
         if (tierBadgeImage != null)
         {
-            tierBadgeImage.color = tierColor;
+            if (!preserveInspectorColors) tierBadgeImage.color = tierColor;
         }
 
         if (tierIconImage != null)
@@ -79,7 +82,7 @@ public class PityProgressRow : MonoBehaviour
             if (counterText != null)
             {
                 counterText.text = vi ? "TẮT" : "OFF";
-                counterText.color = new Color(0.6f, 0.6f, 0.6f, 1f);
+                if (!preserveInspectorColors) counterText.color = new Color(0.6f, 0.6f, 0.6f, 1f);
             }
             if (remainingText != null)
             {
@@ -110,7 +113,7 @@ public class PityProgressRow : MonoBehaviour
         if (counterText != null)
         {
             counterText.text = $"{displayCount} / {threshold}";
-            counterText.color = tierColor;
+            if (!preserveInspectorColors) counterText.color = tierColor;
         }
 
         // 6. Cập nhật Slider tiến độ và tự động liên kết fillRect nếu thiếu
@@ -127,7 +130,7 @@ public class PityProgressRow : MonoBehaviour
 
         if (progressBarFillImage != null)
         {
-            progressBarFillImage.color = tierColor;
+            if (!preserveInspectorColors) progressBarFillImage.color = tierColor;
             if (progressBarFillImage.type == Image.Type.Filled)
             {
                 progressBarFillImage.fillAmount = (float)displayCount / threshold;
@@ -137,7 +140,7 @@ public class PityProgressRow : MonoBehaviour
         // 7. Hiển thị trạng thái lượt còn lại
         if (remainingText != null)
         {
-            remainingText.color = tierColor;
+            if (!preserveInspectorColors) remainingText.color = tierColor;
             if (remaining <= 0 || currentCount >= threshold)
             {
                 remainingText.text = vi 

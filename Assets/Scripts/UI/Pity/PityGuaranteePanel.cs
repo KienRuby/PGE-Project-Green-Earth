@@ -56,6 +56,9 @@ public class PityGuaranteePanel : MonoBehaviour
     [Tooltip("Text hướng dẫn / ghi chú quy tắc bảo hiểm phía dưới panel.")]
     [SerializeField] private TMP_Text descriptionText;
 
+    [Tooltip("Bật để dùng câu chữ theo ngôn ngữ game; tắt để giữ nội dung TextMeshPro đã chỉnh trong Scene.")]
+    [SerializeField] private bool localizeStaticText = true;
+
     [Header("Animation Settings")]
     [Tooltip("Thời gian mở hiệu ứng Pop (giây).")]
     [SerializeField] private float openDuration = 0.22f;
@@ -313,10 +316,9 @@ public class PityGuaranteePanel : MonoBehaviour
             return;
         }
 
-        bool vi = GameSettings.IsVietnamese;
-        if (titleText != null)
+        if (localizeStaticText && titleText != null)
         {
-            titleText.text = vi ? "BẢO HIỂM LƯỢT ROLL" : "ROLL PITY GUARANTEE";
+            titleText.text = GameSettings.IsVietnamese ? "BẢO HIỂM LƯỢT ROLL" : "ROLL PITY GUARANTEE";
         }
 
         // Cập nhật 3 hàng tương ứng với 3 bậc bảo hiểm trong hệ thống
@@ -350,9 +352,9 @@ public class PityGuaranteePanel : MonoBehaviour
             );
         }
 
-        if (descriptionText != null)
+        if (localizeStaticText && descriptionText != null)
         {
-            descriptionText.text = vi
+            descriptionText.text = GameSettings.IsVietnamese
                 ? "• Quay trúng bậc nào sẽ chỉ đặt lại bộ đếm bảo hiểm của bậc đó về 0.\n• Các bậc còn lại tiếp tục tích lũy độc lập và không bị ảnh hưởng!\n• Khi đạt mốc bảo hiểm, lượt quay tiếp theo chắc chắn nhận được bậc đó!"
                 : "• Rolling a tier resets only that tier's pity counter to 0.\n• Other tiers continue accumulating independently!\n• When the pity threshold is reached, your next roll is guaranteed to be that tier!";
         }
