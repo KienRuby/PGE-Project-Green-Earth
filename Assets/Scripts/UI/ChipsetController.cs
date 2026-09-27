@@ -302,6 +302,12 @@ public class ChipsetController : MonoBehaviour
     [Header("Equipped Grid")]
     [SerializeField] private ChipsetCardUI[] equippedSlots = new ChipsetCardUI[10];
 
+    [Header("Equip Selection Mode")]
+    [SerializeField] private Sprite equipBadgeSprite;
+    private bool isEquipSelectMode;
+    private ChipItemData pendingEquipChip;
+    private int openedFromEquippedSlotIndex = -1;
+
     [Header("Sort Buttons")]
     [SerializeField] private Button byTierBtn;
     [SerializeField] private Button byQuantityBtn;
@@ -388,6 +394,10 @@ public class ChipsetController : MonoBehaviour
     [SerializeField] private Sprite unlockedCheckSprite;
     [SerializeField] private ChipsetLevelVisualLibrary tierVisualLibrary;
 
+    [Header("Audio SFX")]
+    [SerializeField] private AudioClip equipSFX;
+    [SerializeField] private AudioClip presetSwitchSFX;
+
     private int activeDeckIndex = 0; // Reference layout opens on Preset 1.
     private bool sortByQuantity = false; // Reference layout defaults to sorting by tier.
     private ChipItemData selectedDetailChip;
@@ -398,6 +408,8 @@ public class ChipsetController : MonoBehaviour
     private int[][] deckEquippedIds = new int[3][];
     private List<ChipsetCardUI> spawnedInventoryCards = new List<ChipsetCardUI>();
     private bool isStarted;
+    private int lastEquipFrame = -1;
+    private float lastEquipTime = -1f;
 
     private static readonly Color SelectedPresetColor = new Color32(255, 203, 73, 255);
     private static readonly Color NormalPresetColor = new Color32(18, 58, 68, 255);
@@ -413,6 +425,7 @@ public class ChipsetController : MonoBehaviour
             tierVisualLibrary = Resources.Load<ChipsetLevelVisualLibrary>("ChipsetLevelVisualLibrary");
         }
         EnsureLockTierSprites();
+        LoadEquipSpritesIfMissing();
         InitializeDatabase();
     }
 
@@ -907,11 +920,15 @@ public class ChipsetController : MonoBehaviour
         {
             byTierBtn.onClick.RemoveAllListeners();
             byTierBtn.onClick.AddListener(() => SetSortMode(false));
+            if (byTierBg != null) byTierBg.raycastTarget = true;
+            if (byTierBtn.targetGraphic != null) byTierBtn.targetGraphic.raycastTarget = true;
         }
         if (byQuantityBtn != null)
         {
             byQuantityBtn.onClick.RemoveAllListeners();
             byQuantityBtn.onClick.AddListener(() => SetSortMode(true));
+            if (byQuantityBg != null) byQuantityBg.raycastTarget = true;
+            if (byQuantityBtn.targetGraphic != null) byQuantityBtn.targetGraphic.raycastTarget = true;
         }
 
         if (blastFurnaceBtn != null) blastFurnaceBtn.onClick.AddListener(OpenFurnaceModal);
@@ -954,15 +971,20 @@ public class ChipsetController : MonoBehaviour
         {
             if (byTierBg == null) byTierBg = byTierBtn.GetComponent<Image>() ?? byTierBtn.targetGraphic as Image;
             if (byTierText == null) byTierText = byTierBtn.GetComponentInChildren<TMP_Text>(true);
+            if (byTierBg != null) byTierBg.raycastTarget = true;
+            if (byTierBtn.targetGraphic != null) byTierBtn.targetGraphic.raycastTarget = true;
         }
 
         if (byQuantityBtn != null)
         {
             if (byQuantityBg == null) byQuantityBg = byQuantityBtn.GetComponent<Image>() ?? byQuantityBtn.targetGraphic as Image;
             if (byQuantityText == null) byQuantityText = byQuantityBtn.GetComponentInChildren<TMP_Text>(true);
+            if (byQuantityBg != null) byQuantityBg.raycastTarget = true;
+            if (byQuantityBtn.targetGraphic != null) byQuantityBtn.targetGraphic.raycastTarget = true;
         }
 
         LoadSortSpritesIfMissing();
+        LoadEquipSpritesIfMissing();
     }
 
     public void LoadSortSpritesIfMissing()
@@ -987,17 +1009,81 @@ public class ChipsetController : MonoBehaviour
 #endif
     }
 
+    public void LoadEquipSpritesIfMissing()
+    {
+        if (equipBadgeSprite == null || equipBadgeSprite.name.Equals("Equip", StringComparison.OrdinalIgnoreCase))
+        {
+            equipBadgeSprite = Resources.Load<Sprite>("UI/Chipset/badge-equip-arrow");
+#if UNITY_EDITOR
+            if (equipBadgeSprite == null)
+            {
+                equipBadgeSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/UI/Chipset/badge-equip-arrow.png");
+            }
+#endif
+        }
+    }
+
+    public void LoadAudioClipsIfMissing()
+    {
+        if (equipSFX == null)
+        {
+            equipSFX = Resources.Load<AudioClip>("Audio/SFX_Equip_Chipset");
+#if UNITY_EDITOR
+            if (equipSFX == null)
+            {
+                equipSFX = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/SFX_Equip_Chipset.wav");
+            }
+#endif
+        }
+
+        if (presetSwitchSFX == null)
+        {
+            presetSwitchSFX = Resources.Load<AudioClip>("Audio/SFX_Preset_Switch");
+#if UNITY_EDITOR
+            if (presetSwitchSFX == null)
+            {
+                presetSwitchSFX = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Audio/SFX_Preset_Switch.wav");
+            }
+#endif
+        }
+    }
+
+    public void PlayEquipSFX()
+    {
+        LoadAudioClipsIfMissing();
+        if (equipSFX != null && AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayUI(equipSFX, 1f);
+        }
+    }
+
+    public void PlayPresetSwitchSFX()
+    {
+        LoadAudioClipsIfMissing();
+        if (presetSwitchSFX != null && AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayUI(presetSwitchSFX, 0.9f);
+        }
+    }
+
     public void SwitchDeck(int deckIndex)
     {
+        CancelEquipSelection();
+        int prevDeck = activeDeckIndex;
         activeDeckIndex = Mathf.Clamp(deckIndex, 0, 2);
         PlayerDataService.ActiveChipsetDeckIndex = activeDeckIndex;
         RefreshPresetButtons();
         RefreshEquippedGrid();
         ShowToast($"Switched to Preset Deck {deckIndex + 1}");
+        if (prevDeck != activeDeckIndex)
+        {
+            PlayPresetSwitchSFX();
+        }
     }
 
     public void SetSortMode(bool quantitySort)
     {
+        CancelEquipSelection();
         sortByQuantity = quantitySort;
         RefreshSortButtons();
         RefreshInventory();
@@ -1167,6 +1253,7 @@ public class ChipsetController : MonoBehaviour
             {
                 byTierBg.color = !isByQuantity ? SelectedPresetColor : NormalPresetColor;
             }
+            byTierBg.raycastTarget = true;
         }
 
         // 2. By Quantity: Khi chọn (isByQuantity) -> Vàng (By QuantityYellow), khi không chọn -> Xanh (ByQuantityGreen)
@@ -1182,6 +1269,7 @@ public class ChipsetController : MonoBehaviour
             {
                 byQuantityBg.color = isByQuantity ? SelectedPresetColor : NormalPresetColor;
             }
+            byQuantityBg.raycastTarget = true;
         }
 
         // Nếu sprite đã có sẵn chữ pixel art, xóa text đè lên để tránh bị nhân đôi chữ
@@ -1221,7 +1309,8 @@ public class ChipsetController : MonoBehaviour
                 {
                     Sprite icon = GetIconSprite(chip.iconKey);
                     Sprite frame = GetFrameSprite(chip.tier);
-                    equippedSlots[i].Setup(chip, icon, frame, OpenDetailModal, QuickUpgradeChip);
+                    int slotIndex = i;
+                    equippedSlots[i].Setup(chip, icon, frame, (c) => OpenDetailModalFromEquippedSlot(c, slotIndex), (c) => OpenDetailModalFromEquippedSlot(c, slotIndex));
                     equippedSlots[i].gameObject.SetActive(true);
                 }
                 else
@@ -1230,6 +1319,16 @@ public class ChipsetController : MonoBehaviour
                     equippedSlots[i].SetupEmpty(defaultFrame, () => ShowToast($"Slot {slotIndex + 1} is empty. Select a chip below to equip."));
                     equippedSlots[i].gameObject.SetActive(true);
                 }
+            }
+
+            if (isEquipSelectMode && pendingEquipChip != null)
+            {
+                int targetSlot = i;
+                equippedSlots[i].SetEquipTargetMode(true, equipBadgeSprite, () => OnEquipSlotSelected(targetSlot));
+            }
+            else
+            {
+                equippedSlots[i].SetEquipTargetMode(false);
             }
         }
     }
@@ -1291,7 +1390,9 @@ public class ChipsetController : MonoBehaviour
             ChipItemData data = sortedList[i];
             Sprite icon = GetIconSprite(data.iconKey);
             Sprite frame = GetFrameSprite(data.tier);
-            card.Setup(data, icon, frame, OpenDetailModal, QuickUpgradeChip);
+            card.Setup(data, icon, frame, OpenDetailModalFromInventory, OpenDetailModalFromInventory);
+            bool isSelected = (isEquipSelectMode && pendingEquipChip != null && pendingEquipChip.id == data.id);
+            card.SetInventoryEquipState(isEquipSelectMode, isSelected);
             card.gameObject.SetActive(true);
         }
 
@@ -1303,7 +1404,7 @@ public class ChipsetController : MonoBehaviour
 
     public void QuickUpgradeChip(ChipItemData chip)
     {
-        OpenDetailModal(chip);
+        OpenDetailModalFromInventory(chip);
     }
 
     public void HandleCardAction(ChipItemData chip)
@@ -1322,7 +1423,7 @@ public class ChipsetController : MonoBehaviour
             return;
         }
 
-        OpenDetailModal(chip);
+        OpenDetailModalFromInventory(chip);
     }
 
     public void AutoWireDetailModalIfMissing()
@@ -1432,9 +1533,28 @@ public class ChipsetController : MonoBehaviour
         }
     }
 
+    public void OpenDetailModalFromEquippedSlot(ChipItemData chip, int slotIndex)
+    {
+        openedFromEquippedSlotIndex = slotIndex;
+        OpenDetailModal(chip);
+    }
+
+    public void OpenDetailModalFromInventory(ChipItemData chip)
+    {
+        openedFromEquippedSlotIndex = -1;
+        OpenDetailModal(chip);
+    }
+
     public void OpenDetailModal(ChipItemData chip)
     {
         if (chip == null) return;
+        // Do not reopen detail modal right after equipping into a slot
+        if (Time.frameCount == lastEquipFrame || (lastEquipTime > 0f && Time.unscaledTime - lastEquipTime < 0.35f))
+        {
+            return;
+        }
+
+        CancelEquipSelection();
         AutoWireDetailModalIfMissing();
 
         if (detailModal == null)
@@ -1581,11 +1701,15 @@ public class ChipsetController : MonoBehaviour
         }
         SetButtonBrightness(detailAdvanceTierBtn, advanceTierBtnCanvasGroup, hasFragments);
 
-        // 8. Equip / Unequip Button
-        bool isEquipped = deckEquippedIds[activeDeckIndex].Contains(selectedDetailChip.id);
+        // 8. Equip Button (Only shown when opened from inventory below, hidden when viewing from equipped slot)
+        bool showEquipBtn = (openedFromEquippedSlotIndex < 0);
+        if (detailEquipBtn != null)
+        {
+            detailEquipBtn.gameObject.SetActive(showEquipBtn);
+        }
         if (detailEquipBtnText != null)
         {
-            detailEquipBtnText.text = isEquipped ? "UNEQUIP" : "EQUIP";
+            detailEquipBtnText.text = "EQUIP";
         }
     }
 
@@ -1671,35 +1795,96 @@ public class ChipsetController : MonoBehaviour
     {
         if (selectedDetailChip == null) return;
 
-        int[] currentDeck = deckEquippedIds[activeDeckIndex];
-        int indexInDeck = Array.IndexOf(currentDeck, selectedDetailChip.id);
+        pendingEquipChip = selectedDetailChip;
+        isEquipSelectMode = true;
 
-        if (indexInDeck >= 0)
+        if (detailModal != null)
         {
-            // Unequip
-            currentDeck[indexInDeck] = -1;
-            ShowToast($"Unequipped {selectedDetailChip.chipName}");
+            detailModal.SetActive(false);
         }
-        else
+
+        RefreshEquippedGrid();
+        UpdateInventoryEquipVisuals();
+        ShowToast($"Tap a slot above to equip {pendingEquipChip.chipName}");
+    }
+
+    public void OnEquipSlotSelected(int slotIndex)
+    {
+        if (!isEquipSelectMode || pendingEquipChip == null) return;
+
+        int[] currentDeck = deckEquippedIds[activeDeckIndex];
+        if (currentDeck == null || slotIndex < 0 || slotIndex >= currentDeck.Length) return;
+
+        // If this exact slot already has this chip equipped, do not unequip (cannot unequip from slot)
+        if (currentDeck[slotIndex] == pendingEquipChip.id)
         {
-            // Find empty slot or replace slot 0
-            int emptyIndex = Array.IndexOf(currentDeck, -1);
-            if (emptyIndex >= 0)
+            string chipName = pendingEquipChip.chipName;
+            CancelEquipSelection();
+            ShowToast($"{chipName} is already equipped in Slot {slotIndex + 1}!");
+            return;
+        }
+
+        int existingIndex = Array.IndexOf(currentDeck, pendingEquipChip.id);
+        int replacedChipId = currentDeck[slotIndex];
+        bool isSwap = false;
+
+        // If this chip was already equipped in another slot in this deck:
+        // Swap slots: place the target slot's chip into existingIndex (or -1 if target slot was empty)
+        if (existingIndex >= 0)
+        {
+            currentDeck[existingIndex] = replacedChipId;
+            if (replacedChipId >= 0)
             {
-                currentDeck[emptyIndex] = selectedDetailChip.id;
-                ShowToast($"Equipped {selectedDetailChip.chipName} to Slot {emptyIndex + 1}");
-            }
-            else
-            {
-                currentDeck[0] = selectedDetailChip.id;
-                ShowToast($"Replaced Slot 1 with {selectedDetailChip.chipName}");
+                isSwap = true;
             }
         }
+
+        // Equip into targeted slot
+        currentDeck[slotIndex] = pendingEquipChip.id;
+
+        string equipName = pendingEquipChip.chipName;
+        isEquipSelectMode = false;
+        pendingEquipChip = null;
+        lastEquipFrame = Time.frameCount;
+        lastEquipTime = Time.unscaledTime;
+        if (detailModal != null) detailModal.SetActive(false);
 
         PlayerDataService.SaveChipsetDeck(activeDeckIndex, currentDeck);
         RefreshEquippedGrid();
-        RefreshDetailModal();
         RefreshInventory();
+        UpdateInventoryEquipVisuals();
+
+        if (isSwap)
+        {
+            ChipItemData swappedChip = allChips.FirstOrDefault(c => c.id == replacedChipId);
+            string swappedName = swappedChip != null ? swappedChip.chipName : $"Slot {existingIndex + 1}";
+            ShowToast($"Swapped {equipName} with {swappedName}!");
+        }
+        else
+        {
+            ShowToast($"Equipped {equipName} to Slot {slotIndex + 1}!");
+        }
+        PlayEquipSFX();
+    }
+
+    public void CancelEquipSelection()
+    {
+        if (!isEquipSelectMode) return;
+        isEquipSelectMode = false;
+        pendingEquipChip = null;
+        RefreshEquippedGrid();
+        UpdateInventoryEquipVisuals();
+    }
+
+    public void UpdateInventoryEquipVisuals()
+    {
+        if (spawnedInventoryCards == null) return;
+        foreach (var card in spawnedInventoryCards)
+        {
+            if (card == null || !card.gameObject.activeSelf) continue;
+            bool isSelected = (isEquipSelectMode && pendingEquipChip != null && card.BoundData != null && card.BoundData.id == pendingEquipChip.id);
+            card.SetInventoryEquipState(isEquipSelectMode, isSelected);
+        }
     }
 
     public void OpenFurnaceModal()
@@ -2056,6 +2241,7 @@ public class ChipsetController : MonoBehaviour
 
     public void CloseDetailModal()
     {
+        openedFromEquippedSlotIndex = -1;
         HideAllNoticesInstant();
         if (detailModal != null) detailModal.SetActive(false);
     }

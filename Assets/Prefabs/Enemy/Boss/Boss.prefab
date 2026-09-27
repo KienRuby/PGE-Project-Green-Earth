@@ -397,6 +397,9 @@ MonoBehaviour:
   baseDashComboCount: 1
   enrageDashComboCount: 1
   enrageDashCooldown: 0
+  dashPassThroughPlayer: 1
+  dashDamage: 150
+  dashDamageRadius: 1.2
   enableEnrage: 0
   enrageHealthPercent: 0.2
   enrageSpeedMultiplier: 1.35

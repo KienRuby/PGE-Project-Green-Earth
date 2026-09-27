@@ -68,6 +68,18 @@ public class GunTurretSkill : MonoBehaviour
     private void Awake()
     {
         playerAutoShooter = GetComponent<PlayerAutoShooter>();
+        if (turretPrefab == null)
+        {
+            turretPrefab = Resources.Load<GameObject>("Prefabs/Chipset/GunTurret");
+        }
+        if (projectilePrefab == null)
+        {
+            projectilePrefab = Resources.Load<GameObject>("Prefabs/Projectile");
+        }
+        if (explosionVfxPrefab == null)
+        {
+            explosionVfxPrefab = Resources.Load<GameObject>("Prefabs/VFX Boom");
+        }
 #if UNITY_EDITOR
         if (turretPrefab == null)
         {

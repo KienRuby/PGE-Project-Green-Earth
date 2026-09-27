@@ -47,6 +47,19 @@ public class ChapterData : ScriptableObject
     [Range(0.1f, 3.0f)]
     public float playerBoundaryPadding = 0.6f;
 
+    [Tooltip("Tỷ lệ scale của mặt sàn (mặc định 0.2 cho Chapter 2 và 3 để họa tiết vừa vặn, sắc nét; hoặc 1.0 cho map thường).")]
+    public float groundScale = 1f;
+
+    /// <summary>
+    /// Lấy tỷ lệ scale sàn hiệu dụng: Chapter 2 và 3 mặc định dùng 0.2f để họa tiết sàn vừa vặn và sắc nét.
+    /// </summary>
+    public float GetEffectiveGroundScale()
+    {
+        if (groundScale > 0f && groundScale != 1f) return groundScale;
+        if (chapterNumber == 2 || chapterNumber == 3) return 0.2f;
+        return groundScale > 0f ? groundScale : 1f;
+    }
+
     [Header("Obstacles & Props Configuration")]
     [Tooltip("Bật/tắt sinh chướng ngại vật và hoa văn cho Chapter này.")]
     public bool enableObstacles = true;

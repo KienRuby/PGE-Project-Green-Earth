@@ -32,6 +32,9 @@ public class ChapterMapManager : MonoBehaviour
     [Tooltip("Khoảng đệm an toàn mặc định cho Player.")]
     [SerializeField] private float defaultPlayerPadding = 0.6f;
 
+    [Tooltip("Tỷ lệ scale mặc định của sàn nếu Chapter không chỉ định (mặc định 0.2f để họa tiết vừa vặn, sắc nét).")]
+    [SerializeField] private float defaultGroundScale = 0.2f;
+
     [Header("Position & Layering")]
     [Tooltip("Tọa độ Z cố định của mặt sàn (mặc định Z = 10 để luôn nằm sau nhân vật và quái).")]
     [SerializeField] private float groundZPosition = 10f;
@@ -80,7 +83,6 @@ public class ChapterMapManager : MonoBehaviour
     public void ApplyCurrentChapterMap()
     {
         transform.rotation = Quaternion.identity;
-        transform.localScale = Vector3.one;
         if (spriteRenderer == null)
         {
             spriteRenderer = GetComponent<SpriteRenderer>();
@@ -129,6 +131,10 @@ public class ChapterMapManager : MonoBehaviour
             targetSprite = defaultGroundSprite;
         }
 
+        float scale = chapter != null ? chapter.GetEffectiveGroundScale() : defaultGroundScale;
+        if (scale <= 0f) scale = 0.2f;
+        transform.localScale = new Vector3(scale, scale, 1f);
+
         if (spriteRenderer != null)
         {
             if (targetSprite != null)
@@ -139,7 +145,7 @@ public class ChapterMapManager : MonoBehaviour
             if (chapter.groundDrawMode != SpriteDrawMode.Simple)
             {
                 spriteRenderer.tileMode = SpriteTileMode.Continuous;
-                spriteRenderer.size = chapter.mapSize;
+                spriteRenderer.size = new Vector2(chapter.mapSize.x / scale, chapter.mapSize.y / scale);
             }
             else if (spriteRenderer.sprite != null)
             {
@@ -164,6 +170,9 @@ public class ChapterMapManager : MonoBehaviour
 
     private void ApplyFallbackConfig()
     {
+        float scale = defaultGroundScale > 0f ? defaultGroundScale : 0.2f;
+        transform.localScale = new Vector3(scale, scale, 1f);
+
         if (spriteRenderer != null)
         {
             if (defaultGroundSprite != null)
@@ -172,7 +181,7 @@ public class ChapterMapManager : MonoBehaviour
             }
             spriteRenderer.drawMode = SpriteDrawMode.Tiled;
             spriteRenderer.tileMode = SpriteTileMode.Continuous;
-            spriteRenderer.size = defaultMapSize;
+            spriteRenderer.size = new Vector2(defaultMapSize.x / scale, defaultMapSize.y / scale);
             spriteRenderer.color = defaultMapColor;
             spriteRenderer.sortingOrder = sortingOrder;
         }

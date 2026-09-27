@@ -564,5 +564,85 @@ public class DailyGemMineUITests
 
         Object.DestroyImmediate(modalObj);
     }
+
+    [Test]
+    public void DailyGemMineLevelCard_LockedCard_HasRaycastBlocker_PreventsRaycastLeak()
+    {
+        GameObject cardObj = new GameObject("TestCard", typeof(RectTransform), typeof(DailyGemMineLevelCard));
+        DailyGemMineLevelCard card = cardObj.GetComponent<DailyGemMineLevelCard>();
+
+        GameObject startBtnObj = new GameObject("StartButton", typeof(RectTransform), typeof(Image), typeof(Button));
+        startBtnObj.transform.SetParent(cardObj.transform);
+        Button startBtn = startBtnObj.GetComponent<Button>();
+
+        GameObject lockBadgeObj = new GameObject("LockedBadge", typeof(RectTransform), typeof(Image), typeof(Button));
+        lockBadgeObj.transform.SetParent(cardObj.transform);
+        Image lockImg = lockBadgeObj.GetComponent<Image>();
+        lockImg.raycastTarget = true;
+        Button lockBtn = lockBadgeObj.GetComponent<Button>();
+
+        GameObject lockTextObj = new GameObject("LockedText", typeof(RectTransform), typeof(TextMeshProUGUI));
+        lockTextObj.transform.SetParent(lockBadgeObj.transform);
+        TMP_Text lockTxt = lockTextObj.GetComponent<TextMeshProUGUI>();
+
+        card.SetLockOverlay(lockBadgeObj, lockTxt);
+        card.Setup(2, "Gem Mine LV.02", "30", null, true, "Clear LV.01 to Unlock");
+
+        // 1. Thẻ ở trạng thái khóa
+        Assert.IsTrue(card.IsLocked);
+
+        // 2. Nút Start bị ẩn/vô hiệu hóa
+        Assert.IsFalse(startBtn.gameObject.activeSelf);
+
+        // 3. Huy hiệu Locked hiển thị và có raycastTarget = true kèm Button để triệt tiêu mọi tương tác click xuyên thấu
+        Assert.IsTrue(lockBadgeObj.activeSelf);
+        Assert.IsTrue(lockImg.raycastTarget, "Locked badge image must have raycastTarget = true to block raycasts");
+        Assert.IsNotNull(lockBadgeObj.GetComponent<Button>(), "Locked badge must have Button component to consume click events");
+
+        Object.DestroyImmediate(cardObj);
+    }
+
+    [Test]
+    public void DailyGemMineModalController_CanvasGroup_GuaranteesBlocksRaycastsWhenActive()
+    {
+        GameObject modalObj = new GameObject("TestModalRoot", typeof(RectTransform), typeof(CanvasGroup), typeof(DailyGemMineModalController));
+        CanvasGroup cg = modalObj.GetComponent<CanvasGroup>();
+        cg.blocksRaycasts = false;
+        cg.interactable = false;
+
+        DailyGemMineModalController ctrl = modalObj.GetComponent<DailyGemMineModalController>();
+        ctrl.SetCanvasGroupForTesting(cg);
+
+        // Giả lập Awake / OnEnable khi mở modal
+        ctrl.SendMessage("Awake", SendMessageOptions.DontRequireReceiver);
+        ctrl.SendMessage("OnEnable", SendMessageOptions.DontRequireReceiver);
+
+        Assert.IsTrue(cg.blocksRaycasts, "CanvasGroup must have blocksRaycasts = true to prevent raycasting through to background");
+        Assert.IsTrue(cg.interactable, "CanvasGroup must be interactable");
+
+        Object.DestroyImmediate(modalObj);
+    }
+
+    [Test]
+    public void ChapterScreenController_StartButton_IgnoredWhenDailyGemMineModalIsOpen()
+    {
+        GameObject chapterObj = new GameObject("ChapterPanelTest", typeof(RectTransform), typeof(ChapterScreenController));
+        ChapterScreenController chapterCtrl = chapterObj.GetComponent<ChapterScreenController>();
+
+        GameObject modalObj = new GameObject("GemMineModal", typeof(RectTransform), typeof(DailyGemMineModalController));
+        DailyGemMineModalController modalCtrl = modalObj.GetComponent<DailyGemMineModalController>();
+        modalCtrl.SetUIReferencesForTesting(modalObj, null, null, null, null, null);
+        modalObj.SetActive(true);
+
+        chapterCtrl.SetGemMineModalForTesting(modalCtrl);
+        Assert.IsTrue(modalCtrl.IsOpen, "Modal must be open for this test");
+
+        bool started = chapterCtrl.TryStartChapter(out string sceneName, false);
+        Assert.IsFalse(started, "TryStartChapter must return false when DailyGemMineModal is open");
+        Assert.IsNull(sceneName, "Scene name must not be resolved when modal is open");
+
+        Object.DestroyImmediate(modalObj);
+        Object.DestroyImmediate(chapterObj);
+    }
 }
 #endif

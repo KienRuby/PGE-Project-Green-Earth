@@ -17,7 +17,7 @@ GameObject:
   - component: {fileID: 2547818062339072727}
   - component: {fileID: 240094538910312588}
   - component: {fileID: 4343769769756426745}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: creep map mine
   m_TagString: Enemy
   m_Icon: {fileID: 0}
@@ -152,7 +152,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 500
-  expReward: 20
+  expReward: 10
   dataChipReward: 1
   redGemReward: 0
   randomRedGemDropChance: 0.05
@@ -231,7 +231,7 @@ MonoBehaviour:
   maxHealth: 500
   moveSpeed: 2
   contactDamage: 20
-  expReward: 20
+  expReward: 10
   dataChipReward: 5
   redGemReward: 0
   randomRedGemDropChance: 0.05

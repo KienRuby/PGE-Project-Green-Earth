@@ -277,6 +277,8 @@ public class EnemySpawner : MonoBehaviour
     public event Action OnBossDefeated;
     public event Action OnStageVictory;
 
+    public static EnemySpawner Instance { get; private set; }
+
     // Public Getters for UI & Tests
     public WaveState CurrentState => currentState;
     public int CurrentWaveIndex => currentWaveIndex;
@@ -296,6 +298,7 @@ public class EnemySpawner : MonoBehaviour
     public float CurrentWaveTimeProgress => CurrentWaveDuration > 0f ? Mathf.Clamp01(waveElapsedTime / CurrentWaveDuration) : 0f;
     public float BreakTimeRemaining => Mathf.Max(0f, breakTimer);
     public bool IsStageCompleted => isStageCompleted;
+    public bool UseSceneWaveConfiguration => useSceneWaveConfiguration;
     public int StageVictoryDataChipReward => stageVictoryDataChipReward;
     public int StageVictoryRedGemReward => stageVictoryRedGemReward;
     public IReadOnlyList<WaveConfig> Waves => waves;
@@ -304,6 +307,12 @@ public class EnemySpawner : MonoBehaviour
     public float MaxDespawnDistance { get => maxDespawnDistance; set => maxDespawnDistance = Mathf.Max(maxSpawnRadius, value); }
     public float DespawnCheckInterval { get => despawnCheckInterval; set => despawnCheckInterval = Mathf.Max(0.1f, value); }
     public float InitialWaveSpawnDelay { get => initialWaveSpawnDelay; set => initialWaveSpawnDelay = Mathf.Max(0f, value); }
+
+    public bool IsGemMineScene()
+    {
+        string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        return useSceneWaveConfiguration || string.Equals(sceneName, "GenMine", System.StringComparison.OrdinalIgnoreCase);
+    }
 
     public void StopSpawner()
     {
@@ -323,7 +332,21 @@ public class EnemySpawner : MonoBehaviour
 
     private void Awake()
     {
+        Instance = this;
         LoadSelectedChapterWaves();
+        if (IsGemMineScene())
+        {
+            int selectedLevel = DailyGemMineProgress.SelectedLevel;
+            stageVictoryRedGemReward = DailyGemMineProgress.GenerateRewardAmount(selectedLevel);
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+        {
+            Instance = null;
+        }
     }
 
     public void LoadSelectedChapterWaves()
@@ -768,7 +791,7 @@ public class EnemySpawner : MonoBehaviour
         if (enemy == null) return;
 
         Enemy enemyComponent = enemy.GetComponent<Enemy>();
-        bool isElite = enemyComponent != null && enemyComponent.Type == EnemyType.EliteCreep;
+        bool isElite = enemyComponent != null && enemyComponent.IsElite;
 
         float chance = isElite ? eliteArtifactDropChance : normalCreepArtifactDropChance;
         if (chance > 0f && Random.value <= chance)
@@ -1220,11 +1243,15 @@ public class EnemySpawner : MonoBehaviour
         // Đồng loạt tiêu diệt toàn bộ quái vật còn lại trên bản đồ bằng animation Die & Fade out
         KillAllActiveEnemies(false);
 
-        // Mở khóa Chapter kế tiếp nếu đang chơi màn cao nhất
-        int currentSelected = PlayerDataService.SelectedChapterIndex;
-        if (currentSelected >= PlayerDataService.UnlockedChapterIndex)
+        // Mở khóa Chapter kế tiếp hoặc Gem Mine kế tiếp
+        if (IsGemMineScene())
         {
-            PlayerDataService.UnlockedChapterIndex = currentSelected + 1;
+            DailyGemMineProgress.CompleteLevel(DailyGemMineProgress.SelectedLevel);
+        }
+        else
+        {
+            int currentSelected = PlayerDataService.SelectedChapterIndex;
+            PlayerDataService.MarkChapterCleared(currentSelected);
         }
 
         // Tặng thưởng vượt ải
@@ -1379,6 +1406,19 @@ public class EnemySpawner : MonoBehaviour
         return worldPos.x >= minX && worldPos.x <= maxX && worldPos.y >= minY && worldPos.y <= maxY;
     }
 
+    private static int cachedObstacleLayerMask = 0;
+    private static int ObstacleLayerMask
+    {
+        get
+        {
+            if (cachedObstacleLayerMask == 0)
+            {
+                cachedObstacleLayerMask = LayerMask.GetMask("Obstacle");
+            }
+            return cachedObstacleLayerMask;
+        }
+    }
+
     /// <summary>
     /// Tính toán vị trí sinh quái đảm bảo 100% NGOÀI MÀN HÌNH (không bao giờ sinh trong tầm mắt người chơi).
     /// </summary>
@@ -1442,6 +1482,12 @@ public class EnemySpawner : MonoBehaviour
             // KIỂM TRA BẮT BUỘC: Điểm sau khi giới hạn có thực sự nằm NGOÀI màn hình không?
             if (!IsPositionInsideCameraView(candidate, 0.3f))
             {
+                // Tránh sinh quái đè lên chướng ngại vật
+                if (ObstacleLayerMask != 0 && Physics2D.OverlapCircle(candidate, 0.35f, ObstacleLayerMask) != null)
+                {
+                    continue;
+                }
+
                 selectedPos = candidate;
                 foundValid = true;
                 break;
@@ -1470,6 +1516,15 @@ public class EnemySpawner : MonoBehaviour
             if (IsPositionInsideCameraView(fallback, 0.2f))
             {
                 fallback = camPos + safeDir * (Mathf.Max(halfH, halfW) + 1.5f);
+            }
+
+            if (ObstacleLayerMask != 0 && Physics2D.OverlapCircle(fallback, 0.35f, ObstacleLayerMask) != null)
+            {
+                fallback += safeDir * 0.8f;
+                if (MapBoundary.Instance != null)
+                {
+                    fallback = MapBoundary.Instance.ClampSpawnPosition(fallback, 0.5f);
+                }
             }
 
             selectedPos = fallback;

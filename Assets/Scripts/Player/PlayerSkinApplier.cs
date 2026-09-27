@@ -50,6 +50,9 @@ public class PlayerSkinConfig
     [Tooltip("Bảy khung hình đạn riêng của skin, theo thứ tự phát.")]
     public Sprite[] bulletFrames;
 
+    [Tooltip("Prefab hiệu ứng trúng đạn riêng của skin này.")]
+    public GameObject hitVfxPrefab;
+
     [Tooltip("Sprite Chân trái (Chan 1).")]
     public Sprite leg1Sprite;
 
@@ -112,6 +115,9 @@ public class PlayerSkinApplier : MonoBehaviour
     [Tooltip("Tọa độ nòng súng mặc định ban đầu.")]
     public Vector2 defaultFirePointOffset = new Vector2(3.59f, -0.99f);
 
+    [Tooltip("Prefab hiệu ứng trúng đạn mặc định ban đầu của player.")]
+    public GameObject defaultHitVfxPrefab;
+
     [Header("Tùy chỉnh Vị trí & Kích thước Bản Mặc Định (Không ảnh hưởng Animation)")]
     public BodyPartTransformConfig defaultBody = new BodyPartTransformConfig();
     public BodyPartTransformConfig defaultArm = new BodyPartTransformConfig();
@@ -172,9 +178,29 @@ public class PlayerSkinApplier : MonoBehaviour
     public bool HasCustomGunSprite => !isShowingDefault && CurrentSkin != null && CurrentSkin.gunSprite != null;
     public Sprite CurrentSkinGunSprite => isShowingDefault ? defaultGunSprite : CurrentSkin?.gunSprite;
     public Sprite[] CurrentSkinBulletFrames => isShowingDefault ? null : CurrentSkin?.bulletFrames;
+    public GameObject GetHitVfxPrefabForSkin(int skinIndex)
+    {
+        if (skinIndex <= 0 || isShowingDefault) return defaultHitVfxPrefab;
+        int configIndex = skinIndex - 1;
+        if (skins != null && configIndex >= 0 && configIndex < skins.Length)
+        {
+            if (skins[configIndex].hitVfxPrefab != null)
+                return skins[configIndex].hitVfxPrefab;
+        }
+        string path = $"Prefabs/PlayerHitVFX_Skin{skinIndex}";
+        var loaded = Resources.Load<GameObject>(path);
+        if (loaded != null) return loaded;
+        return defaultHitVfxPrefab;
+    }
+
+    public GameObject CurrentSkinHitVfxPrefab => isShowingDefault ? defaultHitVfxPrefab : (CurrentSkin != null && CurrentSkin.hitVfxPrefab != null ? CurrentSkin.hitVfxPrefab : GetHitVfxPrefabForSkin(activeAppliedIndex));
 
     private void Awake()
     {
+        if (defaultHitVfxPrefab == null)
+        {
+            defaultHitVfxPrefab = Resources.Load<GameObject>("Prefabs/PlayerHitVFX_Skin1") ?? Resources.Load<GameObject>("Prefabs/PlayerHitVFX");
+        }
         AutoEnsureVisualSlots();
         ApplyEquippedSkin();
     }

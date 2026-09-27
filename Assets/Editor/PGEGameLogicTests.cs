@@ -2535,6 +2535,61 @@ public class PGEGameLogicTests
     }
 
     [Test]
+    public void PlayerSkinApplier_HitVfxPerSkin_MatchesBulletAndEquippedSkin()
+    {
+        int origSkin = BuildBodyController.EquippedSkinIndex;
+        try
+        {
+            GameObject player = new GameObject("TestPlayer_VFX");
+            PlayerSkinApplier applier = player.AddComponent<PlayerSkinApplier>();
+            
+            GameObject defaultVfx = new GameObject("DefaultHitVfx");
+            applier.defaultHitVfxPrefab = defaultVfx;
+
+            GameObject[] skinVfxs = new GameObject[4];
+            for (int i = 0; i < 4; i++)
+            {
+                skinVfxs[i] = new GameObject($"HitVFX_Skin_{i + 1}");
+                applier.skins[i].hitVfxPrefab = skinVfxs[i];
+            }
+
+            // Default
+            BuildBodyController.EquippedSkinIndex = 0;
+            applier.ApplyEquippedSkin();
+            Assert.That(applier.CurrentSkinHitVfxPrefab, Is.EqualTo(defaultVfx), "Skin 0 should return default Hit VFX");
+
+            // Skins 1..4
+            for (int s = 1; s <= 4; s++)
+            {
+                BuildBodyController.EquippedSkinIndex = s;
+                applier.ApplyEquippedSkin();
+                Assert.That(applier.CurrentSkinHitVfxPrefab, Is.EqualTo(skinVfxs[s - 1]), $"Skin {s} should return its matching Hit VFX");
+            }
+
+            // Projectile propagation and pooling reset test
+            GameObject bulletObj = new GameObject("BulletTest");
+            bulletObj.AddComponent<CircleCollider2D>();
+            Projectile proj = bulletObj.AddComponent<Projectile>();
+            
+            proj.HitVfxPrefab = skinVfxs[2]; // Skin 3 VFX
+            Assert.That(proj.HitVfxPrefab, Is.EqualTo(skinVfxs[2]));
+
+            proj.ResetCustomModifiers();
+            Assert.That(proj.HitVfxPrefab, Is.Not.EqualTo(skinVfxs[2]), "ResetCustomModifiers should reset HitVfxPrefab to default");
+
+            // Clean up
+            for (int i = 0; i < 4; i++) Object.DestroyImmediate(skinVfxs[i]);
+            Object.DestroyImmediate(defaultVfx);
+            Object.DestroyImmediate(bulletObj);
+            Object.DestroyImmediate(player);
+        }
+        finally
+        {
+            BuildBodyController.EquippedSkinIndex = origSkin;
+        }
+    }
+
+    [Test]
     public void PlayerAutoShooter_AttackRange_MatchesScreenViewport_OnlyTargetsEnemiesInsideFrame()
     {
         GameObject player = new GameObject("Player_ViewportTest");

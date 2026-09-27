@@ -50,6 +50,7 @@ public class BossEnemy : Enemy
         {
             BossMovement.SetTarget(target);
             BossMovement.MoveSpeed = BossMovement.BaseMoveSpeed * Mathf.Max(0.1f, speedMultiplier);
+            BossMovement.SetDashDamageMultiplier(damageMultiplier);
         }
 
         if (RangedAttack != null)

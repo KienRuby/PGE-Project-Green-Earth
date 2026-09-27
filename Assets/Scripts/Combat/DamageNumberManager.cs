@@ -406,6 +406,15 @@ public class DamageNumberManager : MonoBehaviour
 
     private void LoadFontAndMaterialResources()
     {
+        if (fontAsset == null)
+        {
+            fontAsset = Resources.Load<TMP_FontAsset>("Fonts/Nunito SDF");
+        }
+        if (strokeMaterial == null)
+        {
+            strokeMaterial = Resources.Load<Material>("Fonts/Nunito SDF - Stroke");
+        }
+
 #if UNITY_EDITOR
         if (fontAsset == null)
         {

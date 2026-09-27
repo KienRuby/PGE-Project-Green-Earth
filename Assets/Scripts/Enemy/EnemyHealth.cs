@@ -588,39 +588,61 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
 
         if (grantRewards)
         {
-            // Boss kết thúc trận nên không thưởng EXP; quái thường vẫn cộng bình thường.
-            int awardedExp = !IsBoss && grantExp ? expReward : 0;
-            if (PlayerLevelController.Instance != null && awardedExp > 0)
+            try
             {
-                PlayerLevelController.Instance.AddEXP(awardedExp);
-            }
+                // Boss kết thúc trận nên không thưởng EXP; quái thường rơi ngọc EXP.
+                int awardedExp = !IsBoss && grantExp ? expReward : 0;
+                if (awardedExp > 0)
+                {
+                    if (!Application.isPlaying)
+                    {
+                        // Fallback cho EditMode unit tests (không có physics/coroutine loop)
+                        if (PlayerLevelController.Instance != null)
+                        {
+                            PlayerLevelController.Instance.AddEXP(awardedExp);
+                        }
+                    }
+                    else
+                    {
+                        // Khi quái bị tiêu diệt: Viên ngọc kinh nghiệm nhảy văng ra từ quái, Player lại nhặt mới nhận EXP!
+                        int currentWave = EnemySpawner.Instance != null ? EnemySpawner.Instance.CurrentWaveNumber : 1;
+                        Enemy enemyComp = GetComponent<Enemy>() ?? GetComponentInParent<Enemy>();
+                        bool isElite = enemyComp != null ? enemyComp.IsElite : (name.IndexOf("Big", StringComparison.OrdinalIgnoreCase) >= 0 || name.IndexOf("Elite", StringComparison.OrdinalIgnoreCase) >= 0);
+                        DropTable.SpawnExpGemForEnemy(transform.position, awardedExp, currentWave, isElite, IsBoss, true);
+                    }
+                }
 
-            // 4. Cấp tiền tệ (Data Chips / Red Gems) cho Player
-            if (currencyDropChance >= 1f || UnityEngine.Random.value <= currencyDropChance)
+                // 4. Cấp tiền tệ (Data Chips / Red Gems) cho Player
+                if (currencyDropChance >= 1f || UnityEngine.Random.value <= currencyDropChance)
+                {
+                    if (dataChipReward > 0)
+                    {
+                        ChipManager.AddDataChips(dataChipReward);
+                    }
+                    if (redGemReward > 0)
+                    {
+                        ChipManager.AddRedGems(redGemReward);
+                    }
+
+                    // Tỷ lệ ngẫu nhiên 5% rơi Gem đỏ khi tiêu diệt enemy
+                    if (randomRedGemDropChance > 0f && UnityEngine.Random.value <= randomRedGemDropChance)
+                    {
+                        ChipManager.AddRedGems(randomRedGemAmount);
+                    }
+                }
+
+                // Cơ hội rơi Hộp Máu (mặc định 1.5% hộp nhỏ, 0.5% hộp lớn)
+                if (canDropHealthBox)
+                {
+                    DropTable.TryDropHealthBox(transform.position, smallHealthBoxDropChance, largeHealthBoxDropChance);
+                }
+
+                GameEvents.RaiseEnemyKilled(awardedExp);
+            }
+            catch (Exception ex)
             {
-                if (dataChipReward > 0)
-                {
-                    ChipManager.AddDataChips(dataChipReward);
-                }
-                if (redGemReward > 0)
-                {
-                    ChipManager.AddRedGems(redGemReward);
-                }
-
-                // Tỷ lệ ngẫu nhiên 5% rơi Gem đỏ khi tiêu diệt enemy
-                if (randomRedGemDropChance > 0f && UnityEngine.Random.value <= randomRedGemDropChance)
-                {
-                    ChipManager.AddRedGems(randomRedGemAmount);
-                }
+                Debug.LogError("[EnemyHealth] Error dropping loot on death: " + ex);
             }
-
-            // Cơ hội rơi Hộp Máu (mặc định 1.5% hộp nhỏ, 0.5% hộp lớn)
-            if (canDropHealthBox)
-            {
-                DropTable.TryDropHealthBox(transform.position, smallHealthBoxDropChance, largeHealthBoxDropChance);
-            }
-
-            GameEvents.RaiseEnemyKilled(awardedExp);
         }
 
         // 5. Phát sự kiện để Spawner và hệ thống Achievements ghi nhận tiêu diệt

@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 7813897195640297232}
   - component: {fileID: 611207418497638293}
   - component: {fileID: 4632335867065856441}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: BigCreep
   m_TagString: Enemy
   m_Icon: {fileID: 0}
@@ -102,7 +102,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 1000
-  expReward: 30
+  expReward: 20
   dataChipReward: 4
   redGemReward: 0
   randomRedGemDropChance: 0.05
@@ -176,12 +176,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce67bc146bada1a4eb538bae256e72d0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enemyType: 0
-  enemyName: Creep
+  enemyType: 3
+  enemyName: BigCreep
   maxHealth: 1000
   moveSpeed: 2
   contactDamage: 30
-  expReward: 10
+  expReward: 20
   dataChipReward: 5
   redGemReward: 0
   randomRedGemDropChance: 0.05

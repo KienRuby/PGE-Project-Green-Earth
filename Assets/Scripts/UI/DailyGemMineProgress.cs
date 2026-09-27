@@ -56,4 +56,29 @@ public static class DailyGemMineProgress
         PlayerPrefs.DeleteKey(SelectedLevelKey);
         PlayerPrefs.Save();
     }
+
+    public static void GetRewardRange(int level, out int min, out int max)
+    {
+        switch (level)
+        {
+            case 1: min = 60; max = 120; break;
+            case 2: min = 120; max = 220; break;
+            case 3: min = 200; max = 350; break;
+            case 4: min = 300; max = 500; break;
+            case 5: min = 450; max = 700; break;
+            default: min = 60; max = 120; break;
+        }
+    }
+
+    public static string GetRewardRangeString(int level)
+    {
+        GetRewardRange(level, out int min, out int max);
+        return $"x{min}-{max}";
+    }
+
+    public static int GenerateRewardAmount(int level)
+    {
+        GetRewardRange(level, out int min, out int max);
+        return Random.Range(min, max + 1);
+    }
 }

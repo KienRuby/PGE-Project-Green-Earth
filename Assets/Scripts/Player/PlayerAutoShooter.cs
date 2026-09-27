@@ -1428,6 +1428,10 @@ public class PlayerAutoShooter : MonoBehaviour
 
                 projectileScript.Setup(finalDamage, Mathf.Max(0.1f, speed), Mathf.Max(0.1f, range));
                 projectileScript.SetSkinBulletFrames(playerSkinApplier != null ? playerSkinApplier.CurrentSkinBulletFrames : null);
+                if (playerSkinApplier != null && playerSkinApplier.CurrentSkinHitVfxPrefab != null)
+                {
+                    projectileScript.HitVfxPrefab = playerSkinApplier.CurrentSkinHitVfxPrefab;
+                }
                 projectileScript.IsCritical = isCrit;
                 projectileScript.IsHoming = homing;
                 projectileScript.SetDamageSource(sourceChipsetId);

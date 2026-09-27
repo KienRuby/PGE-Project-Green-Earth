@@ -77,11 +77,19 @@ public class RocketPunchSkill : MonoBehaviour
     public int CurrentSkillLevel => currentSkillLevel;
     public float OrbitRadius => orbitRadius;
     public float OrbitSpeed => orbitSpeed;
-    public float LaunchSpeed => launchSpeed;
+    public float LaunchSpeed => Mathf.Max(12.0f, launchSpeed);
 
     private void Awake()
     {
         playerAutoShooter = GetComponent<PlayerAutoShooter>();
+        if (rocketPunchPrefab == null)
+        {
+            rocketPunchPrefab = Resources.Load<GameObject>("Prefabs/Chipset/RocketPunch");
+        }
+        if (explosionVfxPrefab == null)
+        {
+            explosionVfxPrefab = Resources.Load<GameObject>("Prefabs/VFX Boom");
+        }
 #if UNITY_EDITOR
         if (rocketPunchPrefab == null)
         {
@@ -192,7 +200,7 @@ public class RocketPunchSkill : MonoBehaviour
             finalDirectDmg,
             finalAoeDmg,
             finalRadius,
-            launchSpeed,
+            LaunchSpeed,
             orbitRadius,
             orbitSpeed,
             config.hasStun,

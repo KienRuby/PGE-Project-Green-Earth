@@ -478,6 +478,12 @@ public class ChapterScreenController : MonoBehaviour
     {
         loadedSceneName = null;
 
+        if (gemMineModal != null && gemMineModal.IsOpen)
+        {
+            Debug.LogWarning("[ChapterScreenController] Bỏ qua thao tác bắt đầu Chapter vì DailyGemMineModal đang mở.");
+            return false;
+        }
+
         if (IsCurrentChapterLocked())
         {
             Debug.LogWarning($"[ChapterScreen] Chapter {currentChapterIndex + 1} ({currentChapter?.chapterTitle}) đang bị khóa!");
@@ -507,6 +513,12 @@ public class ChapterScreenController : MonoBehaviour
 
     public void OnStartButtonClicked()
     {
+        if (gemMineModal != null && gemMineModal.IsOpen)
+        {
+            Debug.LogWarning("[ChapterScreenController] Bỏ qua StartButton vì DailyGemMineModal đang mở.");
+            return;
+        }
+
         TryStartChapter(out _);
     }
 

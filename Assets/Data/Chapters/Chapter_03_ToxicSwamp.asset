@@ -23,8 +23,9 @@ MonoBehaviour:
   mapColor: {r: 1, g: 1, b: 1, a: 1}
   groundDrawMode: 2
   playerBoundaryPadding: 0.6
+  groundScale: 0.2
   enableObstacles: 1
-  obstacleDensity: 4
+  obstacleDensity: 0
   decorationDensity: 5
   obstacleColliderWidthRatio: 0.55
   obstacleColliderHeightRatio: 0.2

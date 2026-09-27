@@ -103,6 +103,9 @@ public class PerformanceManager : MonoBehaviour
 
         // 3. Áp dụng Target FPS
         ApplyTargetFrameRate();
+
+        // 4. Ngăn điện thoại Android tự động khóa / tắt màn hình khi đang chơi
+        Screen.sleepTimeout = SleepTimeout.NeverSleep;
     }
 
     private void DetectScreenRefreshRate()

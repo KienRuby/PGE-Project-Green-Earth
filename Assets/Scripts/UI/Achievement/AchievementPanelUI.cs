@@ -48,6 +48,13 @@ public class AchievementPanelUI : MonoBehaviour
 
     public void EnsureSpritesLoaded()
     {
+        if (energyIcon == null)
+            energyIcon = Resources.Load<Sprite>("UI/Reward/Extracted/Icon_Energy");
+        if (redGemIcon == null)
+            redGemIcon = Resources.Load<Sprite>("UI/Reward/Extracted/Icon_Red_Gem");
+        if (dataChipIcon == null)
+            dataChipIcon = Resources.Load<Sprite>("UI/Reward/Extracted/Icon_Data_Chip");
+
         if (energyIcon != null && redGemIcon != null && dataChipIcon != null) return;
 
 #if UNITY_EDITOR

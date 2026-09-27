@@ -1002,8 +1002,12 @@ public static class ChapterMenuSceneBuilder
         lockRect.sizeDelta = new Vector2(190f, 72f);
 
         Image lockImg = lockBadgeObj.AddComponent<Image>();
-        lockImg.color = new Color(0.12f, 0.12f, 0.16f, 0.88f);
-        lockImg.raycastTarget = false;
+        lockImg.color = new Color(0.12f, 0.12f, 0.16f, 0.92f);
+        lockImg.raycastTarget = true;
+
+        Button lockBtn = lockBadgeObj.AddComponent<Button>();
+        lockBtn.targetGraphic = lockImg;
+        lockBtn.transition = Selectable.Transition.None;
 
         TMP_Text lockTxt = CreateText("LockedLabel", lockBadgeObj.transform, "LOCKED", 30f, new Color32(200, 200, 200, 255), TextAlignmentOptions.Center);
         lockTxt.fontStyle = FontStyles.Bold;

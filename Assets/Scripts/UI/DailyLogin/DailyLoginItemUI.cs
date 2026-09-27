@@ -287,8 +287,16 @@ public class DailyLoginItemUI : MonoBehaviour
             if (found != null) darkOverlay = found.gameObject;
         }
 
-        if (btnGetSprite != null && btnClaimAgainSprite != null && btnObtainedSprite != null && cardBannerBlue != null && cardBannerGrey != null)
-            return;
+        if (btnGetSprite == null)
+            btnGetSprite = Resources.Load<Sprite>("UI/Reward/Extracted/Btn_Get");
+        if (btnClaimAgainSprite == null)
+            btnClaimAgainSprite = Resources.Load<Sprite>("UI/Reward/Extracted/Btn_Claim_Again");
+        if (btnObtainedSprite == null)
+            btnObtainedSprite = Resources.Load<Sprite>("UI/Reward/Extracted/Btn_Obtained");
+        if (cardBannerBlue == null)
+            cardBannerBlue = Resources.Load<Sprite>("UI/Reward/Extracted/Row_Banner_Blue");
+        if (cardBannerGrey == null)
+            cardBannerGrey = Resources.Load<Sprite>("UI/Reward/Extracted/Row_Banner_Grey");
 
 #if UNITY_EDITOR
         if (btnGetSprite == null)

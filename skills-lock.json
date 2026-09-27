@@ -187,6 +187,12 @@
       "skillPath": "skills/workflows/itch-publish/SKILL.md",
       "computedHash": "be93185659145946f229a92f3b5fc0ce0466336c49d8d777c72df1e5c1bc6394"
     },
+    "karpathy-guidelines": {
+      "source": "multica-ai/andrej-karpathy-skills",
+      "sourceType": "github",
+      "skillPath": "skills/karpathy-guidelines/SKILL.md",
+      "computedHash": "0ec1641120accbb458780e0bd19a50a4182f2b97863e90851b91307f29802c9f"
+    },
     "level-design": {
       "source": "gamedev-skills/awesome-gamedev-agent-skills",
       "sourceType": "github",

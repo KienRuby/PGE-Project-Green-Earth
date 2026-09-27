@@ -75,6 +75,8 @@ public class EnemyMovement : MonoBehaviour, IPoolable
     private Vector2 lastSamplePos;
     private float stuckCheckTimer = 0f;
     private int stuckCount = 0;
+    private Vector2 escapeDirection = Vector2.zero;
+    private float escapeTimer = 0f;
 
     // Bước 3: Bộ nhớ đệm quãng đường an toàn (Obstacle Proximity Caching)
     private float safeClearDistance = 0f;
@@ -349,6 +351,15 @@ public class EnemyMovement : MonoBehaviour, IPoolable
                 float leftoverFraction = 1f - Mathf.Clamp01(allowedDist / (distance + 0.03f));
                 Vector2 leftover = delta * leftoverFraction;
                 Vector2 slideDelta = leftover - Vector2.Dot(leftover, normal) * normal;
+                if (slideDelta.sqrMagnitude < 0.0001f && normal.sqrMagnitude > 0.001f)
+                {
+                    Vector2 tangent = Vector2.Perpendicular(normal);
+                    if (player != null && Vector2.Dot(tangent, (Vector2)player.position - rb.position) < 0f)
+                    {
+                        tangent = -tangent;
+                    }
+                    slideDelta = tangent * (leftover.magnitude * 0.85f);
+                }
 
                 Vector2 newPos = rb.position + dir * allowedDist + slideDelta;
                 rb.MovePosition(newPos);
@@ -485,15 +496,32 @@ public class EnemyMovement : MonoBehaviour, IPoolable
         if (stuckCheckTimer >= 0.4f)
         {
             stuckCheckTimer = 0f;
-            if (lastSamplePos != Vector2.zero && Vector2.Distance(myPos, lastSamplePos) < 0.06f && distanceToPlayer > stoppingDistance)
+            bool isBlockedByObstacle = Physics2D.Linecast(myPos, targetPos, obstacleFilter.layerMask).collider != null;
+            bool isCloseWithoutObstacle = distanceToPlayer <= stoppingDistance && !isBlockedByObstacle;
+
+            if (lastSamplePos != Vector2.zero && Vector2.Distance(myPos, lastSamplePos) < 0.06f && !isCloseWithoutObstacle)
             {
                 stuckCount++;
                 if (stuckCount >= 2)
                 {
-                    // Đang bị kẹt góc -> Bẻ lái 90 độ theo phương tiếp tuyến để thoát kẹt
+                    // Đang bị kẹt góc -> Bẻ lái 90 độ theo phương tiếp tuyến để thoát kẹt trong 0.5s
                     Vector2 escapeTangent = Vector2.Perpendicular(directDir);
-                    if ((instanceId & 1) == 0) escapeTangent = -escapeTangent;
-                    desiredDir = (desiredDir * 0.3f + escapeTangent * 0.7f).normalized;
+                    if (isBlockedByObstacle)
+                    {
+                        RaycastHit2D hit = Physics2D.Raycast(myPos, directDir, feelerDistance * 1.5f, obstacleFilter.layerMask);
+                        if (hit.collider != null && hit.normal.sqrMagnitude > 0.001f)
+                        {
+                            escapeTangent = Vector2.Perpendicular(hit.normal);
+                            if (Vector2.Dot(escapeTangent, toPlayer) < 0f) escapeTangent = -escapeTangent;
+                        }
+                    }
+                    else if ((instanceId & 1) == 0)
+                    {
+                        escapeTangent = -escapeTangent;
+                    }
+
+                    escapeDirection = escapeTangent;
+                    escapeTimer = 0.5f;
                     isDetourActive = false;
                     stuckCount = 0;
                 }
@@ -503,6 +531,12 @@ public class EnemyMovement : MonoBehaviour, IPoolable
                 stuckCount = 0;
             }
             lastSamplePos = myPos;
+        }
+
+        if (escapeTimer > 0f)
+        {
+            escapeTimer -= Time.fixedDeltaTime;
+            desiredDir = (desiredDir * 0.25f + escapeDirection * 0.75f).normalized;
         }
 
         return desiredDir;
@@ -572,6 +606,10 @@ public class EnemyMovement : MonoBehaviour, IPoolable
             detourWaypoint = bestCorner;
             isDetourActive = true;
         }
+        else
+        {
+            isDetourActive = false;
+        }
     }
 
     /// <summary>
@@ -617,6 +655,24 @@ public class EnemyMovement : MonoBehaviour, IPoolable
             if (slide.sqrMagnitude > 0.001f)
             {
                 return (currentDir * 0.25f + slide.normalized * 0.75f).normalized;
+            }
+            else if (normal.sqrMagnitude > 0.001f)
+            {
+                // Đâm trực diện vuông góc: Bẻ lái theo tiếp tuyến của bề mặt chướng ngại vật
+                Vector2 tangent = Vector2.Perpendicular(normal);
+                if (player != null)
+                {
+                    Vector2 toPlayer = (Vector2)player.position - myPos;
+                    if (Vector2.Dot(tangent, toPlayer) < 0f)
+                    {
+                        tangent = -tangent;
+                    }
+                }
+                else if ((instanceId & 1) == 0)
+                {
+                    tangent = -tangent;
+                }
+                return (tangent * 0.85f + normal * 0.15f).normalized;
             }
         }
 
@@ -805,6 +861,8 @@ public class EnemyMovement : MonoBehaviour, IPoolable
         lastSamplePos = Vector2.zero;
         safeClearDistance = 0f;
         lastClearDir = Vector2.zero;
+        escapeDirection = Vector2.zero;
+        escapeTimer = 0f;
 
         if (initialScale != Vector3.zero)
         {
@@ -833,6 +891,8 @@ public class EnemyMovement : MonoBehaviour, IPoolable
         lastSamplePos = Vector2.zero;
         safeClearDistance = 0f;
         lastClearDir = Vector2.zero;
+        escapeDirection = Vector2.zero;
+        escapeTimer = 0f;
 
         if (basePrefabScale != Vector3.zero)
         {
