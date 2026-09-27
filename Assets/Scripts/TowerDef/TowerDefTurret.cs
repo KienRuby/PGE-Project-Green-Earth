@@ -31,11 +31,13 @@ public class TowerDefTurret : MonoBehaviour
     private Canvas owningCanvas;
     private Camera viewCamera;
 
+    public const int MAX_TURRET_LEVEL = 5;
     public int TurretLevel => turretLevel;
+    public bool IsMaxLevel => turretLevel >= MAX_TURRET_LEVEL;
     public float Damage => damage;
     public float FireRate => fireRate;
     public float AttackRange => attackRange;
-    public int UpgradeCost => baseUpgradeCost * turretLevel;
+    public int UpgradeCost => IsMaxLevel ? 0 : baseUpgradeCost * turretLevel;
     public GameObject ProjectilePrefab => projectilePrefab;
 
     public event Action<int> OnTurretUpgraded;
@@ -153,6 +155,7 @@ public class TowerDefTurret : MonoBehaviour
 
     public bool TryUpgrade(ref int gold)
     {
+        if (IsMaxLevel) return false;
         int cost = UpgradeCost;
         if (gold < cost) return false;
 

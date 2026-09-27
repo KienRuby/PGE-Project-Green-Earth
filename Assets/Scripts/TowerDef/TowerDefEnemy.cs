@@ -38,7 +38,17 @@ public class TowerDefEnemy : MonoBehaviour
 
     public event Action<TowerDefEnemy> OnEnemyDied;
 
-    public void Setup(float hp, float speed, float damage, int reward, TowerDefGate gate, float gateStopY, Sprite sprite = null)
+    private void Awake()
+    {
+        if (enemyImage == null) enemyImage = GetComponent<Image>();
+        if (hpBarFill == null)
+        {
+            Transform fillTr = transform.Find("HpBar/Fill");
+            if (fillTr != null) hpBarFill = fillTr.GetComponent<Image>();
+        }
+    }
+
+    public void Setup(float hp, float speed, float damage, int reward, TowerDefGate gate, float gateStopY, Sprite sprite = null, Image fill = null)
     {
         maxHp = hp;
         currentHp = maxHp;
@@ -51,9 +61,17 @@ public class TowerDefEnemy : MonoBehaviour
         isTouchingWall = transform.localPosition.y <= gateYThreshold;
         if (isTouchingWall) state = TowerDefEnemyState.AttackingGate;
 
+        if (enemyImage == null) enemyImage = GetComponent<Image>();
         if (enemyImage != null && sprite != null)
         {
             enemyImage.sprite = sprite;
+        }
+
+        if (fill != null) hpBarFill = fill;
+        else if (hpBarFill == null)
+        {
+            Transform fillTr = transform.Find("HpBar/Fill");
+            if (fillTr != null) hpBarFill = fillTr.GetComponent<Image>();
         }
 
         UpdateHpBar();
@@ -151,8 +169,6 @@ public class TowerDefEnemy : MonoBehaviour
     public void TakeDamage(float dmg)
     {
         if (IsDead) return;
-        // Yêu cầu: Quái phải chạm vào tường thành mới mất máu
-        if (!isTouchingWall) return;
 
         currentHp = Mathf.Max(0f, currentHp - dmg);
         UpdateHpBar();
@@ -166,6 +182,7 @@ public class TowerDefEnemy : MonoBehaviour
 
     private IEnumerator FlashHit()
     {
+        if (enemyImage == null) enemyImage = GetComponent<Image>();
         if (enemyImage != null)
         {
             Color orig = enemyImage.color;
@@ -177,10 +194,23 @@ public class TowerDefEnemy : MonoBehaviour
 
     private void UpdateHpBar()
     {
+        if (hpBarFill == null)
+        {
+            Transform fillTr = transform.Find("HpBar/Fill");
+            if (fillTr != null) hpBarFill = fillTr.GetComponent<Image>();
+        }
+
         if (hpBarFill != null)
         {
             float ratio = maxHp > 0f ? Mathf.Clamp01(currentHp / maxHp) : 0f;
-            hpBarFill.rectTransform.localScale = new Vector3(ratio, 1f, 1f);
+            if (hpBarFill.type == Image.Type.Filled)
+            {
+                hpBarFill.fillAmount = ratio;
+            }
+            else
+            {
+                hpBarFill.rectTransform.localScale = new Vector3(ratio, 1f, 1f);
+            }
         }
     }
 

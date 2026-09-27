@@ -398,27 +398,140 @@ public class TowerDefTests
     }
 
     [Test]
-    public void Enemy_DoesNotTakeDamageBeforeTouchingWall()
+    public void Enemy_TakesDamageWhileMovingDown()
     {
         GameObject enemyObj = new GameObject("EnemyAboveWall", typeof(RectTransform), typeof(Image), typeof(TowerDefEnemy));
         enemyObj.transform.SetParent(rootObj.transform);
         enemyObj.transform.localPosition = new Vector3(0f, 500f, 0f);
 
+        GameObject hpBarObj = new GameObject("HpFill", typeof(RectTransform), typeof(Image));
+        hpBarObj.transform.SetParent(enemyObj.transform);
+        Image fill = hpBarObj.GetComponent<Image>();
+        fill.type = Image.Type.Filled;
+
         TowerDefEnemy enemy = enemyObj.GetComponent<TowerDefEnemy>();
-        enemy.Setup(100f, 50f, 10f, 20, null, 100f, null);
+        enemy.Setup(100f, 50f, 10f, 20, null, 100f, null, fill);
 
         Assert.IsFalse(enemy.IsTouchingWall);
 
-        // Chưa chạm tường -> không bị trừ máu theo yêu cầu
-        enemy.TakeDamage(50f);
-        Assert.AreEqual(100f, enemy.CurrentHp);
+        // Quái đang hành quân trên đường -> trúng đạn lập tức bị trừ máu và thanh máu giảm
+        enemy.TakeDamage(40f);
+        Assert.AreEqual(60f, enemy.CurrentHp);
+        Assert.AreEqual(0.6f, fill.fillAmount, 0.01f);
 
-        // Khi quái đã chạm vào tường thành -> nhận sát thương bình thường
+        // Tiếp tục nhận sát thương khi đến chân tường
         enemy.SetTouchingWall(true);
         Assert.IsTrue(enemy.IsTouchingWall);
 
-        enemy.TakeDamage(50f);
-        Assert.AreEqual(50f, enemy.CurrentHp);
+        enemy.TakeDamage(30f);
+        Assert.AreEqual(30f, enemy.CurrentHp);
+        Assert.AreEqual(0.3f, fill.fillAmount, 0.01f);
+    }
+
+    [Test]
+    public void Bed_UpgradeIncreasesLevelAndProduction()
+    {
+        GameObject cellObj = new GameObject("BedCell", typeof(RectTransform), typeof(Image), typeof(Button), typeof(TowerDefGridCell));
+        cellObj.transform.SetParent(rootObj.transform);
+        GameObject sRoot = new GameObject("StructureRoot", typeof(RectTransform));
+        sRoot.transform.SetParent(cellObj.transform);
+        GameObject sImgObj = new GameObject("StructureImg", typeof(Image));
+        sImgObj.transform.SetParent(sRoot.transform);
+
+        TowerDefGridCell cell = cellObj.GetComponent<TowerDefGridCell>();
+        cell.SetupCell(1, 3, cellObj.GetComponent<Image>(), cellObj.GetComponent<Button>(), sRoot, sImgObj.GetComponent<Image>(), null, null);
+
+        cell.PlaceStructure(TowerDefStructureType.CoreBed, null, null, 1);
+        Assert.IsNotNull(cell.Generator);
+        Assert.AreEqual(1, cell.Generator.StructureLevel);
+        Assert.AreEqual(1, cell.Generator.CurrentOutput);
+        Assert.AreEqual(50, cell.Generator.UpgradeCost);
+
+        int gold = 100;
+        bool ok = cell.Generator.TryUpgrade(ref gold);
+        Assert.IsTrue(ok);
+        Assert.AreEqual(50, gold);
+        Assert.AreEqual(2, cell.Generator.StructureLevel);
+        Assert.AreEqual(2, cell.Generator.CurrentOutput);
+        Assert.AreEqual(100, cell.Generator.UpgradeCost);
+    }
+
+    [Test]
+    public void Bed_UpgradeBadgeVisibilityDependsOnGoldAndLevel()
+    {
+        GameObject bedObj = new GameObject("BedGenerator", typeof(TowerDefGenerator));
+        bedObj.transform.SetParent(rootObj.transform);
+
+        GameObject badgeObj = new GameObject("UpgradeBadge");
+        badgeObj.transform.SetParent(bedObj.transform);
+
+        TowerDefGenerator gen = bedObj.GetComponent<TowerDefGenerator>();
+        gen.Setup(TowerDefStructureType.CoreBed, 1, null, badgeObj, 1.0f);
+
+        // Ban đầu chưa đủ vàng (40 < 50) -> Không hiện mũi tên vàng
+        gen.RefreshUpgradeBadge(40);
+        Assert.IsFalse(badgeObj.activeSelf);
+
+        // Đủ vàng (50 >= 50) -> Hiện mũi tên vàng
+        gen.RefreshUpgradeBadge(50);
+        Assert.IsTrue(badgeObj.activeSelf);
+
+        // Nâng cấp lên level 2 (Cost = 100)
+        int gold = 50;
+        gen.TryUpgrade(ref gold);
+        Assert.AreEqual(2, gen.StructureLevel);
+        Assert.AreEqual(100, gen.UpgradeCost);
+
+        // Vàng hiện tại = 0 < 100 -> Mũi tên tự ẩn
+        gen.RefreshUpgradeBadge(gold);
+        Assert.IsFalse(badgeObj.activeSelf);
+
+        // Đủ 100 vàng -> Hiện lại
+        gen.RefreshUpgradeBadge(100);
+        Assert.IsTrue(badgeObj.activeSelf);
+
+        // Nâng cấp miễn phí lên MAX (Lv 4)
+        gen.TryUpgradeFree(); // Lv.3
+        gen.TryUpgradeFree(); // Lv.4
+        Assert.IsTrue(gen.IsMaxLevel);
+
+        // Đã max level -> Dù có 999 vàng cũng không hiện mũi tên
+        gen.RefreshUpgradeBadge(999);
+        Assert.IsFalse(badgeObj.activeSelf);
+    }
+
+    [Test]
+    public void UIController_OpensBedUpgradeModalSuccessfully()
+    {
+        GameObject canvasObj = new GameObject("Canvas", typeof(RectTransform), typeof(Canvas), typeof(TowerDefUIController));
+        canvasObj.transform.SetParent(rootObj.transform);
+        TowerDefUIController ui = canvasObj.GetComponent<TowerDefUIController>();
+
+        GameObject cellObj = new GameObject("Cell", typeof(RectTransform), typeof(Image), typeof(Button), typeof(TowerDefGridCell));
+        cellObj.transform.SetParent(rootObj.transform);
+        GameObject sRoot = new GameObject("StructureRoot", typeof(RectTransform));
+        sRoot.transform.SetParent(cellObj.transform);
+        GameObject sImgObj = new GameObject("StructureImg", typeof(Image));
+        sImgObj.transform.SetParent(sRoot.transform);
+
+        TowerDefGridCell cell = cellObj.GetComponent<TowerDefGridCell>();
+        cell.SetupCell(1, 3, cellObj.GetComponent<Image>(), cellObj.GetComponent<Button>(), sRoot, sImgObj.GetComponent<Image>(), null, null);
+        cell.PlaceStructure(TowerDefStructureType.CoreBed, null, null, 1);
+
+        ui.OpenUpgradeModal(cell);
+
+        Transform modal = canvasObj.transform.Find("StructureUpgradeModal");
+        Assert.IsNotNull(modal);
+        Assert.IsTrue(modal.gameObject.activeSelf);
+
+        Transform frame = modal.Find("ModalFrame");
+        Assert.IsNotNull(frame);
+        Assert.IsNotNull(frame.Find("TitleText"));
+        Assert.IsNotNull(frame.Find("Row1_GoldUpgrade"));
+        Assert.IsNotNull(frame.Find("Row2_AdsUpgrade"));
+
+        ui.CloseAllModals();
+        Assert.IsFalse(modal.gameObject.activeSelf);
     }
 
     [Test]

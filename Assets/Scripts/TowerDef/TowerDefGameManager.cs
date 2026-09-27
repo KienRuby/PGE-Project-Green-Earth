@@ -43,6 +43,8 @@ public class TowerDefGameManager : MonoBehaviour
     [SerializeField] private GameObject gunTurretPrefab;
     [SerializeField] private Sprite pawnTowerSprite;
     [SerializeField] private Sprite corePodSprite;
+    [SerializeField] private Sprite corePodCyanSprite;
+    [SerializeField] private Sprite[] bedLevelSprites;
     [SerializeField] private Sprite upgradeCircleSprite;
     [SerializeField] private Sprite greenBarSprite;
     [SerializeField] private Sprite backArrowSprite;
@@ -284,6 +286,32 @@ public class TowerDefGameManager : MonoBehaviour
         return upgraded;
     }
 
+    public bool TryUpgradeStructureFree(TowerDefGridCell cell)
+    {
+        if (cell == null || !cell.IsOccupied) return false;
+
+        bool upgraded = false;
+        if (cell.Turret != null)
+        {
+            int dummy = cell.Turret.UpgradeCost;
+            upgraded = cell.Turret.TryUpgrade(ref dummy);
+        }
+        else if (cell.Generator != null)
+        {
+            upgraded = cell.Generator.TryUpgradeFree();
+        }
+
+        if (upgraded)
+        {
+            cell.UpgradeCurrentStructure();
+            string name = cell.CurrentType == TowerDefStructureType.CoreBed ? "BED" : "STRUCTURE";
+            ShowFloatingText(cell.transform.position, $"FREE {name} UPGRADED!", Color.cyan);
+            UpdateUI();
+        }
+
+        return upgraded;
+    }
+
     public bool TryRepairGate(TowerDefGate targetGate)
     {
         if (targetGate == null || gold < 20)
@@ -335,6 +363,16 @@ public class TowerDefGameManager : MonoBehaviour
         if (gate != null)
         {
             gate.RefreshUpgradeBadge(gold);
+        }
+        for (int r = 0; r < 4; r++)
+        {
+            for (int c = 0; c < 7; c++)
+            {
+                if (gridCells[r, c] != null)
+                {
+                    gridCells[r, c].RefreshUpgradeBadge(gold);
+                }
+            }
         }
         if (uiController != null)
         {
@@ -511,7 +549,7 @@ public class TowerDefGameManager : MonoBehaviour
         float wallTopY = 617.14f + 154.2857f;
         float stopY = wallTopY + (enemyHeight * 0.45f);
 
-        enemy.Setup(hp, spd, dmg, rwd, gate, stopY, img.sprite);
+        enemy.Setup(hp, spd, dmg, rwd, gate, stopY, img.sprite, fillImg);
         enemy.OnEnemyDied += HandleEnemyDied;
         activeEnemies.Add(enemy);
     }
@@ -877,6 +915,10 @@ public class TowerDefGameManager : MonoBehaviour
             if (gridCells[1, 3] != null)
             {
                 gridCells[1, 3].PlaceStructure(TowerDefStructureType.CoreBed, corePodSprite, null, 1);
+                if (gridCells[1, 3].Generator != null && bedLevelSprites != null && bedLevelSprites.Length > 0)
+                {
+                    gridCells[1, 3].Generator.SetLevelSprites(bedLevelSprites);
+                }
             }
         }
         else
@@ -887,6 +929,10 @@ public class TowerDefGameManager : MonoBehaviour
                 {
                     gridCells[cell.Row, cell.Col] = cell;
                 }
+            }
+            if (gridCells[1, 3] != null && gridCells[1, 3].Generator != null && bedLevelSprites != null && bedLevelSprites.Length > 0)
+            {
+                gridCells[1, 3].Generator.SetLevelSprites(bedLevelSprites);
             }
         }
 
@@ -1099,7 +1145,8 @@ public class TowerDefGameManager : MonoBehaviour
             btnUpgradeCyanSprite,
             btnUpgradeAdsSprite,
             coinIconSprite,
-            gateLevelSprites);
+            gateLevelSprites,
+            bedLevelSprites);
         return ctrl;
     }
 
@@ -1182,6 +1229,16 @@ public class TowerDefGameManager : MonoBehaviour
         if (turretGunSprite == null) turretGunSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Gun_01_Cyan.png");
         if (pawnTowerSprite == null) pawnTowerSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Pawn_Tower_03_Purple.png");
         if (corePodSprite == null) corePodSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Core_Pod_Green.png");
+        if (corePodCyanSprite == null) corePodCyanSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Core_Pod_Cyan.png");
+
+        if (bedLevelSprites == null || bedLevelSprites.Length < 4 || bedLevelSprites[0] == null)
+        {
+            bedLevelSprites = new Sprite[4];
+            bedLevelSprites[0] = corePodSprite;
+            bedLevelSprites[1] = corePodCyanSprite ?? corePodSprite;
+            bedLevelSprites[2] = corePodCyanSprite ?? corePodSprite;
+            bedLevelSprites[3] = corePodCyanSprite ?? corePodSprite;
+        }
 
         if (upgradeCircleSprite == null) upgradeCircleSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(uiDir + "Icon_Upgrade_Circle.png");
         if (greenBarSprite == null) greenBarSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(uiDir + "Bar_Green.png");

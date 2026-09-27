@@ -145,7 +145,7 @@ public class TowerDefGridCell : MonoBehaviour, IBeginDragHandler, IDragHandler, 
             generatorComp.Setup(type, initialLevel, structureImage, upgradeIcon, type == TowerDefStructureType.CoreBed ? 1.0f : 2.0f);
         }
 
-        SetUpgradeBadge(true);
+        RefreshUpgradeBadge(TowerDefGameManager.Instance != null ? TowerDefGameManager.Instance.Gold : 0);
     }
 
     public void ApplyTurretVisual(Sprite baseSprite, Sprite gunSprite, float gunAngleOffset)
@@ -533,6 +533,25 @@ public class TowerDefGridCell : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         if (upgradeIcon != null)
         {
             upgradeIcon.SetActive(active);
+        }
+    }
+
+    public void RefreshUpgradeBadge(int currentGold)
+    {
+        if (!IsOccupied)
+        {
+            SetUpgradeBadge(false);
+            return;
+        }
+
+        if (generatorComp != null)
+        {
+            generatorComp.RefreshUpgradeBadge(currentGold);
+        }
+        else if (turretComp != null)
+        {
+            bool can = (currentGold >= turretComp.UpgradeCost);
+            SetUpgradeBadge(can);
         }
     }
 

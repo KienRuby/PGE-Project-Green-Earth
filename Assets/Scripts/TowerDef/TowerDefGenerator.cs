@@ -16,18 +16,24 @@ public class TowerDefGenerator : MonoBehaviour
     [SerializeField] private int baseOutput = 1;
     [SerializeField] private float produceInterval = 1.0f; // Giây mỗi chu kỳ
     [SerializeField] private int baseUpgradeCost = 50;
+    [SerializeField] private Sprite[] levelSprites;
 
     [Header("Visual References")]
     [SerializeField] private Image structureImage;
     [SerializeField] private GameObject upgradeIcon;
 
+    public const int MAX_GENERATOR_LEVEL = 4;
     private float timer;
 
     public TowerDefStructureType GeneratorType => generatorType;
     public int StructureLevel => structureLevel;
+    public int MaxLevel => MAX_GENERATOR_LEVEL;
+    public bool IsMaxLevel => structureLevel >= MAX_GENERATOR_LEVEL;
+    public int NextLevel => Mathf.Min(MAX_GENERATOR_LEVEL, structureLevel + 1);
     public int CurrentOutput => baseOutput * structureLevel;
+    public int NextOutput => baseOutput * NextLevel;
     public float ProduceInterval => produceInterval;
-    public int UpgradeCost => baseUpgradeCost * structureLevel;
+    public int UpgradeCost => IsMaxLevel ? 0 : baseUpgradeCost * structureLevel;
 
     public event Action<int> OnGeneratorUpgraded;
 
@@ -39,6 +45,34 @@ public class TowerDefGenerator : MonoBehaviour
         upgradeIcon = upIcon;
         produceInterval = interval;
         timer = 0f;
+        SetUpgradeBadgeActive(false);
+        UpdateVisual();
+    }
+
+    public void SetLevelSprites(Sprite[] sprites)
+    {
+        levelSprites = sprites;
+        UpdateVisual();
+    }
+
+    public Sprite GetLevelSprite(int level)
+    {
+        if (levelSprites != null && levelSprites.Length > 0)
+        {
+            int idx = Mathf.Clamp(level - 1, 0, levelSprites.Length - 1);
+            if (idx < levelSprites.Length && levelSprites[idx] != null)
+                return levelSprites[idx];
+        }
+        return structureImage != null ? structureImage.sprite : null;
+    }
+
+    public void UpdateVisual()
+    {
+        if (structureImage != null)
+        {
+            Sprite spr = GetLevelSprite(structureLevel);
+            if (spr != null) structureImage.sprite = spr;
+        }
     }
 
     private void Update()
@@ -70,11 +104,23 @@ public class TowerDefGenerator : MonoBehaviour
 
     public bool TryUpgrade(ref int gold)
     {
+        if (IsMaxLevel) return false;
         int cost = UpgradeCost;
         if (gold < cost) return false;
 
         gold -= cost;
         structureLevel++;
+        UpdateVisual();
+        OnGeneratorUpgraded?.Invoke(structureLevel);
+        return true;
+    }
+
+    public bool TryUpgradeFree()
+    {
+        if (IsMaxLevel) return false;
+
+        structureLevel++;
+        UpdateVisual();
         OnGeneratorUpgraded?.Invoke(structureLevel);
         return true;
     }
@@ -85,5 +131,11 @@ public class TowerDefGenerator : MonoBehaviour
         {
             upgradeIcon.SetActive(active);
         }
+    }
+
+    public void RefreshUpgradeBadge(int currentGold)
+    {
+        bool canUpgrade = (currentGold >= UpgradeCost) && !IsMaxLevel;
+        SetUpgradeBadgeActive(canUpgrade);
     }
 }
