@@ -150,16 +150,28 @@ public static class BakeChipsetIconsInScene
         }
 
         // 3. Bake Inventory Slots
-        Transform invContent = chipsetPanelObj.transform.Find("InventoryScroll/Viewport/Content") ?? chipsetPanelObj.transform.Find("InventoryContent");
+        Transform invContent = chipsetPanelObj.transform.Find("InventoryScrollView/Viewport/Content")
+                            ?? chipsetPanelObj.transform.Find("InventoryScroll/Viewport/Content")
+                            ?? chipsetPanelObj.transform.Find("InventoryContent");
         if (invContent != null)
         {
             for (int i = 0; i < invContent.childCount; i++)
             {
                 Transform slot = invContent.GetChild(i);
-                if (slot.name == "CardTemplate") continue;
+                if (slot.name == "CardTemplate")
+                {
+                    BakeCard(slot, database[0], iconSprites, frameSprites, onlyIcon: true);
+                    continue;
+                }
                 ChipItemData chip = database[i % database.Count];
-                BakeCard(slot, chip, iconSprites, frameSprites);
+                BakeCard(slot, chip, iconSprites, frameSprites, onlyIcon: true);
             }
+        }
+
+        Transform topCard = chipsetPanelObj.transform.Find("ChipsetDetailModal/ModalBox/TopCard");
+        if (topCard != null)
+        {
+            BakeCard(topCard, database[0], iconSprites, frameSprites, onlyIcon: true);
         }
 
         if (controller != null)
@@ -314,13 +326,19 @@ public static class BakeChipsetIconsInScene
         }
 
         // 4. Bake Inventory Slots (Slot 0: drone-stealth-wing)
-        Transform invContent = buddyPanelObj.transform.Find("InventoryScroll/Viewport/Content") ?? buddyPanelObj.transform.Find("InventoryContent");
+        Transform invContent = buddyPanelObj.transform.Find("InventoryScrollView/Viewport/Content")
+                            ?? buddyPanelObj.transform.Find("InventoryScroll/Viewport/Content")
+                            ?? buddyPanelObj.transform.Find("InventoryContent");
         if (invContent != null)
         {
             for (int i = 0; i < invContent.childCount; i++)
             {
                 Transform slot = invContent.GetChild(i);
-                if (slot.name == "CardTemplate") continue;
+                if (slot.name == "CardTemplate")
+                {
+                    BakeBuddyCard(slot, droneStealthWing, khungSprite, "LV.01", "0/3");
+                    continue;
+                }
                 BakeBuddyCard(slot, droneStealthWing, khungSprite, "LV.01", "0/3");
             }
         }
@@ -412,7 +430,7 @@ public static class BakeChipsetIconsInScene
         EditorUtility.SetDirty(cardTransform.gameObject);
     }
 
-    private static void BakeCard(Transform cardTransform, ChipItemData chip, Sprite[] iconSprites, Sprite[] frameSprites)
+    private static void BakeCard(Transform cardTransform, ChipItemData chip, Sprite[] iconSprites, Sprite[] frameSprites, bool onlyIcon = false)
     {
         if (cardTransform == null || chip == null) return;
 
@@ -449,40 +467,43 @@ public static class BakeChipsetIconsInScene
             }
         }
 
-        // 2. Level Text
-        Transform levelTransform = cardTransform.Find("NormalContentGroup/LevelText") ?? cardTransform.Find("LevelText");
-        if (levelTransform != null)
+        if (!onlyIcon)
         {
-            TMP_Text levelTxt = levelTransform.GetComponent<TMP_Text>();
-            if (levelTxt != null)
+            // 2. Level Text
+            Transform levelTransform = cardTransform.Find("NormalContentGroup/LevelText") ?? cardTransform.Find("LevelText");
+            if (levelTransform != null)
             {
-                levelTxt.text = $"LV.{chip.level:00}";
-                EditorUtility.SetDirty(levelTxt);
+                TMP_Text levelTxt = levelTransform.GetComponent<TMP_Text>();
+                if (levelTxt != null)
+                {
+                    levelTxt.text = $"LV.{chip.level:00}";
+                    EditorUtility.SetDirty(levelTxt);
+                }
             }
-        }
 
-        // 3. Progress Text
-        Transform progTransform = cardTransform.Find("NormalContentGroup/BottomBar/ProgressText") ?? cardTransform.Find("ProgressText");
-        if (progTransform != null)
-        {
-            TMP_Text progTxt = progTransform.GetComponent<TMP_Text>();
-            if (progTxt != null)
+            // 3. Progress Text
+            Transform progTransform = cardTransform.Find("NormalContentGroup/BottomBar/ProgressText") ?? cardTransform.Find("ProgressText");
+            if (progTransform != null)
             {
-                progTxt.text = chip.requiredCount > 0 ? $"{chip.count}/{chip.requiredCount}" : $"{chip.count}";
-                EditorUtility.SetDirty(progTxt);
+                TMP_Text progTxt = progTransform.GetComponent<TMP_Text>();
+                if (progTxt != null)
+                {
+                    progTxt.text = chip.requiredCount > 0 ? $"{chip.count}/{chip.requiredCount}" : $"{chip.count}";
+                    EditorUtility.SetDirty(progTxt);
+                }
             }
-        }
 
-        // 4. Upgrade Arrow
-        Transform arrowTransform = cardTransform.Find("NormalContentGroup/UpgradeArrowGroup") ?? cardTransform.Find("UpgradeArrowGroup");
-        if (arrowTransform != null)
-        {
-            Image arrowImg = arrowTransform.GetComponent<Image>();
-            if (arrowImg == null || arrowImg.sprite == null)
+            // 4. Upgrade Arrow
+            Transform arrowTransform = cardTransform.Find("NormalContentGroup/UpgradeArrowGroup") ?? cardTransform.Find("UpgradeArrowGroup");
+            if (arrowTransform != null)
             {
-                arrowTransform.gameObject.SetActive(false);
+                Image arrowImg = arrowTransform.GetComponent<Image>();
+                if (arrowImg == null || arrowImg.sprite == null)
+                {
+                    arrowTransform.gameObject.SetActive(false);
+                }
+                EditorUtility.SetDirty(arrowTransform.gameObject);
             }
-            EditorUtility.SetDirty(arrowTransform.gameObject);
         }
 
         // 5. Card Frame - Quy tắc nâng cấp khung theo Tier của thẻ
