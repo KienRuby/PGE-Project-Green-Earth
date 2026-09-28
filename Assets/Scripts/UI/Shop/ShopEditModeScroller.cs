@@ -5,10 +5,10 @@ using UnityEditor;
 #endif
 
 /// <summary>
-/// Component hỗ trợ cuộn nội dung ShopPanel trực tiếp trong Edit Mode (Scene View & Game View).
+/// Component hỗ trợ cuộn nội dung ShopPanel trực tiếp trong Edit Mode (Scene View).
 /// Cho phép lập trình viên / Designer dễ dàng cuộn xuống các mục bên dưới để chỉnh sửa kích thước,
 /// vị trí, thay đổi sprite mà không cần phải bấm Play Mode.
-/// Tự động reset an toàn về đỉnh (0, 0) và bật lại Mask khi bấm Play để đảm bảo 100% không ảnh hưởng runtime.
+/// Vị trí cuộn được lưu cùng Scene và giữ nguyên khi vào Play Mode.
 /// </summary>
 [ExecuteAlways]
 [DisallowMultipleComponent]
@@ -42,6 +42,9 @@ public class ShopEditModeScroller : MonoBehaviour
         {
             scrollPercent = Mathf.Clamp01(value);
             ApplyScroll();
+#if UNITY_EDITOR
+            if (!Application.isPlaying) EditorUtility.SetDirty(this);
+#endif
         }
     }
 
@@ -58,34 +61,14 @@ public class ShopEditModeScroller : MonoBehaviour
     private void Awake()
     {
         AutoFindReferences();
-
-        if (Application.isPlaying)
-        {
-            // Trong game thực tế, luôn đảm bảo Mask bật và vị trí bắt đầu từ đầu trang
-            ResetToTop();
-        }
+        if (Application.isPlaying) ApplyMaskState();
     }
 
     private void OnEnable()
     {
         AutoFindReferences();
 
-        if (Application.isPlaying)
-        {
-            ResetToTop();
-        }
-
-#if UNITY_EDITOR
-        EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
-        EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
-#endif
-    }
-
-    private void OnDisable()
-    {
-#if UNITY_EDITOR
-        EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
-#endif
+        if (Application.isPlaying) ApplyMaskState();
     }
 
     public void AutoFindReferences()
@@ -185,6 +168,9 @@ public class ShopEditModeScroller : MonoBehaviour
         float newY = Mathf.Clamp(currentY + deltaY, 0f, maxScroll);
         scrollPercent = newY / maxScroll;
         ApplyScroll();
+#if UNITY_EDITOR
+        if (!Application.isPlaying) EditorUtility.SetDirty(this);
+#endif
     }
 
     /// <summary>
@@ -214,6 +200,9 @@ public class ShopEditModeScroller : MonoBehaviour
     public void ResetToTop()
     {
         scrollPercent = 0f;
+#if UNITY_EDITOR
+        if (!Application.isPlaying) EditorUtility.SetDirty(this);
+#endif
         if (content != null)
         {
             content.anchoredPosition = new Vector2(content.anchoredPosition.x, 0f);
@@ -248,14 +237,4 @@ public class ShopEditModeScroller : MonoBehaviour
         }
     }
 
-#if UNITY_EDITOR
-    private void OnPlayModeStateChanged(PlayModeStateChange state)
-    {
-        if (state == PlayModeStateChange.ExitingEditMode)
-        {
-            // Tự động reset về đỉnh và bật lại Mask trước khi vào Play Mode
-            ResetToTop();
-        }
-    }
-#endif
 }

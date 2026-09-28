@@ -145,11 +145,6 @@ public class RocketPunchSkill : MonoBehaviour
             {
                 shoulderGunPivot.gameObject.SetActive(true);
             }
-
-            if (playerAutoShooter != null && playerAutoShooter.GunPivot != null)
-            {
-                shoulderGunPivot.localRotation = playerAutoShooter.GunPivot.localRotation;
-            }
         }
 
         currentCooldownTimer -= Time.deltaTime;

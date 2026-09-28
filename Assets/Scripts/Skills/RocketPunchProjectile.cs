@@ -355,7 +355,7 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
             flightTimer -= Time.deltaTime;
             if (flightTimer <= 0f)
             {
-                Explode();
+                Despawn();
             }
         }
     }
@@ -528,11 +528,11 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
 
     private bool ResolveHit(Collider2D hitCollider, Vector2 hitPoint)
     {
-        if (hasExploded) return false;
-        if (hitCollider != null && (hitCollider.CompareTag("Player") || hitCollider.CompareTag("BulletPlayer"))) return false;
+        if (hasExploded || hitCollider == null) return false;
+        if (hitCollider.CompareTag("Player") || hitCollider.CompareTag("BulletPlayer")) return false;
 
         // 1. Chướng ngại vật (Obstacle)
-        if (hitCollider != null && ((ObstacleLayerIndex != -1 && hitCollider.gameObject.layer == ObstacleLayerIndex) || hitCollider.CompareTag("Obstacle")))
+        if ((ObstacleLayerIndex != -1 && hitCollider.gameObject.layer == ObstacleLayerIndex) || hitCollider.CompareTag("Obstacle"))
         {
             if (!hitCollider.isTrigger)
             {
@@ -545,47 +545,18 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
         }
 
         // 2. Kẻ địch (Enemy)
-        IDamageable damageable = hitCollider != null ? hitCollider.GetComponentInParent<IDamageable>() : null;
-        if (damageable != null)
-        {
-            if (damageable is EnemyHealth enemyHealth && (enemyHealth.IsDead || !enemyHealth.gameObject.activeInHierarchy)) return false;
+        IDamageable damageable = hitCollider.GetComponentInParent<IDamageable>();
+        if (!(damageable is EnemyHealth) && !(damageable is Enemy)) return false;
+        if (damageable is EnemyHealth enemyHealth && (enemyHealth.IsDead || !enemyHealth.gameObject.activeInHierarchy)) return false;
+        if (damageable is Enemy enemy && (enemy.IsDead || !enemy.gameObject.activeInHierarchy)) return false;
 
-            transform.position = hitPoint;
-            if (rb != null) rb.position = hitPoint;
-
-            if (damageable is EnemyHealth)
-                AudioManager.Instance?.PlaySFX(SoundIdConst.SFX_PUNCH_HIT);
-            damageable.TakeDamage(directDamage);
-            ChipsetBattleStats.RecordDamage(3, directDamage);
-            Explode();
-            return true;
-        }
-
-        // 3. Trúng mục tiêu đang bám đuổi (khi hitCollider là null từ kiểm tra áp sát Proximity)
-        if (currentTargetEnemy != null && currentTargetEnemy.gameObject.activeInHierarchy)
-        {
-            EnemyHealth targetEh = currentTargetEnemy.GetComponentInParent<EnemyHealth>();
-            if (targetEh != null && !targetEh.IsDead && targetEh.gameObject.activeInHierarchy)
-            {
-                transform.position = hitPoint;
-                if (rb != null) rb.position = hitPoint;
-                AudioManager.Instance?.PlaySFX(SoundIdConst.SFX_PUNCH_HIT);
-                targetEh.TakeDamage(directDamage);
-                ChipsetBattleStats.RecordDamage(3, directDamage);
-                Explode();
-                return true;
-            }
-        }
-
-        if (state == RocketPunchState.Launched && hitCollider != null && !hitCollider.isTrigger)
-        {
-            transform.position = hitPoint;
-            if (rb != null) rb.position = hitPoint;
-            Explode();
-            return true;
-        }
-
-        return false;
+        transform.position = hitPoint;
+        if (rb != null) rb.position = hitPoint;
+        AudioManager.Instance?.PlaySFX(SoundIdConst.SFX_PUNCH_HIT);
+        damageable.TakeDamage(directDamage);
+        ChipsetBattleStats.RecordDamage(3, directDamage);
+        Explode();
+        return true;
     }
 
     private void OnTriggerEnter2D(Collider2D other)

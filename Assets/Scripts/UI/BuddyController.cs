@@ -1727,17 +1727,25 @@ public class BuddyController : MonoBehaviour
             detailAdvanceTierBtn.interactable = selectedDetailBuddy.CanAdvanceTier;
         }
 
-        // 7. Equip Button (Only shown when opened from inventory below, hidden when viewing from equipped slot)
-        bool showEquipBtn = (openedFromEquippedSlotIndex < 0);
+        // 7. Equip Button (Shown for both inventory and equipped slots)
         if (detailEquipBtn != null)
         {
-            detailEquipBtn.gameObject.SetActive(showEquipBtn);
+            detailEquipBtn.gameObject.SetActive(true);
             detailEquipBtn.interactable = true;
+            if (detailEquipBtn.targetGraphic != null) detailEquipBtn.targetGraphic.raycastTarget = true;
+            var equipImg = detailEquipBtn.GetComponent<Image>();
+            if (equipImg != null) equipImg.raycastTarget = true;
         }
+
+        int[] currentDeckForDetail = (deckEquippedIds != null && activeDeckIndex < deckEquippedIds.Length)
+            ? deckEquippedIds[activeDeckIndex]
+            : null;
+        bool isCurrentlyEquipped = (openedFromEquippedSlotIndex >= 0) ||
+            (currentDeckForDetail != null && selectedDetailBuddy != null && currentDeckForDetail.Contains(selectedDetailBuddy.id));
 
         if (detailEquipBtnText != null)
         {
-            detailEquipBtnText.text = "EQUIP";
+            detailEquipBtnText.text = isCurrentlyEquipped ? "UNEQUIP" : "EQUIP";
         }
     }
 
@@ -1806,17 +1814,73 @@ public class BuddyController : MonoBehaviour
     {
         if (selectedDetailBuddy == null) return;
 
-        pendingEquipBuddy = selectedDetailBuddy;
-        isEquipSelectMode = true;
-
-        if (detailModal != null)
+        if (deckEquippedIds == null || activeDeckIndex >= deckEquippedIds.Length || deckEquippedIds[activeDeckIndex] == null || deckEquippedIds[activeDeckIndex].Length != 3)
         {
-            detailModal.SetActive(false);
+            InitializeDatabase();
+        }
+        int[] currentDeck = deckEquippedIds[activeDeckIndex];
+
+        // 1. If opened from an equipped slot -> unequip that specific slot
+        if (openedFromEquippedSlotIndex >= 0 && openedFromEquippedSlotIndex < currentDeck.Length)
+        {
+            int slotIdx = openedFromEquippedSlotIndex;
+            currentDeck[slotIdx] = -1;
+            PlayerDataService.SaveBuddyDeck(activeDeckIndex, currentDeck);
+            string unequippedName = selectedDetailBuddy.buddyName;
+            openedFromEquippedSlotIndex = -1;
+            if (detailModal != null) detailModal.SetActive(false);
+            RefreshEquippedGrid();
+            RefreshInventory();
+            UpdateInventoryEquipVisuals();
+            ShowToast($"Unequipped {unequippedName} from Slot {slotIdx + 1}");
+            return;
         }
 
-        RefreshEquippedGrid();
-        UpdateInventoryEquipVisuals();
-        ShowToast($"Tap a slot above to equip {pendingEquipBuddy.buddyName}");
+        // 2. If this drone is already equipped in current deck -> unequip it
+        int existingIndex = Array.IndexOf(currentDeck, selectedDetailBuddy.id);
+        if (existingIndex >= 0)
+        {
+            currentDeck[existingIndex] = -1;
+            PlayerDataService.SaveBuddyDeck(activeDeckIndex, currentDeck);
+            string unequippedName = selectedDetailBuddy.buddyName;
+            if (detailModal != null) detailModal.SetActive(false);
+            RefreshEquippedGrid();
+            RefreshInventory();
+            UpdateInventoryEquipVisuals();
+            ShowToast($"Unequipped {unequippedName}");
+            return;
+        }
+
+        // 3. Find first empty unlocked slot
+        int emptyIndex = -1;
+        for (int i = 0; i < currentDeck.Length; i++)
+        {
+            bool isLocked = (slotUnlocked != null && i < slotUnlocked.Length && !slotUnlocked[i]) || currentDeck[i] == -2;
+            if (!isLocked && currentDeck[i] <= 0)
+            {
+                emptyIndex = i;
+                break;
+            }
+        }
+
+        if (emptyIndex >= 0)
+        {
+            currentDeck[emptyIndex] = selectedDetailBuddy.id;
+            PlayerDataService.SaveBuddyDeck(activeDeckIndex, currentDeck);
+            string equippedName = selectedDetailBuddy.buddyName;
+            lastEquipFrame = Time.frameCount;
+            lastEquipTime = Time.unscaledTime;
+            if (detailModal != null) detailModal.SetActive(false);
+            RefreshEquippedGrid();
+            RefreshInventory();
+            UpdateInventoryEquipVisuals();
+            ShowToast($"Equipped {equippedName} to Slot {emptyIndex + 1}");
+            PlayEquipSFX();
+            return;
+        }
+
+        // 4. All slots are full
+        ShowToast("All 3 drone slots are full! Unequip a drone first.");
     }
 
     public void OnEquipSlotSelected(int slotIndex)

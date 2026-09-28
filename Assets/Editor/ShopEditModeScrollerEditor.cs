@@ -39,7 +39,7 @@ public class ShopEditModeScrollerEditor : Editor
         EditorGUILayout.Space(6);
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
         EditorGUILayout.LabelField("🛠️ ĐIỀU KHIỂN CUỘN SHOP (EDIT MODE)", titleStyle);
-        EditorGUILayout.LabelField("Cuộn mượt mà & chỉnh sửa toàn bộ sprite trong Scene/Game View không cần Play Mode.", EditorStyles.wordWrappedMiniLabel);
+        EditorGUILayout.LabelField("Cuộn và chỉnh sửa nội dung Shop trong Scene View không cần Play Mode.", EditorStyles.wordWrappedMiniLabel);
         EditorGUILayout.EndVertical();
 
         EditorGUILayout.Space(6);
@@ -180,19 +180,5 @@ public class ShopEditModeScrollerEditor : Editor
         }
     }
 
-    private void OnSceneGUI()
-    {
-        if (scroller == null || Application.isPlaying) return;
-
-        Event e = Event.current;
-        if (e != null && e.isScrollWheel)
-        {
-            // Lăn chuột trong Scene View để cuộn Shop
-            float delta = e.delta.y * 120f;
-            scroller.ScrollByDelta(delta);
-            e.Use();
-            Repaint();
-        }
-    }
 }
 #endif

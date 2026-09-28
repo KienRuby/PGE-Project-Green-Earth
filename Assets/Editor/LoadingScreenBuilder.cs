@@ -20,11 +20,8 @@ public static class LoadingScreenBuilder
     private const string ChanSauSpritePath = "Assets/Sprites/Enemy/Creep 2/big creep2- chân sau.png";
     private const string CreepControllerPath = "Assets/Animaton/Enemy/Creep 2/Big creep 2.controller";
 
-    // Creep 3
-    private const string Creep3ThanPath = "Assets/Sprites/Enemy/Creep 3/creep 3-thân.png";
-    private const string Creep3KhopTrenPath = "Assets/Sprites/Enemy/Creep 3/creep 3-khớp trên.png";
-    private const string Creep3KhopDuoiPath = "Assets/Sprites/Enemy/Creep 3/creep 3-khớp dưới.png";
-    private const string Creep3ControllerPath = "Assets/Animaton/Enemy/Creep3/Creep3.controller";
+    private const string Bigcreep3PrefabPath = "Assets/Prefabs/Enemy/Creep/Bigcreep3.prefab";
+    private const string BigCreepGenMinePrefabPath = "Assets/Prefabs/Gen Mine/BigCreep.prefab";
 
     // Creep 1
     private const string Creep1ThanPath = "Assets/Sprites/Enemy/Creep 1/creep 1- thân.png";
@@ -75,20 +72,11 @@ public static class LoadingScreenBuilder
             return;
         }
 
-        // 2. Tải tài nguyên Creep 3
-        Sprite creep3ThanSprite = AssetDatabase.LoadAssetAtPath<Sprite>(Creep3ThanPath);
-        Sprite[] khopTrenSprites = AssetDatabase.LoadAllAssetsAtPath(Creep3KhopTrenPath).OfType<Sprite>().ToArray();
-        Sprite[] khopDuoiSprites = AssetDatabase.LoadAllAssetsAtPath(Creep3KhopDuoiPath).OfType<Sprite>().ToArray();
-        RuntimeAnimatorController creep3Controller = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(Creep3ControllerPath);
-
-        Sprite khopTren0 = khopTrenSprites.FirstOrDefault(s => s.name.Contains("khớp trên_0"));
-        Sprite khopTren1 = khopTrenSprites.FirstOrDefault(s => s.name.Contains("khớp trên_1"));
-        Sprite khopDuoi0 = khopDuoiSprites.FirstOrDefault(s => s.name.Contains("khớp dưới_0"));
-        Sprite khopDuoi1 = khopDuoiSprites.FirstOrDefault(s => s.name.Contains("khớp dưới_1"));
-
-        if (creep3ThanSprite == null || khopTren0 == null || khopTren1 == null || khopDuoi0 == null || khopDuoi1 == null || creep3Controller == null)
+        GameObject bigcreep3Prefab = AssetDatabase.LoadAssetAtPath<GameObject>(Bigcreep3PrefabPath);
+        GameObject bigCreepGenMinePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(BigCreepGenMinePrefabPath);
+        if (bigcreep3Prefab == null || bigCreepGenMinePrefab == null)
         {
-            Debug.LogError($"[LoadingScreenBuilder] Không thể nạp đầy đủ sprite hoặc controller cho Creep 3.");
+            Debug.LogError("[LoadingScreenBuilder] Không thể nạp prefab Bigcreep3 hoặc BigCreep Gen Mine.");
             return;
         }
 
@@ -227,26 +215,9 @@ public static class LoadingScreenBuilder
         CreateLimbImage(creepObj, "big creep2- chân trc_1", chanTrc1, new Vector2(130f, 125f), new Vector2(0.860676f, 0.61376035f), new Vector2(-120.10f, -32.50f));
         CreateLimbImage(creepObj, "big creep2- chân trc_0", chanTrc0, new Vector2(134f, 125f), new Vector2(0.13574994f, 0.6875514f), new Vector2(115.83f, -26.75f));
 
-        // 3.4.2. Creep3_Visual (Quái vật gai Creep 3 với animation Walk)
-        GameObject creep3Obj = new GameObject("Creep3_Visual");
-        creep3Obj.transform.SetParent(mascotObj.transform, false);
-        RectTransform creep3Rect = creep3Obj.AddComponent<RectTransform>();
-        creep3Rect.anchorMin = new Vector2(0.5f, 0f);
-        creep3Rect.anchorMax = new Vector2(0.5f, 0f);
-        creep3Rect.pivot = new Vector2(0.5f, 0f);
-        creep3Rect.anchoredPosition = new Vector2(0f, 40f);
-        creep3Rect.localScale = new Vector3(0.35f, 0.35f, 1f);
-
-        Animator creep3Animator = creep3Obj.AddComponent<Animator>();
-        creep3Animator.runtimeAnimatorController = creep3Controller;
-        creep3Animator.updateMode = AnimatorUpdateMode.UnscaledTime;
-        creep3Animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
-
-        GameObject khopTren1Obj = CreateLimbImage(creep3Obj, "creep 3-khớp trên_1", khopTren1, new Vector2(64f, 73f), new Vector2(0.7318306f, 0.88919884f), new Vector2(22.3f, -36.4f), new Vector3(-1f, 1f, 1f));
-        CreateLimbImage(khopTren1Obj, "creep 3-khớp dưới_1", khopDuoi1, new Vector2(78f, 104f), new Vector2(0.42941636f, 0.79777426f), new Vector2(-20.4f, -48.7f));
-        CreateLimbImage(creep3Obj, "creep 3-thân (1)", creep3ThanSprite, new Vector2(500f, 500f), new Vector2(0.5f, 0.5f), Vector2.zero);
-        GameObject khopTren0Obj = CreateLimbImage(creep3Obj, "creep 3-khớp trên_0", khopTren0, new Vector2(75f, 69f), new Vector2(0.89986575f, 0.82940894f), new Vector2(57.5f, -36.6f), new Vector3(-1f, 1f, 1f));
-        CreateLimbImage(khopTren0Obj, "creep 3-khớp dưới_0", khopDuoi0, new Vector2(88f, 96f), new Vector2(0.691598f, 0.890691f), new Vector2(-35.3f, -40.8f));
+        // 3.4.2. Mascot UI lấy hình và animation từ hai prefab quái lớn
+        GameObject bigcreep3Obj = CreatePrefabMascotVisual(mascotObj.transform, bigcreep3Prefab, "Bigcreep3_Visual", 200f);
+        GameObject bigCreepGenMineObj = CreatePrefabMascotVisual(mascotObj.transform, bigCreepGenMinePrefab, "BigCreepGenMine_Visual", 300f);
 
         // 3.4.3. Creep1_Visual (Quái vật 4 chân Creep 1 với animation Run)
         GameObject creep1Obj = new GameObject("Creep1_Visual");
@@ -271,7 +242,8 @@ public static class LoadingScreenBuilder
 
         // Khởi tạo trạng thái ban đầu: Creep 2 bật, các con khác ẩn
         creepObj.SetActive(true);
-        creep3Obj.SetActive(false);
+        bigcreep3Obj.SetActive(false);
+        bigCreepGenMineObj.SetActive(false);
         creep1Obj.SetActive(false);
 
         // 4. Gán Serialized Fields vào LoadingScreenUI
@@ -283,10 +255,11 @@ public static class LoadingScreenBuilder
         so.FindProperty("mascotAnimator").objectReferenceValue = creepAnimator;
 
         SerializedProperty creepVariantsProp = so.FindProperty("creepVariants");
-        creepVariantsProp.arraySize = 3;
+        creepVariantsProp.arraySize = 4;
         creepVariantsProp.GetArrayElementAtIndex(0).objectReferenceValue = creepObj;
-        creepVariantsProp.GetArrayElementAtIndex(1).objectReferenceValue = creep3Obj;
-        creepVariantsProp.GetArrayElementAtIndex(2).objectReferenceValue = creep1Obj;
+        creepVariantsProp.GetArrayElementAtIndex(1).objectReferenceValue = bigcreep3Obj;
+        creepVariantsProp.GetArrayElementAtIndex(2).objectReferenceValue = bigCreepGenMineObj;
+        creepVariantsProp.GetArrayElementAtIndex(3).objectReferenceValue = creep1Obj;
 
         so.FindProperty("progressText").objectReferenceValue = null;
         so.FindProperty("minDisplayDuration").floatValue = 1.0f;
@@ -415,6 +388,46 @@ public static class LoadingScreenBuilder
         img.color = Color.white;
         img.raycastTarget = false;
         return limb;
+    }
+
+    private static GameObject CreatePrefabMascotVisual(Transform parent, GameObject source, string name, float pixelsPerWorldUnit)
+    {
+        GameObject visual = new GameObject(name, typeof(RectTransform), typeof(Animator));
+        RectTransform root = visual.GetComponent<RectTransform>();
+        root.SetParent(parent, false);
+        root.anchorMin = new Vector2(0.5f, 0f);
+        root.anchorMax = new Vector2(0.5f, 0f);
+        root.pivot = new Vector2(0.5f, 0.5f);
+        root.anchoredPosition = new Vector2(0f, 40f);
+        root.sizeDelta = Vector2.zero;
+        root.localScale = new Vector3(source.transform.localScale.x * pixelsPerWorldUnit,
+            source.transform.localScale.y * pixelsPerWorldUnit, 1f);
+
+        Animator animator = visual.GetComponent<Animator>();
+        animator.runtimeAnimatorController = source.GetComponent<Animator>().runtimeAnimatorController;
+        animator.updateMode = AnimatorUpdateMode.UnscaledTime;
+        animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+
+        foreach (SpriteRenderer renderer in source.GetComponentsInChildren<SpriteRenderer>(true).OrderBy(r => r.sortingOrder))
+        {
+            Sprite sprite = renderer.sprite;
+            GameObject part = new GameObject(renderer.gameObject.name, typeof(RectTransform), typeof(CanvasRenderer), typeof(UnityEngine.UI.Image));
+            RectTransform rt = part.GetComponent<RectTransform>();
+            rt.SetParent(root, false);
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.pivot = new Vector2(sprite.pivot.x / sprite.rect.width, sprite.pivot.y / sprite.rect.height);
+            rt.anchoredPosition = renderer.transform.localPosition;
+            rt.sizeDelta = sprite.bounds.size;
+            rt.localRotation = renderer.transform.localRotation;
+            rt.localScale = renderer.transform.localScale;
+
+            UnityEngine.UI.Image image = part.GetComponent<UnityEngine.UI.Image>();
+            image.sprite = sprite;
+            image.color = renderer.color;
+            image.raycastTarget = false;
+        }
+
+        return visual;
     }
 
     private static void SetLayerRecursively(GameObject obj, int layer)
