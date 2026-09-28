@@ -51,11 +51,22 @@ public static class TowerDefSceneBuilder
         cam.backgroundColor = new Color(0.08f, 0.08f, 0.1f, 1f);
         cam.transform.position = new Vector3(0f, 0f, -10f);
 
-        // 2. EventSystem
-        if (FindInScene<EventSystem>(scene) == null)
+        // 2. EventSystem: Giữ đúng 1 EventSystem duy nhất, dọn dẹp các bản trùng
+        System.Collections.Generic.List<EventSystem> allEs = FindAllInScene<EventSystem>(scene);
+        if (allEs == null || allEs.Count == 0)
         {
             GameObject esObj = new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
             SceneManager.MoveGameObjectToScene(esObj, scene);
+        }
+        else if (allEs.Count > 1)
+        {
+            for (int i = 1; i < allEs.Count; i++)
+            {
+                if (allEs[i] != null)
+                {
+                    Object.DestroyImmediate(allEs[i].gameObject);
+                }
+            }
         }
 
         // 3. Canvas
@@ -98,13 +109,28 @@ public static class TowerDefSceneBuilder
 
     private static T FindInScene<T>(Scene scene) where T : Component
     {
-        if (!scene.IsValid() || !scene.isLoaded) return null;
+        if (!scene.IsValid()) return null;
         foreach (var root in scene.GetRootGameObjects())
         {
             var comp = root.GetComponentInChildren<T>(true);
             if (comp != null) return comp;
         }
         return null;
+    }
+
+    private static System.Collections.Generic.List<T> FindAllInScene<T>(Scene scene) where T : Component
+    {
+        var list = new System.Collections.Generic.List<T>();
+        if (!scene.IsValid()) return list;
+        foreach (var root in scene.GetRootGameObjects())
+        {
+            var comps = root.GetComponentsInChildren<T>(true);
+            if (comps != null && comps.Length > 0)
+            {
+                list.AddRange(comps);
+            }
+        }
+        return list;
     }
 
     private static void AssignSerializedSprites(TowerDefGameManager gm)

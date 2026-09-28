@@ -82,6 +82,44 @@ public class TowerDefTests
     }
 
     [Test]
+    public void Gate_UpgradeChangesAppearance_ToAllLevels()
+    {
+        GameObject gateObj = new GameObject("TestGateVisual", typeof(RectTransform), typeof(Image), typeof(Button), typeof(TowerDefGate));
+        gateObj.transform.SetParent(rootObj.transform);
+
+        TowerDefGate gate = gateObj.GetComponent<TowerDefGate>();
+        Image img = gateObj.GetComponent<Image>();
+        gate.Setup(50f, null, null, null, 10, 20f);
+
+        // Level 1: Gate_Metal
+        Assert.AreEqual(1, gate.GateLevel);
+        Assert.IsNotNull(img.sprite, "Level 1 gate sprite should not be null");
+        Assert.IsTrue(img.sprite.name.Contains("Metal") || img.sprite.name.Contains("Gate"), $"Expected Gate_Metal but got {img.sprite.name}");
+
+        // Level 2: Gate_Cyan_Grid
+        int gold = 1000;
+        bool up1 = gate.TryUpgrade(ref gold);
+        Assert.IsTrue(up1);
+        Assert.AreEqual(2, gate.GateLevel);
+        Assert.IsNotNull(img.sprite, "Level 2 gate sprite should not be null");
+        Assert.IsTrue(img.sprite.name.Contains("Cyan") || img.sprite.name.Contains("Grid"), $"Expected Gate_Cyan_Grid but got {img.sprite.name}");
+
+        // Level 3: Gate_Green_Wood
+        bool up2 = gate.TryUpgrade(ref gold);
+        Assert.IsTrue(up2);
+        Assert.AreEqual(3, gate.GateLevel);
+        Assert.IsNotNull(img.sprite, "Level 3 gate sprite should not be null");
+        Assert.IsTrue(img.sprite.name.Contains("Green") || img.sprite.name.Contains("Wood"), $"Expected Gate_Green_Wood but got {img.sprite.name}");
+
+        // Level 4: Gate_Blue_Wood
+        bool up3 = gate.TryUpgrade(ref gold);
+        Assert.IsTrue(up3);
+        Assert.AreEqual(4, gate.GateLevel);
+        Assert.IsNotNull(img.sprite, "Level 4 gate sprite should not be null");
+        Assert.IsTrue(img.sprite.name.Contains("Blue") || img.sprite.name.Contains("Wood"), $"Expected Gate_Blue_Wood but got {img.sprite.name}");
+    }
+
+    [Test]
     public void Gate_UpgradeBadgeVisibilityDependsOnGoldAndLevel()
     {
         GameObject gateObj = new GameObject("TestGateBadge", typeof(RectTransform), typeof(Image), typeof(Button), typeof(TowerDefGate));
