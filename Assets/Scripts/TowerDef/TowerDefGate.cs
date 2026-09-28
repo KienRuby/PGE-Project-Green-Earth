@@ -50,6 +50,7 @@ public class TowerDefGate : MonoBehaviour
         UpdateHealthBarVisual();
         SetUpgradeBadgeActive(false);
 
+        if (gateButton == null) gateButton = GetComponent<Button>();
         if (gateButton != null)
         {
             gateButton.onClick.RemoveListener(HandleGateClicked);
@@ -63,7 +64,7 @@ public class TowerDefGate : MonoBehaviour
         currentHp = maxHp;
         healthBarFill = hpFill;
         upgradeIcon = upIcon;
-        gateButton = btn;
+        gateButton = btn != null ? btn : GetComponent<Button>();
         baseUpgradeCost = upgradeCost;
         hpIncrement = hpGainOnUpgrade;
         if (gateImage == null) gateImage = GetComponent<Image>();
@@ -81,6 +82,36 @@ public class TowerDefGate : MonoBehaviour
         UpdateHealthBarVisual();
     }
 
+    private Sprite LoadGateSprite(int level, string spriteName)
+    {
+        Sprite spr = Resources.Load<Sprite>("TowerDef/" + spriteName);
+        if (spr != null) return spr;
+
+        Sprite[] all = Resources.LoadAll<Sprite>("TowerDef/" + spriteName);
+        if (all != null && all.Length > 0 && all[0] != null) return all[0];
+
+#if UNITY_EDITOR
+        string tilesDir = "Assets/Sprites/Mini game/Sliced/Tiles/";
+        spr = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + spriteName + ".png");
+        if (spr != null) return spr;
+
+        string resDir = "Assets/Resources/TowerDef/";
+        spr = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(resDir + spriteName + ".png");
+        if (spr != null) return spr;
+#endif
+
+        if (TowerDefGameManager.Instance != null && TowerDefGameManager.Instance.GateLevelSprites != null)
+        {
+            int idx = level - 1;
+            if (idx >= 0 && idx < TowerDefGameManager.Instance.GateLevelSprites.Length)
+            {
+                if (TowerDefGameManager.Instance.GateLevelSprites[idx] != null)
+                    return TowerDefGameManager.Instance.GateLevelSprites[idx];
+            }
+        }
+        return null;
+    }
+
     public void EnsureSpritesLoaded()
     {
         if (levelSprites == null || levelSprites.Length < 4)
@@ -94,18 +125,10 @@ public class TowerDefGate : MonoBehaviour
             levelSprites = newSprites;
         }
 
-        if (levelSprites[0] == null) levelSprites[0] = Resources.Load<Sprite>("TowerDef/Gate_Metal");
-        if (levelSprites[1] == null) levelSprites[1] = Resources.Load<Sprite>("TowerDef/Gate_Cyan_Grid");
-        if (levelSprites[2] == null) levelSprites[2] = Resources.Load<Sprite>("TowerDef/Gate_Green_Wood");
-        if (levelSprites[3] == null) levelSprites[3] = Resources.Load<Sprite>("TowerDef/Gate_Blue_Wood");
-
-#if UNITY_EDITOR
-        string tilesDir = "Assets/Sprites/Mini game/Sliced/Tiles/";
-        if (levelSprites[0] == null) levelSprites[0] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + "Gate_Metal.png");
-        if (levelSprites[1] == null) levelSprites[1] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + "Gate_Cyan_Grid.png");
-        if (levelSprites[2] == null) levelSprites[2] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + "Gate_Green_Wood.png");
-        if (levelSprites[3] == null) levelSprites[3] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + "Gate_Blue_Wood.png");
-#endif
+        if (levelSprites[0] == null) levelSprites[0] = LoadGateSprite(1, "Gate_Metal");
+        if (levelSprites[1] == null) levelSprites[1] = LoadGateSprite(2, "Gate_Cyan_Grid");
+        if (levelSprites[2] == null) levelSprites[2] = LoadGateSprite(3, "Gate_Green_Wood");
+        if (levelSprites[3] == null) levelSprites[3] = LoadGateSprite(4, "Gate_Blue_Wood");
 
         if (TowerDefGameManager.Instance != null && TowerDefGameManager.Instance.GateLevelSprites != null)
         {
@@ -134,7 +157,17 @@ public class TowerDefGate : MonoBehaviour
     {
         if (sprites != null && sprites.Length > 0)
         {
-            levelSprites = sprites;
+            if (levelSprites == null || levelSprites.Length < 4)
+            {
+                levelSprites = new Sprite[4];
+            }
+            for (int i = 0; i < Mathf.Min(sprites.Length, 4); i++)
+            {
+                if (sprites[i] != null)
+                {
+                    levelSprites[i] = sprites[i];
+                }
+            }
         }
         EnsureSpritesLoaded();
         UpdateGateVisual();
@@ -143,14 +176,30 @@ public class TowerDefGate : MonoBehaviour
     public Sprite GetLevelSprite(int level)
     {
         EnsureSpritesLoaded();
-        if (levelSprites != null && levelSprites.Length > 0)
+        int idx = Mathf.Clamp(level - 1, 0, 3);
+        if (levelSprites != null && idx < levelSprites.Length && levelSprites[idx] != null)
         {
-            int idx = Mathf.Clamp(level - 1, 0, levelSprites.Length - 1);
-            if (idx < levelSprites.Length && levelSprites[idx] != null)
-                return levelSprites[idx];
+            return levelSprites[idx];
         }
+
+        string fallbackName;
+        switch (level)
+        {
+            case 1: fallbackName = "Gate_Metal"; break;
+            case 2: fallbackName = "Gate_Cyan_Grid"; break;
+            case 3: fallbackName = "Gate_Green_Wood"; break;
+            case 4: fallbackName = "Gate_Blue_Wood"; break;
+            default: fallbackName = "Gate_Blue_Wood"; break;
+        }
+        Sprite spr = LoadGateSprite(level, fallbackName);
+        if (spr != null)
+        {
+            if (levelSprites != null && idx < levelSprites.Length)
+                levelSprites[idx] = spr;
+            return spr;
+        }
+
         if (gateImage == null) gateImage = GetComponent<Image>();
-        if (gateImage == null) gateImage = GetComponentInChildren<Image>(true);
         return gateImage != null ? gateImage.sprite : null;
     }
 
@@ -158,6 +207,7 @@ public class TowerDefGate : MonoBehaviour
     {
         EnsureSpritesLoaded();
         Sprite spr = GetLevelSprite(gateLevel);
+
         if (gateImage == null) gateImage = GetComponent<Image>();
         if (gateImage == null) gateImage = GetComponentInChildren<Image>(true);
 
@@ -166,7 +216,17 @@ public class TowerDefGate : MonoBehaviour
             if (gateImage != null)
             {
                 gateImage.sprite = spr;
+                gateImage.overrideSprite = spr;
                 gateImage.color = Color.white;
+                gateImage.SetAllDirty();
+            }
+            Image direct = GetComponent<Image>();
+            if (direct != null && direct != gateImage)
+            {
+                direct.sprite = spr;
+                direct.overrideSprite = spr;
+                direct.color = Color.white;
+                direct.SetAllDirty();
             }
             SpriteRenderer sr = GetComponent<SpriteRenderer>();
             if (sr != null)
@@ -174,6 +234,11 @@ public class TowerDefGate : MonoBehaviour
                 sr.sprite = spr;
                 sr.color = Color.white;
             }
+            Debug.Log($"[TowerDefGate] UpdateGateVisual: Level {gateLevel} -> Applied sprite '{spr.name}' on {gameObject.name}");
+        }
+        else
+        {
+            Debug.LogWarning($"[TowerDefGate] UpdateGateVisual: No sprite found for Gate Level {gateLevel} on {gameObject.name}!");
         }
     }
 

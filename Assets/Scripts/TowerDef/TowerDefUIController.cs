@@ -650,10 +650,14 @@ public class TowerDefUIController : MonoBehaviour
 
     private void OnGoldUpgradeClicked()
     {
+        if (currentGate == null && TowerDefGameManager.Instance != null)
+            currentGate = TowerDefGameManager.Instance.Gate;
         if (currentGate == null) return;
+
         bool ok = TowerDefGameManager.Instance != null && TowerDefGameManager.Instance.TryUpgradeGate(currentGate);
         if (ok)
         {
+            currentGate.UpdateGateVisual();
             if (currentGate.IsMaxLevel)
             {
                 CloseAllModals();
@@ -667,11 +671,15 @@ public class TowerDefUIController : MonoBehaviour
 
     private void OnAdUpgradeClicked()
     {
+        if (currentGate == null && TowerDefGameManager.Instance != null)
+            currentGate = TowerDefGameManager.Instance.Gate;
         if (currentGate == null || hasUsedFreeAdUpgrade) return;
+
         bool ok = TowerDefGameManager.Instance != null && TowerDefGameManager.Instance.TryUpgradeGateFree(currentGate);
         if (ok)
         {
             hasUsedFreeAdUpgrade = true;
+            currentGate.UpdateGateVisual();
             if (currentGate.IsMaxLevel)
             {
                 CloseAllModals();

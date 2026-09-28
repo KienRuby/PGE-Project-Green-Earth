@@ -343,12 +343,17 @@ public class TowerDefGameManager : MonoBehaviour
 
     public bool TryUpgradeGate(TowerDefGate targetGate)
     {
+        if (targetGate == null) targetGate = gate;
         if (targetGate == null) return false;
 
         bool ok = targetGate.TryUpgrade(ref gold);
         if (ok)
         {
             targetGate.UpdateGateVisual();
+            if (gate != null && gate != targetGate)
+            {
+                gate.UpdateGateVisual();
+            }
             ShowFloatingText(targetGate.transform.position, $"GATE LV.{targetGate.GateLevel}!", Color.cyan);
             UpdateUI();
         }
@@ -361,12 +366,17 @@ public class TowerDefGameManager : MonoBehaviour
 
     public bool TryUpgradeGateFree(TowerDefGate targetGate)
     {
+        if (targetGate == null) targetGate = gate;
         if (targetGate == null) return false;
 
         bool ok = targetGate.TryUpgradeFree();
         if (ok)
         {
             targetGate.UpdateGateVisual();
+            if (gate != null && gate != targetGate)
+            {
+                gate.UpdateGateVisual();
+            }
             ShowFloatingText(targetGate.transform.position, $"FREE GATE LV.{targetGate.GateLevel}!", Color.cyan);
             UpdateUI();
         }
@@ -620,7 +630,7 @@ public class TowerDefGameManager : MonoBehaviour
         LoadAssetReferences();
 
         Camera cam = Camera.main;
-        if (cam == null && gameObject.scene.IsValid() && gameObject.scene.isLoaded)
+        if (cam == null && gameObject.scene.IsValid())
         {
             foreach (var root in gameObject.scene.GetRootGameObjects())
             {
@@ -634,17 +644,21 @@ public class TowerDefGameManager : MonoBehaviour
             cam.orthographic = true;
         }
 
-        if (UnityEngine.EventSystems.EventSystem.current == null)
+        if (UnityEngine.EventSystems.EventSystem.current == null && UnityEngine.Object.FindObjectOfType<UnityEngine.EventSystems.EventSystem>() == null)
         {
             GameObject esObj = new GameObject("EventSystem", typeof(UnityEngine.EventSystems.EventSystem), typeof(UnityEngine.EventSystems.StandaloneInputModule));
-            if (gameObject.scene.IsValid() && gameObject.scene.isLoaded)
+            if (gameObject.scene.IsValid())
             {
                 UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(esObj, gameObject.scene);
             }
         }
 
         Canvas canvas = null;
-        if (gameObject.scene.IsValid() && gameObject.scene.isLoaded)
+        if (uiController != null)
+        {
+            canvas = uiController.GetComponent<Canvas>() ?? uiController.GetComponentInParent<Canvas>();
+        }
+        if (canvas == null && gameObject.scene.IsValid())
         {
             foreach (GameObject root in gameObject.scene.GetRootGameObjects())
             {
@@ -665,17 +679,32 @@ public class TowerDefGameManager : MonoBehaviour
         }
         if (canvas == null)
         {
+            Canvas[] allCanvases = Resources.FindObjectsOfTypeAll<Canvas>();
+            foreach (var c in allCanvases)
+            {
+                if (c != null && c.gameObject.scene == gameObject.scene && c.name == "TowerDefCanvas")
+                {
+                    canvas = c;
+                    break;
+                }
+            }
+        }
+        if (canvas == null)
+        {
+            canvas = UnityEngine.Object.FindObjectOfType<Canvas>();
+        }
+        if (canvas == null)
+        {
             GameObject canvasObj = new GameObject("TowerDefCanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
-            UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(canvasObj, gameObject.scene);
+            if (gameObject.scene.IsValid())
+            {
+                UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(canvasObj, gameObject.scene);
+            }
             canvas = canvasObj.GetComponent<Canvas>();
             CanvasScaler cs = canvasObj.GetComponent<CanvasScaler>();
             cs.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             cs.referenceResolution = new Vector2(1080f, 1920f);
             cs.matchWidthOrHeight = 0f; // Khớp chuẩn bề ngang màn hình
-            if (gameObject.scene.IsValid() && gameObject.scene.isLoaded)
-            {
-                UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(canvasObj, gameObject.scene);
-            }
         }
         if (cam != null)
         {
