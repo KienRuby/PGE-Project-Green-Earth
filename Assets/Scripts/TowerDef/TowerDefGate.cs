@@ -12,20 +12,28 @@ using UnityEngine.UI;
 public class TowerDefGate : MonoBehaviour
 {
     [Header("Gate Stats")]
-    [SerializeField] private float maxHp = 300f;
-    [SerializeField] private float currentHp = 300f;
+    [SerializeField] private float maxHp = 50f;
+    [SerializeField] private float currentHp = 50f;
     [SerializeField] private int gateLevel = 1;
-    [SerializeField] private int baseUpgradeCost = 50;
+    [SerializeField] private int baseUpgradeCost = 12;
+    [SerializeField] private float hpIncrement = 20f;
+    [SerializeField] private Sprite[] levelSprites;
 
     [Header("Visual References")]
+    [SerializeField] private Image gateImage;
     [SerializeField] private Image healthBarFill;
     [SerializeField] private GameObject upgradeIcon;
     [SerializeField] private Button gateButton;
 
+    public const int MAX_GATE_LEVEL = 4;
     public float MaxHp => maxHp;
     public float CurrentHp => currentHp;
     public int GateLevel => gateLevel;
-    public int UpgradeCost => baseUpgradeCost * gateLevel;
+    public int MaxLevel => MAX_GATE_LEVEL;
+    public bool IsMaxLevel => gateLevel >= MAX_GATE_LEVEL;
+    public int NextLevel => Mathf.Min(MAX_GATE_LEVEL, gateLevel + 1);
+    public float NextMaxHp => maxHp + hpIncrement;
+    public int UpgradeCost => IsMaxLevel ? 0 : baseUpgradeCost * gateLevel;
     public bool IsDestroyed => currentHp <= 0f;
 
     public event Action<float, float> OnHpChanged;
@@ -34,8 +42,13 @@ public class TowerDefGate : MonoBehaviour
 
     private void Awake()
     {
+        if (gateImage == null) gateImage = GetComponent<Image>();
+        if (gateImage == null) gateImage = GetComponentInChildren<Image>(true);
+        EnsureSpritesLoaded();
         currentHp = maxHp;
+        UpdateGateVisual();
         UpdateHealthBarVisual();
+        SetUpgradeBadgeActive(false);
 
         if (gateButton != null)
         {
@@ -44,13 +57,17 @@ public class TowerDefGate : MonoBehaviour
         }
     }
 
-    public void Setup(float initialMaxHp, Image hpFill, GameObject upIcon, Button btn)
+    public void Setup(float initialMaxHp, Image hpFill, GameObject upIcon, Button btn, int upgradeCost = 50, float hpGainOnUpgrade = 150f)
     {
         maxHp = initialMaxHp;
         currentHp = maxHp;
         healthBarFill = hpFill;
         upgradeIcon = upIcon;
         gateButton = btn;
+        baseUpgradeCost = upgradeCost;
+        hpIncrement = hpGainOnUpgrade;
+        if (gateImage == null) gateImage = GetComponent<Image>();
+        if (gateImage == null) gateImage = GetComponentInChildren<Image>(true);
 
         if (gateButton != null)
         {
@@ -58,7 +75,106 @@ public class TowerDefGate : MonoBehaviour
             gateButton.onClick.AddListener(HandleGateClicked);
         }
 
+        EnsureSpritesLoaded();
+        UpdateGateVisual();
+        SetUpgradeBadgeActive(false);
         UpdateHealthBarVisual();
+    }
+
+    public void EnsureSpritesLoaded()
+    {
+        if (levelSprites == null || levelSprites.Length < 4)
+        {
+            Sprite[] newSprites = new Sprite[4];
+            if (levelSprites != null)
+            {
+                for (int i = 0; i < Mathf.Min(levelSprites.Length, 4); i++)
+                    newSprites[i] = levelSprites[i];
+            }
+            levelSprites = newSprites;
+        }
+
+        if (levelSprites[0] == null) levelSprites[0] = Resources.Load<Sprite>("TowerDef/Gate_Metal");
+        if (levelSprites[1] == null) levelSprites[1] = Resources.Load<Sprite>("TowerDef/Gate_Cyan_Grid");
+        if (levelSprites[2] == null) levelSprites[2] = Resources.Load<Sprite>("TowerDef/Gate_Green_Wood");
+        if (levelSprites[3] == null) levelSprites[3] = Resources.Load<Sprite>("TowerDef/Gate_Blue_Wood");
+
+#if UNITY_EDITOR
+        string tilesDir = "Assets/Sprites/Mini game/Sliced/Tiles/";
+        if (levelSprites[0] == null) levelSprites[0] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + "Gate_Metal.png");
+        if (levelSprites[1] == null) levelSprites[1] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + "Gate_Cyan_Grid.png");
+        if (levelSprites[2] == null) levelSprites[2] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + "Gate_Green_Wood.png");
+        if (levelSprites[3] == null) levelSprites[3] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(tilesDir + "Gate_Blue_Wood.png");
+#endif
+
+        if (TowerDefGameManager.Instance != null && TowerDefGameManager.Instance.GateLevelSprites != null)
+        {
+            Sprite[] gmSprites = TowerDefGameManager.Instance.GateLevelSprites;
+            for (int i = 0; i < Mathf.Min(4, gmSprites.Length); i++)
+            {
+                if (levelSprites[i] == null && gmSprites[i] != null)
+                    levelSprites[i] = gmSprites[i];
+            }
+        }
+    }
+
+    public static string GetGateName(int level)
+    {
+        switch (level)
+        {
+            case 1: return "Cổng sắt";
+            case 2: return "Cổng lưới lam";
+            case 3: return "Cổng mạ lục";
+            case 4: return "Cổng hợp kim";
+            default: return $"Cổng cấp {level:D2}";
+        }
+    }
+
+    public void SetLevelSprites(Sprite[] sprites)
+    {
+        if (sprites != null && sprites.Length > 0)
+        {
+            levelSprites = sprites;
+        }
+        EnsureSpritesLoaded();
+        UpdateGateVisual();
+    }
+
+    public Sprite GetLevelSprite(int level)
+    {
+        EnsureSpritesLoaded();
+        if (levelSprites != null && levelSprites.Length > 0)
+        {
+            int idx = Mathf.Clamp(level - 1, 0, levelSprites.Length - 1);
+            if (idx < levelSprites.Length && levelSprites[idx] != null)
+                return levelSprites[idx];
+        }
+        if (gateImage == null) gateImage = GetComponent<Image>();
+        if (gateImage == null) gateImage = GetComponentInChildren<Image>(true);
+        return gateImage != null ? gateImage.sprite : null;
+    }
+
+    public void UpdateGateVisual()
+    {
+        EnsureSpritesLoaded();
+        Sprite spr = GetLevelSprite(gateLevel);
+        if (gateImage == null) gateImage = GetComponent<Image>();
+        if (gateImage == null) gateImage = GetComponentInChildren<Image>(true);
+
+        if (spr != null)
+        {
+            if (gateImage != null)
+            {
+                gateImage.sprite = spr;
+                gateImage.color = Color.white;
+            }
+            SpriteRenderer sr = GetComponent<SpriteRenderer>();
+            if (sr != null)
+            {
+                sr.sprite = spr;
+                sr.color = Color.white;
+            }
+        }
     }
 
     public void TakeDamage(float damage)
@@ -92,15 +208,33 @@ public class TowerDefGate : MonoBehaviour
 
     public bool TryUpgrade(ref int gold)
     {
+        if (IsMaxLevel) return false;
         int cost = UpgradeCost;
         if (gold < cost) return false;
 
         gold -= cost;
         gateLevel++;
-        maxHp += 150f;
-        currentHp = maxHp; // Full heal upon upgrade
+        maxHp += hpIncrement;
+        currentHp = maxHp; // Hồi đầy máu khi nâng cấp
         Image gateImg = GetComponent<Image>();
         if (gateImg != null) gateImg.color = Color.white;
+        UpdateGateVisual();
+        UpdateHealthBarVisual();
+        OnHpChanged?.Invoke(currentHp, maxHp);
+        OnGateUpgraded?.Invoke(gateLevel);
+        return true;
+    }
+
+    public bool TryUpgradeFree()
+    {
+        if (IsMaxLevel) return false;
+
+        gateLevel++;
+        maxHp += hpIncrement;
+        currentHp = maxHp; // Hồi đầy máu khi nâng cấp miễn phí
+        Image gateImg = GetComponent<Image>();
+        if (gateImg != null) gateImg.color = Color.white;
+        UpdateGateVisual();
         UpdateHealthBarVisual();
         OnHpChanged?.Invoke(currentHp, maxHp);
         OnGateUpgraded?.Invoke(gateLevel);
@@ -115,6 +249,12 @@ public class TowerDefGate : MonoBehaviour
         }
     }
 
+    public void RefreshUpgradeBadge(int currentGold)
+    {
+        bool canUpgrade = (currentGold >= UpgradeCost) && !IsMaxLevel;
+        SetUpgradeBadgeActive(canUpgrade);
+    }
+
     private void UpdateHealthBarVisual()
     {
         if (healthBarFill != null)
@@ -126,7 +266,6 @@ public class TowerDefGate : MonoBehaviour
             }
             else
             {
-                // Fallback using rectTransform scale
                 RectTransform rt = healthBarFill.rectTransform;
                 if (rt != null)
                 {

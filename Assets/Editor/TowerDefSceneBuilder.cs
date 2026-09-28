@@ -12,9 +12,9 @@ using UnityEngine.UI;
 /// - Đặt nền tối 7 cột (nền map thủ thành.png).
 /// - Dựng tường gạch ngang và Cổng sắt ở cột chính giữa (Gate_Metal) có thanh máu xanh và huy hiệu nâng cấp.
 /// - Dựng lưới phòng thủ 7x4 gồm 28 ô [+] với 3 công trình ban đầu khớp 100% Ảnh Thiết Kế 2:
-///   + Hàng 3 từ dưới lên, Cột 2: Pháo xanh (Turret Cyan) kèm nòng và icon nâng cấp.
-///   + Hàng 2 từ dưới lên, Cột 3: Trụ năng lượng tím (Pawn Tower Purple) kèm icon nâng cấp.
-///   + Hàng 2 từ dưới lên, Cột 4: Giường vàng/xanh (Core Bed Green) kèm icon nâng cấp.
+///   + Hàng 3 từ dưới lên, Cột 3 (Cell_R2_C2): Pháo chính (Turret) kèm nòng và icon nâng cấp.
+///   + Hàng 2 từ dưới lên, Cột 3 (Cell_R1_C2): Trụ năng lượng tím (Pawn Tower Purple) kèm icon nâng cấp.
+///   + Hàng 2 từ dưới lên, Cột 4 (Cell_R1_C3): Giường vàng/xanh (Core Bed Green) kèm icon nâng cấp.
 /// - Thanh công cụ đỉnh màn hình: Nút Back đỏ, Vàng (50), Năng lượng (0).
 /// - Khởi tạo GameManager và gán đầy đủ SerializedField để Scene độc lập và chạy ngay lập tức.
 /// </summary>
@@ -31,16 +31,8 @@ public static class TowerDefSceneBuilder
             return;
         }
 
-        Scene activeScene = SceneManager.GetActiveScene();
-        bool isCurrentActive = activeScene.IsValid() && activeScene.path == ScenePath;
-        bool needClose = false;
-
-        Scene scene = SceneManager.GetSceneByPath(ScenePath);
-        if (!scene.IsValid() || !scene.isLoaded)
-        {
-            scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Additive);
-            needClose = true;
-        }
+        Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+        if (!scene.IsValid()) return;
 
         EditorSceneManager.SetActiveScene(scene);
 
@@ -101,13 +93,6 @@ public static class TowerDefSceneBuilder
         EditorUtility.SetDirty(gm);
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
-
-        if (needClose && activeScene.IsValid())
-        {
-            EditorSceneManager.SetActiveScene(activeScene);
-            EditorSceneManager.CloseScene(scene, true);
-        }
-
         Debug.Log("[TowerDefSceneBuilder] Đã dựng thành công Scene TowerDef hoàn chỉnh khớp 100% Thiết Kế (Ảnh 2)!");
     }
 
@@ -205,28 +190,6 @@ public static class TowerDefSceneBuilder
         if (prop != null)
         {
             prop.objectReferenceValue = targetObj;
-        }
-    }
-}
-
-[InitializeOnLoad]
-public static class TowerDefSceneAutoBaker
-{
-    private const string AutoBakeKey = "PGE_TowerDef_AutoBaked_v3";
-
-    static TowerDefSceneAutoBaker()
-    {
-        EditorApplication.delayCall += OnEditorLoaded;
-    }
-
-    private static void OnEditorLoaded()
-    {
-        if (SessionState.GetBool(AutoBakeKey, false)) return;
-        SessionState.SetBool(AutoBakeKey, true);
-
-        if (System.IO.File.Exists(TowerDefSceneBuilder.ScenePath))
-        {
-            TowerDefSceneBuilder.BuildTowerDefScene();
         }
     }
 }
