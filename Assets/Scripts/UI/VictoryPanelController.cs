@@ -138,6 +138,7 @@ public sealed class VictoryPanelController : MonoBehaviour
 
         ResolveReferences();
         EnsureDetailsUiComponents();
+        EnsureRewardRowLayout();
         SetPanelActive(victoryPanel, false);
         SetPanelActive(detailsPanel, false);
         BindButtons();
@@ -147,6 +148,7 @@ public sealed class VictoryPanelController : MonoBehaviour
     {
         ResolveReferences();
         EnsureDetailsUiComponents();
+        EnsureRewardRowLayout();
         if (enemySpawner != null)
         {
             enemySpawner.OnStageVictory -= HandleStageVictory;
@@ -294,9 +296,9 @@ public sealed class VictoryPanelController : MonoBehaviour
 
     private bool IsGemMineScene()
     {
+        if (enemySpawner != null) return enemySpawner.IsGemMineScene();
         string sceneName = SceneManager.GetActiveScene().name;
-        return string.Equals(sceneName, "GenMine", System.StringComparison.OrdinalIgnoreCase) ||
-               (enemySpawner != null && enemySpawner.UseSceneWaveConfiguration);
+        return string.Equals(sceneName, "GenMine", System.StringComparison.OrdinalIgnoreCase);
     }
 
     private void PopulateResult()
@@ -324,7 +326,6 @@ public sealed class VictoryPanelController : MonoBehaviour
                 detailsText.text =
                     $"GEM MINE LV.{gemMineLevel:00} COMPLETE\n" +
                     $"WAVES CLEARED   {waves:00}/{waves:00}\n" +
-                    $"DATA CHIPS      +{dataReward:N0}\n" +
                     $"RED GEMS        +{gemReward:N0}\n\n" +
                     (gemMineLevel < DailyGemMineProgress.LevelCount ? "NEXT LEVEL UNLOCKED" : "ALL LEVELS COMPLETE");
             }
@@ -355,8 +356,14 @@ public sealed class VictoryPanelController : MonoBehaviour
 
         int dataReward = GetBaseDataChipReward();
         int gemReward = GetBaseRedGemReward();
-        ChipManager.AddDataChips(dataReward * 2);
-        ChipManager.AddRedGems(gemReward * 2);
+        if (dataReward > 0)
+        {
+            ChipManager.AddDataChips(dataReward * 2);
+        }
+        if (gemReward > 0)
+        {
+            ChipManager.AddRedGems(gemReward * 2);
+        }
         vipBonusClaimed = true;
 
         UpdateRewardTexts(dataReward * 3, gemReward * 3);
@@ -581,7 +588,7 @@ public sealed class VictoryPanelController : MonoBehaviour
             for (int i = 0; i < stagedRevealItems.Length; i++)
             {
                 RectTransform item = stagedRevealItems[i];
-                if (item == null) continue;
+                if (item == null || !item.gameObject.activeInHierarchy) continue;
 
                 float itemElapsed = 0f;
                 while (itemElapsed < stagedItemDuration)
@@ -611,7 +618,10 @@ public sealed class VictoryPanelController : MonoBehaviour
         if (stagedRevealItems == null) return;
         for (int i = 0; i < stagedRevealItems.Length; i++)
         {
-            if (stagedRevealItems[i] != null) stagedRevealItems[i].localScale = scale;
+            if (stagedRevealItems[i] != null && stagedRevealItems[i].gameObject.activeInHierarchy)
+            {
+                stagedRevealItems[i].localScale = scale;
+            }
         }
     }
 
@@ -748,6 +758,7 @@ public sealed class VictoryPanelController : MonoBehaviour
 
     private int GetBaseDataChipReward()
     {
+        if (IsGemMineScene()) return 0;
         return enemySpawner != null ? enemySpawner.StageVictoryDataChipReward : 1000;
     }
 
@@ -776,8 +787,44 @@ public sealed class VictoryPanelController : MonoBehaviour
 
     public void EnsureRewardRowLayout()
     {
-        AdjustRewardRow(dataChipRewardText, -65f, 25f);
-        AdjustRewardRow(redGemRewardText, -65f, -90f);
+        bool isGemMine = IsGemMineScene();
+        if (isGemMine)
+        {
+            if (dataChipRewardText != null)
+            {
+                Transform row = dataChipRewardText.rectTransform != null ? dataChipRewardText.rectTransform.parent : null;
+                if (row != null) row.gameObject.SetActive(false);
+                else dataChipRewardText.gameObject.SetActive(false);
+            }
+            AdjustRewardRow(redGemRewardText, -65f, -35f);
+            if (detailsButton != null)
+            {
+                RectTransform btnRect = detailsButton.GetComponent<RectTransform>();
+                if (btnRect != null)
+                {
+                    btnRect.anchoredPosition = new Vector2(275f, -35f);
+                }
+            }
+        }
+        else
+        {
+            if (dataChipRewardText != null)
+            {
+                Transform row = dataChipRewardText.rectTransform != null ? dataChipRewardText.rectTransform.parent : null;
+                if (row != null) row.gameObject.SetActive(true);
+                else dataChipRewardText.gameObject.SetActive(true);
+            }
+            AdjustRewardRow(dataChipRewardText, -65f, 25f);
+            AdjustRewardRow(redGemRewardText, -65f, -90f);
+            if (detailsButton != null)
+            {
+                RectTransform btnRect = detailsButton.GetComponent<RectTransform>();
+                if (btnRect != null)
+                {
+                    btnRect.anchoredPosition = new Vector2(275f, -65f);
+                }
+            }
+        }
     }
 
     private void AdjustRewardRow(TMP_Text textComponent, float rowX, float rowY)

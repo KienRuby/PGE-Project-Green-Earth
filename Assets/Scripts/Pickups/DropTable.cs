@@ -113,7 +113,8 @@ public static class DropTable
         }
 
         // 2. Sinh Data Chips
-        if (dataChips > 0)
+        bool isGemMine = EnemySpawner.Instance != null && EnemySpawner.Instance.IsGemMineScene();
+        if (!isGemMine && dataChips > 0)
         {
             SpawnGem(GemType.DataChip, dataChips, position + (Vector3)UnityEngine.Random.insideUnitCircle * 0.3f, true);
         }

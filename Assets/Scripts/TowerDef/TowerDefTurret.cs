@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 /// <summary>
 /// Quản lý tháp pháo phòng thủ (Turret):
-/// - Tự động phát hiện quái vật trong tầm bắn (Range).
+/// - Tự động phát hiện quái vật cùng làn trong tầm bắn (Range).
 /// - Xoay nòng pháo (gunTransform) hướng về mục tiêu.
 /// - Bắn đạn định kỳ gây sát thương lên quái.
 /// - Cho phép nâng cấp (Upgrade) tăng sát thương, tốc bắn và tầm bắn.
@@ -34,6 +34,7 @@ public class TowerDefTurret : MonoBehaviour
     private TowerDefEnemy currentTarget;
     private Canvas owningCanvas;
     private Camera viewCamera;
+    private int lane;
 
     public const int MAX_TURRET_LEVEL = 5;
     public int TurretLevel => turretLevel;
@@ -157,6 +158,8 @@ public class TowerDefTurret : MonoBehaviour
 
     public void Setup(Transform gunTr, Image baseImg, Image gunImg, GameObject upIcon)
     {
+        TowerDefGridCell cell = GetComponent<TowerDefGridCell>();
+        lane = cell != null ? cell.Col : -1;
         gunTransform = gunTr;
         baseImage = baseImg;
         gunImage = gunImg;
@@ -270,7 +273,7 @@ public class TowerDefTurret : MonoBehaviour
         for (int i = 0; i < enemies.Count; i++)
         {
             var e = enemies[i];
-            if (e == null || e.IsDead) continue;
+            if (e == null || e.IsDead || e.Lane != lane) continue;
             if (viewCamera != null && owningCanvas != null && owningCanvas.renderMode != RenderMode.ScreenSpaceOverlay)
             {
                 Vector3 viewport = viewCamera.WorldToViewportPoint(e.transform.position);

@@ -400,14 +400,14 @@ public class TowerDefTests
     [Test]
     public void Economy_StartsAtStandardDesignValues()
     {
-        // Khởi đầu theo thiết kế: 50 Gold, 0 Energy
-        Assert.AreEqual(50, gameManager.Gold);
+        // Khởi đầu theo thiết kế: 100 Gold, 0 Energy
+        Assert.AreEqual(100, gameManager.Gold);
         Assert.AreEqual(0, gameManager.Energy);
 
         gameManager.AddGold(100);
         gameManager.AddEnergy(25);
 
-        Assert.AreEqual(150, gameManager.Gold);
+        Assert.AreEqual(200, gameManager.Gold);
         Assert.AreEqual(25, gameManager.Energy);
     }
 

@@ -35,6 +35,9 @@ public class TowerDefEnemy : MonoBehaviour
     public bool IsTouchingWall => isTouchingWall;
     public float CurrentHp => currentHp;
     public float MaxHp => maxHp;
+    public int Lane => lane;
+
+    private int lane = -1;
 
     public event Action<TowerDefEnemy> OnEnemyDied;
 
@@ -48,8 +51,9 @@ public class TowerDefEnemy : MonoBehaviour
         }
     }
 
-    public void Setup(float hp, float speed, float damage, int reward, TowerDefGate gate, float gateStopY, Sprite sprite = null, Image fill = null)
+    public void Setup(float hp, float speed, float damage, int reward, TowerDefGate gate, float gateStopY, Sprite sprite = null, Image fill = null, int spawnLane = -1)
     {
+        lane = spawnLane;
         maxHp = hp;
         currentHp = maxHp;
         moveSpeed = speed;

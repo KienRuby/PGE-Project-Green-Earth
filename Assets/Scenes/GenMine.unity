@@ -1990,6 +1990,7 @@ MonoBehaviour:
   lavaHazardPrefab: {fileID: 0}
   shoulderGunPivot: {fileID: 910000000000000002}
   punchMuzzle: {fileID: 910000000000000007}
+  shoulderGunSprite: {fileID: 0}
   orbitRadius: 0.4
   orbitSpeed: 192
   launchSpeed: 5
@@ -2033,7 +2034,6 @@ MonoBehaviour:
   isUnlocked: 0
   currentSkillLevel: 1
   currentCooldownTimer: 0
-  activeOrbitingPunch: {fileID: 0}
 --- !u!114 &78188144
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2317,7 +2317,6 @@ MonoBehaviour:
     bodySprite: {fileID: -5182206973502839065, guid: b11d782772fef994681d861860fa33eb, type: 3}
     armSprite: {fileID: 7950957983998334306, guid: fa67feb686c38264e8ab722fd57364ea, type: 3}
     gunSprite: {fileID: -9212286445950041963, guid: a14684e0c410c224d922ec86c4f49844, type: 3}
-    hitVfxPrefab: {fileID: 3290514725870574986, guid: e1a1f001000000000000000000000001, type: 3}
     bulletFrames:
     - {fileID: 21300000, guid: aa688e34ed6ab3e47b91f25828ae0978, type: 3}
     - {fileID: 21300000, guid: f3adbea308b14374a89abad08c54c192, type: 3}
@@ -2326,6 +2325,7 @@ MonoBehaviour:
     - {fileID: 21300000, guid: b859483ec29e4b5429b22f65f820f1ec, type: 3}
     - {fileID: 21300000, guid: 2bd0bd1a885f4094e82e5a9f64af3efc, type: 3}
     - {fileID: 21300000, guid: d701a3933738f294e897c9f2557cdf8c, type: 3}
+    hitVfxPrefab: {fileID: 3290514725870574986, guid: e1a1f001000000000000000000000001, type: 3}
     leg1Sprite: {fileID: -2040592341959848592, guid: 7e8f556a10c1620498e036dbf132b04e, type: 3}
     leg2Sprite: {fileID: 2219504772987026516, guid: 7e8f556a10c1620498e036dbf132b04e, type: 3}
     body:
@@ -2354,7 +2354,6 @@ MonoBehaviour:
     bodySprite: {fileID: -5182206973502839065, guid: b48489951e9c39e40b043dacb6bd63af, type: 3}
     armSprite: {fileID: 7950957983998334306, guid: 3f0a5377d27c63e47bddaa6fff51a1f7, type: 3}
     gunSprite: {fileID: -9212286445950041963, guid: 314f3198166d07c4c8a5b61bd92a7979, type: 3}
-    hitVfxPrefab: {fileID: 3290514725870574986, guid: e1a1f002000000000000000000000002, type: 3}
     bulletFrames:
     - {fileID: 21300000, guid: 1511b495001d331459102aaf23d49a6e, type: 3}
     - {fileID: 21300000, guid: f7e64eb6dc4d3874da835076eb7e4ed5, type: 3}
@@ -2363,6 +2362,7 @@ MonoBehaviour:
     - {fileID: 21300000, guid: 0224524c5ea376c43863d13a7c109328, type: 3}
     - {fileID: 21300000, guid: 1119b57c5ab34364aa4f872414f05515, type: 3}
     - {fileID: 21300000, guid: dfcfc06c6facaca468fce9693a71dc72, type: 3}
+    hitVfxPrefab: {fileID: 3290514725870574986, guid: e1a1f002000000000000000000000002, type: 3}
     leg1Sprite: {fileID: -2040592341959848592, guid: 4071c3ce871ecc447b4da5ad69b7b1d8, type: 3}
     leg2Sprite: {fileID: 2219504772987026516, guid: 4071c3ce871ecc447b4da5ad69b7b1d8, type: 3}
     body:
@@ -2391,7 +2391,6 @@ MonoBehaviour:
     bodySprite: {fileID: 21300000, guid: 4da2c1164166fb344963fd6c07c2f6e3, type: 3}
     armSprite: {fileID: 7950957983998334306, guid: e4177e280f33c244c83bcc6aab8b54cd, type: 3}
     gunSprite: {fileID: -9212286445950041963, guid: 673301c1065bc49469b13de76a575db8, type: 3}
-    hitVfxPrefab: {fileID: 3290514725870574986, guid: e1a1f003000000000000000000000003, type: 3}
     bulletFrames:
     - {fileID: 21300000, guid: bb3544a453163994ba7d4cbccb047605, type: 3}
     - {fileID: 21300000, guid: 9d2fc891c5e83aa47a7e28973ba0b2db, type: 3}
@@ -2400,6 +2399,7 @@ MonoBehaviour:
     - {fileID: 21300000, guid: f4c6b9087587f464aae788f586e2905c, type: 3}
     - {fileID: 21300000, guid: 2b3944e8e97ebdb42a37eeec91498406, type: 3}
     - {fileID: 21300000, guid: 003669a0859919d4b89e2b0005127eb5, type: 3}
+    hitVfxPrefab: {fileID: 3290514725870574986, guid: e1a1f003000000000000000000000003, type: 3}
     leg1Sprite: {fileID: -2040592341959848592, guid: 36da15fc112cf3e4e954fbe99bd24172, type: 3}
     leg2Sprite: {fileID: 2219504772987026516, guid: 36da15fc112cf3e4e954fbe99bd24172, type: 3}
     body:
@@ -2428,7 +2428,6 @@ MonoBehaviour:
     bodySprite: {fileID: -5182206973502839065, guid: 65d0f84371244c549be34da2de3e090b, type: 3}
     armSprite: {fileID: 7950957983998334306, guid: e330f572764c47d4d96d4be202e4d3e3, type: 3}
     gunSprite: {fileID: -9212286445950041963, guid: 38ff57d9d59e7f642a3071d113dcbe9d, type: 3}
-    hitVfxPrefab: {fileID: 3290514725870574986, guid: e1a1f004000000000000000000000004, type: 3}
     bulletFrames:
     - {fileID: 21300000, guid: 10c6c16af5675394a96a466436ba2ad2, type: 3}
     - {fileID: 21300000, guid: 7ff22c11bce181f468d4bb89502200fa, type: 3}
@@ -2437,6 +2436,7 @@ MonoBehaviour:
     - {fileID: 21300000, guid: 745f7c3ec4cb54f42b3c7f31ea6dd4e7, type: 3}
     - {fileID: 21300000, guid: a04eabbcfc943754c8510918080c19f9, type: 3}
     - {fileID: 21300000, guid: f433bed7d018d1c48b372ce5e253db83, type: 3}
+    hitVfxPrefab: {fileID: 3290514725870574986, guid: e1a1f004000000000000000000000004, type: 3}
     leg1Sprite: {fileID: 1516565397, guid: d83a02e3b04e7b24eb0490e37b962a14, type: 3}
     leg2Sprite: {fileID: -946685520, guid: d83a02e3b04e7b24eb0490e37b962a14, type: 3}
     body:
@@ -4495,73 +4495,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 238289275}
   m_CullTransparentMesh: 1
---- !u!21 &243374856
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: LiberationSans SDF Material (Instance)
-  m_Shader: {fileID: 4800000, guid: fe393ace9b354375a9cb14cdbbc28be4, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords:
-  - OUTLINE_ON
-  m_InvalidKeywords: []
-  m_LightmapFlags: 1
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _MainTex:
-        m_Texture: {fileID: 28684132378477856, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats:
-    - _ColorMask: 15
-    - _CullMode: 0
-    - _FaceDilate: 0
-    - _GradientScale: 10
-    - _MaskSoftnessX: 0
-    - _MaskSoftnessY: 0
-    - _OutlineSoftness: 0
-    - _OutlineWidth: 0.22
-    - _PerspectiveFilter: 0.875
-    - _ScaleRatioA: 0.9
-    - _ScaleRatioB: 1
-    - _ScaleRatioC: 0.73125
-    - _ScaleX: 1
-    - _ScaleY: 1
-    - _ShaderFlags: 0
-    - _Sharpness: 0
-    - _Stencil: 0
-    - _StencilComp: 8
-    - _StencilOp: 0
-    - _StencilReadMask: 255
-    - _StencilWriteMask: 255
-    - _TextureHeight: 1024
-    - _TextureWidth: 1024
-    - _UnderlayDilate: 0
-    - _UnderlayOffsetX: 0
-    - _UnderlayOffsetY: 0
-    - _UnderlaySoftness: 0
-    - _VertexOffsetX: 0
-    - _VertexOffsetY: 0
-    - _WeightBold: 0.75
-    - _WeightNormal: 0
-    m_Colors:
-    - _ClipRect: {r: -32767, g: -32767, b: 32767, a: 32767}
-    - _FaceColor: {r: 1, g: 1, b: 1, a: 1}
-    - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
-    - _UnderlayColor: {r: 0, g: 0, b: 0, a: 0.5}
-  m_BuildTextureStacks: []
 --- !u!1 &251427942
 GameObject:
   m_ObjectHideFlags: 0
@@ -6663,7 +6596,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -65, y: -90}
+  m_AnchoredPosition: {x: -65, y: -35}
   m_SizeDelta: {x: 520, y: 110}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &363956058
@@ -6701,7 +6634,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 275, y: -65}
+  m_AnchoredPosition: {x: 275, y: -35}
   m_SizeDelta: {x: 120, y: 133}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &363956060
@@ -8409,73 +8342,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 450109609}
   m_CullTransparentMesh: 1
---- !u!21 &450418324
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: LiberationSans SDF Material (Instance)
-  m_Shader: {fileID: 4800000, guid: fe393ace9b354375a9cb14cdbbc28be4, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords:
-  - OUTLINE_ON
-  m_InvalidKeywords: []
-  m_LightmapFlags: 1
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _MainTex:
-        m_Texture: {fileID: 28684132378477856, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats:
-    - _ColorMask: 15
-    - _CullMode: 0
-    - _FaceDilate: 0
-    - _GradientScale: 10
-    - _MaskSoftnessX: 0
-    - _MaskSoftnessY: 0
-    - _OutlineSoftness: 0
-    - _OutlineWidth: 0.22
-    - _PerspectiveFilter: 0.875
-    - _ScaleRatioA: 0.9
-    - _ScaleRatioB: 1
-    - _ScaleRatioC: 0.73125
-    - _ScaleX: 1
-    - _ScaleY: 1
-    - _ShaderFlags: 0
-    - _Sharpness: 0
-    - _Stencil: 0
-    - _StencilComp: 8
-    - _StencilOp: 0
-    - _StencilReadMask: 255
-    - _StencilWriteMask: 255
-    - _TextureHeight: 1024
-    - _TextureWidth: 1024
-    - _UnderlayDilate: 0
-    - _UnderlayOffsetX: 0
-    - _UnderlayOffsetY: 0
-    - _UnderlaySoftness: 0
-    - _VertexOffsetX: 0
-    - _VertexOffsetY: 0
-    - _WeightBold: 0.75
-    - _WeightNormal: 0
-    m_Colors:
-    - _ClipRect: {r: -32767, g: -32767, b: 32767, a: 32767}
-    - _FaceColor: {r: 1, g: 1, b: 1, a: 1}
-    - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
-    - _UnderlayColor: {r: 0, g: 0, b: 0, a: 0.5}
-  m_BuildTextureStacks: []
 --- !u!1 &464278453
 GameObject:
   m_ObjectHideFlags: 0
@@ -10567,7 +10433,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -771299411
-  m_SortingLayer: 3
+  m_SortingLayer: 4
   m_SortingOrder: 0
   m_Sprite: {fileID: -946685520, guid: d83a02e3b04e7b24eb0490e37b962a14, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -12600,7 +12466,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 275, y: -65}
+  m_AnchoredPosition: {x: 275, y: -35}
   m_SizeDelta: {x: 120, y: 133}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &725333208
@@ -12976,7 +12842,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &763835104
 RectTransform:
   m_ObjectHideFlags: 0
@@ -13207,7 +13073,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -771299411
-  m_SortingLayer: 3
+  m_SortingLayer: 4
   m_SortingOrder: 0
   m_Sprite: {fileID: 1516565397, guid: d83a02e3b04e7b24eb0490e37b962a14, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -17032,7 +16898,7 @@ MonoBehaviour:
   despawnCheckInterval: 2
   initialWaveSpawnDelay: 1
   enableSpawnDebugLogs: 0
-  stageVictoryDataChipReward: 1000
+  stageVictoryDataChipReward: 0
   stageVictoryRedGemReward: 20
   maxArtifactDropsPerChapter: 5
   minArtifactSpawnDistance: 8
@@ -45027,7 +44893,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -771299411
-  m_SortingLayer: 3
+  m_SortingLayer: 4
   m_SortingOrder: 10
   m_Sprite: {fileID: 21300000, guid: 927ef51fd14429040adaf0d06687797e, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -54388,7 +54254,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1592312783
 RectTransform:
   m_ObjectHideFlags: 0
@@ -55895,7 +55761,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1674831097
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -56139,7 +56005,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -771299411
-  m_SortingLayer: 3
+  m_SortingLayer: 4
   m_SortingOrder: 10
   m_Sprite: {fileID: -5182206973502839065, guid: 65d0f84371244c549be34da2de3e090b, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -56795,73 +56661,6 @@ Material:
     - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
     - _UnderlayColor: {r: 0, g: 0, b: 0, a: 0.5}
   m_BuildTextureStacks: []
---- !u!21 &1717166361
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: LiberationSans SDF Material (Instance)
-  m_Shader: {fileID: 4800000, guid: fe393ace9b354375a9cb14cdbbc28be4, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords:
-  - OUTLINE_ON
-  m_InvalidKeywords: []
-  m_LightmapFlags: 1
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _MainTex:
-        m_Texture: {fileID: 28684132378477856, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats:
-    - _ColorMask: 15
-    - _CullMode: 0
-    - _FaceDilate: 0
-    - _GradientScale: 10
-    - _MaskSoftnessX: 0
-    - _MaskSoftnessY: 0
-    - _OutlineSoftness: 0
-    - _OutlineWidth: 0.22
-    - _PerspectiveFilter: 0.875
-    - _ScaleRatioA: 0.9
-    - _ScaleRatioB: 1
-    - _ScaleRatioC: 0.73125
-    - _ScaleX: 1
-    - _ScaleY: 1
-    - _ShaderFlags: 0
-    - _Sharpness: 0
-    - _Stencil: 0
-    - _StencilComp: 8
-    - _StencilOp: 0
-    - _StencilReadMask: 255
-    - _StencilWriteMask: 255
-    - _TextureHeight: 1024
-    - _TextureWidth: 1024
-    - _UnderlayDilate: 0
-    - _UnderlayOffsetX: 0
-    - _UnderlayOffsetY: 0
-    - _UnderlaySoftness: 0
-    - _VertexOffsetX: 0
-    - _VertexOffsetY: 0
-    - _WeightBold: 0.75
-    - _WeightNormal: 0
-    m_Colors:
-    - _ClipRect: {r: -32767, g: -32767, b: 32767, a: 32767}
-    - _FaceColor: {r: 1, g: 1, b: 1, a: 1}
-    - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
-    - _UnderlayColor: {r: 0, g: 0, b: 0, a: 0.5}
-  m_BuildTextureStacks: []
 --- !u!1 &1734749994
 GameObject:
   m_ObjectHideFlags: 0
@@ -57267,73 +57066,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!21 &1750820988
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: LiberationSans SDF Material (Instance)
-  m_Shader: {fileID: 4800000, guid: fe393ace9b354375a9cb14cdbbc28be4, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords:
-  - OUTLINE_ON
-  m_InvalidKeywords: []
-  m_LightmapFlags: 1
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _MainTex:
-        m_Texture: {fileID: 28684132378477856, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats:
-    - _ColorMask: 15
-    - _CullMode: 0
-    - _FaceDilate: 0
-    - _GradientScale: 10
-    - _MaskSoftnessX: 0
-    - _MaskSoftnessY: 0
-    - _OutlineSoftness: 0
-    - _OutlineWidth: 0.22
-    - _PerspectiveFilter: 0.875
-    - _ScaleRatioA: 0.9
-    - _ScaleRatioB: 1
-    - _ScaleRatioC: 0.73125
-    - _ScaleX: 1
-    - _ScaleY: 1
-    - _ShaderFlags: 0
-    - _Sharpness: 0
-    - _Stencil: 0
-    - _StencilComp: 8
-    - _StencilOp: 0
-    - _StencilReadMask: 255
-    - _StencilWriteMask: 255
-    - _TextureHeight: 1024
-    - _TextureWidth: 1024
-    - _UnderlayDilate: 0
-    - _UnderlayOffsetX: 0
-    - _UnderlayOffsetY: 0
-    - _UnderlaySoftness: 0
-    - _VertexOffsetX: 0
-    - _VertexOffsetY: 0
-    - _WeightBold: 0.75
-    - _WeightNormal: 0
-    m_Colors:
-    - _ClipRect: {r: -32767, g: -32767, b: 32767, a: 32767}
-    - _FaceColor: {r: 1, g: 1, b: 1, a: 1}
-    - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
-    - _UnderlayColor: {r: 0, g: 0, b: 0, a: 0.5}
-  m_BuildTextureStacks: []
 --- !u!1 &1771361870
 GameObject:
   m_ObjectHideFlags: 0
@@ -57407,7 +57139,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -771299411
-  m_SortingLayer: 3
+  m_SortingLayer: 4
   m_SortingOrder: 0
   m_Sprite: {fileID: 1856406010, guid: 65fc5831f8144fc49bddde98555ed20d, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -57574,7 +57306,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -771299411
-  m_SortingLayer: 3
+  m_SortingLayer: 4
   m_SortingOrder: 0
   m_Sprite: {fileID: 770955769, guid: 65fc5831f8144fc49bddde98555ed20d, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -58656,7 +58388,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -65, y: -90}
+  m_AnchoredPosition: {x: -65, y: -35}
   m_SizeDelta: {x: 520, y: 110}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1856918224
@@ -65008,7 +64740,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1428351797
-  m_SortingLayer: 4
+  m_SortingLayer: 3
   m_SortingOrder: 30
   m_Sprite: {fileID: -1459868381, guid: f70775b4373cdc64ba1cbe8e8bd22ee4, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -65092,7 +64824,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1428351797
-  m_SortingLayer: 4
+  m_SortingLayer: 3
   m_SortingOrder: 31
   m_Sprite: {fileID: 362662875, guid: f70775b4373cdc64ba1cbe8e8bd22ee4, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -65664,7 +65396,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &910000000000000002
 Transform:
   m_ObjectHideFlags: 0
@@ -65674,7 +65406,7 @@ Transform:
   m_GameObject: {fileID: 910000000000000001}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -4, y: 7.5, z: 0}
+  m_LocalPosition: {x: 3.2, y: 9, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -65791,7 +65523,7 @@ Transform:
   m_GameObject: {fileID: 910000000000000006}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 13.15, y: 4.4, z: 0}
+  m_LocalPosition: {x: 5.2, y: 0.6, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

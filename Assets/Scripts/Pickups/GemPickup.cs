@@ -400,7 +400,10 @@ public class GemPickup : MonoBehaviour, IPoolable
                 break;
 
             case GemType.DataChip:
-                ChipManager.AddDataChips(value);
+                if (EnemySpawner.Instance == null || !EnemySpawner.Instance.IsGemMineScene())
+                {
+                    ChipManager.AddDataChips(value);
+                }
                 break;
 
             case GemType.RedGem:

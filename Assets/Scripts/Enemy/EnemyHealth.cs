@@ -619,7 +619,8 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
                 // 4. Cấp tiền tệ (Data Chips / Red Gems) cho Player
                 if (currencyDropChance >= 1f || UnityEngine.Random.value <= currencyDropChance)
                 {
-                    if (dataChipReward > 0)
+                    bool isGemMine = EnemySpawner.Instance != null && EnemySpawner.Instance.IsGemMineScene();
+                    if (!isGemMine && dataChipReward > 0)
                     {
                         ChipManager.AddDataChips(dataChipReward);
                     }
