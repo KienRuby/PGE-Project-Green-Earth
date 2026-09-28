@@ -27,7 +27,7 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
     [SerializeField] private float aoeRadius = 1.25f;
 
     [Tooltip("Vận tốc bay khi lao tới quái vật (mét/giây).")]
-    [SerializeField] private float launchSpeed = 12.0f;
+    [SerializeField] private float launchSpeed = 5.0f;
 
     [Tooltip("Thời gian tồn tại tối đa sau khi phóng trước khi tự nổ nếu không còn quái (giây).")]
     [SerializeField] private float maxFlightTime = 5.0f;

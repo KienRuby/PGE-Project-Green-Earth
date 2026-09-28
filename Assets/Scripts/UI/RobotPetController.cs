@@ -195,6 +195,10 @@ public class RobotPetController : MonoBehaviour
         }
 
         RefreshAll();
+        if (equippedPetId >= 0 && PetService.IsPetOwned(equippedPetId))
+        {
+            OpenPetDetailModal(equippedPetId);
+        }
     }
 
     public void OpenCraftScreen()
@@ -605,7 +609,7 @@ public class RobotPetController : MonoBehaviour
             iconImg.raycastTarget = false;
         }
 
-        // Button listener: Click vào Pet card đã sở hữu => Chọn và Trang bị vào activeSlotIndex
+        // Open details first; EQUIP in the modal changes the active slot.
         Button cardBtn = cardGo.GetComponent<Button>();
         int petId = pet.id;
         cardBtn.onClick.AddListener(() => OnPetCardClicked(petId));
@@ -615,13 +619,27 @@ public class RobotPetController : MonoBehaviour
 
     /// <summary>
     /// Xử lý khi người chơi bấm vào một Card Pet trong danh sách đã sở hữu:
-    /// 1. Cập nhật chi tiết Pet được chọn lên bảng PetDetailPanel.
-    /// 2. Trang bị Pet đó vào Slot đang kích hoạt (Slot 1, 2, hoặc 3).
+    /// Open the selected Pet's detail modal.
     /// </summary>
     public void OnPetCardClicked(int petId)
     {
         selectedPetId = petId;
+        OpenPetDetailModal(petId);
+    }
 
+    private void OpenPetDetailModal(int petId)
+    {
+        if (!PetService.IsPetOwned(petId)) return;
+        Canvas canvas = GetComponentInParent<Canvas>();
+        PetData pet = PetService.GetPetData(petId);
+        if (canvas == null || pet == null) return;
+        EnsureFontAndMaterial();
+        RobotPetDetailModal modal = RobotPetDetailModal.GetOrCreate(canvas, cachedFont, cachedStrokeMaterial);
+        modal.Show(pet, activeSlotIndex, () => EquipPetInActiveSlot(petId));
+    }
+
+    private void EquipPetInActiveSlot(int petId)
+    {
         // Kiểm tra nếu Pet này đã trang bị ở slot hiện tại thì unequip
         int currentSlot = PetService.GetEquippedSlotIndex(petId);
         if (currentSlot == activeSlotIndex)

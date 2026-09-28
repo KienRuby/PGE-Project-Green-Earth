@@ -1076,7 +1076,7 @@ public class LabUpgradeController : MonoBehaviour
 
         if (priceText != null)
         {
-            priceText.text = allMaxed ? "MAX" : currentPrice.ToString();
+            priceText.text = allMaxed ? "MAX" : currentPrice.ToString("#,##0", PriceNumberFormat);
         }
 
         if (allMaxed && resultText != null && !isRolling)
@@ -1201,6 +1201,12 @@ public class LabUpgradeController : MonoBehaviour
                 return commonLevelColor;
         }
     }
+
+    private static readonly NumberFormatInfo PriceNumberFormat = new NumberFormatInfo
+    {
+        NumberGroupSeparator = ".",
+        NumberDecimalDigits = 0
+    };
 
     private static string FormatChipAmount(int amount)
     {

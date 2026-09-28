@@ -766,7 +766,7 @@ public class BuddyController : MonoBehaviour
             hlg.childForceExpandWidth = false;
             hlg.childForceExpandHeight = false;
             hlg.childAlignment = TextAnchor.MiddleCenter;
-            hlg.spacing = 50f;
+            hlg.spacing = 100f;
         }
     }
 
@@ -966,6 +966,7 @@ public class BuddyController : MonoBehaviour
                     labelText.fontSize = 25f;
                     labelText.fontStyle = FontStyles.Bold;
                     labelText.alignment = TextAlignmentOptions.Center;
+                    labelText.overflowMode = TextOverflowModes.Overflow;
                 }
             }
         }
@@ -1676,48 +1677,32 @@ public class BuddyController : MonoBehaviour
             Transform labelT = detailEnhanceBtn.transform.Find("Label");
             if (labelT != null)
             {
-                // The cost text draws both lines so the title cannot disappear separately.
-                labelT.gameObject.SetActive(false);
+                labelT.gameObject.SetActive(true);
+                TMP_Text labelText = labelT.GetComponent<TMP_Text>();
+                if (labelText != null)
+                {
+                    labelText.text = "ENHANCE";
+                    labelText.color = Color.white;
+                    labelText.overflowMode = TextOverflowModes.Overflow;
+                }
             }
         }
         if (detailEnhanceCostText != null)
         {
             detailEnhanceCostText.color = Color.white;
-            detailEnhanceCostText.text = $"<size=25>ENHANCE</size>\n<size=22>{selectedDetailBuddy.enhanceCost}</size>";
+            detailEnhanceCostText.text = selectedDetailBuddy.enhanceCost.ToString();
             detailEnhanceCostText.alignment = TextAlignmentOptions.Center;
             detailEnhanceCostText.enableWordWrapping = false;
             detailEnhanceCostText.overflowMode = TextOverflowModes.Overflow;
 
             ContentSizeFitter fitter = detailEnhanceCostText.GetComponent<ContentSizeFitter>();
-            if (fitter != null) fitter.enabled = false;
-
-            RectTransform costTextRect = detailEnhanceCostText.rectTransform;
-            costTextRect.anchorMin = new Vector2(0.5f, 0.5f);
-            costTextRect.anchorMax = new Vector2(0.5f, 0.5f);
-            costTextRect.pivot = new Vector2(0.5f, 0.5f);
-            costTextRect.anchoredPosition = Vector2.zero;
-            costTextRect.sizeDelta = new Vector2(320f, 76f);
+            if (fitter != null) fitter.enabled = true;
+            detailEnhanceCostText.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 34f);
 
             if (detailEnhanceCostText.transform.parent is RectTransform parentRt)
             {
                 HorizontalLayoutGroup layout = parentRt.GetComponent<HorizontalLayoutGroup>();
-                if (layout != null) layout.enabled = false;
-                parentRt.anchorMin = new Vector2(0.5f, 0.5f);
-                parentRt.anchorMax = new Vector2(0.5f, 0.5f);
-                parentRt.pivot = new Vector2(0.5f, 0.5f);
-                parentRt.anchoredPosition = Vector2.zero;
-                parentRt.sizeDelta = new Vector2(340f, 80f);
-
-                RectTransform chipIcon = parentRt.Find("ChipIcon") as RectTransform;
-                if (chipIcon != null)
-                {
-                    float costWidth = detailEnhanceCostText.GetPreferredValues(
-                        selectedDetailBuddy.enhanceCost.ToString()).x;
-                    chipIcon.anchorMin = new Vector2(0.5f, 0.5f);
-                    chipIcon.anchorMax = new Vector2(0.5f, 0.5f);
-                    chipIcon.pivot = new Vector2(0.5f, 0.5f);
-                    chipIcon.anchoredPosition = new Vector2(-costWidth * 0.5f - 18f, -15f);
-                }
+                if (layout != null) layout.enabled = true;
                 LayoutRebuilder.ForceRebuildLayoutImmediate(parentRt);
             }
         }

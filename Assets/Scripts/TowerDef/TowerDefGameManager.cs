@@ -116,11 +116,12 @@ public class TowerDefGameManager : MonoBehaviour
         if (Instance == null && UnityEngine.Object.FindObjectOfType<TowerDefGameManager>() == null)
         {
             Debug.Log("[TowerDefGameManager] Auto-bootstrapping TowerDef scene dynamically at runtime...");
-            GameObject gmObj = new GameObject("TowerDefGameManager", typeof(TowerDefGameManager));
+            GameObject gmObj = new GameObject("TowerDefGameManager");
             if (scene.IsValid() && scene.isLoaded)
             {
                 UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(gmObj, scene);
             }
+            gmObj.AddComponent<TowerDefGameManager>();
         }
     }
 
@@ -645,16 +646,27 @@ public class TowerDefGameManager : MonoBehaviour
         Canvas canvas = null;
         if (gameObject.scene.IsValid() && gameObject.scene.isLoaded)
         {
-            foreach (var root in gameObject.scene.GetRootGameObjects())
+            foreach (GameObject root in gameObject.scene.GetRootGameObjects())
             {
-                canvas = root.GetComponentInChildren<Canvas>(true);
-                if (canvas != null) break;
+                if (root.name == "TowerDefCanvas")
+                {
+                    canvas = root.GetComponent<Canvas>();
+                    if (canvas != null) break;
+                }
+            }
+            if (canvas == null)
+            {
+                foreach (var root in gameObject.scene.GetRootGameObjects())
+                {
+                    canvas = root.GetComponentInChildren<Canvas>(true);
+                    if (canvas != null) break;
+                }
             }
         }
-
         if (canvas == null)
         {
             GameObject canvasObj = new GameObject("TowerDefCanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
+            UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(canvasObj, gameObject.scene);
             canvas = canvasObj.GetComponent<Canvas>();
             CanvasScaler cs = canvasObj.GetComponent<CanvasScaler>();
             cs.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;

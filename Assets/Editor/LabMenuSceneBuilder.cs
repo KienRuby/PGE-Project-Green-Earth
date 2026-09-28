@@ -1717,6 +1717,7 @@ public static class LabMenuSceneBuilder
         tabHighTechBg.raycastTarget = true;
         Button tabHighTechBtn = tabHighTechObj.AddComponent<Button>();
         tabHighTechBtn.targetGraphic = tabHighTechBg;
+        topTabs.gameObject.SetActive(false);
 
         // 2. Preset selector overlapping the equipped board, matching the portrait reference layout.
         RectTransform presetBar = CreateRect("PresetBar", panel);
@@ -1841,7 +1842,7 @@ public static class LabMenuSceneBuilder
         GridLayoutGroup invLayout = invContent.gameObject.AddComponent<GridLayoutGroup>();
         invLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
         invLayout.constraintCount = 4;
-        invLayout.cellSize = new Vector2(190f, 240f);
+        invLayout.cellSize = new Vector2(165f, 225f);
         invLayout.spacing = new Vector2(35f, 35f);
         invLayout.padding = new RectOffset(70, 70, 20, 30);
         invLayout.childAlignment = TextAnchor.UpperCenter;
@@ -1907,12 +1908,12 @@ public static class LabMenuSceneBuilder
 
         for (int i = 0; i < invIcons.Length; i++)
         {
-            ChipsetCardUI invCard = CreateChipCardUI(invContent, $"StaticInvCard_{i:00}", new Vector2(190f, 240f));
+            ChipsetCardUI invCard = CreateChipCardUI(invContent, $"StaticInvCard_{i:00}", new Vector2(165f, 225f));
             ConfigureCardStaticView(invCard, invIcons[i], invFrames[i], invLevels[i], invProgress[i], invStars[i], invArrows[i]);
         }
 
         // Card Prefab template for dynamic instantiation at runtime
-        GameObject cardPrefab = CreateChipCardUI(invContent, "CardTemplate", new Vector2(190f, 240f)).gameObject;
+        GameObject cardPrefab = CreateChipCardUI(invContent, "CardTemplate", new Vector2(165f, 225f)).gameObject;
         cardPrefab.SetActive(false);
 
         // 5. Detail Modal
@@ -2130,7 +2131,7 @@ public static class LabMenuSceneBuilder
 
         HorizontalLayoutGroup eqLayout = equippedRow.gameObject.AddComponent<HorizontalLayoutGroup>();
         eqLayout.childAlignment = TextAnchor.MiddleCenter;
-        eqLayout.spacing = 35f;
+        eqLayout.spacing = 100f;
         eqLayout.childForceExpandWidth = false;
         eqLayout.childForceExpandHeight = false;
         eqLayout.childControlWidth = false;
@@ -2557,8 +2558,8 @@ public static class LabMenuSceneBuilder
         GameObject enhBtnObj = CreateFrame("EnhanceBtn", boxRect, Color.clear, Color.white, out Image enhBg);
         enhBg.enabled = false;
         Image enhFrameImg = enhBtnObj.GetComponent<Image>();
-        enhFrameImg.sprite = ChipsetController.GetEnhanceSprite();
-        enhFrameImg.color = Color.white;
+        enhFrameImg.sprite = null;
+        enhFrameImg.color = new Color32(73, 198, 79, 255);
         enhFrameImg.raycastTarget = true;
         RectTransform enhBtnRect = enhBtnObj.GetComponent<RectTransform>();
         Anchor(enhBtnRect, new Vector2(0.71f, 0.16f), Vector2.zero, new Vector2(360f, 92f));
@@ -2591,8 +2592,8 @@ public static class LabMenuSceneBuilder
         GameObject advBtnObj = CreateFrame("AdvanceTierBtn", boxRect, Color.clear, Color.white, out Image advBg);
         advBg.enabled = false;
         Image advFrameImg = advBtnObj.GetComponent<Image>();
-        advFrameImg.sprite = ChipsetController.GetAdvanceSprite();
-        advFrameImg.color = Color.white;
+        advFrameImg.sprite = null;
+        advFrameImg.color = new Color32(225, 174, 72, 255);
         advFrameImg.raycastTarget = true;
         RectTransform advBtnRect = advBtnObj.GetComponent<RectTransform>();
         Anchor(advBtnRect, new Vector2(0.71f, 0.075f), Vector2.zero, new Vector2(360f, 85f));
@@ -2884,8 +2885,8 @@ public static class LabMenuSceneBuilder
         GameObject enhBtnObj = CreateFrame("EnhanceBtn", boxRect, Color.clear, Color.white, out Image enhBg);
         enhBg.enabled = false;
         Image enhFrameImg = enhBtnObj.GetComponent<Image>();
-        enhFrameImg.sprite = ChipsetController.GetEnhanceSprite();
-        enhFrameImg.color = Color.white;
+        enhFrameImg.sprite = null;
+        enhFrameImg.color = new Color32(73, 198, 79, 255);
         enhFrameImg.raycastTarget = true;
         RectTransform enhBtnRect = enhBtnObj.GetComponent<RectTransform>();
         Anchor(enhBtnRect, new Vector2(0.71f, 0.16f), Vector2.zero, new Vector2(360f, 92f));
@@ -2919,8 +2920,8 @@ public static class LabMenuSceneBuilder
         GameObject advBtnObj = CreateFrame("AdvanceTierBtn", boxRect, Color.clear, Color.white, out Image advBg);
         advBg.enabled = false;
         Image advFrameImg = advBtnObj.GetComponent<Image>();
-        advFrameImg.sprite = ChipsetController.GetAdvanceSprite();
-        advFrameImg.color = Color.white;
+        advFrameImg.sprite = null;
+        advFrameImg.color = new Color32(225, 174, 72, 255);
         advFrameImg.raycastTarget = true;
         RectTransform advBtnRect = advBtnObj.GetComponent<RectTransform>();
         Anchor(advBtnRect, new Vector2(0.71f, 0.075f), Vector2.zero, new Vector2(360f, 85f));
@@ -3387,14 +3388,40 @@ public static class LabMenuSceneBuilder
         Button upgradeButton = upgradeRoot.AddComponent<Button>();
         upgradeButton.targetGraphic = upgradeBackground;
 
-        TMP_Text upgradeLabel = CreateText("UpgradeText", upgradeRect, "UPGRADE", 46f, Cream, TextAlignmentOptions.Center);
-        Stretch(upgradeLabel.rectTransform, new Vector2(0f, 0.45f), new Vector2(1f, 0.95f), Vector2.zero, Vector2.zero);
+        Material upgradeBtnMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/Fonts/Nunito/Nunito SDF - UpgradeButton.mat");
 
-        TMP_Text priceText = CreateText("PriceText", upgradeRect, "300", 42f, Cream, TextAlignmentOptions.Center);
-        Anchor(priceText.rectTransform, new Vector2(0.47f, 0.27f), new Vector2(-15f, 0f), new Vector2(180f, 55f));
+        TMP_Text upgradeLabel = CreateText("UpgradeText", upgradeRect, "Upgrade", 48f, Color.white, TextAlignmentOptions.Center);
+        if (upgradeBtnMat != null) upgradeLabel.fontSharedMaterial = upgradeBtnMat;
+        Stretch(upgradeLabel.rectTransform, new Vector2(0f, 0.46f), new Vector2(1f, 0.94f), Vector2.zero, Vector2.zero);
 
-        Image priceIcon = CreateIcon("CurrencyIcon", upgradeRect, "chip-currency", 60f);
-        Anchor(priceIcon.rectTransform, new Vector2(0.72f, 0.27f), Vector2.zero, new Vector2(58f, 58f));
+        RectTransform priceGroup = CreateRect("PriceGroup", upgradeRect);
+        priceGroup.anchorMin = new Vector2(0.5f, 0.30f);
+        priceGroup.anchorMax = new Vector2(0.5f, 0.30f);
+        priceGroup.pivot = new Vector2(0.5f, 0.5f);
+        priceGroup.anchoredPosition = Vector2.zero;
+        HorizontalLayoutGroup priceHlg = priceGroup.gameObject.AddComponent<HorizontalLayoutGroup>();
+        priceHlg.childAlignment = TextAnchor.MiddleCenter;
+        priceHlg.spacing = 14f;
+        priceHlg.childControlWidth = false;
+        priceHlg.childControlHeight = false;
+        priceHlg.childForceExpandWidth = false;
+        priceHlg.childForceExpandHeight = false;
+        ContentSizeFitter priceGroupCsf = priceGroup.gameObject.AddComponent<ContentSizeFitter>();
+        priceGroupCsf.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+        priceGroupCsf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+        TMP_Text priceText = CreateText("PriceText", priceGroup, "17.700", 40f, Color.white, TextAlignmentOptions.Center);
+        if (upgradeBtnMat != null) priceText.fontSharedMaterial = upgradeBtnMat;
+        ContentSizeFitter priceCsf = priceText.gameObject.AddComponent<ContentSizeFitter>();
+        priceCsf.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+        priceCsf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+        Image priceIcon = CreateIcon("CurrencyIcon", priceGroup, "chip-currency", 46f);
+        Sprite dataSprite = AssetDatabase.LoadAllAssetRepresentationsAtPath("Assets/Sprites/UI/icon tài nguyên.png")
+            .OfType<Sprite>()
+            .FirstOrDefault(s => s.name == "data");
+        if (dataSprite != null) priceIcon.sprite = dataSprite;
+        priceIcon.rectTransform.sizeDelta = new Vector2(46f, 46f);
 
         TMP_Text resultText = CreateText(
             "RollResultText",

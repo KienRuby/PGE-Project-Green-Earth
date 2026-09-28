@@ -250,28 +250,12 @@ public class FPSDisplay : MonoBehaviour
         Rect innerRect = new Rect(badgeRect.x + 1.5f, badgeRect.y + 1.5f, badgeRect.width - 3f, badgeRect.height - 3f);
         GUI.DrawTexture(innerRect, bgTexture);
 
-        // 3. Đổi màu theo mức FPS:
-        // - Xanh ngọc mượt mà (>= 55 FPS)
-        // - Vàng cam ổn định (30 - 54 FPS)
-        // - Đỏ cảnh báo (< 30 FPS)
-        if (currentFpsInt >= 55)
-        {
-            textStyle.normal.textColor = new Color(0.22f, 1f, 0.45f, 0.98f);
-        }
-        else if (currentFpsInt >= 30)
-        {
-            textStyle.normal.textColor = new Color(1f, 0.85f, 0.20f, 0.98f);
-        }
-        else
-        {
-            textStyle.normal.textColor = new Color(1f, 0.32f, 0.28f, 0.98f);
-        }
-
-        // 4. Vẽ bóng đổ màu đen tạo độ nổi khối (Drop shadow)
-        Rect shadowRect = new Rect(badgeRect.x + 1f, badgeRect.y + 1f, badgeRect.width, badgeRect.height);
-        GUI.Label(shadowRect, currentFpsText, shadowStyle);
-
-        // 5. Vẽ chữ thông số chính
+        // 3. Vẽ viền đen quanh chữ trắng.
+        textStyle.normal.textColor = Color.white;
+        GUI.Label(new Rect(badgeRect.x - 1f, badgeRect.y, badgeRect.width, badgeRect.height), currentFpsText, shadowStyle);
+        GUI.Label(new Rect(badgeRect.x + 1f, badgeRect.y, badgeRect.width, badgeRect.height), currentFpsText, shadowStyle);
+        GUI.Label(new Rect(badgeRect.x, badgeRect.y - 1f, badgeRect.width, badgeRect.height), currentFpsText, shadowStyle);
+        GUI.Label(new Rect(badgeRect.x, badgeRect.y + 1f, badgeRect.width, badgeRect.height), currentFpsText, shadowStyle);
         GUI.Label(badgeRect, currentFpsText, textStyle);
     }
 }

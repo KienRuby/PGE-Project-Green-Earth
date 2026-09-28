@@ -977,11 +977,11 @@ public class RewardPopupController : MonoBehaviour
         dayHeader.anchoredPosition = new Vector2(80f, 0f);
         dayHeader.sizeDelta = new Vector2(120f, 120f);
 
-        TMP_Text dayLabel = CreateRuntimeText("DayLabel", dayHeader, "DAY", 26f, new Color32(160, 180, 195, 255), TextAlignmentOptions.Center, fontAsset);
+        TMP_Text dayLabel = CreateRuntimeText("DayLabel", dayHeader, "DAY", 26f, Color.white, TextAlignmentOptions.Center, fontAsset);
         dayLabel.rectTransform.anchoredPosition = new Vector2(0f, 25f);
         dayLabel.rectTransform.sizeDelta = new Vector2(100f, 35f);
 
-        TMP_Text dayNumber = CreateRuntimeText("DayNumber", dayHeader, $"{dayIndex:00}", 48f, new Color32(255, 190, 72, 255), TextAlignmentOptions.Center, fontAsset);
+        TMP_Text dayNumber = CreateRuntimeText("DayNumber", dayHeader, $"{dayIndex:00}", 48f, Color.white, TextAlignmentOptions.Center, fontAsset);
         dayNumber.rectTransform.anchoredPosition = new Vector2(0f, -20f);
         dayNumber.rectTransform.sizeDelta = new Vector2(100f, 55f);
 
@@ -1014,7 +1014,7 @@ public class RewardPopupController : MonoBehaviour
         GameObject obtainedRoot = CreateRuntimeFrame("ObtainedRoot", stateRight, new Color32(35, 50, 65, 255), new Color32(45, 65, 80, 255), out _);
         obtainedRoot.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
         obtainedRoot.GetComponent<RectTransform>().sizeDelta = new Vector2(240f, 85f);
-        TMP_Text obtainedTxt = CreateRuntimeText("ObtainedLabel", obtainedRoot.transform, "Obtained", 34f, new Color32(160, 180, 195, 255), TextAlignmentOptions.Center, fontAsset);
+        TMP_Text obtainedTxt = CreateRuntimeText("ObtainedLabel", obtainedRoot.transform, "Obtained", 34f, Color.white, TextAlignmentOptions.Center, fontAsset);
         StretchRect(obtainedTxt.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
         obtainedRoot.SetActive(false);
 
@@ -1264,7 +1264,7 @@ public class RewardPopupController : MonoBehaviour
         text.enableWordWrapping = false;
         text.overflowMode = TextOverflowModes.Ellipsis;
         text.raycastTarget = false;
-        text.outlineColor = new Color32(8, 30, 42, 255);
+        text.outlineColor = Color.black;
         text.outlineWidth = 0.16f;
         return text;
     }

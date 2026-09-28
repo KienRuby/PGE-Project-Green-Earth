@@ -77,7 +77,8 @@ namespace PGE.EditorTools
             Undo.RegisterFullObjectHierarchyUndo(popup.gameObject, "Match reward popup references");
             Transform window = popup.Find("Window");
             Rect(window, 126, 430, 912, 1290);
-            Image(window, "Frame_Daily_Login_Main");
+            if (window != null && window.GetComponent<UnityEngine.UI.Image>()?.sprite == null)
+                Image(window, "Frame_Daily_Login_Main");
             Hide(window.Find("Background"));
             Hide(window.Find("CloseButton"));
             foreach (var shadow in window.GetComponentsInChildren<UnityEngine.UI.Shadow>(true))
@@ -101,11 +102,12 @@ namespace PGE.EditorTools
             ConfigurePanel(window.Find("DailyLoginPanel"), true);
             ConfigurePanel(window.Find("AchievementPanel"), false);
             var font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Fonts/Nunito/Nunito SDF.asset");
-            var material = AssetDatabase.LoadAssetAtPath<Material>("Assets/Fonts/Nunito/Nunito SDF - Stroke.mat");
+            var material = AssetDatabase.LoadAssetAtPath<Material>("Assets/Fonts/Nunito/Nunito SDF - Reward Crisp.mat");
             foreach (var text in window.GetComponentsInChildren<TMP_Text>(true))
             {
                 if (font != null) text.font = font;
                 if (material != null) text.fontSharedMaterial = material;
+                text.color = Color.white;
                 text.enableAutoSizing = false;
                 text.enableWordWrapping = false;
                 text.overflowMode = TextOverflowModes.Overflow;
@@ -171,8 +173,10 @@ namespace PGE.EditorTools
                 {
                     Rect(badge, 0, 0, 87, 89);
                     Rect(badge.Find("Icon"), 0, 0, 87, 89);
-                    Rect(badge.Find("AmountText"), -3, 66, 93, 31);
-                    var text = badge.Find("AmountText")?.GetComponent<TMP_Text>();
+                    Transform amountText = badge.Find("AmountText");
+                    Rect(amountText, -3, 66, 93, 31);
+                    if (amountText != null) amountText.localScale = Vector3.one * 0.9f;
+                    var text = amountText?.GetComponent<TMP_Text>();
                     if (text != null) { text.fontSize = 27 * Scale; text.alignment = TextAlignmentOptions.Center; }
                     if (badge.TryGetComponent<UnityEngine.UI.Image>(out var badgeBackground)) badgeBackground.color = Color.clear;
                     if (daily)

@@ -2260,7 +2260,10 @@ public class ChipsetController : MonoBehaviour
             Image img = btn.GetComponent<Image>();
             if (img != null)
             {
-                img.color = isBright ? Color.white : new Color(0.48f, 0.48f, 0.48f, 1f);
+                Color baseColor = btn.name == "EnhanceBtn"
+                    ? new Color32(73, 198, 79, 255)
+                    : new Color32(225, 174, 72, 255);
+                img.color = isBright ? baseColor : baseColor * 0.48f;
             }
         }
     }
@@ -2542,20 +2545,12 @@ public class ChipsetController : MonoBehaviour
             RectTransform btnRt = enhanceBtn.GetComponent<RectTransform>();
             if (btnRt != null) btnRt.sizeDelta = new Vector2(360f, 92f);
 
-            Sprite enhanceSprite = GetEnhanceSprite();
             Image borderImg = enhanceBtn.GetComponent<Image>() ?? enhanceBtn.gameObject.AddComponent<Image>();
             if (borderImg != null)
             {
-                if (enhanceSprite != null)
-                {
-                    borderImg.sprite = enhanceSprite;
-                    borderImg.color = Color.white;
-                    borderImg.type = Image.Type.Simple;
-                }
-                else
-                {
-                    borderImg.color = new Color32(6, 78, 59, 255);
-                }
+                borderImg.sprite = null;
+                borderImg.color = new Color32(73, 198, 79, 255);
+                borderImg.type = Image.Type.Simple;
                 borderImg.raycastTarget = true;
             }
 
@@ -2606,6 +2601,7 @@ public class ChipsetController : MonoBehaviour
                     labelTmp.fontSize = 25f;
                     labelTmp.fontStyle = FontStyles.Bold;
                     labelTmp.alignment = TextAlignmentOptions.Center;
+                    labelTmp.overflowMode = TextOverflowModes.Overflow;
                     labelTmp.color = Color.white;
                 }
             }
@@ -2684,20 +2680,12 @@ public class ChipsetController : MonoBehaviour
             RectTransform btnRt = advanceTierBtn.GetComponent<RectTransform>();
             if (btnRt != null) btnRt.sizeDelta = new Vector2(360f, 85f);
 
-            Sprite advanceSprite = GetAdvanceSprite();
             Image borderImg = advanceTierBtn.GetComponent<Image>() ?? advanceTierBtn.gameObject.AddComponent<Image>();
             if (borderImg != null)
             {
-                if (advanceSprite != null)
-                {
-                    borderImg.sprite = advanceSprite;
-                    borderImg.color = Color.white;
-                    borderImg.type = Image.Type.Simple;
-                }
-                else
-                {
-                    borderImg.color = new Color32(2, 132, 199, 255);
-                }
+                borderImg.sprite = null;
+                borderImg.color = new Color32(225, 174, 72, 255);
+                borderImg.type = Image.Type.Simple;
                 borderImg.raycastTarget = true;
             }
 

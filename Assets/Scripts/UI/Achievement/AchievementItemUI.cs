@@ -59,9 +59,9 @@ public class AchievementItemUI : MonoBehaviour
     private static readonly Color InProgressBorderColor = new Color32(11, 35, 48, 255);   // Dark border
     private static readonly Color ObtainedButtonColor = new Color32(78, 140, 147, 255);  // Grayish teal matching Image 1
     private static readonly Color ObtainedBorderColor = new Color32(38, 77, 85, 255);   // Grayish border
-    private static readonly Color TextWhite = new Color32(245, 255, 255, 255);
-    private static readonly Color TextInProgress = new Color32(35, 95, 120, 255);         // Dim dark teal text matching Image 1
-    private static readonly Color TextObtained = new Color32(35, 80, 95, 255);            // Dim dark cyan text matching Image 1
+    private static readonly Color TextWhite = Color.white;
+    private static readonly Color TextInProgress = Color.white;
+    private static readonly Color TextObtained = Color.white;
 
     public void EnsureUIReferences()
     {

@@ -151,6 +151,7 @@ public class LoadingScreenTests
         Assert.IsNotNull(prefab);
 
         GameObject instance = Object.Instantiate(prefab);
+        instance.hideFlags = HideFlags.HideAndDontSave;
         try
         {
             LoadingScreenUI ui = instance.GetComponent<LoadingScreenUI>();
@@ -158,8 +159,18 @@ public class LoadingScreenTests
 
             Transform fill = instance.transform.Find("ProgressBar/Fill");
             Image fillImg = fill.GetComponent<Image>();
+            RectTransform barRt = instance.transform.Find("ProgressBar").GetComponent<RectTransform>();
             Transform mascot = instance.transform.Find("ProgressBar/Mascot");
             RectTransform mascotRt = mascot.GetComponent<RectTransform>();
+            Canvas.ForceUpdateCanvases();
+            ui.SendMessage("CalculateMascotBounds", SendMessageOptions.RequireReceiver);
+            Vector3[] fillCorners = new Vector3[4];
+            fillImg.rectTransform.GetWorldCorners(fillCorners);
+            float offset = new SerializedObject(ui).FindProperty("mascotOffset").floatValue;
+            float startX = barRt.InverseTransformPoint(fillCorners[0]).x + offset;
+            float endX = barRt.InverseTransformPoint(fillCorners[3]).x + offset;
+            Assert.AreEqual(startX, ui.MascotStartX, 0.01f);
+            Assert.AreEqual(endX, ui.MascotEndX, 0.01f);
 
             // Test 0%, 50%, 100%
             float[] testPoints = new float[] { 0f, 0.25f, 0.5f, 0.75f, 1f };
@@ -167,8 +178,9 @@ public class LoadingScreenTests
             {
                 ui.SetProgress(p);
                 Assert.AreEqual(p, fillImg.fillAmount, 0.001f, $"FillAmount phải bằng {p}");
+                Assert.IsNotNull(fillImg.sprite, "Fill cần Sprite để Unity vẽ theo FillAmount");
 
-                float expectedX = Mathf.Lerp(ui.MascotStartX, ui.MascotEndX, p);
+                float expectedX = Mathf.Lerp(startX, endX, p);
                 Assert.AreEqual(expectedX, mascotRt.anchoredPosition.x, 0.01f, $"Vị trí Mascot X tại {p * 100}% phải khớp tuyệt đối 1:1");
             }
         }

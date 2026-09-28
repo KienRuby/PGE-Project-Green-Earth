@@ -418,7 +418,7 @@ public class ChipsetRedShaderTests
     }
 
     [Test]
-    public void ApplyModalButtonsDesign_AppliesOption2Sprites_AndReordersCostRowWithProjectChipIcon()
+    public void ApplyModalButtonsDesign_UsesFlatReferenceColors_AndReordersCostRowWithProjectChipIcon()
     {
         GameObject enhBtnGo = new GameObject("EnhanceBtn", typeof(RectTransform), typeof(Image), typeof(Button));
         GameObject bgEnh = new GameObject("Background", typeof(RectTransform), typeof(Image));
@@ -444,15 +444,14 @@ public class ChipsetRedShaderTests
 
             ChipsetController.ApplyModalButtonsDesign(enhBtn, advBtn);
 
-            // Verify Enhance Sprite is assigned
+            // The reference uses flat green and gold buttons.
             Image enhImg = enhBtnGo.GetComponent<Image>();
-            Assert.That(enhImg.sprite, Is.Not.Null, "Enhance button must have a sprite assigned.");
-            Assert.That(enhImg.sprite.name, Does.Contain("btn_enhance_green"), "Enhance button must use btn_enhance_green sprite.");
+            Assert.That(enhImg.sprite, Is.Null);
+            Assert.That(enhImg.color, Is.EqualTo(new Color32(73, 198, 79, 255)));
 
-            // Verify Advance Sprite is assigned
             Image advImg = advBtnGo.GetComponent<Image>();
-            Assert.That(advImg.sprite, Is.Not.Null, "Advance Tier button must have a sprite assigned.");
-            Assert.That(advImg.sprite.name, Does.Contain("btn_advance_tier_gold"), "Advance Tier button must use btn_advance_tier_gold sprite.");
+            Assert.That(advImg.sprite, Is.Null);
+            Assert.That(advImg.color, Is.EqualTo(new Color32(225, 174, 72, 255)));
 
             // Verify background child disabled to avoid blocking art
             Image bgEnhImg = bgEnh.GetComponent<Image>();
@@ -511,4 +510,3 @@ public class ChipsetRedShaderTests
         }
     }
 }
-
