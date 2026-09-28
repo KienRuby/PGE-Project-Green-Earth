@@ -10,21 +10,33 @@ public class RocketPunchHomingTests
     private const string BossMinePrefabPath = "Assets/Prefabs/Gen Mine/boss map mine.prefab";
     private const string RocketPunchPrefabPath = "Assets/Prefabs/Chipset/RocketPunch.prefab";
 
+    private static GameObject LoadPrefabByName(string name, string fallbackPath)
+    {
+        string[] guids = AssetDatabase.FindAssets(name + " t:Prefab");
+        foreach (string guid in guids)
+        {
+            string p = AssetDatabase.GUIDToAssetPath(guid);
+            if (System.IO.Path.GetFileNameWithoutExtension(p).Equals(name, System.StringComparison.OrdinalIgnoreCase))
+                return AssetDatabase.LoadAssetAtPath<GameObject>(p);
+        }
+        return AssetDatabase.LoadAssetAtPath<GameObject>(fallbackPath);
+    }
+
     [Test]
     public void GenMineEnemyPrefabs_MustBeAssignedToEnemyLayer()
     {
         int enemyLayer = LayerMask.NameToLayer("Enemy");
         Assert.That(enemyLayer, Is.EqualTo(7), "Layer 'Enemy' must be Layer 7.");
 
-        GameObject creepPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(CreepMinePrefabPath);
+        GameObject creepPrefab = LoadPrefabByName("creep map mine", CreepMinePrefabPath);
         Assert.That(creepPrefab, Is.Not.Null, "creep map mine.prefab must exist.");
         Assert.That(creepPrefab.layer, Is.EqualTo(enemyLayer), "creep map mine must be on Layer 7 (Enemy).");
 
-        GameObject bigCreepPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(BigCreepMinePrefabPath);
+        GameObject bigCreepPrefab = LoadPrefabByName("BigCreep", BigCreepMinePrefabPath);
         Assert.That(bigCreepPrefab, Is.Not.Null, "BigCreep.prefab must exist.");
         Assert.That(bigCreepPrefab.layer, Is.EqualTo(enemyLayer), "BigCreep must be on Layer 7 (Enemy).");
 
-        GameObject bossPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(BossMinePrefabPath);
+        GameObject bossPrefab = LoadPrefabByName("boss map mine", BossMinePrefabPath);
         Assert.That(bossPrefab, Is.Not.Null, "boss map mine.prefab must exist.");
         Assert.That(bossPrefab.layer, Is.EqualTo(enemyLayer), "boss map mine must be on Layer 7 (Enemy).");
     }

@@ -58,6 +58,9 @@ public class BuddyCombatSystemTests
             Assert.IsNotNull(sr, $"Prefab {prefabName} must contain a SpriteRenderer.");
             Assert.IsNotNull(sr.sprite, $"Prefab {prefabName} SpriteRenderer must have a sprite assigned.");
             Assert.AreEqual(spriteName, sr.sprite.name, $"Prefab {prefabName} must use sprite {spriteName}.");
+            Assert.IsNotNull(sr.sharedMaterial, $"Prefab {prefabName} SpriteRenderer must have a valid material assigned.");
+            Assert.IsNotNull(sr.sharedMaterial.shader, $"Prefab {prefabName} SpriteRenderer material must have a valid shader.");
+            Assert.AreNotEqual("Hidden/InternalErrorShader", sr.sharedMaterial.shader.name, $"Prefab {prefabName} material must not use pink error shader.");
         }
     }
 

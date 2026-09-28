@@ -294,6 +294,23 @@ public class RocketPunchProjectile : MonoBehaviour, IPoolable
         onPunchLaunchedOrDespawned = null;
     }
 
+    public void LaunchFromMuzzle(Transform target, Vector2 origin, Vector2 direction)
+    {
+        if (direction.sqrMagnitude < 0.0001f)
+        {
+            direction = Vector2.right;
+        }
+
+        rb.position = origin;
+        transform.position = origin;
+        currentTargetEnemy = target;
+        currentFlightAngle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        transform.rotation = Quaternion.Euler(0f, 0f, currentFlightAngle);
+        state = RocketPunchState.Launched;
+        flightTimer = maxFlightTime;
+        if (trailRenderer != null) trailRenderer.Clear();
+    }
+
     public void SetSharedTargetProvider(PlayerAutoShooter provider)
     {
         sharedTargetProvider = provider;

@@ -136,7 +136,11 @@ public static class BuddyPrefabBuilder
         SpriteRenderer sr = root.AddComponent<SpriteRenderer>();
         sr.sprite = sprite;
         sr.sortingOrder = 15; // Hiển thị trên nền sàn đấu và quái
-        sr.material = new Material(Shader.Find("Sprites/Default"));
+        Material defaultSpriteMat = AssetDatabase.GetBuiltinExtraResource<Material>("Sprites-Default.mat");
+        if (defaultSpriteMat != null)
+        {
+            sr.sharedMaterial = defaultSpriteMat;
+        }
 
         // FirePoint child
         GameObject firePointObj = new GameObject("FirePoint");

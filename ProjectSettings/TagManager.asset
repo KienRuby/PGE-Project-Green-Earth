@@ -51,11 +51,11 @@ TagManager:
   - name: Enemy
     uniqueID: 2191889761
     locked: 0
-  - name: Player
-    uniqueID: 3523667885
-    locked: 0
   - name: Bullet
     uniqueID: 1428351797
+    locked: 0
+  - name: Player
+    uniqueID: 3523667885
     locked: 0
   - name: Weapon
     uniqueID: 961667513

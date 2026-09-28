@@ -97,5 +97,28 @@ public class BossDashPassThroughTests
             Object.DestroyImmediate(bossObj);
         }
     }
+
+    [Test]
+    public void AllBossPrefabs_HaveBossDeathVfxAssigned()
+    {
+        string[] bossPrefabPaths = new string[]
+        {
+            "Assets/Prefabs/Enemy/Boss/Boss.prefab",
+            "Assets/Prefabs/Enemy/Boss/Boss2.prefab",
+            "Assets/Prefabs/Enemy/Boss/boss 3.prefab",
+            "Assets/Prefabs/Gen Mine/boss map mine.prefab"
+        };
+
+        foreach (string path in bossPrefabPaths)
+        {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            Assert.That(prefab, Is.Not.Null, $"Boss prefab must exist at {path}");
+
+            EnemyHealth health = prefab.GetComponent<EnemyHealth>();
+            Assert.That(health, Is.Not.Null, $"Boss prefab at {path} must have EnemyHealth");
+            Assert.That(health.BossDeathVfxPrefab, Is.Not.Null, $"Boss prefab at {path} must have bossDeathVfxPrefab assigned");
+            Assert.That(health.BossDeathVfxPrefab.name, Is.EqualTo("BossDeathVFX"), $"Boss prefab at {path} must use BossDeathVFX");
+        }
+    }
 }
 #endif
