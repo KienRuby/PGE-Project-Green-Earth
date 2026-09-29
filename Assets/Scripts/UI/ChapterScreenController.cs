@@ -89,6 +89,8 @@ public class ChapterScreenController : MonoBehaviour
     [SerializeField] private Sprite towerDefBoardSprite;
     [SerializeField] private Sprite towerDefBackSprite;
     [SerializeField] private Sprite towerDefStartSprite;
+    [SerializeField] private Sprite towerDefLockSprite;
+    [SerializeField] private Sprite[] towerDefLevelBoardSprites;
 
     [Tooltip("Nút Gem Mine ở bên phải nút Start.")]
     [SerializeField] private Button gemMineButton;
@@ -618,8 +620,8 @@ public class ChapterScreenController : MonoBehaviour
         GameObject scrollObject = new GameObject("LevelScrollView", typeof(RectTransform), typeof(ScrollRect));
         scrollObject.transform.SetParent(panel.transform, false);
         RectTransform scrollRect = (RectTransform)scrollObject.transform;
-        scrollRect.anchorMin = new Vector2(0.07f, 0.16f);
-        scrollRect.anchorMax = new Vector2(0.93f, 0.75f);
+        scrollRect.anchorMin = new Vector2(0.06f, 0.04f);
+        scrollRect.anchorMax = new Vector2(0.94f, 0.77f);
         scrollRect.offsetMin = scrollRect.offsetMax = Vector2.zero;
 
         UnityEngine.UI.Image viewportImage = CreateTowerDefImage("Viewport", scrollRect, null);
@@ -638,12 +640,13 @@ public class ChapterScreenController : MonoBehaviour
         content.anchoredPosition = Vector2.zero;
         content.sizeDelta = Vector2.zero;
         UnityEngine.UI.VerticalLayoutGroup layout = contentObject.GetComponent<UnityEngine.UI.VerticalLayoutGroup>();
-        layout.spacing = 60f;
+        layout.spacing = 35f;
         layout.childAlignment = TextAnchor.UpperCenter;
         layout.childControlWidth = true;
         layout.childControlHeight = true;
         layout.childForceExpandWidth = true;
         layout.childForceExpandHeight = false;
+        layout.padding = new RectOffset(10, 10, 10, 30);
         UnityEngine.UI.ContentSizeFitter fitter = contentObject.GetComponent<UnityEngine.UI.ContentSizeFitter>();
         fitter.verticalFit = UnityEngine.UI.ContentSizeFitter.FitMode.PreferredSize;
 
@@ -660,45 +663,135 @@ public class ChapterScreenController : MonoBehaviour
         towerDefModalRoot.SetActive(false);
     }
 
+    public Sprite GetTowerDefBoardSprite(int level)
+    {
+        if (towerDefLevelBoardSprites != null && level >= 1 && level <= towerDefLevelBoardSprites.Length)
+        {
+            Sprite s = towerDefLevelBoardSprites[level - 1];
+            if (s != null) return s;
+        }
+        return towerDefBoardSprite;
+    }
+
+    public string GetChapterDisplayName(int level)
+    {
+        if (chapterDatabase != null && level >= 1 && level <= chapterDatabase.Count)
+        {
+            ChapterData data = chapterDatabase.GetChapter(level - 1);
+            if (data != null && !string.IsNullOrEmpty(data.chapterTitle))
+            {
+                return data.chapterTitle;
+            }
+        }
+        return $"Chapter {level}";
+    }
+
+    public void SetTowerDefModalSpritesForTesting(Sprite panel, Sprite board, Sprite back, Sprite start, Sprite lockSpr, Sprite[] levelBoards = null)
+    {
+        towerDefPanelSprite = panel;
+        towerDefBoardSprite = board;
+        towerDefBackSprite = back;
+        towerDefStartSprite = start;
+        towerDefLockSprite = lockSpr;
+        towerDefLevelBoardSprites = levelBoards;
+    }
+
     private void CreateTowerDefBoard(Transform parent, int level)
     {
-        UnityEngine.UI.Image board = CreateTowerDefImage($"Level{level:00}", parent, towerDefBoardSprite);
-        RectTransform boardRect = board.rectTransform;
-        board.raycastTarget = false;
-        UnityEngine.UI.LayoutElement boardLayout = board.gameObject.AddComponent<UnityEngine.UI.LayoutElement>();
-        boardLayout.preferredHeight = 530f;
+        Sprite boardSprite = GetTowerDefBoardSprite(level);
 
-        TextMeshProUGUI label = CreateTowerDefText("LevelLabel", boardRect, $"Tower def LV.{level:00}");
+        // Card container for this level
+        GameObject cardObj = new GameObject($"Level{level:00}", typeof(RectTransform), typeof(UnityEngine.UI.VerticalLayoutGroup), typeof(UnityEngine.UI.LayoutElement));
+        cardObj.transform.SetParent(parent, false);
+        RectTransform cardRect = (RectTransform)cardObj.transform;
+
+        UnityEngine.UI.LayoutElement cardLayout = cardObj.GetComponent<UnityEngine.UI.LayoutElement>();
+        cardLayout.preferredHeight = 595f;
+
+        UnityEngine.UI.VerticalLayoutGroup cardVlg = cardObj.GetComponent<UnityEngine.UI.VerticalLayoutGroup>();
+        cardVlg.spacing = 10f;
+        cardVlg.childAlignment = TextAnchor.UpperCenter;
+        cardVlg.childControlWidth = true;
+        cardVlg.childControlHeight = false;
+        cardVlg.childForceExpandWidth = true;
+        cardVlg.childForceExpandHeight = false;
+
+        // 1. Board Preview Image
+        UnityEngine.UI.Image board = CreateTowerDefImage("BoardPreview", cardRect, boardSprite);
+        RectTransform boardRect = board.rectTransform;
+        board.raycastTarget = true;
+        UnityEngine.UI.LayoutElement boardLayout = board.gameObject.AddComponent<UnityEngine.UI.LayoutElement>();
+        boardLayout.preferredHeight = 515f;
+
+        UnityEngine.UI.Button boardButton = board.gameObject.AddComponent<UnityEngine.UI.Button>();
+        boardButton.targetGraphic = board;
+        boardButton.transition = Selectable.Transition.None;
+        boardButton.onClick.AddListener(() => SelectTowerDefLevel(level));
+
+        // 2. Action row below the board
+        GameObject actionRowObj = new GameObject("ActionRow", typeof(RectTransform), typeof(UnityEngine.UI.LayoutElement), typeof(UnityEngine.UI.HorizontalLayoutGroup));
+        actionRowObj.transform.SetParent(cardRect, false);
+        RectTransform actionRect = (RectTransform)actionRowObj.transform;
+
+        UnityEngine.UI.LayoutElement actionLayout = actionRowObj.GetComponent<UnityEngine.UI.LayoutElement>();
+        actionLayout.preferredHeight = 70f;
+
+        UnityEngine.UI.HorizontalLayoutGroup actionHlg = actionRowObj.GetComponent<UnityEngine.UI.HorizontalLayoutGroup>();
+        actionHlg.childAlignment = TextAnchor.MiddleCenter;
+        actionHlg.childControlWidth = false;
+        actionHlg.childControlHeight = true;
+        actionHlg.childForceExpandWidth = false;
+        actionHlg.childForceExpandHeight = true;
+        actionHlg.spacing = 16f;
+        actionHlg.padding = new RectOffset(12, 12, 0, 0);
+
+        // Level title label
+        string chapTitle = GetChapterDisplayName(level);
+        TextMeshProUGUI label = CreateTowerDefText("LevelLabel", actionRect, $"LV.{level:00}: {chapTitle}");
         RectTransform labelRect = label.rectTransform;
-        labelRect.anchorMin = labelRect.anchorMax = new Vector2(0f, 1f);
-        labelRect.pivot = new Vector2(0f, 1f);
-        labelRect.anchoredPosition = new Vector2(36f, -18f);
-        labelRect.sizeDelta = new Vector2(600f, 62f);
-        label.fontSize = 43f;
+        labelRect.sizeDelta = new Vector2(500f, 60f);
+        label.fontSize = 36f;
+        label.color = new Color32(255, 230, 160, 255);
+        label.outlineColor = new Color32(20, 10, 30, 255);
+        label.outlineWidth = 0.22f;
         label.alignment = TextAlignmentOptions.MidlineLeft;
 
-        UnityEngine.UI.Image startImage = CreateTowerDefImage("StartButton", boardRect, towerDefStartSprite);
+        // Flexible spacer
+        GameObject spacer = new GameObject("Spacer", typeof(RectTransform), typeof(UnityEngine.UI.LayoutElement));
+        spacer.transform.SetParent(actionRect, false);
+        UnityEngine.UI.LayoutElement spacerLayout = spacer.GetComponent<UnityEngine.UI.LayoutElement>();
+        spacerLayout.flexibleWidth = 1f;
+
+        // Lock button
+        UnityEngine.UI.Image lockImage = CreateTowerDefImage("LockedButton", actionRect, towerDefLockSprite);
+        RectTransform lockRect = lockImage.rectTransform;
+        lockRect.sizeDelta = new Vector2(170f, 66f);
+        lockImage.raycastTarget = true;
+        UnityEngine.UI.LayoutElement lockLayout = lockImage.gameObject.AddComponent<UnityEngine.UI.LayoutElement>();
+        lockLayout.preferredWidth = 170f;
+        lockLayout.preferredHeight = 66f;
+
+        if (towerDefLockSprite == null)
+        {
+            TextMeshProUGUI lockedTxt = CreateTowerDefText("LockedText", lockRect, "🔒 LOCKED");
+            StretchTowerDefRect(lockedTxt.rectTransform);
+            lockedTxt.fontSize = 32f;
+            lockedTxt.alignment = TextAlignmentOptions.Center;
+        }
+        towerDefLevelLockedLabels[level - 1] = lockImage.gameObject;
+
+        // Start button
+        UnityEngine.UI.Image startImage = CreateTowerDefImage("StartButton", actionRect, towerDefStartSprite);
         RectTransform startRect = startImage.rectTransform;
-        startRect.anchorMin = new Vector2(0.73f, 0.09f);
-        startRect.anchorMax = new Vector2(0.97f, 0.28f);
-        startRect.offsetMin = startRect.offsetMax = Vector2.zero;
+        startRect.sizeDelta = new Vector2(170f, 66f);
         startImage.raycastTarget = true;
+        UnityEngine.UI.LayoutElement startLayout = startImage.gameObject.AddComponent<UnityEngine.UI.LayoutElement>();
+        startLayout.preferredWidth = 170f;
+        startLayout.preferredHeight = 66f;
         UnityEngine.UI.Button startButton = startImage.gameObject.AddComponent<UnityEngine.UI.Button>();
         startButton.targetGraphic = startImage;
         startButton.onClick.AddListener(() => SelectTowerDefLevel(level));
         towerDefLevelStartButtons[level - 1] = startButton;
-
-        TextMeshProUGUI lockedLabel = CreateTowerDefText("LockedLabel", boardRect, "LOCKED");
-        RectTransform lockedRect = lockedLabel.rectTransform;
-        lockedRect.anchorMin = new Vector2(0.73f, 0.09f);
-        lockedRect.anchorMax = new Vector2(0.97f, 0.28f);
-        lockedRect.offsetMin = lockedRect.offsetMax = Vector2.zero;
-        lockedLabel.fontSize = 46f;
-        lockedLabel.fontWeight = FontWeight.Black;
-        lockedLabel.outlineColor = Color.black;
-        lockedLabel.outlineWidth = 0.25f;
-        lockedLabel.alignment = TextAlignmentOptions.Center;
-        towerDefLevelLockedLabels[level - 1] = lockedLabel.gameObject;
     }
 
     private TextMeshProUGUI CreateTowerDefText(string name, Transform parent, string value)

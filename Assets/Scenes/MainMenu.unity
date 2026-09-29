@@ -90132,6 +90132,18 @@ MonoBehaviour:
   towerDefBoardSprite: {fileID: 21300000, guid: 165ff5727a0cbd84781ae701b75f8e84, type: 3}
   towerDefBackSprite: {fileID: 21300000, guid: d07461f2f03b5c84b91483f95f144c53, type: 3}
   towerDefStartSprite: {fileID: 21300000, guid: bdd83cc200ba7a24dac25baa2d4da27a, type: 3}
+  towerDefLockSprite: {fileID: 21300000, guid: d1d934c5809542c98b6e42d100af708e, type: 3}
+  towerDefLevelBoardSprites:
+  - {fileID: 21300000, guid: ab109bca728b4a8394fce456541b6566, type: 3}
+  - {fileID: 21300000, guid: 5c926e08af6549dabffe819f222dc1cb, type: 3}
+  - {fileID: 21300000, guid: 1730d5a926f8466b878393577f14838a, type: 3}
+  - {fileID: 21300000, guid: 645110d75a474be7ad442e93b946beb6, type: 3}
+  - {fileID: 21300000, guid: 148902eb5c5343629988db703ffb2d55, type: 3}
+  - {fileID: 21300000, guid: 56bd82cfe36847f097605c87260b9ad0, type: 3}
+  - {fileID: 21300000, guid: c94892b219a94c99bd055a85cb2cb947, type: 3}
+  - {fileID: 21300000, guid: b28b0ae177f6439484183a0ee4248d64, type: 3}
+  - {fileID: 21300000, guid: b4cf4ee3678d45dfaa124607c9b5d246, type: 3}
+  - {fileID: 21300000, guid: 679e7ccf15ae4030ba39f9fc4d60f690, type: 3}
   gemMineButton: {fileID: 718000015}
   gemMineModal: {fileID: 1610546629}
   unlockedBossColor: {r: 1, g: 1, b: 1, a: 1}
