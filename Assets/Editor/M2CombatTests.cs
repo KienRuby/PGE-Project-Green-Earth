@@ -480,13 +480,13 @@ public class M2CombatTests
             Assert.That(bladeSkill.IsUnlocked, Is.True);
             SpinningBladeSkill.SpinningBladeLevelConfig cfg1 = bladeSkill.GetCurrentConfig();
             Assert.That(cfg1.damage, Is.EqualTo(36));
-            Assert.That(cfg1.maxBladesOnField, Is.EqualTo(4));
+            Assert.That(cfg1.maxBladesOnField, Is.EqualTo(8));
             Assert.That(cfg1.hasVortex, Is.False);
 
             bladeSkill.UnlockOrUpgrade(5);
             SpinningBladeSkill.SpinningBladeLevelConfig cfg5 = bladeSkill.GetCurrentConfig();
             Assert.That(cfg5.damage, Is.EqualTo(130));
-            Assert.That(cfg5.maxBladesOnField, Is.EqualTo(10));
+            Assert.That(cfg5.maxBladesOnField, Is.EqualTo(16));
             Assert.That(cfg5.hasVortex, Is.True);
         }
         finally

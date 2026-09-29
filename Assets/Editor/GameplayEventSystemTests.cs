@@ -98,6 +98,20 @@ namespace PGE.Tests
         }
 
         [Test]
+        public void Test02b_GameplayEventPickup_DefaultSizeHalved()
+        {
+            GameObject eventObj = new GameObject("EventSizeTest", typeof(CircleCollider2D), typeof(GameplayEventPickup));
+            eventObj.transform.SetParent(testContainer.transform);
+            GameplayEventPickup pickup = eventObj.GetComponent<GameplayEventPickup>();
+
+            Assert.AreEqual(1.0f, pickup.VisualWorldWidth, 0.001f);
+            Assert.AreEqual(0.5f, pickup.TriggerRadius, 0.001f);
+
+            CircleCollider2D circle = eventObj.GetComponent<CircleCollider2D>();
+            Assert.AreEqual(0.5f, circle.radius, 0.001f);
+        }
+
+        [Test]
         public void Test03_OptionRewards_MoveSpeedPercent()
         {
             GameObject playerObj = new GameObject("Player", typeof(Rigidbody2D), typeof(PlayerHealth), typeof(PlayerMovement));
