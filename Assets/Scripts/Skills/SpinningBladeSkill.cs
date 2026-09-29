@@ -2,11 +2,12 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Quản lý kỹ năng Lưỡi Dao Xoay (Spinning Blade) bay xoay tròn xung quanh Player:
+/// Quản lý kỹ năng Lưỡi Dao Xoay (Spinning Blade / Boomerang) bay xoay tròn xung quanh Player:
 /// 1. Tốc độ quay chậm rãi, êm ái (`orbitSpeed = 80°/s`, tùy chỉnh từ 10°/s đến 360°/s).
-/// 2. Khi xuất hiện cái thứ 1 xoay, cái thứ 2 xuất hiện NGAY SÁT BÊN CẠNH cái thứ 1 và cùng bay song hành.
-/// 3. KHÔNG trượt giãn đều ra đối diện, các dao luôn giữ khoảng cách cố định ngay sát cạnh nhau (`bladeSpacingAngle = 25°`).
-/// 4. Mọi thông số (tốc độ quay quanh Player, tốc độ tự xoay của dao, khoảng cách góc sát cạnh nhau, bán kính, hồi chiêu)
+/// 2. Phân bổ đều 360 độ quanh thân Player (360° / số lượng dao), bao phủ toàn bộ cơ thể ngay từ Lv.01.
+/// 3. Không bị giới hạn 4 dao: Lv.01 có 8 dao bao phủ toàn thân, tăng dần lên 10, 12, 14, 16 dao ở các cấp độ cao.
+/// 4. Ngay khi mở khóa Lv.01 hoặc lên cấp: sinh đủ toàn bộ dao ngay lập tức để hình thành lá chắn quanh người.
+/// 5. Mọi thông số (tốc độ quay quanh Player, tốc độ tự xoay của dao, bán kính, hồi chiêu)
 ///    đều có thể chỉnh sửa trực tiếp trên Unity Inspector.
 /// </summary>
 public class SpinningBladeSkill : MonoBehaviour
@@ -30,7 +31,7 @@ public class SpinningBladeSkill : MonoBehaviour
     [Tooltip("Prefab hiệu ứng chém trúng quái (VFX Boom).")]
     [SerializeField] private GameObject hitVfxPrefab;
 
-    [Header("Orbit Clustered Tuning (Bay ngay sát bên cạnh nhau)")]
+    [Header("Orbit Tuning (Phân bổ 360° bao phủ toàn thân Player)")]
     [Tooltip("Bán kính vòng quay quanh Player (mét).")]
     [Range(0.5f, 3.0f)]
     [SerializeField] private float orbitRadius = 0.925f;
@@ -39,7 +40,10 @@ public class SpinningBladeSkill : MonoBehaviour
     [Range(10f, 360f)]
     [SerializeField] private float orbitSpeed = 80f;
 
-    [Tooltip("Khoảng cách góc giữa các lưỡi dao nằm ngay sát cạnh nhau (độ).")]
+    [Tooltip("Phân bổ đều 360 độ quanh thân Player (giúp dao bao phủ toàn bộ cơ thể thay vì dồn vào 1 góc).")]
+    [SerializeField] private bool evenlyDistributeAroundPlayer = true;
+
+    [Tooltip("Khoảng cách góc giữa các lưỡi dao nếu không bật chế độ phân bổ đều 360 độ (độ).")]
     [Range(10f, 60f)]
     [SerializeField] private float bladeSpacingAngle = 25f;
 
@@ -60,16 +64,16 @@ public class SpinningBladeSkill : MonoBehaviour
     [SerializeField]
     private SpinningBladeLevelConfig[] levelConfigs = new SpinningBladeLevelConfig[]
     {
-        // Cấp 1: 36 dmg, CD 3.0s, 1 hit, spawn 1, max 4
-        new SpinningBladeLevelConfig { damage = 36, cooldown = 3.0f, hitsPerBlade = 1, spawnCountPerWave = 1, maxBladesOnField = 4, hasVortex = false, vortexDuration = 0f },
-        // Cấp 2: 50 dmg, CD 2.5s, 1 hit, spawn 1, max 5 (quay nhanh hơn)
-        new SpinningBladeLevelConfig { damage = 50, cooldown = 2.5f, hitsPerBlade = 1, spawnCountPerWave = 1, maxBladesOnField = 5, hasVortex = false, vortexDuration = 0f },
-        // Cấp 3: 70 dmg, CD 2.0s, 2 hits (đâm xuyên 2 quái), spawn 1, max 6
-        new SpinningBladeLevelConfig { damage = 70, cooldown = 2.0f, hitsPerBlade = 2, spawnCountPerWave = 1, maxBladesOnField = 6, hasVortex = false, vortexDuration = 0f },
-        // Cấp 4: 95 dmg, CD 1.5s, 2 hits, spawn 2 dao/lần, max 8
-        new SpinningBladeLevelConfig { damage = 95, cooldown = 1.5f, hitsPerBlade = 2, spawnCountPerWave = 2, maxBladesOnField = 8, hasVortex = false, vortexDuration = 0f },
-        // Cấp 5 (Tối thượng): 130 dmg, CD 1.0s, 3 hits, spawn 2 dao/lần, max 10, Lốc xoáy 2s khi nổ
-        new SpinningBladeLevelConfig { damage = 130, cooldown = 1.0f, hitsPerBlade = 3, spawnCountPerWave = 2, maxBladesOnField = 10, hasVortex = true, vortexDuration = 2.0f }
+        // Cấp 1: 36 dmg, CD 2.0s, 1 hit, spawn 2 dao/lần, max 8 (bao phủ toàn thân 360 độ từ lv.01)
+        new SpinningBladeLevelConfig { damage = 36, cooldown = 2.0f, hitsPerBlade = 1, spawnCountPerWave = 2, maxBladesOnField = 8, hasVortex = false, vortexDuration = 0f },
+        // Cấp 2: 50 dmg, CD 1.8s, 1 hit, spawn 2 dao/lần, max 10 (dày đặc hơn)
+        new SpinningBladeLevelConfig { damage = 50, cooldown = 1.8f, hitsPerBlade = 1, spawnCountPerWave = 2, maxBladesOnField = 10, hasVortex = false, vortexDuration = 0f },
+        // Cấp 3: 70 dmg, CD 1.5s, 2 hits (đâm xuyên 2 quái), spawn 2 dao/lần, max 12
+        new SpinningBladeLevelConfig { damage = 70, cooldown = 1.5f, hitsPerBlade = 2, spawnCountPerWave = 2, maxBladesOnField = 12, hasVortex = false, vortexDuration = 0f },
+        // Cấp 4: 95 dmg, CD 1.2s, 2 hits, spawn 3 dao/lần, max 14
+        new SpinningBladeLevelConfig { damage = 95, cooldown = 1.2f, hitsPerBlade = 2, spawnCountPerWave = 3, maxBladesOnField = 14, hasVortex = false, vortexDuration = 0f },
+        // Cấp 5 (Tối thượng): 130 dmg, CD 0.8s, 3 hits, spawn 3 dao/lần, max 16, Lốc xoáy 2s khi nổ
+        new SpinningBladeLevelConfig { damage = 130, cooldown = 0.8f, hitsPerBlade = 3, spawnCountPerWave = 3, maxBladesOnField = 16, hasVortex = true, vortexDuration = 2.0f }
     };
 
     [Header("Runtime State (Debug)")]
@@ -128,13 +132,9 @@ public class SpinningBladeSkill : MonoBehaviour
         cachedOnBladeDestroyed = OnBladeDestroyed;
         RefreshMetaTier();
 
-        if (levelConfigs != null && levelConfigs.Length > 0 && levelConfigs[0].cooldown < 2.0f)
+        if (levelConfigs == null || levelConfigs.Length < 5 || levelConfigs[0].maxBladesOnField < 8)
         {
-            if (levelConfigs.Length >= 1) levelConfigs[0].cooldown = 3.0f;
-            if (levelConfigs.Length >= 2) levelConfigs[1].cooldown = 2.5f;
-            if (levelConfigs.Length >= 3) levelConfigs[2].cooldown = 2.0f;
-            if (levelConfigs.Length >= 4) levelConfigs[3].cooldown = 1.5f;
-            if (levelConfigs.Length >= 5) levelConfigs[4].cooldown = 1.0f;
+            ApplyUpdatedLevelConfigs();
         }
 
         if (spinningBladePrefab == null)
@@ -157,8 +157,26 @@ public class SpinningBladeSkill : MonoBehaviour
 #endif
     }
 
+    public void ApplyUpdatedLevelConfigs()
+    {
+        levelConfigs = new SpinningBladeLevelConfig[]
+        {
+            // Cấp 1: 36 dmg, CD 2.0s, 1 hit, spawn 2 dao/lần, max 8 (bao phủ toàn thân 360 độ từ lv.01)
+            new SpinningBladeLevelConfig { damage = 36, cooldown = 2.0f, hitsPerBlade = 1, spawnCountPerWave = 2, maxBladesOnField = 8, hasVortex = false, vortexDuration = 0f },
+            // Cấp 2: 50 dmg, CD 1.8s, 1 hit, spawn 2 dao/lần, max 10 (dày đặc hơn)
+            new SpinningBladeLevelConfig { damage = 50, cooldown = 1.8f, hitsPerBlade = 1, spawnCountPerWave = 2, maxBladesOnField = 10, hasVortex = false, vortexDuration = 0f },
+            // Cấp 3: 70 dmg, CD 1.5s, 2 hits (đâm xuyên 2 quái), spawn 2 dao/lần, max 12
+            new SpinningBladeLevelConfig { damage = 70, cooldown = 1.5f, hitsPerBlade = 2, spawnCountPerWave = 2, maxBladesOnField = 12, hasVortex = false, vortexDuration = 0f },
+            // Cấp 4: 95 dmg, CD 1.2s, 2 hits, spawn 3 dao/lần, max 14
+            new SpinningBladeLevelConfig { damage = 95, cooldown = 1.2f, hitsPerBlade = 2, spawnCountPerWave = 3, maxBladesOnField = 14, hasVortex = false, vortexDuration = 0f },
+            // Cấp 5 (Tối thượng): 130 dmg, CD 0.8s, 3 hits, spawn 3 dao/lần, max 16, Lốc xoáy 2s khi nổ
+            new SpinningBladeLevelConfig { damage = 130, cooldown = 0.8f, hitsPerBlade = 3, spawnCountPerWave = 3, maxBladesOnField = 16, hasVortex = true, vortexDuration = 2.0f }
+        };
+    }
+
     /// <summary>
     /// Mở khóa hoặc tăng cấp độ kỹ năng Spinning Blade (1 -> 5).
+    /// Ngay khi mở khóa Lv.01 hoặc lên cấp: sinh đủ toàn bộ dao để lập tức bao phủ 360 độ quanh thân Player.
     /// </summary>
     public void UnlockOrUpgrade(int level)
     {
@@ -167,24 +185,22 @@ public class SpinningBladeSkill : MonoBehaviour
         RefreshMetaTier();
 
         SpinningBladeLevelConfig config = GetCurrentConfig();
-        if (activeBlades.Count == 0)
+        
+        // Ngay khi mở khóa (lv.01) hoặc lên cấp: sinh đủ toàn bộ dao để bao phủ toàn thân Player ngay lập tức
+        while (activeBlades.Count < config.maxBladesOnField)
         {
             SpawnBlade();
-            if (activeBlades.Count < config.maxBladesOnField)
-            {
-                isCooldownActive = true;
-                currentCooldownTimer = GetCurrentCooldown();
-            }
-            else
-            {
-                isCooldownActive = false;
-                currentCooldownTimer = 0f;
-            }
         }
-        else if (activeBlades.Count < config.maxBladesOnField && !isCooldownActive)
+
+        if (activeBlades.Count < config.maxBladesOnField)
         {
             isCooldownActive = true;
             currentCooldownTimer = GetCurrentCooldown();
+        }
+        else
+        {
+            isCooldownActive = false;
+            currentCooldownTimer = 0f;
         }
     }
 
@@ -217,7 +233,7 @@ public class SpinningBladeSkill : MonoBehaviour
             currentCooldownTimer = GetCurrentCooldown();
         }
 
-        // 3. TẤT CẢ CÁC DAO LUÔN BAY NGAY SÁT BÊN CẠNH NHAU (Khóa khoảng cách góc bladeSpacingAngle)
+        // 3. TẤT CẢ CÁC DAO LUÔN DÀN ĐỀU 360 ĐỘ BAO PHỦ TOÀN THÂN PLAYER
         int bladeCount = activeBlades.Count;
         int metaTier = GetMetaTier();
         bool isGuaranteedPierceActive = metaTier >= 5 && ((Time.time % 20f) <= 5f);
@@ -226,6 +242,7 @@ public class SpinningBladeSkill : MonoBehaviour
         {
             Vector3 playerPos = transform.position;
             float effectiveRadius = GetEffectiveOrbitRadius();
+            float angleStep = evenlyDistributeAroundPlayer ? (360f / bladeCount) : bladeSpacingAngle;
 
             for (int i = 0; i < bladeCount; i++)
             {
@@ -234,8 +251,7 @@ public class SpinningBladeSkill : MonoBehaviour
 
                 blade.SetGuaranteedPierce(isGuaranteedPierceActive);
 
-                // Dao thứ i nằm ngay sát sườn dao trước đó (cách nhau đúng bladeSpacingAngle, KHÔNG trượt tách rời)
-                float bladeAngle = baseOrbitAngle - (i * bladeSpacingAngle);
+                float bladeAngle = evenlyDistributeAroundPlayer ? (baseOrbitAngle + (i * angleStep)) : (baseOrbitAngle - (i * bladeSpacingAngle));
                 float rad = bladeAngle * Mathf.Deg2Rad;
                 Vector3 bladePos = playerPos + new Vector3(Mathf.Cos(rad) * effectiveRadius, Mathf.Sin(rad) * effectiveRadius, 0f);
 
@@ -284,7 +300,7 @@ public class SpinningBladeSkill : MonoBehaviour
     }
 
     /// <summary>
-    /// Sinh ra lưỡi dao mới xuất hiện ngay sát bên cạnh lưỡi dao đang có.
+    /// Sinh ra lưỡi dao mới bay xung quanh Player.
     /// </summary>
     private void SpawnBlade()
     {
@@ -293,7 +309,9 @@ public class SpinningBladeSkill : MonoBehaviour
         ChipsetBattleStats.RecordAttack(4, 1);
 
         int newIndex = activeBlades.Count;
-        float bladeAngle = baseOrbitAngle - (newIndex * bladeSpacingAngle);
+        int totalExpected = Mathf.Max(activeBlades.Count + 1, GetCurrentConfig().maxBladesOnField);
+        float angleStep = evenlyDistributeAroundPlayer ? (360f / totalExpected) : bladeSpacingAngle;
+        float bladeAngle = evenlyDistributeAroundPlayer ? (baseOrbitAngle + (newIndex * angleStep)) : (baseOrbitAngle - (newIndex * bladeSpacingAngle));
         float initRad = bladeAngle * Mathf.Deg2Rad;
         float spawnRadius = GetEffectiveOrbitRadius();
         Vector3 spawnPos = transform.position + new Vector3(Mathf.Cos(initRad) * spawnRadius, Mathf.Sin(initRad) * spawnRadius, 0f);
