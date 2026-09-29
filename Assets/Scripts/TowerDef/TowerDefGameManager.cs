@@ -7,9 +7,9 @@ using UnityEngine.UI;
 
 /// <summary>
 /// Bộ điều khiển trung tâm của chế độ chơi Tower Def (Thủ Thành):
-/// - Quản lý tài nguyên: Vàng (Gold khởi đầu = 50), Năng lượng (Energy khởi đầu = 0).
+/// - Quản lý tài nguyên: Vàng (Gold khởi đầu = 100), Năng lượng (Energy khởi đầu = 0).
 /// - Khởi tạo bản đồ chính xác theo Thiết kế (7 cột, khu vực quái tối phía trên, tường gạch chia đôi, phòng phòng thủ 7x4 bên dưới).
-/// - Quản lý công trình mặc định ban đầu: Cổng sắt có thanh máu, Pháo ở Hàng 2 Cột 2, Trụ năng lượng ở Hàng 3 Cột 3, Giường ở Hàng 3 Cột 4.
+/// - Quản lý công trình mặc định ban đầu: Cổng sắt có thanh máu, Trụ năng lượng ở Hàng 3 Cột 3, Giường ở Hàng 3 Cột 4.
 /// - Điều phối đợt tấn công của quái vật, đường đạn của tháp pháo, thăng cấp công trình và lưu trữ tiến trình qua TowerDefProgress.
 /// </summary>
 [DefaultExecutionOrder(-50)]
@@ -18,12 +18,12 @@ public class TowerDefGameManager : MonoBehaviour
     public static TowerDefGameManager Instance { get; private set; }
 
     [Header("Economy (Khởi tạo theo Ảnh Thiết Kế)")]
-    [SerializeField] private int gold = 50;
+    [SerializeField] private int gold = 100;
     [SerializeField] private int energy = 0;
 
     [Header("Level State")]
     [SerializeField] private int currentLevel = 1;
-    [SerializeField] private int totalWaves = 3;
+    [SerializeField] private int totalWaves = 5;
     [SerializeField] private int currentWave = 0;
     [SerializeField] private bool waveInProgress = false;
 
@@ -509,10 +509,9 @@ public class TowerDefGameManager : MonoBehaviour
 
     private IEnumerator SpawnWaveRoutine(int wave)
     {
-        int enemyCount = 3 + wave * 2;
-        float wallTopY = 617.14f + 154.2857f; // 771.43f
-        float spawnY = 1750f; // Vị trí xuất hiện ở đỉnh khu vực tối (dưới Top Bar)
-        float gateStopY = wallTopY + 50f; // Vị trí chạm vào mép trên tường thành
+        int enemyCount = 10 + wave * 10 + (currentLevel - 1);
+        RectTransform playArea = enemySpawnParent != null ? enemySpawnParent.parent as RectTransform : null;
+        float topY = playArea != null ? playArea.rect.height : 1920f;
 
         for (int i = 0; i < enemyCount; i++)
         {
@@ -521,13 +520,15 @@ public class TowerDefGameManager : MonoBehaviour
             // Chọn ngẫu nhiên một trong 7 cột để quái vật xuất hiện
             int col = UnityEngine.Random.Range(0, 7);
             float colX = GetColumnWorldX(col);
+            bool isBoss = wave == totalWaves && i >= enemyCount - currentLevel;
+            float spawnY = topY + (isBoss ? 80f : 55f);
 
-            SpawnEnemy(new Vector3(colX, spawnY, 0f), wave, gateStopY, i == enemyCount - 1 && wave == totalWaves);
+            SpawnEnemy(new Vector3(colX, spawnY, 0f), col, wave, isBoss);
             yield return new WaitForSeconds(1.8f);
         }
     }
 
-    private void SpawnEnemy(Vector3 localPos, int wave, float gateStopY, bool isBoss = false)
+    private void SpawnEnemy(Vector3 localPos, int lane, int wave, bool isBoss = false)
     {
         GameObject enemyObj = new GameObject(isBoss ? "BossEnemy" : "CreepEnemy", typeof(RectTransform), typeof(Image), typeof(TowerDefEnemy));
         enemyObj.transform.SetParent(enemySpawnParent != null ? enemySpawnParent : transform, false);
@@ -575,7 +576,7 @@ public class TowerDefGameManager : MonoBehaviour
         float wallTopY = 617.14f + 154.2857f;
         float stopY = wallTopY + (enemyHeight * 0.45f);
 
-        enemy.Setup(hp, spd, dmg, rwd, gate, stopY, img.sprite, fillImg);
+        enemy.Setup(hp, spd, dmg, rwd, gate, stopY, img.sprite, fillImg, lane);
         enemy.OnEnemyDied += HandleEnemyDied;
         activeEnemies.Add(enemy);
     }
@@ -956,17 +957,7 @@ public class TowerDefGameManager : MonoBehaviour
                 }
             }
 
-            // Gắn các công trình mặc định ban đầu theo đúng Ảnh 2:
-            // - Hàng 2 từ trên xuống (r = 2), Cột 3 (c = 2): Pháo chính (Turret)
-            if (gridCells[2, 2] != null)
-            {
-                gridCells[2, 2].PlaceStructure(TowerDefStructureType.Turret, turretBaseSprite, turretGunSprite, 1);
-                if (gridCells[2, 2].Turret != null)
-                {
-                    gridCells[2, 2].Turret.SetLevelSprites(turretBaseLevelSprites, turretGunLevelSprites);
-                }
-            }
-
+            // Gắn các công trình mặc định ban đầu:
             // - Hàng 3 từ trên xuống (r = 1), Cột 3 (c = 2): Trụ Năng Lượng (Pawn Tower)
             if (gridCells[1, 2] != null)
             {
@@ -991,35 +982,9 @@ public class TowerDefGameManager : MonoBehaviour
                 {
                     gridCells[cell.Row, cell.Col] = cell;
                 }
-            }
-
-            // Xóa khẩu súng cyan thừa ở Cell_R2_C1 nếu còn tồn tại
-            if (gridCells[2, 1] != null && gridCells[2, 1].CurrentType == TowerDefStructureType.Turret)
-            {
-                gridCells[2, 1].ClearStructure();
-            }
-
-            // Đảm bảo súng chính được đặt ở Cell_R2_C2 nếu chưa có pháo nào trên map
-            bool hasAnyTurret = false;
-            for (int r = 0; r < 4; r++)
-            {
-                for (int c = 0; c < 7; c++)
+                if (cell.CurrentType == TowerDefStructureType.Turret)
                 {
-                    if (gridCells[r, c] != null && gridCells[r, c].CurrentType == TowerDefStructureType.Turret)
-                    {
-                        hasAnyTurret = true;
-                        break;
-                    }
-                }
-                if (hasAnyTurret) break;
-            }
-
-            if (!hasAnyTurret && gridCells[2, 2] != null && gridCells[2, 2].CurrentType == TowerDefStructureType.None)
-            {
-                gridCells[2, 2].PlaceStructure(TowerDefStructureType.Turret, turretBaseSprite, turretGunSprite, 1);
-                if (gridCells[2, 2].Turret != null)
-                {
-                    gridCells[2, 2].Turret.SetLevelSprites(turretBaseLevelSprites, turretGunLevelSprites);
+                    cell.ClearStructure();
                 }
             }
 
@@ -1190,7 +1155,7 @@ public class TowerDefGameManager : MonoBehaviour
         cTxtRt.anchoredPosition = new Vector2(62f, 0f);
         cTxtRt.sizeDelta = new Vector2(120f, 55f);
         TextMeshProUGUI cTxt = coinTxtObj.GetComponent<TextMeshProUGUI>();
-        cTxt.text = "50";
+        cTxt.text = gold.ToString();
         cTxt.fontSize = 42f;
         cTxt.fontStyle = FontStyles.Bold;
         cTxt.color = Color.white;

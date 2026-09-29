@@ -359,10 +359,20 @@ public class ChapterSystemTests
 
             ctrl.RefreshAllBalances();
 
-            Assert.That(dataChipFormattedText(chipText.text), Is.EqualTo("54.321"));
-            Assert.That(dataChipFormattedText(gemText.text), Is.EqualTo("12.345"));
+            Assert.That(dataChipFormattedText(chipText.text), Is.EqualTo("54,321"));
+            Assert.That(dataChipFormattedText(gemText.text), Is.EqualTo("12,345"));
             Assert.That(energyText.text, Is.EqualTo($"150/{ChipManager.MaxEnergy}"),
                 "TopBar phải hiển thị số năng lượng thực tế, kể cả khi vượt sức chứa chuẩn.");
+
+            ChipManager.DataChips = 100_000;
+            Assert.That(chipText.text, Is.EqualTo("100,000"));
+
+            ChipManager.DataChips = 99_999_999;
+            ChipManager.RedGems = 100_000_000;
+            ctrl.RefreshAllBalances();
+
+            Assert.That(chipText.text, Is.EqualTo("99,999,999"));
+            Assert.That(gemText.text, Is.EqualTo("100m"));
         }
         finally
         {

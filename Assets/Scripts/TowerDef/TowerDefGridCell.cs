@@ -11,7 +11,7 @@ using UnityEngine.UI;
 /// - Có huy hiệu nâng cấp Icon_Upgrade_Circle khi công trình đủ điều kiện hoặc sẵn sàng.
 /// - Nhận sự kiện chạm (Click/Tap) để mở popup xây mới hoặc nâng cấp.
 /// </summary>
-public class TowerDefGridCell : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler, IPointerClickHandler
+public class TowerDefGridCell : MonoBehaviour, IPointerClickHandler
 {
     [Header("Grid Position")]
     [SerializeField] private int row;
@@ -288,6 +288,7 @@ public class TowerDefGridCell : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         currentType = TowerDefStructureType.None;
         structureLevel = 1;
 
+        if (turretComp == null) turretComp = GetComponent<TowerDefTurret>();
         if (turretComp != null)
         {
             turretComp.enabled = false;
@@ -308,8 +309,8 @@ public class TowerDefGridCell : MonoBehaviour, IBeginDragHandler, IDragHandler, 
             for (int i = structureRoot.transform.childCount - 1; i >= 0; i--)
             {
                 Transform child = structureRoot.transform.GetChild(i);
-                if (child.gameObject != structureImage?.gameObject &&
-                    child.gameObject != gunTransform?.gameObject)
+                if ((structureImage == null || child.gameObject != structureImage.gameObject) &&
+                    (gunTransform == null || child.gameObject != gunTransform.gameObject))
                 {
                     if (Application.isPlaying) Destroy(child.gameObject);
                     else DestroyImmediate(child.gameObject);

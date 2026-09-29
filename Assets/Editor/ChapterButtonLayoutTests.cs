@@ -55,6 +55,43 @@ public class ChapterButtonLayoutTests
     }
 
     [Test]
+    public void ChapterScreenController_SideButtons_AppearAfterChapter3IsCleared()
+    {
+        int originalUnlocked = PlayerDataService.UnlockedChapterIndex;
+        GameObject go = new GameObject("ChapterPanelTest", typeof(RectTransform), typeof(ChapterScreenController));
+        GameObject towerBtnObj = new GameObject("TowerDefBtn", typeof(RectTransform), typeof(Button));
+        GameObject gemMineBtnObj = new GameObject("GemMineBtn", typeof(RectTransform), typeof(Button));
+
+        try
+        {
+            ChapterScreenController ctrl = go.GetComponent<ChapterScreenController>();
+            ctrl.SetSideModeButtonsForTesting(towerBtnObj.GetComponent<Button>(), gemMineBtnObj.GetComponent<Button>());
+
+            PlayerDataService.UnlockedChapterIndex = 2;
+            ctrl.RefreshChapterView();
+            Assert.IsFalse(towerBtnObj.activeSelf);
+            Assert.IsFalse(gemMineBtnObj.activeSelf);
+
+            PlayerDataService.UnlockedChapterIndex = 3;
+            ctrl.RefreshChapterView();
+            Assert.IsTrue(towerBtnObj.activeSelf);
+            Assert.IsTrue(gemMineBtnObj.activeSelf);
+
+            PlayerDataService.UnlockedChapterIndex = 4;
+            ctrl.RefreshChapterView();
+            Assert.IsTrue(towerBtnObj.activeSelf);
+            Assert.IsTrue(gemMineBtnObj.activeSelf);
+        }
+        finally
+        {
+            PlayerDataService.UnlockedChapterIndex = originalUnlocked;
+            Object.DestroyImmediate(towerBtnObj);
+            Object.DestroyImmediate(gemMineBtnObj);
+            Object.DestroyImmediate(go);
+        }
+    }
+
+    [Test]
     public void ChapterSelectorHeader_And_WaveBadge_SceneLayout_MatchesTargetVisuals()
     {
         EditorSceneManager.OpenScene("Assets/Scenes/MainMenu.unity", OpenSceneMode.Single);

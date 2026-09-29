@@ -16,10 +16,10 @@ public class TopBarCurrencyController : MonoBehaviour
     [Tooltip("Text hiển thị Năng lượng (ví dụ: '50/50').")]
     [SerializeField] private TMP_Text energyText;
 
-    [Tooltip("Text hiển thị Data Chip (ví dụ: '49.181').")]
+    [Tooltip("Text hiển thị Data Chip (ví dụ: '49,181').")]
     [SerializeField] private TMP_Text dataChipText;
 
-    [Tooltip("Text hiển thị Red Gem (ví dụ: '31.868').")]
+    [Tooltip("Text hiển thị Red Gem (ví dụ: '31,868').")]
     [SerializeField] private TMP_Text redGemText;
 
     [Header("Currency Add Buttons (Optional)")]
@@ -169,13 +169,13 @@ public class TopBarCurrencyController : MonoBehaviour
         }
     }
 
-    private string FormatCurrency(int amount)
+    private static string FormatCurrency(int amount)
     {
-        if (amount >= 1000)
+        if (amount >= 100_000_000)
         {
-            return amount.ToString("N0", new CultureInfo("vi-VN")).Replace(',', '.');
+            return (amount / 1_000_000d).ToString("0.#", CultureInfo.InvariantCulture) + "m";
         }
-        return amount.ToString();
+        return amount.ToString("N0", CultureInfo.InvariantCulture);
     }
 
     private void OnAddEnergyClicked()

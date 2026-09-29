@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 /// <summary>
 /// Quản lý giao diện người dùng (UI) trong chế độ Tower Def:
-/// - Thanh trạng thái đỉnh màn hình: Nút Back, Số lượng Gold (🪙 50), Số lượng Energy (⚡ 0).
+/// - Thanh trạng thái đỉnh màn hình: Nút Back, Số lượng Gold (🪙 100), Số lượng Energy (⚡ 0).
 /// - Popup Xây dựng công trình (Build Modal).
 /// - Popup Nâng cấp công trình / Cổng (Upgrade Modal).
 /// - Thông báo nổi (Floating Text) khi thu hoạch vàng / năng lượng.

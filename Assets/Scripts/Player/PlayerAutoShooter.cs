@@ -166,6 +166,7 @@ public class PlayerAutoShooter : MonoBehaviour
     public int CurrentBulletsPerShot => GetChipsetWeaponLevel(1) > 0 ? GetChipsetWeaponProjectileCount(1) : currentBulletsPerShot;
     public float CurrentSpreadAngle => currentSpreadAngle;
     public Transform CurrentTarget => currentTarget;
+    public Transform GunPivot => gunTransform;
     public Transform FirePoint => attackPoint != null ? attackPoint : transform;
     public bool MatchAttackRangeToViewport
     {

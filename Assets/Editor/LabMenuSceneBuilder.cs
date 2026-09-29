@@ -137,16 +137,7 @@ public static class LabMenuSceneBuilder
         DestroyChildrenNamed(canvas.transform, "BuddyDetailModal");
         DestroyChildrenNamed(canvas.transform, "BuddyToastMessage");
 
-        TopBarCurrencyController topBar = UnityEngine.Object.FindObjectOfType<TopBarCurrencyController>();
-        TMP_Text chipText = null, redText = null;
-        if (topBar != null)
-        {
-            SerializedObject tbSO = new SerializedObject(topBar);
-            chipText = tbSO.FindProperty("dataChipText")?.objectReferenceValue as TMP_Text;
-            redText = tbSO.FindProperty("redGemText")?.objectReferenceValue as TMP_Text;
-        }
-
-        GameObject buddyPanel = CreateBuddyPanel(content, canvas.GetComponent<RectTransform>(), chipText, redText);
+        GameObject buddyPanel = CreateBuddyPanel(content, canvas.GetComponent<RectTransform>());
         buddyPanel.name = "BuddyPanel";
         buddyPanel.SetActive(true);
 
@@ -211,16 +202,7 @@ public static class LabMenuSceneBuilder
         DestroyChildrenNamed(canvas.transform, "BlastFurnaceModal");
         DestroyChildrenNamed(canvas.transform, "ChipsetToastMessage");
 
-        TopBarCurrencyController topBar = UnityEngine.Object.FindObjectOfType<TopBarCurrencyController>();
-        TMP_Text chipText = null, redText = null;
-        if (topBar != null)
-        {
-            SerializedObject tbSO = new SerializedObject(topBar);
-            chipText = tbSO.FindProperty("dataChipText")?.objectReferenceValue as TMP_Text;
-            redText = tbSO.FindProperty("redGemText")?.objectReferenceValue as TMP_Text;
-        }
-
-        GameObject chipsetPanel = CreateChipsetPanel(content, canvas.GetComponent<RectTransform>(), chipText, redText);
+        GameObject chipsetPanel = CreateChipsetPanel(content, canvas.GetComponent<RectTransform>());
         chipsetPanel.name = "ChipsetPanel";
         chipsetPanel.SetActive(true);
 
@@ -516,7 +498,7 @@ public static class LabMenuSceneBuilder
 
             ShopPanelBuilder.BuildFullShopPanel();
             Transform rebuilt = content.Find("ShopPanel (Scrollable)") ?? content.Find("ShopPanel");
-            shopPanel = (rebuilt != null) ? rebuilt.gameObject : CreateShopPanel(content, null, null);
+            shopPanel = (rebuilt != null) ? rebuilt.gameObject : CreateShopPanel(content);
             shopPanel.name = "ShopPanel";
             shopPanel.SetActive(false);
         }
@@ -1574,18 +1556,18 @@ public static class LabMenuSceneBuilder
         TopBarCurrencyController topBarCtrl = CreateTopBar(
             topBar,
             out _,
-            out TMP_Text chipBalanceText,
-            out TMP_Text redChipBalanceText);
+            out _,
+            out _);
 
         RectTransform content = CreateRect("Content", canvasRect);
         Stretch(content, Vector2.zero, Vector2.one, new Vector2(0f, 220f), new Vector2(0f, -175f));
 
         GameObject[] panels = new GameObject[5];
-        panels[0] = CreateShopPanel(content, chipBalanceText, redChipBalanceText);
-        panels[1] = CreateLabPanel(content, chipBalanceText, redChipBalanceText);
+        panels[0] = CreateShopPanel(content);
+        panels[1] = CreateLabPanel(content);
         panels[2] = ChapterMenuSceneBuilder.BuildChapterPanel(content, font);
-        panels[3] = CreateChipsetPanel(content, canvasRect, chipBalanceText, redChipBalanceText);
-        panels[4] = CreateBuddyPanel(content, canvasRect, chipBalanceText, redChipBalanceText);
+        panels[3] = CreateChipsetPanel(content, canvasRect);
+        panels[4] = CreateBuddyPanel(content, canvasRect);
 
         // Default to Chapter Tab (index 2)
         for (int i = 0; i < panels.Length; i++)
@@ -1683,9 +1665,7 @@ public static class LabMenuSceneBuilder
 
     private static GameObject CreateChipsetPanel(
         RectTransform parent,
-        RectTransform canvasRect,
-        TMP_Text chipCurrencyText,
-        TMP_Text redCurrencyText)
+        RectTransform canvasRect)
     {
         RectTransform panel = CreateRect("ChipsetPanel", parent);
         Stretch(panel, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
@@ -1937,8 +1917,6 @@ public static class LabMenuSceneBuilder
         ChipsetController controller = panel.gameObject.AddComponent<ChipsetController>();
         SerializedObject sController = new SerializedObject(controller);
 
-        sController.FindProperty("chipCurrencyText").objectReferenceValue = chipCurrencyText;
-        sController.FindProperty("redCurrencyText").objectReferenceValue = redCurrencyText;
         sController.FindProperty("advanceStonesText").objectReferenceValue = null;
 
         sController.FindProperty("chipsetModeBtn").objectReferenceValue = tabChipsetBtn;
@@ -2061,9 +2039,7 @@ public static class LabMenuSceneBuilder
 
     private static GameObject CreateBuddyPanel(
         RectTransform parent,
-        RectTransform canvasRect,
-        TMP_Text chipCurrencyText,
-        TMP_Text redCurrencyText)
+        RectTransform canvasRect)
     {
         RectTransform panel = CreateRect("BuddyPanel", parent);
         Stretch(panel, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
@@ -2228,9 +2204,6 @@ public static class LabMenuSceneBuilder
         // Controller Setup
         BuddyController controller = panel.gameObject.AddComponent<BuddyController>();
         SerializedObject sController = new SerializedObject(controller);
-
-        sController.FindProperty("chipCurrencyText").objectReferenceValue = chipCurrencyText;
-        sController.FindProperty("redCurrencyText").objectReferenceValue = redCurrencyText;
 
         sController.FindProperty("droneModeBtn").objectReferenceValue = tabDroneBtn;
         sController.FindProperty("robotPetModeBtn").objectReferenceValue = tabRobotPetBtn;
@@ -3033,10 +3006,7 @@ public static class LabMenuSceneBuilder
         return toast.gameObject;
     }
 
-    private static GameObject CreateShopPanel(
-        RectTransform parent,
-        TMP_Text chipBalanceText,
-        TMP_Text redChipBalanceText)
+    private static GameObject CreateShopPanel(RectTransform parent)
     {
         RectTransform panel = CreateRect("ShopPanel (Scrollable)", parent);
         Stretch(panel, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
@@ -3115,8 +3085,6 @@ public static class LabMenuSceneBuilder
 
         ShopController controller = panel.gameObject.AddComponent<ShopController>();
         SerializedObject serializedController = new SerializedObject(controller);
-        GetRequiredProperty(serializedController, "dataChipText").objectReferenceValue = chipBalanceText;
-        GetRequiredProperty(serializedController, "redGemText").objectReferenceValue = redChipBalanceText;
         GetRequiredProperty(serializedController, "feedbackText").objectReferenceValue = feedbackText;
 
         SerializedProperty offers = GetRequiredProperty(serializedController, "offers");
@@ -3321,10 +3289,7 @@ public static class LabMenuSceneBuilder
         return tooltipComp;
     }
 
-    private static GameObject CreateLabPanel(
-        RectTransform parent,
-        TMP_Text chipBalanceText,
-        TMP_Text redChipBalanceText)
+    private static GameObject CreateLabPanel(RectTransform parent)
     {
         RectTransform panel = CreateRect("LabPanel", parent);
         Stretch(panel, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
@@ -3441,8 +3406,6 @@ public static class LabMenuSceneBuilder
         LabUpgradeController controller = panel.gameObject.AddComponent<LabUpgradeController>();
         SerializedObject serializedController = new SerializedObject(controller);
         GetRequiredProperty(serializedController, "upgradeButton").objectReferenceValue = upgradeButton;
-        GetRequiredProperty(serializedController, "chipBalanceText").objectReferenceValue = chipBalanceText;
-        GetRequiredProperty(serializedController, "redChipBalanceText").objectReferenceValue = redChipBalanceText;
         GetRequiredProperty(serializedController, "priceText").objectReferenceValue = priceText;
         GetRequiredProperty(serializedController, "resultText").objectReferenceValue = resultText;
         GetRequiredProperty(serializedController, "upgradeBackground").objectReferenceValue = upgradeBackground;

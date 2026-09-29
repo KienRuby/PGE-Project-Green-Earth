@@ -194,11 +194,7 @@ public abstract class BuddyCombatDrone : MonoBehaviour
             enemyLayer = 1 << 7; // Thường là layer Enemy (128)
         }
 
-        if (spriteRenderer == null)
-        {
-            spriteRenderer = GetComponent<SpriteRenderer>();
-        }
-
+        EnsureValidSpriteMaterial();
         ApplyLevelAndTierScaling();
     }
 
@@ -210,9 +206,28 @@ public abstract class BuddyCombatDrone : MonoBehaviour
         {
             minPlayerDistance = Mathf.Max(0.2f, followDistance * 0.75f);
         }
+        EnsureValidSpriteMaterial();
+    }
+
+    protected void EnsureValidSpriteMaterial()
+    {
         if (spriteRenderer == null)
         {
             spriteRenderer = GetComponent<SpriteRenderer>();
+        }
+
+        if (spriteRenderer != null)
+        {
+            if (spriteRenderer.sharedMaterial == null ||
+                spriteRenderer.sharedMaterial.shader == null ||
+                spriteRenderer.sharedMaterial.shader.name == "Hidden/InternalErrorShader")
+            {
+                Shader spriteShader = Shader.Find("Sprites/Default");
+                if (spriteShader != null)
+                {
+                    spriteRenderer.sharedMaterial = new Material(spriteShader);
+                }
+            }
         }
     }
 

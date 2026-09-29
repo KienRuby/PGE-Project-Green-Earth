@@ -55,13 +55,6 @@ public class ShopScrollerWindow : EditorWindow
     private void OnEnable()
     {
         FindScrollerInScene();
-        SceneView.duringSceneGui -= OnSceneGUI;
-        SceneView.duringSceneGui += OnSceneGUI;
-    }
-
-    private void OnDisable()
-    {
-        SceneView.duringSceneGui -= OnSceneGUI;
     }
 
     private void FindScrollerInScene()
@@ -147,7 +140,7 @@ public class ShopScrollerWindow : EditorWindow
 
         // 1. THANH TRƯỢT VỊ TRÍ CUỘN
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-        EditorGUILayout.LabelField("📜 CUỘN SHOP TRONG SCENE / GAME VIEW", sectionTitle);
+        EditorGUILayout.LabelField("📜 CUỘN SHOP TRONG SCENE VIEW", sectionTitle);
 
         float currentPercent = scroller.ScrollPercent;
         EditorGUI.BeginChangeCheck();
@@ -309,9 +302,9 @@ public class ShopScrollerWindow : EditorWindow
 
         EditorGUILayout.Space(6);
 
-        // 4. RESET AN TOÀN TRƯỚC KHI CHẠY GAME
+        // Đưa nội dung Shop về đầu trang khi người thiết kế muốn bắt đầu từ đó.
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-        if (GUILayout.Button("🔄 Đưa Shop về Đỉnh (Chuẩn bị Play Game)", GUILayout.Height(28)))
+        if (GUILayout.Button("🔄 Đưa Shop về Đỉnh", GUILayout.Height(28)))
         {
             scroller.ResetToTop();
             SceneView.RepaintAll();
@@ -341,20 +334,5 @@ public class ShopScrollerWindow : EditorWindow
         }
     }
 
-    private void OnSceneGUI(SceneView sceneView)
-    {
-        if (scroller == null || Application.isPlaying) return;
-
-        Event e = Event.current;
-        if (e != null && e.isScrollWheel)
-        {
-            // Cho phép lăn chuột trong Scene View để cuộn Shop khi cửa sổ này đang mở
-            float delta = e.delta.y * 120f;
-            scroller.ScrollByDelta(delta);
-            e.Use();
-            Repaint();
-            sceneView.Repaint();
-        }
-    }
 }
 #endif

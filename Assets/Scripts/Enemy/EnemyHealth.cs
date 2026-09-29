@@ -125,6 +125,7 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     public int RandomRedGemAmount => randomRedGemAmount;
     public bool IsDead { get; private set; }
     public GameObject ActiveBossDeathVfx { get; private set; }
+    public GameObject BossDeathVfxPrefab => bossDeathVfxPrefab;
 
     public void SetDataChipReward(int amount) => dataChipReward = Mathf.Max(0, amount);
     public void SetRedGemReward(int amount) => redGemReward = Mathf.Max(0, amount);
@@ -502,6 +503,7 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     public void InstantKill(bool grantRewards = true)
     {
         if (IsDead) return;
+        CurrentHealth = 0;
         TriggerDamageFlash();
         Die(grantRewards);
     }
@@ -509,6 +511,7 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     public void InstantKillWithoutExp()
     {
         if (IsDead) return;
+        CurrentHealth = 0;
         TriggerDamageFlash();
         Die(true, false);
     }
@@ -530,9 +533,10 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
 
         IsDead = true;
 
-        if (CurrentHealth <= 0 && IsBoss && bossDeathVfxPrefab != null)
+        if (IsBoss && bossDeathVfxPrefab != null)
         {
-            GameObject vfx = Instantiate(bossDeathVfxPrefab, transform.position, Quaternion.identity);
+            Vector3 vfxPosition = AimPoint;
+            GameObject vfx = Instantiate(bossDeathVfxPrefab, vfxPosition, Quaternion.identity);
             ActiveBossDeathVfx = vfx;
             SpriteRenderer vfxRenderer = vfx.GetComponent<SpriteRenderer>();
             if (vfxRenderer != null && spriteRenderers != null)
@@ -615,7 +619,8 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
                 // 4. Cấp tiền tệ (Data Chips / Red Gems) cho Player
                 if (currencyDropChance >= 1f || UnityEngine.Random.value <= currencyDropChance)
                 {
-                    if (dataChipReward > 0)
+                    bool isGemMine = EnemySpawner.Instance != null && EnemySpawner.Instance.IsGemMineScene();
+                    if (!isGemMine && dataChipReward > 0)
                     {
                         ChipManager.AddDataChips(dataChipReward);
                     }

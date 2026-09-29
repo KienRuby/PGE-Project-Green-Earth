@@ -1,11 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// Quản lý kỹ năng Rocket Punch (Nắm Đấm Phản Lực) gắn trên Player:
-/// 1. Triệu hồi nắm đấm xuất hiện bay lượn vòng tròn xung quanh Player với tốc độ chậm.
-/// 2. Khi phát hiện quái vật trong tầm quét 360°, nắm đấm khóa hướng và lao thẳng tới quái vật theo đường thẳng.
-/// 3. Sau khi nắm đấm đầu tiên phóng đi, Player phải chờ đúng 3 giây (Cooldown) mới triệu hồi nắm đấm thứ 2.
-/// 4. Mọi thông số (tốc độ quay quanh Player, bán kính quay, tốc độ lao, thời gian chờ 3s) đều tùy chỉnh được trong Inspector.
+/// Hiện súng Rocket Punch trên vai khi chọn chipset và bắn nắm đấm từ đầu nòng.
+/// Sát thương, thời gian hồi chiêu và khả năng bám mục tiêu phụ thuộc cấp kỹ năng.
 /// </summary>
 public class RocketPunchSkill : MonoBehaviour
 {
@@ -30,6 +27,12 @@ public class RocketPunchSkill : MonoBehaviour
 
     [Tooltip("Prefab vùng dung nham lửa (LavaHazardZone).")]
     [SerializeField] private GameObject lavaHazardPrefab;
+
+    [Header("Shoulder Launcher")]
+    [SerializeField] private Transform shoulderGunPivot;
+    [SerializeField] private Transform punchMuzzle;
+    [Tooltip("Sprite khẩu súng phóng tên lửa trên vai.")]
+    [SerializeField] private Sprite shoulderGunSprite;
 
     [Header("Orbit Tuning (Tùy chỉnh bay quanh Player)")]
     [Tooltip("Bán kính vòng quay xung quanh Player (mét).")]
@@ -69,8 +72,6 @@ public class RocketPunchSkill : MonoBehaviour
     [SerializeField] private bool isUnlocked = false;
     [SerializeField] private int currentSkillLevel = 1;
     [SerializeField] private float currentCooldownTimer = 0f;
-    [SerializeField] private RocketPunchProjectile activeOrbitingPunch;
-
     private PlayerAutoShooter playerAutoShooter;
 
     public bool IsUnlocked => isUnlocked;
@@ -82,6 +83,11 @@ public class RocketPunchSkill : MonoBehaviour
     private void Awake()
     {
         playerAutoShooter = GetComponent<PlayerAutoShooter>();
+        EnsureShoulderGunReferences();
+        if (shoulderGunPivot != null)
+        {
+            shoulderGunPivot.gameObject.SetActive(isUnlocked);
+        }
         if (rocketPunchPrefab == null)
         {
             rocketPunchPrefab = Resources.Load<GameObject>("Prefabs/Chipset/RocketPunch");
@@ -117,54 +123,46 @@ public class RocketPunchSkill : MonoBehaviour
     {
         currentSkillLevel = Mathf.Clamp(level, 1, 5);
         isUnlocked = true;
-
-        if (activeOrbitingPunch == null && currentCooldownTimer <= 0f)
+        EnsureShoulderGunReferences();
+        if (shoulderGunPivot != null)
         {
-            SpawnOrbitingPunch();
+            shoulderGunPivot.gameObject.SetActive(true);
         }
     }
 
-    private void Update()
+    private void LateUpdate()
     {
         if (!isUnlocked) return;
 
-        // 1. Nếu chưa có nắm đấm xoay quanh Player và đã hết Cooldown (ví dụ 3 giây), triệu hồi nắm đấm mới
-        if (activeOrbitingPunch == null)
+        if (shoulderGunPivot == null)
         {
-            currentCooldownTimer -= Time.deltaTime;
-            if (currentCooldownTimer <= 0f)
-            {
-                SpawnOrbitingPunch();
-            }
-            return;
+            EnsureShoulderGunReferences();
         }
 
-        // 2. Nếu đang có nắm đấm xoay quanh Player, quét tìm quái vật để phóng tới
-        if (activeOrbitingPunch.State == RocketPunchState.Orbiting)
+        if (shoulderGunPivot != null)
         {
-            Transform target = FindTargetEnemy();
-            if (target != null)
+            if (!shoulderGunPivot.gameObject.activeSelf)
             {
-                activeOrbitingPunch.transform.position = GetSharedFirePoint().position;
-                ChipsetBattleStats.RecordAttack(3, 1);
-                // Phóng nắm đấm tới quái vật (kèm Transform để theo dõi và đổi mục tiêu nếu quái chết)
-                activeOrbitingPunch.LaunchTowards(target);
-                activeOrbitingPunch = null;
-
-                // Bắt đầu đếm ngược thời gian chờ 3 giây cho cú đấm thứ 2
-                currentCooldownTimer = GetCurrentCooldown();
+                shoulderGunPivot.gameObject.SetActive(true);
             }
         }
+
+        currentCooldownTimer -= Time.deltaTime;
+        if (currentCooldownTimer > 0f) return;
+
+        Transform target = FindTargetEnemy();
+        if (target == null) return;
+
+        FirePunch(target);
+        currentCooldownTimer = GetCurrentCooldown();
     }
 
-    /// <summary>
-    /// Sinh ra nắm đấm bay lượn vòng tròn xung quanh Player.
-    /// </summary>
-    private void SpawnOrbitingPunch()
+    private void FirePunch(Transform target)
     {
         if (rocketPunchPrefab == null) return;
 
-        Vector3 spawnPos = GetSharedFirePoint().position;
+        Transform muzzle = GetPunchMuzzle();
+        Vector3 spawnPos = muzzle.position;
         GameObject punchObj;
 
         if (PoolManager.Instance != null)
@@ -208,18 +206,15 @@ public class RocketPunchSkill : MonoBehaviour
             config.hasLavaPool,
             explosionVfxPrefab,
             lavaHazardPrefab,
-            Random.Range(0f, 360f),
-            () =>
-            {
-                if (activeOrbitingPunch == proj)
-                {
-                    activeOrbitingPunch = null;
-                }
-            }
+            0f,
+            null
         );
         proj.SetSharedTargetProvider(playerAutoShooter);
-
-        activeOrbitingPunch = proj;
+        EnemyHealth enemyHealth = target.GetComponentInParent<EnemyHealth>();
+        Vector2 aimPoint = enemyHealth != null ? enemyHealth.AimPoint : (Vector2)target.position;
+        Vector2 launchDirection = (aimPoint - (Vector2)spawnPos).normalized;
+        proj.LaunchFromMuzzle(target, spawnPos, launchDirection);
+        ChipsetBattleStats.RecordAttack(3, 1);
         AudioManager.Instance?.PlaySFX(SoundIdConst.SFX_PUNCH_SPAWN);
     }
 
@@ -242,7 +237,7 @@ public class RocketPunchSkill : MonoBehaviour
     {
         if (playerAutoShooter != null && playerAutoShooter.CurrentTarget != null)
         {
-            float dist = Vector2.Distance(GetSharedFirePoint().position, playerAutoShooter.CurrentTarget.position);
+            float dist = Vector2.Distance(GetPunchMuzzle().position, playerAutoShooter.CurrentTarget.position);
             if (dist <= EffectiveLaunchRange)
             {
                 return playerAutoShooter.CurrentTarget;
@@ -252,8 +247,14 @@ public class RocketPunchSkill : MonoBehaviour
         return null;
     }
 
-    private Transform GetSharedFirePoint()
+    private Transform GetPunchMuzzle()
     {
+        if (punchMuzzle != null) return punchMuzzle;
+        if (shoulderGunPivot != null)
+        {
+            punchMuzzle = shoulderGunPivot.Find("GunPunchVisual/PunchMuzzle") ?? shoulderGunPivot.Find("PunchMuzzle");
+            if (punchMuzzle != null) return punchMuzzle;
+        }
         return playerAutoShooter != null ? playerAutoShooter.FirePoint : transform;
     }
 
@@ -312,6 +313,204 @@ public class RocketPunchSkill : MonoBehaviour
     {
         Gizmos.color = Color.cyan;
         Gizmos.DrawWireSphere(transform.position, orbitRadius);
+    }
 
+    /// <summary>
+    /// Tự động dò tìm hoặc tái tạo ShoulderGunPivot và PunchMuzzle nếu trên Player trong scene bị thiếu hoặc null.
+    /// </summary>
+    public void EnsureShoulderGunReferences()
+    {
+        Transform root = transform;
+        Transform body = root.Find("thân") ?? root;
+
+        // 1. Dò tìm ShoulderGunPivot đã có trong hierarchy của Player
+        if (shoulderGunPivot == null)
+        {
+            shoulderGunPivot = body.Find("ShoulderGunPivot") ?? root.Find("ShoulderGunPivot");
+            if (shoulderGunPivot == null)
+            {
+                foreach (Transform t in root.GetComponentsInChildren<Transform>(true))
+                {
+                    if (t.name == "ShoulderGunPivot")
+                    {
+                        shoulderGunPivot = t;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // 2. Nếu hierarchy chưa có và có xương thân, tự động clone từ Prefab hoặc tạo mới
+        if (shoulderGunPivot == null && body != null && body != root)
+        {
+            shoulderGunPivot = CreateOrCloneShoulderGun(body);
+        }
+
+        if (shoulderGunPivot != null)
+        {
+            shoulderGunPivot.gameObject.SetActive(isUnlocked);
+
+            if (body != root && shoulderGunPivot.parent != body)
+            {
+                shoulderGunPivot.SetParent(body, false);
+                shoulderGunPivot.localPosition = new Vector3(-4f, 7.5f, 0f);
+            }
+
+            // 3. Dò tìm PunchMuzzle
+            if (punchMuzzle == null)
+            {
+                punchMuzzle = shoulderGunPivot.Find("GunPunchVisual/PunchMuzzle") ?? shoulderGunPivot.Find("PunchMuzzle");
+                if (punchMuzzle == null)
+                {
+                    foreach (Transform t in shoulderGunPivot.GetComponentsInChildren<Transform>(true))
+                    {
+                        if (t.name == "PunchMuzzle")
+                        {
+                            punchMuzzle = t;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // 4. Đảm bảo SpriteRenderer của GunPunchVisual hiển thị đúng
+            EnsureVisualRenderer();
+        }
+    }
+
+    private Transform CreateOrCloneShoulderGun(Transform parentBody)
+    {
+        // 1. Thử load từ Prefab trong Resources
+        GameObject pivotPrefab = Resources.Load<GameObject>("Prefabs/Chipset/ShoulderGunPivot");
+#if UNITY_EDITOR
+        if (pivotPrefab == null)
+        {
+            pivotPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/Chipset/ShoulderGunPivot.prefab");
+        }
+        if (pivotPrefab == null)
+        {
+            GameObject playerPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Player.prefab");
+            if (playerPrefab != null)
+            {
+                Transform srcPivot = playerPrefab.transform.Find("thân/ShoulderGunPivot") ?? playerPrefab.transform.Find("ShoulderGunPivot");
+                if (srcPivot != null)
+                {
+                    pivotPrefab = srcPivot.gameObject;
+                }
+            }
+        }
+#endif
+        if (pivotPrefab != null)
+        {
+            GameObject clone = Instantiate(pivotPrefab, parentBody);
+            clone.name = "ShoulderGunPivot";
+            clone.transform.localPosition = new Vector3(-4f, 7.5f, 0f);
+            clone.transform.localRotation = Quaternion.identity;
+            clone.transform.localScale = Vector3.one;
+            return clone.transform;
+        }
+
+        // 2. Fallback tạo bằng code nếu không tìm thấy prefab
+        GameObject newPivot = new GameObject("ShoulderGunPivot");
+        newPivot.transform.SetParent(parentBody, false);
+        newPivot.transform.localPosition = new Vector3(-4f, 7.5f, 0f);
+        newPivot.transform.localRotation = Quaternion.identity;
+        newPivot.transform.localScale = Vector3.one;
+
+        GameObject visualObj = new GameObject("GunPunchVisual");
+        visualObj.transform.SetParent(newPivot.transform, false);
+        visualObj.transform.localPosition = Vector3.zero;
+        visualObj.transform.localRotation = Quaternion.identity;
+        visualObj.transform.localScale = new Vector3(0.7f, 0.7f, 1f);
+
+        SpriteRenderer sr = visualObj.AddComponent<SpriteRenderer>();
+        sr.sprite = GetShoulderGunSprite();
+        sr.sharedMaterial = GetDefaultSpriteMaterial();
+        sr.sortingLayerName = "Player";
+        sr.sortingOrder = 3;
+
+        GameObject muzzleObj = new GameObject("PunchMuzzle");
+        muzzleObj.transform.SetParent(visualObj.transform, false);
+        muzzleObj.transform.localPosition = new Vector3(13.15f, 4.4f, 0f);
+        muzzleObj.transform.localRotation = Quaternion.identity;
+        muzzleObj.transform.localScale = Vector3.one;
+
+        return newPivot.transform;
+    }
+
+    private void EnsureVisualRenderer()
+    {
+        if (shoulderGunPivot == null) return;
+
+        Transform visual = shoulderGunPivot.Find("GunPunchVisual");
+        if (visual == null)
+        {
+            foreach (Transform t in shoulderGunPivot.GetComponentsInChildren<Transform>(true))
+            {
+                if (t.name == "GunPunchVisual")
+                {
+                    visual = t;
+                    break;
+                }
+            }
+        }
+
+        if (visual == null)
+        {
+            GameObject visualObj = new GameObject("GunPunchVisual");
+            visualObj.transform.SetParent(shoulderGunPivot, false);
+            visualObj.transform.localPosition = Vector3.zero;
+            visualObj.transform.localRotation = Quaternion.identity;
+            visualObj.transform.localScale = new Vector3(0.7f, 0.7f, 1f);
+            visual = visualObj.transform;
+        }
+
+        SpriteRenderer sr = visual.GetComponent<SpriteRenderer>();
+        if (sr == null)
+        {
+            sr = visual.gameObject.AddComponent<SpriteRenderer>();
+        }
+
+        if (sr.sprite == null)
+        {
+            sr.sprite = GetShoulderGunSprite();
+        }
+
+        if (sr.sharedMaterial == null || sr.sharedMaterial.shader == null || sr.sharedMaterial.shader.name == "Hidden/InternalErrorShader")
+        {
+            sr.sharedMaterial = GetDefaultSpriteMaterial();
+        }
+
+        if (string.IsNullOrEmpty(sr.sortingLayerName) || sr.sortingLayerName == "Default" || sr.sortingLayerName == "Bullet")
+        {
+            sr.sortingLayerName = "Player";
+            sr.sortingOrder = 3;
+        }
+
+        sr.enabled = true;
+        visual.gameObject.SetActive(true);
+    }
+
+    private Sprite GetShoulderGunSprite()
+    {
+        if (shoulderGunSprite != null) return shoulderGunSprite;
+#if UNITY_EDITOR
+        shoulderGunSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Character/súng phóng tên lửa bàn tay.png");
+#endif
+        if (shoulderGunSprite == null)
+        {
+            shoulderGunSprite = Resources.Load<Sprite>("Sprites/Character/súng phóng tên lửa bàn tay");
+        }
+        return shoulderGunSprite;
+    }
+
+    private Material GetDefaultSpriteMaterial()
+    {
+#if UNITY_EDITOR
+        Material defaultMat = UnityEditor.AssetDatabase.GetBuiltinExtraResource<Material>("Sprites-Default.mat");
+        if (defaultMat != null) return defaultMat;
+#endif
+        Shader spriteShader = Shader.Find("Sprites/Default");
+        return spriteShader != null ? new Material(spriteShader) : null;
     }
 }

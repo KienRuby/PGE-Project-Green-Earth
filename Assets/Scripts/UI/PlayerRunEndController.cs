@@ -87,6 +87,7 @@ public sealed class PlayerRunEndController : MonoBehaviour
         ResolveGameplayReferences();
 
         EnsureDetailsUiComponents();
+        EnsureRewardRowLayout();
         SetPanelActive(revivePanel, false);
         SetPanelActive(gameOverPanel, false);
         BindButtons();
@@ -98,6 +99,7 @@ public sealed class PlayerRunEndController : MonoBehaviour
         isReturningHome = false;
         ResolveGameplayReferences();
         EnsureDetailsUiComponents();
+        EnsureRewardRowLayout();
         if (playerHealth != null)
         {
             playerHealth.OnPlayerDeath -= HandlePlayerDeath;
@@ -457,6 +459,13 @@ public sealed class PlayerRunEndController : MonoBehaviour
         gameOverRevealRoutine = null;
     }
 
+    private bool IsGemMineScene()
+    {
+        if (enemySpawner != null) return enemySpawner.IsGemMineScene();
+        string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        return string.Equals(sceneName, "GenMine", System.StringComparison.OrdinalIgnoreCase);
+    }
+
     private void PopulateGameOverResult()
     {
         int chapterNumber = PlayerDataService.SelectedChapterIndex + 1;
@@ -470,13 +479,15 @@ public sealed class PlayerRunEndController : MonoBehaviour
         float currentWaveProgress = enemySpawner != null ? enemySpawner.CurrentWaveTimeProgress : 0f;
         float stageProgress = CalculateStageProgress(currentWaveIndex, currentWaveProgress, totalWaves);
         int kills = enemySpawner != null ? enemySpawner.EnemiesKilledInWave : 0;
-        pendingDataChipReward = baseDataChipReward + completedWaves * dataChipsPerCompletedWave + kills * dataChipsPerKill;
+        bool isGemMine = IsGemMineScene();
+        int gemMineLevel = DailyGemMineProgress.SelectedLevel;
+        pendingDataChipReward = isGemMine ? 0 : (baseDataChipReward + completedWaves * dataChipsPerCompletedWave + kills * dataChipsPerKill);
         pendingRedGemReward = completedWaves * redGemsPerCompletedWave;
         rewardsGranted = false;
 
         EnsureRewardRowLayout();
 
-        if (chapterText != null) chapterText.text = $"CHAPTER. {chapterNumber:00}";
+        if (chapterText != null) chapterText.text = isGemMine ? $"GEM MINE LV.{gemMineLevel:00}" : $"CHAPTER. {chapterNumber:00}";
         if (wavesText != null) wavesText.text = $"{Mathf.Clamp(currentWaveIndex + 1, 1, totalWaves):00} / {totalWaves:00} WAVES";
         if (progressText != null) progressText.text = $"STAGE PROGRESS  {Mathf.RoundToInt(stageProgress * 100f)}%";
         if (dataChipRewardText != null)
@@ -643,7 +654,10 @@ public sealed class PlayerRunEndController : MonoBehaviour
 
         rewardsGranted = true;
         int safeMultiplier = Mathf.Max(1, multiplier);
-        ChipManager.AddDataChips(pendingDataChipReward * safeMultiplier);
+        if (pendingDataChipReward > 0)
+        {
+            ChipManager.AddDataChips(pendingDataChipReward * safeMultiplier);
+        }
         ChipManager.AddRedGems(pendingRedGemReward * safeMultiplier);
         if (getRewardButton != null) getRewardButton.interactable = false;
         if (vipTripleButton != null) vipTripleButton.interactable = false;
@@ -691,8 +705,45 @@ public sealed class PlayerRunEndController : MonoBehaviour
 
     public void EnsureRewardRowLayout()
     {
-        AdjustRewardRow(dataChipRewardText, -65f, 25f);
-        AdjustRewardRow(redGemRewardText, -65f, -90f);
+        bool isGemMine = IsGemMineScene();
+        if (isGemMine)
+        {
+            if (dataChipRewardText != null)
+            {
+                Transform row = dataChipRewardText.rectTransform != null ? dataChipRewardText.rectTransform.parent : null;
+                if (row != null) row.gameObject.SetActive(false);
+                else dataChipRewardText.gameObject.SetActive(false);
+            }
+            AdjustRewardRow(redGemRewardText, -65f, -35f);
+            if (detailsButton != null)
+            {
+                RectTransform btnRect = detailsButton.GetComponent<RectTransform>();
+                if (btnRect != null)
+                {
+                    btnRect.anchoredPosition = new Vector2(275f, -35f);
+                }
+            }
+        }
+        else
+        {
+            if (dataChipRewardText != null)
+            {
+                Transform row = dataChipRewardText.rectTransform != null ? dataChipRewardText.rectTransform.parent : null;
+                if (row != null) row.gameObject.SetActive(true);
+                else dataChipRewardText.gameObject.SetActive(true);
+            }
+            AdjustRewardRow(dataChipRewardText, -65f, 25f);
+            AdjustRewardRow(redGemRewardText, -65f, -90f);
+            if (detailsButton != null)
+            {
+                RectTransform btnRect = detailsButton.GetComponent<RectTransform>();
+                if (btnRect != null)
+                {
+                    btnRect.anchoredPosition = new Vector2(275f, -65f);
+                }
+            }
+        }
+
     }
 
     private void AdjustRewardRow(TMP_Text textComponent, float rowX, float rowY)

@@ -120,7 +120,7 @@ public class UIDissolveController : MonoBehaviour
 
     [Header("Particle Settings")]
     [Tooltip("Kích hoạt hạt bụi phân rã bay ra ngoài.")]
-    [SerializeField] private bool enableParticles = true;
+    [SerializeField] private bool enableParticles = false;
 
     [Header("Sub-Components (Auto-Detected)")]
     [SerializeField] private UIDissolveGroup dissolveGroup;

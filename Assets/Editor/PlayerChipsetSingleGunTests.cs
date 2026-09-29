@@ -171,7 +171,7 @@ public class PlayerChipsetSingleGunTests
 
             Assert.That(shooter.FirePoint, Is.EqualTo(firePoint.transform));
             Assert.That(InvokePrivateWithResult<Transform>(rocketPunch, "FindTargetEnemy"), Is.EqualTo(enemy.transform));
-            Assert.That(InvokePrivateWithResult<Transform>(rocketPunch, "GetSharedFirePoint"), Is.EqualTo(firePoint.transform));
+            Assert.That(InvokePrivateWithResult<Transform>(rocketPunch, "GetPunchMuzzle"), Is.EqualTo(firePoint.transform));
             Assert.That(GetPrivateField<Transform>(turret, "currentTarget"), Is.EqualTo(enemy.transform));
             Assert.That(GetPrivateField<PlayerAutoShooter>(turret, "sharedTargetProvider"), Is.EqualTo(shooter));
         }

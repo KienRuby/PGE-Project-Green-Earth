@@ -74,16 +74,25 @@ public class LoadingScreenTests
             Assert.IsNotNull(img.sprite, $"{limbName} thiếu Sprite");
         }
 
-        // 2. Kiểm tra Creep 3
-        Transform creep3Visual = mascot.Find("Creep3_Visual");
-        Assert.IsNotNull(creep3Visual, "Không tìm thấy Creep3_Visual trong Mascot");
-        Animator anim3 = creep3Visual.GetComponent<Animator>();
-        Assert.IsNotNull(anim3, "Creep3_Visual thiếu Animator");
-        Assert.AreEqual("Creep3", anim3.runtimeAnimatorController.name);
-
-        Assert.IsNotNull(creep3Visual.Find("creep 3-thân (1)"));
-        Assert.IsNotNull(creep3Visual.Find("creep 3-khớp trên_1/creep 3-khớp dưới_1"));
-        Assert.IsNotNull(creep3Visual.Find("creep 3-khớp trên_0/creep 3-khớp dưới_0"));
+        // 2. Kiểm tra hai mascot được dựng từ prefab quái lớn
+        Assert.IsNull(mascot.Find("Creep3_Visual"));
+        string[] visualNames = { "Bigcreep3_Visual", "BigCreepGenMine_Visual" };
+        string[] sourcePaths = { "Assets/Prefabs/Enemy/Creep/Bigcreep3.prefab", "Assets/Prefabs/Gen Mine/BigCreep.prefab" };
+        for (int i = 0; i < visualNames.Length; i++)
+        {
+            Transform visual = mascot.Find(visualNames[i]);
+            GameObject source = AssetDatabase.LoadAssetAtPath<GameObject>(sourcePaths[i]);
+            Assert.IsNotNull(visual, $"Không tìm thấy {visualNames[i]} trong Mascot");
+            Assert.IsNotNull(source);
+            Assert.AreEqual(source.GetComponent<Animator>().runtimeAnimatorController,
+                visual.GetComponent<Animator>().runtimeAnimatorController);
+            foreach (SpriteRenderer renderer in source.GetComponentsInChildren<SpriteRenderer>(true))
+            {
+                Transform part = visual.Find(renderer.gameObject.name);
+                Assert.IsNotNull(part, $"{visualNames[i]} thiếu {renderer.gameObject.name}");
+                Assert.AreEqual(renderer.sprite, part.GetComponent<Image>().sprite);
+            }
+        }
 
         // 3. Kiểm tra Creep 1
         Transform creep1Visual = mascot.Find("Creep1_Visual");
@@ -115,7 +124,7 @@ public class LoadingScreenTests
             LoadingScreenUI ui = instance.GetComponent<LoadingScreenUI>();
             Assert.IsNotNull(ui);
             Assert.IsNotNull(ui.CreepVariants);
-            Assert.AreEqual(3, ui.CreepVariants.Length, "Phải có đúng 3 biến thể quái vật");
+            Assert.AreEqual(4, ui.CreepVariants.Length, "Phải có đúng 4 biến thể quái vật");
 
             // Kiểm tra chuyển đổi biến thể
             int firstIndex = ui.CurrentVariantIndex;
@@ -124,7 +133,7 @@ public class LoadingScreenTests
             {
                 ui.SelectRandomCreep();
                 int newIndex = ui.CurrentVariantIndex;
-                Assert.IsTrue(newIndex >= 0 && newIndex < 3);
+                Assert.IsTrue(newIndex >= 0 && newIndex < 4);
                 // Đảm bảo chỉ 1 biến thể được active
                 int activeCount = 0;
                 for (int v = 0; v < ui.CreepVariants.Length; v++)
@@ -229,7 +238,7 @@ public class LoadingScreenTests
 
                 string report = "[LoadingScreenTests] ALL 6 TESTS PASSED SUCCESSFULLY!\n" +
                                 "1. LoadingScreen_Prefab_ExistsAndHasRequiredComponents: PASSED\n" +
-                                "2. LoadingScreen_BackgroundAndMascot_SpritesAreAssigned: PASSED (Creep 1, Creep 2, Creep 3 Animators & Limbs valid)\n" +
+                                "2. LoadingScreen_BackgroundAndMascot_SpritesAreAssigned: PASSED (Creep 1, Creep 2, Bigcreep3, BigCreep Gen Mine)\n" +
                                 "3. LoadingScreen_CreepVariants_CanSwitchRandomly: PASSED (Randomly selects different creep each time)\n" +
                                 "4. LoadingScreen_ProgressBar_FollowsMascot1to1: PASSED (Fill bar locked 1:1 to Creep without drift)\n" +
                                 "5. LoadingScreen_ProgressBar_ConfiguredCorrectly: PASSED\n" +

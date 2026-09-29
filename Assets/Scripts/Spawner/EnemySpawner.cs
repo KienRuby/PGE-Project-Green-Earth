@@ -299,7 +299,7 @@ public class EnemySpawner : MonoBehaviour
     public float BreakTimeRemaining => Mathf.Max(0f, breakTimer);
     public bool IsStageCompleted => isStageCompleted;
     public bool UseSceneWaveConfiguration => useSceneWaveConfiguration;
-    public int StageVictoryDataChipReward => stageVictoryDataChipReward;
+    public int StageVictoryDataChipReward => IsGemMineScene() ? 0 : stageVictoryDataChipReward;
     public int StageVictoryRedGemReward => stageVictoryRedGemReward;
     public IReadOnlyList<WaveConfig> Waves => waves;
     public float MinSpawnRadius { get => minSpawnRadius; set => minSpawnRadius = Mathf.Max(0.5f, value); }
@@ -338,6 +338,7 @@ public class EnemySpawner : MonoBehaviour
         {
             int selectedLevel = DailyGemMineProgress.SelectedLevel;
             stageVictoryRedGemReward = DailyGemMineProgress.GenerateRewardAmount(selectedLevel);
+            stageVictoryDataChipReward = 0;
         }
     }
 
@@ -1255,8 +1256,15 @@ public class EnemySpawner : MonoBehaviour
         }
 
         // Tặng thưởng vượt ải
-        ChipManager.AddDataChips(stageVictoryDataChipReward);
-        ChipManager.AddRedGems(stageVictoryRedGemReward);
+        int chipReward = StageVictoryDataChipReward;
+        if (chipReward > 0)
+        {
+            ChipManager.AddDataChips(chipReward);
+        }
+        if (stageVictoryRedGemReward > 0)
+        {
+            ChipManager.AddRedGems(stageVictoryRedGemReward);
+        }
 
         OnStageVictory?.Invoke();
     }
