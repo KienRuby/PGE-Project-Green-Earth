@@ -685,7 +685,7 @@ public class EnemySpawner : MonoBehaviour
             BossMovement bm = bossObj.GetComponent<BossMovement>();
             if (em != null)
             {
-                em.SetScaleMultiplier(1.8f);
+                em.SetScaleMultiplier(2f, 1.8f);
             }
             else if (bm != null)
             {

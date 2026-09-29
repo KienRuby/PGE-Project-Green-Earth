@@ -176,4 +176,55 @@ public class GemPoolingOptimizationTests
             Object.DestroyImmediate(gemObj);
         }
     }
+
+    [Test]
+    public void Test06_NearbyBlueGems_MergeThroughEveryTierWithoutLosingExp()
+    {
+        GemPickup first = null;
+        try
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                GemPickup gem = DropTable.SpawnGem(GemType.BlueExp, 10, new Vector3(i * 0.01f, 0f), false);
+                if (first == null) first = gem;
+                Assert.That(gem, Is.SameAs(first));
+
+                if (i == 1) Assert.That(gem.Type, Is.EqualTo(GemType.PurpleExp));
+                if (i == 4) Assert.That(gem.Type, Is.EqualTo(GemType.YellowExp));
+            }
+
+            Assert.That(first.Value, Is.EqualTo(100));
+            Assert.That(first.Type, Is.EqualTo(GemType.RedExp));
+            Assert.That(GemPickup.AllActiveGems.Count, Is.EqualTo(1));
+        }
+        finally
+        {
+            if (first != null) Object.DestroyImmediate(first.gameObject);
+        }
+    }
+
+    [Test]
+    public void Test07_TwoYellowGems_MergeToRedAndDistantGemStaysSeparate()
+    {
+        GemPickup first = null;
+        GemPickup distant = null;
+        try
+        {
+            first = DropTable.SpawnGem(GemType.YellowExp, 50, Vector3.zero, false);
+            GemPickup merged = DropTable.SpawnGem(GemType.YellowExp, 50, new Vector3(0.5f, 0f), false);
+            Assert.That(merged, Is.SameAs(first));
+            Assert.That(first.Value, Is.EqualTo(100));
+            Assert.That(first.Type, Is.EqualTo(GemType.RedExp));
+
+            distant = DropTable.SpawnGem(GemType.BlueExp, 10, new Vector3(0.61f, 0f), false);
+            Assert.That(distant, Is.Not.SameAs(first));
+            Assert.That(GemPickup.AllActiveGems.Count, Is.EqualTo(2));
+            Assert.That(first.Value + distant.Value, Is.EqualTo(110));
+        }
+        finally
+        {
+            if (first != null) Object.DestroyImmediate(first.gameObject);
+            if (distant != null) Object.DestroyImmediate(distant.gameObject);
+        }
+    }
 }

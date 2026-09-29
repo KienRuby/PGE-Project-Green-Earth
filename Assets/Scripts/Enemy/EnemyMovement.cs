@@ -85,7 +85,7 @@ public class EnemyMovement : MonoBehaviour, IPoolable
     public bool IsStunned => stunTimer > 0f;
     public Transform CurrentTarget => player;
 
-    public void SetScaleMultiplier(float multiplier)
+    public void SetScaleMultiplier(float multiplier, float? bodyRadiusMultiplier = null)
     {
         if (multiplier <= 0f) return;
         if (basePrefabScale == Vector3.zero)
@@ -93,7 +93,7 @@ public class EnemyMovement : MonoBehaviour, IPoolable
             basePrefabScale = transform.localScale != Vector3.zero ? transform.localScale : Vector3.one;
         }
         initialScale = basePrefabScale * multiplier;
-        currentBodyRadius = baseBodyRadius * multiplier;
+        currentBodyRadius = baseBodyRadius * (bodyRadiusMultiplier ?? multiplier);
         float sign = (isFacingRight ^ initialFacingLeft) ? 1f : -1f;
         transform.localScale = new Vector3(Mathf.Abs(initialScale.x) * sign, initialScale.y, initialScale.z);
     }
@@ -229,19 +229,17 @@ public class EnemyMovement : MonoBehaviour, IPoolable
         }
 
         physicsTickCounter++;
+        stuckCheckTimer += Time.fixedDeltaTime;
+        if (escapeTimer > 0f) escapeTimer -= Time.fixedDeltaTime;
+        Vector2 toPlayer = (Vector2)player.position - rb.position;
+        bool isFarFromPlayer = toPlayer.sqrMagnitude > 49f;
         bool shouldUpdateSteering = ((physicsTickCounter + instanceId) % 4) == 0 || cachedFinalDirection == Vector2.zero;
 
-        if (shouldUpdateSteering)
+        if (!isFarFromPlayer && shouldUpdateSteering)
         {
             Vector2 playerDirection = CalculatePlayerDirection();
 
-            // Tối ưu tần số quét Separation:
-            // Quái ngoài màn hình (> 10m): bỏ qua separation hoàn toàn (lực tách = 0).
-            // Quái trong tầm nhìn: quét đồng bộ theo nhịp steering để phản hồi tách quái tức thì
-            float sqrDistToPlayer = player != null ? ((Vector2)player.position - rb.position).sqrMagnitude : 0f;
-            bool shouldUpdateSeparation = player == null || sqrDistToPlayer <= 100f;
-
-            Vector2 separationForce = shouldUpdateSeparation ? CalculateSeparationForce() : cachedSeparationForce;
+            Vector2 separationForce = CalculateSeparationForce();
 
             Vector2 sep = separationForce;
             if (sep.sqrMagnitude > 1f)
@@ -277,9 +275,19 @@ public class EnemyMovement : MonoBehaviour, IPoolable
             }
         }
 
+        if (isFarFromPlayer)
+        {
+            cachedFinalDirection = Vector2.zero;
+            isDetourActive = false;
+            safeClearDistance = 0f;
+            rb.MovePosition(rb.position + toPlayer.normalized * (effectiveSpeed * Time.fixedDeltaTime));
+            return;
+        }
+
         Vector2 moveDelta = cachedFinalDirection * (effectiveSpeed * Time.fixedDeltaTime);
-        MoveWithObstacleSlide(moveDelta);
-        ResolveCreepOverlaps();
+        bool checkOverlaps = ((physicsTickCounter + instanceId) % 4) == 0;
+        Vector2 overlapCorrection = checkOverlaps ? ResolveCreepOverlaps() : Vector2.zero;
+        MoveWithObstacleSlide(moveDelta + overlapCorrection);
     }
 
     /// <summary>
@@ -293,11 +301,11 @@ public class EnemyMovement : MonoBehaviour, IPoolable
 
         Vector2 dir = delta / distance;
 
-        // 1. Off-screen Culling: Quái ở ngoài màn hình (> 11m) di chuyển trực tiếp, không cần CircleCast
+        // 1. Quái cách Player hơn 7m di chuyển trực tiếp, không cần CircleCast.
         if (player != null)
         {
             Vector2 toPlayer = (Vector2)player.position - rb.position;
-            if (toPlayer.sqrMagnitude > 121f) // > 11m
+            if (toPlayer.sqrMagnitude > 49f)
             {
                 rb.MovePosition(rb.position + delta);
                 safeClearDistance = 0f;
@@ -440,8 +448,7 @@ public class EnemyMovement : MonoBehaviour, IPoolable
             return -directDir;
         }
 
-        // Quái ngoài tầm nhìn (> 11m): Không cần bắn tia Linecast/Feeler rays phức tạp, di chuyển thẳng về phía Player
-        if (distanceToPlayer > 11f)
+        if (distanceToPlayer > 7f)
         {
             isDetourActive = false;
             return directDir;
@@ -492,7 +499,6 @@ public class EnemyMovement : MonoBehaviour, IPoolable
         desiredDir = ApplyObstacleGliding(myPos, desiredDir);
 
         // 4. Kiểm tra chống kẹt (Anti-Stuck Recovery)
-        stuckCheckTimer += Time.fixedDeltaTime;
         if (stuckCheckTimer >= 0.4f)
         {
             stuckCheckTimer = 0f;
@@ -535,7 +541,6 @@ public class EnemyMovement : MonoBehaviour, IPoolable
 
         if (escapeTimer > 0f)
         {
-            escapeTimer -= Time.fixedDeltaTime;
             desiredDir = (desiredDir * 0.25f + escapeDirection * 0.75f).normalized;
         }
 
@@ -787,7 +792,7 @@ public class EnemyMovement : MonoBehaviour, IPoolable
     /// Khi 2 quái bị dồn ép quá gần nhau (khoảng cách nhỏ hơn đường kính cơ thể),
     /// tự động đẩy nhẹ tách nhau ra để đảm bảo không bao giờ có 2 quái trùng khít tọa độ.
     /// </summary>
-    private void ResolveCreepOverlaps()
+    private Vector2 ResolveCreepOverlaps()
     {
         float minSpacing = Mathf.Max(currentBodyRadius * 2.2f, 0.45f);
         int hitCount = Physics2D.OverlapCircle(
@@ -797,7 +802,7 @@ public class EnemyMovement : MonoBehaviour, IPoolable
             sharedCollidersBuffer
         );
 
-        if (hitCount <= 1) return;
+        if (hitCount <= 1) return Vector2.zero;
 
         Vector2 myPos = rb.position;
         Vector2 totalNudge = Vector2.zero;
@@ -839,11 +844,7 @@ public class EnemyMovement : MonoBehaviour, IPoolable
             }
         }
 
-        if (nudgeCount > 0)
-        {
-            totalNudge = Vector2.ClampMagnitude(totalNudge, 0.12f);
-            rb.MovePosition(rb.position + totalNudge);
-        }
+        return nudgeCount > 0 ? Vector2.ClampMagnitude(totalNudge, 0.12f) : Vector2.zero;
     }
 
     public void OnSpawnFromPool()

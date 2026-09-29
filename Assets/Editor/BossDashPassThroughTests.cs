@@ -32,11 +32,10 @@ public class BossDashPassThroughTests
         Assert.That(bossMovement, Is.Not.Null, "boss map mine must have BossMovement component.");
         Assert.That(bossMovement.EnableDashAttack, Is.True, "EnableDashAttack must be enabled.");
         Assert.That(bossMovement.DashPassThroughPlayer, Is.True, "DashPassThroughPlayer must be enabled.");
-        Assert.That(bossMovement.DashDamage, Is.EqualTo(100), "DashDamage must be 100.");
     }
 
     [Test]
-    public void BossMovement_DashState_IgnoresPlayerCollisionAndDealsHeavyDamage()
+    public void BossMovement_DashState_IgnoresPlayerCollisionAndDealsHalfMaxHealthDamage()
     {
         // Setup Player GameObject
         GameObject playerObj = new GameObject("TestPlayer");
@@ -50,11 +49,9 @@ public class BossDashPassThroughTests
         GameObject bossObj = new GameObject("TestBoss");
         CapsuleCollider2D bossCol = bossObj.AddComponent<CapsuleCollider2D>();
         bossCol.size = new Vector2(2f, 2f);
-        Rigidbody2D bossRb = bossObj.GetComponent<Rigidbody2D>();
-        BossMovement bossMovement = bossObj.GetComponent<BossMovement>();
+        BossMovement bossMovement = bossObj.AddComponent<BossMovement>();
         bossMovement.SetTarget(playerObj.transform);
         bossMovement.DashPassThroughPlayer = true;
-        bossMovement.DashDamage = 100;
 
         try
         {
@@ -76,12 +73,12 @@ public class BossDashPassThroughTests
             Assert.That(checkDashDamageMethod, Is.Not.Null, "CheckDashHitPlayer method should exist.");
             checkDashDamageMethod.Invoke(bossMovement, null);
 
-            // Player should take 100 damage
-            Assert.That(playerHealth.CurrentHealth, Is.EqualTo(400), "Player should have taken 100 dash damage (500 - 100 = 400).");
+            // Normal dash deals 50% of the player's current maximum health.
+            Assert.That(playerHealth.CurrentHealth, Is.EqualTo(250));
 
             // Calling it again during the same dash must not deal damage again
             checkDashDamageMethod.Invoke(bossMovement, null);
-            Assert.That(playerHealth.CurrentHealth, Is.EqualTo(350), "Player should not take damage twice during the same dash.");
+            Assert.That(playerHealth.CurrentHealth, Is.EqualTo(250), "Player should not take damage twice during the same dash.");
 
             // End Dash via StartRecover
             var startRecoverMethod = typeof(BossMovement).GetMethod("StartRecover", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
@@ -90,6 +87,38 @@ public class BossDashPassThroughTests
 
             // After dash finishes: collision is restored
             Assert.That(Physics2D.GetIgnoreCollision(bossCol, playerCol), Is.False, "After Dash ends, normal collision between Boss and Player must be restored.");
+        }
+        finally
+        {
+            Object.DestroyImmediate(playerObj);
+            Object.DestroyImmediate(bossObj);
+        }
+    }
+
+    [Test]
+    public void BossMovement_EnragedDash_Deals70PercentOfPlayerMaxHealth()
+    {
+        GameObject playerObj = new GameObject("TestPlayer");
+        playerObj.tag = "Player";
+        PlayerHealth playerHealth = playerObj.AddComponent<PlayerHealth>();
+        playerHealth.SetMaxHealth(500, true);
+
+        GameObject bossObj = new GameObject("TestBoss");
+        EnemyHealth bossHealth = bossObj.AddComponent<EnemyHealth>();
+        bossHealth.SetMaxHealth(100, true);
+        BossMovement bossMovement = bossObj.AddComponent<BossMovement>();
+        bossMovement.SetTarget(playerObj.transform);
+
+        try
+        {
+            bossHealth.TakeDamage(60);
+            typeof(BossMovement).GetMethod("CheckEnrageStatus", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(bossMovement, null);
+            Assert.That(bossMovement.IsEnraged, Is.True);
+
+            typeof(BossMovement).GetMethod("StartDash", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(bossMovement, null);
+            typeof(BossMovement).GetMethod("CheckDashHitPlayer", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(bossMovement, null);
+
+            Assert.That(playerHealth.CurrentHealth, Is.EqualTo(150));
         }
         finally
         {

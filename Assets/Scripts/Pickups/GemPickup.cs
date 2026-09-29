@@ -100,6 +100,7 @@ public class GemPickup : MonoBehaviour, IPoolable
     private Color currentGlowColor = Color.white;
     private Color currentSparkleColor = Color.white;
     private float spawnTime;
+    private float mergePulseEndTime;
     private Coroutine jumpRoutine;
 
     public GemType Type => gemType;
@@ -146,6 +147,7 @@ public class GemPickup : MonoBehaviour, IPoolable
         isBeingAttracted = false;
         isCollected = false;
         isJumping = false;
+        mergePulseEndTime = 0f;
     }
 
     private void OnDisable()
@@ -168,6 +170,7 @@ public class GemPickup : MonoBehaviour, IPoolable
 
     public void Initialize(GemType type, int amount, Vector3 spawnPosition)
     {
+        if (gameObject.activeInHierarchy && !ActiveGems.Contains(this)) ActiveGems.Add(this);
         gemType = type;
         value = amount;
         initialSpawnPosition = spawnPosition;
@@ -177,6 +180,7 @@ public class GemPickup : MonoBehaviour, IPoolable
         currentSpeed = 0f;
         isCollected = false;
         isJumping = false;
+        mergePulseEndTime = 0f;
         spawnTime = Time.time;
 
         if (jumpRoutine != null)
@@ -212,7 +216,9 @@ public class GemPickup : MonoBehaviour, IPoolable
             transform.position = flat + new Vector3(0f, arc, 0f);
 
             // Co giãn nhẹ tạo cảm giác sống động (Squash & stretch)
-            float stretch = 1f + 0.15f * Mathf.Sin(t * Mathf.PI);
+            Transform player = GetPlayerTransform();
+            bool animate = player != null && (player.position - transform.position).sqrMagnitude <= 49f;
+            float stretch = animate ? 1f + 0.15f * Mathf.Sin(t * Mathf.PI) : 1f;
             if (spriteRenderer != null)
             {
                 spriteRenderer.transform.localScale = new Vector3(visualBaseScale.x / stretch, visualBaseScale.y * stretch, visualBaseScale.z);
@@ -232,6 +238,14 @@ public class GemPickup : MonoBehaviour, IPoolable
         if (glowRenderer != null) glowRenderer.transform.localScale = glowBaseScale;
         if (sparkleRenderer != null) sparkleRenderer.transform.localScale = sparkleBaseScale;
         jumpRoutine = null;
+
+        if (Application.isPlaying && IsExpGemType(gemType) &&
+            DropTable.TryMergeNearbyExpGem(gemType, value, transform.position, this) != null)
+        {
+            isCollected = true;
+            ActiveGems.Remove(this);
+            Despawn();
+        }
     }
 
     private static Transform cachedPlayerTrans;
@@ -260,6 +274,12 @@ public class GemPickup : MonoBehaviour, IPoolable
     {
         if (isCollected) return;
 
+        Transform player = playerTarget != null ? playerTarget : GetPlayerTransform();
+        float sqrDistToPlayer = player != null ? (player.position - transform.position).sqrMagnitude : 9999f;
+        bool showEffects = sqrDistToPlayer <= 49f;
+        if (glowRenderer != null && glowRenderer.enabled != showEffects) glowRenderer.enabled = showEffects;
+        if (sparkleRenderer != null && sparkleRenderer.enabled != showEffects) sparkleRenderer.enabled = showEffects;
+
         if (isBeingAttracted && playerTarget != null)
         {
             currentSpeed = Mathf.Min(currentSpeed + magnetAttractionSpeed * 2.5f * Time.deltaTime, magnetAttractionSpeed * 2f);
@@ -267,7 +287,7 @@ public class GemPickup : MonoBehaviour, IPoolable
             transform.position += dir * (currentSpeed * Time.deltaTime);
 
             // Khi đang bay về Player: Hào quang sáng bừng lên rực rỡ
-            if (glowRenderer != null)
+            if (glowRenderer != null && showEffects)
             {
                 glowRenderer.transform.localScale = glowBaseScale * 1.35f;
                 glowRenderer.color = new Color(currentGlowColor.r, currentGlowColor.g, currentGlowColor.b, Mathf.Min(1f, currentGlowColor.a * 1.25f));
@@ -281,9 +301,6 @@ public class GemPickup : MonoBehaviour, IPoolable
         }
         else if (!isJumping)
         {
-            Transform player = GetPlayerTransform();
-            float sqrDistToPlayer = player != null ? (player.position - transform.position).sqrMagnitude : 9999f;
-
             // Tự động kích hoạt hút nam châm mượt mà khi người chơi di chuyển lại gần
             float naturalAttractRange = 0.45f; // Tầm bước chân tiếp xúc gần (0.45m)
             if (sqrDistToPlayer <= naturalAttractRange * naturalAttractRange)
@@ -292,8 +309,8 @@ public class GemPickup : MonoBehaviour, IPoolable
                 return;
             }
 
-            // Distance Culling: Nếu ngọc nằm quá xa tầm nhìn camera (> 12m), bỏ qua animation nhấp nhô & đổi màu để tiết kiệm CPU/GPU
-            if (sqrDistToPlayer > 144f)
+            // Distance Culling: bỏ qua diễn họa của ngọc ở xa Player.
+            if (!showEffects)
             {
                 return;
             }
@@ -318,19 +335,22 @@ public class GemPickup : MonoBehaviour, IPoolable
             }
 
             float pulseTimer = (Time.time - spawnTime) * 3.5f;
+            float mergePulse = Time.time < mergePulseEndTime
+                ? 1f + 0.35f * Mathf.Sin((1f - (mergePulseEndTime - Time.time) / 0.22f) * Mathf.PI)
+                : 1f;
 
             // 1. Nhịp thở phát sáng nhẹ cho thân tinh thể
             if (spriteRenderer != null && spriteRenderer.transform != transform)
             {
                 float pulse = 1f + 0.05f * Mathf.Sin(pulseTimer);
-                spriteRenderer.transform.localScale = visualBaseScale * pulse;
+                spriteRenderer.transform.localScale = visualBaseScale * (pulse * mergePulse);
             }
 
             // 2. Hiệu ứng Hào Quang Phát Sáng rực rỡ thở nhịp nhàng (Breathing Aura Glow)
             if (glowRenderer != null)
             {
                 float glowPulse = 1f + 0.20f * Mathf.Sin(pulseTimer);
-                glowRenderer.transform.localScale = glowBaseScale * glowPulse;
+                glowRenderer.transform.localScale = glowBaseScale * (glowPulse * mergePulse);
 
                 float alphaPulse = 0.82f + 0.18f * Mathf.Sin(pulseTimer);
                 glowRenderer.color = new Color(currentGlowColor.r, currentGlowColor.g, currentGlowColor.b, currentGlowColor.a * alphaPulse);
@@ -823,28 +843,7 @@ public class GemPickup : MonoBehaviour, IPoolable
             }
         }
 
-        // Hiệu ứng phình to nhẹ báo hiệu vừa được gộp giá trị
-        if (gameObject.activeInHierarchy)
-        {
-            StartCoroutine(PulsePopRoutine());
-        }
-    }
-
-    private IEnumerator PulsePopRoutine()
-    {
-        float dur = 0.22f;
-        float elapsed = 0f;
-        while (elapsed < dur)
-        {
-            elapsed += Time.deltaTime;
-            float t = Mathf.Sin((elapsed / dur) * Mathf.PI);
-            float scale = 1f + 0.35f * t;
-            if (spriteRenderer != null) spriteRenderer.transform.localScale = visualBaseScale * scale;
-            if (glowRenderer != null) glowRenderer.transform.localScale = glowBaseScale * scale;
-            yield return null;
-        }
-        if (spriteRenderer != null) spriteRenderer.transform.localScale = visualBaseScale;
-        if (glowRenderer != null) glowRenderer.transform.localScale = glowBaseScale;
+        mergePulseEndTime = Time.time + 0.22f;
     }
 
     public void Despawn()
@@ -878,6 +877,7 @@ public class GemPickup : MonoBehaviour, IPoolable
         currentSpeed = 0f;
         isCollected = false;
         isJumping = false;
+        mergePulseEndTime = 0f;
         spawnTime = Time.time;
         if (jumpRoutine != null)
         {
@@ -910,6 +910,7 @@ public class GemPickup : MonoBehaviour, IPoolable
         playerTarget = null;
         isJumping = false;
         isCollected = false;
+        mergePulseEndTime = 0f;
         if (jumpRoutine != null)
         {
             StopCoroutine(jumpRoutine);

@@ -1593,7 +1593,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0.015, y: -0.005, z: 0}
-  m_LocalScale: {x: 0.03, y: 0.03, z: 0.03}
+  m_LocalScale: {x: 0.027, y: 0.027, z: 0.027}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1774342248}
@@ -5483,7 +5483,7 @@ MonoBehaviour:
   bossIndicatorBottomSafePadding: 0
   bossViewportMargin: 0.02
   bossIndicatorPulseSpeed: 4
-  artifactBoxOffscreenSprite: {fileID: 0}
+  artifactBoxOffscreenSprite: {fileID: -493374362, guid: f70775b4373cdc64ba1cbe8e8bd22ee4, type: 3}
   artifactBoxIndicatorSize: {x: 130, y: 130}
   useResponsiveArtifactBoxIndicatorSize: 1
   artifactBoxIndicatorScreenRatio: 0.11

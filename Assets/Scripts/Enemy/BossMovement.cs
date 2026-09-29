@@ -67,7 +67,7 @@ public class BossMovement : MonoBehaviour, IPoolable
     [Tooltip("Bật chế độ lướt xuyên qua Player (không bị chặn vật lý bởi collider của Player).")]
     [SerializeField] private bool dashPassThroughPlayer = true;
 
-    [Tooltip("Sát thương gây ra khi lướt trúng Player (Lượng lớn sát thương). Mặc định 100.")]
+    [Tooltip("Dữ liệu cũ. Sát thương lướt hiện bằng 50% Max HP của Player, hoặc 70% khi cuồng nộ.")]
     [SerializeField] private int dashDamage = 100;
 
     [Tooltip("Bán kính vùng quét trúng Player trong lúc lướt (nếu = 0 sẽ lấy theo collider của Boss).")]
@@ -682,7 +682,7 @@ public class BossMovement : MonoBehaviour, IPoolable
             PlayerHealth playerHealth = player.GetComponentInParent<PlayerHealth>();
             if (playerHealth != null && !playerHealth.IsDead)
             {
-                int effectiveDamage = Mathf.RoundToInt(dashDamage * (isEnraged ? 1.25f : 1.0f) * currentDashDamageMultiplier);
+                int effectiveDamage = Mathf.Max(1, Mathf.RoundToInt(playerHealth.MaxHealth * (isEnraged ? 0.7f : 0.5f)));
                 playerHealth.TakeDamage(effectiveDamage);
                 hasDealtDashDamage = true;
                 Debug.Log($"[BossMovement] Boss lướt xuyên trúng Player gây {effectiveDamage} sát thương lớn!");

@@ -1,0 +1,6 @@
+id,name,iconKey,defaultTier,defaultLevel,defaultPieces,defaultRequiredPieces,defaultEnhanceCost,combatBaseDamage,combatBaseCooldownSeconds,prefab
+1,Sloy,drone-snowflake,Common,1,0,10,3500,28,1.4,Assets/Resources/Prefabs/Buddy/Buddy_Sloy.prefab
+2,Turret Buffer,drone-spider,Common,1,0,10,500,22,1.0,Assets/Resources/Prefabs/Buddy/Buddy_TurretBuffer.prefab
+3,Radar Eye,drone-antenna-eye,Common,1,0,10,500,32,0.9,Assets/Resources/Prefabs/Buddy/Buddy_RadarEye.prefab
+4,Assault Blaster,drone-cross-visor,Common,1,0,10,500,20,0.75,Assets/Resources/Prefabs/Buddy/Buddy_AssaultBlaster.prefab
+10,Purifying Drone,drone-stealth-wing,Common,1,0,10,500,26,1.1,Assets/Resources/Prefabs/Buddy/Buddy_PurifyingDrone.prefab

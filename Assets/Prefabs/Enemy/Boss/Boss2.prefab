@@ -9,7 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8846808256256505302}
-  - component: {fileID: 220102372781601387}
   - component: {fileID: 8820221390753049446}
   m_Layer: 7
   m_Name: "boss 2-ch\xE2n sau_0"
@@ -33,69 +32,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 6121391782795290867}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!60 &220102372781601387
-PolygonCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 220102372781600387}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ForceSendLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ForceReceiveLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ContactCaptureLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_CallbackLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_IsTrigger: 1
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.23478237, y: 0.77153325}
-    oldSize: {x: 0.86, y: 0.84}
-    newSize: {x: 0.86, y: 0.84}
-    adaptiveTilingThreshold: 0.5
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  m_Points:
-    m_Paths:
-    - - {x: 0.48808715, y: -0.13808791}
-      - {x: 0.32808715, y: 0.051912077}
-      - {x: 0.14808716, y: 0.13191208}
-      - {x: -0.05191284, y: 0.13191208}
-      - {x: -0.11191284, y: 0.11191208}
-      - {x: -0.15191284, y: 0.04191208}
-      - {x: -0.16191284, y: 0.0019120788}
-      - {x: -0.16191284, y: -0.018087922}
-      - {x: -0.061912842, y: -0.12808792}
-      - {x: 0.08808716, y: -0.18808791}
-      - {x: -0.0019128418, y: -0.30808792}
-      - {x: -0.08191284, y: -0.3880879}
-      - {x: -0.03191284, y: -0.5180879}
-      - {x: 0.35808715, y: -0.5180879}
-      - {x: 0.5380871, y: -0.50808793}
-      - {x: 0.55808717, y: -0.4480879}
-      - {x: 0.55808717, y: -0.4080879}
-      - {x: 0.49808714, y: -0.35808793}
-  m_UseDelaunayMesh: 0
 --- !u!212 &8820221390753049446
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -157,7 +93,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3253918001869307031}
-  - component: {fileID: 505753153695167067}
   - component: {fileID: 7228336472479265910}
   m_Layer: 7
   m_Name: "boss 2-th\xE2n"
@@ -181,160 +116,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 6121391782795290867}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!60 &505753153695167067
-PolygonCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 505753153695166067}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ForceSendLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ForceReceiveLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ContactCaptureLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_CallbackLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_IsTrigger: 1
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 5, y: 5}
-    newSize: {x: 5, y: 5}
-    adaptiveTilingThreshold: 0.5
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  m_Points:
-    m_Paths:
-    - - {x: 1.22, y: -1.18}
-      - {x: 1.3399999, y: -0.96}
-      - {x: 1.43, y: -0.68}
-      - {x: 1.4499999, y: -0.53999996}
-      - {x: 1.4499999, y: -0.099999994}
-      - {x: 1.39, y: 0.19999999}
-      - {x: 1.38, y: 0.26}
-      - {x: 1.37, y: 0.29999998}
-      - {x: 1.3299999, y: 0.47}
-      - {x: 1.1999999, y: 0.85999995}
-      - {x: 1.16, y: 0.96}
-      - {x: 1.04, y: 0.94}
-      - {x: 0.93, y: 1.0699999}
-      - {x: 0.88, y: 1.11}
-      - {x: 0.75, y: 1.06}
-      - {x: 0.71, y: 0.91999996}
-      - {x: 0.68, y: 0.71999997}
-      - {x: 0.52, y: 0.75}
-      - {x: 0.29999998, y: 0.87}
-      - {x: 0.22999999, y: 1.0699999}
-      - {x: 0.35, y: 1.12}
-      - {x: 0.45999998, y: 1.28}
-      - {x: 0.48, y: 1.4}
-      - {x: 0.42999998, y: 1.53}
-      - {x: 0.32999998, y: 1.63}
-      - {x: 0.19999999, y: 1.6899999}
-      - {x: 0.28, y: 1.86}
-      - {x: 0.37, y: 1.9}
-      - {x: 0.39999998, y: 1.74}
-      - {x: 0.51, y: 1.6999999}
-      - {x: 0.47, y: 1.61}
-      - {x: 0.48, y: 1.55}
-      - {x: 0.51, y: 1.4699999}
-      - {x: 0.63, y: 1.43}
-      - {x: 0.68, y: 1.4399999}
-      - {x: 0.78999996, y: 1.5699999}
-      - {x: 0.78999996, y: 1.67}
-      - {x: 0.75, y: 1.73}
-      - {x: 0.71999997, y: 1.7199999}
-      - {x: 0.59, y: 1.93}
-      - {x: 0.58, y: 2.02}
-      - {x: 0.48999998, y: 2.1}
-      - {x: 0.32, y: 2.1}
-      - {x: 0.25, y: 2.06}
-      - {x: 0.14, y: 1.9599999}
-      - {x: 0.099999994, y: 2.02}
-      - {x: -0.07, y: 2.29}
-      - {x: -0.22999999, y: 2.29}
-      - {x: -0.45999998, y: 2.1699998}
-      - {x: -0.48999998, y: 2.29}
-      - {x: -0.57, y: 2.29}
-      - {x: -0.65, y: 2.09}
-      - {x: -0.61, y: 2.03}
-      - {x: -0.51, y: 1.99}
-      - {x: -0.39999998, y: 1.99}
-      - {x: -0.19999999, y: 2.11}
-      - {x: -0.22999999, y: 2.05}
-      - {x: -0.08, y: 1.92}
-      - {x: -0.089999996, y: 1.78}
-      - {x: -0.25, y: 1.9599999}
-      - {x: -0.35, y: 1.9799999}
-      - {x: -0.52, y: 1.86}
-      - {x: -0.59999996, y: 1.76}
-      - {x: -0.69, y: 1.76}
-      - {x: -0.76, y: 1.68}
-      - {x: -0.71999997, y: 1.56}
-      - {x: -0.65, y: 1.5}
-      - {x: -0.71, y: 1.37}
-      - {x: -0.71999997, y: 1.3}
-      - {x: -0.65, y: 1.1999999}
-      - {x: -0.51, y: 1.1999999}
-      - {x: -0.55, y: 1.3199999}
-      - {x: -0.5, y: 1.52}
-      - {x: -0.53, y: 1.62}
-      - {x: -0.41, y: 1.64}
-      - {x: -0.35999998, y: 1.79}
-      - {x: -0.32999998, y: 1.66}
-      - {x: -0.19999999, y: 1.5999999}
-      - {x: -0.28, y: 1.5}
-      - {x: -0.32, y: 1.38}
-      - {x: -0.24, y: 1.1899999}
-      - {x: -0.14999999, y: 1.12}
-      - {x: -0.08, y: 1.09}
-      - {x: -0.22999999, y: 0.94}
-      - {x: -0.42, y: 0.82}
-      - {x: -0.5, y: 0.84999996}
-      - {x: -0.5, y: 1}
-      - {x: -0.65, y: 1.05}
-      - {x: -0.77, y: 0.94}
-      - {x: -0.87, y: 0.79999995}
-      - {x: -0.89, y: 0.74}
-      - {x: -1.06, y: 0.84999996}
-      - {x: -1.15, y: 0.87}
-      - {x: -1.2099999, y: 0.77}
-      - {x: -1.28, y: 0.42}
-      - {x: -1.3399999, y: 0.07}
-      - {x: -1.3399999, y: -0.41}
-      - {x: -1.3299999, y: -0.5}
-      - {x: -1.29, y: -0.75}
-      - {x: -1.25, y: -0.94}
-      - {x: -1.0699999, y: -1.24}
-      - {x: -0.96999997, y: -1.3299999}
-      - {x: -0.71999997, y: -1.51}
-      - {x: -0.45999998, y: -1.5999999}
-      - {x: -0.41, y: -1.61}
-      - {x: 0.19, y: -1.61}
-      - {x: 0.44, y: -1.5699999}
-      - {x: 0.71, y: -1.51}
-      - {x: 0.96999997, y: -1.41}
-  m_UseDelaunayMesh: 0
 --- !u!212 &7228336472479265910
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -396,7 +177,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8667637129032652760}
-  - component: {fileID: 2120988883495180584}
   - component: {fileID: 5968249400867083898}
   m_Layer: 7
   m_Name: "boss 2-ch\xE2n trc_2"
@@ -420,75 +200,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 6121391782795290867}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!60 &2120988883495180584
-PolygonCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2120988883495179584}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ForceSendLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ForceReceiveLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ContactCaptureLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_CallbackLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_IsTrigger: 1
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.17632584, y: 0.80175155}
-    oldSize: {x: 1.1, y: 1.08}
-    newSize: {x: 1.1, y: 1.08}
-    adaptiveTilingThreshold: 0.5
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  m_Points:
-    m_Paths:
-    - - {x: 0.74604154, y: -0.5858917}
-      - {x: 0.59604156, y: -0.5258917}
-      - {x: 0.6360415, y: -0.43589172}
-      - {x: 0.65604156, y: -0.24589172}
-      - {x: 0.65604156, y: -0.08589172}
-      - {x: 0.6360415, y: 0.014108276}
-      - {x: 0.61604154, y: 0.08410828}
-      - {x: 0.39604154, y: 0.17410827}
-      - {x: 0.11604156, y: 0.17410827}
-      - {x: -0.073958434, y: 0.094108276}
-      - {x: -0.14395843, y: 0.024108276}
-      - {x: -0.17395844, y: -0.055891722}
-      - {x: -0.17395844, y: -0.14589173}
-      - {x: -0.043958433, y: -0.2558917}
-      - {x: 0.11604156, y: -0.33589172}
-      - {x: 0.19604155, y: -0.6258917}
-      - {x: 0.076041564, y: -0.6458917}
-      - {x: -0.023958435, y: -0.7158917}
-      - {x: -0.043958433, y: -0.7558917}
-      - {x: 0.42604154, y: -0.8458917}
-      - {x: 0.58604157, y: -0.8458917}
-      - {x: 0.71604156, y: -0.7958917}
-      - {x: 0.8160415, y: -0.7258917}
-      - {x: 0.8160415, y: -0.6558917}
-  m_UseDelaunayMesh: 0
 --- !u!212 &5968249400867083898
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -550,7 +261,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8794726492689904910}
-  - component: {fileID: 5615612377565976445}
   - component: {fileID: 3883261886704673998}
   m_Layer: 7
   m_Name: "boss 2-ch\xE2n trc_1"
@@ -574,74 +284,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 6121391782795290867}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!60 &5615612377565976445
-PolygonCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5615612377565975445}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ForceSendLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ForceReceiveLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ContactCaptureLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_CallbackLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_IsTrigger: 1
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.8410169, y: 0.91233504}
-    oldSize: {x: 0.93, y: 1.15}
-    newSize: {x: 0.93, y: 1.15}
-    adaptiveTilingThreshold: 0.5
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  m_Points:
-    m_Paths:
-    - - {x: 0.037854306, y: -0.8391852}
-      - {x: -0.07214569, y: -0.7691852}
-      - {x: -0.20214568, y: -0.74918514}
-      - {x: -0.18214568, y: -0.5291852}
-      - {x: 0.077854306, y: -0.24918517}
-      - {x: 0.10785431, y: -0.13918518}
-      - {x: 0.10785431, y: -0.00918518}
-      - {x: -0.02214569, y: 0.10081482}
-      - {x: -0.21214569, y: 0.10081482}
-      - {x: -0.35214567, y: 0.05081482}
-      - {x: -0.55214566, y: -0.15918517}
-      - {x: -0.61214566, y: -0.2991852}
-      - {x: -0.62214565, y: -0.54918516}
-      - {x: -0.56214565, y: -0.67918515}
-      - {x: -0.7821457, y: -0.79918516}
-      - {x: -0.7821457, y: -0.99918514}
-      - {x: -0.7721457, y: -1.0191852}
-      - {x: -0.6321457, y: -1.0391852}
-      - {x: -0.5321457, y: -1.0391852}
-      - {x: -0.44214568, y: -1.0091852}
-      - {x: -0.2721457, y: -0.92918515}
-      - {x: -0.07214569, y: -0.93918514}
-      - {x: -0.012145691, y: -0.91918516}
-  m_UseDelaunayMesh: 0
 --- !u!212 &3883261886704673998
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -711,6 +353,7 @@ GameObject:
   - component: {fileID: 5389224226086151412}
   - component: {fileID: 7794485977187627855}
   - component: {fileID: 2138462539967652828}
+  - component: {fileID: 5117682514231820975}
   m_Layer: 7
   m_Name: Boss2
   m_TagString: Enemy
@@ -755,22 +398,7 @@ MonoBehaviour:
   ignoreShadowsAndUI: 1
   removeLegacyRootColliders: 1
   updatePerFrame: 0
-  entries:
-  - renderer: {fileID: 8820221390753049446}
-    collider: {fileID: 220102372781601387}
-    lastSprite: {fileID: 1070866407, guid: f00440ec43fe4a44c9aa7e695ce5069c, type: 3}
-  - renderer: {fileID: 5968249400867083898}
-    collider: {fileID: 2120988883495180584}
-    lastSprite: {fileID: -338938352, guid: 55f47e7a63e335e4db03da2b9f27b0c6, type: 3}
-  - renderer: {fileID: 7228336472479265910}
-    collider: {fileID: 505753153695167067}
-    lastSprite: {fileID: 21300000, guid: c1e067cf06561824aa877fa26627a6b0, type: 3}
-  - renderer: {fileID: 3883261886704673998}
-    collider: {fileID: 5615612377565976445}
-    lastSprite: {fileID: 1144622726, guid: 55f47e7a63e335e4db03da2b9f27b0c6, type: 3}
-  - renderer: {fileID: 3312062618458788451}
-    collider: {fileID: 6865556296295061200}
-    lastSprite: {fileID: -980553581, guid: 55f47e7a63e335e4db03da2b9f27b0c6, type: 3}
+  entries: []
 --- !u!95 &598259419919476707
 Animator:
   serializedVersion: 5
@@ -990,46 +618,13 @@ MonoBehaviour:
   bossRangedAttackComponent: {fileID: 7794485977187627855}
   bossTitle: SPIDER-MANTIS PRIME
   enrageThreshold: 0.4
---- !u!1 &6865556296295060200
-GameObject:
+--- !u!70 &5117682514231820975
+CapsuleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 5042309147359222454}
-  - component: {fileID: 6865556296295061200}
-  - component: {fileID: 3312062618458788451}
-  m_Layer: 7
-  m_Name: "boss 2-ch\xE2n trc_0"
-  m_TagString: Enemy
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &5042309147359222454
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6865556296295060200}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.943, y: -0.954, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 6121391782795290867}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!60 &6865556296295061200
-PolygonCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6865556296295060200}
+  m_GameObject: {fileID: 5814153698432379254}
   m_Enabled: 1
   m_Density: 1
   m_Material: {fileID: 0}
@@ -1055,44 +650,41 @@ PolygonCollider2D:
   m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.9540404, y: 0.80673707}
-    oldSize: {x: 1.01, y: 1.16}
-    newSize: {x: 1.01, y: 1.16}
-    adaptiveTilingThreshold: 0.5
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  m_Points:
-    m_Paths:
-    - - {x: -0.24358077, y: -0.63581496}
-      - {x: -0.31358078, y: -0.54581493}
-      - {x: -0.24358077, y: -0.30581495}
-      - {x: -0.16358078, y: -0.27581498}
-      - {x: -0.03358078, y: -0.21581496}
-      - {x: 0.04641922, y: -0.11581497}
-      - {x: 0.04641922, y: 0.034185026}
-      - {x: -0.03358078, y: 0.124185026}
-      - {x: -0.35358077, y: 0.124185026}
-      - {x: -0.57358074, y: 0.06418502}
-      - {x: -0.67358077, y: -0.005814972}
-      - {x: -0.73358077, y: -0.06581497}
-      - {x: -0.7835808, y: -0.19581497}
-      - {x: -0.7735808, y: -0.555815}
-      - {x: -0.9135808, y: -0.65581495}
-      - {x: -0.93358076, y: -0.69581497}
-      - {x: -0.93358076, y: -0.7358149}
-      - {x: -0.88358074, y: -0.77581495}
-      - {x: -0.86358076, y: -0.89581496}
-      - {x: -0.7835808, y: -0.91581494}
-      - {x: -0.6635808, y: -0.91581494}
-      - {x: -0.49358076, y: -0.8658149}
-      - {x: -0.21358077, y: -0.79581493}
-      - {x: -0.17358078, y: -0.745815}
-      - {x: -0.16358078, y: -0.70581496}
-  m_UseDelaunayMesh: 0
+  m_Offset: {x: -0.08226955, y: 0.03190732}
+  m_Size: {x: 3.5886223, y: 4.5161853}
+  m_Direction: 0
+--- !u!1 &6865556296295060200
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5042309147359222454}
+  - component: {fileID: 3312062618458788451}
+  m_Layer: 7
+  m_Name: "boss 2-ch\xE2n trc_0"
+  m_TagString: Enemy
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5042309147359222454
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6865556296295060200}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0.943, y: -0.954, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6121391782795290867}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &3312062618458788451
 SpriteRenderer:
   m_ObjectHideFlags: 0

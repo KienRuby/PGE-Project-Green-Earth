@@ -135,7 +135,7 @@ public static class DropTable
         }
     }
 
-    public const int MAX_ACTIVE_GEMS = 150;
+    public const int MAX_ACTIVE_GEMS = 48;
     private static GameObject gemPrefabTemplate;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -234,8 +234,37 @@ public static class DropTable
         return null;
     }
 
+    public static GemPickup TryMergeNearbyExpGem(GemType type, int value, Vector3 position, GemPickup excluded = null)
+    {
+        if (!GemPickup.IsExpGemType(type) || value <= 0) return null;
+
+        GemPickup nearest = null;
+        float nearestDistanceSqr = 0.6f * 0.6f;
+        var gems = GemPickup.AllActiveGems;
+        for (int i = 0; i < gems.Count; i++)
+        {
+            GemPickup gem = gems[i];
+            if (gem == null || gem == excluded || !gem.gameObject.activeInHierarchy ||
+                gem.IsCollected || gem.IsBeingAttracted || !GemPickup.IsExpGemType(gem.Type))
+                continue;
+
+            float distanceSqr = ((Vector2)(gem.transform.position - position)).sqrMagnitude;
+            if (distanceSqr <= nearestDistanceSqr)
+            {
+                nearest = gem;
+                nearestDistanceSqr = distanceSqr;
+            }
+        }
+
+        if (nearest != null) nearest.AddValue(value);
+        return nearest;
+    }
+
     public static GemPickup SpawnGem(GemType type, int value, Vector3 position, bool jumpOut = false)
     {
+        GemPickup nearby = TryMergeNearbyExpGem(type, value, position);
+        if (nearby != null) return nearby;
+
         // 1. Kiểm tra giới hạn số ngọc trên sân (Gem Cap & Merge)
         if (Application.isPlaying && GemPickup.AllActiveGems.Count >= MAX_ACTIVE_GEMS)
         {

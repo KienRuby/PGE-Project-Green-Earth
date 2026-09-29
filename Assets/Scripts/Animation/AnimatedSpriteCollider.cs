@@ -8,6 +8,7 @@ using UnityEngine;
 /// </summary>
 [ExecuteAlways]
 [DisallowMultipleComponent]
+[DefaultExecutionOrder(-100)]
 public class AnimatedSpriteCollider : MonoBehaviour
 {
     [System.Serializable]
@@ -39,11 +40,18 @@ public class AnimatedSpriteCollider : MonoBehaviour
 
     // Cache static toàn cục cho các Polygon Physics Shapes để chia sẻ giữa các instance cùng dùng chung Sprite
     private static readonly Dictionary<Sprite, List<Vector2[]>> PolygonShapeCache = new Dictionary<Sprite, List<Vector2[]>>();
+    private bool rootCapsuleConfigured;
 
     public IReadOnlyList<ChildColliderEntry> Entries => entries;
+    public bool UsesRootCapsule => rootCapsuleConfigured;
 
     private void Awake()
     {
+        if (ShouldUseRootCapsule())
+        {
+            if (Application.isPlaying) SetupRootCapsule();
+            return;
+        }
         if (entries == null || entries.Count == 0)
         {
             RefreshAndSetupColliders();
@@ -52,6 +60,11 @@ public class AnimatedSpriteCollider : MonoBehaviour
 
     private void OnEnable()
     {
+        if (ShouldUseRootCapsule())
+        {
+            if (Application.isPlaying) SetupRootCapsule();
+            return;
+        }
         if (entries == null || entries.Count == 0)
         {
             RefreshAndSetupColliders();
@@ -96,6 +109,12 @@ public class AnimatedSpriteCollider : MonoBehaviour
     [ContextMenu("Auto Setup Child Polygon Colliders")]
     public void RefreshAndSetupColliders()
     {
+        if (ShouldUseRootCapsule())
+        {
+            if (Application.isPlaying) SetupRootCapsule();
+            return;
+        }
+
         if (entries == null) entries = new List<ChildColliderEntry>();
         entries.Clear();
 
@@ -178,6 +197,7 @@ public class AnimatedSpriteCollider : MonoBehaviour
     /// </summary>
     public void CleanLegacyRootColliders()
     {
+        if (rootCapsuleConfigured || ShouldUseRootCapsule()) return;
         // Nếu root không có SpriteRenderer trực tiếp (các sprite nằm ở con)
         if (GetComponent<SpriteRenderer>() == null && entries.Count > 0)
         {
@@ -194,7 +214,7 @@ public class AnimatedSpriteCollider : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (!updatePerFrame) return;
+        if (!updatePerFrame || ShouldUseRootCapsule()) return;
 
         for (int i = 0; i < entries.Count; i++)
         {
@@ -216,6 +236,7 @@ public class AnimatedSpriteCollider : MonoBehaviour
     [ContextMenu("Force Sync All Colliders")]
     public void ForceSyncAll()
     {
+        if (ShouldUseRootCapsule()) return;
         for (int i = 0; i < entries.Count; i++)
         {
             var entry = entries[i];
@@ -227,6 +248,60 @@ public class AnimatedSpriteCollider : MonoBehaviour
                 UpdatePolygonShape(entry.collider, entry.lastSprite);
             }
         }
+    }
+
+    private bool ShouldUseRootCapsule()
+    {
+        return GetComponent<Enemy>() != null;
+    }
+
+    private void SetupRootCapsule()
+    {
+        if (rootCapsuleConfigured) return;
+
+        PolygonCollider2D[] polygons = GetComponentsInChildren<PolygonCollider2D>(true);
+        CapsuleCollider2D capsule = GetComponent<CapsuleCollider2D>();
+        CircleCollider2D circle = GetComponent<CircleCollider2D>();
+        if (capsule == null)
+        {
+            Bounds bounds = default;
+            bool hasBounds = false;
+            for (int i = 0; i < polygons.Length; i++)
+            {
+                if (polygons[i] == null) continue;
+                if (!hasBounds)
+                {
+                    bounds = polygons[i].bounds;
+                    hasBounds = true;
+                }
+                else
+                {
+                    bounds.Encapsulate(polygons[i].bounds);
+                }
+            }
+
+            capsule = gameObject.AddComponent<CapsuleCollider2D>();
+            capsule.isTrigger = circle != null ? circle.isTrigger : true;
+            if (circle != null)
+            {
+                capsule.offset = circle.offset;
+                capsule.size = Vector2.one * circle.radius * 2f;
+            }
+            else if (hasBounds)
+            {
+                capsule.offset = transform.InverseTransformPoint(bounds.center);
+                Vector3 scale = transform.lossyScale;
+                capsule.size = new Vector2(bounds.size.x / Mathf.Max(0.01f, Mathf.Abs(scale.x)),
+                    bounds.size.y / Mathf.Max(0.01f, Mathf.Abs(scale.y)));
+            }
+        }
+
+        if (circle != null) circle.enabled = false;
+        for (int i = 0; i < polygons.Length; i++)
+        {
+            if (polygons[i] != null) polygons[i].enabled = false;
+        }
+        rootCapsuleConfigured = true;
     }
 
     private void UpdatePolygonShape(PolygonCollider2D poly, Sprite sprite)
