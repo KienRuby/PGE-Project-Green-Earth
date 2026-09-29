@@ -7823,7 +7823,7 @@ MonoBehaviour:
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 0
-  m_FillAmount: 0.5869565
+  m_FillAmount: 0.65217394
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
@@ -8862,7 +8862,7 @@ MonoBehaviour:
     enhanceCost: 127576072
     isUnlocked: 1
     description: Fires shells that slow down enemies.
-    baseStatText: Drone ATK 20.4, Slow ATK Speed
+    baseStatText: Drone ATK 28, Slow ATK Speed
     magicPerkText: Frost Shell +20%
     rarePerkText: Frost Shell +20%
     uniquePerkText: Area Slow +30%
@@ -8872,7 +8872,7 @@ MonoBehaviour:
     iconKey: drone-spider
     tier: 3
     level: 42
-    count: 27
+    count: 30
     requiredCount: 46
     enhanceCost: 110267728
     isUnlocked: 1
@@ -8887,7 +8887,7 @@ MonoBehaviour:
     iconKey: drone-antenna-eye
     tier: 4
     level: 42
-    count: 15
+    count: 17
     requiredCount: 75
     enhanceCost: 110267728
     isUnlocked: 1
@@ -8902,7 +8902,7 @@ MonoBehaviour:
     iconKey: drone-cross-visor
     tier: 3
     level: 42
-    count: 35
+    count: 45
     requiredCount: 46
     enhanceCost: 110267728
     isUnlocked: 1
@@ -8911,24 +8911,25 @@ MonoBehaviour:
     magicPerkText: Blaster ATK +20%
     rarePerkText: Fire Rate +30%
     uniquePerkText: Dual Shot ATK +30%
-    epicPerkText: Overheat Surge +30%
+    epicPerkText: 'Every 4th burst: faster twin shot'
   - id: 10
     buddyName: Purifying Drone
     iconKey: drone-stealth-wing
     tier: 4
     level: 42
-    count: 28
+    count: 35
     requiredCount: 75
     enhanceCost: 110267728
     isUnlocked: 1
-    description: 'Increase the ratio of
+    description: 'Fires homing shots at one enemy.
 
-      Ailment Resistance'
-    baseStatText: Ailment Resistance 5%
-    magicPerkText: Ailment Resistance +5%
-    rarePerkText: Ailment Resistance +7%
-    uniquePerkText: Ailment Resistance +9%
-    epicPerkText: Remove Ailment Instantly (cooldown 30s)
+      At Holographic tier, heals
+      and shields the player when health is low.'
+    baseStatText: Drone ATK 26, homing shot
+    magicPerkText: Drone ATK +40%
+    rarePerkText: Drone ATK +60%
+    uniquePerkText: Drone ATK +80%
+    epicPerkText: Emergency heal and shield (cooldown 30s)
 --- !u!224 &112713077
 RectTransform:
   m_ObjectHideFlags: 0
@@ -30597,7 +30598,7 @@ MonoBehaviour:
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 0
-  m_FillAmount: 0.2
+  m_FillAmount: 0.22666667
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
@@ -31377,7 +31378,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 15/75
+  m_text: 17/75
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 88378fd6127ec3345802e6c374507f19, type: 2}
   m_sharedMaterial: {fileID: 2100000, guid: 686cfa7cdb111f748aa18d4495b8bbea, type: 2}
@@ -50163,7 +50164,7 @@ MonoBehaviour:
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 0
-  m_FillAmount: 0.2
+  m_FillAmount: 0.22666667
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
@@ -60065,7 +60066,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 28/75
+  m_text: 35/75
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 88378fd6127ec3345802e6c374507f19, type: 2}
   m_sharedMaterial: {fileID: 2100000, guid: 686cfa7cdb111f748aa18d4495b8bbea, type: 2}
@@ -73356,7 +73357,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 27/46
+  m_text: 30/46
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 88378fd6127ec3345802e6c374507f19, type: 2}
   m_sharedMaterial: {fileID: 2100000, guid: 686cfa7cdb111f748aa18d4495b8bbea, type: 2}
@@ -90405,7 +90406,7 @@ MonoBehaviour:
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 0
-  m_FillAmount: 0.37333333
+  m_FillAmount: 0.46666667
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
@@ -96040,7 +96041,7 @@ MonoBehaviour:
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 0
-  m_FillAmount: 0.76086956
+  m_FillAmount: 0.9782609
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
@@ -101907,7 +101908,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 469.4392}
+  m_AnchoredPosition: {x: 0, y: 469.64185}
   m_SizeDelta: {x: 0, y: 5928.316}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &1402631037
@@ -111205,7 +111206,7 @@ MonoBehaviour:
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 0
-  m_FillAmount: 0.37333333
+  m_FillAmount: 0.46666667
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
@@ -114488,7 +114489,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 15/75
+  m_text: 17/75
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 88378fd6127ec3345802e6c374507f19, type: 2}
   m_sharedMaterial: {fileID: 2100000, guid: 686cfa7cdb111f748aa18d4495b8bbea, type: 2}
@@ -125795,7 +125796,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 28/75
+  m_text: 35/75
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 88378fd6127ec3345802e6c374507f19, type: 2}
   m_sharedMaterial: {fileID: 2100000, guid: 686cfa7cdb111f748aa18d4495b8bbea, type: 2}
@@ -133637,7 +133638,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1841584109
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -133645,7 +133646,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1841584108}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
@@ -133663,7 +133664,7 @@ MonoBehaviour:
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 0
-  m_FillAmount: 0
+  m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
@@ -147050,7 +147051,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 35/46
+  m_text: 45/46
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 88378fd6127ec3345802e6c374507f19, type: 2}
   m_sharedMaterial: {fileID: 2100000, guid: 686cfa7cdb111f748aa18d4495b8bbea, type: 2}
