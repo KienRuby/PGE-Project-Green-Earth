@@ -243,14 +243,18 @@ public class DesertPropSpawnerTests
             DesertPropSpawner spawner = spawnerGo.GetComponent<DesertPropSpawner>();
             spawner.EnsureDefaultChapterConfigs();
 
-            List<DesertPropSpawner.PropEntry> ch2Props = spawner.GetCurrentPropsList(2);
+            List<DesertPropSpawner.PropEntry> ch2Props = spawner.GetCurrentPropsList(4);
             Assert.That(ch2Props, Is.Not.Null);
             Assert.That(ch2Props.Count, Is.GreaterThan(0));
+            Assert.That(spawner.GetCurrentPropsList(5), Is.SameAs(ch2Props));
+            Assert.That(spawner.GetCurrentPropsList(6), Is.SameAs(ch2Props));
             Assert.That(ch2Props.Exists(p => p.kind == DesertPropSpawner.PropKind.Obstacle), Is.False, "Chapter 2 không được chứa bất kỳ chướng ngại vật nào.");
 
-            List<DesertPropSpawner.PropEntry> ch3Props = spawner.GetCurrentPropsList(3);
+            List<DesertPropSpawner.PropEntry> ch3Props = spawner.GetCurrentPropsList(7);
             Assert.That(ch3Props, Is.Not.Null);
             Assert.That(ch3Props.Count, Is.GreaterThan(0));
+            Assert.That(spawner.GetCurrentPropsList(8), Is.SameAs(ch3Props));
+            Assert.That(spawner.GetCurrentPropsList(9), Is.SameAs(ch3Props));
             Assert.That(ch3Props.Exists(p => p.kind == DesertPropSpawner.PropKind.Obstacle), Is.False, "Chapter 3 không được chứa bất kỳ chướng ngại vật nào.");
         }
         finally
@@ -262,11 +266,11 @@ public class DesertPropSpawnerTests
     [Test]
     public void Map2And3_ChapterData_ObstacleDensityIsZero()
     {
-        ChapterData c2 = AssetDatabase.LoadAssetAtPath<ChapterData>("Assets/Data/Chapters/Chapter_02_MutantForest.asset");
+        ChapterData c2 = AssetDatabase.LoadAssetAtPath<ChapterData>("Assets/Data/Chapters/Chapter_04_MutantForest1.asset");
         Assert.That(c2, Is.Not.Null);
         Assert.That(c2.obstacleDensity, Is.EqualTo(0f), "Chapter 2 obstacleDensity phải bằng 0.");
 
-        ChapterData c3 = AssetDatabase.LoadAssetAtPath<ChapterData>("Assets/Data/Chapters/Chapter_03_ToxicSwamp.asset");
+        ChapterData c3 = AssetDatabase.LoadAssetAtPath<ChapterData>("Assets/Data/Chapters/Chapter_07_ToxicSwamp1.asset");
         Assert.That(c3, Is.Not.Null);
         Assert.That(c3.obstacleDensity, Is.EqualTo(0f), "Chapter 3 obstacleDensity phải bằng 0.");
     }
@@ -274,11 +278,11 @@ public class DesertPropSpawnerTests
     [Test]
     public void Chapter2And3_GroundScale_IsZeroPointTwo_AndCoversFullMap()
     {
-        ChapterData c2 = AssetDatabase.LoadAssetAtPath<ChapterData>("Assets/Data/Chapters/Chapter_02_MutantForest.asset");
+        ChapterData c2 = AssetDatabase.LoadAssetAtPath<ChapterData>("Assets/Data/Chapters/Chapter_04_MutantForest1.asset");
         Assert.That(c2, Is.Not.Null);
         Assert.That(c2.GetEffectiveGroundScale(), Is.EqualTo(0.2f).Within(0.001f));
 
-        ChapterData c3 = AssetDatabase.LoadAssetAtPath<ChapterData>("Assets/Data/Chapters/Chapter_03_ToxicSwamp.asset");
+        ChapterData c3 = AssetDatabase.LoadAssetAtPath<ChapterData>("Assets/Data/Chapters/Chapter_07_ToxicSwamp1.asset");
         Assert.That(c3, Is.Not.Null);
         Assert.That(c3.GetEffectiveGroundScale(), Is.EqualTo(0.2f).Within(0.001f));
 
@@ -313,4 +317,3 @@ public class DesertPropSpawnerTests
         }
     }
 }
-

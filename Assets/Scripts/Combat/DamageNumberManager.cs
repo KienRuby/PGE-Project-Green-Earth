@@ -291,7 +291,7 @@ public class DamageNumberManager : MonoBehaviour
     /// API tĩnh tiện lợi gọi hiển thị số sát thương từ bất kỳ đâu.
     /// Tự động khởi tạo Manager nếu chưa có sẵn trong Scene.
     /// </summary>
-    public static void ShowDamage(Vector3 worldPosition, int damage, DamageType type = DamageType.Normal, float extraScale = 1f)
+    public static void ShowDamage(Vector3 worldPosition, int damage, DamageType type = DamageType.Normal, float extraScale = 1f, bool compactEnemyArc = false, int sourceId = 0)
     {
         if (!GameSettings.ShowDamage) return;
         if (damage <= 0 && type != DamageType.Heal) return;
@@ -306,7 +306,7 @@ public class DamageNumberManager : MonoBehaviour
             Instance = managerObj.AddComponent<DamageNumberManager>();
         }
 
-        Instance.SpawnDamage(worldPosition, damage, type, extraScale);
+        Instance.SpawnDamage(worldPosition, damage, type, extraScale, compactEnemyArc, sourceId);
     }
 
     /// <summary>
@@ -541,6 +541,7 @@ public class DamageNumberManager : MonoBehaviour
         public int frame;
         public float time;
         public DamageNumber instance;
+        public int sourceId;
     }
 
     private readonly RecentDamageEntry[] recentEntries = new RecentDamageEntry[8];
@@ -549,7 +550,7 @@ public class DamageNumberManager : MonoBehaviour
     private float lastSpawnTime;
     private int consecutiveHitCount;
 
-    public void SpawnDamage(Vector3 worldPosition, int damage, DamageType type = DamageType.Normal, float extraScale = 1f)
+    public void SpawnDamage(Vector3 worldPosition, int damage, DamageType type = DamageType.Normal, float extraScale = 1f, bool compactEnemyArc = false, int sourceId = 0)
     {
         int currentFrame = Time.frameCount;
         float now = Time.time;
@@ -560,7 +561,7 @@ public class DamageNumberManager : MonoBehaviour
             ref RecentDamageEntry entry = ref recentEntries[i];
             if (entry.instance != null && entry.instance.gameObject.activeSelf && entry.instance.IsRunning)
             {
-                if ((entry.frame == currentFrame || (now - entry.time < 0.035f)) &&
+                if (entry.sourceId == sourceId && (entry.frame == currentFrame || (now - entry.time < 0.035f)) &&
                     Vector3.Distance(worldPosition, entry.position) <= 0.45f)
                 {
                     entry.instance.AddDamage(damage, type == DamageType.Critical);
@@ -599,7 +600,7 @@ public class DamageNumberManager : MonoBehaviour
                 dir = Random.Range(-0.6f, 0.6f);
             }
 
-            instance.InitializeWithDirection(damage, type, worldPosition, dir, extraScale);
+            instance.InitializeWithDirection(damage, type, worldPosition, dir, extraScale, compactEnemyArc);
             if (useManagerOutlinePerType)
             {
                 Color outline = GetOutlineForType(type);
@@ -611,7 +612,8 @@ public class DamageNumberManager : MonoBehaviour
                 position = worldPosition,
                 frame = currentFrame,
                 time = now,
-                instance = instance
+                instance = instance,
+                sourceId = sourceId
             };
             recentEntryIndex = (recentEntryIndex + 1) % recentEntries.Length;
         }

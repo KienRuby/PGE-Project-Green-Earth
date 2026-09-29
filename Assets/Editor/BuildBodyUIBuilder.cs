@@ -184,7 +184,7 @@ public static class BuildBodyUIBuilder
             {
                 buildBodyButton = buildBtnTrans.GetComponent<Button>() ?? buildBtnTrans.gameObject.AddComponent<Button>();
                 buildBodyImage = buildBtnTrans.GetComponent<Image>() ?? buildBtnTrans.gameObject.AddComponent<Image>();
-                bool isUnlocked = PlayerDataService.UnlockedChapterIndex >= 3 || ChipManager.IsTestMode;
+                bool isUnlocked = PlayerDataService.UnlockedChapterIndex >= BuildBodyController.RequiredChaptersToUnlock || ChipManager.IsTestMode;
                 if (buildBodyUnlockedSprite != null && buildBodyLockedSprite != null)
                 {
                     buildBodyImage.sprite = isUnlocked ? buildBodyUnlockedSprite : buildBodyLockedSprite;

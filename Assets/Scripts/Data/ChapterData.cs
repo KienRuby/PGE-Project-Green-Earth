@@ -47,16 +47,14 @@ public class ChapterData : ScriptableObject
     [Range(0.1f, 3.0f)]
     public float playerBoundaryPadding = 0.6f;
 
-    [Tooltip("Tỷ lệ scale của mặt sàn (mặc định 0.2 cho Chapter 2 và 3 để họa tiết vừa vặn, sắc nét; hoặc 1.0 cho map thường).")]
+    [Tooltip("Tỷ lệ scale của mặt sàn theo bản đồ (sa mạc: 1, rừng và đầm lầy: 0.2).")]
     public float groundScale = 1f;
 
     /// <summary>
-    /// Lấy tỷ lệ scale sàn hiệu dụng: Chapter 2 và 3 mặc định dùng 0.2f để họa tiết sàn vừa vặn và sắc nét.
+    /// Lấy tỷ lệ scale sàn đã cấu hình cho từng bản đồ.
     /// </summary>
     public float GetEffectiveGroundScale()
     {
-        if (groundScale > 0f && groundScale != 1f) return groundScale;
-        if (chapterNumber == 2 || chapterNumber == 3) return 0.2f;
         return groundScale > 0f ? groundScale : 1f;
     }
 

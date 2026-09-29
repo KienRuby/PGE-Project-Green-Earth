@@ -2,30 +2,16 @@ using UnityEngine;
 
 /// <summary>
 /// Buddy 3: Purifying Drone - Sprite: drone-stealth-wing (ID 10).
-/// Phi thuyền tàng hình bay hộ tống, bắn xung lượng tử và định kỳ phát
-/// sóng thanh tẩy diện rộng (Purification Pulse) gây sát thương và đẩy lùi (Knockback) quái vật.
+/// Phi thuyền tàng hình bay hộ tống và bắn xung lượng tử vào một mục tiêu.
 /// </summary>
 public class PurifyingBuddy : BuddyCombatDrone
 {
     [Header("Purifying Specifics")]
-    [Tooltip("Bán kính sóng thanh tẩy diện rộng (mét).")]
-    [SerializeField] private float pulseRadius = 3.8f;
-
-    [Tooltip("Khoảng thời gian kích hoạt sóng thanh tẩy (giây).")]
-    [SerializeField] private float pulseInterval = 3.5f;
-
-    [Tooltip("Lực đẩy lùi kẻ thù trong phạm vi sóng.")]
-    [SerializeField] private float knockbackForce = 4.0f;
-
     [Tooltip("Prefab viên đạn bắn ra.")]
     [SerializeField] private GameObject projectilePrefab;
 
-    [Tooltip("Prefab hiệu ứng sóng thanh tẩy.")]
-    [SerializeField] private GameObject pulseVfxPrefab;
-
     [SerializeField] private Color stealthWingColor = new Color(0.1f, 0.7f, 1f, 1f);
 
-    private float pulseTimer;
     private float emergencyShieldCooldownTimer = 0f;
     private static PurifyingBuddy activeInstance;
 
@@ -65,12 +51,6 @@ public class PurifyingBuddy : BuddyCombatDrone
         set => projectilePrefab = value;
     }
 
-    public GameObject PulseVfxPrefab
-    {
-        get => pulseVfxPrefab;
-        set => pulseVfxPrefab = value;
-    }
-
     public override void Initialize(Transform targetPlayer, int slotIdx, int totalEquipped, int level = 1, BuddyTier tier = BuddyTier.Common)
     {
         base.Initialize(targetPlayer, slotIdx, totalEquipped, level, tier);
@@ -87,13 +67,11 @@ public class PurifyingBuddy : BuddyCombatDrone
         base.Awake();
         baseDamage = 26;
         attackCooldown = 1.1f;
-        pulseTimer = pulseInterval;
     }
 
     protected override void Update()
     {
         base.Update();
-        UpdatePurificationPulse(Time.deltaTime);
         UpdateEmergencyShield(Time.deltaTime);
     }
 
@@ -114,67 +92,7 @@ public class PurifyingBuddy : BuddyCombatDrone
                 ph.AddShield(50);
                 ph.Heal(25);
                 emergencyShieldCooldownTimer = 30f;
-                if (pulseVfxPrefab != null)
-                {
-                    Instantiate(pulseVfxPrefab, playerTransform.position, Quaternion.identity);
-                }
             }
-        }
-    }
-
-    private void UpdatePurificationPulse(float deltaTime)
-    {
-        pulseTimer -= deltaTime;
-        if (pulseTimer <= 0f)
-        {
-            pulseTimer = pulseInterval;
-            TriggerPurificationPulse();
-        }
-    }
-
-    private void TriggerPurificationPulse()
-    {
-        Vector3 pulseCenter = playerTransform != null ? playerTransform.position : transform.position;
-
-        // Magic+ (Tier 1+): Purifying Pulse Heals +10 HP
-        int tierLevel = (int)currentTier;
-        if (tierLevel >= 1 && playerTransform != null)
-        {
-            PlayerHealth ph = playerTransform.GetComponent<PlayerHealth>();
-            if (ph != null && !ph.IsDead)
-            {
-                ph.Heal(10);
-            }
-        }
-
-        // Quét quái vật xung quanh
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(pulseCenter, pulseRadius, enemyLayer);
-        int pulseDamage = Mathf.RoundToInt(baseDamage * 1.25f);
-
-        if (colliders != null && colliders.Length > 0)
-        {
-            foreach (var col in colliders)
-            {
-                if (col == null) continue;
-                EnemyHealth eh = col.GetComponent<EnemyHealth>() ?? col.GetComponentInParent<EnemyHealth>();
-                if (eh != null && !eh.IsDead)
-                {
-                    eh.TakeDamage(pulseDamage);
-
-                    // Hiệu ứng đẩy lùi
-                    Rigidbody2D enemyRb = col.GetComponent<Rigidbody2D>() ?? col.GetComponentInParent<Rigidbody2D>();
-                    if (enemyRb != null && enemyRb.bodyType == RigidbodyType2D.Dynamic)
-                    {
-                        Vector2 pushDir = ((Vector2)col.transform.position - (Vector2)pulseCenter).normalized;
-                        enemyRb.AddForce(pushDir * knockbackForce, ForceMode2D.Impulse);
-                    }
-                }
-            }
-        }
-
-        if (pulseVfxPrefab != null)
-        {
-            Instantiate(pulseVfxPrefab, pulseCenter, Quaternion.identity);
         }
     }
 

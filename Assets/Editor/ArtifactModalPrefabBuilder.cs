@@ -19,6 +19,7 @@ public static class ArtifactModalPrefabBuilder
     private const string PrefabDir = "Assets/Resources/UI";
     private const string PrefabPath = "Assets/Resources/UI/ArtifactFoundModal.prefab";
     private const string SpriteSheetPath = "Assets/Sprites/UI/artifact 1/nút artifact.png";
+    private const string ButtonSpriteSheetPath = "Assets/Sprites/Doi/nút artifact (1).png";
     private const string GamePlayScenePath = "Assets/Scenes/GamePlay.unity";
 
     [MenuItem("PGE/UI/1. Create & Edit Artifact Found Modal Prefab", false, 50)]
@@ -81,8 +82,9 @@ public static class ArtifactModalPrefabBuilder
             .GroupBy(s => s.name, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
 
-        Sprite sprThrow = sheetSprites.TryGetValue("Btn_ThrowAway", out var st) ? st : null;
-        Sprite sprGet = sheetSprites.TryGetValue("Btn_Get", out var sg) ? sg : null;
+        Sprite[] buttonSprites = AssetDatabase.LoadAllAssetsAtPath(ButtonSpriteSheetPath).OfType<Sprite>().ToArray();
+        Sprite sprThrow = buttonSprites.FirstOrDefault(s => s.name == "Thorw away");
+        Sprite sprGet = buttonSprites.FirstOrDefault(s => s.name == "Get");
         Sprite defaultCardSpr = sheetSprites.TryGetValue("Artifact_Lego", out var sl) ? sl : null;
 
         TMP_FontAsset defaultFont = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Fonts/Nunito/Nunito SDF.asset")
@@ -249,7 +251,7 @@ public static class ArtifactModalPrefabBuilder
         btnContainerRt.anchoredPosition = new Vector2(0f, -80f);
         btnContainerRt.sizeDelta = new Vector2(650f, 130f);
 
-        // Nút Throw Away (dùng sprite Btn_ThrowAway + Text Vector)
+        // Nút Throw Away (sprite đã có chữ)
         GameObject throwBtnObj = new GameObject("ThrowAwayButton", typeof(RectTransform), typeof(Image), typeof(Button));
         throwBtnObj.transform.SetParent(btnContainer.transform, false);
         RectTransform throwRt = throwBtnObj.GetComponent<RectTransform>();
@@ -282,8 +284,9 @@ public static class ArtifactModalPrefabBuilder
         throwBtnTxt.alignment = TextAlignmentOptions.Center;
         throwBtnTxt.color = Color.white;
         throwBtnTxt.raycastTarget = false;
+        throwTxtObj.SetActive(false);
 
-        // Nút Get (dùng sprite Btn_Get + Text Vector)
+        // Nút Get (sprite đã có chữ)
         GameObject getBtnObj = new GameObject("GetButton", typeof(RectTransform), typeof(Image), typeof(Button));
         getBtnObj.transform.SetParent(btnContainer.transform, false);
         RectTransform getRt = getBtnObj.GetComponent<RectTransform>();
@@ -316,6 +319,7 @@ public static class ArtifactModalPrefabBuilder
         getBtnTxt.alignment = TextAlignmentOptions.Center;
         getBtnTxt.color = Color.white;
         getBtnTxt.raycastTarget = false;
+        getTxtObj.SetActive(false);
 
         // 9. Gắn Controller và liên kết các trường
         ArtifactFoundModalController ctrl = root.AddComponent<ArtifactFoundModalController>();

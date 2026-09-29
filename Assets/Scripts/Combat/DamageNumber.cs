@@ -229,6 +229,7 @@ public class DamageNumber : MonoBehaviour, IPoolable
 
     private Vector3 initialScale = Vector3.one;
     private Vector3 currentVelocity;
+    private float verticalMotionScale = 1f;
     private Color baseColor;
     private Color gradTop;
     private Color gradBottom;
@@ -457,7 +458,7 @@ public class DamageNumber : MonoBehaviour, IPoolable
     /// <summary>
     /// Khởi tạo với hướng tản số (horizontalDir: -1 đến +1) giúp chống trùng đè khi bắn liên thanh.
     /// </summary>
-    public void InitializeWithDirection(int amount, DamageType type, Vector3 startPos, float horizontalDir, float extraScale = 1f)
+    public void InitializeWithDirection(int amount, DamageType type, Vector3 startPos, float horizontalDir, float extraScale = 1f, bool compactEnemyArc = false)
     {
         EnsureComponents();
 
@@ -580,12 +581,12 @@ public class DamageNumber : MonoBehaviour, IPoolable
         // 5. Khởi tạo quỹ đạo Parabolic Arc
         float clampedDir = Mathf.Clamp(horizontalDir, -1.2f, 1.2f);
         float hSpread = clampedDir * Random.Range(0.7f, 1.2f);
-        float startOffsetY = Random.Range(0.2f, 0.4f);
-        Vector3 spawnOffset = isCrit ? critSpawnOffset : new Vector3(0f, startOffsetY, 0f);
+        Vector3 spawnOffset = compactEnemyArc ? Vector3.zero : (isCrit ? critSpawnOffset : new Vector3(0f, Random.Range(0.2f, 0.4f), 0f));
 
         float centerCompensation = isCrit ? -GetGroupHorizontalCenterOffset() : 0f;
         transform.position = startPos + spawnOffset + new Vector3(centerCompensation + clampedDir * 0.2f, 0f, 0f);
-        currentVelocity = new Vector3(hSpread, burstSpeedY * (isCrit ? 1.15f : 1f), 0f);
+        verticalMotionScale = compactEnemyArc ? 0.2f : 1f;
+        currentVelocity = new Vector3(hSpread, burstSpeedY * (isCrit ? 1.15f : 1f) * verticalMotionScale, 0f);
 
         transform.localScale = new Vector3(initialScale.x * 1.12f, initialScale.y * 0.9f, initialScale.z) * (baseScale * targetScaleFactor * (type == DamageType.Heal ? 1f : DamageScaleMultiplier));
         elapsedTime = 0f;
@@ -716,7 +717,7 @@ public class DamageNumber : MonoBehaviour, IPoolable
 
         // 1. Parabolic Arc
         transform.position += currentVelocity * dt;
-        currentVelocity.y -= arcGravity * dt;
+        currentVelocity.y -= arcGravity * verticalMotionScale * dt;
         currentVelocity.x = Mathf.Lerp(currentVelocity.x, 0f, dt * dragX);
 
         // 2. Squash & Stretch + Elastic Pop

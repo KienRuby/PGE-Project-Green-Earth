@@ -121,11 +121,11 @@ public static class BuddyDatabase
                 defaultCount = 0,
                 defaultRequiredCount = 10,
                 defaultEnhanceCost = 500,
-                description = "Damages and knocks back nearby enemies.\nPulse heals the player from Magic tier onward.",
-                baseStatText = "Drone ATK 26, Purifying Pulse",
-                magicPerkText = "Pulse heals up to 10 HP (Magic+)",
-                rarePerkText = "Drone ATK scales with tier",
-                uniquePerkText = "Pulse damage scales with tier",
+                description = "Fires homing shots at one enemy.\nAt Holographic tier, heals and shields the player when health is low.",
+                baseStatText = "Drone ATK 26, homing shot",
+                magicPerkText = "Drone ATK +40%",
+                rarePerkText = "Drone ATK +60%",
+                uniquePerkText = "Drone ATK +80%",
                 epicPerkText = "Emergency heal and shield (cooldown 30s)"
             }
         }

@@ -2117,7 +2117,7 @@ public class PGEGameLogicTests
         Assert.That(purifying, Is.Not.Null, "Purifying Drone must exist in database.");
         Assert.That(purifying.count, Is.EqualTo(0));
         Assert.That(purifying.requiredCount, Is.EqualTo(10));
-        Assert.That(purifying.description, Does.Contain("knocks back"));
+        Assert.That(purifying.description, Does.Contain("homing shots"));
     }
 
     [Test]

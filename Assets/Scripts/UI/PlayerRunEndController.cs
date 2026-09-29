@@ -404,6 +404,10 @@ public sealed class PlayerRunEndController : MonoBehaviour
         }
 
         resultResolved = true;
+        enemySpawner?.CommitRunCurrency();
+        if (!IsGemMineScene() && enemySpawner != null)
+            PlayerDataService.RecordChapterWaveReached(PlayerDataService.SelectedChapterIndex,
+                Mathf.Clamp(enemySpawner.CurrentWaveNumber, 1, enemySpawner.TotalWavesCount));
         GameEvents.RaiseChapterPlayed(PlayerDataService.SelectedChapterIndex);
         SetPanelActive(revivePanel, false);
         PopulateGameOverResult();

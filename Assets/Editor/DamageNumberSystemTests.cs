@@ -167,6 +167,60 @@ public class DamageNumberSystemTests
         Object.DestroyImmediate(enemyObj);
     }
 
+    [TestCase(false)]
+    [TestCase(true)]
+    public void EnemyHealth_DamageNumber_StartsAboveCollider(bool critical)
+    {
+        bool showDamage = GameSettings.ShowDamage;
+        GameSettings.ShowDamage = true;
+        GameObject enemyObj = new GameObject("TestEnemy", typeof(BoxCollider2D), typeof(EnemyHealth));
+        try
+        {
+            enemyObj.transform.position = new Vector3(4f, 6f, 0f);
+            BoxCollider2D collider = enemyObj.GetComponent<BoxCollider2D>();
+            collider.size = new Vector2(1f, 2f);
+            collider.offset = new Vector2(0f, 0.5f);
+            Physics2D.SyncTransforms();
+
+            EnemyHealth enemyHealth = enemyObj.GetComponent<EnemyHealth>();
+            enemyHealth.SetMaxHealth(100, true);
+            enemyHealth.TakeDamage(25, critical);
+
+            DamageNumber damageNumber = null;
+            foreach (DamageNumber number in Object.FindObjectsByType<DamageNumber>(FindObjectsSortMode.None))
+            {
+                if (number.IsRunning && number.TextComponent.text == "25")
+                {
+                    damageNumber = number;
+                    break;
+                }
+            }
+
+            Assert.That(damageNumber, Is.Not.Null);
+            Assert.That(damageNumber.transform.position.y, Is.EqualTo(collider.bounds.max.y + 0.12f).Within(0.01f));
+        }
+        finally
+        {
+            Object.DestroyImmediate(enemyObj);
+            GameSettings.ShowDamage = showDamage;
+        }
+    }
+
+    [Test]
+    public void DamageNumberManager_NearbyEnemies_GetSeparateNumbers()
+    {
+        manager.SpawnDamage(Vector3.zero, 25, sourceId: 1);
+        manager.SpawnDamage(new Vector3(0.2f, 0f, 0f), 30, sourceId: 2);
+
+        int activeNumbers = 0;
+        foreach (DamageNumber number in Object.FindObjectsByType<DamageNumber>(FindObjectsSortMode.None))
+        {
+            if (number.IsRunning) activeNumbers++;
+        }
+
+        Assert.That(activeNumbers, Is.EqualTo(2));
+    }
+
     [Test]
     public void PlayerHealth_TakeDamage_TriggersDamageNumber()
     {

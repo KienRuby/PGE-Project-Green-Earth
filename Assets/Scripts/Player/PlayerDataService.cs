@@ -40,6 +40,7 @@ public static class PlayerDataService
     public static void InitializeApplicationSettings()
     {
         EnsureSaveSchema();
+        EnsureChapterLayout();
         Application.targetFrameRate = 120;
         QualitySettings.vSyncCount = 0;
         Screen.orientation = ScreenOrientation.Portrait;
@@ -78,6 +79,9 @@ public static class PlayerDataService
         PlayerPrefs.DeleteKey(DroneBoxesKey);
         PlayerPrefs.DeleteKey(SelectedChapterIndexKey);
         PlayerPrefs.DeleteKey(UnlockedChapterIndexKey);
+        for (int chapterIndex = 0; chapterIndex < 10; chapterIndex++)
+            PlayerPrefs.DeleteKey(ChapterBestWaveKeyPrefix + chapterIndex);
+        PlayerPrefs.DeleteKey(ChapterLayoutVersionKey);
         PlayerPrefs.DeleteKey(AchievementManager.ClearedChaptersMaskKey);
         PlayerPrefs.DeleteKey(ChipsetActiveDeckKey);
         PlayerPrefs.DeleteKey(BuddyActiveDeckKey);
@@ -352,15 +356,62 @@ public static class PlayerDataService
 
     public const string SelectedChapterIndexKey = "PGE.Chapter.SelectedIndex";
     public const string UnlockedChapterIndexKey = "PGE.Chapter.UnlockedIndex";
+    public const string ChapterBestWaveKeyPrefix = "PGE.Chapter.BestWave.";
+    public const string ChapterLayoutVersionKey = "PGE.Chapter.LayoutVersion";
+
+    public static void EnsureChapterLayout()
+    {
+        if (PlayerPrefs.GetInt(ChapterLayoutVersionKey, 0) >= 1) return;
+
+        int oldSelected = PlayerPrefs.GetInt(SelectedChapterIndexKey, 0);
+        int oldUnlocked = PlayerPrefs.GetInt(UnlockedChapterIndexKey, 0);
+        int oldMask = PlayerPrefs.GetInt(AchievementManager.ClearedChaptersMaskKey, 0);
+        int[] bestWaves = new int[3];
+        for (int i = 0; i < 3; i++)
+            bestWaves[i] = PlayerPrefs.GetInt(ChapterBestWaveKeyPrefix + i, 0);
+        for (int i = 0; i < 10; i++)
+            PlayerPrefs.DeleteKey(ChapterBestWaveKeyPrefix + i);
+        for (int i = 0; i < 3; i++)
+            if (bestWaves[i] > 0) PlayerPrefs.SetInt(ChapterBestWaveKeyPrefix + i * 3, bestWaves[i]);
+
+        int newMask = 0;
+        for (int i = 0; i < 3; i++)
+            if ((oldMask & (1 << (i + 1))) != 0)
+                for (int stage = 1; stage <= 3; stage++)
+                    newMask |= 1 << (i * 3 + stage);
+        PlayerPrefs.SetInt(AchievementManager.ClearedChaptersMaskKey, newMask);
+        PlayerPrefs.SetInt(SelectedChapterIndexKey, oldSelected < 3 ? Mathf.Max(0, oldSelected) * 3 : 8);
+        PlayerPrefs.SetInt(UnlockedChapterIndexKey, Mathf.Min(9, Mathf.Max(0, oldUnlocked) * 3));
+        PlayerPrefs.SetInt(ChapterLayoutVersionKey, 1);
+        PlayerPrefs.Save();
+    }
+
+    public static int GetChapterBestWave(int chapterIndex)
+    {
+        EnsureChapterLayout();
+        return chapterIndex < 0 ? 0 : PlayerPrefs.GetInt(ChapterBestWaveKeyPrefix + chapterIndex, 0);
+    }
+
+    public static void RecordChapterWaveReached(int chapterIndex, int waveNumber)
+    {
+        if (chapterIndex < 0 || waveNumber <= GetChapterBestWave(chapterIndex)) return;
+        PlayerPrefs.SetInt(ChapterBestWaveKeyPrefix + chapterIndex, waveNumber);
+        PlayerPrefs.Save();
+    }
 
     /// <summary>
     /// Index Chapter đang được người chơi lựa chọn (0 = Chapter 1, 3 = Chapter 4,...).
     /// </summary>
     public static int SelectedChapterIndex
     {
-        get => PlayerPrefs.GetInt(SelectedChapterIndexKey, 0); // Mặc định hiển thị Chapter 1
+        get
+        {
+            EnsureChapterLayout();
+            return PlayerPrefs.GetInt(SelectedChapterIndexKey, 0);
+        }
         set
         {
+            EnsureChapterLayout();
             PlayerPrefs.SetInt(SelectedChapterIndexKey, Mathf.Max(0, value));
             PlayerPrefs.Save();
         }
@@ -371,9 +422,14 @@ public static class PlayerDataService
     /// </summary>
     public static int UnlockedChapterIndex
     {
-        get => PlayerPrefs.GetInt(UnlockedChapterIndexKey, 0); // Mặc định Chapter 1
+        get
+        {
+            EnsureChapterLayout();
+            return PlayerPrefs.GetInt(UnlockedChapterIndexKey, 0);
+        }
         set
         {
+            EnsureChapterLayout();
             PlayerPrefs.SetInt(UnlockedChapterIndexKey, Mathf.Max(0, value));
             PlayerPrefs.Save();
         }

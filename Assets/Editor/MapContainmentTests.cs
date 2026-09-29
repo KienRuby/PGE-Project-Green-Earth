@@ -26,7 +26,7 @@ public class MapContainmentTests
         {
             var db = AssetDatabase.LoadAssetAtPath<ChapterDatabase>("Assets/Data/Chapters/ChapterDatabase.asset");
             var resourceDb = Resources.Load<ChapterDatabase>("ChapterDatabase");
-            Assert.AreEqual(10, db.Count);
+            Assert.AreEqual(9, db.Count);
             CollectionAssert.AreEqual(db.Chapters, resourceDb.Chapters);
             var manager = scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<ChapterMapManager>(true)).Single();
             manager.InitializeMap();

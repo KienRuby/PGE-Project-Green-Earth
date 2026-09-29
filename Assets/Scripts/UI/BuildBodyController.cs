@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 /// <summary>
 /// Quản lý giao diện và logic màn hình Build Body trong Lab:
-/// 1. Kiểm tra điều kiện mở khóa Tab: Vượt qua tối thiểu 3 Chapter (PlayerDataService.UnlockedChapterIndex >= 3).
+/// 1. Kiểm tra điều kiện mở khóa Tab: Vượt qua 9 Chapter.
 ///    - Khi chưa đủ điều kiện: Nút Tab hiển thị sprite có ổ khóa (Build body locked), bấm vào sẽ báo Toast.
 ///    - Khi đủ điều kiện: Nút Tab hiển thị sprite mở (Build body), cho phép chuyển đổi giữa tab Stats và Build body.
 /// 2. Danh sách 4 Skin/Body Units (AD Unit-1, 2, 3, 4) đúng 100% theo ảnh:
@@ -19,7 +19,7 @@ public class BuildBodyController : MonoBehaviour
 {
     public const string EquippedSkinKey = "PGE.BuildBody.EquippedSkinIndex";
     public const string BodyUnlockedKeyPrefix = "PGE.BuildBody.Unlocked_";
-    public const int RequiredChaptersToUnlock = 3;
+    public const int RequiredChaptersToUnlock = 9;
 
     [System.Serializable]
     public class BodyCardView
@@ -110,7 +110,7 @@ public class BuildBodyController : MonoBehaviour
     {
         get
         {
-            // Kiểm tra xem người chơi đã vượt qua ít nhất 3 chapter chưa (UnlockedChapterIndex >= 3)
+            // Mở khóa sau khi hoàn thành cả 9 chapter.
             int unlockedChapter = PlayerDataService.UnlockedChapterIndex;
             return unlockedChapter >= RequiredChaptersToUnlock || ChipManager.IsTestMode;
         }
@@ -222,8 +222,8 @@ public class BuildBodyController : MonoBehaviour
             int currentCleared = PlayerDataService.UnlockedChapterIndex;
             bool vi = GameSettings.IsVietnamese;
             ShowToast(vi
-                ? $"Cần vượt qua Chapter 3 để mở khóa Build Body! (Hiện tại: {currentCleared}/{RequiredChaptersToUnlock})"
-                : $"Clear Chapter 3 to unlock Build Body! (Current: {currentCleared}/{RequiredChaptersToUnlock})");
+                ? $"Cần vượt qua Chapter 9 để mở khóa Build Body! (Hiện tại: {currentCleared}/{RequiredChaptersToUnlock})"
+                : $"Clear Chapter 9 to unlock Build Body! (Current: {currentCleared}/{RequiredChaptersToUnlock})");
             return;
         }
 

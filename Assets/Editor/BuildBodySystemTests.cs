@@ -51,7 +51,7 @@ public class BuildBodySystemTests
 
         try
         {
-            // Test 1: Chapter lock condition (< 3 chapters => locked, >= 3 chapters => unlocked)
+            // Test 1: unlock after all nine chapters.
             PlayerDataService.UnlockedChapterIndex = 0;
             var go = new GameObject("TestBuildBodyController");
             go.hideFlags = HideFlags.HideAndDontSave;
@@ -63,11 +63,11 @@ public class BuildBodySystemTests
                 PlayerDataService.UnlockedChapterIndex = 2; // 2 chapters cleared
                 Assert("Test02_Locked_WhenChapter2", !ctrl.IsBuildBodyUnlocked, "Chapter 2 should be locked");
 
-                PlayerDataService.UnlockedChapterIndex = 3; // 3 chapters cleared
-                Assert("Test03_Unlocked_WhenChapter3", ctrl.IsBuildBodyUnlocked, "Chapter 3 should be unlocked");
+                PlayerDataService.UnlockedChapterIndex = 8;
+                Assert("Test03_Locked_WhenChapter8", !ctrl.IsBuildBodyUnlocked, "Chapter 8 should be locked");
 
-                PlayerDataService.UnlockedChapterIndex = 4;
-                Assert("Test04_Unlocked_WhenChapter4", ctrl.IsBuildBodyUnlocked, "Chapter 4 should be unlocked");
+                PlayerDataService.UnlockedChapterIndex = 9;
+                Assert("Test04_Unlocked_WhenChapter9", ctrl.IsBuildBodyUnlocked, "Chapter 9 should be unlocked");
             }
             finally
             {

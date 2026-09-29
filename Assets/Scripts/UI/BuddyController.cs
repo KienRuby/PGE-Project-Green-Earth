@@ -2219,8 +2219,7 @@ public class BuddyController : MonoBehaviour
             case 10: // Purifying Drone
             {
                 int atk = Mathf.RoundToInt(26f * (1f + (buddy.level - 1) * 0.15f) * (1f + tierLevel * 0.2f));
-                string summary = $"Drone ATK <color=#FFCB49>{atk}</color>, Pulse Damage & Knockback";
-                if (tierLevel >= 1) summary += "\n<color=#40DAD2>Purifying Pulse Heals up to 10 HP</color>";
+                string summary = $"Drone ATK <color=#FFCB49>{atk}</color>, Homing Shot";
                 if (tierLevel >= 5) summary += "\n<color=#FB7185>Emergency Heal (up to 25 HP) & Shield (up to 50) (CD 30s)</color>";
                 return summary;
             }

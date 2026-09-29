@@ -331,7 +331,8 @@ public class ChapterScreenController : MonoBehaviour
 
             if (waveBadgeText != null)
             {
-                waveBadgeText.text = $"WAVE 01/{currentChapter.totalWaves:00}";
+                int bestWave = isCleared ? currentChapter.totalWaves : PlayerDataService.GetChapterBestWave(currentChapterIndex);
+                waveBadgeText.text = $"WAVE {Mathf.Clamp(Mathf.Max(1, bestWave), 1, currentChapter.totalWaves):00}/{currentChapter.totalWaves:00}";
             }
 
             if (flavorText != null)
@@ -375,7 +376,11 @@ public class ChapterScreenController : MonoBehaviour
                 bossSilhouetteImage.gameObject.SetActive(true);
                 bossSilhouetteImage.color = isCleared ? unlockedBossColor : lockedBossColor;
             }
-            if (waveBadgeText != null) waveBadgeText.text = "WAVE 01/05";
+            if (waveBadgeText != null)
+            {
+                int bestWave = isCleared ? 5 : PlayerDataService.GetChapterBestWave(currentChapterIndex);
+                waveBadgeText.text = $"WAVE {Mathf.Clamp(Mathf.Max(1, bestWave), 1, 5):00}/05";
+            }
             if (flavorText != null) flavorText.text = "Mutant spores have been detected on the outskirts.";
             if (energyCostText != null) energyCostText.text = "X 5";
             if (startButtonLabel != null) startButtonLabel.text = isLocked ? "Locked" : "Start";
@@ -389,7 +394,7 @@ public class ChapterScreenController : MonoBehaviour
             startButton.gameObject.SetActive(!isLocked);
         }
 
-        bool sideModesUnlocked = PlayerDataService.UnlockedChapterIndex >= 3;
+        bool sideModesUnlocked = PlayerDataService.UnlockedChapterIndex >= 9;
         if (towerDefButton != null) towerDefButton.gameObject.SetActive(sideModesUnlocked);
         if (gemMineButton != null) gemMineButton.gameObject.SetActive(sideModesUnlocked);
 

@@ -490,10 +490,22 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
 
         OnHealthChanged?.Invoke(CurrentHealth, maxHealth);
 
-        // Hiển thị số sát thương nhảy lên tương tự game gốc
+        // Hiển thị số sát thương ngay trên collider đang hoạt động của quái
         DamageType type = isCritical ? DamageType.Critical : DamageType.Normal;
         Vector3 spawnPos = transform.position + Vector3.up * 0.4f;
-        DamageNumberManager.ShowDamage(spawnPos, damage, type);
+        float highestColliderTop = float.NegativeInfinity;
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            Collider2D collider = colliders[i];
+            if (collider == null || !collider.enabled || !collider.gameObject.activeInHierarchy) continue;
+
+            Bounds bounds = collider.bounds;
+            if (bounds.max.y <= highestColliderTop) continue;
+
+            highestColliderTop = bounds.max.y;
+            spawnPos = new Vector3(bounds.center.x, bounds.max.y + 0.12f, transform.position.z);
+        }
+        DamageNumberManager.ShowDamage(spawnPos, damage, type, compactEnemyArc: true, sourceId: GetInstanceID());
 
         // Luôn kích hoạt hiệu ứng đỏ cho MỌI phát bắn trúng (kể cả phát bắn kết liễu khiến máu về 0)
         TriggerDamageFlash();
@@ -629,17 +641,20 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
                     bool isGemMine = EnemySpawner.Instance != null && EnemySpawner.Instance.IsGemMineScene();
                     if (!isGemMine && dataChipReward > 0)
                     {
-                        ChipManager.AddDataChips(dataChipReward);
+                        if (Application.isPlaying && EnemySpawner.Instance != null) EnemySpawner.Instance.AddRunDataChips(dataChipReward);
+                        else ChipManager.AddDataChips(dataChipReward);
                     }
                     if (redGemReward > 0)
                     {
-                        ChipManager.AddRedGems(redGemReward);
+                        if (Application.isPlaying && EnemySpawner.Instance != null) EnemySpawner.Instance.AddRunRedGems(redGemReward);
+                        else ChipManager.AddRedGems(redGemReward);
                     }
 
                     // Tỷ lệ ngẫu nhiên 5% rơi Gem đỏ khi tiêu diệt enemy
                     if (randomRedGemDropChance > 0f && UnityEngine.Random.value <= randomRedGemDropChance)
                     {
-                        ChipManager.AddRedGems(randomRedGemAmount);
+                        if (Application.isPlaying && EnemySpawner.Instance != null) EnemySpawner.Instance.AddRunRedGems(randomRedGemAmount);
+                        else ChipManager.AddRedGems(randomRedGemAmount);
                     }
                 }
 

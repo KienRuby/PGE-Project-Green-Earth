@@ -39,7 +39,7 @@ public class DesertPropSpawner : MonoBehaviour
     [Serializable]
     public sealed class ChapterPropConfig
     {
-        [Tooltip("Số thứ tự Chapter (1: Sa mạc, 2: Rừng đột biến, 3: Đầm lầy độc,...)")]
+        [Tooltip("Nhóm bản đồ (1: Chapter 1–3 sa mạc, 2: Chapter 4–6 rừng, 3: Chapter 7–9 đầm lầy).")]
         public int chapterNumber = 1;
 
         [Tooltip("Tên gợi nhớ của Chapter")]
@@ -52,7 +52,7 @@ public class DesertPropSpawner : MonoBehaviour
     [SerializeField, Min(1)] private int desertChapterNumber = 1;
     [SerializeField] private bool spawnOnlyInDesertChapter = false;
 
-    [Tooltip("Danh sách prefab mặc định (Chapter 1 - Sa mạc)")]
+    [Tooltip("Danh sách prefab mặc định cho Chapter 1–3 (sa mạc)")]
     [SerializeField] private List<PropEntry> props = new List<PropEntry>();
 
     [Tooltip("Danh sách cấu hình chướng ngại vật theo từng Chapter riêng biệt")]
@@ -210,7 +210,8 @@ public class DesertPropSpawner : MonoBehaviour
                 : desertChapterNumber);
 
         maxForestSwampPropDimension = 0.18f;
-        if (activeChapterNum == 2 || activeChapterNum == 3)
+        int biomeNumber = GetBiomeNumber(activeChapterNum);
+        if (biomeNumber == 2 || biomeNumber == 3)
         {
             GameObject player = GameObject.FindGameObjectWithTag("Player");
             PlayerSkinApplier skin = player != null ? player.GetComponent<PlayerSkinApplier>() : null;
@@ -230,9 +231,9 @@ public class DesertPropSpawner : MonoBehaviour
             if (sr != null)
             {
                 string groundSpritePath = null;
-                if (activeChapterNum == 1) groundSpritePath = "Assets/Sprites/Backround/Map/nền.png";
-                else if (activeChapterNum == 2) groundSpritePath = "Assets/Sprites/Backround/Map/nền (1).png";
-                else if (activeChapterNum == 3) groundSpritePath = "Assets/Sprites/Backround/Map/nền (2).png";
+                if (biomeNumber == 1) groundSpritePath = "Assets/Sprites/Backround/Map/nền.png";
+                else if (biomeNumber == 2) groundSpritePath = "Assets/Sprites/Backround/Map/nền (1).png";
+                else if (biomeNumber == 3) groundSpritePath = "Assets/Sprites/Backround/Map/nền (2).png";
 
 #if UNITY_EDITOR
                 if (!string.IsNullOrEmpty(groundSpritePath))
@@ -271,7 +272,7 @@ public class DesertPropSpawner : MonoBehaviour
         float currentObstacleDensity = (currentChapter != null)
             ? (currentChapter.enableObstacles ? currentChapter.obstacleDensity : 0f)
             : obstacleDensity;
-        if (activeChapterNum == 2 || activeChapterNum == 3)
+        if (biomeNumber == 2 || biomeNumber == 3)
         {
             currentObstacleDensity = 0f;
         }
@@ -287,7 +288,7 @@ public class DesertPropSpawner : MonoBehaviour
             : colliderHeightRatio;
 
         SpawnKind(PropKind.Decoration, CalculateSpawnCount(area, currentDecorationDensity), decorationMinSpacing, currentWidthRatio, currentHeightRatio, activeChapterNum);
-        if (activeChapterNum != 2 && activeChapterNum != 3)
+        if (biomeNumber == 1)
         {
             SpawnKind(PropKind.Obstacle, CalculateSpawnCount(area, currentObstacleDensity), obstacleMinSpacing, currentWidthRatio, currentHeightRatio, activeChapterNum);
         }
@@ -327,7 +328,12 @@ public class DesertPropSpawner : MonoBehaviour
             return chapter == null || chapter.enableObstacles;
         }
 
-        return chapter != null && chapter.chapterNumber == desertChapterNumber;
+        return chapter != null && GetBiomeNumber(chapter.chapterNumber) == GetBiomeNumber(desertChapterNumber);
+    }
+
+    private static int GetBiomeNumber(int chapterNumber)
+    {
+        return Mathf.Clamp((Mathf.Max(1, chapterNumber) - 1) / 3 + 1, 1, 3);
     }
 
     public List<PropEntry> GetCurrentPropsList(int chapterNum = -1)
@@ -338,6 +344,7 @@ public class DesertPropSpawner : MonoBehaviour
             chapterNum = chapter != null ? chapter.chapterNumber : desertChapterNumber;
         }
 
+        chapterNum = GetBiomeNumber(chapterNum);
         if (chapterPropsList != null)
         {
             for (int i = 0; i < chapterPropsList.Count; i++)
@@ -357,7 +364,7 @@ public class DesertPropSpawner : MonoBehaviour
 
     private void SpawnKind(PropKind kind, int targetCount, float minSpacing, float widthRatio, float heightRatio, int chapterNum = -1)
     {
-        if (kind == PropKind.Obstacle && (chapterNum == 2 || chapterNum == 3))
+        if (kind == PropKind.Obstacle && GetBiomeNumber(chapterNum) != 1)
         {
             return;
         }
@@ -456,7 +463,7 @@ public class DesertPropSpawner : MonoBehaviour
         float multiplier = Mathf.Lerp(minScale, maxScale, (float)random.NextDouble());
         instance.transform.localScale *= Mathf.Max(0.01f, multiplier);
 
-        if (chapterNum == 2 || chapterNum == 3)
+        if (GetBiomeNumber(chapterNum) != 1)
         {
             // Keep props smaller than the player's visible body, including smaller skins.
             SpriteRenderer[] sprites = instance.GetComponentsInChildren<SpriteRenderer>();
@@ -471,7 +478,7 @@ public class DesertPropSpawner : MonoBehaviour
             }
         }
 
-        bool blocksPlayer = chapterNum != 2 && chapterNum != 3 && ShouldBlockPlayer(entry.kind, entry.blockPlayer);
+        bool blocksPlayer = GetBiomeNumber(chapterNum) == 1 && ShouldBlockPlayer(entry.kind, entry.blockPlayer);
         ConfigureCollision(instance, blocksPlayer, widthRatio, heightRatio);
         // Reserve the corridor for the whole prop, not only its pivot.
         Physics2D.SyncTransforms();

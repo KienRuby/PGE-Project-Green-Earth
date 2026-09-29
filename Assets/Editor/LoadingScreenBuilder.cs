@@ -13,6 +13,7 @@ using TMPro;
 public static class LoadingScreenBuilder
 {
     private const string BackgroundPath = "Assets/Sprites/Backround/nền (4).png";
+    private const string LoadingBarBorderPath = "Assets/Resources/UI/LoadingBarBorder.png";
 
     // Creep 2 (Big creep 2)
     private const string ThaanSpritePath = "Assets/Sprites/Enemy/Creep 2/big creep2- thaan.png";
@@ -52,6 +53,13 @@ public static class LoadingScreenBuilder
         if (bgSprite == null)
         {
             Debug.LogError($"[LoadingScreenBuilder] Không tìm thấy sprite nền tại: {BackgroundPath}");
+            return;
+        }
+
+        Sprite loadingBarBorderSprite = AssetDatabase.LoadAssetAtPath<Sprite>(LoadingBarBorderPath);
+        if (loadingBarBorderSprite == null)
+        {
+            Debug.LogError($"[LoadingScreenBuilder] Không tìm thấy sprite viền thanh loading tại: {LoadingBarBorderPath}");
             return;
         }
 
@@ -149,10 +157,13 @@ public static class LoadingScreenBuilder
         borderRect.anchoredPosition = Vector2.zero;
 
         Image borderImage = borderObj.AddComponent<Image>();
+        borderImage.sprite = loadingBarBorderSprite;
+        borderImage.type = Image.Type.Sliced;
+        borderImage.fillCenter = false;
         borderImage.color = new Color(0.451f, 0.714f, 0.745f, 1f); // #73B6BE
         borderImage.raycastTarget = false;
 
-        // 3.2. Background ruột thanh (#1B0B20)
+        // 3.2. Background ruột thanh trong suốt
         GameObject barBgObj = new GameObject("BarBackground");
         barBgObj.transform.SetParent(barObj.transform, false);
         RectTransform barBgRect = barBgObj.AddComponent<RectTransform>();
@@ -162,7 +173,7 @@ public static class LoadingScreenBuilder
         barBgRect.anchoredPosition = Vector2.zero;
 
         Image barBgImage = barBgObj.AddComponent<Image>();
-        barBgImage.color = new Color(0.106f, 0.043f, 0.125f, 1f); // #1B0B20
+        barBgImage.color = Color.clear;
         barBgImage.raycastTarget = false;
 
         // 3.3. Fill Bar (Màu hồng kẹo ngọt #FBAADD)
@@ -171,7 +182,7 @@ public static class LoadingScreenBuilder
         RectTransform fillRect = fillObj.AddComponent<RectTransform>();
         fillRect.anchorMin = Vector2.zero;
         fillRect.anchorMax = Vector2.one;
-        fillRect.sizeDelta = new Vector2(-6f, -6f);
+        fillRect.sizeDelta = new Vector2(-18f, -18f);
         fillRect.anchoredPosition = Vector2.zero;
 
         Image fillImage = fillObj.AddComponent<Image>();

@@ -45,6 +45,7 @@ public class GemPickup : MonoBehaviour, IPoolable
         cachedPlayerTrans = null;
         nextPlayerSearchTime = 0f;
         cachedGlowMaterial = null;
+        cachedRedGlowMaterial = null;
         cachedBlueExpSprite = null;
         cachedPurpleExpSprite = null;
         cachedYellowExpSprite = null;
@@ -87,6 +88,7 @@ public class GemPickup : MonoBehaviour, IPoolable
     private static Sprite cachedGlowSprite;
     private static Sprite cachedSparkleSprite;
     private static Material cachedGlowMaterial;
+    private static Material cachedRedGlowMaterial;
 
     private Transform playerTarget;
     private bool isBeingAttracted;
@@ -422,12 +424,14 @@ public class GemPickup : MonoBehaviour, IPoolable
             case GemType.DataChip:
                 if (EnemySpawner.Instance == null || !EnemySpawner.Instance.IsGemMineScene())
                 {
-                    ChipManager.AddDataChips(value);
+                    if (Application.isPlaying && EnemySpawner.Instance != null) EnemySpawner.Instance.AddRunDataChips(value);
+                    else ChipManager.AddDataChips(value);
                 }
                 break;
 
             case GemType.RedGem:
-                ChipManager.AddRedGems(value);
+                if (Application.isPlaying && EnemySpawner.Instance != null) EnemySpawner.Instance.AddRunRedGems(value);
+                else ChipManager.AddRedGems(value);
                 break;
 
             case GemType.Magnet:
@@ -537,7 +541,7 @@ public class GemPickup : MonoBehaviour, IPoolable
             Sprite glowSprite = GetGlowSprite();
             if (glowSprite != null) glowRenderer.sprite = glowSprite;
 
-            Material glowMat = GetGlowMaterial();
+            Material glowMat = gemType == GemType.RedExp ? GetRedGlowMaterial() : GetGlowMaterial();
             if (glowMat != null) glowRenderer.sharedMaterial = glowMat;
 
             glowRenderer.sortingLayerName = targetSortingLayer;
@@ -709,6 +713,15 @@ public class GemPickup : MonoBehaviour, IPoolable
             cachedGlowMaterial.hideFlags = HideFlags.DontSave;
         }
         return cachedGlowMaterial;
+    }
+
+    private static Material GetRedGlowMaterial()
+    {
+        if (cachedRedGlowMaterial != null) return cachedRedGlowMaterial;
+        cachedRedGlowMaterial = new Material(Shader.Find("Sprites/Default"));
+        cachedRedGlowMaterial.name = "Runtime_RedGemGlow_Shared";
+        cachedRedGlowMaterial.hideFlags = HideFlags.DontSave;
+        return cachedRedGlowMaterial;
     }
 
     public static Sprite GetGlowSprite()

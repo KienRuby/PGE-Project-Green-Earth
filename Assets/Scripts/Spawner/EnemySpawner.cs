@@ -259,6 +259,8 @@ public class EnemySpawner : MonoBehaviour
     private float despawnCheckTimer;
     private float waveElapsedTime;
     private bool isStageCompleted;
+    private int pendingRunDataChips;
+    private int pendingRunRedGems;
 
     private WaveState currentState = WaveState.NotStarted;
 
@@ -312,6 +314,28 @@ public class EnemySpawner : MonoBehaviour
     {
         string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
         return useSceneWaveConfiguration || string.Equals(sceneName, "GenMine", System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    public void AddRunDataChips(int amount)
+    {
+        if (amount <= 0) return;
+        if (isStageCompleted) ChipManager.AddDataChips(amount);
+        else pendingRunDataChips = (int)Math.Min(int.MaxValue, (long)pendingRunDataChips + amount);
+    }
+
+    public void AddRunRedGems(int amount)
+    {
+        if (amount <= 0) return;
+        if (isStageCompleted) ChipManager.AddRedGems(amount);
+        else pendingRunRedGems = (int)Math.Min(int.MaxValue, (long)pendingRunRedGems + amount);
+    }
+
+    public void CommitRunCurrency()
+    {
+        ChipManager.AddDataChips(pendingRunDataChips);
+        ChipManager.AddRedGems(pendingRunRedGems);
+        pendingRunDataChips = 0;
+        pendingRunRedGems = 0;
     }
 
     public void StopSpawner()
@@ -1238,6 +1262,9 @@ public class EnemySpawner : MonoBehaviour
 
         isStageCompleted = true;
         currentState = WaveState.StageVictory;
+        CommitRunCurrency();
+        if (!IsGemMineScene())
+            PlayerDataService.RecordChapterWaveReached(PlayerDataService.SelectedChapterIndex, TotalWavesCount);
         PlayerLevelController.Instance?.LockLevelUpsForVictory();
 
 

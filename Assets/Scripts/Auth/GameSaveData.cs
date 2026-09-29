@@ -31,7 +31,9 @@ namespace PGE.Auth
             PlayerDataService.CompletedRollsKey, PlayerDataService.LabPityCounterKey,
             PlayerDataService.LabElitePityCounterKey, PlayerDataService.LabEpicPityCounterKey,
             PlayerDataService.LabLegendPityCounterKey, PlayerDataService.SelectedChapterIndexKey,
-            PlayerDataService.UnlockedChapterIndexKey, PlayerDataService.VipOwnedKey,
+            PlayerDataService.UnlockedChapterIndexKey, PlayerDataService.ChapterLayoutVersionKey,
+            AchievementManager.ClearedChaptersMaskKey,
+            PlayerDataService.VipOwnedKey,
             PlayerDataService.ChipsetActiveDeckKey, PlayerDataService.BuddyActiveDeckKey,
             DailyLoginManager.CurrentDayKey, DailyLoginManager.ClaimedMaskKey,
             DailyLoginManager.CycleCountKey
@@ -39,7 +41,7 @@ namespace PGE.Auth
 
         private static readonly int[] RequiredIntDefaults =
         {
-            1000, 1000, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0
+            1000, 1000, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0
         };
 
         private static readonly string[] RequiredStringKeys =
@@ -71,6 +73,7 @@ namespace PGE.Auth
 
         public static GameSaveData Capture(string ownerPlayerId, long revision)
         {
+            PlayerDataService.EnsureChapterLayout();
             var data = new GameSaveData
             {
                 ownerPlayerId = ownerPlayerId ?? string.Empty,
@@ -85,6 +88,9 @@ namespace PGE.Auth
 
             foreach (string item in LabItems)
                 data.AddInt(PlayerDataService.FormatItemLevelKey(item), PlayerPrefs.GetInt(PlayerDataService.FormatItemLevelKey(item), 0));
+
+            for (int chapterIndex = 0; chapterIndex < 9; chapterIndex++)
+                data.AddExistingInt(PlayerDataService.ChapterBestWaveKeyPrefix + chapterIndex);
 
             for (int deck = 0; deck < 3; deck++)
             {
@@ -180,6 +186,7 @@ namespace PGE.Auth
                 else PlayerPrefs.SetInt(value.key, value.intValue);
             }
             PlayerPrefs.Save();
+            PlayerDataService.EnsureChapterLayout();
         }
 
         public static void ClearManagedPlayerPrefs()
@@ -187,6 +194,8 @@ namespace PGE.Auth
             foreach (string key in RequiredIntKeys) PlayerPrefs.DeleteKey(key);
             foreach (string key in RequiredStringKeys) PlayerPrefs.DeleteKey(key);
             foreach (string item in LabItems) PlayerPrefs.DeleteKey(PlayerDataService.FormatItemLevelKey(item));
+            for (int chapterIndex = 0; chapterIndex < 10; chapterIndex++)
+                PlayerPrefs.DeleteKey(PlayerDataService.ChapterBestWaveKeyPrefix + chapterIndex);
 
             for (int deck = 0; deck < 3; deck++)
             {

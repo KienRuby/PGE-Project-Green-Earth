@@ -13,11 +13,117 @@ public class ChapterSystemTests
     private const string QuestDataPath = "Assets/Data/Quests/Quest_01_LabUpgrade.asset";
 
     [Test]
+    public void ChapterBestWave_KeepsHighestResultForEachChapter()
+    {
+        const int chapterIndex = 8;
+        string key = PlayerDataService.ChapterBestWaveKeyPrefix + chapterIndex;
+        bool hadValue = PlayerPrefs.HasKey(key);
+        int original = PlayerPrefs.GetInt(key);
+        try
+        {
+            PlayerPrefs.DeleteKey(key);
+            PlayerDataService.RecordChapterWaveReached(chapterIndex, 6);
+            PlayerDataService.RecordChapterWaveReached(chapterIndex, 4);
+            Assert.That(PlayerDataService.GetChapterBestWave(chapterIndex), Is.EqualTo(6));
+            PlayerDataService.RecordChapterWaveReached(chapterIndex, 10);
+            Assert.That(PlayerDataService.GetChapterBestWave(chapterIndex), Is.EqualTo(10));
+        }
+        finally
+        {
+            if (hadValue) PlayerPrefs.SetInt(key, original);
+            else PlayerPrefs.DeleteKey(key);
+            PlayerPrefs.Save();
+        }
+    }
+
+    [Test]
+    public void ChapterLayout_MigratesOldForestProgressToChaptersFourThroughSix()
+    {
+        var keys = new List<string>
+        {
+            PlayerDataService.ChapterLayoutVersionKey,
+            PlayerDataService.SelectedChapterIndexKey,
+            PlayerDataService.UnlockedChapterIndexKey,
+            AchievementManager.ClearedChaptersMaskKey
+        };
+        for (int i = 0; i < 10; i++)
+            keys.Add(PlayerDataService.ChapterBestWaveKeyPrefix + i);
+        var existed = new bool[keys.Count];
+        var values = new int[keys.Count];
+        for (int i = 0; i < keys.Count; i++)
+        {
+            existed[i] = PlayerPrefs.HasKey(keys[i]);
+            values[i] = PlayerPrefs.GetInt(keys[i]);
+        }
+
+        try
+        {
+            PlayerPrefs.DeleteKey(PlayerDataService.ChapterLayoutVersionKey);
+            PlayerPrefs.SetInt(PlayerDataService.SelectedChapterIndexKey, 1);
+            PlayerPrefs.SetInt(PlayerDataService.UnlockedChapterIndexKey, 2);
+            PlayerPrefs.SetInt(AchievementManager.ClearedChaptersMaskKey, (1 << 1) | (1 << 2));
+            PlayerPrefs.SetInt(PlayerDataService.ChapterBestWaveKeyPrefix + 1, 7);
+            PlayerDataService.EnsureChapterLayout();
+
+            Assert.That(PlayerDataService.SelectedChapterIndex, Is.EqualTo(3));
+            Assert.That(PlayerDataService.UnlockedChapterIndex, Is.EqualTo(6));
+            Assert.That(PlayerDataService.GetChapterBestWave(3), Is.EqualTo(7));
+            Assert.That(PlayerDataService.GetChapterBestWave(1), Is.EqualTo(0));
+            int mask = PlayerPrefs.GetInt(AchievementManager.ClearedChaptersMaskKey);
+            for (int chapter = 1; chapter <= 6; chapter++)
+                Assert.That(mask & (1 << chapter), Is.Not.EqualTo(0));
+        }
+        finally
+        {
+            for (int i = 0; i < keys.Count; i++)
+            {
+                if (existed[i]) PlayerPrefs.SetInt(keys[i], values[i]);
+                else PlayerPrefs.DeleteKey(keys[i]);
+            }
+            PlayerPrefs.Save();
+        }
+    }
+
+    [Test]
+    public void RunCurrency_IsDiscardedOnExitAndCommittedOnResult()
+    {
+        int originalChips = ChipManager.DataChips;
+        int originalGems = ChipManager.RedGems;
+        GameObject spawnerObject = null;
+        try
+        {
+            spawnerObject = new GameObject("Exited run");
+            EnemySpawner exitedRun = spawnerObject.AddComponent<EnemySpawner>();
+            exitedRun.AddRunDataChips(25);
+            exitedRun.AddRunRedGems(2);
+            Object.DestroyImmediate(spawnerObject);
+            spawnerObject = null;
+            Assert.That(ChipManager.DataChips, Is.EqualTo(originalChips));
+            Assert.That(ChipManager.RedGems, Is.EqualTo(originalGems));
+
+            spawnerObject = new GameObject("Finished run");
+            EnemySpawner finishedRun = spawnerObject.AddComponent<EnemySpawner>();
+            finishedRun.AddRunDataChips(25);
+            finishedRun.AddRunRedGems(2);
+            finishedRun.CommitRunCurrency();
+            finishedRun.CommitRunCurrency();
+            Assert.That(ChipManager.DataChips, Is.EqualTo(originalChips + 25));
+            Assert.That(ChipManager.RedGems, Is.EqualTo(originalGems + 2));
+        }
+        finally
+        {
+            if (spawnerObject != null) Object.DestroyImmediate(spawnerObject);
+            ChipManager.DataChips = originalChips;
+            ChipManager.RedGems = originalGems;
+        }
+    }
+
+    [Test]
     public void ChapterDatabase_LoadsAndContainsAllSampleChapters()
     {
         ChapterDatabase db = AssetDatabase.LoadAssetAtPath<ChapterDatabase>(ChapterDatabasePath);
         Assert.That(db, Is.Not.Null, "Không tìm thấy file ChapterDatabase.asset");
-        Assert.That(db.Count, Is.GreaterThanOrEqualTo(4), "Database phải chứa ít nhất 4 chapter mẫu.");
+        Assert.That(db.Count, Is.EqualTo(9));
 
         ChapterData c1 = db.GetChapter(0);
         Assert.That(c1, Is.Not.Null);
@@ -28,12 +134,12 @@ public class ChapterSystemTests
         ChapterData c4 = db.GetChapter(3);
         Assert.That(c4, Is.Not.Null);
         Assert.That(c4.chapterNumber, Is.EqualTo(4));
-        Assert.That(c4.chapterTitle, Is.EqualTo("Dense Jungle 1"));
+        Assert.That(c4.chapterTitle, Is.EqualTo("Mutant Forest 1"));
         Assert.That(c4.totalWaves, Is.EqualTo(10));
         Assert.That(c4.energyCost, Is.EqualTo(10));
         Assert.That(c4.previewBackground, Is.Not.Null, "Chapter 4 phải có ảnh nền xem trước (previewBackground).");
         Assert.That(c4.bossSilhouette, Is.Not.Null, "Chapter 4 phải có sprite boss silhouette.");
-        Assert.That(c4.flavorText, Does.Contain("mutants"));
+        Assert.That(c4.chapterBossPrefab, Is.Not.Null);
     }
 
     [Test]
@@ -1149,8 +1255,8 @@ public class ChapterSystemTests
     [Test]
     public void Chapter1_WaveConfig_Wave1IsNotBossWaveAndWave10IsBossWave()
     {
-        ChapterData c1 = AssetDatabase.LoadAssetAtPath<ChapterData>("Assets/Data/Chapters/Chapter_01_Grassland.asset");
-        Assert.That(c1, Is.Not.Null, "Không tìm thấy Chapter_01_Grassland.asset");
+        ChapterData c1 = AssetDatabase.LoadAssetAtPath<ChapterData>("Assets/Data/Chapters/Chapter_01_YellowDesert1.asset");
+        Assert.That(c1, Is.Not.Null, "Không tìm thấy Chapter_01_YellowDesert1.asset");
         Assert.That(c1.waves, Is.Not.Null);
         Assert.That(c1.waves.Count, Is.GreaterThanOrEqualTo(10));
 
@@ -1569,11 +1675,11 @@ public class ChapterSystemTests
     }
 
     [Test]
-    public void AllChapters_ShareChapter1MapAndObstacleConfiguration()
+    public void AllChapters_UseTheirBiomeMapAndBoss()
     {
         ChapterDatabase db = AssetDatabase.LoadAssetAtPath<ChapterDatabase>(ChapterDatabasePath);
         Assert.That(db, Is.Not.Null, "Không tìm thấy ChapterDatabase.asset");
-        Assert.That(db.Count, Is.EqualTo(10), "Database phải chứa đủ 10 chapter.");
+        Assert.That(db.Count, Is.EqualTo(9), "Database phải chứa đúng 9 chapter.");
 
         ChapterData c1 = db.GetChapter(0);
         Assert.That(c1.mapGroundSprite, Is.Not.Null, "Chapter 1 phải có mapGroundSprite.");
@@ -1585,17 +1691,23 @@ public class ChapterSystemTests
         Assert.That(c1.obstacleColliderWidthRatio, Is.EqualTo(0.55f));
         Assert.That(c1.obstacleColliderHeightRatio, Is.EqualTo(0.2f));
 
-        for (int i = 1; i < db.Count; i++)
+        for (int i = 0; i < db.Count; i++)
         {
             ChapterData ch = db.GetChapter(i);
+            ChapterData biomeSource = db.GetChapter(i / 3 * 3);
             Assert.That(ch, Is.Not.Null, $"Chapter index {i} không được null.");
-            Assert.That(ch.mapGroundSprite, Is.EqualTo(c1.mapGroundSprite), $"Chapter {ch.chapterNumber} phải dùng chung mapGroundSprite với Chapter 1.");
-            Assert.That(ch.mapSize, Is.EqualTo(c1.mapSize), $"Chapter {ch.chapterNumber} phải dùng mapSize {c1.mapSize}.");
-            Assert.That(ch.mapColor, Is.EqualTo(c1.mapColor), $"Chapter {ch.chapterNumber} phải dùng mapColor của Chapter 1.");
-            Assert.That(ch.groundDrawMode, Is.EqualTo(c1.groundDrawMode), $"Chapter {ch.chapterNumber} phải dùng groundDrawMode của Chapter 1.");
-            Assert.That(ch.playerBoundaryPadding, Is.EqualTo(c1.playerBoundaryPadding), $"Chapter {ch.chapterNumber} phải dùng padding của Chapter 1.");
+            Assert.That(ch.chapterNumber, Is.EqualTo(i + 1));
+            Assert.That(ch.mapGroundSprite, Is.EqualTo(biomeSource.mapGroundSprite));
+            Assert.That(ch.previewBackground, Is.EqualTo(biomeSource.previewBackground));
+            Assert.That(ch.bossSilhouette, Is.EqualTo(biomeSource.bossSilhouette));
+            Assert.That(ch.chapterBossPrefab, Is.EqualTo(biomeSource.chapterBossPrefab));
+            Assert.That(ch.waves[9].customBossPrefab, Is.EqualTo(biomeSource.chapterBossPrefab));
+            Assert.That(ch.mapSize, Is.EqualTo(biomeSource.mapSize));
+            Assert.That(ch.mapColor, Is.EqualTo(biomeSource.mapColor));
+            Assert.That(ch.groundDrawMode, Is.EqualTo(biomeSource.groundDrawMode));
+            Assert.That(ch.playerBoundaryPadding, Is.EqualTo(biomeSource.playerBoundaryPadding));
             Assert.That(ch.enableObstacles, Is.True, $"Chapter {ch.chapterNumber} phải bật enableObstacles.");
-            float expectedObstacleDensity = (ch.chapterNumber == 2 || ch.chapterNumber == 3) ? 0f : 4f;
+            float expectedObstacleDensity = i < 3 ? 4f : 0f;
             Assert.That(ch.obstacleDensity, Is.EqualTo(expectedObstacleDensity), $"Chapter {ch.chapterNumber} phải dùng obstacleDensity = {expectedObstacleDensity}.");
             Assert.That(ch.decorationDensity, Is.EqualTo(5f), $"Chapter {ch.chapterNumber} phải dùng decorationDensity = 5.");
             Assert.That(ch.obstacleColliderWidthRatio, Is.EqualTo(0.55f), $"Chapter {ch.chapterNumber} phải có obstacleColliderWidthRatio = 0.55.");

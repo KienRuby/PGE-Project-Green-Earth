@@ -24,7 +24,7 @@ public class DesertPropSpawnerEditor : Editor
     private SerializedProperty decorationSortingOrder;
 
     private int selectedChapterTab = 0;
-    private readonly string[] chapterTabs = new[] { "Ch 1: Sa mạc", "Ch 2: Rừng đột biến", "Ch 3: Đầm lầy độc" };
+    private readonly string[] chapterTabs = new[] { "Ch 1–3: Sa mạc", "Ch 4–6: Rừng đột biến", "Ch 7–9: Đầm lầy độc" };
 
     private void OnEnable()
     {
@@ -338,7 +338,7 @@ public class DesertPropSpawnerEditor : Editor
         string currentTabName = chapterTabs[selectedChapterTab];
         if (GUILayout.Button(new GUIContent($"Tạo bản xem trước ({currentTabName})", "Sinh lại toàn bộ chướng ngại và họa tiết ngay trong Scene View cho Chapter đang chọn."), GUILayout.Height(32f)))
         {
-            ((DesertPropSpawner)target).GeneratePreview(selectedChapterTab + 1);
+            ((DesertPropSpawner)target).GeneratePreview(selectedChapterTab * 3 + 1);
             SceneView.RepaintAll();
         }
         if (GUILayout.Button(new GUIContent("Xóa bản xem trước", "Xóa toàn bộ vật đang được xem trước."), GUILayout.Height(32f)))
@@ -353,7 +353,7 @@ public class DesertPropSpawnerEditor : Editor
     {
         if (target != null && !Application.isPlaying)
         {
-            ((DesertPropSpawner)target).GeneratePreview(selectedChapterTab + 1);
+            ((DesertPropSpawner)target).GeneratePreview(selectedChapterTab * 3 + 1);
         }
     }
 

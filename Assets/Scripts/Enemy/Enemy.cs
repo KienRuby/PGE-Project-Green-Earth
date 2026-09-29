@@ -225,11 +225,20 @@ public class Enemy : MonoBehaviour, IDamageable, IPoolable
                 if (currencyDropChance >= 1f || UnityEngine.Random.value <= currencyDropChance)
                 {
                     bool isGemMine = EnemySpawner.Instance != null && EnemySpawner.Instance.IsGemMineScene();
-                    if (!isGemMine && dataChipReward > 0) ChipManager.AddDataChips(dataChipReward);
-                    if (redGemReward > 0) ChipManager.AddRedGems(redGemReward);
+                    if (!isGemMine && dataChipReward > 0)
+                    {
+                        if (Application.isPlaying && EnemySpawner.Instance != null) EnemySpawner.Instance.AddRunDataChips(dataChipReward);
+                        else ChipManager.AddDataChips(dataChipReward);
+                    }
+                    if (redGemReward > 0)
+                    {
+                        if (Application.isPlaying && EnemySpawner.Instance != null) EnemySpawner.Instance.AddRunRedGems(redGemReward);
+                        else ChipManager.AddRedGems(redGemReward);
+                    }
                     if (randomRedGemDropChance > 0f && UnityEngine.Random.value <= randomRedGemDropChance)
                     {
-                        ChipManager.AddRedGems(randomRedGemAmount);
+                        if (Application.isPlaying && EnemySpawner.Instance != null) EnemySpawner.Instance.AddRunRedGems(randomRedGemAmount);
+                        else ChipManager.AddRedGems(randomRedGemAmount);
                     }
                 }
 
