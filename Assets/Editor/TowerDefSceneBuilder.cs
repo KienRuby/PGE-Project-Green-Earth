@@ -203,7 +203,28 @@ public static class TowerDefSceneBuilder
         Transform projRoot = playArea != null ? playArea.Find("ProjectilesRoot") : null;
 
         if (gate != null) SetProperty(so, "gate", gate);
-        if (uiCtrl != null) SetProperty(so, "uiController", uiCtrl);
+        if (uiCtrl != null)
+        {
+            SetProperty(so, "uiController", uiCtrl);
+
+            SerializedObject uiSo = new SerializedObject(uiCtrl);
+            string victoryDir = "Assets/Sprites/UI/Victory/";
+            Sprite vPanel = AssetDatabase.LoadAssetAtPath<Sprite>(victoryDir + "Panel_Victory_Citadel_Clean.png")
+                         ?? AssetDatabase.LoadAssetAtPath<Sprite>(victoryDir + "Panel_Victory_Citadel.png");
+            Sprite vPlay = AssetDatabase.LoadAssetAtPath<Sprite>(victoryDir + "Btn_Victory_PlayAgain.png");
+            Sprite vHome = AssetDatabase.LoadAssetAtPath<Sprite>(victoryDir + "Btn_Victory_Home.png");
+
+            SetProperty(uiSo, "victoryPanelSprite", vPanel);
+            SetProperty(uiSo, "victoryPlayAgainSprite", vPlay);
+            SetProperty(uiSo, "victoryHomeSprite", vHome);
+
+            string defeatDir = "Assets/Sprites/UI/Defeat/";
+            Sprite dPanel = AssetDatabase.LoadAssetAtPath<Sprite>(defeatDir + "Panel_Defeat_Citadel_Clean.png")
+                         ?? AssetDatabase.LoadAssetAtPath<Sprite>(defeatDir + "Panel_Defeat_Citadel.png");
+            SetProperty(uiSo, "defeatPanelSprite", dPanel);
+
+            uiSo.ApplyModifiedPropertiesWithoutUndo();
+        }
         if (enemyRoot != null) SetProperty(so, "enemySpawnParent", enemyRoot);
         if (projRoot != null) SetProperty(so, "projectileParent", projRoot);
 

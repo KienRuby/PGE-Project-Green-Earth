@@ -885,6 +885,71 @@ public class TowerDefTests
         ui.CloseAllModals();
         Assert.IsFalse(buildModal.gameObject.activeSelf);
     }
+
+    [Test]
+    public void UIController_ShowVictory_CreatesCitadelVictoryModal_WithPlayAgainAndHomeButtons()
+    {
+        GameObject canvasObj = new GameObject("Canvas", typeof(RectTransform), typeof(Canvas), typeof(TowerDefUIController));
+        canvasObj.transform.SetParent(rootObj.transform);
+        TowerDefUIController ui = canvasObj.GetComponent<TowerDefUIController>();
+
+        Assert.IsNull(ui.VictoryPanel);
+        Assert.IsNull(ui.VictoryPlayAgainButton);
+        Assert.IsNull(ui.VictoryHomeButton);
+
+        ui.ShowVictory();
+
+        Assert.IsNotNull(ui.VictoryPanel, "VictoryPanel should be created");
+        Assert.IsTrue(ui.VictoryPanel.activeSelf, "VictoryPanel should be active");
+
+        Transform box = ui.VictoryPanel.transform.Find("VictoryBox_Citadel");
+        Assert.IsNotNull(box, "VictoryBox_Citadel should be present in VictoryPanel");
+
+        RectTransform boxRt = box.GetComponent<RectTransform>();
+        Assert.AreEqual(new Vector2(914f, 698f), boxRt.sizeDelta, "VictoryBox should match design dimensions");
+
+        Assert.IsNotNull(ui.VictoryPlayAgainButton, "VictoryPlayAgainButton should be created and assigned");
+        Assert.IsNotNull(ui.VictoryHomeButton, "VictoryHomeButton should be created and assigned");
+
+        Transform playAgainTransform = box.Find("PlayAgainButton");
+        Assert.IsNotNull(playAgainTransform, "PlayAgainButton should be a child of VictoryBox_Citadel");
+
+        Transform homeTransform = box.Find("HomeButton");
+        Assert.IsNotNull(homeTransform, "HomeButton should be a child of VictoryBox_Citadel");
+    }
+
+    [Test]
+    public void UIController_ShowDefeat_CreatesCitadelDefeatModal_WithPlayAgainAndHomeButtons()
+    {
+        GameObject canvasObj = new GameObject("Canvas", typeof(RectTransform), typeof(Canvas), typeof(TowerDefUIController));
+        canvasObj.transform.SetParent(rootObj.transform);
+        TowerDefUIController ui = canvasObj.GetComponent<TowerDefUIController>();
+
+        Assert.IsNull(ui.DefeatPanel);
+        Assert.IsNull(ui.DefeatRetryButton);
+        Assert.IsNull(ui.DefeatHomeButton);
+
+        ui.ShowDefeat();
+
+        Assert.IsNotNull(ui.DefeatPanel, "DefeatPanel should be created");
+        Assert.IsTrue(ui.DefeatPanel.activeSelf, "DefeatPanel should be active");
+
+        Transform box = ui.DefeatPanel.transform.Find("DefeatBox_Citadel");
+        Assert.IsNotNull(box, "DefeatBox_Citadel should be present in DefeatPanel");
+
+        RectTransform boxRt = box.GetComponent<RectTransform>();
+        Assert.AreEqual(new Vector2(914f, 698f), boxRt.sizeDelta, "DefeatBox should match design dimensions");
+
+        Assert.IsNotNull(ui.DefeatRetryButton, "DefeatRetryButton should be created and assigned");
+        Assert.IsNotNull(ui.DefeatHomeButton, "DefeatHomeButton should be created and assigned");
+
+        Transform retryTransform = box.Find("RetryButton");
+        Assert.IsNotNull(retryTransform, "RetryButton should be a child of DefeatBox_Citadel");
+
+        Transform homeTransform = box.Find("HomeButton");
+        Assert.IsNotNull(homeTransform, "HomeButton should be a child of DefeatBox_Citadel");
+    }
 }
 #endif
+
 
