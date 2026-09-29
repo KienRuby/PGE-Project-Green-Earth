@@ -179,5 +179,75 @@ public class ChapterButtonLayoutTests
         Assert.IsTrue(subTmp.fontSharedMaterial.name.Contains("Stroke"), "SubtitleText must use Stroke material");
         Assert.IsTrue(titleTmp.fontSharedMaterial.name.Contains("Stroke"), "TitleText must use Stroke material");
     }
+
+    [Test]
+    public void TowerDef_AllThemedBoardSprites_ExistInAssetDatabase()
+    {
+        for (int lvl = 1; lvl <= TowerDefProgress.LevelCount; lvl++)
+        {
+            string path = $"Assets/Sprites/Mini game/Sliced/UI/Frame_Board_Preview_{lvl:02d}.png";
+            Sprite spr = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+            Assert.IsNotNull(spr, $"Themed board sprite for Level {lvl} must exist at {path}");
+        }
+
+        Sprite lockSpr = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Mini game/Sliced/UI/Btn_Lock.png");
+        Assert.IsNotNull(lockSpr, "Btn_Lock.png must exist in AssetDatabase");
+    }
+
+    [Test]
+    public void TowerDefModal_BuildsCardsWithThemedSprites_AndCorrectLayout()
+    {
+        GameObject canvasObj = new GameObject("TestCanvas", typeof(RectTransform), typeof(Canvas));
+        GameObject panelObj = new GameObject("ChapterPanel", typeof(RectTransform), typeof(ChapterScreenController));
+        panelObj.transform.SetParent(canvasObj.transform, false);
+
+        ChapterScreenController ctrl = panelObj.GetComponent<ChapterScreenController>();
+
+        Sprite panelSpr = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Mini game/Sliced/UI/Panel_TowerDef_Popup.png");
+        Sprite boardSpr = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Mini game/Sliced/UI/Frame_Board_Preview.png");
+        Sprite backSpr = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Mini game/Sliced/UI/Btn_Arrow_Back_Popup.png");
+        Sprite startSpr = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Mini game/Sliced/UI/Btn_Start.png");
+        Sprite lockSpr = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Mini game/Sliced/UI/Btn_Lock.png");
+
+        Sprite[] levelSprites = new Sprite[TowerDefProgress.LevelCount];
+        for (int i = 1; i <= TowerDefProgress.LevelCount; i++)
+        {
+            levelSprites[i - 1] = AssetDatabase.LoadAssetAtPath<Sprite>($"Assets/Sprites/Mini game/Sliced/UI/Frame_Board_Preview_{i:02d}.png");
+        }
+
+        ctrl.SetTowerDefModalSpritesForTesting(panelSpr, boardSpr, backSpr, startSpr, lockSpr, levelSprites);
+
+        // Open modal
+        ctrl.OnTowerDefClicked();
+
+        Transform modalRoot = canvasObj.transform.Find("TowerDefModal");
+        Assert.IsNotNull(modalRoot, "TowerDefModal root must be instantiated");
+        Assert.IsTrue(modalRoot.gameObject.activeSelf, "Modal root must be active");
+
+        Transform content = modalRoot.Find("Panel/LevelScrollView/Viewport/Content");
+        Assert.IsNotNull(content, "Content container in ScrollView must exist");
+
+        // Verify each level card has the themed sprite and action bar
+        for (int lvl = 1; lvl <= TowerDefProgress.LevelCount; lvl++)
+        {
+            Transform card = content.Find($"Level{lvl:02}");
+            Assert.IsNotNull(card, $"Card Level{lvl:02} must exist in content");
+
+            Image previewImg = card.Find("BoardPreview")?.GetComponent<Image>();
+            Assert.IsNotNull(previewImg, $"BoardPreview Image must exist for Level {lvl}");
+            Assert.AreEqual(levelSprites[lvl - 1], previewImg.sprite, $"Level {lvl} board sprite must match its themed sprite");
+
+            Transform actionRow = card.Find("ActionRow");
+            Assert.IsNotNull(actionRow, $"ActionRow must exist under Level {lvl} card");
+
+            var startBtn = actionRow.Find("StartButton")?.GetComponent<Button>();
+            Assert.IsNotNull(startBtn, $"StartButton must exist in ActionRow for Level {lvl}");
+
+            var lockedObj = actionRow.Find("LockedButton");
+            Assert.IsNotNull(lockedObj, $"LockedButton must exist in ActionRow for Level {lvl}");
+        }
+
+        Object.DestroyImmediate(canvasObj);
+    }
 }
 #endif

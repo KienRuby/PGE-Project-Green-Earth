@@ -77,6 +77,7 @@ public static class ChapterMenuSceneBuilder
     private const string TowerDefBoardPath = "Assets/Sprites/Mini game/Sliced/UI/Frame_Board_Preview.png";
     private const string TowerDefBackPath = "Assets/Sprites/Mini game/Sliced/UI/Btn_Arrow_Back_Popup.png";
     private const string TowerDefStartPath = "Assets/Sprites/Mini game/Sliced/UI/Btn_Start.png";
+    private const string TowerDefLockPath = "Assets/Sprites/Mini game/Sliced/UI/Btn_Lock.png";
     private const string GemMineSpritePath = "Assets/Sprites/UI/Chapter/btn_gem_mine.png";
     private const string MonthlyPremiumSpritePath = "Assets/Sprites/UI/GemMine/bg_monthly_premium.png";
     private const string PriceButtonSpritePath = "Assets/Sprites/UI/GemMine/btn_yellow_price.png";
@@ -525,6 +526,20 @@ public static class ChapterMenuSceneBuilder
         ctrlSO.FindProperty("towerDefBoardSprite").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Sprite>(TowerDefBoardPath);
         ctrlSO.FindProperty("towerDefBackSprite").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Sprite>(TowerDefBackPath);
         ctrlSO.FindProperty("towerDefStartSprite").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Sprite>(TowerDefStartPath);
+        ctrlSO.FindProperty("towerDefLockSprite").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Sprite>(TowerDefLockPath);
+
+        SerializedProperty boardSpritesProp = ctrlSO.FindProperty("towerDefLevelBoardSprites");
+        if (boardSpritesProp != null)
+        {
+            boardSpritesProp.arraySize = TowerDefProgress.LevelCount;
+            for (int lvl = 1; lvl <= TowerDefProgress.LevelCount; lvl++)
+            {
+                string path = $"Assets/Sprites/Mini game/Sliced/UI/Frame_Board_Preview_{lvl:02d}.png";
+                Sprite boardSpr = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+                boardSpritesProp.GetArrayElementAtIndex(lvl - 1).objectReferenceValue = boardSpr != null ? boardSpr : AssetDatabase.LoadAssetAtPath<Sprite>(TowerDefBoardPath);
+            }
+        }
+
         ctrlSO.FindProperty("gemMineButton").objectReferenceValue = gemMineBtn;
         ctrlSO.FindProperty("gemMineModal").objectReferenceValue = gemMineModal;
         ctrlSO.ApplyModifiedProperties();
