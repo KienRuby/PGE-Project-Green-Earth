@@ -389,6 +389,10 @@ public class ChapterScreenController : MonoBehaviour
             startButton.gameObject.SetActive(!isLocked);
         }
 
+        bool sideModesUnlocked = PlayerDataService.UnlockedChapterIndex >= 3;
+        if (towerDefButton != null) towerDefButton.gameObject.SetActive(sideModesUnlocked);
+        if (gemMineButton != null) gemMineButton.gameObject.SetActive(sideModesUnlocked);
+
         SetupStartButtonTransition();
         UpdateButtonState();
     }

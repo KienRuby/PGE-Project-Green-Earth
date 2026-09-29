@@ -8737,8 +8737,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 317ca4967e83e584c8ccbcdebb7a258d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  chipCurrencyText: {fileID: 719415163}
-  redCurrencyText: {fileID: 945779390}
+  chipCurrencyText: {fileID: 0}
+  redCurrencyText: {fileID: 0}
   droneModeBtn: {fileID: 1931311120}
   robotPetModeBtn: {fileID: 1008997247}
   droneModeBg: {fileID: 1931311118}
@@ -11381,8 +11381,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e0167ec4b437a934aa4b8b3369212fcb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dataChipText: {fileID: 719415163}
-  redGemText: {fileID: 945779390}
+  dataChipText: {fileID: 0}
+  redGemText: {fileID: 0}
   feedbackText: {fileID: 850834378}
   toastRoot: {fileID: 0}
   toastText: {fileID: 0}
@@ -133637,7 +133637,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1841584109
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -133645,7 +133645,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1841584108}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
@@ -133663,7 +133663,7 @@ MonoBehaviour:
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 0
-  m_FillAmount: 0
+  m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
@@ -149939,8 +149939,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 734eb1e60c4924b438e029894d106547, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  chipCurrencyText: {fileID: 719415163}
-  redCurrencyText: {fileID: 945779390}
+  chipCurrencyText: {fileID: 0}
+  redCurrencyText: {fileID: 0}
   advanceStonesText: {fileID: 0}
   chipsetModeBtn: {fileID: 890882847}
   highTechModeBtn: {fileID: 1240022228}
@@ -153757,8 +153757,8 @@ MonoBehaviour:
   epicPityThreshold: 10
   legendPityThreshold: 20
   upgradeButton: {fileID: 1695011542}
-  chipBalanceText: {fileID: 719415163}
-  redChipBalanceText: {fileID: 945779390}
+  chipBalanceText: {fileID: 0}
+  redChipBalanceText: {fileID: 0}
   priceText: {fileID: 377750646}
   resultText: {fileID: 1019553369}
   upgradeBackground: {fileID: 1695011544}
