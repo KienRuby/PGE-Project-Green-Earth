@@ -81,7 +81,7 @@ public class AssaultBlasterBuddy : BuddyCombatDrone
         // Phát đạn 1 (Lệch nhẹ sang trái)
         FireSingleBlasterShot(target, -0.15f, 1.0f);
 
-        // Holo (Tier 5): Overheat Surge (+30% Rapid Fire) - every 4 bursts delay is halved
+        // Holo (Tier 5): every fourth burst has a shorter delay between its two shots.
         float currentDelay = (currentTier >= BuddyTier.Holographic && (burstCount % 4 == 0)) ? (twinShotDelay * 0.5f) : twinShotDelay;
         yield return new WaitForSeconds(currentDelay);
 

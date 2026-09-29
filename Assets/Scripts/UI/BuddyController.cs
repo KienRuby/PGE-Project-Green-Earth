@@ -245,6 +245,7 @@ public class BuddyController : MonoBehaviour
         ChipManager.OnDataChipsChanged += HandleCurrencyChanged;
         ChipManager.OnRedGemsChanged += HandleCurrencyChanged;
         PlayerDataService.OnBuddyPiecesChanged += HandleBuddyPiecesChanged;
+        PGE.Auth.SaveSyncManager.SaveApplied += HandleSaveApplied;
         RefreshRobotPetUnlockState();
 
         if (isStarted)
@@ -267,6 +268,7 @@ public class BuddyController : MonoBehaviour
         ChipManager.OnDataChipsChanged -= HandleCurrencyChanged;
         ChipManager.OnRedGemsChanged -= HandleCurrencyChanged;
         PlayerDataService.OnBuddyPiecesChanged -= HandleBuddyPiecesChanged;
+        PGE.Auth.SaveSyncManager.SaveApplied -= HandleSaveApplied;
     }
 
     private void OnDestroy()
@@ -274,6 +276,7 @@ public class BuddyController : MonoBehaviour
         ChipManager.OnDataChipsChanged -= HandleCurrencyChanged;
         ChipManager.OnRedGemsChanged -= HandleCurrencyChanged;
         PlayerDataService.OnBuddyPiecesChanged -= HandleBuddyPiecesChanged;
+        PGE.Auth.SaveSyncManager.SaveApplied -= HandleSaveApplied;
     }
 
 #if UNITY_EDITOR
@@ -353,6 +356,16 @@ public class BuddyController : MonoBehaviour
                 PlayerDataService.LoadBuddyProgress(selectedDetailBuddy);
             }
         }
+    }
+
+    private void HandleSaveApplied()
+    {
+        if (!isStarted) return;
+        SyncBuddyProgressFromSave();
+        RefreshTopBar();
+        RefreshEquippedGrid();
+        RefreshInventory();
+        if (detailModal != null && detailModal.activeSelf) RefreshDetailModal();
     }
 
     private void HandleCurrencyChanged(int _)
@@ -2170,9 +2183,9 @@ public class BuddyController : MonoBehaviour
         {
             case 1: // Sloy (Frost Sentinel)
             {
-                float atk = 20.4f * (1f + (buddy.level - 1) * 0.15f) * (1f + tierLevel * 0.2f);
+                int atk = Mathf.RoundToInt(28f * (1f + (buddy.level - 1) * 0.15f) * (1f + tierLevel * 0.2f));
                 int slowPercent = tierLevel >= 3 ? 50 : (tierLevel >= 2 ? 42 : 35);
-                string summary = $"Drone ATK <color=#FFCB49>{atk:F1}</color>, Slow <color=#FFCB49>{slowPercent}%</color>";
+                string summary = $"Drone ATK <color=#FFCB49>{atk}</color>, Slow <color=#FFCB49>{slowPercent}%</color>";
                 if (tierLevel >= 4) summary += "\n<color=#40DAD2>Area Slow (3.0m Radius)</color>";
                 if (tierLevel >= 5) summary += "\n<color=#FB7185>Blizzard Blast (+30% AoE Dmg)</color>";
                 return summary;
@@ -2200,15 +2213,15 @@ public class BuddyController : MonoBehaviour
                 if (tierLevel >= 2) summary += "\nBlaster ATK <color=#FFCB49>+20%</color>";
                 if (tierLevel >= 3) summary += "\nFire Rate <color=#FFCB49>+30%</color>";
                 if (tierLevel >= 4) summary += "\nDual Shot 2nd Pellet ATK <color=#FFCB49>+30%</color>";
-                if (tierLevel >= 5) summary += "\n<color=#FB7185>Overheat Surge</color> (+30% Rapid Fire)";
+                if (tierLevel >= 5) summary += "\n<color=#FB7185>Overheat Surge</color> (every 4th twin shot has 50% shorter delay)";
                 return summary;
             }
             case 10: // Purifying Drone
             {
-                int resist = tierLevel >= 4 ? 26 : (tierLevel >= 3 ? 17 : (tierLevel >= 2 ? 10 : 5));
-                string summary = $"Ailment Resistance <color=#FFCB49>{resist}%</color>";
-                if (tierLevel >= 1) summary += "\n<color=#40DAD2>Purifying Pulse Heals +10 HP</color>";
-                if (tierLevel >= 5) summary += "\n<color=#FB7185>Emergency Cleanse & Shield (CD 30s)</color>";
+                int atk = Mathf.RoundToInt(26f * (1f + (buddy.level - 1) * 0.15f) * (1f + tierLevel * 0.2f));
+                string summary = $"Drone ATK <color=#FFCB49>{atk}</color>, Pulse Damage & Knockback";
+                if (tierLevel >= 1) summary += "\n<color=#40DAD2>Purifying Pulse Heals up to 10 HP</color>";
+                if (tierLevel >= 5) summary += "\n<color=#FB7185>Emergency Heal (up to 25 HP) & Shield (up to 50) (CD 30s)</color>";
                 return summary;
             }
             default:

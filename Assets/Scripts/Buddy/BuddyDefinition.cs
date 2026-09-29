@@ -46,7 +46,7 @@ public static class BuddyDatabase
                 defaultRequiredCount = 10,
                 defaultEnhanceCost = 3500,
                 description = "Fires shells that slow down enemies.",
-                baseStatText = "Drone ATK 20.4, Slow ATK Speed",
+                baseStatText = "Drone ATK 28, Slow ATK Speed",
                 magicPerkText = "Frost Shell +20%",
                 rarePerkText = "Frost Shell +20%",
                 uniquePerkText = "Area Slow +30%",
@@ -107,7 +107,7 @@ public static class BuddyDatabase
                 magicPerkText = "Blaster ATK +20%",
                 rarePerkText = "Fire Rate +30%",
                 uniquePerkText = "Dual Shot ATK +30%",
-                epicPerkText = "Overheat Surge +30%"
+                epicPerkText = "Every 4th burst: faster twin shot"
             }
         },
         {
@@ -121,12 +121,12 @@ public static class BuddyDatabase
                 defaultCount = 0,
                 defaultRequiredCount = 10,
                 defaultEnhanceCost = 500,
-                description = "Increase the ratio of\nAilment Resistance",
-                baseStatText = "Ailment Resistance 5%",
-                magicPerkText = "Ailment Resistance +5%",
-                rarePerkText = "Ailment Resistance +7%",
-                uniquePerkText = "Ailment Resistance +9%",
-                epicPerkText = "Remove Ailment Instantly (cooldown 30s)"
+                description = "Damages and knocks back nearby enemies.\nPulse heals the player from Magic tier onward.",
+                baseStatText = "Drone ATK 26, Purifying Pulse",
+                magicPerkText = "Pulse heals up to 10 HP (Magic+)",
+                rarePerkText = "Drone ATK scales with tier",
+                uniquePerkText = "Pulse damage scales with tier",
+                epicPerkText = "Emergency heal and shield (cooldown 30s)"
             }
         }
     };

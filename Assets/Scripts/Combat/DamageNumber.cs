@@ -20,6 +20,8 @@ public enum DamageType
 [RequireComponent(typeof(TMP_Text))]
 public class DamageNumber : MonoBehaviour, IPoolable
 {
+    private const float DamageScaleMultiplier = 0.7f;
+
     [Header("UI & Rendering")]
     [Tooltip("Tham chiếu TextMeshPro hiển thị số.")]
     [SerializeField] private TMP_Text textComponent;
@@ -585,7 +587,7 @@ public class DamageNumber : MonoBehaviour, IPoolable
         transform.position = startPos + spawnOffset + new Vector3(centerCompensation + clampedDir * 0.2f, 0f, 0f);
         currentVelocity = new Vector3(hSpread, burstSpeedY * (isCrit ? 1.15f : 1f), 0f);
 
-        transform.localScale = new Vector3(initialScale.x * 1.12f, initialScale.y * 0.9f, initialScale.z) * (baseScale * targetScaleFactor);
+        transform.localScale = new Vector3(initialScale.x * 1.12f, initialScale.y * 0.9f, initialScale.z) * (baseScale * targetScaleFactor * (type == DamageType.Heal ? 1f : DamageScaleMultiplier));
         elapsedTime = 0f;
         isRunning = true;
         gameObject.SetActive(true);
@@ -667,7 +669,7 @@ public class DamageNumber : MonoBehaviour, IPoolable
         UpdateCritLayout();
 
         Vector3 validInitScale = (initialScale == Vector3.zero ? Vector3.one : initialScale);
-        transform.localScale = validInitScale * (baseScale * targetScaleFactor);
+        transform.localScale = validInitScale * (baseScale * targetScaleFactor * (type == DamageType.Heal ? 1f : DamageScaleMultiplier));
     }
 
     private void ApplyColorAndGradient(float alpha)
@@ -734,10 +736,12 @@ public class DamageNumber : MonoBehaviour, IPoolable
         else
         {
             float t = (progress - 0.4f) / 0.6f;
-            currentMultiplier = Mathf.Lerp(1.0f, 0.9f, t);
+            currentMultiplier = isCrit || currentType == DamageType.Normal
+                ? Mathf.Lerp(1f, 0f, t * t)
+                : Mathf.Lerp(1f, 0.9f, t);
         }
 
-        Vector3 finalScale = initialScale * (baseScale * targetScaleFactor * currentMultiplier);
+        Vector3 finalScale = initialScale * (baseScale * targetScaleFactor * currentMultiplier * (currentType == DamageType.Heal ? 1f : DamageScaleMultiplier));
 
         if (isCrit && progress < 0.25f)
         {

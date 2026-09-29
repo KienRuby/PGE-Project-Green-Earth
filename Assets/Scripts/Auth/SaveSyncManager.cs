@@ -11,6 +11,7 @@ namespace PGE.Auth
     {
         public static SaveSyncManager Instance { get; private set; }
         public static event Action StateChanged;
+        public static event Action SaveApplied;
         public SaveSyncState State { get; private set; } = SaveSyncState.LocalSaved;
         public string LastMessage { get; private set; } = "Saved locally";
         public long CurrentRevision { get; private set; }
@@ -18,6 +19,7 @@ namespace PGE.Auth
         private CancellationTokenSource accountOperation = new CancellationTokenSource();
         private string lastFingerprint = string.Empty;
         private bool dirty;
+        private bool conflictPending;
         private float scanTimer;
         private float cloudTimer;
         private const float ScanInterval = 1f;
@@ -68,7 +70,7 @@ namespace PGE.Auth
                 }
             }
 
-            if (!dirty || AuthenticationServiceManager.Instance?.IsCloudAvailable != true) return;
+            if (conflictPending || !dirty || AuthenticationServiceManager.Instance?.IsCloudAvailable != true) return;
             cloudTimer += Time.unscaledDeltaTime;
             if (cloudTimer >= CloudDebounce)
             {
@@ -82,14 +84,28 @@ namespace PGE.Auth
             AuthenticationServiceManager auth = AuthenticationServiceManager.Instance;
             if (auth == null || !auth.IsCloudAvailable) { SetState(SaveSyncState.NotSignedIn, "Saved locally; sign in required for cloud sync"); return; }
             ResetAccountOperation();
+            conflictPending = false;
             CancellationToken token = accountOperation.Token;
             string playerId = auth.PlayerId;
             SetState(SaveSyncState.Syncing, "Checking cloud save...");
             try
             {
                 GameSaveData local = LocalSaveService.Load(out _);
+                long initialLocalRevision = local?.progressRevision ?? -1;
                 CloudLoadResult cloud = await CloudSaveSyncService.LoadAsync(token);
                 token.ThrowIfCancellationRequested();
+                GameSaveData latestLocal = LocalSaveService.Load(out _);
+                if ((latestLocal?.progressRevision ?? -1) != initialLocalRevision)
+                {
+                    local = latestLocal;
+                    if (cloud.Exists && cloud.Data.progressRevision > (local?.progressRevision ?? -1))
+                    {
+                        conflictPending = true;
+                        SetState(SaveSyncState.Conflict, "Local progress changed during cloud load; neither save was overwritten.");
+                        return;
+                    }
+                }
+                long syncedRevision = cloud.Exists ? cloud.Data.progressRevision : 0;
                 if (cloud.Exists)
                 {
                     if (local == null || local.ownerPlayerId != playerId || cloud.Data.progressRevision > local.progressRevision)
@@ -97,14 +113,17 @@ namespace PGE.Auth
                         cloud.Data.ApplyToPlayerPrefs();
                         CurrentRevision = cloud.Data.progressRevision;
                         LocalSaveService.Save(cloud.Data, out _);
+                        SaveApplied?.Invoke();
                     }
                     else if (local.progressRevision > cloud.Data.progressRevision)
                     {
                         await CloudSaveSyncService.SaveAsync(local, token);
-                        CurrentRevision = local.progressRevision;
+                        CurrentRevision = Math.Max(CurrentRevision, local.progressRevision);
+                        syncedRevision = local.progressRevision;
                     }
                     else if (JsonUtility.ToJson(local) != JsonUtility.ToJson(cloud.Data))
                     {
+                        conflictPending = true;
                         SetState(SaveSyncState.Conflict, "Local and cloud saves have the same revision but different content; neither was overwritten.");
                         return;
                     }
@@ -116,6 +135,7 @@ namespace PGE.Auth
                     {
                         upload = GameSaveData.CreateDefaults(playerId);
                         upload.ApplyToPlayerPrefs();
+                        SaveApplied?.Invoke();
                     }
                     else
                     {
@@ -124,12 +144,14 @@ namespace PGE.Auth
                         upload.progressRevision = Math.Max(1, upload.progressRevision);
                         upload.updatedAtUtc = DateTime.UtcNow.ToString("O");
                     }
-                    await CloudSaveSyncService.SaveAsync(upload, token);
-                    CurrentRevision = upload.progressRevision;
                     LocalSaveService.Save(upload, out _);
+                    CurrentRevision = Math.Max(CurrentRevision, upload.progressRevision);
+                    syncedRevision = upload.progressRevision;
+                    await CloudSaveSyncService.SaveAsync(upload, token);
                 }
-                dirty = false;
-                SetState(SaveSyncState.CloudSynced, "Cloud synced");
+                dirty = CurrentRevision > syncedRevision;
+                SetState(dirty ? SaveSyncState.LocalSaved : SaveSyncState.CloudSynced,
+                    dirty ? "Saved locally; waiting to sync" : "Cloud synced");
             }
             catch (OperationCanceledException) { }
             catch (Exception ex)
@@ -164,7 +186,8 @@ namespace PGE.Auth
             {
                 dirty = true;
                 cloudTimer = 0f;
-                SetState(AuthenticationServiceManager.Instance?.IsCloudAvailable == true ? SaveSyncState.LocalSaved : SaveSyncState.NotSignedIn,
+                if (conflictPending) SetState(SaveSyncState.Conflict, LastMessage);
+                else SetState(AuthenticationServiceManager.Instance?.IsCloudAvailable == true ? SaveSyncState.LocalSaved : SaveSyncState.NotSignedIn,
                     AuthenticationServiceManager.Instance?.IsCloudAvailable == true ? "Saved locally; waiting to sync" : "Saved locally");
             }
             else SetState(SaveSyncState.Failed, "Local save failed: " + error);
@@ -180,8 +203,9 @@ namespace PGE.Auth
                 GameSaveData data = GameSaveData.Capture(playerId, CurrentRevision);
                 LocalSaveService.Save(data, out _);
                 await CloudSaveSyncService.SaveAsync(data, token);
-                dirty = false;
-                SetState(SaveSyncState.CloudSynced, "Cloud synced");
+                dirty = CurrentRevision > data.progressRevision;
+                SetState(dirty ? SaveSyncState.LocalSaved : SaveSyncState.CloudSynced,
+                    dirty ? "Saved locally; waiting to sync" : "Cloud synced");
             }
             catch (OperationCanceledException) { }
             catch (Exception ex)

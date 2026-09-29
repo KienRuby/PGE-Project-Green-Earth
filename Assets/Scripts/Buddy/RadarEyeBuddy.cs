@@ -116,8 +116,7 @@ public class RadarEyeBuddy : BuddyCombatDrone
         // Gây sát thương quét điểm yếu (có tỷ lệ chí mạng cao)
         bool isCrit = Random.value < (0.25f + bonusCritRate);
         float critMult = isCrit ? 1.5f : 1.0f;
-        float weakpointMult = tierLevel >= 4 ? 1.30f : 1.0f;
-        int finalDamage = Mathf.RoundToInt(baseDamage * critMult * weakpointMult);
+        int finalDamage = Mathf.RoundToInt(baseDamage * critMult);
         target.TakeDamage(finalDamage, isCrit);
     }
 

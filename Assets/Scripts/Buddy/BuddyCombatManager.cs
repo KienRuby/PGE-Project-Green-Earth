@@ -31,6 +31,7 @@ public class BuddyCombatManager : MonoBehaviour
     [Header("Runtime Spawned Buddies")]
     public const int MaxCombatDrones = 3;
     [SerializeField] private List<BuddyCombatDrone> activeDrones = new List<BuddyCombatDrone>();
+    private PlayerAutoShooter passiveBuffTarget;
 
     public static BuddyCombatManager Instance { get; private set; }
     public IReadOnlyList<BuddyCombatDrone> ActiveDrones => activeDrones;
@@ -165,6 +166,7 @@ public class BuddyCombatManager : MonoBehaviour
         Debug.Log($"[BuddyBattle] Equipped Buddy Count = {validIds.Count}");
         if (validIds.Count == 0) return;
 
+        List<int> spawnedIds = new List<int>();
         for (int i = 0; i < validIds.Count; i++)
         {
             int buddyId = validIds[i];
@@ -189,10 +191,11 @@ public class BuddyCombatManager : MonoBehaviour
             {
                 droneComponent.Initialize(transform, i, validIds.Count, itemData.level, itemData.tier);
                 activeDrones.Add(droneComponent);
+                spawnedIds.Add(buddyId);
             }
         }
 
-        ApplyPassiveBuffs(validIds);
+        ApplyPassiveBuffs(spawnedIds);
     }
 
     private void ApplyPassiveBuffs(List<int> validIds)
@@ -209,8 +212,10 @@ public class BuddyCombatManager : MonoBehaviour
         }
 
         if (autoShooter == null) return;
+        passiveBuffTarget = autoShooter;
 
         float critBonus = 0f;
+        float critDamageBonus = 1f;
         float damageBonus = 1f;
 
         foreach (int id in validIds)
@@ -223,7 +228,7 @@ public class BuddyCombatManager : MonoBehaviour
                 critBonus += 0.05f;
                 if (itemData.tier >= BuddyTier.Rare)
                 {
-                    autoShooter.ArtifactCritDamageMultiplier += 0.20f;
+                    critDamageBonus += 0.20f;
                 }
             }
             else if (id == 4) // Assault Blaster: +12% All Weapons ATK
@@ -232,8 +237,9 @@ public class BuddyCombatManager : MonoBehaviour
             }
         }
 
-        autoShooter.ArtifactCritBonus += critBonus;
-        autoShooter.ArtifactDamageMultiplier *= damageBonus;
+        autoShooter.BuddyCritBonus = critBonus;
+        autoShooter.BuddyCritDamageMultiplier = critDamageBonus;
+        autoShooter.BuddyDamageMultiplier = damageBonus;
     }
 
     public GameObject GetPrefabForBuddy(int buddyId)
@@ -252,12 +258,19 @@ public class BuddyCombatManager : MonoBehaviour
             }
         }
         activeDrones.Clear();
+        if (passiveBuffTarget != null)
+        {
+            passiveBuffTarget.BuddyCritBonus = 0f;
+            passiveBuffTarget.BuddyCritDamageMultiplier = 1f;
+            passiveBuffTarget.BuddyDamageMultiplier = 1f;
+            passiveBuffTarget = null;
+        }
+        GunTurret.DroneTurretFireRateMultiplier = 1f;
     }
 
     private void OnDestroy()
     {
         if (Instance == this) Instance = null;
-        GunTurret.GlobalTurretFireRateMultiplier = 1f;
         ClearAllDrones();
     }
 }

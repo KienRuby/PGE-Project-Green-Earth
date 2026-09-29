@@ -209,7 +209,7 @@ public static class BuddyScreenReferenceApplier
             drone0.FindPropertyRelative("requiredCount").intValue = 10;
             drone0.FindPropertyRelative("enhanceCost").intValue = 3500;
             drone0.FindPropertyRelative("description").stringValue = "Fires shells that slow down enemies.";
-            drone0.FindPropertyRelative("baseStatText").stringValue = "Drone ATK 20.4, Slow ATK Speed";
+            drone0.FindPropertyRelative("baseStatText").stringValue = "Drone ATK 28, Slow ATK Speed";
             for (int b = 0; b < allBuddiesProp.arraySize; b++)
             {
                 SerializedProperty droneProp = allBuddiesProp.GetArrayElementAtIndex(b);

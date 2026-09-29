@@ -1722,9 +1722,9 @@ public class PGEGameLogicTests
         }
 
         Assert.That(snowflake, Is.Not.Null, "Snowflake Drone must exist in database.");
-        Assert.That(snowflake.count, Is.EqualTo(65), "Snowflake Drone count matches 65 in screenshot.");
+        Assert.That(snowflake.id, Is.EqualTo(1));
         Assert.That(spider, Is.Not.Null, "Spider Drone must exist in database.");
-        Assert.That(spider.count, Is.EqualTo(79), "Spider Drone count matches 79 in screenshot.");
+        Assert.That(spider.id, Is.EqualTo(2));
 
         Object.DestroyImmediate(go);
     }
@@ -1759,6 +1759,33 @@ public class PGEGameLogicTests
         Assert.That(enh, Is.True);
         Assert.That(drone.level, Is.EqualTo(2));
         Assert.That(drone.enhanceCost, Is.GreaterThan(500));
+    }
+
+    [Test]
+    public void BuddyPassives_SurviveArtifactRecalculation()
+    {
+        GameObject player = new GameObject("BuddyArtifactBuffTest");
+        try
+        {
+            PlayerAutoShooter shooter = player.AddComponent<PlayerAutoShooter>();
+            PlayerArtifactInventory artifacts = player.AddComponent<PlayerArtifactInventory>();
+            shooter.BuddyDamageMultiplier = 1.12f;
+            shooter.BuddyCritBonus = 0.05f;
+            shooter.BuddyCritDamageMultiplier = 1.20f;
+            GunTurret.DroneTurretFireRateMultiplier = 1.25f;
+
+            artifacts.ApplyAllArtifactBuffs();
+
+            Assert.That(shooter.BuddyDamageMultiplier, Is.EqualTo(1.12f));
+            Assert.That(shooter.BuddyCritBonus, Is.EqualTo(0.05f));
+            Assert.That(shooter.BuddyCritDamageMultiplier, Is.EqualTo(1.20f));
+            Assert.That(GunTurret.DroneTurretFireRateMultiplier, Is.EqualTo(1.25f));
+        }
+        finally
+        {
+            Object.DestroyImmediate(player);
+            GunTurret.DroneTurretFireRateMultiplier = 1f;
+        }
     }
 
     [Test]
@@ -2086,22 +2113,11 @@ public class PGEGameLogicTests
     [Test]
     public void Buddy_PurifyingDrone_MatchesStats()
     {
-        GameObject go = new GameObject("BuddyControllerTest");
-        BuddyController controller = go.AddComponent<BuddyController>();
-        controller.InitializeDatabase();
-
-        BuddyItemData purifying = null;
-        foreach (var b in controller.AllBuddies)
-        {
-            if (b.id == 10 || b.buddyName == "Purifying Drone") purifying = b;
-        }
-
+        BuddyItemData purifying = BuddyDatabase.CreateDefaultRuntimeData(10);
         Assert.That(purifying, Is.Not.Null, "Purifying Drone must exist in database.");
-        Assert.That(purifying.count, Is.EqualTo(38), "Purifying Drone count must be 38.");
-        Assert.That(purifying.requiredCount, Is.EqualTo(3), "Purifying Drone requiredCount must be 3.");
-        Assert.That(purifying.description, Does.Contain("Ailment Resistance"), "Description matches screenshot.");
-
-        Object.DestroyImmediate(go);
+        Assert.That(purifying.count, Is.EqualTo(0));
+        Assert.That(purifying.requiredCount, Is.EqualTo(10));
+        Assert.That(purifying.description, Does.Contain("knocks back"));
     }
 
     [Test]
@@ -2849,4 +2865,3 @@ public class PGEGameLogicTests
         }
     }
 }
-

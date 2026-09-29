@@ -42,6 +42,26 @@ public sealed class PGEAuthSaveTests
     }
 
     [Test]
+    public void DroneFrameUpgrade_GreenToBlue_PersistsTierAndFragments()
+    {
+        BuddyItemData drone = BuddyDatabase.CreateDefaultRuntimeData(1);
+        drone.tier = BuddyTier.Common;
+        drone.count = drone.requiredCount + 4;
+        int initialRequired = drone.requiredCount;
+
+        Assert.That(drone.AdvanceTier(), Is.True);
+        PlayerDataService.SaveBuddyProgress(drone);
+
+        BuddyItemData reloaded = BuddyDatabase.CreateDefaultRuntimeData(1);
+        PlayerDataService.LoadBuddyProgress(reloaded);
+        Assert.That(reloaded.tier, Is.EqualTo(BuddyTier.Rare));
+        Assert.That(reloaded.count, Is.EqualTo(4));
+        Assert.That(reloaded.requiredCount, Is.GreaterThan(initialRequired));
+        Assert.That(GameSaveData.Capture(string.Empty, 1).values
+            .Single(v => v.key == PlayerDataService.BuddyTierKeyPrefix + 1).intValue, Is.EqualTo((int)BuddyTier.Rare));
+    }
+
+    [Test]
     public void Validation_RejectsDuplicateAndFutureSchema()
     {
         GameSaveData data = GameSaveData.CreateDefaults("player-a");

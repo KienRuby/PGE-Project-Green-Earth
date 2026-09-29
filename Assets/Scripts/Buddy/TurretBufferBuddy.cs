@@ -76,7 +76,7 @@ public class TurretBufferBuddy : BuddyCombatDrone
         activeInstance = this;
         if (currentTier >= BuddyTier.Epic)
         {
-            GunTurret.GlobalTurretFireRateMultiplier = 1.25f;
+            GunTurret.DroneTurretFireRateMultiplier = 1.25f;
         }
     }
 
@@ -85,7 +85,7 @@ public class TurretBufferBuddy : BuddyCombatDrone
         if (activeInstance == this)
         {
             activeInstance = null;
-            GunTurret.GlobalTurretFireRateMultiplier = 1.0f;
+            GunTurret.DroneTurretFireRateMultiplier = 1.0f;
         }
     }
 

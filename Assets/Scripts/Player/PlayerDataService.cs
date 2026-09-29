@@ -850,6 +850,7 @@ public static class PlayerDataService
         PlayerPrefs.SetInt($"{BuddyEnhanceCostKeyPrefix}{data.id}", Mathf.Max(0, data.enhanceCost));
         PlayerPrefs.SetInt($"{BuddyUnlockedKeyPrefix}{data.id}", data.isUnlocked ? 1 : 0);
         PlayerPrefs.Save();
+        PGE.Auth.SaveSyncManager.Instance?.MarkDirtyAndSaveLocal();
         OnBuddyPiecesChanged?.Invoke(data.id, Mathf.Max(0, data.count));
     }
 
@@ -893,6 +894,7 @@ public static class PlayerDataService
         int clamped = Mathf.Max(0, amount);
         PlayerPrefs.SetInt($"{BuddyCountKeyPrefix}{buddyId}", clamped);
         PlayerPrefs.Save();
+        PGE.Auth.SaveSyncManager.Instance?.MarkDirtyAndSaveLocal();
         OnBuddyPiecesChanged?.Invoke(buddyId, clamped);
     }
 

@@ -158,10 +158,13 @@ public class PlayerAutoShooter : MonoBehaviour
         get => artifactCritDamageMultiplier;
         set => artifactCritDamageMultiplier = Mathf.Max(0.5f, value);
     }
+    public float BuddyDamageMultiplier { get; set; } = 1f;
+    public float BuddyCritBonus { get; set; }
+    public float BuddyCritDamageMultiplier { get; set; } = 1f;
 
     public WeaponData CurrentEquippedWeapon => currentEquippedWeapon;
     public bool IsAttacking { get; private set; }
-    public int CurrentDamage => Mathf.RoundToInt(((GetChipsetWeaponLevel(1) > 0 ? GetChipsetWeaponDamage(1) : currentDamage) + bonusDamage) * artifactDamageMultiplier);
+    public int CurrentDamage => Mathf.RoundToInt(((GetChipsetWeaponLevel(1) > 0 ? GetChipsetWeaponDamage(1) : currentDamage) + bonusDamage) * artifactDamageMultiplier * BuddyDamageMultiplier);
     public float CurrentFireRate => (GetChipsetWeaponLevel(1) > 0 ? 1f / GetChipsetWeaponFireInterval(1) : fireRate) + bonusFireRate;
     public int CurrentBulletsPerShot => GetChipsetWeaponLevel(1) > 0 ? GetChipsetWeaponProjectileCount(1) : currentBulletsPerShot;
     public float CurrentSpreadAngle => currentSpreadAngle;
@@ -1158,7 +1161,7 @@ public class PlayerAutoShooter : MonoBehaviour
         float baseAngle = Mathf.Atan2(baseDirection.y, baseDirection.x) * Mathf.Rad2Deg;
         int level = GetChipsetWeaponLevel(chipsetId);
         int projectileCount = GetChipsetWeaponProjectileCount(chipsetId);
-        int damage = Mathf.RoundToInt((GetChipsetWeaponDamage(chipsetId) + bonusDamage) * artifactDamageMultiplier);
+        int damage = Mathf.RoundToInt((GetChipsetWeaponDamage(chipsetId) + bonusDamage) * artifactDamageMultiplier * BuddyDamageMultiplier);
         float spread = 0f;
         float speed = chipsetId == 2 ? 18f : 16f;
         float range = ChipsetAttackRange;
@@ -1420,11 +1423,11 @@ public class PlayerAutoShooter : MonoBehaviour
             if (projectileScript != null)
             {
                 int finalDamage = Mathf.Max(1, damage);
-                float totalCrit = Mathf.Clamp01(sourceCritChance + artifactCritBonus);
+                float totalCrit = Mathf.Clamp01(sourceCritChance + artifactCritBonus + BuddyCritBonus);
                 bool isCrit = totalCrit > 0f && Random.value < totalCrit;
                 if (isCrit)
                 {
-                    finalDamage = Mathf.RoundToInt(finalDamage * 1.5f * artifactCritDamageMultiplier);
+                    finalDamage = Mathf.RoundToInt(finalDamage * 1.5f * artifactCritDamageMultiplier * BuddyCritDamageMultiplier);
                 }
 
                 projectileScript.Setup(finalDamage, Mathf.Max(0.1f, speed), Mathf.Max(0.1f, range));
