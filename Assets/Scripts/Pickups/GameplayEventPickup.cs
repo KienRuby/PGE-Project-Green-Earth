@@ -22,7 +22,7 @@ public class GameplayEventPickup : MonoBehaviour
     [SerializeField] private Sprite eventSprite;
 
     [Tooltip("Kích thước chiều ngang của bãi phế liệu trong world space.")]
-    [Min(0.1f)] [SerializeField] private float visualWorldWidth = 2.0f;
+    [Min(0.1f)] [SerializeField] private float visualWorldWidth = 1.0f;
 
     [Tooltip("Tốc độ bay dập dềnh hoặc nhịp thở nhẹ (Idle bobbing speed).")]
     [SerializeField] private float bobbingSpeed = 3.5f;
@@ -31,13 +31,36 @@ public class GameplayEventPickup : MonoBehaviour
     [SerializeField] private float bobbingAmount = 0f;
 
     [Tooltip("Bán kính phát hiện va chạm với Player.")]
-    [SerializeField] private float triggerRadius = 1.0f;
+    [SerializeField] private float triggerRadius = 0.5f;
 
     [Tooltip("Sorting layer cho sprite sự kiện. Mặc định Ground để hòa vào sàn bản đồ.")]
     [SerializeField] private string sortingLayer = "Ground";
 
     [Tooltip("Sorting order cho sprite sự kiện.")]
     [SerializeField] private int sortingOrder = 20;
+
+    public float VisualWorldWidth
+    {
+        get => visualWorldWidth;
+        set
+        {
+            visualWorldWidth = value;
+            FitVisualToWorldSize();
+        }
+    }
+
+    public float TriggerRadius
+    {
+        get => triggerRadius;
+        set
+        {
+            triggerRadius = value;
+            if (TryGetComponent<CircleCollider2D>(out var circle))
+            {
+                circle.radius = triggerRadius;
+            }
+        }
+    }
 
     private static readonly List<GameplayEventPickup> activeEvents = new List<GameplayEventPickup>();
     public static IReadOnlyList<GameplayEventPickup> ActiveEvents => activeEvents;
@@ -250,19 +273,35 @@ public class GameplayEventPickup : MonoBehaviour
         spriteRenderer.sortingOrder = sortingOrder;
     }
 
+    private void OnValidate()
+    {
+        if (triggerRadius < 0.1f) triggerRadius = 0.1f;
+        if (visualWorldWidth < 0.1f) visualWorldWidth = 0.1f;
+
+        if (TryGetComponent<CircleCollider2D>(out var circle))
+        {
+            circle.radius = triggerRadius;
+        }
+
+        FitVisualToWorldSize();
+    }
+
     private void FitVisualToWorldSize()
     {
         if (spriteRenderer == null || spriteRenderer.sprite == null) return;
 
-        if (spriteRenderer.transform == transform)
-        {
-            return;
-        }
-
         Vector2 spriteSize = spriteRenderer.sprite.bounds.size;
         float width = spriteSize.x;
         float scale = width > 0f ? visualWorldWidth / width : 1f;
-        spriteRenderer.transform.localScale = Vector3.one * scale;
+
+        if (spriteRenderer.transform == transform)
+        {
+            transform.localScale = Vector3.one * scale;
+        }
+        else
+        {
+            spriteRenderer.transform.localScale = Vector3.one * scale;
+        }
     }
 
     private void Update()

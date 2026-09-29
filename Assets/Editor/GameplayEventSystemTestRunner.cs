@@ -70,6 +70,7 @@ namespace PGE.Tests
 
             RunTest("Test01_Database_InitializesWithDefaultEvents", t => t.Test01_Database_InitializesWithDefaultEvents());
             RunTest("Test02_GameplayEventPickup_ActiveTracking", t => t.Test02_GameplayEventPickup_ActiveTracking());
+            RunTest("Test02b_GameplayEventPickup_DefaultSizeHalved", t => t.Test02b_GameplayEventPickup_DefaultSizeHalved());
             RunTest("Test03_OptionRewards_MoveSpeedPercent", t => t.Test03_OptionRewards_MoveSpeedPercent());
             RunTest("Test04_OptionRewards_HpConsumption", t => t.Test04_OptionRewards_HpConsumption());
             RunTest("Test05_OptionRewards_ArtifactGrant", t => t.Test05_OptionRewards_ArtifactGrant());
