@@ -102,7 +102,6 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
         set
         {
             damageFlashDuration = Mathf.Max(0f, value);
-            cachedFlashWait = new WaitForSeconds(damageFlashDuration);
         }
     }
 
@@ -178,16 +177,15 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     private MaterialPropertyBlock flashPropBlock;
 
     private Collider2D[] colliders;
+    private bool usesRootCapsule;
     private Animator animator;
     private EnemyMovement enemyMovement;
     private BossMovement bossMovement;
     private Rigidbody2D rb;
     private SpriteRenderer[] spriteRenderers;
     private Color[] initialSpriteColors;
-    private Coroutine flashRoutine;
-    private int lastFlashFrame = -1;
-    private float lastFlashTime = -1f;
-    private WaitForSeconds cachedFlashWait;
+    private bool flashActive;
+    private float flashEndTime;
     private float cachedDeathDuration;
     private bool hasDeathTriggerParam;
     private string defaultAnimationState = "run";
@@ -212,9 +210,9 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
         baseExpReward = expReward;
         baseDataChipReward = dataChipReward;
         baseRedGemReward = redGemReward;
-        cachedFlashWait = new WaitForSeconds(damageFlashDuration);
         initialRootScale = transform.localScale;
         colliders = GetComponentsInChildren<Collider2D>(true);
+        usesRootCapsule = GetComponent<CapsuleCollider2D>() != null;
         animator = GetComponent<Animator>() ?? GetComponentInChildren<Animator>();
         enemyMovement = GetComponent<EnemyMovement>();
         bossMovement = GetComponent<BossMovement>();
@@ -410,6 +408,15 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
         if (IsDead)
         {
             ResetForSpawn();
+        }
+    }
+
+    private void Update()
+    {
+        if (flashActive && Time.time >= flashEndTime)
+        {
+            flashActive = false;
+            RestoreSpriteColors();
         }
     }
 
@@ -822,13 +829,8 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     public void ResetForSpawn()
     {
         ActiveBossDeathVfx = null;
-        if (flashRoutine != null)
-        {
-            StopCoroutine(flashRoutine);
-            flashRoutine = null;
-        }
-        lastFlashFrame = -1;
-        lastFlashTime = -1f;
+        flashActive = false;
+        flashEndTime = 0f;
 
         if (deathRoutine != null)
         {
@@ -885,7 +887,8 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
         {
             for (int i = 0; i < colliders.Length; i++)
             {
-                if (colliders[i] != null) colliders[i].enabled = true;
+                if (colliders[i] != null)
+                    colliders[i].enabled = !usesRootCapsule || (colliders[i] is CapsuleCollider2D && colliders[i].transform == transform);
             }
         }
 
@@ -938,32 +941,21 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     }
 
     /// <summary>
-    /// Kích hoạt hiệu ứng chớp đỏ đúng 1 lần duy nhất cho mỗi lần nhận sát thương.
-    /// Có throttle bảo vệ chống nghẽn CPU/GPU khi nhiều viên đạn (như chùm đạn Shotgun) trúng quái cùng lúc trong 1 frame hoặc khoảng thời gian cực ngắn.
+    /// Giữ hiệu ứng chớp đỏ tới sau lần trúng đạn cuối mà không tạo coroutine cho từng hit.
     /// </summary>
     public void TriggerDamageFlash()
     {
         if (!enableDamageFlash || !gameObject.activeInHierarchy)
             return;
 
-        // Nếu quái đã đang trong hiệu ứng chớp đỏ của cùng 1 frame hoặc vừa chớp cách đây < 0.04s, bỏ qua để chống nghẽn CPU/GPU
-        if (Time.frameCount == lastFlashFrame || (Time.time - lastFlashTime < 0.04f && flashRoutine != null))
-        {
-            return;
-        }
+        flashEndTime = Time.time + damageFlashDuration;
+        if (flashActive) return;
 
-        lastFlashFrame = Time.frameCount;
-        lastFlashTime = Time.time;
-
-        if (flashRoutine != null)
-        {
-            StopCoroutine(flashRoutine);
-            RestoreSpriteColors();
-        }
-        flashRoutine = StartCoroutine(DamageFlashRoutine());
+        flashActive = true;
+        ApplyDamageFlash();
     }
 
-    private IEnumerator DamageFlashRoutine()
+    private void ApplyDamageFlash()
     {
         if (spriteRenderers == null || spriteRenderers.Length == 0)
         {
@@ -1013,10 +1005,6 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
             }
         }
 
-        yield return cachedFlashWait ?? (cachedFlashWait = new WaitForSeconds(damageFlashDuration));
-
-        RestoreSpriteColors();
-        flashRoutine = null;
     }
 
     /// <summary>
@@ -1057,11 +1045,8 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
     public void OnReturnToPool()
     {
         IsDead = true;
-        if (flashRoutine != null)
-        {
-            StopCoroutine(flashRoutine);
-            flashRoutine = null;
-        }
+        flashActive = false;
+        flashEndTime = 0f;
         if (deathRoutine != null)
         {
             StopCoroutine(deathRoutine);
@@ -1082,11 +1067,7 @@ public class EnemyHealth : MonoBehaviour, IDamageable, IPoolable
 
     private void OnDestroy()
     {
-        if (flashRoutine != null)
-        {
-            StopCoroutine(flashRoutine);
-            flashRoutine = null;
-        }
+        flashActive = false;
         if (deathRoutine != null)
         {
             StopCoroutine(deathRoutine);

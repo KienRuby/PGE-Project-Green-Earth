@@ -2,11 +2,16 @@ using UnityEngine;
 
 public class EnemyContactDamage : MonoBehaviour, IPoolable
 {
+    private static int obstacleMask;
+    private static bool obstacleMaskInitialized;
+
     [Header("Damage")]
     [Tooltip("Lượng sát thương gây ra khi quái vật va chạm vào Player.")]
     [SerializeField] private int damage = 10;
 
     private int baseDamage;
+    private PlayerHealth contactPlayer;
+    private int playerContactCount;
 
     public int Damage => damage;
     public int BaseDamage => baseDamage > 0 ? baseDamage : damage;
@@ -14,6 +19,11 @@ public class EnemyContactDamage : MonoBehaviour, IPoolable
     private void Awake()
     {
         baseDamage = damage;
+        if (!obstacleMaskInitialized)
+        {
+            obstacleMask = LayerMask.GetMask("Obstacle");
+            obstacleMaskInitialized = true;
+        }
     }
 
     public void SetDamage(int newDamage)
@@ -25,12 +35,16 @@ public class EnemyContactDamage : MonoBehaviour, IPoolable
     {
         damage = BaseDamage;
         nextDamageTime = 0f;
+        contactPlayer = null;
+        playerContactCount = 0;
     }
 
     public void OnReturnToPool()
     {
         damage = BaseDamage;
         nextDamageTime = 0f;
+        contactPlayer = null;
+        playerContactCount = 0;
     }
 
     [Header("Attack Cooldown")]
@@ -39,47 +53,67 @@ public class EnemyContactDamage : MonoBehaviour, IPoolable
 
     private float nextDamageTime;
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    private void Update()
     {
-        TryDamage(collision.collider);
+        if (playerContactCount > 0 && Time.time >= nextDamageTime)
+            TryDamage(contactPlayer);
     }
 
-    private void OnCollisionStay2D(Collision2D collision)
+    private void OnCollisionEnter2D(Collision2D collision)
     {
-        TryDamage(collision.collider);
+        RegisterContact(collision.collider);
+    }
+
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        UnregisterContact(collision.collider);
     }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        TryDamage(other);
+        RegisterContact(other);
     }
 
-    private void OnTriggerStay2D(Collider2D other)
+    private void OnTriggerExit2D(Collider2D other)
     {
-        TryDamage(other);
+        UnregisterContact(other);
     }
 
-    private void TryDamage(Collider2D targetCollider)
+    private void OnDisable()
     {
-        if (targetCollider == null || Time.time < nextDamageTime)
-            return;
+        contactPlayer = null;
+        playerContactCount = 0;
+    }
 
-        // Fast path: Nếu không phải Player thì bỏ qua ngay lập tức
-        if (!targetCollider.CompareTag("Player"))
-            return;
+    private void RegisterContact(Collider2D targetCollider)
+    {
+        if (targetCollider == null || !targetCollider.CompareTag("Player")) return;
 
         PlayerHealth playerHealth = targetCollider.GetComponentInParent<PlayerHealth>();
+        if (playerHealth == null) return;
 
-        if (playerHealth == null)
-            return;
+        contactPlayer = playerHealth;
+        playerContactCount++;
+        TryDamage(playerHealth);
+    }
 
-        if (playerHealth.IsDead)
-            return;
+    private void UnregisterContact(Collider2D targetCollider)
+    {
+        if (targetCollider == null || !targetCollider.CompareTag("Player") || playerContactCount == 0) return;
+        if (targetCollider.GetComponentInParent<PlayerHealth>() != contactPlayer) return;
+
+        playerContactCount--;
+        if (playerContactCount == 0) contactPlayer = null;
+    }
+
+    private void TryDamage(PlayerHealth playerHealth)
+    {
+        if (playerHealth == null || playerHealth.IsDead || Time.time < nextDamageTime) return;
 
         // Kiểm tra Line of Sight: Không gây sát thương qua vách chướng ngại vật
-        int obstacleMask = LayerMask.GetMask("Obstacle");
         if (obstacleMask != 0 && Physics2D.Linecast(transform.position, playerHealth.transform.position, obstacleMask))
         {
+            nextDamageTime = Time.time + 0.1f;
             return;
         }
 

@@ -3247,9 +3247,9 @@ RectTransform:
   - {fileID: 1304432470}
   m_Father: {fileID: 1788411691}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 640, y: -225}
   m_SizeDelta: {x: 150, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &45764952
@@ -8724,7 +8724,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &112713076
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -35478,53 +35478,53 @@ MonoBehaviour:
     displayName: Standard Gun
     description: Always equipped, even when it is not included in your deck.
     icon: {fileID: -1419096040, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
-    frame: {fileID: 21300000, guid: a7ac9e7438a0e39a5d3c87fecb03df2b, type: 3}
+    frame: {fileID: -1911426385, guid: 2ab09f1459253de459ea75fd3b8d8659, type: 3}
   - itemId: 2
     displayName: Rifle
     description: Weapon that fires a quick barrage
     icon: {fileID: 983117041, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
-    frame: {fileID: 21300000, guid: a7ac9e7438a0e39a5d3c87fecb03df2b, type: 3}
+    frame: {fileID: -1911426385, guid: 2ab09f1459253de459ea75fd3b8d8659, type: 3}
   - itemId: 3
     displayName: Rocket Punch
     description: Launches a rocket-powered fist that deals area damage.
     icon: {fileID: 2130773083, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
-    frame: {fileID: 21300000, guid: a7ac9e7438a0e39a5d3c87fecb03df2b, type: 3}
+    frame: {fileID: -1911426385, guid: 2ab09f1459253de459ea75fd3b8d8659, type: 3}
   - itemId: 4
     displayName: Spinning Blade
     description: Throws a spinning blade that pierces enemies and returns to the
       player.
     icon: {fileID: 1525522922, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
-    frame: {fileID: 21300000, guid: a7ac9e7438a0e39a5d3c87fecb03df2b, type: 3}
+    frame: {fileID: -1911426385, guid: 2ab09f1459253de459ea75fd3b8d8659, type: 3}
   - itemId: 5
     displayName: Multigun
     description: Fires a rain of bullets in multiple directions at once.
     icon: {fileID: -370857278, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
-    frame: {fileID: 21300000, guid: a7ac9e7438a0e39a5d3c87fecb03df2b, type: 3}
+    frame: {fileID: -1911426385, guid: 2ab09f1459253de459ea75fd3b8d8659, type: 3}
   - itemId: 6
     displayName: Gun Turret
     description: Deploys a turret that fires standard rounds.
     icon: {fileID: -1704925112, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
-    frame: {fileID: 21300000, guid: a7ac9e7438a0e39a5d3c87fecb03df2b, type: 3}
+    frame: {fileID: -1911426385, guid: 2ab09f1459253de459ea75fd3b8d8659, type: 3}
   - itemId: 7
     displayName: Spiky Discus
     description: Spins a spiky discus around the player to attack enemies.
     icon: {fileID: -1958027733, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
-    frame: {fileID: 21300000, guid: a7ac9e7438a0e39a5d3c87fecb03df2b, type: 3}
+    frame: {fileID: -1911426385, guid: 2ab09f1459253de459ea75fd3b8d8659, type: 3}
   - itemId: 8
     displayName: Shotgun
     description: Deals heavy damage to nearby enemies with multiple pellets.
     icon: {fileID: 838293656, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
-    frame: {fileID: 21300000, guid: a7ac9e7438a0e39a5d3c87fecb03df2b, type: 3}
+    frame: {fileID: -1911426385, guid: 2ab09f1459253de459ea75fd3b8d8659, type: 3}
   - itemId: 9
     displayName: Energy Jumper Cables
     description: Steals life from enemies.
     icon: {fileID: 1736317296, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
-    frame: {fileID: 21300000, guid: a7ac9e7438a0e39a5d3c87fecb03df2b, type: 3}
+    frame: {fileID: -1911426385, guid: 2ab09f1459253de459ea75fd3b8d8659, type: 3}
   - itemId: 10
     displayName: High-Explosive Mine
     description: Periodically places powerful explosive mines on the ground.
     icon: {fileID: 563165159, guid: dfa09299c38c63849b8f01bdb07283f5, type: 3}
-    frame: {fileID: 21300000, guid: a7ac9e7438a0e39a5d3c87fecb03df2b, type: 3}
+    frame: {fileID: -1911426385, guid: 2ab09f1459253de459ea75fd3b8d8659, type: 3}
   buddyRewardVisuals:
   - itemId: 1
     displayName: Sloy
@@ -67132,9 +67132,9 @@ RectTransform:
   - {fileID: 1565023166}
   m_Father: {fileID: 1788411691}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 140, y: -225}
   m_SizeDelta: {x: 150, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &894383599
@@ -90067,7 +90067,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1227741707
 RectTransform:
   m_ObjectHideFlags: 0
@@ -123198,7 +123198,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 271595944, guid: bf27df4622a74f3468be708c1142ce3c, type: 3}
+  m_Sprite: {fileID: 1267694705, guid: 634d8a9ef6caec542acde68c24b668f7, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -133637,7 +133637,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1841584109
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -133645,7 +133645,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1841584108}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
@@ -133663,7 +133663,7 @@ MonoBehaviour:
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 0
-  m_FillAmount: 1
+  m_FillAmount: 0
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
@@ -152563,9 +152563,9 @@ RectTransform:
   - {fileID: 1741950032}
   m_Father: {fileID: 1788411691}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 390, y: -225}
   m_SizeDelta: {x: 150, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2058402430

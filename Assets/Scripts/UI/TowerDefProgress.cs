@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Persistent, sequential unlock state for the ten Tower Def levels.
+/// Persistent completion state for the ten Tower Def levels, unlocked by chapter progress.
 /// Tower Def gameplay calls CompleteLevel after a real victory.
 /// </summary>
 public static class TowerDefProgress
@@ -12,7 +12,7 @@ public static class TowerDefProgress
     private const string SelectedLevelKey = "PGE.TowerDef.SelectedLevel";
 
     public static int HighestCompletedLevel => Mathf.Clamp(PlayerPrefs.GetInt(CompletedLevelKey, 0), 0, LevelCount);
-    public static int HighestUnlockedLevel => Mathf.Min(LevelCount, HighestCompletedLevel + 1);
+    public static int HighestUnlockedLevel => Mathf.Min(LevelCount, PlayerDataService.UnlockedChapterIndex / 3);
 
     public static int SelectedLevel
     {
