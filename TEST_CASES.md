@@ -1,29 +1,29 @@
-# 100 test case thủ công — PGE Project Green Earth
+# 100 test case kiểm thử game — PGE Project Green Earth
 
-Tài liệu này là **kế hoạch kiểm thử**, chưa phải kết quả kiểm thử. Mỗi ca cần ghi thêm người chạy, ngày chạy, thiết bị, bản build, trạng thái Pass/Fail/Blocked và bằng chứng khi thực thi.
+Tài liệu này là **kế hoạch kiểm thử trực tiếp trong game**, chưa phải kết quả kiểm thử. Cài sẵn một bản game có thể chạy trên điện thoại Android hoặc mở game trong Unity Editor, sau đó thực hiện thao tác như người chơi. Không có ca kiểm thử tải mã nguồn, cấu hình Unity hoặc tạo APK/AAB. Mỗi ca cần ghi thêm người chạy, ngày chạy, thiết bị, bản game, trạng thái Pass/Fail/Blocked và bằng chứng.
 
 ## Quy ước và chuẩn bị
 
 - **P0**: luồng khởi động, chơi hoặc dữ liệu có thể bị chặn/mất. **P1**: chức năng chính. **P2**: giao diện và trường hợp phụ.
-- Dùng Unity **2022.3.62f2**; kiểm thử Android trên thiết bị API 24 trở lên. Chạy trên một bản build xác định và ghi commit/SHA vào biên bản.
+- Ưu tiên chạy trên điện thoại Android API 24 trở lên; có thể chạy các ca không phụ thuộc cảm ứng/dịch vụ di động trong Unity Editor. Ghi phiên bản game và thiết bị vào biên bản.
 - Chuẩn bị ba hồ sơ thử: **Mới** (chưa có tiến trình), **Đã mở khóa** (có Chapter/Gem Mine/Tower Def), **Giàu tài nguyên** (có đủ Energy, Data Chips, Red Gems, Gold trong trận). Tạo hồ sơ bằng công cụ kiểm thử hoặc bản sao dữ liệu, không sửa dữ liệu thật của người chơi.
 - Các ca cần quảng cáo, Google Play Games, Unity Authentication hoặc Cloud Save chỉ chạy khi dịch vụ và tài khoản thử đã cấu hình; nếu chưa, ghi **Blocked**, không đánh dấu Pass.
-- Nhánh main hiện có bốn prefab PlayerHitVFX_Skin1..4 với GUID .meta không hợp lệ. Lỗi biên dịch/package hoặc lỗi import khiến game không chạy phải được ghi là **Blocked** cho các ca phụ thuộc.
+- Nhóm A là một luồng chơi nhanh liên tục trên hồ sơ Mới. Các nhóm còn lại chạy độc lập với hồ sơ ghi trong từng ca; đặt lại dữ liệu thử trước các ca liên quan đến tiền, lượt chơi hoặc phần thưởng. Nếu game không khởi động được, ghi **Blocked** và lỗi mở game, không suy đoán kết quả.
 
-## A. Tải dự án, build và cài đặt (TC-001–010)
+## A. Luồng chơi đầu tiên: kiểm thử nhanh (TC-001–010)
 
 | ID | Mức | Điều kiện và thao tác | Kết quả mong đợi |
 | --- | --- | --- | --- |
-| TC-001 | P0 | Từ máy sạch, clone nhánh main của repository. Kiểm tra thư mục gốc. | Có Assets, Packages, ProjectSettings và README; không cần file Library từ Git. |
-| TC-002 | P1 | Tải ZIP của nhánh main, giải nén và chọn thư mục gốc trong Unity Hub. | Unity Hub nhận đây là một Unity project; không cần chọn riêng Assets. |
-| TC-003 | P0 | Mở dự án bằng Unity 2022.3.62f2, có Git và Internet, đợi import hoàn tất. | Package được giải quyết; Console không còn lỗi biên dịch do thiếu package. |
-| TC-004 | P0 | Mở Build Settings và kiểm tra Scenes In Build. | MainMenu đứng đầu; GamePlay, GenMine, TowerDef, Loading đều được bật. |
-| TC-005 | P0 | Mở MainMenu.unity rồi nhấn Play trong Editor. | Màn chính xuất hiện, có thể thao tác; không có exception chặn luồng. |
-| TC-006 | P0 | Chuyển nền tảng sang Android; tắt Export Project và Build App Bundle; nhấn Build. | Unity tạo APK và báo thành công, hoặc ghi lỗi cụ thể để xử lý; không coi build lỗi là Pass. |
-| TC-007 | P0 | Cài APK lên thiết bị Android được hỗ trợ và khởi động lần đầu. | Ứng dụng cài, mở đến màn chính và không thoát đột ngột. |
-| TC-008 | P1 | Đóng hẳn ứng dụng rồi mở lại APK đã cài. | Ứng dụng vẫn vào được màn chính; dữ liệu đã lưu không bị đặt lại ngoài ý muốn. |
-| TC-009 | P1 | Kết nối điện thoại đã bật USB debugging, chọn Build And Run. | Unity nhận đúng thiết bị, cài APK và mở game trên điện thoại. |
-| TC-010 | P1 | Build Android với Build App Bundle bật, dùng cấu hình ký phát hành thử hợp lệ. | Unity tạo AAB; tên gói và version code khớp Player Settings. |
+| TC-001 | P0 | Mở game lần đầu bằng hồ sơ Mới. | Vào màn chính, không đứng ở màn loading hoặc thoát đột ngột. |
+| TC-002 | P0 | Quan sát màn chính sau TC-001. | Thanh tài nguyên, điều hướng dưới và nút vào trận hiển thị, có thể chạm được. |
+| TC-003 | P1 | Mở tab Chapter bằng hồ sơ Mới. | Chapter đầu được chọn và có thể chơi; chapter chưa mở hiển thị trạng thái khóa. |
+| TC-004 | P0 | Chọn Chapter đầu và bấm Start một lần. | Energy giảm đúng chi phí hiển thị; game chuyển sang trận. |
+| TC-005 | P0 | Quan sát HUD ngay khi trận bắt đầu. | Nhân vật, thanh máu, thanh EXP, thông tin wave và nút Pause hiển thị. |
+| TC-006 | P0 | Di chuyển nhân vật theo joystick hoặc WASD, sau đó thả điều khiển. | Nhân vật di chuyển và dừng đúng thao tác, không bị kẹt. |
+| TC-007 | P0 | Tiếp cận quái trong tầm bắn nhưng không nhấn nút bắn. | Nhân vật tự bắn; quái nhận sát thương. |
+| TC-008 | P0 | Nhặt EXP đến khi lên cấp, chọn một thẻ chipset. | Bảng chọn mở, kỹ năng được áp dụng và trận tiếp tục. |
+| TC-009 | P0 | Bấm Pause, mở Stats, rồi Resume. | Trận dừng trong Pause, Stats mở đúng; Resume tiếp tục đúng lượt chơi. |
+| TC-010 | P0 | Để nhân vật thua, bỏ qua hồi sinh, nhận thưởng và về màn chính. | Màn kết quả xuất hiện; thưởng cộng đúng một lần và màn chính phản ánh số dư mới. |
 
 ## B. Màn chính, điều hướng và cài đặt (TC-011–020)
 
@@ -52,7 +52,7 @@ Tài liệu này là **kế hoạch kiểm thử**, chưa phải kết quả ki�
 | TC-026 | P0 | Đặt Energy đúng bằng chi phí, nhấn Start một lần. | Vào GamePlay; Energy giảm đúng một lần bằng chi phí. |
 | TC-027 | P0 | Đặt Energy thấp hơn chi phí một đơn vị, nhấn Start. | Không vào trận; Energy không đổi. |
 | TC-028 | P0 | Nhấn Start liên tiếp rất nhanh khi đủ Energy cho đúng một lượt. | Chỉ tạo một lượt chơi và chỉ trừ Energy một lần. |
-| TC-029 | P1 | Chọn một chapter đã mở, rời tab rồi trở lại hoặc khởi động lại game. | Chapter đã chọn được khôi phục nếu trạng thái chọn đã lưu. |
+| TC-029 | P1 | Chọn một chapter đã mở, rời tab rồi trở lại và khởi động lại game. | Chapter đã chọn vẫn được khôi phục từ dữ liệu đã lưu. |
 | TC-030 | P0 | Hoàn thành chapter cuối đang mở, trở về màn chính. | Chapter kế tiếp được mở theo tiến trình; các chapter xa hơn vẫn khóa. |
 
 ## D. Di chuyển, chiến đấu và vật phẩm rơi (TC-031–040)
@@ -75,7 +75,7 @@ Tài liệu này là **kế hoạch kiểm thử**, chưa phải kết quả ki�
 | ID | Mức | Điều kiện và thao tác | Kết quả mong đợi |
 | --- | --- | --- | --- |
 | TC-041 | P0 | Nhặt đủ EXP để lên một cấp. | Bảng chọn chipset hiện; mô phỏng trận tạm dừng trong lúc chọn. |
-| TC-042 | P1 | Mở bảng lên cấp và xem các thẻ đề xuất. | Số thẻ hiển thị khớp cấu hình scene (tối đa 3); không có hai thẻ trùng trong cùng lượt. |
+| TC-042 | P1 | Mở bảng lên cấp ở hồ sơ thường; lặp lại với hồ sơ có nâng cấp CHIPSET SELECTION kích hoạt thẻ cộng thêm. | Có 3 lựa chọn mặc định, 4 khi hiệu ứng cộng thêm kích hoạt; không có hai thẻ trùng trong cùng lượt. |
 | TC-043 | P0 | Chạm một thẻ chipset ở bảng lên cấp. | Bảng đóng, kỹ năng/cấp chipset được áp dụng một lần, trận tiếp tục. |
 | TC-044 | P1 | Có ít nhất 20 Red Gems; bấm Draw again một lần. | Trừ 20 Red Gems, tạo bộ lựa chọn mới và đếm một lần đổi. |
 | TC-045 | P1 | Bấm Draw again hai lần trong cùng một cấp, thử bấm lần thứ ba. | Lần thứ ba bị chặn; không trừ thêm Red Gems. |
@@ -128,7 +128,7 @@ Tài liệu này là **kế hoạch kiểm thử**, chưa phải kết quả ki�
 | TC-077 | P1 | Thiếu nguyên liệu hoặc đã ở giới hạn nâng cấp, thử nâng chipset. | Giao dịch bị chặn; cấp và tài nguyên giữ nguyên. |
 | TC-078 | P1 | Mở Buddy, chọn một drone đã sở hữu và trang bị vào ô hợp lệ. | Đội hình cập nhật; drone tương ứng xuất hiện khi vào trận. |
 | TC-079 | P1 | Có đủ tài nguyên, nâng cấp một buddy; sau đó thử lại khi thiếu. | Lần đủ tài nguyên thành công; lần thiếu bị chặn và không trừ thêm. |
-| TC-080 | P2 | Nếu giao diện Pet Craft được mở, chọn pet đủ/thiếu nguyên liệu và bấm Craft. | Chỉ ca đủ nguyên liệu tạo pet và trừ nguyên liệu; ca thiếu không thay đổi dữ liệu. |
+| TC-080 | P2 | Mở giao diện Pet Craft, chọn pet đủ nguyên liệu rồi thử một pet thiếu nguyên liệu; bấm Craft ở cả hai trường hợp. | Chỉ trường hợp đủ nguyên liệu tạo pet và trừ nguyên liệu; trường hợp thiếu giữ nguyên dữ liệu. |
 
 ## I. Shop, đăng nhập hằng ngày và thành tựu (TC-081–090)
 
@@ -156,10 +156,10 @@ Tài liệu này là **kế hoạch kiểm thử**, chưa phải kết quả ki�
 | TC-095 | P1 | Dùng tài khoản thử đăng nhập Google Play Games khi dịch vụ đã cấu hình. | Đăng nhập thành công hoặc báo lỗi rõ ràng; game vẫn điều khiển được sau lỗi. |
 | TC-096 | P1 | Tắt mạng trước khi bấm nút quảng cáo thưởng. | Không cấp thưởng khi chưa xem ad thành công; nút/trạng thái phản ánh quảng cáo không khả dụng. |
 | TC-097 | P1 | Trong trận, tạm dừng rồi dùng Home và xác nhận rời trận. | Trở về MainMenu; không còn quái/âm thanh/UI của trận cũ chồng lên màn chính. |
-| TC-098 | P1 | Trên Android, dùng nút Back ở màn chính và khi đang mở một modal. | Hành vi quay lại/đóng modal nhất quán; không thoát game ngoài ý muốn khi đóng modal. |
+| TC-098 | P1 | Trên Android, bấm Back khi mở Reward popup; sau đó bấm Back một lần ở màn chính. | Back đóng popup trước; lần bấm đầu ở màn chính chưa thoát game và hiển thị hướng dẫn bấm lại để thoát. |
 | TC-099 | P2 | Chạy game trên hai màn hình Android có kích thước/tai thỏ khác nhau. | Nút chính, thanh tài nguyên, joystick và modal nằm trong vùng an toàn, có thể chạm được. |
 | TC-100 | P0 | Chơi liên tục Chapter → màn kết quả → MainMenu → Gem Mine/Tower Def → MainMenu nhiều lượt. | Không kẹt scene, không nhân đôi HUD/sự kiện, tài nguyên và tiến trình vẫn đúng sau mỗi lượt. |
 
 ## Ghi kết quả chạy
 
-Sao chép dòng sau cho mỗi ca: **ID | Build/commit | Thiết bị/OS | Ngày | Pass/Fail/Blocked | Actual result | Ảnh/log | Bug ID**. Đánh dấu **Blocked** nếu lỗi build, package, asset hoặc dịch vụ ngoài ngăn thực hiện bước kiểm thử; không suy đoán kết quả.
+Sao chép dòng sau cho mỗi ca: **ID | Phiên bản game | Thiết bị/OS | Ngày | Pass/Fail/Blocked | Kết quả thực tế | Ảnh/log | Bug ID**. Đánh dấu **Blocked** nếu game hoặc dịch vụ cần cho ca đó chưa sẵn sàng; không suy đoán kết quả.
