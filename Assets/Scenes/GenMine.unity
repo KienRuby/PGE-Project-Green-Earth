@@ -2057,38 +2057,38 @@ MonoBehaviour:
   attackSpeedMultiplier: 1
   levelConfigs:
   - damage: 36
-    cooldown: 1.5
+    cooldown: 0.8
     hitsPerBlade: 1
     spawnCountPerWave: 1
-    maxBladesOnField: 1
+    maxBladesOnField: 8
     hasVortex: 0
     vortexDuration: 0
   - damage: 50
-    cooldown: 1.3
+    cooldown: 0.7
     hitsPerBlade: 1
     spawnCountPerWave: 1
-    maxBladesOnField: 2
+    maxBladesOnField: 10
     hasVortex: 0
     vortexDuration: 0
   - damage: 70
-    cooldown: 1.1
+    cooldown: 0.6
     hitsPerBlade: 2
     spawnCountPerWave: 1
-    maxBladesOnField: 3
+    maxBladesOnField: 12
     hasVortex: 0
     vortexDuration: 0
   - damage: 95
-    cooldown: 0.9
+    cooldown: 0.5
     hitsPerBlade: 2
     spawnCountPerWave: 1
-    maxBladesOnField: 4
+    maxBladesOnField: 14
     hasVortex: 0
     vortexDuration: 0
   - damage: 130
-    cooldown: 0.7
+    cooldown: 0.4
     hitsPerBlade: 3
     spawnCountPerWave: 1
-    maxBladesOnField: 5
+    maxBladesOnField: 16
     hasVortex: 1
     vortexDuration: 2
   isUnlocked: 0

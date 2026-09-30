@@ -64,16 +64,16 @@ public class SpinningBladeSkill : MonoBehaviour
     [SerializeField]
     private SpinningBladeLevelConfig[] levelConfigs = new SpinningBladeLevelConfig[]
     {
-        // Cấp 1: 36 dmg, CD 1.5s, 1 hit, spawn 1 dao/lần, max 1 (khi chọn powerup hiện 1 dao)
-        new SpinningBladeLevelConfig { damage = 36, cooldown = 1.5f, hitsPerBlade = 1, spawnCountPerWave = 1, maxBladesOnField = 1, hasVortex = false, vortexDuration = 0f },
-        // Cấp 2: 50 dmg, CD 1.3s, 1 hit, spawn 1 dao/lần, max 2 (chọn powerup lần 2 hiện thêm 1 dao -> 2 dao)
-        new SpinningBladeLevelConfig { damage = 50, cooldown = 1.3f, hitsPerBlade = 1, spawnCountPerWave = 1, maxBladesOnField = 2, hasVortex = false, vortexDuration = 0f },
-        // Cấp 3: 70 dmg, CD 1.1s, 2 hits (đâm xuyên 2 quái), spawn 1 dao/lần, max 3
-        new SpinningBladeLevelConfig { damage = 70, cooldown = 1.1f, hitsPerBlade = 2, spawnCountPerWave = 1, maxBladesOnField = 3, hasVortex = false, vortexDuration = 0f },
-        // Cấp 4: 95 dmg, CD 0.9s, 2 hits, spawn 1 dao/lần, max 4
-        new SpinningBladeLevelConfig { damage = 95, cooldown = 0.9f, hitsPerBlade = 2, spawnCountPerWave = 1, maxBladesOnField = 4, hasVortex = false, vortexDuration = 0f },
-        // Cấp 5 (Tối thượng): 130 dmg, CD 0.7s, 3 hits, spawn 1 dao/lần, max 5, Lốc xoáy 2s khi nổ
-        new SpinningBladeLevelConfig { damage = 130, cooldown = 0.7f, hitsPerBlade = 3, spawnCountPerWave = 1, maxBladesOnField = 5, hasVortex = true, vortexDuration = 2.0f }
+        // Cấp 1: 36 dmg, CD 0.8s, 1 hit, spawn 1 dao/lần, max 8 (chọn powerup hiện 1 dao đầu tiên, sau đó tăng dần từng cái lên 8)
+        new SpinningBladeLevelConfig { damage = 36, cooldown = 0.8f, hitsPerBlade = 1, spawnCountPerWave = 1, maxBladesOnField = 8, hasVortex = false, vortexDuration = 0f },
+        // Cấp 2: 50 dmg, CD 0.7s, 1 hit, spawn 1 dao/lần, max 10 (tăng dần lên 10 dao)
+        new SpinningBladeLevelConfig { damage = 50, cooldown = 0.7f, hitsPerBlade = 1, spawnCountPerWave = 1, maxBladesOnField = 10, hasVortex = false, vortexDuration = 0f },
+        // Cấp 3: 70 dmg, CD 0.6s, 2 hits (đâm xuyên 2 quái), spawn 1 dao/lần, max 12 (tăng dần lên 12 dao)
+        new SpinningBladeLevelConfig { damage = 70, cooldown = 0.6f, hitsPerBlade = 2, spawnCountPerWave = 1, maxBladesOnField = 12, hasVortex = false, vortexDuration = 0f },
+        // Cấp 4: 95 dmg, CD 0.5s, 2 hits, spawn 1 dao/lần, max 14 (tăng dần lên 14 dao)
+        new SpinningBladeLevelConfig { damage = 95, cooldown = 0.5f, hitsPerBlade = 2, spawnCountPerWave = 1, maxBladesOnField = 14, hasVortex = false, vortexDuration = 0f },
+        // Cấp 5 (Tối thượng): 130 dmg, CD 0.4s, 3 hits, spawn 1 dao/lần, max 16 (tăng dần lên 16 dao, Lốc xoáy 2s khi nổ)
+        new SpinningBladeLevelConfig { damage = 130, cooldown = 0.4f, hitsPerBlade = 3, spawnCountPerWave = 1, maxBladesOnField = 16, hasVortex = true, vortexDuration = 2.0f }
     };
 
     [Header("Runtime State (Debug)")]
@@ -132,7 +132,7 @@ public class SpinningBladeSkill : MonoBehaviour
         cachedOnBladeDestroyed = OnBladeDestroyed;
         RefreshMetaTier();
 
-        if (levelConfigs == null || levelConfigs.Length < 5 || levelConfigs[0].maxBladesOnField != 1)
+        if (levelConfigs == null || levelConfigs.Length < 5 || levelConfigs[0].maxBladesOnField != 8)
         {
             ApplyUpdatedLevelConfigs();
         }
@@ -161,22 +161,23 @@ public class SpinningBladeSkill : MonoBehaviour
     {
         levelConfigs = new SpinningBladeLevelConfig[]
         {
-            // Cấp 1: 36 dmg, CD 1.5s, 1 hit, spawn 1 dao/lần, max 1 (chọn powerup lần 1 hiện đúng 1 dao)
-            new SpinningBladeLevelConfig { damage = 36, cooldown = 1.5f, hitsPerBlade = 1, spawnCountPerWave = 1, maxBladesOnField = 1, hasVortex = false, vortexDuration = 0f },
-            // Cấp 2: 50 dmg, CD 1.3s, 1 hit, spawn 1 dao/lần, max 2 (chọn powerup lần 2 hiện thêm 1 dao -> 2 dao)
-            new SpinningBladeLevelConfig { damage = 50, cooldown = 1.3f, hitsPerBlade = 1, spawnCountPerWave = 1, maxBladesOnField = 2, hasVortex = false, vortexDuration = 0f },
-            // Cấp 3: 70 dmg, CD 1.1s, 2 hits (đâm xuyên 2 quái), spawn 1 dao/lần, max 3
-            new SpinningBladeLevelConfig { damage = 70, cooldown = 1.1f, hitsPerBlade = 2, spawnCountPerWave = 1, maxBladesOnField = 3, hasVortex = false, vortexDuration = 0f },
-            // Cấp 4: 95 dmg, CD 0.9s, 2 hits, spawn 1 dao/lần, max 4
-            new SpinningBladeLevelConfig { damage = 95, cooldown = 0.9f, hitsPerBlade = 2, spawnCountPerWave = 1, maxBladesOnField = 4, hasVortex = false, vortexDuration = 0f },
-            // Cấp 5 (Tối thượng): 130 dmg, CD 0.7s, 3 hits, spawn 1 dao/lần, max 5, Lốc xoáy 2s khi nổ
-            new SpinningBladeLevelConfig { damage = 130, cooldown = 0.7f, hitsPerBlade = 3, spawnCountPerWave = 1, maxBladesOnField = 5, hasVortex = true, vortexDuration = 2.0f }
+            // Cấp 1: 36 dmg, CD 0.8s, 1 hit, spawn 1 dao/lần, max 8 (chọn powerup hiện 1 dao đầu tiên, sau đó tăng dần từng cái lên 8)
+            new SpinningBladeLevelConfig { damage = 36, cooldown = 0.8f, hitsPerBlade = 1, spawnCountPerWave = 1, maxBladesOnField = 8, hasVortex = false, vortexDuration = 0f },
+            // Cấp 2: 50 dmg, CD 0.7s, 1 hit, spawn 1 dao/lần, max 10 (tăng dần lên 10 dao)
+            new SpinningBladeLevelConfig { damage = 50, cooldown = 0.7f, hitsPerBlade = 1, spawnCountPerWave = 1, maxBladesOnField = 10, hasVortex = false, vortexDuration = 0f },
+            // Cấp 3: 70 dmg, CD 0.6s, 2 hits (đâm xuyên 2 quái), spawn 1 dao/lần, max 12 (tăng dần lên 12 dao)
+            new SpinningBladeLevelConfig { damage = 70, cooldown = 0.6f, hitsPerBlade = 2, spawnCountPerWave = 1, maxBladesOnField = 12, hasVortex = false, vortexDuration = 0f },
+            // Cấp 4: 95 dmg, CD 0.5s, 2 hits, spawn 1 dao/lần, max 14 (tăng dần lên 14 dao)
+            new SpinningBladeLevelConfig { damage = 95, cooldown = 0.5f, hitsPerBlade = 2, spawnCountPerWave = 1, maxBladesOnField = 14, hasVortex = false, vortexDuration = 0f },
+            // Cấp 5 (Tối thượng): 130 dmg, CD 0.4s, 3 hits, spawn 1 dao/lần, max 16 (tăng dần lên 16 dao, Lốc xoáy 2s khi nổ)
+            new SpinningBladeLevelConfig { damage = 130, cooldown = 0.4f, hitsPerBlade = 3, spawnCountPerWave = 1, maxBladesOnField = 16, hasVortex = true, vortexDuration = 2.0f }
         };
     }
 
     /// <summary>
     /// Mở khóa hoặc tăng cấp độ kỹ năng Spinning Blade (1 -> 5).
-    /// Khi người chơi chọn powerup: Hiện từng cái một (mỗi lần chọn chỉ sinh thêm 1 dao tương ứng cấp độ).
+    /// Khi người chơi chọn powerup: Bắt đầu từ 1 dao (không hiện ồ ạt nhiều cái),
+    /// sau đó tự động tăng dần từng cái một theo thời gian cho tới khi đủ maxBladesOnField (8, 10, 12, 14, 16).
     /// </summary>
     public void UnlockOrUpgrade(int level)
     {
@@ -186,12 +187,14 @@ public class SpinningBladeSkill : MonoBehaviour
 
         SpinningBladeLevelConfig config = GetCurrentConfig();
         
-        // Khi người chơi chọn powerup: hiện từng cái một, KHÔNG hiện nhiều cái cùng một lúc
+        // Khi người chơi chọn powerup: chỉ sinh 1 dao tại thời điểm chọn (nếu chưa đạt max)
+        // Bắt đầu từ 1 dao và tăng dần lên từng cái một
         if (activeBlades.Count < config.maxBladesOnField)
         {
             SpawnBlade();
         }
 
+        // Nếu chưa đủ số dao tối đa của cấp độ, kích hoạt hồi chiêu để tự sinh thêm từng dao một theo thời gian
         if (activeBlades.Count < config.maxBladesOnField)
         {
             isCooldownActive = true;
