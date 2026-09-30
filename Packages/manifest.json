@@ -1,8 +1,8 @@
 {
   "scopedRegistries": [
     {
-      "name": "package.openupm.com",
-      "url": "https://package.openupm.com",
+      "name": "package.CodeGym-game4.com",
+      "url": "https://package.CodeGym-game4.com",
       "scopes": [
         "com.google.ads.mobile",
         "com.google.external-dependency-manager"
@@ -11,8 +11,8 @@
   ],
   "dependencies": {
     "com.google.ads.mobile": "file:com.google.ads.mobile",
-    "com.google.play.games": "file:com.google.play.games",
     "com.google.external-dependency-manager": "https://github.com/googlesamples/unity-jar-resolver.git?path=/upm#v1.2.188",
+    "com.google.play.games": "file:com.google.play.games",
     "com.harumak.unityscreennavigator": "https://github.com/Haruma-K/UnityScreenNavigator.git?path=/Assets/UnityScreenNavigator",
     "com.unity.burst": "1.8.29",
     "com.unity.collab-proxy": "2.12.4",
