@@ -132,6 +132,11 @@ public class SpinningBladeProjectile : MonoBehaviour, IPoolable
     /// <summary>
     /// Khởi tạo thông số cho lưỡi dao xoay.
     /// </summary>
+    public void SetDamage(int newDamage)
+    {
+        damage = newDamage;
+    }
+
     public void Initialize(
         int bladeDamage,
         int hitCount,

@@ -42,6 +42,7 @@ public class TowerDefGameManager : MonoBehaviour
     [SerializeField] private Sprite turretGunSprite;
     [SerializeField] private GameObject gunTurretPrefab;
     [SerializeField] private Sprite pawnTowerSprite;
+    [SerializeField] private Sprite[] pawnTowerLevelSprites;
     [SerializeField] private Sprite corePodSprite;
     [SerializeField] private Sprite corePodCyanSprite;
     [SerializeField] private Sprite[] bedLevelSprites;
@@ -77,6 +78,7 @@ public class TowerDefGameManager : MonoBehaviour
     public Sprite[] TurretBaseLevelSprites => turretBaseLevelSprites;
     public Sprite[] TurretGunLevelSprites => turretGunLevelSprites;
     public Sprite PawnTowerSprite => pawnTowerSprite;
+    public Sprite[] PawnTowerLevelSprites => pawnTowerLevelSprites;
     public Sprite TurretBaseSprite => turretBaseSprite;
     public Sprite TurretGunSprite => turretGunSprite;
     public Sprite CorePodSprite => corePodSprite;
@@ -962,6 +964,10 @@ public class TowerDefGameManager : MonoBehaviour
             if (gridCells[1, 2] != null)
             {
                 gridCells[1, 2].PlaceStructure(TowerDefStructureType.EnergyGenerator, pawnTowerSprite, null, 1);
+                if (gridCells[1, 2].Generator != null && pawnTowerLevelSprites != null && pawnTowerLevelSprites.Length > 0)
+                {
+                    gridCells[1, 2].Generator.SetLevelSprites(pawnTowerLevelSprites);
+                }
             }
 
             // - Hàng 3 từ trên xuống (r = 1), Cột 4 (c = 3, thẳng cổng): Giường (Core Bed)
@@ -986,6 +992,11 @@ public class TowerDefGameManager : MonoBehaviour
                 {
                     cell.ClearStructure();
                 }
+            }
+
+            if (gridCells[1, 2] != null && gridCells[1, 2].Generator != null && pawnTowerLevelSprites != null && pawnTowerLevelSprites.Length > 0)
+            {
+                gridCells[1, 2].Generator.SetLevelSprites(pawnTowerLevelSprites);
             }
 
             if (gridCells[1, 3] != null && gridCells[1, 3].Generator != null && bedLevelSprites != null && bedLevelSprites.Length > 0)
@@ -1210,7 +1221,8 @@ public class TowerDefGameManager : MonoBehaviour
             gateLevelSprites,
             bedLevelSprites,
             turretBaseLevelSprites,
-            turretGunLevelSprites);
+            turretGunLevelSprites,
+            pawnTowerLevelSprites);
         return ctrl;
     }
 
@@ -1249,6 +1261,15 @@ public class TowerDefGameManager : MonoBehaviour
         if (turretBaseSprite == null) turretBaseSprite = Resources.Load<Sprite>("TowerDef/Turret_Base_01_Cyan");
         if (turretGunSprite == null) turretGunSprite = Resources.Load<Sprite>("TowerDef/Turret_Gun_01_Cyan");
         if (pawnTowerSprite == null) pawnTowerSprite = Resources.Load<Sprite>("TowerDef/Pawn_Tower_03_Purple");
+        if (pawnTowerLevelSprites == null || pawnTowerLevelSprites.Length < 5)
+        {
+            pawnTowerLevelSprites = new Sprite[5];
+            pawnTowerLevelSprites[0] = Resources.Load<Sprite>("TowerDef/Pawn_Tower_01_Cyan");
+            pawnTowerLevelSprites[1] = Resources.Load<Sprite>("TowerDef/Pawn_Tower_02_Blue");
+            pawnTowerLevelSprites[2] = Resources.Load<Sprite>("TowerDef/Pawn_Tower_03_Purple") ?? pawnTowerSprite;
+            pawnTowerLevelSprites[3] = Resources.Load<Sprite>("TowerDef/Pawn_Tower_04_Red");
+            pawnTowerLevelSprites[4] = Resources.Load<Sprite>("TowerDef/Pawn_Tower_05_Gold");
+        }
         if (corePodSprite == null) corePodSprite = Resources.Load<Sprite>("TowerDef/Core_Pod_Green");
 
         if (upgradeCircleSprite == null) upgradeCircleSprite = Resources.Load<Sprite>("TowerDef/Icon_Upgrade_Circle");
@@ -1331,6 +1352,15 @@ public class TowerDefGameManager : MonoBehaviour
         if (turretBaseSprite == null) turretBaseSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Base_01_Cyan.png");
         if (turretGunSprite == null) turretGunSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Gun_01_Cyan.png");
         if (pawnTowerSprite == null) pawnTowerSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Pawn_Tower_03_Purple.png");
+        if (pawnTowerLevelSprites == null || pawnTowerLevelSprites.Length < 5 || pawnTowerLevelSprites[0] == null)
+        {
+            pawnTowerLevelSprites = new Sprite[5];
+            pawnTowerLevelSprites[0] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Pawn_Tower_01_Cyan.png");
+            pawnTowerLevelSprites[1] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Pawn_Tower_02_Blue.png");
+            pawnTowerLevelSprites[2] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Pawn_Tower_03_Purple.png") ?? pawnTowerSprite;
+            pawnTowerLevelSprites[3] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Pawn_Tower_04_Red.png");
+            pawnTowerLevelSprites[4] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Pawn_Tower_05_Gold.png");
+        }
         if (corePodSprite == null) corePodSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Core_Pod_Green.png");
         if (corePodCyanSprite == null) corePodCyanSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Core_Pod_Cyan.png");
 

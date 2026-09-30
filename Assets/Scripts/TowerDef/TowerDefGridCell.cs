@@ -41,8 +41,8 @@ public class TowerDefGridCell : MonoBehaviour, IPointerClickHandler
     public TowerDefStructureType CurrentType => currentType;
     public int StructureLevel => structureLevel;
     public bool IsOccupied => currentType != TowerDefStructureType.None;
-    public TowerDefTurret Turret => turretComp;
-    public TowerDefGenerator Generator => generatorComp;
+    public TowerDefTurret Turret => turretComp != null ? turretComp : (turretComp = GetComponent<TowerDefTurret>());
+    public TowerDefGenerator Generator => generatorComp != null ? generatorComp : (generatorComp = GetComponent<TowerDefGenerator>());
     public GameObject TurretPrefabInstance => turretInstance;
 
     public event Action<TowerDefGridCell> OnCellClicked;
@@ -58,6 +58,8 @@ public class TowerDefGridCell : MonoBehaviour, IPointerClickHandler
             cellButton.onClick.RemoveListener(HandleClick);
             cellButton.onClick.AddListener(HandleClick);
         }
+        if (generatorComp == null) generatorComp = GetComponent<TowerDefGenerator>();
+        if (turretComp == null) turretComp = GetComponent<TowerDefTurret>();
         UpdateVisuals();
     }
 

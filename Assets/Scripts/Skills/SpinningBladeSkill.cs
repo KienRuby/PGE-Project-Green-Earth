@@ -76,6 +76,10 @@ public class SpinningBladeSkill : MonoBehaviour
         new SpinningBladeLevelConfig { damage = 130, cooldown = 0.4f, hitsPerBlade = 3, spawnCountPerWave = 1, maxBladesOnField = 16, hasVortex = true, vortexDuration = 2.0f }
     };
 
+    [Header("Testing / Direct Damage (Chỉnh Sát Thương Trực Tiếp)")]
+    [Tooltip("Chỉnh sát thương trực tiếp trên Hierarchy/Inspector. Nếu > 0, Lưỡi Dao Xoay luôn dùng sát thương này (kể cả khi đang Play Mode) mà không bị phụ thuộc cấp độ.")]
+    [SerializeField] private int debugDamageOverride = 0;
+
     [Header("Runtime State (Debug)")]
     [SerializeField] private bool isUnlocked = false;
     [SerializeField] private int currentSkillLevel = 1;
@@ -98,6 +102,11 @@ public class SpinningBladeSkill : MonoBehaviour
     public bool IsUnlocked => isUnlocked;
     public int CurrentSkillLevel => currentSkillLevel;
     public int ActiveBladeCount => activeBlades.Count;
+    public int DebugDamageOverride
+    {
+        get => debugDamageOverride;
+        set => debugDamageOverride = value;
+    }
     public float OrbitRadius => GetEffectiveOrbitRadius();
     public float RawOrbitRadius => orbitRadius;
     public float OrbitSpeed => orbitSpeed;
@@ -258,6 +267,11 @@ public class SpinningBladeSkill : MonoBehaviour
                 SpinningBladeProjectile blade = activeBlades[i];
                 if (blade == null) continue;
 
+                if (debugDamageOverride > 0)
+                {
+                    blade.SetDamage(debugDamageOverride);
+                }
+
                 blade.SetGuaranteedPierce(isGuaranteedPierceActive);
 
                 float bladeAngle = evenlyDistributeAroundPlayer ? (baseOrbitAngle + (i * angleStep)) : (baseOrbitAngle - (i * bladeSpacingAngle));
@@ -350,7 +364,8 @@ public class SpinningBladeSkill : MonoBehaviour
         PlayerStatsManager stats = GetComponent<PlayerStatsManager>();
         if (stats != null) labBonusDmg = stats.BonusDamage;
 
-        int finalDamage = config.damage + labBonusDmg;
+        int baseDmg = debugDamageOverride > 0 ? debugDamageOverride : config.damage;
+        int finalDamage = baseDmg + labBonusDmg;
 
         proj.Initialize(
             finalDamage,

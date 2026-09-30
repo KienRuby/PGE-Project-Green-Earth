@@ -54,7 +54,9 @@ public class TowerDefUIController : MonoBehaviour
     [SerializeField] private Sprite[] turretGunLevelSprites;
     [SerializeField] private TMP_FontAsset uiFont;
 
+    [SerializeField] private Sprite corePodSprite;
     [SerializeField] private Sprite[] bedLevelSprites;
+    [SerializeField] private Sprite[] pawnTowerLevelSprites;
     private bool hasUsedFreeAdUpgrade = false;
     private bool hasUsedFreeBedAdUpgrade = false;
     private Image gatePreviewImage1;
@@ -211,7 +213,8 @@ public class TowerDefUIController : MonoBehaviour
         Sprite[] gateSprites,
         Sprite[] bedSprites = null,
         Sprite[] turretBases = null,
-        Sprite[] turretGuns = null)
+        Sprite[] turretGuns = null,
+        Sprite[] pawnTowerSprites = null)
     {
         if (framePopup != null) frameUpgradePopupSprite = framePopup;
         if (panelRowBar != null) panelUpgradeRowBarSprite = panelRowBar;
@@ -223,6 +226,7 @@ public class TowerDefUIController : MonoBehaviour
         if (bedSprites != null) bedLevelSprites = bedSprites;
         if (turretBases != null) turretBaseLevelSprites = turretBases;
         if (turretGuns != null) turretGunLevelSprites = turretGuns;
+        if (pawnTowerSprites != null) pawnTowerLevelSprites = pawnTowerSprites;
     }
 
     private void EnsureSpritesAndFont()
@@ -279,6 +283,32 @@ public class TowerDefUIController : MonoBehaviour
             turretGunLevelSprites[4] = Resources.Load<Sprite>("TowerDef/Turret_Gun_05_Red");
         }
 
+        if (corePodSprite == null) corePodSprite = Resources.Load<Sprite>("TowerDef/Core_Pod_Green");
+
+        if (bedLevelSprites == null || bedLevelSprites.Length < 4 || bedLevelSprites[0] == null)
+        {
+            bedLevelSprites = new Sprite[4];
+            bedLevelSprites[0] = Resources.Load<Sprite>("TowerDef/Core_Pod_Green") ?? corePodSprite;
+            bedLevelSprites[1] = Resources.Load<Sprite>("TowerDef/Core_Pod_Cyan");
+            bedLevelSprites[2] = Resources.Load<Sprite>("TowerDef/Core_Pod_Cyan");
+            bedLevelSprites[3] = Resources.Load<Sprite>("TowerDef/Core_Pod_Cyan");
+        }
+
+        if (pawnTowerSprite == null)
+        {
+            pawnTowerSprite = Resources.Load<Sprite>("TowerDef/Pawn_Tower_03_Purple");
+        }
+
+        if (pawnTowerLevelSprites == null || pawnTowerLevelSprites.Length < 5 || pawnTowerLevelSprites[0] == null)
+        {
+            pawnTowerLevelSprites = new Sprite[5];
+            pawnTowerLevelSprites[0] = Resources.Load<Sprite>("TowerDef/Pawn_Tower_01_Cyan");
+            pawnTowerLevelSprites[1] = Resources.Load<Sprite>("TowerDef/Pawn_Tower_02_Blue");
+            pawnTowerLevelSprites[2] = Resources.Load<Sprite>("TowerDef/Pawn_Tower_03_Purple") ?? pawnTowerSprite;
+            pawnTowerLevelSprites[3] = Resources.Load<Sprite>("TowerDef/Pawn_Tower_04_Red");
+            pawnTowerLevelSprites[4] = Resources.Load<Sprite>("TowerDef/Pawn_Tower_05_Gold");
+        }
+
 #if UNITY_EDITOR
         string uiDir = "Assets/Sprites/Mini game/Sliced/UI/";
         string tilesDir = "Assets/Sprites/Mini game/Sliced/Tiles/";
@@ -308,19 +338,23 @@ public class TowerDefUIController : MonoBehaviour
         if (turretGunLevelSprites[3] == null) turretGunLevelSprites[3] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Gun_04_Purple.png");
         if (turretGunLevelSprites[4] == null) turretGunLevelSprites[4] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Turret_Gun_05_Red.png");
 
-        if (bedLevelSprites == null || bedLevelSprites.Length < 4 || bedLevelSprites[0] == null)
-        {
-            bedLevelSprites = new Sprite[4];
-            bedLevelSprites[0] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Core_Pod_Green.png");
-            bedLevelSprites[1] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Core_Pod_Cyan.png");
-            bedLevelSprites[2] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Core_Pod_Cyan.png");
-            bedLevelSprites[3] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Core_Pod_Cyan.png");
-        }
+        if (corePodSprite == null) corePodSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Core_Pod_Green.png");
+
+        if (bedLevelSprites[0] == null) bedLevelSprites[0] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Core_Pod_Green.png");
+        if (bedLevelSprites[1] == null) bedLevelSprites[1] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Core_Pod_Cyan.png");
+        if (bedLevelSprites[2] == null) bedLevelSprites[2] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Core_Pod_Cyan.png");
+        if (bedLevelSprites[3] == null) bedLevelSprites[3] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Core_Pod_Cyan.png");
 
         if (pawnTowerSprite == null)
         {
             pawnTowerSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Pawn_Tower_03_Purple.png");
         }
+
+        if (pawnTowerLevelSprites[0] == null) pawnTowerLevelSprites[0] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Pawn_Tower_01_Cyan.png");
+        if (pawnTowerLevelSprites[1] == null) pawnTowerLevelSprites[1] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Pawn_Tower_02_Blue.png");
+        if (pawnTowerLevelSprites[2] == null) pawnTowerLevelSprites[2] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Pawn_Tower_03_Purple.png") ?? pawnTowerSprite;
+        if (pawnTowerLevelSprites[3] == null) pawnTowerLevelSprites[3] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Pawn_Tower_04_Red.png");
+        if (pawnTowerLevelSprites[4] == null) pawnTowerLevelSprites[4] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(towersDir + "Pawn_Tower_05_Gold.png");
 
         string victoryDir = "Assets/Sprites/UI/Victory/";
         if (victoryPanelSprite == null) victoryPanelSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(victoryDir + "Panel_Victory_Citadel_Clean.png") ?? UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(victoryDir + "Panel_Victory_Citadel.png");
@@ -330,13 +364,15 @@ public class TowerDefUIController : MonoBehaviour
         string defeatDir = "Assets/Sprites/UI/Defeat/";
         if (defeatPanelSprite == null) defeatPanelSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(defeatDir + "Panel_Defeat_Citadel_Clean.png") ?? UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(defeatDir + "Panel_Defeat_Citadel.png");
 #endif
+        if (TowerDefGameManager.Instance != null)
+        {
+            if (pawnTowerSprite == null) pawnTowerSprite = TowerDefGameManager.Instance.PawnTowerSprite;
+            if ((pawnTowerLevelSprites == null || pawnTowerLevelSprites[0] == null) && TowerDefGameManager.Instance.PawnTowerLevelSprites != null)
+                pawnTowerLevelSprites = TowerDefGameManager.Instance.PawnTowerLevelSprites;
+        }
         if (pawnTowerSprite == null)
         {
             pawnTowerSprite = Resources.Load<Sprite>("TowerDef/Pawn_Tower_03_Purple");
-        }
-        if (pawnTowerSprite == null && TowerDefGameManager.Instance != null)
-        {
-            pawnTowerSprite = TowerDefGameManager.Instance.PawnTowerSprite;
         }
     }
 
@@ -375,15 +411,31 @@ public class TowerDefUIController : MonoBehaviour
             nextGateSpr = gateLevelSprites[idx];
         }
 
-        if (gatePreviewImage1 != null && nextGateSpr != null)
+        if (gatePreviewImage1 != null)
         {
-            gatePreviewImage1.sprite = nextGateSpr;
-            gatePreviewImage1.color = Color.white;
+            if (nextGateSpr != null)
+            {
+                gatePreviewImage1.gameObject.SetActive(true);
+                gatePreviewImage1.sprite = nextGateSpr;
+                gatePreviewImage1.color = Color.white;
+            }
+            else
+            {
+                gatePreviewImage1.gameObject.SetActive(false);
+            }
         }
-        if (gatePreviewImage2 != null && nextGateSpr != null)
+        if (gatePreviewImage2 != null)
         {
-            gatePreviewImage2.sprite = nextGateSpr;
-            gatePreviewImage2.color = Color.white;
+            if (nextGateSpr != null)
+            {
+                gatePreviewImage2.gameObject.SetActive(true);
+                gatePreviewImage2.sprite = nextGateSpr;
+                gatePreviewImage2.color = Color.white;
+            }
+            else
+            {
+                gatePreviewImage2.gameObject.SetActive(false);
+            }
         }
 
         if (isMax)
@@ -566,8 +618,8 @@ public class TowerDefUIController : MonoBehaviour
         sprObj.transform.SetParent(iconRoot.transform, false);
         RectTransform sprRt = sprObj.GetComponent<RectTransform>();
         sprRt.anchorMin = sprRt.anchorMax = sprRt.pivot = new Vector2(0.5f, 0.5f);
-        sprRt.anchoredPosition = new Vector2(0f, 15f);
-        sprRt.sizeDelta = new Vector2(100f, 100f);
+        sprRt.anchoredPosition = new Vector2(0f, 25f);
+        sprRt.sizeDelta = new Vector2(85f, 85f);
         gatePreviewImg = sprObj.GetComponent<Image>();
         gatePreviewImg.preserveAspect = true;
         gatePreviewImg.raycastTarget = false;
@@ -576,12 +628,13 @@ public class TowerDefUIController : MonoBehaviour
         GameObject lvlTextObj = new GameObject("LevelText", typeof(RectTransform), typeof(TextMeshProUGUI));
         lvlTextObj.transform.SetParent(iconRoot.transform, false);
         RectTransform lvlTextRt = lvlTextObj.GetComponent<RectTransform>();
-        lvlTextRt.anchorMin = lvlTextRt.anchorMax = lvlTextRt.pivot = new Vector2(0.5f, 0f);
-        lvlTextRt.anchoredPosition = new Vector2(0f, -5f);
-        lvlTextRt.sizeDelta = new Vector2(125f, 50f);
+        lvlTextRt.anchorMin = lvlTextRt.anchorMax = lvlTextRt.pivot = new Vector2(0.5f, 0.5f);
+        lvlTextRt.anchoredPosition = new Vector2(0f, -42f);
+        lvlTextRt.sizeDelta = new Vector2(130f, 48f);
         gateLevelTxt = lvlTextObj.GetComponent<TextMeshProUGUI>();
         if (uiFont != null) gateLevelTxt.font = uiFont;
-        gateLevelTxt.fontSize = 20f;
+        gateLevelTxt.fontSize = 17f;
+        gateLevelTxt.lineSpacing = -10f;
         gateLevelTxt.fontStyle = FontStyles.Bold;
         gateLevelTxt.alignment = TextAlignmentOptions.Center;
         gateLevelTxt.color = Color.white;
@@ -796,6 +849,15 @@ public class TowerDefUIController : MonoBehaviour
                 int idx = Mathf.Clamp(nextLvl - 1, 0, bedLevelSprites.Length - 1);
                 nextSprite = bedLevelSprites[idx];
             }
+            if (nextSprite == null && isGenerator)
+            {
+                if (pawnTowerLevelSprites != null && pawnTowerLevelSprites.Length > 0)
+                {
+                    int idx = Mathf.Clamp(nextLvl - 1, 0, pawnTowerLevelSprites.Length - 1);
+                    nextSprite = pawnTowerLevelSprites[idx];
+                }
+                if (nextSprite == null) nextSprite = pawnTowerSprite;
+            }
         }
         else if (currentSelectedCell.Turret != null)
         {
@@ -821,17 +883,53 @@ public class TowerDefUIController : MonoBehaviour
             nextLvl = currentLvl + 1;
             cost = 50;
             statStr = $"Cấp độ: {nextLvl}";
+
+            if (isBed && bedLevelSprites != null && bedLevelSprites.Length > 0)
+            {
+                int idx = Mathf.Clamp(nextLvl - 1, 0, bedLevelSprites.Length - 1);
+                nextSprite = bedLevelSprites[idx];
+            }
+            else if (isGenerator)
+            {
+                if (pawnTowerLevelSprites != null && pawnTowerLevelSprites.Length > 0)
+                {
+                    int idx = Mathf.Clamp(nextLvl - 1, 0, pawnTowerLevelSprites.Length - 1);
+                    nextSprite = pawnTowerLevelSprites[idx];
+                }
+                if (nextSprite == null) nextSprite = pawnTowerSprite;
+            }
+            else if (isTurret && turretGunLevelSprites != null && turretGunLevelSprites.Length > 0)
+            {
+                int idx = Mathf.Clamp(nextLvl - 1, 0, turretGunLevelSprites.Length - 1);
+                nextSprite = turretGunLevelSprites[idx];
+            }
         }
 
-        if (structPreviewImage1 != null && nextSprite != null)
+        if (structPreviewImage1 != null)
         {
-            structPreviewImage1.sprite = nextSprite;
-            structPreviewImage1.color = Color.white;
+            if (nextSprite != null)
+            {
+                structPreviewImage1.gameObject.SetActive(true);
+                structPreviewImage1.sprite = nextSprite;
+                structPreviewImage1.color = Color.white;
+            }
+            else
+            {
+                structPreviewImage1.gameObject.SetActive(false);
+            }
         }
-        if (structPreviewImage2 != null && nextSprite != null)
+        if (structPreviewImage2 != null)
         {
-            structPreviewImage2.sprite = nextSprite;
-            structPreviewImage2.color = Color.white;
+            if (nextSprite != null)
+            {
+                structPreviewImage2.gameObject.SetActive(true);
+                structPreviewImage2.sprite = nextSprite;
+                structPreviewImage2.color = Color.white;
+            }
+            else
+            {
+                structPreviewImage2.gameObject.SetActive(false);
+            }
         }
 
         if (isMax)
@@ -1013,8 +1111,8 @@ public class TowerDefUIController : MonoBehaviour
         sprObj.transform.SetParent(iconRoot.transform, false);
         RectTransform sprRt = sprObj.GetComponent<RectTransform>();
         sprRt.anchorMin = sprRt.anchorMax = sprRt.pivot = new Vector2(0.5f, 0.5f);
-        sprRt.anchoredPosition = new Vector2(0f, 15f);
-        sprRt.sizeDelta = new Vector2(100f, 100f);
+        sprRt.anchoredPosition = new Vector2(0f, 25f);
+        sprRt.sizeDelta = new Vector2(85f, 85f);
         previewImg = sprObj.GetComponent<Image>();
         previewImg.preserveAspect = true;
         previewImg.raycastTarget = false;
@@ -1022,12 +1120,13 @@ public class TowerDefUIController : MonoBehaviour
         GameObject lvlTextObj = new GameObject("LevelText", typeof(RectTransform), typeof(TextMeshProUGUI));
         lvlTextObj.transform.SetParent(iconRoot.transform, false);
         RectTransform lvlTextRt = lvlTextObj.GetComponent<RectTransform>();
-        lvlTextRt.anchorMin = lvlTextRt.anchorMax = lvlTextRt.pivot = new Vector2(0.5f, 0f);
-        lvlTextRt.anchoredPosition = new Vector2(0f, -5f);
-        lvlTextRt.sizeDelta = new Vector2(125f, 50f);
+        lvlTextRt.anchorMin = lvlTextRt.anchorMax = lvlTextRt.pivot = new Vector2(0.5f, 0.5f);
+        lvlTextRt.anchoredPosition = new Vector2(0f, -42f);
+        lvlTextRt.sizeDelta = new Vector2(130f, 48f);
         levelTxt = lvlTextObj.GetComponent<TextMeshProUGUI>();
         if (uiFont != null) levelTxt.font = uiFont;
-        levelTxt.fontSize = 20f;
+        levelTxt.fontSize = 17f;
+        levelTxt.lineSpacing = -10f;
         levelTxt.fontStyle = FontStyles.Bold;
         levelTxt.alignment = TextAlignmentOptions.Center;
         levelTxt.color = Color.white;
@@ -1229,10 +1328,12 @@ public class TowerDefUIController : MonoBehaviour
         if (panelUpgradeRowBarSprite != null) row2Img.sprite = panelUpgradeRowBarSprite;
         row2Img.color = Color.white;
 
-        Sprite generatorIcon = (TowerDefGameManager.Instance != null && TowerDefGameManager.Instance.PawnTowerSprite != null)
-            ? TowerDefGameManager.Instance.PawnTowerSprite
-            : pawnTowerSprite;
-        if (generatorIcon == null) generatorIcon = Resources.Load<Sprite>("TowerDef/Pawn_Tower_03_Purple");
+        Sprite generatorIcon = (pawnTowerLevelSprites != null && pawnTowerLevelSprites.Length > 0 && pawnTowerLevelSprites[0] != null)
+            ? pawnTowerLevelSprites[0]
+            : ((TowerDefGameManager.Instance != null && TowerDefGameManager.Instance.PawnTowerSprite != null)
+                ? TowerDefGameManager.Instance.PawnTowerSprite
+                : pawnTowerSprite);
+        if (generatorIcon == null) generatorIcon = Resources.Load<Sprite>("TowerDef/Pawn_Tower_01_Cyan") ?? Resources.Load<Sprite>("TowerDef/Pawn_Tower_03_Purple");
 
         BuildBuyRow(row2Obj.transform, generatorIcon, "Trụ điện\n<color=#FFD700>LV.01</color>",
             "Trụ năng lượng", "Sản xuất: +2 Năng lượng/giây\nCung cấp tài nguyên nâng cấp căn cứ",
@@ -1263,8 +1364,8 @@ public class TowerDefUIController : MonoBehaviour
         sprObj.transform.SetParent(iconRoot.transform, false);
         RectTransform sprRt = sprObj.GetComponent<RectTransform>();
         sprRt.anchorMin = sprRt.anchorMax = sprRt.pivot = new Vector2(0.5f, 0.5f);
-        sprRt.anchoredPosition = new Vector2(0f, 15f);
-        sprRt.sizeDelta = new Vector2(100f, 100f);
+        sprRt.anchoredPosition = new Vector2(0f, 25f);
+        sprRt.sizeDelta = new Vector2(85f, 85f);
         Image previewImg = sprObj.GetComponent<Image>();
         previewImg.preserveAspect = true;
         previewImg.raycastTarget = false;
@@ -1274,12 +1375,13 @@ public class TowerDefUIController : MonoBehaviour
         GameObject lvlTextObj = new GameObject("LevelText", typeof(RectTransform), typeof(TextMeshProUGUI));
         lvlTextObj.transform.SetParent(iconRoot.transform, false);
         RectTransform lvlTextRt = lvlTextObj.GetComponent<RectTransform>();
-        lvlTextRt.anchorMin = lvlTextRt.anchorMax = lvlTextRt.pivot = new Vector2(0.5f, 0f);
-        lvlTextRt.anchoredPosition = new Vector2(0f, -5f);
-        lvlTextRt.sizeDelta = new Vector2(125f, 50f);
+        lvlTextRt.anchorMin = lvlTextRt.anchorMax = lvlTextRt.pivot = new Vector2(0.5f, 0.5f);
+        lvlTextRt.anchoredPosition = new Vector2(0f, -42f);
+        lvlTextRt.sizeDelta = new Vector2(130f, 48f);
         TextMeshProUGUI lvlTmp = lvlTextObj.GetComponent<TextMeshProUGUI>();
         if (uiFont != null) lvlTmp.font = uiFont;
-        lvlTmp.fontSize = 20f;
+        lvlTmp.fontSize = 17f;
+        lvlTmp.lineSpacing = -10f;
         lvlTmp.fontStyle = FontStyles.Bold;
         lvlTmp.alignment = TextAlignmentOptions.Center;
         lvlTmp.color = Color.white;

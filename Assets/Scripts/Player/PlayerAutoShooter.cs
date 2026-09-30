@@ -92,6 +92,9 @@ public class PlayerAutoShooter : MonoBehaviour
     [Tooltip("2. SÁT THƯƠNG: Lượng sát thương gây ra cho mỗi viên đạn.")]
     [SerializeField] private int currentDamage = 20;
 
+    [Tooltip("Chỉnh sát thương trực tiếp trên Hierarchy/Inspector. Nếu > 0, Player luôn gây đúng sát thương này ngay lập tức (kể cả khi đang Play Mode) mà không bị file BlasterGun.asset hay nâng cấp chipset ghi đè.")]
+    [SerializeField] private int debugDamageOverride = 0;
+
     [Tooltip("3. TỐC ĐỘ RA ĐẠN: Vận tốc bay của viên đạn.")]
     [SerializeField] private float currentBulletSpeed = 12f;
 
@@ -161,7 +164,14 @@ public class PlayerAutoShooter : MonoBehaviour
 
     public WeaponData CurrentEquippedWeapon => currentEquippedWeapon;
     public bool IsAttacking { get; private set; }
-    public int CurrentDamage => Mathf.RoundToInt(((GetChipsetWeaponLevel(1) > 0 ? GetChipsetWeaponDamage(1) : currentDamage) + bonusDamage) * artifactDamageMultiplier);
+    public int DebugDamageOverride
+    {
+        get => debugDamageOverride;
+        set => debugDamageOverride = value;
+    }
+    public int CurrentDamage => debugDamageOverride > 0
+        ? debugDamageOverride
+        : Mathf.RoundToInt(((GetChipsetWeaponLevel(1) > 0 ? GetChipsetWeaponDamage(1) : currentDamage) + bonusDamage) * artifactDamageMultiplier);
     public float CurrentFireRate => (GetChipsetWeaponLevel(1) > 0 ? 1f / GetChipsetWeaponFireInterval(1) : fireRate) + bonusFireRate;
     public int CurrentBulletsPerShot => GetChipsetWeaponLevel(1) > 0 ? GetChipsetWeaponProjectileCount(1) : currentBulletsPerShot;
     public float CurrentSpreadAngle => currentSpreadAngle;
@@ -534,7 +544,7 @@ public class PlayerAutoShooter : MonoBehaviour
 
         // 4. Cập nhật chỉ số của khẩu súng mặc định. Các kênh chipset giữ chỉ số riêng.
         if (weapon.fireRate > 0f) fireRate = weapon.fireRate;
-        if (weapon.damage > 0) currentDamage = weapon.damage;
+        if (weapon.damage > 0 && debugDamageOverride <= 0) currentDamage = weapon.damage;
         if (weapon.bulletSpeed > 0f) currentBulletSpeed = weapon.bulletSpeed;
         if (weapon.attackRange > 0f)
         {

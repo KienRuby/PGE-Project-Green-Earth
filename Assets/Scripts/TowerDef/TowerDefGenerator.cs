@@ -63,7 +63,31 @@ public class TowerDefGenerator : MonoBehaviour
             if (idx < levelSprites.Length && levelSprites[idx] != null)
                 return levelSprites[idx];
         }
-        return structureImage != null ? structureImage.sprite : null;
+
+        if (generatorType == TowerDefStructureType.EnergyGenerator)
+        {
+            string[] names = { "Pawn_Tower_01_Cyan", "Pawn_Tower_02_Blue", "Pawn_Tower_03_Purple", "Pawn_Tower_04_Red", "Pawn_Tower_05_Gold" };
+            int nameIdx = Mathf.Clamp(level - 1, 0, names.Length - 1);
+            Sprite spr = Resources.Load<Sprite>($"TowerDef/{names[nameIdx]}");
+            if (spr != null) return spr;
+            if (structureImage != null && structureImage.sprite != null) return structureImage.sprite;
+            return Resources.Load<Sprite>("TowerDef/Pawn_Tower_03_Purple");
+        }
+        if (generatorType == TowerDefStructureType.CoreBed)
+        {
+            if (level > 1)
+            {
+                Sprite cyan = Resources.Load<Sprite>("TowerDef/Core_Pod_Cyan");
+                if (cyan != null) return cyan;
+            }
+            if (structureImage != null && structureImage.sprite != null) return structureImage.sprite;
+            return Resources.Load<Sprite>("TowerDef/Core_Pod_Green");
+        }
+
+        if (structureImage != null && structureImage.sprite != null)
+            return structureImage.sprite;
+
+        return null;
     }
 
     public void UpdateVisual()

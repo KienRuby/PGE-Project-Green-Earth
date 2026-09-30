@@ -211,6 +211,28 @@ public class M2CombatTests
             Object.DestroyImmediate(shooterObj);
         }
     }
+
+    [Test]
+    public void M2_09b_AutoShooter_DebugDamageOverride_OverridesWeaponAndStatBonuses()
+    {
+        GameObject shooterObj = new GameObject("Shooter", typeof(PlayerAutoShooter));
+        try
+        {
+            PlayerAutoShooter shooter = shooterObj.GetComponent<PlayerAutoShooter>();
+            WeaponData baseGun = ScriptableObject.CreateInstance<WeaponData>();
+            baseGun.damage = 25;
+            shooter.EquipWeapon(baseGun);
+
+            Assert.That(shooter.CurrentDamage, Is.EqualTo(25));
+
+            shooter.DebugDamageOverride = 500;
+            Assert.That(shooter.CurrentDamage, Is.EqualTo(500));
+        }
+        finally
+        {
+            Object.DestroyImmediate(shooterObj);
+        }
+    }
     #endregion
 
     #region 3. EXP Scaling & Level Controller Tests
@@ -488,6 +510,22 @@ public class M2CombatTests
             Assert.That(cfg5.damage, Is.EqualTo(130));
             Assert.That(cfg5.maxBladesOnField, Is.EqualTo(16));
             Assert.That(cfg5.hasVortex, Is.True);
+        }
+        finally
+        {
+            Object.DestroyImmediate(playerObj);
+        }
+    }
+
+    [Test]
+    public void M2_19b_SpinningBladeSkill_DebugDamageOverride_SetsCustomDamage()
+    {
+        GameObject playerObj = new GameObject("Player_Blade", typeof(SpinningBladeSkill));
+        try
+        {
+            SpinningBladeSkill bladeSkill = playerObj.GetComponent<SpinningBladeSkill>();
+            bladeSkill.DebugDamageOverride = 999;
+            Assert.That(bladeSkill.DebugDamageOverride, Is.EqualTo(999));
         }
         finally
         {
